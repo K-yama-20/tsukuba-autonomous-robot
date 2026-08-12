@@ -1,1 +1,182 @@
-つくばチャレンジの自動走行ロボット制作リポジトリです
+# tsukuba-autonomous-robot
+
+Hesai XT32 系 3D LiDAR と KISS-ICP を ROS 2 Jazzy 上で接続し、LiDAR 単独の odometry / mapping プロトタイプを起動するための bringup パッケージです。
+
+> 現在の作業ブランチは `feature/kiss-icp-integration` です。実機 LiDAR での最終検証は未完了です。
+
+## 目的
+
+Hesai ROS 2 driver が publish する点群を KISS-ICP に入力し、次の構成を一つの ROS 2 launch として再現可能にします。
+
+```text
+Hesai XT32
+  ↓
+hesai_ros_driver
+  ↓
+/lidar_points
+sensor_msgs/msg/PointCloud2
+frame_id: hesai_lidar
+  ↓
+KISS-ICP
+  ↓
+LiDAR odometry / mapping
+```
+
+最終的な起動コマンドは次です。
+
+```bash
+ros2 launch tsukuba_bringup kiss_icp_mapping.launch.py
+```
+
+## 対応環境
+
+- Ubuntu 24.04
+- ROS 2 Jazzy
+- Hesai XT32 系 LiDAR（実機設定は要確認）
+- ネイティブ Ubuntu 上での実機接続を推奨
+
+開発には Windows 上の WSL2 も使用していますが、Ethernet 経由の LiDAR UDP 受信は WSL のネットワーク構成に影響を受けます。そのため、実機動作の最終確認はネイティブ Ubuntu PC で行う方針です。
+
+## リポジトリ構成
+
+```text
+tsukuba-autonomous-robot/
+└── tsukuba_bringup/
+    ├── CMakeLists.txt
+    ├── package.xml
+    ├── launch/
+    │   └── kiss_icp_mapping.launch.py
+    ├── config/
+    └── rviz/
+```
+
+このリポジトリは、Hesai driver と KISS-ICP のソースを内包しません。上流リポジトリを ROS 2 ワークスペース内に別途配置し、それらを `tsukuba_bringup` の launch から統合します。
+
+## 前提となるワークスペース構成
+
+```text
+~/jazzy_ws/
+└── src/
+    ├── tsukuba-autonomous-robot/
+    ├── HesaiLidar_ROS_2.0/
+    └── kiss-icp/
+```
+
+## センサーインターフェース
+
+Hesai 公式 ROS 2 driver のデフォルト設定に合わせ、次を採用しています。
+
+| 項目 | 値 |
+| --- | --- |
+| Hesai ROS package | `hesai_ros_driver` |
+| LiDAR point cloud topic | `/lidar_points` |
+| Message type | `sensor_msgs/msg/PointCloud2` |
+| LiDAR frame | `hesai_lidar` |
+| Raw packet topic | `/lidar_packets` |
+
+KISS-ICP の入力 topic は `/lidar_points` に設定します。Hesai driver が publish し、KISS-ICP が subscribe することで、ROS 2 が両者を接続します。
+
+## セットアップ
+
+### 1. ワークスペースとソースを用意する
+
+```bash
+source /opt/ros/jazzy/setup.bash
+mkdir -p ~/jazzy_ws/src
+cd ~/jazzy_ws/src
+
+git clone <このリポジトリのURL>
+cd tsukuba-autonomous-robot
+git checkout feature/kiss-icp-integration
+cd ..
+
+git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+git clone https://github.com/PRBonn/kiss-icp.git
+```
+
+### 2. 依存関係を解決してビルドする
+
+```bash
+cd ~/jazzy_ws
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Hesai driver のビルドで不足が出る場合は、公式 README に従い `libboost-all-dev` と `libyaml-cpp-dev` などを導入してください。
+
+## 実機起動前の設定
+
+Hesai driver の設定で、実機に合わせて少なくとも以下を確認してください。
+
+- LiDAR の IP アドレス
+- PC の Ethernet NIC が LiDAR と同じサブネットにあること
+- UDP port（通常は `2368`）
+- PTC port（通常は `9347`）
+- LiDAR 側の UDP 送信先 IP が PC の Ethernet IP になっていること
+
+設定値は上流 driver 内で直接編集し続けず、動作確認後に `tsukuba_bringup/config/hesai_xt32.yaml` として本リポジトリで管理する予定です。
+
+## 起動と確認
+
+初回は、問題の切り分けをしやすくするため Hesai driver 単体から確認します。
+
+```bash
+source ~/jazzy_ws/install/setup.bash
+ros2 launch hesai_ros_driver start.py
+```
+
+別端末で、点群が来ていることを確認します。
+
+```bash
+source ~/jazzy_ws/install/setup.bash
+ros2 topic info /lidar_points -v
+ros2 topic hz /lidar_points
+ros2 topic echo /lidar_points --once
+```
+
+期待値は以下です。
+
+- 型が `sensor_msgs/msg/PointCloud2`
+- `header.frame_id` が `hesai_lidar`（driver config による）
+- 継続して点群が publish される
+
+その後、統合 launch を実行します。
+
+```bash
+source ~/jazzy_ws/install/setup.bash
+ros2 launch tsukuba_bringup kiss_icp_mapping.launch.py
+```
+
+`ros2 topic info /lidar_points -v` で Hesai driver が publisher、KISS-ICP が subscriber として見えることを確認してください。
+
+## TF
+
+点群フレームは `hesai_lidar` を使います。車体座標系を `base_link` とする場合、実機に取り付けたセンサー位置・姿勢に基づく次の固定 TF が必要です。
+
+```text
+base_link → hesai_lidar
+```
+
+開発途中では仮のゼロ変換を使えますが、実機での mapping 評価前には実測値へ更新してください。
+
+## 現在の進捗と制約
+
+- `tsukuba_bringup` と KISS-ICP / Hesai driver を含む統合 launch の構成は作成済み。
+- `/lidar_points`、`sensor_msgs/msg/PointCloud2`、`hesai_lidar` は公式 driver の設定・ソースを基に採用済み。
+- WSL 環境でのコード・ビルド・launch 構文確認を実施済み。
+- ネイティブ Ubuntu PC と実機 LiDAR による UDP 受信、KISS-ICP の実動作、TF、mapping の最終確認は未完了。
+- `rviz/mapping.rviz` はまだ作成していません。実機で必要な fixed frame と表示 topic を確定してから追加します。
+
+## 今後の予定
+
+1. 友人の Ubuntu PC で実機 LiDAR の点群受信を確認する。
+2. KISS-ICP の odometry / mapping 出力、必要な TF、XT32 用パラメータを確定する。
+3. `mapping.rviz` とプロジェクト固有の Hesai / KISS-ICP 設定を追加する。
+4. 実機再現済みの手順に README を更新する。
+5. LiDAR単独の動作を安定させた後、別ブランチで IMU + `robot_localization` EKF 融合を開発する。
+
+## ライセンスと謝辞
+
+Hesai ROS driver と KISS-ICP は、それぞれの上流プロジェクトのライセンスに従います。本リポジトリは、それらを ROS 2 launch により統合するための設定・bringup を管理します。
+
