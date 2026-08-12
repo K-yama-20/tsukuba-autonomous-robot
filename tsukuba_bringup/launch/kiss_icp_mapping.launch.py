@@ -9,6 +9,17 @@ import os
 
 def generate_launch_description():
 
+	hesai_share = get_package_share_directory("hesai_ros_driver")
+	hesai_launch = os.path.join(
+		hesai_share,
+		"launch",
+		"start.py"
+	)
+
+	hesai_driver = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(hesai_launch)
+	)
+
 	kiss_icp_share = get_package_share_directory("kiss_icp")
 	kiss_icp_launch = os.path.join(
 		kiss_icp_share,
@@ -19,11 +30,12 @@ def generate_launch_description():
 	kiss_icp = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(kiss_icp_launch),
 		launch_arguments={
-			"topic": "/points",
+			"topic": "/lidar_points",
 			"visualize": "true",
 		}.items(),
 	)
 
 	return LaunchDescription([
-	kiss_icp
+	hesai_driver,
+	kiss_icp,
 ])
