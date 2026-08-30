@@ -1,0 +1,16 @@
+# Copy this file outside the source tree, replace every REQUIRED value from
+# the fixture CAD/inspection record, and pass it as fixture_config:=...
+frames:
+  # Transform parent xt32_link (REP-103) -> child hesai_lidar_native.
+  xt32_to_native:
+    translation_m: [0.0, 0.0, 0.0]
+    rotation_rpy_rad: [0.0, 0.0, "REQUIRED_NATIVE_YAW_FROM_MANUAL_AND_MOUNT"]
+
+  # Transform parent xt32_link -> child imu_link.
+  xt32_to_imu:
+    translation_m: ["REQUIRED_CAD_X", "REQUIRED_CAD_Y", "REQUIRED_CAD_Z"]
+    rotation_rpy_rad: ["REQUIRED_CAD_ROLL", "REQUIRED_CAD_PITCH", "REQUIRED_CAD_YAW"]
+
+inspection:
+  horizontal_origin_tolerance_m: "REQUIRED_MEASURED_VALUE_MAX_0.002"
+  axis_angle_tolerance_rad: "REQUIRED_MEASURED_VALUE_MAX_0.003491"

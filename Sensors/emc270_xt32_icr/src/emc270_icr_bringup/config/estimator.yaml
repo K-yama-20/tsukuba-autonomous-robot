@@ -1,0 +1,64 @@
+emc270_icr_estimator:
+  ros__parameters:
+    point_cloud_topic: /lidar_points
+    point_cloud_frame: hesai_lidar_native
+    odom_topic: /kiss/odometry
+    imu_topic: /imu/telemetry
+    output_frame: xt32_link
+    fast_child_frame: estimated_icr_fast
+    smooth_child_frame: estimated_icr_smoothed
+    publish_tf: true
+    stale_timeout_s: 0.30
+    point_cloud_stale_timeout_s: 0.30
+    point_cloud_gap_threshold_s: 0.15
+    imu_stale_timeout_s: 0.10
+    require_point_timestamps: true
+
+    # Overridden from the inspected fixture YAML by the launch file.
+    fixture.imu_x_m: 0.0
+    fixture.imu_y_m: 0.0
+    fixture.imu_roll_rad: 0.0
+    fixture.imu_pitch_rad: 0.0
+    fixture.imu_yaw_rad: 0.0
+    fixture.xy_sigma_m: 0.002
+    fixture.axis_angle_sigma_rad: 0.003491
+
+    fast.window_s: 0.10
+    fast.validity_s: 0.15
+    fast.velocity_sigma_m_s: 0.02
+    fast.yaw_rate_sigma_rad_s: 0.02
+    smooth.window_s: 2.0
+    smooth.validity_s: 0.25
+    smooth.minimum_yaw_rad: 0.2617993877991494
+    smooth.minimum_samples: 8
+    smooth.huber_delta_m: 0.02
+    smooth.maximum_fit_rms_m: 0.05
+    minimum_yaw_rate_rad_s: 0.10
+    maximum_condition_number: 1000000.0
+    odom_reset.gap_s: 1.0
+    odom_reset.translation_m: 1.0
+    odom_reset.yaw_rad: 1.0
+
+    imu.gyro_weight: 0.20
+    imu.gyro_max_disagreement_rad_s: 0.10
+    imu.enable_accel_validation: true
+    imu.acceleration_gravity_compensated: true
+    imu.bias_calibration_samples: 5000
+    imu.stationary_max_horizontal_accel_m_s2: 0.50
+    imu.validation_window_s: 2.0
+    imu.validation_minimum_samples: 50
+    imu.validation_minimum_yaw_rate_rad_s: 0.10
+    imu.validation_huber_delta_m_s2: 0.20
+    imu.validation_maximum_condition_number: 100000.0
+    imu.validation_maximum_fit_rms_m_s2: 0.50
+    imu.validation_maximum_position_stddev_m: 0.05
+    imu.disagreement_chi_square: 5.991
+
+    time_offset.window_s: 5.0
+    time_offset.maximum_s: 0.050
+    time_offset.step_s: 0.001
+    time_offset.minimum_rate_stddev: 0.05
+    time_offset.minimum_correlation: 0.80
+    time_offset.minimum_samples: 20
+    time_offset.holdover_s: 120.0
+    time_offset.validator_reset_threshold_s: 0.005
