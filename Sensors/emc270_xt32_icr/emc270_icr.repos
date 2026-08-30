@@ -1,0 +1,9 @@
+repositories:
+  src/hesai_ros_driver:
+    type: git
+    url: https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+    version: e7e112f0809f0eed5e3c81c55a1a0376474db234
+  src/kiss_icp:
+    type: git
+    url: https://github.com/PRBonn/kiss-icp.git
+    version: b16835283aee62f7d5e2bdf6c1c3bb2930de74ff

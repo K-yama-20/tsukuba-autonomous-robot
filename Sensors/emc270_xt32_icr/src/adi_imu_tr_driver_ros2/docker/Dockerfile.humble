@@ -1,0 +1,58 @@
+# ADI IMU TR Driver ROS2 — Humble (Ubuntu 22.04) development image
+FROM ros:humble-ros-base
+
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=developer
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        sudo \
+        curl \
+        git \
+        ca-certificates \
+        build-essential \
+        cmake \
+        gdb \
+        less \
+        vim \
+        python3-colcon-common-extensions \
+        python3-rosdep \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN if getent passwd ${USER_ID} >/dev/null; then \
+        userdel -r "$(getent passwd ${USER_ID} | cut -d: -f1)" 2>/dev/null || true; \
+    fi \
+    && if getent group ${GROUP_ID} >/dev/null; then \
+        groupdel "$(getent group ${GROUP_ID} | cut -d: -f1)" 2>/dev/null || true; \
+    fi \
+    && groupadd -g ${GROUP_ID} ${USERNAME} \
+    && useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash ${USERNAME} \
+    && usermod -aG sudo,dialout ${USERNAME} \
+    && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
+    && chmod 0440 /etc/sudoers.d/${USERNAME}
+
+COPY package.xml /tmp/ws/src/adi_imu_tr_driver_ros2/package.xml
+RUN apt-get update \
+    && rosdep update --rosdistro=humble \
+    && rosdep install \
+        --from-paths /tmp/ws/src \
+        --ignore-src \
+        --rosdistro=humble \
+        -y \
+    && apt-get install -y --no-install-recommends \
+        ros-humble-rviz2 \
+    && rm -rf /tmp/ws /var/lib/apt/lists/*
+
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+RUN mkdir -p /home/${USERNAME}/ros2_ws/src \
+    && { \
+        echo "source /opt/ros/humble/setup.bash"; \
+        echo "[ -f /home/${USERNAME}/ros2_ws/install/setup.bash ] && source /home/${USERNAME}/ros2_ws/install/setup.bash"; \
+    } >> /home/${USERNAME}/.bashrc
+
+WORKDIR /home/${USERNAME}/ros2_ws
+CMD ["/bin/bash"]

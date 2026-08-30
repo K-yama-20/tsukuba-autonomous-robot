@@ -1,0 +1,11 @@
+**/build
+**/install
+**/log
+**/.cache
+.git
+.gitignore
+.gitmodules
+docker
+doc
+rviz
+README.md.orig

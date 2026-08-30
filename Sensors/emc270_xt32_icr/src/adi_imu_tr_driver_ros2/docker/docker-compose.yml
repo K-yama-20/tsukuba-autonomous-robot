@@ -1,0 +1,66 @@
+services:
+  humble:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.humble
+      args:
+        USER_ID: ${DEV_UID:-1000}
+        GROUP_ID: ${DEV_GID:-1000}
+        USERNAME: ${DEV_USER:-takahashi}
+    image: adi-imu-tr-driver:humble
+    container_name: adi-imu-tr-driver-humble
+    hostname: imu-humble
+    user: ${DEV_USER:-takahashi}
+    network_mode: host
+    ipc: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    group_add:
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-110}"
+    devices:
+      # IMU 実機が無いときは IMU_DEVICE 未設定 → /dev/null にフォールバックして起動できる。
+      # 実機を使うときは .env で IMU_DEVICE=/dev/ttyACM0 を指定する。
+      - ${IMU_DEVICE:-/dev/null}:/dev/ttyACM0
+      - /dev/dri:/dev/dri
+    volumes:
+      - ..:/home/${DEV_USER:-takahashi}/ros2_ws/src/adi_imu_tr_driver_ros2
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    working_dir: /home/${DEV_USER:-takahashi}/ros2_ws
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  jazzy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.jazzy
+      args:
+        USER_ID: ${DEV_UID:-1000}
+        GROUP_ID: ${DEV_GID:-1000}
+        USERNAME: ${DEV_USER:-takahashi}
+    image: adi-imu-tr-driver:jazzy
+    container_name: adi-imu-tr-driver-jazzy
+    hostname: imu-jazzy
+    user: ${DEV_USER:-takahashi}
+    network_mode: host
+    ipc: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    group_add:
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-110}"
+    devices:
+      # IMU 実機が無いときは IMU_DEVICE 未設定 → /dev/null にフォールバックして起動できる。
+      # 実機を使うときは .env で IMU_DEVICE=/dev/ttyACM0 を指定する。
+      - ${IMU_DEVICE:-/dev/null}:/dev/ttyACM0
+      - /dev/dri:/dev/dri
+    volumes:
+      - ..:/home/${DEV_USER:-takahashi}/ros2_ws/src/adi_imu_tr_driver_ros2
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    working_dir: /home/${DEV_USER:-takahashi}/ros2_ws
+    stdin_open: true
+    tty: true
+    command: /bin/bash

@@ -1,0 +1,19 @@
+adi_rcv_bin_node:
+  ros__parameters:
+    device: /dev/ttyACM0
+    frame_id: imu_link
+    parent_id: xt32_link
+    rate: 100.0
+    publish_tf: false
+    poll_period_us: 500
+    maximum_batch_size: 512
+    telemetry_qos_depth: 256
+    orientation_variance: 0.0
+    angular_velocity_variance: 0.0
+    linear_acceleration_variance: 0.0
+    clock.minimum_samples: 100
+    clock.maximum_samples: 5000
+    clock.fit_interval_samples: 20
+    clock.minimum_span_ms: 500
+    clock.maximum_rms_residual_ms: 2.0
+    clock.maximum_drift_ppm: 5000.0

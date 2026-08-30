@@ -1,0 +1,19 @@
+uint8 CLOCK_UNLOCKED=0
+uint8 CLOCK_SOFTWARE_LOCKED=1
+uint8 CLOCK_PPS_OBSERVED=2
+
+sensor_msgs/Imu imu
+builtin_interfaces/Time receive_ros_time
+uint64 receive_steady_time_ns
+uint64 mcu_time_us
+uint32 send_counter
+uint16 imu_counter
+uint16 imu_dropped
+uint16 computation_time_us
+uint16 spi_transaction_time_us
+uint8 pps_in_state
+uint8 mcu_error
+float32 temperature_c
+bool gravity_compensated
+uint8 clock_state
+float32 clock_residual_ms

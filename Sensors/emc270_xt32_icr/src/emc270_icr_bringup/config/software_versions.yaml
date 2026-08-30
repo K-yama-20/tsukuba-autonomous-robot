@@ -1,0 +1,14 @@
+implementation_version: 0.1.0
+technoroad_driver:
+  repository: https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2.git
+  branch: jazzy
+  commit: 742b7babec7e7a20937d4e8be0df77a771a1294a
+  tr_imu_lib_commit: 324cb47c0160d7b249ad2d0ed75c3fbd72ce6382
+hesai_driver:
+  repository: https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+  commit: e7e112f0809f0eed5e3c81c55a1a0376474db234
+  sdk_submodule_commit: 9d5dc4fc4ade5be5f6a6ca00e71dd4050b054168
+kiss_icp:
+  repository: https://github.com/PRBonn/kiss-icp.git
+  version: v1.3.0
+  commit: b16835283aee62f7d5e2bdf6c1c3bb2930de74ff
