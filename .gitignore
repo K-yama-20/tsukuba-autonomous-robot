@@ -1,1 +1,24 @@
 # gitignore設定ファイルです
+
+# Portable Gouda runtime and generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.pio/
+.venv/
+build/
+install/
+log/
+runtime/
+*.mcap
+*.db3
+*.pcap
+*.pcapng
+*.bag
+.env
+.env.*
+*.pem
+id_ed25519*
+id_rsa*
+known_hosts

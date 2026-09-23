@@ -1,0 +1,10 @@
+{
+  "source": "/Users/AYARyoya/.codex/.chatgpt-projects/g-p-6a795737fac081918d05e243cfcb0189/outputs/Joystick270_DualSense",
+  "files": {
+    "src/main.cpp": "555de460da7193fad6114379b086192f3faabe845cde846f01861c6f3a8a2496",
+    "include/control.hpp": "e4d127e83a414d4d5205811c191b9c874a265ebdfc4f970be2bee24efdfce0e9",
+    "include/settings.hpp": "e9e6d2410299b10f8b3d42ff6bcb0668f2d1d8aeb819bb45380e4f3333f8ea96",
+    "platformio.ini": "a2d946d76b72ada1f544715881c5bc1ae6fd4577c7421d5172e580eb17f4eccb",
+    "README.md": "572392f344679f2840eda6b26c2e7e5f3c6a63d8a78cca304ad171b7e7215be1"
+  }
+}

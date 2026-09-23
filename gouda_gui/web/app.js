@@ -1,0 +1,203 @@
+'use strict';
+const $ = id => document.getElementById(id);
+const titles = {
+  mapping:['01 / MAPPING','地図をつくる','LiDARの観測を地図に重ね、保存します。'],
+  planning:['02 / PLANNING','走行ルートを決める','位置を指定し、走行前に経路を確認します。'],
+  monitor:['03 / MONITOR','走行を見守る','現在位置と予定経路、車体の状態を確認します。'],
+  diagnostics:['04 / SYSTEM','状態を確認する','センサー、座標、制御系の更新状況を確認します。']
+};
+const names = {IDLE:'待機中',PLANNING:'経路計算中',PREVIEW_READY:'経路確認待ち',TRACKING:'走行中',ALIGNING:'向きを調整中',REACHED:'到着',CANCELLED:'中止',PREVIEW_EXPIRED:'経路の再計算が必要',PREVIEW_STALE:'開始位置が変わりました',SENSOR_OR_TF_FAULT:'入力異常で停止',PLAN_FAILED:'経路が見つかりません',PLAN_UNAVAILABLE:'経路計算の準備待ち',NO_PROGRESS:'進行停止を検出'};
+let state=null, token=null, busy=false, connected=false, lastResponse=0, tab='mapping', view='2d', tool='pan', dirty=false, lastGoalKey='';
+let camera={x:0,y:0,scale:35}, cameraInitialized=false, draft=null, pointer=null, mapCache=null, mapRevision=-1, mapListKey='';
+const canvas=$('map'), ctx=canvas.getContext('2d');
+function notice(message,error=false){$('notice').textContent=message;$('notice').classList.toggle('error',error);}
+function selectTab(next){
+  tab=next;
+  if(next==='planning')view='2d';
+  for(const button of document.querySelectorAll('[data-tab]')){
+    const selected=button.dataset.tab===next;button.setAttribute('aria-selected',String(selected));
+    $('panel-'+button.dataset.tab).hidden=!selected;
+  }
+  const t=titles[next];$('eyebrow').textContent=t[0];$('page-title').textContent=t[1];$('page-description').textContent=t[2];
+  if(next!=='planning')setTool('pan');
+  try{localStorage.setItem('gouda-tab',next);}catch{}
+  draw();
+}
+for(const b of document.querySelectorAll('[data-tab]')){
+  b.addEventListener('click',()=>selectTab(b.dataset.tab));
+  b.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-tab]')];let i=tabs.indexOf(b);i=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowDown'?1:3))%4;tabs[i].focus();selectTab(tabs[i].dataset.tab);});
+}
+try{const remembered=localStorage.getItem('gouda-tab');if(titles[remembered])selectTab(remembered);}catch{}
+async function request(action,data={}){
+  if(!token)throw new Error('Ubuntuへの接続を確認してください');
+  const response=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data),signal:AbortSignal.timeout(25000)});
+  const body=await response.json();if(!response.ok||body.ok===false)throw new Error(body.error||body.message||'操作できませんでした');return body;
+}
+async function act(action,data={},success='操作を受け付けました。'){
+  if(busy&&action!=='stop')return false;
+  const normal=action!=='stop';if(normal)busy=true;render();
+  try{await request(action,data);notice(success);return true;}
+  catch(error){notice(error.name==='TimeoutError'?'応答待ちがタイムアウトしました。状態を確認してください。':error.message,true);return false;}
+  finally{if(normal)busy=false;render();}
+}
+async function poll(){
+  try{
+    if(!token){const session=await fetch('/api/session',{signal:AbortSignal.timeout(2500)});if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
+    const response=await fetch('/api/state',{signal:AbortSignal.timeout(2500)});if(!response.ok)throw new Error('State');
+    state=await response.json();lastResponse=performance.now();
+    const goalKey=JSON.stringify(state.goal);
+    if(goalKey!==lastGoalKey&&!dirty&&tool!=='initial'&&state.goal){writePose(state.goal);lastGoalKey=goalKey;}
+    if(!connected)notice('Ubuntuに接続しました。状態を受信しています。');connected=true;
+    if(state.map&&state.map_revision!==mapRevision){buildMap();if(!cameraInitialized)cameraInitialized=fit();}
+    updateSavedMaps();render();draw();
+  }catch{connected=false;token=null;render();draw();}
+  setTimeout(poll,500);
+}
+function fresh(key,limit=.7){return connected&&state?.ages[key]!==undefined&&state.ages[key]+(performance.now()-lastResponse)/1000<limit;}
+function setTool(next){
+  tool=next;
+  $('tool-goal').setAttribute('aria-pressed',String(next==='goal'));$('tool-initial').setAttribute('aria-pressed',String(next==='initial'));
+  $('apply-pose').textContent=next==='initial'?'入力値を初期位置に設定':'入力値をゴールに設定';
+  $('pose-help').textContent=next==='initial'?(state?.mode==='simulation'?'仮想車両の位置を変更します。指定後に「初期位置に設定」を押してください。':state?.observation_only?'LiDAR中心の現在位置と向きを推定器に伝えます。':'実機の現在位置と向きを自己位置推定に伝えます。'):'位置はクリック、向きはドラッグで指定できます。';
+  $('tool-hint').textContent=next==='pan'?'ドラッグで移動 · ホイールで拡大':next==='goal'?'クリックでゴール · ドラッグで向き':'位置と向きを指定後、右側で適用';
+  if(next!=='pan'&&view!=='2d')setView('2d');
+  render();
+}
+function poseFields(){
+  const values=['pose-x','pose-y','pose-yaw'].map(id=>$(id).value.trim());
+  if(values.some(v=>!v||!Number.isFinite(Number(v))))throw new Error('位置と向きを数値で入力してください');
+  return {x:Number(values[0]),y:Number(values[1]),yaw:Number(values[2])*Math.PI/180};
+}
+function writePose(p){$('pose-x').value=p.x.toFixed(2);$('pose-y').value=p.y.toFixed(2);$('pose-yaw').value=(p.yaw*180/Math.PI).toFixed(0);}
+for(const id of ['pose-x','pose-y','pose-yaw'])$(id).addEventListener('input',()=>{dirty=true;try{draft=poseFields();}catch{draft=null;}render();draw();});
+async function applyPose(){
+  try{const p=poseFields(),kind=tool==='initial'?'initial_pose':'target';
+    if(await act(kind,p,kind==='target'?'ゴールを設定しました。経路を計算してください。':'初期位置を送信しました。現在位置の反映を確認してください。')){dirty=false;draft=null;}
+  }catch(e){notice(e.message,true);}render();draw();
+}
+$('apply-pose').onclick=applyPose;
+$('tool-goal').onclick=()=>setTool(tool==='goal'?'pan':'goal');$('tool-initial').onclick=()=>setTool(tool==='initial'?'pan':'initial');
+$('mapping-start').onclick=()=>act('mapping_start',{},'地図作成を開始しました。');
+$('mapping-stop').onclick=()=>act('mapping_stop',{},'地図作成を終了しました。名前を付けて保存してください。');
+$('save-map').onclick=()=>act('save_map',{name:$('map-title').value},'地図を保存しました。');
+$('load-map').onclick=()=>loadMap($('map-select').value);
+async function loadMap(id){if(!id){notice('保存地図を選択してください。',true);return;}if(await act('load_map',{id},'地図を読み込みました。')){dirty=false;draft=null;cameraInitialized=false;}}
+$('plan').onclick=async()=>{if(dirty){notice('変更した位置を先に適用してください。',true);return;}await act('plan',{},'経路計算中です。走行は開始していません。');};
+$('to-monitor').onclick=()=>selectTab('monitor');
+$('start').onclick=()=>act('start',{plan_id:state?.plan_id},'走行開始を受け付けました。');
+$('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信しました。停止確認を待っています。');
+$('map-title').addEventListener('input',render);
+function setView(next){view=next;$('view-2d').setAttribute('aria-pressed',String(next==='2d'));$('view-3d').setAttribute('aria-pressed',String(next==='3d'));$('view-label').textContent=next==='2d'?'MAP VIEW / map座標系':'POINT CLOUD / map座標系・斜め表示';if(next==='3d')setTool('pan');draw();}
+$('view-2d').onclick=()=>{if(state?.observation_only&&tab==='mapping')selectTab('planning');setView('2d');};$('view-3d').onclick=()=>setView('3d');$('fit').onclick=()=>{fit();draw();};
+function updateSavedMaps(){
+  const list=state.maps||[],key=JSON.stringify(list);if(key===mapListKey)return;mapListKey=key;
+  const selected=$('map-select').value;$('map-select').replaceChildren(new Option('保存地図を選択',''));$('saved-maps').replaceChildren();
+  if(!list.length){const p=document.createElement('p');p.className='helper';p.textContent='保存済み地図はありません。';$('saved-maps').append(p);}
+  for(const m of list){$('map-select').add(new Option(m.name,m.id));const row=document.createElement('div');row.className='saved-map';const text=document.createElement('div'),name=document.createElement('strong'),date=document.createElement('small');name.textContent=m.name;date.textContent=new Date(m.created*1000).toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+(m.mode==='simulation'?'模擬':m.mode==='replay'?'記録再生':'実機');text.append(name,date);const b=document.createElement('button');b.textContent='開く';b.addEventListener('click',()=>loadMap(m.id));row.append(text,b);$('saved-maps').append(row);}
+  if(list.some(m=>m.id===selected))$('map-select').value=selected;
+}
+function render(){
+  document.body.classList.toggle('disconnected',!connected);
+  $('connection').textContent=connected?'● Ubuntu 接続中':'接続停止 · 表示は最終受信値';
+  if(!state){$('mode').textContent='未接続';return;}
+  $('mode').textContent={simulation:'シミュレーション',live:'実機 · 走行無効',replay:'記録再生'}[state.mode]||state.mode;
+  const observation=!!state.observation_only;
+  $('stop').disabled=observation;$('cancel').disabled=observation;
+  $('stop').textContent=observation?'車体停止は未接続':'■ 停止';
+  $('position-reference').textContent=state.pose_reference||'現在位置';
+  $('implementation-scope').textContent=observation?'計測専用。位置はLiDAR中心です。取付方向・寸法は未校正、IMU融合と実機走行は無効です。':'実機の取付TF・DAC校正は準備中です。実機走行操作は無効です。';
+  const navFresh=fresh('navigation'),navName=observation?({idle:'計測準備',mapping:'SLAM作成中',paused:'地図保存待ち',localization:'LiDAR位置推定',failed:'SLAM異常'}[state.slam_phase]||'計測準備'):navFresh?(names[state.nav.state]||state.nav.state||'待機中'):'状態更新停止';
+  $('run-state').textContent=navName;$('mission-state').textContent=navName;
+  $('map-name').textContent=state.mapping?'作成中の地図':state.map_meta?.name||'未保存の地図';
+  const p=state.pose;$('position').textContent=p?`${p.x.toFixed(2)} / ${p.y.toFixed(2)}`:'— / —';$('heading').textContent=p?`${(p.yaw*180/Math.PI).toFixed(1)}°`:'—';$('velocity').textContent=p?`${Math.abs(p.v).toFixed(2)} m/s`:'—';
+  $('cloud-age').textContent=state.ages.cloud===undefined?'未受信':fresh('cloud')?`${Math.round(state.ages.cloud*1000)} ms`:'更新停止';
+  $('capture-status').textContent=state.mapping?'● 地図作成中':state.mapping_frames?'計測終了':'待機中';
+  $('capture-time').textContent=`${Math.floor(state.mapping_seconds/60).toString().padStart(2,'0')}:${(state.mapping_seconds%60).toString().padStart(2,'0')}`;$('capture-frames').textContent=`${state.mapping_frames} ${state.observation_only?'回 地図更新':'フレーム'}`;
+  $('mapping-method').textContent=state.mode==='simulation'?'点群を2D地図へ投影します。範囲20 × 20 m、解像度0.1 m。':observation?'画面はKISS-ICPの標準3D点群です。下の計測・保存操作は別系統の2D SLAM地図が対象です。手持ちの傾きがある計測は2D走行地図の品質を保証しません。':'外部SLAMの起動を待っています。';
+  const stationary=fresh('pose')&&p&&Math.abs(p.v)<.01&&Math.abs(p.w)<.01&&fresh('esp32')&&!state.esp.flags;
+  $('mapping-start').disabled=busy||!connected||state.mapping||(observation?!fresh('lidar_raw'):!stationary||!fresh('cloud')||state.mode!=='simulation');
+  $('mapping-stop').disabled=busy||!connected||!state.mapping;
+  $('save-map').disabled=busy||!connected||state.mapping||!state.mapping_frames||!$('map-title').value.trim();
+  $('load-map').disabled=busy||!connected||(!observation&&!stationary)||state.mapping;
+  for(const b of $('saved-maps').querySelectorAll('button'))b.disabled=$('load-map').disabled;
+  $('apply-pose').disabled=busy||!connected||(observation?(tool==='initial'&&state.slam_phase!=='localization'):!stationary);
+  const goal=state.goal;$('target-summary').textContent=goal?`ゴール  X ${goal.x.toFixed(2)} / Y ${goal.y.toFixed(2)} m`:'ゴール未設定';
+  const canPlan=connected&&stationary&&!state.mapping&&goal&&state.map&&state.map_meta&&state.nav.explicit_start&&!dirty&&!state.planning;
+  $('plan').disabled=busy||!canPlan;
+  let length=0;for(let i=1;i<state.path.length;i++)length+=Math.hypot(state.path[i][0]-state.path[i-1][0],state.path[i][1]-state.path[i-1][1]);
+  $('plan-summary').textContent=dirty?'位置が未適用です。設定ボタンで確定してください。':state.planning?(state.nav.state?.startsWith('PLAN_')?navName:'経路を計算しています…'):state.path.length?`予定経路 ${length.toFixed(2)} m · 走行開始待ち`:'地図とゴールを設定し、経路を計算してください。';
+  $('to-monitor').disabled=busy||!connected||!state.path.length||dirty;
+  const reasons=[...state.start_reasons];if(!connected)reasons.unshift('Ubuntuとの接続を確認してください');if(dirty)reasons.unshift('位置の変更を適用してください');
+  $('start-reasons').textContent=reasons.length?reasons.join('\n'):'開始条件を確認しました。経路を確認して走行を開始できます。';$('start').disabled=busy||reasons.length>0;
+  $('distance').textContent=p&&goal?`ゴールまで直線 ${Math.hypot(goal.x-p.x,goal.y-p.y).toFixed(2)} m`:'ゴール未設定';
+  $('stop-status').textContent=connected?state.stop_status||'停止要求なし':'接続停止 · 停止状態は確認できません';
+  $('map-status').textContent=!connected?'更新停止 · 最終受信データ':state.mapping?(observation?'● MAPPING · SLAM':'● MAPPING · 点群投影'):view==='3d'?(fresh('cloud')?'● POINT CLOUD':'点群更新停止'):state.map_meta?.name||'未保存の地図';
+  const hasData=view==='2d'?!!state.map:state.cloud.length>0;$('map-empty').hidden=hasData;
+  $('map-size').textContent=state.map?`${Number(state.map.resolution.toFixed(3))} m / cell`:'';
+  $('last-update').textContent=connected?'最終受信 '+new Date().toLocaleTimeString('ja-JP'):'接続停止';
+  const health=observation?[['LiDAR / 生データ','lidar_raw'],['LiDAR / 地図座標','cloud'],['IMU / 受信のみ','imu'],['LiDAR位置','pose']]:[['LiDAR / 座標変換','cloud'],['IMU','imu'],['自己位置','pose'],['ナビゲーション','navigation'],['ESP32','esp32']];$('health-list').replaceChildren();
+  for(const [label,key] of health){const row=document.createElement('div');row.className='health-row';const a=document.createElement('span'),b=document.createElement('strong');a.textContent=label;b.textContent=fresh(key)?'受信中':state.ages[key]===undefined?'未受信':'更新停止';b.className=fresh(key)?'':'stale';row.append(a,b);$('health-list').append(row);}
+  $('cloud-note').textContent=state.cloud_note;
+  $('logs').replaceChildren();for(const log of state.logs.slice(-5).reverse()){const row=document.createElement('div');row.className='log';const t=document.createElement('time');t.textContent=new Date(log.time*1000).toLocaleTimeString('ja-JP');row.append(t,document.createTextNode(log.message));$('logs').append(row);}
+}
+function buildMap(){const g=state.map;mapRevision=state.map_revision;mapCache=document.createElement('canvas');mapCache.width=g.width;mapCache.height=g.height;const c=mapCache.getContext('2d'),im=c.createImageData(g.width,g.height);for(let i=0;i<g.data.length;i++){const v=g.data[i],color=v<0?[21,42,32]:v>=65?[142,179,140]:[52,78,55];const x=i%g.width,y=Math.floor(i/g.width),j=((g.height-1-y)*g.width+x)*4;im.data.set([...color,255],j);}c.putImageData(im,0,0);}
+function dimensions(){return{w:canvas.clientWidth,h:canvas.clientHeight};}
+function fit(){
+  const {w,h}=dimensions(),g=state?.map;
+  if(!(w>0&&h>0))return false;
+  if(!g){camera={x:0,y:0,scale:Math.min(w,h)/12};return true;}
+  let minX=g.width,minY=g.height,maxX=-1,maxY=-1;
+  for(let i=0;i<g.data.length;i++)if(g.data[i]>=0){const x=i%g.width,y=Math.floor(i/g.width);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+  if(maxX<0){minX=0;minY=0;maxX=g.width-1;maxY=g.height-1;}
+  const cx=(minX+maxX+1)*g.resolution/2,cy=(minY+maxY+1)*g.resolution/2;
+  camera.x=g.origin.x+Math.cos(g.origin.yaw)*cx-Math.sin(g.origin.yaw)*cy;
+  camera.y=g.origin.y+Math.sin(g.origin.yaw)*cx+Math.cos(g.origin.yaw)*cy;
+  const dx=Math.max(4,(maxX-minX+1)*g.resolution),dy=Math.max(4,(maxY-minY+1)*g.resolution);
+  const c=Math.abs(Math.cos(g.origin.yaw)),t=Math.abs(Math.sin(g.origin.yaw));
+  camera.scale=Math.min(w/(c*dx+t*dy),h/(t*dx+c*dy))*.82;
+  return true;
+}
+function screen(x,y){const {w,h}=dimensions();return[w/2+(x-camera.x)*camera.scale,h/2-(y-camera.y)*camera.scale];}
+function world(x,y){const {w,h}=dimensions();return{x:camera.x+(x-w/2)/camera.scale,y:camera.y-(y-h/2)/camera.scale};}
+function line(points,color,width,dash=[]){if(!points?.length)return;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();points.forEach((p,i)=>{const [x,y]=screen(...p);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
+function marker(p,color,label,robot=false){if(!p)return;const [x,y]=screen(p.x,p.y);ctx.save();ctx.translate(x,y);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,robot?10:7,0,Math.PI*2);ctx.stroke();ctx.rotate(-p.yaw);ctx.beginPath();ctx.moveTo(robot?17:21,0);ctx.lineTo(robot?-5:13,-5);ctx.lineTo(robot?-5:13,5);ctx.closePath();ctx.fill();ctx.restore();ctx.fillStyle=color;ctx.font='11px monospace';ctx.fillText(label,x+14,robot?y-13:y+21);}
+function draw(){
+  syncNativeView();if(document.body.classList.contains('native-active'))return;
+  if(!Number.isFinite(camera.scale)||camera.scale<=0)cameraInitialized=false;
+  if(!cameraInitialized)cameraInitialized=fit();
+  if(!dimensions().w||!dimensions().h)return;
+  const {w,h}=dimensions(),ratio=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);}ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#081812';ctx.fillRect(0,0,w,h);
+  if(view==='2d'){
+    const g=state?.map;if(g&&mapCache){const [x,y]=screen(g.origin.x,g.origin.y);ctx.save();ctx.translate(x,y);ctx.rotate(-g.origin.yaw);ctx.imageSmoothingEnabled=false;ctx.drawImage(mapCache,0,-g.height*g.resolution*camera.scale,g.width*g.resolution*camera.scale,g.height*g.resolution*camera.scale);ctx.restore();}
+    const step=camera.scale<12?5:camera.scale<25?2:1;ctx.strokeStyle='#7ea58b17';ctx.lineWidth=1;ctx.beginPath();const tl=world(0,0),br=world(w,h);for(let x=Math.floor(tl.x/step)*step;x<br.x;x+=step){const [sx]=screen(x,0);ctx.moveTo(sx,0);ctx.lineTo(sx,h);}for(let y=Math.floor(br.y/step)*step;y<tl.y;y+=step){const [,sy]=screen(0,y);ctx.moveTo(0,sy);ctx.lineTo(w,sy);}ctx.stroke();
+    line(state?.trail,'#98b88780',1.5);line(state?.path,'#6ae2c4',2.5,[6,4]);marker(state?.goal,'#f2c979','GOAL');marker(state?.pose,fresh('pose')?'#b3f5b3':'#89958c',state?.observation_only?'LiDAR':'ROBOT',true);if(draft)marker(draft,'#92c1ee','未適用');
+  }else{
+    const points=state?.cloud||[];for(const p of points){const dx=p[0]-camera.x,dy=p[1]-camera.y,x=w/2+(dx-dy)*.707*camera.scale,y=h/2+(dx+dy)*.35*camera.scale-p[2]*camera.scale;ctx.fillStyle=p[2]>1.5?'#d5bf78':'#77d2a7';ctx.fillRect(x,y,2,2);}ctx.fillStyle='#92ada3';ctx.font='11px monospace';ctx.fillText('XYZ点群 / 固定斜め視点',15,50);
+  }
+  $('scale').textContent=`${(62/camera.scale).toFixed(1)} m`;
+}
+canvas.addEventListener('wheel',e=>{e.preventDefault();const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,before=world(x,y);camera.scale=Math.min(300,Math.max(3,camera.scale*Math.exp(-e.deltaY*.001)));const after=world(x,y);camera.x+=before.x-after.x;camera.y+=before.y-after.y;draw();},{passive:false});
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;canvas.setPointerCapture(e.pointerId);pointer={x,y,start:world(x,y),camera:{...camera},id:e.pointerId};if(tool!=='pan'&&tab==='planning'&&view==='2d'){draft={...pointer.start,yaw:0};dirty=true;writePose(draft);}draw();});
+canvas.addEventListener('pointermove',e=>{if(!pointer||pointer.id!==e.pointerId)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(tool==='pan'){camera.x=pointer.camera.x-(x-pointer.x)/camera.scale;camera.y=pointer.camera.y+(y-pointer.y)/camera.scale;}else if(draft){const now=world(x,y);if(Math.hypot(x-pointer.x,y-pointer.y)>5)draft.yaw=Math.atan2(now.y-draft.y,now.x-draft.x);writePose(draft);}draw();});
+canvas.addEventListener('pointerup',e=>{if(!pointer||pointer.id!==e.pointerId)return;pointer=null;if(tool==='goal'&&draft)applyPose();else if(tool==='initial')notice('初期位置を指定しました。右側の設定ボタンで適用してください。');render();});
+canvas.addEventListener('pointercancel',()=>{pointer=null;});
+new ResizeObserver(()=>draw()).observe(canvas.parentElement);
+setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(connected&&performance.now()-lastResponse>3000){connected=false;render();draw();}},1000);
+poll();
+
+function syncNativeView(){
+  const native=!!state?.observation_only&&(tab==='mapping'||view==='3d');
+  document.body.classList.toggle('native-active',native);
+  $('native-screen').hidden=!native;$('native-status').hidden=!native;
+  document.querySelector('.canvas-wrap').hidden=native;
+  document.querySelector('.legend').hidden=native;
+  document.querySelector('.telemetry').hidden=native;
+  $('fit').hidden=native;
+  $('view-3d').textContent=state?.observation_only?'KISS-ICP':'3D 点群';
+  $('view-2d').textContent=state?.observation_only?'2D 計画地図':'2D 地図';
+  $('view-2d').setAttribute('aria-pressed',String(!native&&view==='2d'));
+  $('view-3d').setAttribute('aria-pressed',String(native||view==='3d'));
+  if(native)$('view-label').textContent='KISS-ICP / RViz2 · odom_lidar';
+  else if(state?.observation_only)$('view-label').textContent='2D 計画地図 · map';
+  if(state?.observation_only){$('save-map').textContent='2D SLAM地図を保存';}
+}

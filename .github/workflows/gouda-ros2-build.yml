@@ -1,11 +1,10 @@
 name: Gouda ROS 2 Jazzy Build
-
 on:
   push:
-    branches:
-      - feature/aya-navsystem
+    branches: [feature/aya-navsystem]
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
   build:
     strategy:
@@ -13,145 +12,46 @@ jobs:
       matrix:
         include:
           - runner: ubuntu-24.04
-            expected_arch: amd64
+            arch: amd64
           - runner: ubuntu-24.04-arm
-            expected_arch: arm64
-
+            arch: arm64
     runs-on: ${{ matrix.runner }}
-
+    timeout-minutes: 60
+    env:
+      GOUDA_WORKSPACE: /home/runner/gouda_ws
     steps:
-      - name: Checkout Gouda repository
-        uses: actions/checkout@v4
-
-      - name: Architecture
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: Confirm architecture
+        run: test "$(dpkg --print-architecture)" = "${{ matrix.arch }}"
+      - name: Clean installation using user setup
+        run: bash scripts/setup.sh --no-configure
+      - name: Repeat setup without replacing user data
         run: |
-          set -euxo pipefail
-          uname -a
-          dpkg --print-architecture
-          test "$(dpkg --print-architecture)" = "${{ matrix.expected_arch }}"
-
-      - name: Base packages
-        shell: bash
+          mkdir -p "$HOME/.local/share/gouda/maps"
+          echo keep > "$HOME/.local/share/gouda/maps/preserve.txt"
+          cp "$HOME/.config/gouda/host.json" /tmp/host-before.json
+          bash scripts/setup.sh --skip-system --no-configure
+          cmp /tmp/host-before.json "$HOME/.config/gouda/host.json"
+          test "$(cat "$HOME/.local/share/gouda/maps/preserve.txt")" = keep
+      - name: Unit and protocol tests
+        run: bash scripts/test.sh
+      - name: Browser test dependencies
         run: |
-          set -euxo pipefail
-          sudo apt update
-          sudo apt install -y \
-            curl \
-            git \
-            locales \
-            software-properties-common
-
-      - name: Locale
-        shell: bash
-        run: |
-          set -euxo pipefail
-          sudo locale-gen en_US en_US.UTF-8
-          sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-
-      - name: ROS apt source
-        shell: bash
-        run: |
-          set -euxo pipefail
-
-          sudo add-apt-repository universe -y
-          sudo apt update
-
-          ROS_APT_SOURCE_VERSION="$(
-            curl -s \
-              https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest \
-            | grep -F '"tag_name"' \
-            | awk -F'"' '{print $4}'
-          )"
-
-          curl -L \
-            -o /tmp/ros2-apt-source.deb \
-            "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo ${UBUNTU_CODENAME:-${VERSION_CODENAME}})_all.deb"
-
-          sudo dpkg -i /tmp/ros2-apt-source.deb
-          sudo apt update
-
-      - name: ROS packages
-        shell: bash
-        run: |
-          set -euxo pipefail
-          sudo apt install -y \
-            ros-jazzy-desktop \
-            ros-dev-tools \
-            python3-rosdep \
-            python3-vcstool \
-            python3-colcon-common-extensions \
-            libboost-all-dev \
-            libyaml-cpp-dev \
-            ros-jazzy-navigation2 \
-            ros-jazzy-nav2-bringup
-
-      - name: rosdep init
-        shell: bash
-        run: |
-          set -euxo pipefail
-          if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
-            sudo rosdep init
-          fi
-          rosdep update
-
-      - name: Create workspace
-        shell: bash
-        run: |
-          set -euxo pipefail
-
-          mkdir -p "$HOME/gouda_ws/src"
-
-          cp -a \
-            "$GITHUB_WORKSPACE" \
-            "$HOME/gouda_ws/src/tsukuba-autonomous-robot"
-
-          vcs import \
-            "$HOME/gouda_ws/src" \
-            < "$GITHUB_WORKSPACE/third_party/external.repos"
-
-          if [ -d "$HOME/gouda_ws/src/HesaiLidar_ROS_2.0/.git" ]; then
-            git -C "$HOME/gouda_ws/src/HesaiLidar_ROS_2.0" \
-              submodule update --init --recursive
-          fi
-
-          if [ -d "$HOME/gouda_ws/src/urg_node2/.git" ]; then
-            git -C "$HOME/gouda_ws/src/urg_node2" \
-              submodule update --init --recursive
-          fi
-
-      - name: Dependencies
-        shell: bash
-        run: |
-          set -euxo pipefail
-          source /opt/ros/jazzy/setup.bash
-
-          rosdep install \
-            --from-paths "$HOME/gouda_ws/src" \
-            --ignore-src \
-            --rosdistro jazzy \
-            -r \
-            -y
-
-      - name: Build
-        shell: bash
-        run: |
-          set -euxo pipefail
-          source /opt/ros/jazzy/setup.bash
-          cd "$HOME/gouda_ws"
-
-          colcon build \
-            --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
-
-      - name: Test
-        shell: bash
-        run: |
-          set -euxo pipefail
-          source /opt/ros/jazzy/setup.bash
-          cd "$HOME/gouda_ws"
-          source install/setup.bash
-
-          colcon test \
-            --event-handlers console_direct+
-
-          colcon test-result --verbose
+          npm install --prefix /tmp/gouda-browser playwright@1.55.0
+          /tmp/gouda-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Real-input waiting screen and native RViz browser acceptance
+        env:
+          NODE_PATH: /tmp/gouda-browser/node_modules
+        run: bash scripts/smoke.sh
+      - name: Stop owned processes
+        if: always()
+        run: bash scripts/gouda.sh stop || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-${{ matrix.arch }}
+          path: |
+            ~/gouda_ws/log/
+            ~/.local/share/gouda/runtime/*.log
+            ~/.local/share/gouda/logs/native_view/*.log
+            /tmp/gouda-smoke/
