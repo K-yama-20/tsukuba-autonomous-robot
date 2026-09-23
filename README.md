@@ -35,7 +35,7 @@ bash scripts/gouda.sh doctor     # 設定・プロセス・表示状態の診断
 bash scripts/gouda.sh configure  # 機器設定をやり直す
 ```
 
-起動コマンドはバックグラウンドで動作を維持します。再実行で生存中のセンサーを再起動しません。`view` から `observe` に切り替える場合も画面を維持してセンサー受信を追加します。ブラウザの再読み込みやタブ切替もセンサー受信には影響しません。`stop` はこの起動処理が所有するプロセスだけを止めます。別の起動方法で同じポートや専用画面を使用している場合は、勝手に停止・流用せずエラーにします。
+起動コマンドはバックグラウンドで動作を維持します。再実行で生存中のセンサーを再起動しません。`view` から `observe` に切り替える場合もGUIとRVizを維持してセンサー受信を追加します。ブラウザの再読み込みやタブ切替もセンサー受信には影響しません。`stop` はこの起動処理が所有するプロセスだけを止めます。別の起動方法で同じAPIポートを使用している場合は、勝手に停止・流用せずエラーにします。
 
 ## 実機の接続
 
@@ -85,7 +85,7 @@ python3 gouda_gui/gouda_gui/gateway.py --ssh-runtime /path/to/existing/native_vi
 ```bash
 bash scripts/gouda.sh stop
 git pull --ff-only
-bash scripts/setup.sh --skip-system --no-configure
+bash scripts/setup.sh --no-configure
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
 bash scripts/gouda.sh observe
 ```

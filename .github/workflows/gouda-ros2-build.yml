@@ -45,6 +45,7 @@ jobs:
       - name: GUI and separate RViz window acceptance (test desktop only)
         env:
           NODE_PATH: /tmp/gouda-browser/node_modules
+          WAYLAND_DISPLAY: wayland-ci-inherited
         run: xvfb-run -a -s "-screen 0 1280x720x24" bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/smoke.sh"
       - name: Stop owned processes
         if: always()
