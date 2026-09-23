@@ -1,1 +1,2 @@
 patches/*.patch -whitespace
+firmware/gouda_esp32/reference_dualsense/platformio.ini -whitespace
