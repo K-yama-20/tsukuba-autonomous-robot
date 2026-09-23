@@ -126,8 +126,8 @@ def migrate_legacy_sensor_config(cfg, workspace, root):
     if marker.exists():
         return
     source=Path(cfg.get('hesai_config','')).expanduser()
-    old_root=legacy_config_root().resolve()
-    if not source.is_file() or old_root not in source.resolve().parents:
+    workspace=Path(workspace).expanduser().resolve()
+    if not source.is_file() or workspace in source.resolve().parents:
         return
     from gouda_sensors.hesai_config import checked_config
     import yaml
@@ -146,7 +146,7 @@ def migrate_legacy_sensor_config(cfg, workspace, root):
                 raise ValueError(f'参照ファイルが見つかりません: {original}')
             if field == 'correction_file_path':
                 validate_correction(original.read_bytes())
-            if Path(workspace).resolve() in original.resolve().parents:
+            if workspace in original.resolve().parents:
                 continue
             destination=root/original.name
             prior=destinations.get(destination)
