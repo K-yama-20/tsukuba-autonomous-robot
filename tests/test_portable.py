@@ -74,14 +74,23 @@ def test_viewer_launch_uses_display_and_ros_domain(monkeypatch,tmp_path):
     (config/'kiss_icp.rviz').write_text('upstream')
     monkeypatch.setattr(packages,'get_package_share_directory',lambda _:str(config.parent))
     monkeypatch.setenv('DISPLAY',':99');monkeypatch.setenv('WAYLAND_DISPLAY','wayland-0')
-    monkeypatch.delenv('LIBGL_ALWAYS_SOFTWARE',raising=False)
+    for key in ('LIBGL_ALWAYS_SOFTWARE','LP_NUM_THREADS','MESA_GLTHREAD'):monkeypatch.delenv(key,raising=False)
     commands=[];environments=[];children=[]
     real_popen=subprocess.Popen
     def fake_popen(command,**kwargs):
         commands.append(command);environments.append(kwargs['env'])
         child=real_popen(['sleep','10'],start_new_session=True);children.append(child);return child
     monkeypatch.setattr(runtime.subprocess,'Popen',fake_popen)
-    monkeypatch.setattr(runtime.subprocess,'check_output',lambda *a,**k:'0x1 "RViz2"')
+    def fake_check_output(command,**kwargs):
+        q=chr(34)
+        if command[:2]==['xwininfo','-root']:
+            return f'0x1 {q}Qt Selection Owner{q}\n0x2 {q}RViz splash{q}\n0x3 {q}kiss_icp.rviz - RViz{q}'
+        if command[:2]==['xwininfo','-id']:
+            return 'Map State: IsViewable\nWidth: 1920\nHeight: 1043'
+        if command[0]=='xprop':
+            return f'_NET_WM_PID(CARDINAL) = {children[0].pid}\nWM_CLASS(STRING) = {q}rviz2{q}, {q}rviz2{q}'
+        raise AssertionError(command)
+    monkeypatch.setattr(runtime.subprocess,'check_output',fake_check_output)
     state={'processes':{}}
     try:
         runtime.start_viewer(state,tmp_path/'state.json',tmp_path,{})
@@ -89,7 +98,9 @@ def test_viewer_launch_uses_display_and_ros_domain(monkeypatch,tmp_path):
         assert env['ROS_DOMAIN_ID']=='99'
         assert env['ROS_AUTOMATIC_DISCOVERY_RANGE']=='LOCALHOST'
         assert env['QT_QPA_PLATFORM']=='xcb'
-        assert 'LIBGL_ALWAYS_SOFTWARE' not in env
+        assert all(key not in env for key in ('LIBGL_ALWAYS_SOFTWARE','LP_NUM_THREADS','MESA_GLTHREAD'))
+        assert state['processes']['viewer']['display']=='x11::99'
+        assert state['processes']['viewer']['window_visible'] is True
         assert commands[0][0].endswith('/rviz2')
         assert commands[0][1:3]==['-d',str(config/'kiss_icp.rviz')]
         assert state['processes']['viewer']['pid']==children[0].pid
@@ -133,3 +144,50 @@ def test_process_identity_includes_boot():
     boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     assert runtime.identity(os.getpid()).startswith(boot+':')
     assert not runtime.alive(None)
+
+
+def test_window_detection_ignores_splash_and_other_process(monkeypatch):
+    q=chr(34)
+    props_pid=[9001]
+    def fake_check_output(command,**kwargs):
+        if command[:2]==['xwininfo','-root']:
+            return f'0x1 {q}Qt Selection Owner{q}\n0x2 {q}RViz splash{q}\n0x3 {q}kiss_icp.rviz - RViz{q}'
+        if command[:2]==['xwininfo','-id']:
+            return 'Map State: IsViewable\nWidth: 1920\nHeight: 1043'
+        if command[0]=='xprop':
+            return f'_NET_WM_PID(CARDINAL) = {props_pid[0]}\nWM_CLASS(STRING) = {q}rviz2{q}, {q}rviz2{q}'
+        raise AssertionError(command)
+    monkeypatch.setattr(runtime.subprocess,'check_output',fake_check_output)
+    assert runtime.rviz_window_for_pid(42) is False
+    props_pid[0]=42
+    assert runtime.rviz_window_for_pid(42) is True
+
+
+def test_display_identity_prefers_xwayland_when_display_exists():
+    assert runtime.display_identity({'DISPLAY':':99','WAYLAND_DISPLAY':'wayland-0'})=='x11::99'
+    assert runtime.display_identity({'WAYLAND_DISPLAY':'wayland-0'})=='wayland:wayland-0'
+
+
+def test_pure_wayland_readiness_waits_and_reports_unknown_window(monkeypatch,tmp_path):
+    from ament_index_python import packages
+    config=tmp_path/'kiss_icp'/'rviz';config.mkdir(parents=True)
+    (config/'kiss_icp.rviz').write_text('upstream')
+    monkeypatch.setattr(packages,'get_package_share_directory',lambda _:str(config.parent))
+    monkeypatch.delenv('DISPLAY',raising=False);monkeypatch.setenv('WAYLAND_DISPLAY','wayland-0')
+    children=[];real_popen=subprocess.Popen
+    def fake_popen(command,**kwargs):
+        child=real_popen(['sleep','10'],start_new_session=True);children.append(child);return child
+    monkeypatch.setattr(runtime.subprocess,'Popen',fake_popen)
+    monkeypatch.setattr(runtime,'_process_is_rviz',lambda pid:True)
+    ticks=[0.]
+    monkeypatch.setattr(runtime.time,'monotonic',lambda:ticks[0])
+    monkeypatch.setattr(runtime.time,'sleep',lambda seconds:ticks.__setitem__(0,ticks[0]+seconds))
+    state={'processes':{}}
+    try:
+        runtime.start_viewer(state,tmp_path/'state.json',tmp_path,{})
+        assert ticks[0]>=3.
+        assert state['processes']['viewer']['window_visible'] is None
+        assert state['processes']['viewer']['display']=='wayland:wayland-0'
+    finally:
+        for child in children:
+            if child.poll() is None:child.terminate();child.wait()

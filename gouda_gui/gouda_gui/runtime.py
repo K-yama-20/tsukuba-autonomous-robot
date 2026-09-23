@@ -3,6 +3,7 @@ import argparse
 import fcntl
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import shutil
@@ -50,20 +51,54 @@ def write_state(path, value):
     temp=path.with_suffix('.tmp'); temp.write_text(json.dumps(value,indent=2)); temp.replace(path)
 
 
+def display_identity(env=None):
+    env=os.environ if env is None else env
+    if env.get('DISPLAY'):
+        return 'x11:'+env['DISPLAY']
+    if env.get('WAYLAND_DISPLAY'):
+        return 'wayland:'+env['WAYLAND_DISPLAY']
+    return None
+
+
+def rviz_window_for_pid(pid):
+    try:
+        tree=subprocess.check_output(['xwininfo','-root','-tree'],stderr=subprocess.DEVNULL,text=True,timeout=2)
+    except (FileNotFoundError,subprocess.SubprocessError):
+        return None
+    for line in tree.splitlines():
+        match=re.match(r'^\s*(0x[0-9a-fA-F]+)\s+"([^"]*)"',line)
+        if not match or not match.group(2).lower().endswith(' - rviz'): continue
+        window_id,title=match.groups()
+        try:
+            info=subprocess.check_output(['xwininfo','-id',window_id],stderr=subprocess.DEVNULL,text=True,timeout=1)
+            props=subprocess.check_output(['xprop','-id',window_id,'_NET_WM_PID','WM_CLASS'],
+                stderr=subprocess.DEVNULL,text=True,timeout=1)
+        except (FileNotFoundError,subprocess.SubprocessError):
+            continue
+        dimensions=re.search(r'Width:\s+(\d+)\s+Height:\s+(\d+)',info)
+        pid_prop=re.search(r'_NET_WM_PID(?:\([^)]*\))?\s*=\s*(\d+)\s*$',props,re.MULTILINE)
+        wm_class=re.search(r'WM_CLASS[^=]*=\s*(.*)',props)
+        if (pid_prop and int(pid_prop.group(1))==pid and
+                wm_class and 'rviz2' in wm_class.group(1).lower() and
+                'Map State: IsViewable' in info and dimensions and
+                int(dimensions.group(1))>=300 and int(dimensions.group(2))>=200):
+            return True
+    return False
+
+
 def display_status(item):
     if not item or not alive(item):
         result={'available':False,'state':'stopped','error':'RViz2 process is not running'}
         log=logs_dir()/'viewer.log'
         if log.exists(): result['failure']=log.read_text(errors='replace')[-1200:].strip()
         return result
+    target=item.get('display')
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-        return {'available':True,'state':'running','pid':item['pid'],'display':item.get('display'),'window_visible':None,'error':'This shell has no desktop connection, so window visibility cannot be checked.'}
-    result={'available':True,'state':'running','pid':item['pid'],'display':os.environ.get('WAYLAND_DISPLAY') or os.environ.get('DISPLAY')}
-    try:
-        out=subprocess.check_output(['xwininfo','-root','-tree'],stderr=subprocess.DEVNULL,text=True,timeout=2)
-        result['window_visible']='rviz' in out.lower()
-    except (FileNotFoundError,subprocess.SubprocessError):
-        result['window_visible']=None
+        return {'available':True,'state':'running','pid':item['pid'],'display':target,'window_visible':None,'error':'This shell has no desktop connection, so window visibility cannot be checked.'}
+    if target and display_identity()!=target:
+        return {'available':True,'state':'running','pid':item['pid'],'display':target,'window_visible':None,'error':'This shell is connected to a different desktop display.'}
+    result={'available':True,'state':'running','pid':item['pid'],'display':target}
+    result['window_visible']=rviz_window_for_pid(item['pid']) if target and target.startswith('x11:') else None
     return result
 
 
@@ -111,22 +146,25 @@ def start_viewer(state,path,logs,cfg):
     with logpath.open('a') as log:
         p=subprocess.Popen(rviz_command(cfg),env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,
                            start_new_session=True)
-    item={'pid':p.pid,'start':identity(p.pid),'display':env.get('WAYLAND_DISPLAY') or env.get('DISPLAY')};state['processes']['viewer']=item;write_state(path,state)
+    item={'pid':p.pid,'start':identity(p.pid),'display':display_identity(env),'window_visible':None};state['processes']['viewer']=item;write_state(path,state)
+    started=time.monotonic()
     for _ in range(100):
         if not alive(item):
             tail=logpath.read_text(errors='replace')[-1500:]
             raise ValueError(f'RViz2終了。原因: {tail or "ログがありません"}')
-        try:
-            windows=subprocess.check_output(['xwininfo','-root','-tree'],stderr=subprocess.DEVNULL,text=True,timeout=1)
-            if any('rviz' in line.lower() for line in windows.splitlines()): return
-        except (FileNotFoundError,subprocess.SubprocessError):
-            # Wayland compositors do not expose a portable window-list API; verify
-            # the actual RViz process and report window visibility as unknown.
-            if os.environ.get('WAYLAND_DISPLAY') and _process_is_rviz(item['pid']): return
+        if env.get('DISPLAY'):
+            visible=rviz_window_for_pid(item['pid'])
+            if visible:
+                item['window_visible']=True;write_state(path,state);return
+        elif env.get('WAYLAND_DISPLAY') and time.monotonic()-started>=3:
+            # Wayland has no portable window-list API; require a stable direct RViz
+            # child before reporting launch success and mark visibility unknown.
+            if _process_is_rviz(item['pid']):
+                item['window_visible']=None;write_state(path,state);return
         time.sleep(.2)
     terminate(item);state['processes'].pop('viewer',None);write_state(path,state)
     tail=logpath.read_text(errors='replace')[-1500:]
-    raise ValueError(f'RViz2ウィンドウを確認できません。原因: {tail or "xwininfoでウィンドウが見つかりません"}')
+    raise ValueError(f'RViz2ウィンドウを確認できません。原因: {tail or "表示ウィンドウのPIDを確認できません"}')
 
 
 def _process_is_rviz(pid):
@@ -138,7 +176,7 @@ def restart_viewer(state,path,logs,cfg):
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         raise ValueError('Ubuntuデスクトップの表示環境がありません。デスクトップから gouda.sh viewer を実行してください。')
     old=state['processes'].get('viewer',{})
-    active_display=os.environ.get('WAYLAND_DISPLAY') or os.environ.get('DISPLAY')
+    active_display=display_identity()
     if alive(old) and old.get('display') and old['display']!=active_display:
         raise ValueError('管理中のRViz2は別のデスクトップで動作中です。そのデスクトップで gouda.sh viewer を実行してください。')
     if alive(old): terminate(old)
