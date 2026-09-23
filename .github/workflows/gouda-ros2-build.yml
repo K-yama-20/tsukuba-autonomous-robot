@@ -57,5 +57,6 @@ jobs:
           path: |
             ~/gouda_ws/log/
             ~/gouda_ws/bags/gouda/runtime/*.log
+            ~/gouda_ws/bags/gouda/logs/*.log
             ~/gouda_ws/bags/gouda/logs/**/*.log
             /tmp/gouda-smoke/
