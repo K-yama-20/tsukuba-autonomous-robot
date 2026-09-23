@@ -27,31 +27,34 @@ jobs:
         run: bash scripts/setup.sh --no-configure
       - name: Repeat setup without replacing user data
         run: |
-          mkdir -p "$HOME/.local/share/gouda/maps"
-          echo keep > "$HOME/.local/share/gouda/maps/preserve.txt"
-          cp "$HOME/.config/gouda/host.json" /tmp/host-before.json
+          cd "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot"
+          test ! -L "$PWD"
+          mkdir -p "$GOUDA_WORKSPACE/maps"
+          echo keep > "$GOUDA_WORKSPACE/maps/preserve.txt"
+          cp "$GOUDA_WORKSPACE/bags/gouda/host.json" /tmp/host-before.json
           bash scripts/setup.sh --skip-system --no-configure
-          cmp /tmp/host-before.json "$HOME/.config/gouda/host.json"
-          test "$(cat "$HOME/.local/share/gouda/maps/preserve.txt")" = keep
+          cmp /tmp/host-before.json "$GOUDA_WORKSPACE/bags/gouda/host.json"
+          test "$(cat "$GOUDA_WORKSPACE/maps/preserve.txt")" = keep
       - name: Unit and protocol tests
-        run: bash scripts/test.sh
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/test.sh"
       - name: Browser test dependencies
         run: |
+          sudo apt-get install -y xvfb xauth x11-utils wmctrl
           npm install --prefix /tmp/gouda-browser playwright@1.55.0
           /tmp/gouda-browser/node_modules/.bin/playwright install --with-deps chromium
-      - name: Real-input waiting screen and native RViz browser acceptance
+      - name: GUI and separate RViz window acceptance (test desktop only)
         env:
           NODE_PATH: /tmp/gouda-browser/node_modules
-        run: bash scripts/smoke.sh
+        run: xvfb-run -a -s "-screen 0 1280x720x24" bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/smoke.sh"
       - name: Stop owned processes
         if: always()
-        run: bash scripts/gouda.sh stop || true
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/gouda.sh" stop || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: logs-${{ matrix.arch }}
           path: |
             ~/gouda_ws/log/
-            ~/.local/share/gouda/runtime/*.log
-            ~/.local/share/gouda/logs/native_view/*.log
+            ~/gouda_ws/bags/gouda/runtime/*.log
+            ~/gouda_ws/bags/gouda/logs/**/*.log
             /tmp/gouda-smoke/
