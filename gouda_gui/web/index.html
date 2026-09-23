@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GOUDA · Mission Control</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script><script type="module" src="/native.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GOUDA · Mission Control</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
 <body>
 <header class="topbar">
   <div class="brand"><span class="brandmark">G</span><div><strong>GOUDA</strong><small>EMC-270 / MISSION CONTROL</small></div></div>
@@ -21,8 +21,8 @@
     <div class="page-heading"><div><div class="eyebrow" id="eyebrow">01 / MAPPING</div><h1 id="page-title">地図をつくる</h1><p id="page-description">LiDARの観測を地図に重ね、保存します。</p></div><div class="map-name"><small>ACTIVE MAP</small><strong id="map-name">未選択</strong></div></div>
     <div class="main-grid">
       <section class="viewport" aria-label="地図と点群">
-        <div class="viewport-toolbar"><span id="view-label">MAP VIEW <small>map座標系</small></span><div class="button-group"><button id="view-2d" aria-pressed="true">2D 地図</button><button id="view-3d" aria-pressed="false">3D 点群</button><button id="fit">全体表示</button></div></div>
-        <div id="native-status" role="status" hidden>標準画面を待っています</div><div id="native-screen" hidden aria-label="KISS-ICP標準RViz2画面"></div><div class="canvas-wrap"><canvas id="map" aria-label="地図。ゴールと初期位置は右の数値入力でも指定できます"></canvas><div id="map-empty" class="empty"><strong>地図データを待っています</strong><span>Ubuntu側の地図または点群が届くと、ここに表示します。</span></div><div class="map-badge" id="map-status">データ未受信</div><div id="tool-hint" class="tool-hint">ドラッグで移動 · ホイールで拡大</div><div class="scale" id="scale">—</div></div>
+        <div class="viewport-toolbar"><span id="view-label">2D 地図 <small>map座標系</small></span><div class="button-group"><button id="fit">全体表示</button></div></div>
+        <div id="rviz-status" class="rviz-status" role="status">RViz2はUbuntuデスクトップの別ウィンドウで表示します。状態を確認しています。</div><div class="canvas-wrap"><canvas id="map" aria-label="地図。ゴールと初期位置は右の数値入力でも指定できます"></canvas><div id="map-empty" class="empty"><strong>地図データを待っています</strong><span>Ubuntu側の地図または点群が届くと、ここに表示します。</span></div><div class="map-badge" id="map-status">データ未受信</div><div id="tool-hint" class="tool-hint">ドラッグで移動 · ホイールで拡大</div><div class="scale" id="scale">—</div></div>
         <div class="legend"><span><i class="robot-dot"></i><span id="position-reference">現在位置</span></span><span><i class="goal-dot"></i>ゴール</span><span><i class="path-line"></i>予定経路</span><span><i class="unknown-dot"></i>未観測</span><span id="map-size">—</span></div>
         <div class="telemetry"><div><small>POSITION / m</small><strong id="position">— / —</strong></div><div><small>HEADING</small><strong id="heading">—</strong></div><div><small>VELOCITY</small><strong id="velocity">—</strong></div><div><small>POINT CLOUD</small><strong id="cloud-age">未受信</strong></div></div>
       </section>

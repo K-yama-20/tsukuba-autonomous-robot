@@ -3,7 +3,6 @@
 .topbar{position:sticky;top:0;z-index:10}.sidebar{position:sticky;top:76px;height:calc(100vh - 76px);align-self:start}
 @media(max-width:850px){.sidebar{top:110px;height:calc(100vh - 110px)}}
 
-#native-status{padding:10px 12px;font-size:11px;line-height:1.7;border-bottom:1px solid var(--line);color:var(--muted)}
-#native-status[data-fresh="false"]{color:var(--amber)}
-#native-screen{width:100%;height:clamp(360px,56vh,720px);background:#000;overflow:hidden}
-#native-screen canvas{width:auto;height:auto;touch-action:none}
+.rviz-status{padding:10px 12px;font-size:11px;line-height:1.7;border-bottom:1px solid var(--line);color:var(--muted)}
+.rviz-status[data-available="true"]{color:var(--cyan)}
+.rviz-status[data-available="false"]{color:var(--amber)}

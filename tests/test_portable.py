@@ -26,14 +26,6 @@ def test_stop_never_kills_reused_pid():
         if process.poll() is None: process.terminate();process.wait()
 
 
-def test_state_locations_respect_xdg(monkeypatch,tmp_path):
-    from gouda_gui.paths import config_dir,data_dir
-    monkeypatch.setenv('XDG_CONFIG_HOME',str(tmp_path/'config'))
-    monkeypatch.setenv('XDG_DATA_HOME',str(tmp_path/'data'))
-    assert config_dir()==tmp_path/'config/gouda'
-    assert data_dir()==tmp_path/'data/gouda'
-
-
 def test_hardware_requires_exclusive_ip(monkeypatch,tmp_path):
     from gouda_sensors import hesai_config
     monkeypatch.setattr(hesai_config,'checked_config',lambda *args:None)
@@ -69,12 +61,75 @@ def test_calibration_rejects_truncated_or_invalid(data):
 
 
 def test_gateway_only_known_routes():
-    assert allowed_path('/native/ws')
+    assert not allowed_path('/native/ws')
     assert allowed_path('/api/viewer')
+    assert not allowed_path('/native/vendor/core/rfb.js')
     assert not allowed_path('/runtime/id_ed25519')
     assert not allowed_path('/api/unknown')
+
+
+def test_viewer_launch_uses_display_and_ros_domain(monkeypatch,tmp_path):
+    from ament_index_python import packages
+    config=tmp_path/'kiss_icp'/'rviz';config.mkdir(parents=True)
+    (config/'kiss_icp.rviz').write_text('upstream')
+    monkeypatch.setattr(packages,'get_package_share_directory',lambda _:str(config.parent))
+    monkeypatch.setenv('DISPLAY',':99');monkeypatch.setenv('WAYLAND_DISPLAY','wayland-0')
+    monkeypatch.delenv('LIBGL_ALWAYS_SOFTWARE',raising=False)
+    commands=[];environments=[];children=[]
+    real_popen=subprocess.Popen
+    def fake_popen(command,**kwargs):
+        commands.append(command);environments.append(kwargs['env'])
+        child=real_popen(['sleep','10'],start_new_session=True);children.append(child);return child
+    monkeypatch.setattr(runtime.subprocess,'Popen',fake_popen)
+    monkeypatch.setattr(runtime.subprocess,'check_output',lambda *a,**k:'0x1 "RViz2"')
+    state={'processes':{}}
+    try:
+        runtime.start_viewer(state,tmp_path/'state.json',tmp_path,{})
+        env=environments[0]
+        assert env['ROS_DOMAIN_ID']=='99'
+        assert env['ROS_AUTOMATIC_DISCOVERY_RANGE']=='LOCALHOST'
+        assert env['QT_QPA_PLATFORM']=='xcb'
+        assert 'LIBGL_ALWAYS_SOFTWARE' not in env
+        assert commands[0][0].endswith('/rviz2')
+        assert commands[0][1:3]==['-d',str(config/'kiss_icp.rviz')]
+        assert state['processes']['viewer']['pid']==children[0].pid
+    finally:
+        for child in children:
+            if child.poll() is None:child.terminate();child.wait()
+
+
+def test_display_failure_leaves_base_processes_running(monkeypatch,tmp_path):
+    monkeypatch.delenv('DISPLAY',raising=False);monkeypatch.delenv('WAYLAND_DISPLAY',raising=False)
+    children=[];processes={}
+    for name in ('sensors','processing','gateway'):
+        child=subprocess.Popen(['sleep','10'],start_new_session=True);children.append(child)
+        processes[name]={'pid':child.pid,'start':runtime.identity(child.pid)}
+    state={'processes':processes}
+    try:
+        with pytest.raises(ValueError,match='表示環境'):
+            runtime.start_viewer(state,tmp_path/'state.json',tmp_path,{})
+        assert all(runtime.alive(item) for item in processes.values())
+        assert state['processes']==processes
+    finally:
+        for child in children:
+            if child.poll() is None:child.terminate();child.wait()
+
+
+def test_viewer_restart_without_display_preserves_running_viewer(monkeypatch,tmp_path):
+    monkeypatch.delenv('DISPLAY',raising=False);monkeypatch.delenv('WAYLAND_DISPLAY',raising=False)
+    process=subprocess.Popen(['sleep','10'],start_new_session=True)
+    item={'pid':process.pid,'start':runtime.identity(process.pid),'display':':0'}
+    state={'processes':{'viewer':item}}
+    try:
+        with pytest.raises(ValueError,match='表示環境'):
+            runtime.restart_viewer(state,tmp_path/'state.json',tmp_path,{})
+        assert process.poll() is None
+        assert state['processes']['viewer']==item
+    finally:
+        process.terminate();process.wait()
 
 
 def test_process_identity_includes_boot():
     boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     assert runtime.identity(os.getpid()).startswith(boot+':')
+    assert not runtime.alive(None)

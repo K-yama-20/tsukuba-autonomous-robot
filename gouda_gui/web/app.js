@@ -87,8 +87,8 @@ $('to-monitor').onclick=()=>selectTab('monitor');
 $('start').onclick=()=>act('start',{plan_id:state?.plan_id},'走行開始を受け付けました。');
 $('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信しました。停止確認を待っています。');
 $('map-title').addEventListener('input',render);
-function setView(next){view=next;$('view-2d').setAttribute('aria-pressed',String(next==='2d'));$('view-3d').setAttribute('aria-pressed',String(next==='3d'));$('view-label').textContent=next==='2d'?'MAP VIEW / map座標系':'POINT CLOUD / map座標系・斜め表示';if(next==='3d')setTool('pan');draw();}
-$('view-2d').onclick=()=>{if(state?.observation_only&&tab==='mapping')selectTab('planning');setView('2d');};$('view-3d').onclick=()=>setView('3d');$('fit').onclick=()=>{fit();draw();};
+function setView(next){view='2d';$('view-label').textContent='2D 地図 / map座標系';draw();}
+$('fit').onclick=()=>{fit();draw();};
 function updateSavedMaps(){
   const list=state.maps||[],key=JSON.stringify(list);if(key===mapListKey)return;mapListKey=key;
   const selected=$('map-select').value;$('map-select').replaceChildren(new Option('保存地図を選択',''));$('saved-maps').replaceChildren();
@@ -99,7 +99,7 @@ function updateSavedMaps(){
 function render(){
   document.body.classList.toggle('disconnected',!connected);
   $('connection').textContent=connected?'● Ubuntu 接続中':'接続停止 · 表示は最終受信値';
-  if(!state){$('mode').textContent='未接続';return;}
+  if(!state){$('mode').textContent='未接続';$('rviz-status').dataset.available='false';$('rviz-status').textContent='Ubuntu接続停止 · RViz2の状態を取得できません';return;}
   $('mode').textContent={simulation:'シミュレーション',live:'実機 · 走行無効',replay:'記録再生'}[state.mode]||state.mode;
   const observation=!!state.observation_only;
   $('stop').disabled=observation;$('cancel').disabled=observation;
@@ -113,7 +113,8 @@ function render(){
   $('cloud-age').textContent=state.ages.cloud===undefined?'未受信':fresh('cloud')?`${Math.round(state.ages.cloud*1000)} ms`:'更新停止';
   $('capture-status').textContent=state.mapping?'● 地図作成中':state.mapping_frames?'計測終了':'待機中';
   $('capture-time').textContent=`${Math.floor(state.mapping_seconds/60).toString().padStart(2,'0')}:${(state.mapping_seconds%60).toString().padStart(2,'0')}`;$('capture-frames').textContent=`${state.mapping_frames} ${state.observation_only?'回 地図更新':'フレーム'}`;
-  $('mapping-method').textContent=state.mode==='simulation'?'点群を2D地図へ投影します。範囲20 × 20 m、解像度0.1 m。':observation?'画面はKISS-ICPの標準3D点群です。下の計測・保存操作は別系統の2D SLAM地図が対象です。手持ちの傾きがある計測は2D走行地図の品質を保証しません。':'外部SLAMの起動を待っています。';
+  $('mapping-method').textContent=state.mode==='simulation'?'点群を2D地図へ投影します。範囲20 × 20 m、解像度0.1 m。':observation?'別ウィンドウのKISS-ICP / RViz2で点群を確認します。ここでは2D SLAM地図を計測・保存します。':'外部SLAMの起動を待っています。';
+  const viewer=state.viewer||{};$('rviz-status').dataset.available=String(!!viewer.available);$('rviz-status').textContent=viewer.available?'RViz2 起動中 · Ubuntuデスクトップの別ウィンドウ · 再起動: gouda.sh viewer':viewer.error||'RViz2停止中 · gouda.sh viewer で起動';
   const stationary=fresh('pose')&&p&&Math.abs(p.v)<.01&&Math.abs(p.w)<.01&&fresh('esp32')&&!state.esp.flags;
   $('mapping-start').disabled=busy||!connected||state.mapping||(observation?!fresh('lidar_raw'):!stationary||!fresh('cloud')||state.mode!=='simulation');
   $('mapping-stop').disabled=busy||!connected||!state.mapping;
@@ -162,7 +163,6 @@ function world(x,y){const {w,h}=dimensions();return{x:camera.x+(x-w/2)/camera.sc
 function line(points,color,width,dash=[]){if(!points?.length)return;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();points.forEach((p,i)=>{const [x,y]=screen(...p);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
 function marker(p,color,label,robot=false){if(!p)return;const [x,y]=screen(p.x,p.y);ctx.save();ctx.translate(x,y);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,robot?10:7,0,Math.PI*2);ctx.stroke();ctx.rotate(-p.yaw);ctx.beginPath();ctx.moveTo(robot?17:21,0);ctx.lineTo(robot?-5:13,-5);ctx.lineTo(robot?-5:13,5);ctx.closePath();ctx.fill();ctx.restore();ctx.fillStyle=color;ctx.font='11px monospace';ctx.fillText(label,x+14,robot?y-13:y+21);}
 function draw(){
-  syncNativeView();if(document.body.classList.contains('native-active'))return;
   if(!Number.isFinite(camera.scale)||camera.scale<=0)cameraInitialized=false;
   if(!cameraInitialized)cameraInitialized=fit();
   if(!dimensions().w||!dimensions().h)return;
@@ -184,20 +184,3 @@ canvas.addEventListener('pointercancel',()=>{pointer=null;});
 new ResizeObserver(()=>draw()).observe(canvas.parentElement);
 setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(connected&&performance.now()-lastResponse>3000){connected=false;render();draw();}},1000);
 poll();
-
-function syncNativeView(){
-  const native=!!state?.observation_only&&(tab==='mapping'||view==='3d');
-  document.body.classList.toggle('native-active',native);
-  $('native-screen').hidden=!native;$('native-status').hidden=!native;
-  document.querySelector('.canvas-wrap').hidden=native;
-  document.querySelector('.legend').hidden=native;
-  document.querySelector('.telemetry').hidden=native;
-  $('fit').hidden=native;
-  $('view-3d').textContent=state?.observation_only?'KISS-ICP':'3D 点群';
-  $('view-2d').textContent=state?.observation_only?'2D 計画地図':'2D 地図';
-  $('view-2d').setAttribute('aria-pressed',String(!native&&view==='2d'));
-  $('view-3d').setAttribute('aria-pressed',String(native||view==='3d'));
-  if(native)$('view-label').textContent='KISS-ICP / RViz2 · odom_lidar';
-  else if(state?.observation_only)$('view-label').textContent='2D 計画地図 · map';
-  if(state?.observation_only){$('save-map').textContent='2D SLAM地図を保存';}
-}

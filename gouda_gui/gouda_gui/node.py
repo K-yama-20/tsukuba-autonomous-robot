@@ -1,6 +1,6 @@
 """HTTP mission control and ROS adapter. ROS owns motion; browser owns no heartbeat."""
 import copy
-from .paths import data_dir
+from .paths import data_dir, runtime_dir, logs_dir
 from collections import deque
 import json
 import math
@@ -156,18 +156,20 @@ class MissionControl(Node):
             if not -.05<=age<.5:raise ValueError('点群の時刻が古いか、時計が一致していません')
             tf=self.tf.lookup_transform('map',msg.header.frame_id,rclpy.time.Time.from_msg(msg.header.stamp))
             q=tf.transform.rotation;t=tf.transform.translation
-            # Full rigid transform; no guessed sensor extrinsics.
-            matrix=((1-2*(q.y*q.y+q.z*q.z),2*(q.x*q.y-q.z*q.w),2*(q.x*q.z+q.y*q.w)),
-                    (2*(q.x*q.y+q.z*q.w),1-2*(q.x*q.x+q.z*q.z),2*(q.y*q.z-q.x*q.w)),
-                    (2*(q.x*q.z-q.y*q.w),2*(q.y*q.z+q.x*q.w),1-2*(q.x*q.x+q.y*q.y)))
-            raw=read_points(msg,field_names=('x','y','z'),skip_nans=True)
-            stride=max(1,len(raw)//1200);points=[]
-            for p in raw[::stride]:
-                v=[float(p[k]) for k in range(3)]
-                if not all(math.isfinite(c) for c in v):continue
-                points.append([sum(a*b for a,b in zip(row,v))+offset for row,offset in zip(matrix,(t.x,t.y,t.z))])
+            points=[]
+            if self.mapping and self.mode=='simulation':
+                # Convert points only while the simulation's 2D map projection needs them.
+                matrix=((1-2*(q.y*q.y+q.z*q.z),2*(q.x*q.y-q.z*q.w),2*(q.x*q.z+q.y*q.w)),
+                        (2*(q.x*q.y+q.z*q.w),1-2*(q.x*q.x+q.z*q.z),2*(q.y*q.z-q.x*q.w)),
+                        (2*(q.x*q.z-q.y*q.w),2*(q.y*q.z+q.x*q.w),1-2*(q.x*q.x+q.y*q.y)))
+                raw=read_points(msg,field_names=('x','y','z'),skip_nans=True)
+                stride=max(1,len(raw)//1200)
+                for p in raw[::stride]:
+                    v=[float(p[k]) for k in range(3)]
+                    if not all(math.isfinite(c) for c in v):continue
+                    points.append([sum(a*b for a,b in zip(row,v))+offset for row,offset in zip(matrix,(t.x,t.y,t.z))])
             with self.lock:
-                self.cloud=points;self.cloud_origin=(t.x,t.y);self.times['cloud']=now;self.cloud_note='map座標の点群を受信中'
+                self.cloud=[];self.cloud_origin=(t.x,t.y);self.times['cloud']=now;self.cloud_note='LiDAR座標変換を受信中'
                 if self.observation_only:
                     heading=yaw(q); prev=self.pose; previous=self.times.get('pose')
                     dt=now-previous if previous else 0.
@@ -198,6 +200,25 @@ class MissionControl(Node):
     def stationary(self):
         return self.pose and self.fresh('pose') and abs(self.pose['v'])<.01 and abs(self.pose['w'])<.01
 
+    def viewer_status(self):
+        path=runtime_dir()/'processes.json'
+        try:
+            item=json.loads(path.read_text()).get('processes',{}).get('viewer')
+            if not item:return {'available':False,'error':'RViz2停止中 · gouda.sh observe または gouda.sh viewer で起動'}
+            fields=FilePath(f"/proc/{item['pid']}/stat").read_text().rsplit(')',1)[1].split()
+            boot=FilePath('/proc/sys/kernel/random/boot_id').read_text().strip()
+            if fields[0]=='Z' or boot+':'+fields[19]!=item.get('start'):
+                return {'available':False,'error':'RViz2が終了しています · gouda.sh viewer で再起動'}
+            cmd=FilePath(f"/proc/{item['pid']}/cmdline").read_bytes().decode(errors='replace')
+            if 'rviz2' not in cmd:
+                return {'available':False,'error':'管理対象のRViz2プロセスではありません · gouda.sh viewer で再起動'}
+            return {'available':True,'pid':item['pid'],'display':item.get('display')}
+        except (OSError,ValueError,KeyError,TypeError):
+            failure=''
+            try: failure=(logs_dir()/'viewer.log').read_text(errors='replace')[-600:].strip()
+            except OSError: pass
+            return {'available':False,'error':'RViz2終了 · gouda.sh viewer で再起動','failure':failure}
+
     def snapshot(self):
         with self.lock:
             ages={k:round(time.monotonic()-v,3) for k,v in self.times.items()}
@@ -210,7 +231,7 @@ class MissionControl(Node):
             if not self.nav.get('explicit_start'):reasons.append('明示開始に対応したナビゲーションが必要です')
             if not self.stationary():reasons.append('停止位置の確認が必要です')
             stopped=bool(self.stop_requested and self.stationary() and self.fresh('esp32') and not self.esp.get('flags'))
-            return copy.deepcopy(dict(mode=self.mode,observation_only=self.observation_only,
+            return copy.deepcopy(dict(mode=self.mode,observation_only=self.observation_only,viewer=self.viewer_status(),
                 slam_phase=self.slam.status() if self.slam else None,
                 pose_reference='LiDAR中心・取付未校正' if self.observation_only else '車体',pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
                 map=self.grid,map_revision=self.grid_revision,map_meta=self.map_meta,maps=self.store.list(),

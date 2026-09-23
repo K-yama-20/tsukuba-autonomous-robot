@@ -9,4 +9,4 @@ setup(name='gouda_gui', version='0.1.0', packages=['gouda_gui'],
       install_requires=['setuptools'], zip_safe=True,
       maintainer='Gouda Development Team', maintainer_email='ryoya-1@g.ecc.u-tokyo.ac.jp',
       description='Mission control with persistent maps and explicit plan/start', license='Apache-2.0',
-      entry_points={'console_scripts': ['mission_control = gouda_gui.node:main', 'native_view = gouda_gui.native_view:main']})
+      entry_points={'console_scripts': ['mission_control = gouda_gui.node:main']})

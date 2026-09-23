@@ -155,9 +155,10 @@ def serve(backend, web_root, host='127.0.0.1', port=8765):
                 self.reply(200, dict(token=token)); return
             if path == '/api/state':
                 self.reply(200, backend.snapshot()); return
+            if path == '/api/viewer':
+                self.reply(200, backend.viewer_status()); return
             files = {'/': ('index.html', 'text/html; charset=utf-8'),
                      '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
-                     '/native.js': ('native.js', 'text/javascript; charset=utf-8'),
                      '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if path not in files:
                 self.reply(404, dict(error='Not found')); return
