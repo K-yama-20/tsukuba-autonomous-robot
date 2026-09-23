@@ -19,6 +19,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from nav2_msgs.action import ComputePathToPose
+from nav2_msgs.srv import GetCostmap
 from rclpy.action import ActionClient
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from sensor_msgs.msg import PointCloud2, Imu
@@ -481,7 +482,7 @@ class MissionControl(Node):
             grid=copy.deepcopy(self.grid); start=copy.deepcopy(self.planning_start); goal=copy.deepcopy(self.goal)
             revision=self.grid_revision; request_id=uuid.uuid4().hex
             self.plan_id=request_id;self.preview=[];self.planning=True;self.plan_error=''
-        proc=None; config_path=None; log=None
+        proc=None; config_path=None; log=None; log_path=None; diagnostic_log=None
         try:
             validate_grid(grid)
             if abs(grid['origin']['yaw'])>1e-6: raise ValueError('地図の原点が回転しています。このプレビューでは回転地図を扱えません')
@@ -497,17 +498,17 @@ class MissionControl(Node):
             config={
                 '/gouda_route_preview/planner_server':{'ros__parameters':{
                     'use_sim_time':False,
-                    'expected_planner_frequency':1.0,'planner_plugins':['GridBased'],'costmap_update_timeout':1.0,
+                    'expected_planner_frequency':1.0,'planner_plugins':['GridBased'],'costmap_update_timeout':5.0,
                     'GridBased':{'plugin':'nav2_navfn_planner::NavfnPlanner','tolerance':0.0,
                         'use_astar':True,'allow_unknown':False,'use_final_approach_orientation':False}}},
                 '/gouda_route_preview/global_costmap/global_costmap':{'ros__parameters':{
                     'use_sim_time':False,
-                    'global_frame':'map','robot_base_frame':'map','update_frequency':1.0,
+                    'global_frame':'map','robot_base_frame':'map','update_frequency':2.0,
                     'publish_frequency':0.0,'transform_tolerance':0.3,'resolution':grid['resolution'],
                     'track_unknown_space':True,'rolling_window':False,'robot_radius':0.0,
                     'plugins':['static_layer','inflation_layer'],'always_send_full_costmap':True,
                     'static_layer':{'plugin':'nav2_costmap_2d::StaticLayer','map_topic':'/gouda/route_preview/map','map_subscribe_transient_local':True,
-                        'subscribe_to_updates':False,'trinary_costmap':False,'lethal_cost_threshold':65},
+                        'subscribe_to_updates':False,'trinary_costmap':False,'lethal_cost_threshold':64},
                     'inflation_layer':{'plugin':'nav2_costmap_2d::InflationLayer','inflation_radius':0.0,
                         'cost_scaling_factor':1.0}}}
             }
@@ -530,6 +531,44 @@ class MissionControl(Node):
             map_deadline=time.monotonic()+3.0
             while time.monotonic()<map_deadline and self.preview_map_pub.get_subscription_count()==0:time.sleep(.05)
             if self.preview_map_pub.get_subscription_count()==0:raise TimeoutError('プランナーが選択地図を受信できません')
+            costmap_client=None; costmap_ready=False; costmap_deadline=time.monotonic()+6.0
+            try:
+                while time.monotonic()<costmap_deadline:
+                    if costmap_client is None:
+                        services=self.get_service_names_and_types()
+                        match=next((name for name,types in services if name.startswith('/gouda_route_preview/') and any('nav2_msgs/srv/GetCostmap' in t for t in types)),None)
+                        if match:costmap_client=self.create_client(GetCostmap,match)
+                    if costmap_client and costmap_client.service_is_ready():
+                        future=costmap_client.call_async(GetCostmap.Request());done=threading.Event();box={}
+                        def costmap_cb(f,result_box=box,completed=done):
+                            try:result_box['response']=f.result()
+                            except Exception as exc:result_box['error']=exc
+                            finally:completed.set()
+                        future.add_done_callback(costmap_cb)
+                        if not done.wait(.75):
+                            future.cancel()
+                            time.sleep(.05)
+                            continue
+                        if 'error' in box:raise RuntimeError('プランナーのコストマップ応答を読み取れませんでした') from box['error']
+                        costmap=box['response'].map;meta=costmap.metadata;origin=meta.origin.position
+                        geometry=(costmap.header.frame_id=='map' and meta.size_x==grid['width'] and meta.size_y==grid['height'] and
+                            abs(meta.resolution-grid['resolution'])<1e-6 and
+                            abs(origin.x-grid['origin']['x'])<grid['resolution']*.1 and
+                            abs(origin.y-grid['origin']['y'])<grid['resolution']*.1 and len(costmap.data)==grid['width']*grid['height'])
+                        if geometry:
+                            matches=True
+                            for source,value in zip(grid['data'],costmap.data):
+                                if source<0 and value!=255 or source>=65 and value!=254 or 0<=source<65 and value>=253:
+                                    matches=False;break
+                            sx=math.floor((start['x']-origin.x)/meta.resolution);sy=math.floor((start['y']-origin.y)/meta.resolution)
+                            gx=math.floor((goal['x']-origin.x)/meta.resolution);gy=math.floor((goal['y']-origin.y)/meta.resolution)
+                            endpoints=(0<=sx<meta.size_x and 0<=sy<meta.size_y and 0<=gx<meta.size_x and 0<=gy<meta.size_y and
+                                costmap.data[sy*meta.size_x+sx]<253 and costmap.data[gy*meta.size_x+gx]<253)
+                            if matches and endpoints:costmap_ready=True;break
+                    time.sleep(.1)
+            finally:
+                if costmap_client:self.destroy_client(costmap_client)
+            if not costmap_ready:raise TimeoutError('プランナーのコストマップが選択地図と一致しませんでした')
             request=ComputePathToPose.Goal();request.start=self.pose_message(start);request.goal=self.pose_message(goal)
             request.start.header.stamp.sec=0;request.start.header.stamp.nanosec=0
             request.goal.header.stamp.sec=0;request.goal.header.stamp.nanosec=0
@@ -579,14 +618,25 @@ class MissionControl(Node):
             self.log('地図上の経路プレビューを計算しました。車体の通過可否は未確認です。走行開始は無効です。')
         except Exception as exc:
             detail=str(exc)
+            self.close_preview_process(proc)
             try:
-                if 'log_path' in locals():
-                    tail=FilePath(log_path).read_text(errors='replace')[-1200:].strip()
-                    if tail:detail += ' · '+tail
+                if log:
+                    log.flush()
+                if log_path and FilePath(log_path).is_file():
+                    diagnostic_dir=logs_dir();diagnostic_dir.mkdir(parents=True,exist_ok=True)
+                    diagnostic_log=diagnostic_dir/f'route-preview-{request_id}.log'
+                    os.replace(log_path,diagnostic_log)
+                    tail='\n'.join(FilePath(diagnostic_log).read_text(errors='replace').splitlines()[-12:]).strip()
+                    if tail:detail += '\n'+tail
+                    old=sorted(diagnostic_dir.glob('route-preview-*.log'),key=lambda item:item.stat().st_mtime,reverse=True)
+                    for stale in old[5:]:
+                        try:stale.unlink()
+                        except OSError:pass
             except OSError:pass
+            if len(detail)>700:detail=detail[:160]+'\n…\n'+detail[-500:]
             with self.lock:
-                self.preview=[];self.plan_id=None;self.planning=False;self.plan_error=detail[:700]
-            self.log('経路プレビューに失敗しました: '+detail[:400])
+                self.preview=[];self.plan_id=None;self.planning=False;self.plan_error=detail
+            self.log('経路プレビューに失敗しました: '+detail[-400:])
             raise
         finally:
             self.close_preview_process(proc)
