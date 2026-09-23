@@ -7,6 +7,18 @@ const assert=require('node:assert/strict');
  await page.goto('http://127.0.0.1:8766');
  await page.waitForFunction(()=>document.querySelector('#connection').textContent.includes('接続中'),null,{timeout:30000});
  await page.waitForFunction(()=>document.querySelector('#native-screen canvas')?.width===1280,null,{timeout:60000});
+ // A ServerInit-sized canvas can still be an empty framebuffer while Qt starts.
+ // Require actual native window pixels, without generating any sensor data.
+ const waitForNativePixels=async()=>{
+  await page.waitForFunction(()=>{
+   const c=document.querySelector('#native-screen canvas');if(!c||c.width!==1280)return false;
+   const pixels=c.getContext('2d').getImageData(0,0,c.width,100).data;
+   let painted=0;for(let i=0;i<pixels.length;i+=64)if(pixels[i]+pixels[i+1]+pixels[i+2]>80)painted++;
+   return painted>500;
+  },null,{timeout:60000});
+  await page.waitForFunction(()=>document.querySelector('#native-status').textContent.includes('更新停止'),null,{timeout:15000});
+ };
+ await waitForNativePixels();
  const state=await page.request.get('http://127.0.0.1:8766/api/state').then(r=>r.json());
  assert.equal(state.mode,'live');assert.equal(state.observation_only,true);
  assert.equal(state.pose,null);assert.equal(state.map,null);assert.equal(state.mapping_frames,0);
@@ -24,7 +36,7 @@ const assert=require('node:assert/strict');
   await page.locator('#tab-mapping').click();
  }
  await page.reload();
- await page.waitForFunction(()=>document.querySelector('#native-screen canvas')?.width===1280,null,{timeout:30000});
+ await waitForNativePixels();
  assert.equal((await page.request.get('http://127.0.0.1:8766/api/state',{headers:{Origin:'http://untrusted.invalid'}})).status(),403);
  assert.equal((await page.request.get('http://127.0.0.1:8766/api/unknown')).status(),404);
  await page.setViewportSize({width:390,height:844});
