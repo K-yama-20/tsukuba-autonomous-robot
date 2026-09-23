@@ -9,6 +9,10 @@ def workspace_dir():
     if configured:
         return Path(configured).expanduser().resolve()
     legacy = Path(os.environ.get('XDG_CONFIG_HOME', Path.home()/'.config'))/'gouda/host.json'
+    source = Path(__file__).resolve()
+    for ancestor in source.parents:
+        if ancestor.name == 'tsukuba-autonomous-robot' and ancestor.parent.name == 'src':
+            return ancestor.parent.parent.resolve()
     if legacy.is_file():
         try:
             value = json.loads(legacy.read_text()).get('workspace')

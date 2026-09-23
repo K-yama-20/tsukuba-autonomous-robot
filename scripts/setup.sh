@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -eo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-workspace="${GOUDA_WORKSPACE:-$HOME/gouda_ws}"
+default_workspace="$(python3 - "$repo" <<'PYWORKSPACE'
+import sys
+from pathlib import Path
+repo=Path(sys.argv[1]).resolve()
+print(repo.parent.parent if repo.name == 'tsukuba-autonomous-robot' and repo.parent.name == 'src' else Path.home()/'gouda_ws')
+PYWORKSPACE
+)"
+workspace="${GOUDA_WORKSPACE:-$default_workspace}"
 configure=1
 system=1
 for arg in "$@"; do

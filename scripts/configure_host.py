@@ -21,7 +21,17 @@ def legacy_config_root():
     return Path(os.environ.get('XDG_CONFIG_HOME', Path.home()/'.config'))/'gouda'
 
 
-def running_gouda():
+def process_is_alive(item):
+    try:
+        pid=int(item['pid'])
+        stat=Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
+        boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        current=boot+':'+stat[19] if stat[0] != 'Z' else None
+        return current is not None and current == item.get('start')
+    except (KeyError, ValueError, OSError, IndexError, TypeError):
+        return False
+
+def running_gouda(workspace=None):
     proc = Path('/proc')
     if not proc.is_dir():
         return False
@@ -36,21 +46,18 @@ def running_gouda():
             return True
     # The legacy CLI exits after launching process groups. Validate both PID and
     # start identity from its registry to avoid PID reuse false positives.
-    legacy_state = Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda/runtime/processes.json'
-    if legacy_state.is_file():
+    registries=[Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda/runtime/processes.json']
+    workspace=workspace or os.environ.get('GOUDA_WORKSPACE')
+    if workspace:
+        registries.append(Path(workspace).expanduser().resolve()/'bags/gouda/runtime/processes.json')
+    for registry in dict.fromkeys(registries):
+        if not registry.is_file():
+            continue
         try:
-            state = json.loads(legacy_state.read_text())
-            boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
-            for item in state.get('processes', {}).values():
-                try:
-                    stat = Path(f"/proc/{int(item['pid'])}/stat").read_text().rsplit(')', 1)[1].split()
-                    current = boot+':'+stat[19] if stat[0] != 'Z' else None
-                    if current is not None and current == item.get('start'):
-                        return True
-                except (KeyError, ValueError, OSError, IndexError):
-                    continue
-        except (OSError, ValueError):
-            # An unreadable process registry is ambiguous; preserve data by stopping.
+            state=json.loads(registry.read_text())
+            if any(process_is_alive(item) for item in state.get('processes', {}).values()):
+                return True
+        except (OSError, ValueError, AttributeError):
             return True
     return False
 
@@ -60,10 +67,13 @@ def migrate_maps(workspace):
     legacy = Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda'
     if not legacy.is_dir():
         return
+    target_root = Path(workspace).expanduser().resolve()
+    marker=target_root/'.gouda-map-migration-complete'
+    if marker.exists():
+        return
     maps = [name for name in ('maps', 'maps_sensor_slam') if (legacy/name).exists() or (legacy/name).is_symlink()]
     if not maps:
         return
-    target_root = Path(workspace).expanduser().resolve()
     if running_gouda():
         raise ValueError('Goudaプロセスが稼働中のため地図を移行できません。先にbash scripts/gouda.sh stopを実行してください。')
     # Preflight every file before writing anything. Identical existing files are
@@ -105,6 +115,64 @@ def migrate_maps(workspace):
             destination.symlink_to(source.readlink(), target_is_directory=source.is_dir())
         else:
             shutil.copy2(source, destination)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text('legacy maps copied; workspace maps are now authoritative\n')
+    marker.chmod(0o600)
+
+
+def migrate_legacy_sensor_config(cfg, workspace, root):
+    """Copy a validated XDG Hesai profile and referenced files into workspace state."""
+    marker=root/'.sensor-migration-complete'
+    if marker.exists():
+        return
+    source=Path(cfg.get('hesai_config','')).expanduser()
+    old_root=legacy_config_root().resolve()
+    if not source.is_file() or old_root not in source.resolve().parents:
+        return
+    from gouda_sensors.hesai_config import checked_config
+    import yaml
+    checked_config(source,'hardware')
+    data=yaml.safe_load(source.read_text())
+    copies={}
+    destinations={}
+    for key in ('lidar_udp_type','pcap_type','rosbag_type'):
+        block=data['lidar'][0]['driver'].get(key,{})
+        for field in ('correction_file_path','firetimes_path'):
+            value=block.get(field)
+            if not value:
+                continue
+            original=Path(value).expanduser()
+            if not original.is_file():
+                raise ValueError(f'参照ファイルが見つかりません: {original}')
+            if field == 'correction_file_path':
+                validate_correction(original.read_bytes())
+            if Path(workspace).resolve() in original.resolve().parents:
+                continue
+            destination=root/original.name
+            prior=destinations.get(destination)
+            if prior is not None and not __import__('filecmp').cmp(original,prior,shallow=False):
+                raise ValueError(f'同名の設定ファイルが異なる内容です: {original} / {prior}')
+            destinations[destination]=original
+            if destination.exists():
+                if not destination.is_file() or not __import__('filecmp').cmp(original,destination,shallow=False):
+                    raise ValueError(f'移行先に異なる設定ファイルがあります: {destination}')
+            else:
+                copies[original]=destination
+            block[field]=str(destination)
+    target=root/'hesai.yaml'
+    rendered=yaml.safe_dump(data,sort_keys=False)
+    if target.exists() and target.read_text()!=rendered:
+        raise ValueError(f'移行先に異なるLiDAR設定があります: {target}')
+    for original,destination in copies.items():
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(original,destination)
+    if not target.exists():
+        target.write_text(rendered)
+        target.chmod(0o600)
+    checked_config(target,'hardware')
+    cfg['hesai_config']=str(target)
+    marker.write_text('legacy sensor profile copied; workspace settings are now authoritative\n')
+    marker.chmod(0o600)
 
 
 def checked_hardware(workspace, preferred=None):
@@ -141,6 +209,8 @@ def load_or_migrate_config(workspace, root):
         current, legacy = json.loads(path.read_text()), json.loads(old.read_text())
         if current != legacy:
             raise ValueError(f'設定が新旧両方にあり内容が異なります: {path} / {old}')
+        if Path(current.get('workspace', '')).expanduser().resolve() != Path(workspace).expanduser().resolve():
+            raise ValueError('別workspaceを指すhost.jsonがあります。設定を上書きしません。')
         marker.write_text('legacy and workspace settings matched; workspace settings are now authoritative\n')
         marker.chmod(0o600)
     source = path if path.exists() else old if old.exists() and not marker.exists() else None
@@ -176,7 +246,7 @@ def archive_build_outputs(workspace, source):
         previous=json.loads(state_path.read_text())
     except (OSError,ValueError):
         previous=None
-    outputs=[workspace/name for name in ('build','install','log') if (workspace/name).exists()]
+    outputs=[workspace/name for name in ('build','install','log') if (workspace/name).exists() or (workspace/name).is_symlink()]
     if not outputs or previous == current:
         return None
     if running_gouda():
@@ -294,11 +364,14 @@ def main():
         return
     workspace=Path(args.workspace).expanduser().resolve()
     os.environ['GOUDA_WORKSPACE']=str(workspace)
-    migrate_maps(workspace)
     root=config_root(workspace); root.mkdir(parents=True, exist_ok=True, mode=0o700)
     root.chmod(0o700)
     path=root/'host.json'
     cfg=load_or_migrate_config(workspace, root)
+    if Path(cfg['workspace']).expanduser().resolve() != workspace:
+        raise SystemExit('別のworkspace設定が存在します。設定を上書きしません。')
+    migrate_maps(workspace)
+    migrate_legacy_sensor_config(cfg, workspace, root)
     if Path(cfg['workspace']).expanduser().resolve() != workspace:
         raise SystemExit('別のworkspace設定が存在します。設定を上書きしません。')
     current_config=Path(cfg.get('hesai_config', '')).expanduser()

@@ -196,3 +196,86 @@ def test_build_archive_waits_for_live_process(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='still running'):
         configure_host.archive_build_outputs(workspace, source)
     assert (workspace/'build').is_dir()
+
+
+def test_map_migration_marker_makes_workspace_authoritative(tmp_path, monkeypatch):
+    workspace = tmp_path/'workspace'
+    legacy = tmp_path/'data/gouda'
+    (legacy/'maps').mkdir(parents=True)
+    (legacy/'maps/map.yaml').write_text('old')
+    monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path/'data'))
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
+
+    configure_host.migrate_maps(workspace)
+    (workspace/'maps/map.yaml').write_text('new workspace edit')
+    configure_host.migrate_maps(workspace)
+    assert (workspace/'maps/map.yaml').read_text() == 'new workspace edit'
+    assert (legacy/'maps/map.yaml').read_text() == 'old'
+
+
+def test_current_workspace_process_registry_is_checked(tmp_path, monkeypatch):
+    process = subprocess.Popen(['sleep', '10'], start_new_session=True)
+    try:
+        workspace = tmp_path/'workspace'
+        registry = workspace/'bags/gouda/runtime/processes.json'
+        registry.parent.mkdir(parents=True)
+        fields = Path(f'/proc/{process.pid}/stat').read_text().rsplit(')', 1)[1].split()
+        boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        identity = boot+':'+fields[19]
+        registry.write_text(json.dumps({'mode':'observation','processes':{'viewer':{'pid':process.pid,'start':identity}}}))
+        monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path/'empty-data'))
+        monkeypatch.setenv('GOUDA_WORKSPACE', str(workspace))
+        assert configure_host.running_gouda()
+        registry.write_text(json.dumps({'mode':'observation','processes':{'viewer':{'pid':process.pid,'start':'stale'}}}))
+        assert not configure_host.running_gouda()
+    finally:
+        process.terminate()
+        process.wait(timeout=3)
+
+
+def test_valid_legacy_sensor_files_are_copied_and_rewritten(tmp_path, monkeypatch):
+    import yaml
+    from gouda_sensors.hesai_config import checked_config
+    legacy = tmp_path/'config/gouda'
+    legacy.mkdir(parents=True)
+    correction = legacy/'xt32.csv'
+    correction.write_text('Laser id,Elevation,Azimuth\n'+''.join(f'{i},0,0\n' for i in range(1,33)))
+    config = {'lidar':[{'driver':{'source_type':1,'transform_flag':False,'use_timestamp_type':1,
+              'standby_mode':-1,'lidar_udp_type':{'device_ip_address':'192.168.1.201',
+              'host_ip_address':'192.168.1.100','udp_port':2368,'ptc_port':9347,
+              'standby_mode':-1,'speed':-1,'correction_file_path':str(correction),'firetimes_path':''}},
+              'ros':{'ros_frame_id':'hesai_lidar','ros_send_point_cloud_topic':'/lidar_points',
+              'send_point_cloud_ros':True}}]}
+    old_profile = legacy/'hesai.yaml'
+    old_profile.write_text(yaml.safe_dump(config))
+    checked_config(old_profile, 'hardware')
+    workspace = tmp_path/'workspace'
+    root = configure_host.config_root(workspace)
+    root.mkdir(parents=True)
+    cfg = {'workspace':str(workspace),'imu_device':'','lidar_interface':'','hesai_config':str(old_profile)}
+    monkeypatch.setenv('XDG_CONFIG_HOME',str(tmp_path/'config'))
+
+    configure_host.migrate_legacy_sensor_config(cfg,workspace,root)
+    copied = Path(cfg['hesai_config'])
+    migrated = yaml.safe_load(copied.read_text())['lidar'][0]['driver']['lidar_udp_type']['correction_file_path']
+    assert copied == root/'hesai.yaml'
+    assert Path(migrated) == root/'xt32.csv'
+    assert Path(migrated).read_text() == correction.read_text()
+    assert correction.read_text().startswith('Laser id,Elevation,Azimuth\n')
+    checked_config(copied, 'hardware')
+
+
+def test_build_state_archives_when_source_path_changes(tmp_path, monkeypatch):
+    workspace = tmp_path/'workspace'
+    old_source = tmp_path/'old-source'
+    new_source = tmp_path/'new-source'
+    old_source.mkdir(); new_source.mkdir()
+    (workspace/'build').mkdir(parents=True)
+    (workspace/'build/cache').write_text('old source cache')
+    configure_host.record_build_state(workspace, old_source)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+
+    archive = configure_host.archive_build_outputs(workspace, new_source)
+    assert archive is not None
+    assert (archive/'build/cache').read_text() == 'old source cache'
+    assert not (workspace/'build').exists()
