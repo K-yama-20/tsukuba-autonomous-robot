@@ -64,7 +64,7 @@ def test_maps_migrate_copy_only_and_preserve_legacy(tmp_path, monkeypatch):
     (legacy/'maps_sensor_slam').mkdir(parents=True)
     (legacy/'maps_sensor_slam/map.yaml').write_text('map content')
     monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path/'data'))
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
 
     configure_host.migrate_maps(workspace)
     assert (workspace/'maps_sensor_slam/map.yaml').read_text() == 'map content'
@@ -81,7 +81,7 @@ def test_map_collision_refuses_before_any_copy(tmp_path, monkeypatch):
     (workspace/'maps_sensor_slam').mkdir(parents=True)
     (workspace/'maps_sensor_slam/map.yaml').write_text('existing')
     monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path/'data'))
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
 
     with pytest.raises(ValueError, match='競合'):
         configure_host.migrate_maps(workspace)
@@ -95,7 +95,7 @@ def test_map_migration_waits_for_running_gui(tmp_path, monkeypatch):
     legacy = tmp_path/'data/gouda'
     (legacy/'maps').mkdir(parents=True)
     monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path/'data'))
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: True)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: True)
 
     with pytest.raises(ValueError, match='稼働中'):
         configure_host.migrate_maps(workspace)
@@ -163,7 +163,7 @@ def test_build_state_archives_regular_install_before_symlink_mode(tmp_path, monk
         (workspace/name/'marker').write_text(name)
     state = {'source': str(source), 'install_mode': 'regular'}
     (workspace/'.gouda-build-state.json').write_text(json.dumps(state))
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
 
     archive = configure_host.archive_build_outputs(workspace, source)
     assert archive is not None
@@ -180,7 +180,7 @@ def test_build_state_is_idempotent_when_source_and_mode_match(tmp_path, monkeypa
         (workspace/name).mkdir(parents=True)
         (workspace/name/'marker').write_text(name)
     configure_host.record_build_state(workspace, source)
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
 
     assert configure_host.archive_build_outputs(workspace, source) is None
     assert all((workspace/name/'marker').exists() for name in ('build', 'install', 'log'))
@@ -191,7 +191,7 @@ def test_build_archive_waits_for_live_process(tmp_path, monkeypatch):
     source = tmp_path/'source'
     source.mkdir()
     (workspace/'build').mkdir(parents=True)
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: True)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: True)
 
     with pytest.raises(ValueError, match='still running'):
         configure_host.archive_build_outputs(workspace, source)
@@ -273,9 +273,47 @@ def test_build_state_archives_when_source_path_changes(tmp_path, monkeypatch):
     (workspace/'build').mkdir(parents=True)
     (workspace/'build/cache').write_text('old source cache')
     configure_host.record_build_state(workspace, old_source)
-    monkeypatch.setattr(configure_host, 'running_gouda', lambda: False)
+    monkeypatch.setattr(configure_host, 'running_gouda', lambda *args: False)
 
     archive = configure_host.archive_build_outputs(workspace, new_source)
     assert archive is not None
     assert (archive/'build/cache').read_text() == 'old source cache'
     assert not (workspace/'build').exists()
+
+
+def test_sensor_migration_recovers_after_host_save_before_marker(tmp_path, monkeypatch):
+    import yaml
+    from gouda_sensors.hesai_config import checked_config
+    legacy = tmp_path/'config/gouda'
+    legacy.mkdir(parents=True)
+    correction = legacy/'xt32.csv'
+    correction.write_text('Laser id,Elevation,Azimuth\n'+''.join(f'{i},0,0\n' for i in range(1,33)))
+    config = {'lidar':[{'driver':{'source_type':1,'transform_flag':False,'use_timestamp_type':1,
+              'standby_mode':-1,'lidar_udp_type':{'device_ip_address':'192.168.1.201',
+              'host_ip_address':'192.168.1.100','udp_port':2368,'ptc_port':9347,
+              'standby_mode':-1,'speed':-1,'correction_file_path':str(correction),'firetimes_path':''}},
+              'ros':{'ros_frame_id':'hesai_lidar','ros_send_point_cloud_topic':'/lidar_points',
+              'send_point_cloud_ros':True}}]}
+    profile=legacy/'hesai.yaml'
+    profile.write_text(yaml.safe_dump(config))
+    checked_config(profile,'hardware')
+    workspace=tmp_path/'workspace'
+    root=configure_host.config_root(workspace)
+    root.mkdir(parents=True)
+    cfg={'workspace':str(workspace),'imu_device':'','lidar_interface':'','hesai_config':str(profile)}
+    monkeypatch.setenv('XDG_CONFIG_HOME',str(tmp_path/'config'))
+    original_writer=configure_host.write_migration_marker
+    monkeypatch.setattr(configure_host,'write_migration_marker',
+                        lambda *args: (_ for _ in ()).throw(OSError('simulated interruption')))
+
+    with pytest.raises(OSError,match='simulated interruption'):
+        configure_host.migrate_legacy_sensor_config(cfg,workspace,root)
+    persisted=json.loads((root/'host.json').read_text())
+    assert Path(persisted['hesai_config']) == root/'hesai.yaml'
+    assert not (root/'.sensor-migration-complete').exists()
+
+    monkeypatch.setattr(configure_host,'write_migration_marker',original_writer)
+    configure_host.migrate_legacy_sensor_config(persisted,workspace,root)
+    assert (root/'.sensor-migration-complete').exists()
+    checked_config(persisted['hesai_config'],'hardware')
+    assert profile.is_file() and correction.is_file()

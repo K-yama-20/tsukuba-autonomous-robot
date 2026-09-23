@@ -120,6 +120,11 @@ def migrate_maps(workspace):
     marker.chmod(0o600)
 
 
+def write_migration_marker(path, contents):
+    path.write_text(contents+'\n')
+    path.chmod(0o600)
+
+
 def migrate_legacy_sensor_config(cfg, workspace, root):
     """Copy a validated XDG Hesai profile and referenced files into workspace state."""
     marker=root/'.sensor-migration-complete'
@@ -127,6 +132,11 @@ def migrate_legacy_sensor_config(cfg, workspace, root):
         return
     source=Path(cfg.get('hesai_config','')).expanduser()
     workspace=Path(workspace).expanduser().resolve()
+    if source.is_file() and source.resolve() == (root/'hesai.yaml').resolve():
+        from gouda_sensors.hesai_config import checked_config
+        checked_config(source,'hardware')
+        write_migration_marker(marker,'legacy sensor profile copied; workspace settings are now authoritative')
+        return
     if not source.is_file() or workspace in source.resolve().parents:
         return
     from gouda_sensors.hesai_config import checked_config
@@ -171,8 +181,8 @@ def migrate_legacy_sensor_config(cfg, workspace, root):
         target.chmod(0o600)
     checked_config(target,'hardware')
     cfg['hesai_config']=str(target)
-    marker.write_text('legacy sensor profile copied; workspace settings are now authoritative\n')
-    marker.chmod(0o600)
+    save(root/'host.json',cfg)
+    write_migration_marker(marker,'legacy sensor profile copied; workspace settings are now authoritative')
 
 
 def checked_hardware(workspace, preferred=None):
@@ -249,7 +259,7 @@ def archive_build_outputs(workspace, source):
     outputs=[workspace/name for name in ('build','install','log') if (workspace/name).exists() or (workspace/name).is_symlink()]
     if not outputs or previous == current:
         return None
-    if running_gouda():
+    if running_gouda(workspace):
         raise ValueError('Gouda is still running; stop it before moving build/install/log.')
     archive=workspace/'bags/gouda/archive'/str(time.time_ns())
     archive.mkdir(parents=True,exist_ok=False)
