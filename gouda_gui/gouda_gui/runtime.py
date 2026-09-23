@@ -17,7 +17,8 @@ def identity(pid):
     try:
         # comm can contain spaces/parentheses; starttime is field 22.
         fields=Path(f'/proc/{pid}/stat').read_text().rsplit(')',1)[1].split()
-        return fields[19] if fields[0] != 'Z' else None
+        boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        return boot+':'+fields[19] if fields[0] != 'Z' else None
     except (FileNotFoundError, ProcessLookupError):
         return None
 

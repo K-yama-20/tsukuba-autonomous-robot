@@ -73,3 +73,8 @@ def test_gateway_only_known_routes():
     assert allowed_path('/api/viewer')
     assert not allowed_path('/runtime/id_ed25519')
     assert not allowed_path('/api/unknown')
+
+
+def test_process_identity_includes_boot():
+    boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    assert runtime.identity(os.getpid()).startswith(boot+':')
