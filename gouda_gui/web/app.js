@@ -28,15 +28,15 @@ for(const b of document.querySelectorAll('[data-tab]')){
   b.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-tab]')];let i=tabs.indexOf(b);i=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowDown'?1:3))%4;tabs[i].focus();selectTab(tabs[i].dataset.tab);});
 }
 try{const remembered=localStorage.getItem('gouda-tab');if(titles[remembered])selectTab(remembered);}catch{}
-async function request(action,data={}){
+async function request(action,data={},timeoutMs=25000){
   if(!token)throw new Error('Ubuntuへの接続を確認してください');
-  const response=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data),signal:AbortSignal.timeout(25000)});
+  const response=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data),signal:AbortSignal.timeout(timeoutMs)});
   const body=await response.json();if(!response.ok||body.ok===false)throw new Error(body.error||body.message||'操作できませんでした');return body;
 }
-async function act(action,data={},success='操作を受け付けました。'){
+async function act(action,data={},success='操作を受け付けました。',timeoutMs=25000){
   if(busy&&action!=='stop')return false;
   const normal=action!=='stop';if(normal)busy=true;render();
-  try{await request(action,data);notice(success);return true;}
+  try{await request(action,data,timeoutMs);notice(success);return true;}
   catch(error){notice(error.name==='TimeoutError'?'応答待ちがタイムアウトしました。状態を確認してください。':error.message,true);return false;}
   finally{if(normal)busy=false;render();}
 }
@@ -45,8 +45,9 @@ async function poll(){
     if(!token){const session=await fetch('/api/session',{signal:AbortSignal.timeout(2500)});if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
     const response=await fetch('/api/state',{signal:AbortSignal.timeout(2500)});if(!response.ok)throw new Error('State');
     state=await response.json();lastResponse=performance.now();
-    const goalKey=JSON.stringify(state.goal);
-    if(goalKey!==lastGoalKey&&!dirty&&tool!=='initial'&&state.goal){writePose(state.goal);lastGoalKey=goalKey;}
+    const selectedPose=tool==='start'?state.planning_start:tool==='goal'?state.goal:null;
+    const selectedKey=JSON.stringify({tool,pose:selectedPose});
+    if(selectedPose&&selectedKey!==lastGoalKey&&!dirty){writePose(selectedPose);lastGoalKey=selectedKey;}
     if(!connected)notice('Ubuntuに接続しました。状態を受信しています。');connected=true;
     if(state.map&&state.map_revision!==mapRevision){buildMap();if(!cameraInitialized)cameraInitialized=fit();}
     updateSavedMaps();render();draw();
@@ -56,10 +57,11 @@ async function poll(){
 function fresh(key,limit=.7){return connected&&state?.ages[key]!==undefined&&state.ages[key]+(performance.now()-lastResponse)/1000<limit;}
 function setTool(next){
   tool=next;
-  $('tool-goal').setAttribute('aria-pressed',String(next==='goal'));$('tool-initial').setAttribute('aria-pressed',String(next==='initial'));
-  $('apply-pose').textContent=next==='initial'?'入力値を初期位置に設定':'入力値をゴールに設定';
-  $('pose-help').textContent=next==='initial'?(state?.mode==='simulation'?'仮想車両の位置を変更します。指定後に「初期位置に設定」を押してください。':state?.observation_only?'LiDAR中心の現在位置と向きを推定器に伝えます。':'実機の現在位置と向きを自己位置推定に伝えます。'):'位置はクリック、向きはドラッグで指定できます。';
-  $('tool-hint').textContent=next==='pan'?'ドラッグで移動 · ホイールで拡大':next==='goal'?'クリックでゴール · ドラッグで向き':'位置と向きを指定後、右側で適用';
+  if(!dirty&&state){const pose=next==='start'?state.planning_start:next==='goal'?state.goal:null;if(pose)writePose(pose);}
+  $('tool-start').setAttribute('aria-pressed',String(next==='start'));$('tool-goal').setAttribute('aria-pressed',String(next==='goal'));$('tool-initial').setAttribute('aria-pressed',String(next==='initial'));
+  $('apply-pose').textContent=next==='initial'?'自己位置の初期設定を送信':next==='start'?'計画開始位置を設定':'入力値をゴールに設定';
+  $('pose-help').textContent=next==='initial'?(state?.observation_only?'保存したSLAM地図でLiDAR位置推定を開始し、指定位置を初期値として送信します。':'自己位置推定へ指定位置を送信します。'):next==='start'?'経路計算だけに使う開始位置です。実測位置や自己位置推定は変更しません。':'位置はクリック、向きはドラッグで指定できます。';
+  $('tool-hint').textContent=next==='pan'?'ドラッグで移動 · ホイールで拡大':next==='goal'?'クリックでゴール · ドラッグで向き':next==='start'?'クリックで計画開始位置 · ドラッグで向き':'位置と向きを指定後、右側で適用';
   if(next!=='pan'&&view!=='2d')setView('2d');
   render();
 }
@@ -71,18 +73,18 @@ function poseFields(){
 function writePose(p){$('pose-x').value=p.x.toFixed(2);$('pose-y').value=p.y.toFixed(2);$('pose-yaw').value=(p.yaw*180/Math.PI).toFixed(0);}
 for(const id of ['pose-x','pose-y','pose-yaw'])$(id).addEventListener('input',()=>{dirty=true;try{draft=poseFields();}catch{draft=null;}render();draw();});
 async function applyPose(){
-  try{const p=poseFields(),kind=tool==='initial'?'initial_pose':'target';
-    if(await act(kind,p,kind==='target'?'ゴールを設定しました。経路を計算してください。':'初期位置を送信しました。現在位置の反映を確認してください。')){dirty=false;draft=null;}
+  try{const p=poseFields(),kind=tool==='initial'?'initial_pose':tool==='start'&&state?.observation_only?'planning_start':'target';
+    if(await act(kind,p,kind==='target'?'ゴールを設定しました。経路を計算してください。':kind==='planning_start'?'計画開始位置を設定しました。実測位置は変更していません。':'初期位置を送信しました。現在位置の反映を確認してください。')){dirty=false;draft=null;}
   }catch(e){notice(e.message,true);}render();draw();
 }
 $('apply-pose').onclick=applyPose;
-$('tool-goal').onclick=()=>setTool(tool==='goal'?'pan':'goal');$('tool-initial').onclick=()=>setTool(tool==='initial'?'pan':'initial');
+$('tool-start').onclick=()=>setTool(tool==='start'?'pan':'start');$('tool-goal').onclick=()=>setTool(tool==='goal'?'pan':'goal');$('tool-initial').onclick=()=>setTool(tool==='initial'?'pan':'initial');
 $('mapping-start').onclick=()=>act('mapping_start',{},'地図作成を開始しました。');
 $('mapping-stop').onclick=()=>act('mapping_stop',{},'地図作成を終了しました。名前を付けて保存してください。');
 $('save-map').onclick=()=>act('save_map',{name:$('map-title').value},'地図を保存しました。');
 $('load-map').onclick=()=>loadMap($('map-select').value);
-async function loadMap(id){if(!id){notice('保存地図を選択してください。',true);return;}if(await act('load_map',{id},'地図を読み込みました。')){dirty=false;draft=null;cameraInitialized=false;}}
-$('plan').onclick=async()=>{if(dirty){notice('変更した位置を先に適用してください。',true);return;}await act('plan',{},'経路計算中です。走行は開始していません。');};
+async function loadMap(id){if(!id){notice('保存地図を選択してください。',true);return;}if(await act('load_map',{id},'地図を読み込みました。')){dirty=false;draft=null;cameraInitialized=false;for(const field of ['pose-x','pose-y','pose-yaw'])$(field).value='';}}
+$('plan').onclick=async()=>{if(dirty){notice('変更した位置を先に適用してください。',true);return;}await act('plan',{},state?.observation_only?'経路プレビューを計算しました。走行は開始していません。':'経路計算中です。走行は開始していません。',50000);};
 $('to-monitor').onclick=()=>selectTab('monitor');
 $('start').onclick=()=>act('start',{plan_id:state?.plan_id},'走行開始を受け付けました。');
 $('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信しました。停止確認を待っています。');
@@ -121,13 +123,16 @@ function render(){
   $('save-map').disabled=busy||!connected||state.mapping||!state.mapping_frames||!$('map-title').value.trim();
   $('load-map').disabled=busy||!connected||(!observation&&!stationary)||state.mapping;
   for(const b of $('saved-maps').querySelectorAll('button'))b.disabled=$('load-map').disabled;
-  $('apply-pose').disabled=busy||!connected||(observation?(tool==='initial'&&state.slam_phase!=='localization'):!stationary);
-  const goal=state.goal;$('target-summary').textContent=goal?`ゴール  X ${goal.x.toFixed(2)} / Y ${goal.y.toFixed(2)} m`:'ゴール未設定';
-  const canPlan=connected&&stationary&&!state.mapping&&goal&&state.map&&state.map_meta&&state.nav.explicit_start&&!dirty&&!state.planning;
+  $('apply-pose').disabled=busy||!connected||(observation?(tool==='initial'&&!state.localization_available):!stationary);
+  $('tool-start').hidden=!observation;
+  const goal=state.goal,start=state.planning_start;$('target-summary').textContent=observation?((start?`計画開始  X ${start.x.toFixed(2)} / Y ${start.y.toFixed(2)} m`:'計画開始位置未設定')+' · '+(goal?`ゴール  X ${goal.x.toFixed(2)} / Y ${goal.y.toFixed(2)} m`:'ゴール未設定')):(goal?`ゴール  X ${goal.x.toFixed(2)} / Y ${goal.y.toFixed(2)} m`:'ゴール未設定');
+  const observationPlanning=observation;
+  const canPlan=observationPlanning?connected&&!busy&&!state.mapping&&!!state.planning_start&&!!goal&&!!state.map&&!!state.map_meta&&state.map_meta.id!=='external-map'&&!dirty&&!state.planning:connected&&stationary&&!state.mapping&&goal&&state.map&&state.map_meta&&state.nav.explicit_start&&!dirty&&!state.planning;
   $('plan').disabled=busy||!canPlan;
   let length=0;for(let i=1;i<state.path.length;i++)length+=Math.hypot(state.path[i][0]-state.path[i-1][0],state.path[i][1]-state.path[i-1][1]);
-  $('plan-summary').textContent=dirty?'位置が未適用です。設定ボタンで確定してください。':state.planning?(state.nav.state?.startsWith('PLAN_')?navName:'経路を計算しています…'):state.path.length?`予定経路 ${length.toFixed(2)} m · 走行開始待ち`:'地図とゴールを設定し、経路を計算してください。';
-  $('to-monitor').disabled=busy||!connected||!state.path.length||dirty;
+  const planReasons=[];if(!connected)planReasons.push('Ubuntuとの接続を確認してください');if(state.mapping)planReasons.push('地図作成を終了してください');if(busy&&!state.planning)planReasons.push('操作の応答を待っています');if(!state.map||!state.map_meta||state.map_meta.id==='external-map')planReasons.push('保存地図を読み込んでください');if(observationPlanning&&!state.planning_start)planReasons.push('計画開始位置を設定してください');if(!goal)planReasons.push('ゴールを設定してください');if(!observationPlanning&&!stationary)planReasons.push('停止中の車体位置とESP32応答が必要です');if(!observationPlanning&&!state.nav.explicit_start)planReasons.push('明示開始に対応したナビゲーションが必要です');if(dirty)planReasons.push('位置の変更を適用してください');if(state.planning)planReasons.push('計算中です');
+  $('plan-summary').textContent=dirty?'位置が未適用です。設定ボタンで確定してください。':state.plan_error?state.plan_error:state.planning?(state.nav.state?.startsWith('PLAN_')?navName:'経路を計算しています…'):state.path.length?(observationPlanning?`地図上の経路プレビュー ${length.toFixed(2)} m · 車体の通過可否は未確認`:`予定経路 ${length.toFixed(2)} m · 走行開始待ち`):planReasons.join(' · ')||'経路を計算してください。';
+  $('to-monitor').disabled=busy||!connected||!state.path.length||dirty||observation;
   const reasons=[...state.start_reasons];if(!connected)reasons.unshift('Ubuntuとの接続を確認してください');if(dirty)reasons.unshift('位置の変更を適用してください');
   $('start-reasons').textContent=reasons.length?reasons.join('\n'):'開始条件を確認しました。経路を確認して走行を開始できます。';$('start').disabled=busy||reasons.length>0;
   $('distance').textContent=p&&goal?`ゴールまで直線 ${Math.hypot(goal.x-p.x,goal.y-p.y).toFixed(2)} m`:'ゴール未設定';
@@ -170,7 +175,7 @@ function draw(){
   if(view==='2d'){
     const g=state?.map;if(g&&mapCache){const [x,y]=screen(g.origin.x,g.origin.y);ctx.save();ctx.translate(x,y);ctx.rotate(-g.origin.yaw);ctx.imageSmoothingEnabled=false;ctx.drawImage(mapCache,0,-g.height*g.resolution*camera.scale,g.width*g.resolution*camera.scale,g.height*g.resolution*camera.scale);ctx.restore();}
     const step=camera.scale<12?5:camera.scale<25?2:1;ctx.strokeStyle='#7ea58b17';ctx.lineWidth=1;ctx.beginPath();const tl=world(0,0),br=world(w,h);for(let x=Math.floor(tl.x/step)*step;x<br.x;x+=step){const [sx]=screen(x,0);ctx.moveTo(sx,0);ctx.lineTo(sx,h);}for(let y=Math.floor(br.y/step)*step;y<tl.y;y+=step){const [,sy]=screen(0,y);ctx.moveTo(0,sy);ctx.lineTo(w,sy);}ctx.stroke();
-    line(state?.trail,'#98b88780',1.5);line(state?.path,'#6ae2c4',2.5,[6,4]);marker(state?.goal,'#f2c979','GOAL');marker(state?.pose,fresh('pose')?'#b3f5b3':'#89958c',state?.observation_only?'LiDAR':'ROBOT',true);if(draft)marker(draft,'#92c1ee','未適用');
+    line(state?.trail,'#98b88780',1.5);line(dirty?[]:state?.path,'#6ae2c4',2.5,[6,4]);marker(state?.planning_start,'#92c1ee','計画START');marker(state?.goal,'#f2c979','GOAL');marker(state?.pose,fresh('pose')?'#b3f5b3':'#89958c',state?.observation_only?'LiDAR':'ROBOT',true);if(draft)marker(draft,'#92c1ee','未適用');
   }else{
     const points=state?.cloud||[];for(const p of points){const dx=p[0]-camera.x,dy=p[1]-camera.y,x=w/2+(dx-dy)*.707*camera.scale,y=h/2+(dx+dy)*.35*camera.scale-p[2]*camera.scale;ctx.fillStyle=p[2]>1.5?'#d5bf78':'#77d2a7';ctx.fillRect(x,y,2,2);}ctx.fillStyle='#92ada3';ctx.font='11px monospace';ctx.fillText('XYZ点群 / 固定斜め視点',15,50);
   }

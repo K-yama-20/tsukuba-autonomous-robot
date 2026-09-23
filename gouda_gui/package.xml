@@ -3,7 +3,8 @@
 <description>Gouda mission control</description>
 <maintainer email="ryoya-1@g.ecc.u-tokyo.ac.jp">Gouda Development Team</maintainer>
 <license>Apache-2.0</license><buildtool_depend>python3-setuptools</buildtool_depend>
-<exec_depend>rclpy</exec_depend><exec_depend>nav_msgs</exec_depend>
+<exec_depend>rclpy</exec_depend><exec_depend>nav_msgs</exec_depend><exec_depend>nav2_msgs</exec_depend>
+<exec_depend>nav2_planner</exec_depend><exec_depend>nav2_navfn_planner</exec_depend><exec_depend>nav2_costmap_2d</exec_depend><exec_depend>nav2_lifecycle_manager</exec_depend>
 <exec_depend>sensor_msgs</exec_depend><exec_depend>sensor_msgs_py</exec_depend>
 <exec_depend>geometry_msgs</exec_depend><exec_depend>std_msgs</exec_depend>
 <exec_depend>std_srvs</exec_depend><exec_depend>tf2_ros</exec_depend>

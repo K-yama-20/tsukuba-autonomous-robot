@@ -8,11 +8,18 @@ from pathlib import Path as FilePath
 import threading
 import time
 import uuid
+import os
+import signal
+import subprocess
+import tempfile
+import yaml
 
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
+from nav2_msgs.action import ComputePathToPose
+from rclpy.action import ActionClient
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from sensor_msgs.msg import PointCloud2, Imu
 from sensor_msgs_py.point_cloud2 import read_points
@@ -46,10 +53,13 @@ class MissionControl(Node):
         self.cloud_origin = None; self.cloud_note = '点群を待っています'
         self.grid = None; self.grid_revision = 0; self.map_meta = None
         self.mapping = False; self.mapper = None; self.mapping_started = 0.;self.mapping_elapsed=0
-        self.goal = None; self.preview = []; self.plan_id = None; self.planning = False
+        self.goal = None; self.planning_start = None; self.preview = []; self.plan_id = None; self.planning = False
+        self.plan_error = ''; self.plan_process = None
         self.epoch = 0; self.trail = []; self.logs = []; self.stop_requested = False
         self.tf = Buffer(); self.listener = TransformListener(self.tf,self)
         latched = QoSProfile(depth=1,durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.preview_map_pub = self.create_publisher(OccupancyGrid, '/gouda/route_preview/map', latched)
+        self.preview_client = ActionClient(self, ComputePathToPose, '/gouda_route_preview/compute_path_to_pose') if self.observation_only else None
         self.map_pub = self.create_publisher(OccupancyGrid,'/map',latched)
         self.goal_pub = self.create_publisher(PoseStamped,'/goal_pose',1)
         self.initial_pub = self.create_publisher(PoseWithCovarianceStamped,'/initialpose',1)
@@ -93,6 +103,7 @@ class MissionControl(Node):
                 self.trail.append([p.x,p.y]);self.trail=self.trail[-3000:]
 
     def on_nav(self,msg):
+        if self.observation_only:return
         with self.lock:
             self.nav=json.loads(msg.data);self.times['navigation']=time.monotonic()
             if self.nav.get('state','').startswith('PLAN_') and self.nav['state']!='PLANNING':self.planning=False
@@ -101,6 +112,7 @@ class MissionControl(Node):
         with self.lock:self.esp=json.loads(msg.data);self.times['esp32']=time.monotonic()
 
     def on_path(self,msg):
+        if self.observation_only:return
         with self.lock:
             if not msg.poses:
                 self.preview=[];return
@@ -127,10 +139,13 @@ class MissionControl(Node):
         # The GUI owns /map only in simulation. Live/replay uses an external mapper.
         if self.mode=='simulation':return
         with self.lock:
-            self.grid=self.grid_from_ros(msg);self.grid_revision+=1;self.times['map']=time.monotonic()
-            if not self.map_meta:
-                self.map_meta=dict(id='external-map',name='SLAM地図・センサー位置基準',mode=self.mode)
-            if self.mapping:self.external_frames += 1
+            # During live mapping, accept SLAM updates. Once a saved map is selected,
+            # keep that immutable planning grid while localization continues separately.
+            if self.mapping or self.map_meta is None:
+                self.grid=self.grid_from_ros(msg);self.grid_revision+=1;self.times['map']=time.monotonic()
+                if not self.map_meta:
+                    self.map_meta=dict(id='external-map',name='SLAM地図・センサー位置基準',mode=self.mode)
+                if self.mapping:self.external_frames += 1
 
     def receive_cloud(self,msg):
         age=self.get_clock().now().nanoseconds*1e-9-msg.header.stamp.sec-msg.header.stamp.nanosec*1e-9
@@ -233,11 +248,12 @@ class MissionControl(Node):
             stopped=bool(self.stop_requested and self.stationary() and self.fresh('esp32') and not self.esp.get('flags'))
             return copy.deepcopy(dict(mode=self.mode,observation_only=self.observation_only,viewer=self.viewer_status(),
                 slam_phase=self.slam.status() if self.slam else None,
+                localization_available=bool(self.map_meta and (self.store.root/self.map_meta.get('id','')/'slam.posegraph').is_file() and (self.store.root/self.map_meta.get('id','')/'slam.data').is_file()),
                 pose_reference='LiDAR中心・取付未校正' if self.observation_only else '車体',pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
                 map=self.grid,map_revision=self.grid_revision,map_meta=self.map_meta,maps=self.store.list(),
                 mapping=self.mapping,mapping_seconds=round(time.monotonic()-self.mapping_started) if self.mapping else self.mapping_elapsed,
                 mapping_frames=self.external_frames if self.observation_only else self.mapper.frames if self.mapper else 0,cloud=self.cloud,cloud_note=self.cloud_note,
-                goal=self.goal,path=self.preview,plan_id=self.plan_id,planning=self.planning,trail=self.trail,
+                goal=self.goal,planning_start=self.planning_start,path=self.preview,plan_id=self.plan_id,planning=self.planning,plan_error=self.plan_error,trail=self.trail,
                 start_reasons=reasons,stop_status='停止確認済み' if stopped else '停止要求中' if self.stop_requested else '',
                 logs=self.logs))
 
@@ -251,7 +267,7 @@ class MissionControl(Node):
 
     def invalidate(self):
         with self.lock:
-            self.epoch+=1;self.plan_id=None;self.preview=[];self.planning=False
+            self.epoch+=1;self.plan_id=None;self.preview=[];self.planning=False;self.plan_error=''
 
     def stop_motion(self):
         if self.observation_only:
@@ -270,7 +286,7 @@ class MissionControl(Node):
         try:
             if self.observation_only:
                 return self.observation_command(action,data)
-            if action in ('target','plan','initial_pose','mapping_start','load_map'):
+            if action in ('target','planning_start','plan','initial_pose','mapping_start','load_map'):
                 if not self.stationary() or self.esp.get('flags'):
                     raise RuntimeError('先に停止し、停止確認後に操作してください')
             if action=='target':
@@ -278,6 +294,11 @@ class MissionControl(Node):
                 self.call(self.cancel,Trigger.Request());self.invalidate()
                 with self.lock:self.goal=goal
                 self.log('ゴールを設定しました。経路を計算してください。')
+            elif action=='planning_start':
+                pose=finite_pose(data)
+                with self.lock:self.planning_start=pose
+                self.invalidate()
+                self.log('計画用の開始位置を記録しました。測定位置・自己位置推定は変更していません。')
             elif action=='plan':
                 if self.mapping or self.goal is None or self.grid is None:raise RuntimeError('地図とゴールを設定し、地図作成を終了してください')
                 if self.map_meta is None:raise RuntimeError('作成した地図を保存してから経路を計算してください')
@@ -360,11 +381,18 @@ class MissionControl(Node):
         finally:self.operations.release()
 
     def observation_command(self,action,data):
-        if action in ('start','plan'):
-            raise RuntimeError('計測専用です。実機の経路計算・走行へ接続していません')
+        if action=='start':
+            raise RuntimeError('計測専用です。走行開始は無効です')
+        if action=='plan':
+            self.compute_observation_preview();return dict(ok=True)
         if action=='target':
             with self.lock:self.goal=finite_pose(data)
-            self.log('ゴール候補を記録しました。実機走行は無効です。')
+            self.invalidate()
+            self.log('ゴール候補を記録しました。経路プレビューのみ利用できます。')
+        elif action=='planning_start':
+            with self.lock:self.planning_start=finite_pose(data)
+            self.invalidate()
+            self.log('計画用の開始位置を記録しました。LiDAR位置推定へは送信していません。')
         elif action=='mapping_start':
             if not self.fresh('lidar_raw'):raise RuntimeError('新しいLiDAR点群が必要です')
             if self.mapping:raise RuntimeError('地図作成中です')
@@ -372,7 +400,9 @@ class MissionControl(Node):
             with self.lock:
                 self.grid=None;self.grid_revision+=1;self.map_meta=None;self.external_frames=0
                 self.pose=None;self.trail=[];self.cloud=[];self.pending_clouds.clear()
+                self.planning_start=None;self.goal=None
                 self.mapping=True;self.mapping_started=time.monotonic();self.mapping_elapsed=0
+            self.invalidate()
             self.log('センサー位置基準のSLAMを開始しました。取付未校正・IMU未融合です。')
         elif action=='mapping_stop':
             self.slam.stop_mapping()
@@ -389,7 +419,9 @@ class MissionControl(Node):
                     loop_closure_verified=False,pose_reference='hesai_lidar',
                     extrinsics_validated=False,imu_fused=False,height_provisional_m=1.6),
                 finalize=self.slam.save)
-            with self.lock:self.map_meta=meta
+            with self.lock:
+                self.map_meta=meta;self.planning_start=None;self.goal=None
+            self.invalidate()
             self.log('地図画像と再定位用SLAMデータを保存しました。')
         elif action=='load_map':
             if self.mapping:raise RuntimeError('計測を終了してください')
@@ -397,18 +429,22 @@ class MissionControl(Node):
             if meta.get('method')!='kiss_icp_slam_toolbox_sensor_plane':
                 raise RuntimeError('再定位用SLAMデータのある地図を選択してください')
             if meta['mode']!=self.mode:raise RuntimeError('実機と記録再生の地図は区別して選択してください')
-            graph=self.store.root/meta['id']/'slam'
-            for suffix in ('.data','.posegraph'):
-                if not graph.with_suffix(suffix).is_file():raise RuntimeError('SLAMデータが不足しています')
-            self.slam.start(graph)
+            self.slam.close()
             with self.lock:
                 self.grid=grid;self.grid_revision+=1;self.map_meta=meta;self.pose=None;self.trail=[]
-                self.cloud=[];self.pending_clouds.clear();self.external_frames=0
-            self.log('地図を再読込しました。LiDARの初期位置を指定して推定結果を確認してください。')
+                self.planning_start=None;self.goal=None;self.cloud=[];self.pending_clouds.clear();self.external_frames=0
+            self.invalidate()
+            self.log('保存地図を読み込みました。開始位置とゴールを指定すると地図上の経路をプレビューできます。自己位置推定は別操作です。')
         elif action=='initial_pose':
             pose=finite_pose(data)
-            if self.slam.status()!='localization' or not self.initial_pub.get_subscription_count():
-                raise RuntimeError('保存したSLAM地図を先に読み込んでください')
+            if not self.map_meta or not self.snapshot()['localization_available']:
+                raise RuntimeError('再定位用SLAMデータを含む保存地図を先に読み込んでください')
+            if self.slam.status()!='localization':
+                graph=self.store.root/self.map_meta['id']/'slam'
+                self.slam.start(graph)
+            deadline=time.monotonic()+5.
+            while time.monotonic()<deadline and not self.initial_pub.get_subscription_count():time.sleep(.05)
+            if not self.initial_pub.get_subscription_count():raise RuntimeError('自己位置推定の再定位処理が起動しません')
             msg=PoseWithCovarianceStamped();msg.header=self.pose_message(pose).header
             msg.pose.pose=self.pose_message(pose).pose
             msg.pose.covariance[0]=.25;msg.pose.covariance[7]=.25;msg.pose.covariance[35]=.07
@@ -417,6 +453,148 @@ class MissionControl(Node):
             self.log('LiDAR中心の初期位置を送信しました。推定の成功は観測結果で確認してください。')
         else:raise ValueError('未対応の操作です')
         return dict(ok=True)
+
+    def close_preview_process(self, proc=None):
+        proc=proc or self.plan_process
+        if proc and proc.poll() is None:
+            try:os.killpg(proc.pid,signal.SIGINT)
+            except ProcessLookupError:pass
+            try:proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                try:os.killpg(proc.pid,signal.SIGTERM)
+                except ProcessLookupError:pass
+                try:proc.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    try:os.killpg(proc.pid,signal.SIGKILL)
+                    except ProcessLookupError:pass
+                    proc.wait()
+        if self.plan_process is proc:self.plan_process=None
+
+    def compute_observation_preview(self):
+        if not self.observation_only:
+            raise RuntimeError('この計算経路は計測専用です')
+        with self.lock:
+            if self.mapping: raise RuntimeError('地図作成を終了してから計算してください')
+            if self.grid is None or self.map_meta is None or self.map_meta.get('id')=='external-map': raise RuntimeError('保存地図を読み込んでください')
+            if self.planning_start is None: raise RuntimeError('計画用の開始位置を設定してください')
+            if self.goal is None: raise RuntimeError('ゴールを設定してください')
+            grid=copy.deepcopy(self.grid); start=copy.deepcopy(self.planning_start); goal=copy.deepcopy(self.goal)
+            revision=self.grid_revision; request_id=uuid.uuid4().hex
+            self.plan_id=request_id;self.preview=[];self.planning=True;self.plan_error=''
+        proc=None; config_path=None; log=None
+        try:
+            validate_grid(grid)
+            if abs(grid['origin']['yaw'])>1e-6: raise ValueError('地図の原点が回転しています。このプレビューでは回転地図を扱えません')
+            if math.hypot(goal['x']-start['x'],goal['y']-start['y'])<1e-6: raise ValueError('開始位置とゴールが同じです')
+            def cell(p):
+                x=math.floor((p['x']-grid['origin']['x'])/grid['resolution'])
+                y=math.floor((p['y']-grid['origin']['y'])/grid['resolution'])
+                if not (0<=x<grid['width'] and 0<=y<grid['height']): raise ValueError('開始位置またはゴールが地図の範囲外です')
+                value=grid['data'][y*grid['width']+x]
+                if value<0: raise ValueError('開始位置またはゴールが未観測セルです')
+                if value>=65: raise ValueError('開始位置またはゴールが障害物セルです')
+            cell(start);cell(goal)
+            config={
+                '/gouda_route_preview/planner_server':{'ros__parameters':{
+                    'use_sim_time':False,
+                    'expected_planner_frequency':1.0,'planner_plugins':['GridBased'],'costmap_update_timeout':1.0,
+                    'GridBased':{'plugin':'nav2_navfn_planner::NavfnPlanner','tolerance':0.0,
+                        'use_astar':True,'allow_unknown':False,'use_final_approach_orientation':False}}},
+                '/gouda_route_preview/global_costmap/global_costmap':{'ros__parameters':{
+                    'use_sim_time':False,
+                    'global_frame':'map','robot_base_frame':'map','update_frequency':1.0,
+                    'publish_frequency':0.0,'transform_tolerance':0.3,'resolution':grid['resolution'],
+                    'track_unknown_space':True,'rolling_window':False,'robot_radius':0.0,
+                    'plugins':['static_layer','inflation_layer'],'always_send_full_costmap':True,
+                    'static_layer':{'plugin':'nav2_costmap_2d::StaticLayer','map_topic':'/gouda/route_preview/map','map_subscribe_transient_local':True,
+                        'subscribe_to_updates':False,'trinary_costmap':False,'lethal_cost_threshold':65},
+                    'inflation_layer':{'plugin':'nav2_costmap_2d::InflationLayer','inflation_radius':0.0,
+                        'cost_scaling_factor':1.0}}}
+            }
+            tmp=tempfile.NamedTemporaryFile(mode='w',suffix='.yaml',prefix='gouda-preview-',delete=False)
+            config_path=tmp.name;yaml.safe_dump(config,tmp,sort_keys=False);tmp.close()
+            log_path=config_path+'.log';log=open(log_path,'w')
+            msg=OccupancyGrid();msg.header.frame_id=grid['frame'];msg.header.stamp.sec=0;msg.header.stamp.nanosec=0
+            msg.info.width=grid['width'];msg.info.height=grid['height'];msg.info.resolution=float(grid['resolution'])
+            msg.info.origin.position.x=float(grid['origin']['x']);msg.info.origin.position.y=float(grid['origin']['y'])
+            msg.info.origin.orientation.w=1.0;msg.data=grid['data']
+            self.preview_map_pub.publish(msg)
+            proc=subprocess.Popen(['ros2','launch','gouda_gui','route_preview.launch.py','params_file:='+config_path],
+                                  stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            self.plan_process=proc
+            deadline=time.monotonic()+15.
+            while time.monotonic()<deadline:
+                if proc.poll() is not None:raise RuntimeError('Nav2プランナーが起動できません: '+FilePath(log_path).read_text(errors='replace')[-500:])
+                if self.preview_client.wait_for_server(timeout_sec=.1):break
+            else:raise TimeoutError('Nav2プランナーの起動がタイムアウトしました')
+            map_deadline=time.monotonic()+3.0
+            while time.monotonic()<map_deadline and self.preview_map_pub.get_subscription_count()==0:time.sleep(.05)
+            if self.preview_map_pub.get_subscription_count()==0:raise TimeoutError('プランナーが選択地図を受信できません')
+            request=ComputePathToPose.Goal();request.start=self.pose_message(start);request.goal=self.pose_message(goal)
+            request.start.header.stamp.sec=0;request.start.header.stamp.nanosec=0
+            request.goal.header.stamp.sec=0;request.goal.header.stamp.nanosec=0
+            request.use_start=True;request.planner_id='GridBased'
+            accepted=threading.Event();result_event=threading.Event();box={}
+            future=self.preview_client.send_goal_async(request)
+            def accepted_cb(f):
+                try:box['handle']=f.result()
+                except Exception as exc:box['error']=exc
+                finally:accepted.set()
+            future.add_done_callback(accepted_cb)
+            if not accepted.wait(2.):raise TimeoutError('経路計算の受付がタイムアウトしました')
+            if 'error' in box:raise RuntimeError('Nav2プランナーへの接続に失敗しました') from box['error']
+            handle=box.get('handle')
+            if not handle or not handle.accepted:raise RuntimeError('Nav2プランナーが経路計算を受け付けませんでした')
+            result_future=handle.get_result_async()
+            def result_cb(f):
+                try:box['result']=f.result()
+                except Exception as exc:box['error']=exc
+                finally:result_event.set()
+            result_future.add_done_callback(result_cb)
+            if not result_event.wait(10.):
+                handle.cancel_goal_async();raise TimeoutError('経路計算がタイムアウトしました')
+            if 'error' in box:raise RuntimeError('Nav2プランナーの応答を読み取れませんでした') from box['error']
+            result=box['result'].result;path=result.path
+            if result.error_code:
+                detail=getattr(result,'error_msg','') or 'Nav2 did not report a detail'
+                raise RuntimeError(f'保存地図上に経路がありません (Nav2 {result.error_code}): {detail}')
+            if path.header.frame_id!='map' or len(path.poses)<2:raise RuntimeError('有効な経路が見つかりません')
+            points=[]
+            for item in path.poses:
+                x=item.pose.position.x;y=item.pose.position.y
+                if not math.isfinite(x) or not math.isfinite(y):raise RuntimeError('経路に不正な座標があります')
+                if not points:
+                    points.append([x,y]);continue
+                px,py=points[-1];distance=math.hypot(x-px,y-py)
+                count=max(1,math.ceil(distance/(grid['resolution']*.5)))
+                for j in range(1,count+1):
+                    probe={'x':px+(x-px)*j/count,'y':py+(y-py)*j/count}
+                    try:cell(probe)
+                    except ValueError as exc:raise RuntimeError('経路が地図外または未観測・障害物セルを通ります') from exc
+                points.append([x,y])
+            with self.lock:
+                if revision!=self.grid_revision or request_id!=self.plan_id or start!=self.planning_start or goal!=self.goal:
+                    raise RuntimeError('計算中に地図または位置が変更されました。再計算してください')
+                self.preview=points;self.planning=False;self.plan_error='';self.plan_id=request_id
+            self.log('地図上の経路プレビューを計算しました。車体の通過可否は未確認です。走行開始は無効です。')
+        except Exception as exc:
+            detail=str(exc)
+            try:
+                if 'log_path' in locals():
+                    tail=FilePath(log_path).read_text(errors='replace')[-1200:].strip()
+                    if tail:detail += ' · '+tail
+            except OSError:pass
+            with self.lock:
+                self.preview=[];self.plan_id=None;self.planning=False;self.plan_error=detail[:700]
+            self.log('経路プレビューに失敗しました: '+detail[:400])
+            raise
+        finally:
+            self.close_preview_process(proc)
+            if log:log.close()
+            for path in (config_path,config_path+'.log' if config_path else None):
+                if path:
+                    try:os.unlink(path)
+                    except OSError:pass
 
     def pose_message(self,pose):
         msg=PoseStamped();msg.header.frame_id='map';msg.header.stamp=self.get_clock().now().to_msg()
@@ -430,6 +608,7 @@ def main():
     try:rclpy.spin(node)
     except KeyboardInterrupt:pass
     finally:
+        node.close_preview_process()
         if node.slam:node.slam.close()
         node.stop_motion();node.server.shutdown();node.server.server_close();node.destroy_node()
         if rclpy.ok():rclpy.shutdown()

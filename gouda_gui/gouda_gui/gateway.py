@@ -10,7 +10,7 @@ from aiohttp import web, ClientSession, ClientTimeout
 import argparse
 ROOT=Path(__file__).resolve().parent
 ALLOWED={'/','/style.css','/app.js','/api/state','/api/session','/api/stop',
-         '/api/target','/api/plan','/api/start','/api/initial_pose','/api/mapping_start',
+         '/api/target','/api/planning_start','/api/plan','/api/start','/api/initial_pose','/api/mapping_start',
          '/api/mapping_stop','/api/save_map','/api/load_map','/api/viewer'}
 
 
@@ -77,7 +77,8 @@ async def proxy(request):
     body=await request.read()
     headers={k:request.headers[k] for k in ('X-Gouda-Session','Content-Type') if k in request.headers}
     try:
-        async with client.request(request.method,url,data=body if request.method=='POST' else None,headers=headers) as response:
+        async with client.request(request.method,url,data=body if request.method=='POST' else None,headers=headers,
+                                 timeout=ClientTimeout(total=60 if request.path=='/api/plan' else 30)) as response:
             data=await response.read()
             out={k:response.headers[k] for k in ('Content-Type','Content-Encoding','Cache-Control','X-Content-Type-Options','Content-Security-Policy') if k in response.headers}
             return web.Response(status=response.status,body=data,headers=out)

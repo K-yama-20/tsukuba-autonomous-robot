@@ -37,10 +37,10 @@
         <section id="panel-planning" role="tabpanel" aria-labelledby="tab-planning" hidden>
           <div class="panel-title"><span>走行計画</span><small>PLAN</small></div><p class="helper">地図上で位置を指定します。ゴールを置いても走行は始まりません。</p>
           <label for="map-select">使用する地図</label><div class="inline"><select id="map-select"><option value="">保存地図を選択</option></select><button id="load-map">読込</button></div>
-          <div class="section-label">位置を指定</div><div class="selection-tools"><button id="tool-goal" aria-pressed="false">◎ ゴール</button><button id="tool-initial" aria-pressed="false">↗ 初期位置</button></div><p class="helper" id="pose-help">位置はクリック、向きはドラッグで指定できます。</p>
-          <div class="coordinates"><div><label for="pose-x">X / m</label><input id="pose-x" type="number" step="0.1" value="1.5"></div><div><label for="pose-y">Y / m</label><input id="pose-y" type="number" step="0.1" value="0"></div><div><label for="pose-yaw">向き / °</label><input id="pose-yaw" type="number" step="1" value="0"></div></div>
+          <div class="section-label">位置を指定</div><div class="selection-tools"><button id="tool-start" aria-pressed="false">● 計画開始位置</button><button id="tool-goal" aria-pressed="false">◎ ゴール</button><button id="tool-initial" aria-pressed="false">↗ 自己位置の初期設定</button></div><p class="helper" id="pose-help">位置はクリック、向きはドラッグで指定できます。</p>
+          <div class="coordinates"><div><label for="pose-x">X / m</label><input id="pose-x" type="number" step="0.1"></div><div><label for="pose-y">Y / m</label><input id="pose-y" type="number" step="0.1"></div><div><label for="pose-yaw">向き / °</label><input id="pose-yaw" type="number" step="1"></div></div>
           <button id="apply-pose" class="full">入力値をゴールに設定</button><div id="target-summary" class="target-summary">ゴール未設定</div>
-          <button id="plan" class="primary full" disabled>経路を計算</button><p id="plan-summary" class="helper">地図とゴールを設定してください。</p><p class="helper">模擬走行の到着判定：位置0.16 m以内、向き約9°以内。</p><button id="to-monitor" class="full" disabled>走行監視へ進む →</button>
+          <button id="plan" class="primary full" disabled>経路を計算</button><p id="plan-summary" class="helper">保存地図、計画開始位置、ゴールを設定してください。</p><p class="helper">地図上の経路プレビューです。車体の通過可否は未確認です。</p><button id="to-monitor" class="full" disabled>走行監視へ進む →</button>
         </section>
         <section id="panel-monitor" role="tabpanel" aria-labelledby="tab-monitor" hidden>
           <div class="panel-title"><span>走行監視</span><small>EXECUTE</small></div><div class="mission-state"><small>MISSION STATUS</small><strong id="mission-state">待機中</strong><span id="distance">ゴール未設定</span></div>

@@ -63,6 +63,7 @@ def test_calibration_rejects_truncated_or_invalid(data):
 def test_gateway_only_known_routes():
     assert not allowed_path('/native/ws')
     assert allowed_path('/api/viewer')
+    assert allowed_path('/api/planning_start')
     assert not allowed_path('/native/vendor/core/rfb.js')
     assert not allowed_path('/runtime/id_ed25519')
     assert not allowed_path('/api/unknown')
