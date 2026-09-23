@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import importlib.util
 import subprocess
@@ -317,3 +318,24 @@ def test_sensor_migration_recovers_after_host_save_before_marker(tmp_path, monke
     assert (root/'.sensor-migration-complete').exists()
     checked_config(persisted['hesai_config'],'hardware')
     assert profile.is_file() and correction.is_file()
+
+
+def test_unrelated_runtime_cli_does_not_block_workspace_migration(tmp_path, monkeypatch):
+    selected=tmp_path/'selected-workspace'
+    other=tmp_path/'other-workspace'
+    process=subprocess.Popen([sys.executable,'-c','import time; time.sleep(10)',
+                              '-m','gouda_gui.runtime'],
+                             env=dict(os.environ,GOUDA_WORKSPACE=str(other)),start_new_session=True)
+    try:
+        registry=selected/'bags/gouda/runtime/processes.json'
+        registry.parent.mkdir(parents=True)
+        registry.write_text(json.dumps({'mode':'observation','processes':{
+            'viewer':{'pid':process.pid,'start':'stale identity'}}}))
+        monkeypatch.setenv('XDG_DATA_HOME',str(tmp_path/'empty-data'))
+        monkeypatch.setenv('GOUDA_WORKSPACE',str(selected))
+
+        assert 'gouda_gui.runtime' in Path(f'/proc/{process.pid}/cmdline').read_bytes().decode(errors='replace')
+        assert not configure_host.running_gouda(selected)
+    finally:
+        process.terminate()
+        process.wait(timeout=3)

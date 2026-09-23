@@ -35,6 +35,8 @@ def running_gouda(workspace=None):
     proc = Path('/proc')
     if not proc.is_dir():
         return False
+    workspace=workspace or os.environ.get('GOUDA_WORKSPACE')
+    selected=Path(workspace).expanduser().resolve() if workspace else None
     for entry in proc.iterdir():
         if not entry.name.isdigit():
             continue
@@ -42,12 +44,17 @@ def running_gouda(workspace=None):
             cmd = (entry/'cmdline').read_bytes().replace(b'\0', b' ').decode(errors='replace')
         except (OSError, PermissionError):
             continue
-        if 'gouda_gui.runtime' in cmd or 'gouda_gui/runtime.py' in cmd:
-            return True
+        if selected and ('gouda_gui.runtime' in cmd or 'gouda_gui/runtime.py' in cmd):
+            try:
+                entries=(entry/'environ').read_bytes().split(b'\0')
+                value=next((item.split(b'=',1)[1] for item in entries if item.startswith(b'GOUDA_WORKSPACE=')),None)
+                if value and Path(os.fsdecode(value)).expanduser().resolve() == selected:
+                    return True
+            except (OSError, PermissionError, ValueError):
+                continue
     # The legacy CLI exits after launching process groups. Validate both PID and
     # start identity from its registry to avoid PID reuse false positives.
     registries=[Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda/runtime/processes.json']
-    workspace=workspace or os.environ.get('GOUDA_WORKSPACE')
     if workspace:
         registries.append(Path(workspace).expanduser().resolve()/'bags/gouda/runtime/processes.json')
     for registry in dict.fromkeys(registries):
