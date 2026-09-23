@@ -31,14 +31,19 @@ if (( system )); then
   sudo apt-get install -y ros-jazzy-desktop ros-dev-tools python3-rosdep python3-vcstool \
     python3-colcon-common-extensions python3-pytest python3-aiohttp python3-yaml \
     ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox \
-    libboost-all-dev libyaml-cpp-dev libpcap-dev xvfb x11vnc novnc openbox wmctrl \
-    mesa-utils libgl1-mesa-dri network-manager
+    libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils
   [[ -f /etc/ros/rosdep/sources.list.d/20-default.list ]] || sudo rosdep init
   rosdep update
 fi
 source /opt/ros/jazzy/setup.bash
+# The old launcher detached child groups; preserve their state before changing source paths.
+if ! PYTHONPATH="$repo/scripts${PYTHONPATH:+:$PYTHONPATH}" python3 -c 'import configure_host,sys; sys.exit(1 if configure_host.running_gouda() else 0)'; then
+  echo 'Gouda is running or its process state cannot be verified; stop it before setup.' >&2
+  exit 1
+fi
 mkdir -p "$workspace/src"
 python3 "$repo/scripts/prepare_sources.py" "$repo" "$workspace"
+repo="$workspace/src/tsukuba-autonomous-robot"
 # Do not discover the separate historical ICR workspace under Sensors/.
 # It has another ADI package with the same name.
 packages=("$repo"/gouda_gui "$repo"/gouda_sensors "$repo"/gouda_navigation "$repo"/gouda_vehicle "$repo"/gouda_bringup)
@@ -48,13 +53,18 @@ if (( system )); then
 fi
 bash "$repo/scripts/gouda_apply_hesai_patch.sh"
 bash "$repo/scripts/gouda_apply_imu_patch.sh"
+# Migrate user settings and maps before changing generated build state.
+PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" --workspace "$workspace" --defaults
+PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" \
+  --workspace "$workspace" --prepare-build --source "$repo"
 cd "$workspace"
 # Bound compiler memory on small PCs and the development VM.
 export CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-2}"
 export MAKEFLAGS="${MAKEFLAGS:--j2}"
-colcon build --base-paths "${packages[@]}" "${external[@]}" --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+colcon build --symlink-install --base-paths "${packages[@]}" "${external[@]}" --executor sequential --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" \
+  --workspace "$workspace" --record-build --source "$repo"
 source "$workspace/install/setup.bash"
-python3 "$repo/scripts/configure_host.py" --workspace "$workspace" --defaults
 if (( configure )); then python3 "$repo/scripts/configure_host.py" --workspace "$workspace"; fi
 printf '\nセットアップ完了。画面のみ: bash %q/scripts/gouda.sh view\n' "$repo"
 printf '実機観測: bash %q/scripts/gouda.sh observe\n' "$repo"

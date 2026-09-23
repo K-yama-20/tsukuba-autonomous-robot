@@ -13,9 +13,188 @@ import subprocess
 import time
 
 
-def config_root():
+def config_root(workspace):
+    return Path(workspace).expanduser().resolve()/'bags'/'gouda'
+
+
+def legacy_config_root():
     return Path(os.environ.get('XDG_CONFIG_HOME', Path.home()/'.config'))/'gouda'
 
+
+def running_gouda():
+    proc = Path('/proc')
+    if not proc.is_dir():
+        return False
+    for entry in proc.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            cmd = (entry/'cmdline').read_bytes().replace(b'\0', b' ').decode(errors='replace')
+        except (OSError, PermissionError):
+            continue
+        if 'gouda_gui.runtime' in cmd or 'gouda_gui/runtime.py' in cmd:
+            return True
+    # The legacy CLI exits after launching process groups. Validate both PID and
+    # start identity from its registry to avoid PID reuse false positives.
+    legacy_state = Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda/runtime/processes.json'
+    if legacy_state.is_file():
+        try:
+            state = json.loads(legacy_state.read_text())
+            boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+            for item in state.get('processes', {}).values():
+                try:
+                    stat = Path(f"/proc/{int(item['pid'])}/stat").read_text().rsplit(')', 1)[1].split()
+                    current = boot+':'+stat[19] if stat[0] != 'Z' else None
+                    if current is not None and current == item.get('start'):
+                        return True
+                except (KeyError, ValueError, OSError, IndexError):
+                    continue
+        except (OSError, ValueError):
+            # An unreadable process registry is ambiguous; preserve data by stopping.
+            return True
+    return False
+
+
+def migrate_maps(workspace):
+    """Copy legacy maps once; leave the source untouched and reject collisions."""
+    legacy = Path(os.environ.get('XDG_DATA_HOME', Path.home()/'.local/share'))/'gouda'
+    if not legacy.is_dir():
+        return
+    maps = [name for name in ('maps', 'maps_sensor_slam') if (legacy/name).exists() or (legacy/name).is_symlink()]
+    if not maps:
+        return
+    target_root = Path(workspace).expanduser().resolve()
+    if running_gouda():
+        raise ValueError('Goudaプロセスが稼働中のため地図を移行できません。先にbash scripts/gouda.sh stopを実行してください。')
+    # Preflight every file before writing anything. Identical existing files are
+    # safe on reruns; differing content and link targets are never overwritten.
+    copies, conflicts = [], []
+    for name in maps:
+        source = legacy/name
+        target = target_root/name
+        for item in [source, *source.rglob('*')]:
+            relative = item.relative_to(source)
+            destination = target/relative
+            if item.is_dir() and not item.is_symlink():
+                if destination.exists() or destination.is_symlink():
+                    if not destination.is_dir() or destination.is_symlink():
+                        conflicts.append(str(destination))
+                else:
+                    copies.append((item, destination))
+            else:
+                if destination.exists() or destination.is_symlink():
+                    same = (item.is_symlink() and destination.is_symlink()
+                            and item.readlink() == destination.readlink())
+                    same = same or (item.is_file() and destination.is_file()
+                                    and not destination.is_symlink()
+                                    and item.stat().st_size == destination.stat().st_size
+                                    and __import__('filecmp').cmp(item, destination, shallow=False))
+                    if not same:
+                        conflicts.append(str(destination))
+                else:
+                    copies.append((item, destination))
+    if conflicts:
+        raise ValueError('既存マップと移行先が競合します: '+', '.join(conflicts)+'。移行元・移行先を両方保持して手動で整理してください。')
+    target_root.mkdir(parents=True, exist_ok=True)
+    for source, destination in copies:
+        if source.is_dir() and not source.is_symlink():
+            destination.mkdir(parents=True, exist_ok=True)
+            continue
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_symlink():
+            destination.symlink_to(source.readlink(), target_is_directory=source.is_dir())
+        else:
+            shutil.copy2(source, destination)
+
+
+def checked_hardware(workspace, preferred=None):
+    """Reuse a validated checked_hardware.yaml without guessing between bag folders."""
+    bags = Path(workspace).expanduser().resolve()/'bags'
+    if preferred:
+        chosen = Path(preferred).expanduser()
+        if chosen.is_file() and chosen.name == 'checked_hardware.yaml' and bags in chosen.resolve().parents:
+            from gouda_sensors.hesai_config import checked_config
+            checked_config(chosen, 'hardware')
+            return chosen.resolve()
+    candidates = sorted(bags.glob('*/checked_hardware.yaml'))
+    if len(candidates) > 1:
+        raise ValueError('checked_hardware.yamlが複数あります。host.jsonで使用先を明示してください。')
+    if not candidates:
+        return None
+    candidate = candidates[0]
+    from gouda_sensors.hesai_config import checked_config
+    checked_config(candidate, 'hardware')
+    return candidate
+
+
+def correction_from_config(path):
+    import yaml
+    data = yaml.safe_load(Path(path).read_text())
+    return Path(data['lidar'][0]['driver']['lidar_udp_type']['correction_file_path'])
+
+
+def load_or_migrate_config(workspace, root):
+    path = root/'host.json'
+    old = legacy_config_root()/'host.json'
+    marker = root/'.legacy-migration-complete'
+    if path.exists() and old.exists() and not marker.exists():
+        current, legacy = json.loads(path.read_text()), json.loads(old.read_text())
+        if current != legacy:
+            raise ValueError(f'設定が新旧両方にあり内容が異なります: {path} / {old}')
+        marker.write_text('legacy and workspace settings matched; workspace settings are now authoritative\n')
+        marker.chmod(0o600)
+    source = path if path.exists() else old if old.exists() and not marker.exists() else None
+    if source:
+        cfg = json.loads(source.read_text())
+        if Path(cfg.get('workspace', '')).expanduser().resolve() != Path(workspace).expanduser().resolve():
+            raise ValueError('別workspaceを指すhost.jsonがあります。設定を上書きしません。')
+        if not path.exists():
+            temp=path.with_suffix('.tmp')
+            temp.write_text(json.dumps(cfg, indent=2)+'\n')
+            temp.chmod(0o600)
+            temp.replace(path)
+        if source == old and not marker.exists():
+            marker.write_text('legacy host settings copied; old file retained\n')
+            marker.chmod(0o600)
+        return cfg
+    cfg = dict(workspace=str(Path(workspace).expanduser().resolve()), imu_device='', lidar_interface='',
+               hesai_config=str(root/'hesai.yaml'))
+    existing = checked_hardware(workspace)
+    if existing:
+        cfg['hesai_config'] = str(existing)
+    return cfg
+
+
+
+def archive_build_outputs(workspace, source):
+    """Move stale generated colcon state aside before a source/mode change."""
+    workspace=Path(workspace).expanduser().resolve()
+    source=Path(source).expanduser().resolve()
+    state_path=workspace/'.gouda-build-state.json'
+    current={'source':str(source),'install_mode':'symlink'}
+    try:
+        previous=json.loads(state_path.read_text())
+    except (OSError,ValueError):
+        previous=None
+    outputs=[workspace/name for name in ('build','install','log') if (workspace/name).exists()]
+    if not outputs or previous == current:
+        return None
+    if running_gouda():
+        raise ValueError('Gouda is still running; stop it before moving build/install/log.')
+    archive=workspace/'bags/gouda/archive'/str(time.time_ns())
+    archive.mkdir(parents=True,exist_ok=False)
+    for path in outputs:
+        path.rename(archive/path.name)
+    return archive
+
+
+def record_build_state(workspace, source):
+    workspace=Path(workspace).expanduser().resolve()
+    state_path=workspace/'.gouda-build-state.json'
+    temp=state_path.with_suffix('.tmp')
+    temp.write_text(json.dumps({'source':str(Path(source).expanduser().resolve()),
+                                'install_mode':'symlink'},indent=2)+'\n')
+    temp.replace(state_path)
 
 def save(path, data):
     tmp = path.with_suffix('.tmp')
@@ -101,14 +280,45 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--workspace',required=True)
     parser.add_argument('--defaults',action='store_true')
+    parser.add_argument('--prepare-build',action='store_true')
+    parser.add_argument('--record-build',action='store_true')
+    parser.add_argument('--source')
     args=parser.parse_args()
-    root=config_root(); root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if args.prepare_build or args.record_build:
+        if not args.source:
+            parser.error('--source is required for build-state actions')
+        if args.prepare_build:
+            archive_build_outputs(args.workspace,args.source)
+        if args.record_build:
+            record_build_state(args.workspace,args.source)
+        return
+    workspace=Path(args.workspace).expanduser().resolve()
+    os.environ['GOUDA_WORKSPACE']=str(workspace)
+    migrate_maps(workspace)
+    root=config_root(workspace); root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    root.chmod(0o700)
     path=root/'host.json'
-    cfg=json.loads(path.read_text()) if path.exists() else dict(
-        workspace=str(Path(args.workspace).resolve()), imu_device='', lidar_interface='',
-        hesai_config=str(root/'hesai.yaml'))
-    if Path(cfg['workspace']).resolve() != Path(args.workspace).resolve():
-        raise SystemExit('別のworkspace設定が存在します。XDG_CONFIG_HOMEで分離してください。')
+    cfg=load_or_migrate_config(workspace, root)
+    if Path(cfg['workspace']).expanduser().resolve() != workspace:
+        raise SystemExit('別のworkspace設定が存在します。設定を上書きしません。')
+    current_config=Path(cfg.get('hesai_config', '')).expanduser()
+    from gouda_sensors.hesai_config import checked_config
+    current_valid=False
+    if current_config.is_file():
+        try:
+            checked_config(current_config, 'hardware')
+            current_valid=True
+        except (KeyError, TypeError, ValueError, OSError):
+            pass
+    if current_valid:
+        # Keep legacy absolute calibration references intact when still valid.
+        pass
+    else:
+        hardware=checked_hardware(workspace, current_config)
+        if hardware:
+            cfg['hesai_config']=str(hardware)
+        elif current_config.exists():
+            raise ValueError(f'既存のLiDAR設定を検証できません: {current_config}')
     save(path,cfg)
     if args.defaults:
         return
@@ -140,7 +350,8 @@ def main():
                 return
             data=validate_correction(Path(source).expanduser().read_bytes())
         calibration=root/'xt32_correction.csv'
-        calibration.write_bytes(data)
+        if not calibration.exists():
+            calibration.write_bytes(data)
         from gouda_sensors.profiles import make_profile
         from gouda_sensors.hesai_config import checked_config
         import yaml
