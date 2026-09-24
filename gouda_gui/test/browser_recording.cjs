@@ -15,6 +15,11 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
   },{route,data});
   const state = () => page.evaluate(async()=>(await(await fetch('/api/state')).json()));
   const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
+  const pollText = async (locator, predicate, description, timeoutMs=10000) => {
+    const deadline=Date.now()+timeoutMs;let latest='';
+    while(Date.now()<deadline){latest=await locator.innerText();if(predicate(latest))return latest;await sleep(200);}
+    throw new Error(`Timed out waiting for ${description}; last text: ${latest}`);
+  };
   const pollState = async (predicate, description, timeoutMs) => {
     const deadline=Date.now()+timeoutMs;let latest;
     while(Date.now()<deadline){latest=await state();if(predicate(latest))return latest;await sleep(250);}
@@ -31,10 +36,17 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     if (initial.ages?.lidar_raw!==undefined || initial.ages?.imu!==undefined) {
       throw new Error('No-input capture test requires raw LiDAR and IMU topics to be absent');
     }
+    const customTopic='/gouda/test_custom_analysis';
+    const seeded=await api('recording_config_save',{...originalRecording,topics:[...new Set([...originalRecording.topics,customTopic])]});
+    if (seeded.status!==200) throw new Error('Could not seed a custom topic for preservation test: '+JSON.stringify(seeded));
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.getByRole('tab',{name:/記録・SLAM/}).click();
+    await page.locator('#recording-phase').waitFor();
     if (!(await page.locator('#rec-lidar').isChecked()) || !(await page.locator('#rec-imu').isChecked()) || !(await page.locator('#rec-tf').isChecked())) throw new Error('Required raw sensor/TF topics are not selected');
     if (!(await page.locator('#rec-lidar').isDisabled()) || !(await page.locator('#rec-imu').isDisabled()) || !(await page.locator('#rec-tf').isDisabled())) throw new Error('Required raw topics can be disabled in the GUI');
 
-    await page.locator('#rec-glim-odom').check();
+    const fixedIds=['rec-cmd-motion','rec-motion-permit','rec-esp-status','rec-nav-state','rec-gouda-pose','rec-glim-odom','rec-cmd-vel'];
+    for(const id of fixedIds)if(!(await page.locator('#'+id).isChecked())||!(await page.locator('#'+id).isDisabled()))throw new Error('Fixed analysis topic is not selected and locked: '+id);
     await page.locator('#rec-storage').selectOption('sqlite3');
     await page.locator('#rec-duration').fill('1');
     await page.locator('#rec-size').fill('1');
@@ -42,7 +54,8 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     await page.locator('#recording-save').click();
     await page.getByText(/記録設定を保存しました/).waitFor();
     let saved=await state();
-    if (!saved.recording_config.topics.includes('/glim_ros/lidar_odom') || saved.recording_config.storage_id!=='sqlite3') throw new Error('Recording settings did not persist');
+    const fixedTopics=['/cmd_motion','/gouda/motion_permit','/esp32/status','/gouda/navigation_state','/gouda/pose','/glim_ros/lidar_odom','/cmd_vel'];
+    if (!fixedTopics.every(topic=>saved.recording_config.topics.includes(topic)) || !saved.recording_config.topics.includes(customTopic) || saved.recording_config.storage_id!=='sqlite3') throw new Error('Fixed analysis topics or custom topic did not persist');
 
     await page.locator('#mapping-backend').selectOption('glim_imu');
     for (const id of ['map-tx','map-ty','map-tz','map-quat','map-lidar-offset','map-imu-offset']) await page.locator('#'+id).fill('');
@@ -70,6 +83,8 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     if (capture.recording.phase==='completed' || capture.recording.metadata_verified || capture.recording.sensor_data_seen) throw new Error('Empty capture was reported as successful');
     if (capture.recording.phase!=='failed' || capture.recording.return_code===null || capture.recording.return_code===undefined) throw new Error('No-input capture did not finish as a verified failure: '+JSON.stringify(capture.recording));
     if ((await page.locator('#recording-phase').innerText()).includes('記録完了')) throw new Error('UI reported success for an empty capture');
+    await pollText(page.locator('#recording-raw-coverage'),text=>text.startsWith('生センサー: 未検証'),'separate raw-sensor coverage result');
+    await pollText(page.locator('#recording-control-coverage'),text=>text.includes('未発生:'),'separate command/control coverage result');
 
     await page.setViewportSize({width:390,height:844});
     if (await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth)) throw new Error('Recording tab overflows on a mobile-width viewport');

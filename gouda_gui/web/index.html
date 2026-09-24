@@ -41,15 +41,29 @@
           <div class="recording-card"><h3>センサーデータを保存</h3>
           <div class="capture-status"><span id="recording-phase">状態を確認中</span><strong id="recording-time">00:00</strong><small id="recording-size">—</small></div>
           <p class="helper" id="recording-message">センサー入力を待っています。</p>
+          <div id="recording-coverage" class="recording-coverage" aria-live="polite">
+            <p id="recording-raw-coverage" class="helper">生センサー: 状態確認中</p>
+            <p id="recording-control-coverage" class="helper">操作・推定データ: 状態確認中</p>
+          </div>
           <p class="helper">保存先: <code>bags/recordings/</code>（作業領域内）</p>
           <div class="field"><label for="recording-topics">記録するデータ</label>
             <label class="topic-option"><input type="checkbox" id="rec-lidar" checked disabled> 生LiDAR /lidar_points（必須）</label>
             <label class="topic-option"><input type="checkbox" id="rec-imu" checked disabled> 生IMU /imu/data_raw（必須）</label>
             <label class="topic-option"><input type="checkbox" id="rec-tf" checked disabled> 座標変換 /tf・/tf_static</label>
             <label class="topic-option"><input type="checkbox" id="rec-kiss-odom"> KISSオドメトリ /kiss/odometry</label>
-            <label class="topic-option"><input type="checkbox" id="rec-glim-odom"> GLIMオドメトリ /glim_ros/lidar_odom</label>
             <label class="topic-option"><input type="checkbox" id="rec-clock"> 再生時刻 /clock（再生時は必須）</label>
           </div>
+          <div class="section-label">操作・推定の分析データ（自動記録）</div>
+          <div class="field" id="recording-analysis-topics">
+            <label class="topic-option"><input type="checkbox" id="rec-cmd-motion" checked disabled> 動作指令 /cmd_motion</label>
+            <label class="topic-option"><input type="checkbox" id="rec-motion-permit" checked disabled> 動作許可 /gouda/motion_permit</label>
+            <label class="topic-option"><input type="checkbox" id="rec-esp-status" checked disabled> 制御器状態 /esp32/status</label>
+            <label class="topic-option"><input type="checkbox" id="rec-nav-state" checked disabled> ナビゲーション状態 /gouda/navigation_state</label>
+            <label class="topic-option"><input type="checkbox" id="rec-gouda-pose" checked disabled> 位置推定 /gouda/pose</label>
+            <label class="topic-option"><input type="checkbox" id="rec-glim-odom" checked disabled> GLIMオドメトリ /glim_ros/lidar_odom</label>
+            <label class="topic-option"><input type="checkbox" id="rec-cmd-vel" disabled> 速度指令 /cmd_vel</label>
+          </div>
+          <p class="helper">指令・状態の記録は機器への反映やDAC実出力の測定を意味しません。分析データがない場合も、生センサーの記録結果とは分けて表示します。</p>
           <label for="rec-storage">保存形式</label><select id="rec-storage"><option value="mcap">MCAP</option><option value="sqlite3">SQLite3</option></select>
           <div class="coordinates"><div><label for="rec-duration">最大時間 / 分</label><input id="rec-duration" type="number" min="1" max="720" value="60"></div><div><label for="rec-size">分割 / GB</label><input id="rec-size" type="number" min="1" max="100" value="2"></div><div><label for="rec-disk">空き容量下限 / GB</label><input id="rec-disk" type="number" min="1" max="500" value="5"></div></div>
           <div class="inline"><button id="recording-save" class="full">記録設定を保存</button><button id="recording-start" class="primary full">記録開始</button></div>

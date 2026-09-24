@@ -93,12 +93,13 @@ $('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信�
 
 let recordingConfigLoaded=false,mappingConfigLoaded=false;
 function updateRecordingSettings(){
-  const c=state?.recording_config;if(c&&!recordingConfigLoaded){$('rec-lidar').checked=c.topics.includes('/lidar_points');$('rec-imu').checked=c.topics.includes('/imu/data_raw');$('rec-kiss-odom').checked=c.topics.includes('/kiss/odometry');$('rec-glim-odom').checked=c.topics.includes('/glim_ros/lidar_odom');$('rec-clock').checked=c.topics.includes('/clock')||state.mode==='replay';$('rec-storage').value=c.storage_id||'mcap';$('rec-duration').value=Math.round(c.max_duration_sec/60);$('rec-size').value=Math.round(c.max_bag_size_mb/1024);$('rec-disk').value=Math.round(c.min_free_disk_mb/1024);recordingConfigLoaded=true;}
+  const c=state?.recording_config;if(c&&!recordingConfigLoaded){const topics=new Set([...(c.topics||[]),...(state?.recording?.config?.topics||[])]);$('rec-lidar').checked=topics.has('/lidar_points');$('rec-imu').checked=topics.has('/imu/data_raw');$('rec-kiss-odom').checked=topics.has('/kiss/odometry');$('rec-glim-odom').checked=true;$('rec-cmd-vel').checked=true;$('rec-clock').checked=topics.has('/clock')||state.mode==='replay';$('rec-storage').value=c.storage_id||'mcap';$('rec-duration').value=Math.round(c.max_duration_sec/60);$('rec-size').value=Math.round(c.max_bag_size_mb/1024);$('rec-disk').value=Math.round(c.min_free_disk_mb/1024);recordingConfigLoaded=true;}
   $('rec-clock').disabled=state.mode==='replay';if(state.mode==='replay')$('rec-clock').checked=true;
   const r=state?.recording||{};const labels={idle:'待機中',awaiting_sensor_data:'センサー入力待ち',recording:'記録中',finalizing:'ファイル確定中',no_sensor_data:'記録データなし',completed:'記録完了',failed:'記録エラー'};
   $('recording-phase').textContent=labels[r.phase]||'状態不明';$('recording-time').textContent=`${Math.floor((r.elapsed_sec||0)/60).toString().padStart(2,'0')}:${Math.floor((r.elapsed_sec||0)%60).toString().padStart(2,'0')}`;
   $('recording-size').textContent=r.directory?`bags/recordings/${r.directory.split('/').pop()}${Number.isFinite(r.bag_size_bytes)?' · '+(r.bag_size_bytes/1073741824).toFixed(2)+' GB':''}`:'保存先未作成';
   $('recording-message').textContent=r.error||(!r.sensor_data_seen&&['completed','no_sensor_data'].includes(r.phase)?'センサーの記録データを確認できません。成功した記録として扱っていません。':r.phase==='finalizing'?'記録ファイルとメタデータを確定しています。完了までお待ちください。':r.phase==='recording'?'センサー入力を観測しました（暫定）。終了後に記録件数とファイルを照合します。':r.phase==='awaiting_sensor_data'?'入力データが届くまで記録結果は確定しません。':r.phase==='completed'&&!r.metadata_verified?'バッグのメタデータを確認できません。記録結果は未検証です。':r.phase==='completed'?`記録とメタデータを確認しました。センサー件数: ${Object.values(r.per_topic_counts||{}).reduce((a,b)=>a+b,0)}`:'設定保存は記録状態を変更しません。');
+  updateRecordingCoverage(r);
   const running=['awaiting_sensor_data','recording','finalizing','no_sensor_data'].includes(r.phase);$('recording-start').disabled=busy||!connected||running;$('recording-stop').disabled=busy||!connected||!running;
 }
 function updateMappingSettings(){
@@ -108,7 +109,23 @@ function updateMappingSettings(){
   const active=m.active||{};const readyLabel=m.saved?.backend==='glim_imu'?(m.ready?'GLIM入力設定確認済み':'GLIM入力設定未準備'):'GLIM入力設定は未選択';
   $('mapping-settings-state').textContent=`保存設定: ${m.saved?.backend||'不明'} / ${readyLabel} · 起動時の動作方式: ${active.backend||'未起動'}${active.compute?' / '+active.compute:''}${active.state?' · '+active.state:''}${m.package_available===true?' · GLIMパッケージ利用可':m.package_available===false?' · GLIMパッケージ利用不可':''}${m.runtime_available===true?' · GLIM処理実行中':m.runtime_available===false?' · GLIM処理停止中':''}${active.input_state?` · 入力 LiDAR:${active.input_state.lidar} IMU:${active.input_state.imu} odom:${active.input_state.odometry}`:''}${active.error?' · '+active.error:''}${active.output_directory?' · 3D記録 '+active.output_directory:''}${m.restart_required?' · 保存設定の適用にはMission Control再起動が必要':''}`;
 }
-function recordingTopics(){const t=[];if($('rec-lidar').checked)t.push('/lidar_points');if($('rec-imu').checked)t.push('/imu/data_raw');t.push('/tf','/tf_static');if($('rec-kiss-odom').checked)t.push('/kiss/odometry');if($('rec-glim-odom').checked)t.push('/glim_ros/lidar_odom');if($('rec-clock').checked||state?.mode==='replay')t.push('/clock');return t;}
+const CONTROL_ANALYSIS_TOPICS=['/cmd_motion','/gouda/motion_permit','/esp32/status','/gouda/navigation_state','/gouda/pose','/glim_ros/lidar_odom','/cmd_vel'];
+function updateRecordingCoverage(r){
+  const counts=r.per_topic_counts||{},lidar=Number(counts['/lidar_points']||0),imu=Number(counts['/imu/data_raw']||0),terminal=['completed','failed'].includes(r.phase);
+  $('recording-raw-coverage').textContent=r.metadata_verified?`生センサー: 検証済み · LiDAR ${lidar}件 / IMU ${imu}件`:terminal?`生センサー: 未検証 · LiDAR ${lidar}件 / IMU ${imu}件`:(r.sensor_data_seen?`生センサー: 入力を観測（暫定） · LiDAR ${lidar}件 / IMU ${imu}件`:'生センサー: 入力待ち · LiDAR・IMUの両方の記録を終了後に照合');
+  const topics=CONTROL_ANALYSIS_TOPICS,observed=topics.filter(topic=>Number(counts[topic]||0)>0),missing=Array.isArray(r.missing_control_topics)?r.missing_control_topics.filter(topic=>topics.includes(topic)):topics.filter(topic=>Number(counts[topic]||0)===0);
+  const detail=terminal?`未発生: ${missing.length?missing.join('、'):'なし'}`:r.control_data_seen?'制御関連入力を観測（暫定）':'制御関連入力を待っています';
+  $('recording-control-coverage').textContent=`操作・推定データ: ${observed.length}/${topics.length}項目に記録あり · ${detail}`;
+}
+function recordingTopics(){
+  const topics=['/lidar_points','/imu/data_raw','/tf','/tf_static',...CONTROL_ANALYSIS_TOPICS];
+  if($('rec-kiss-odom').checked)topics.push('/kiss/odometry');
+  if($('rec-clock').checked||state?.mode==='replay')topics.push('/clock');
+  const sources=[state?.recording_config?.topics||[],state?.recording?.config?.topics||[]];
+  const managed=new Set([...topics,'/kiss/odometry','/clock']);
+  for(const source of sources)for(const topic of source)if(!managed.has(topic)&&!topics.includes(topic))topics.push(topic);
+  return [...new Set(topics)];
+}
 $('recording-save').onclick=()=>act('recording_config_save',{topics:recordingTopics(),storage_id:$('rec-storage').value,max_duration_sec:Number($('rec-duration').value)*60,max_bag_size_mb:Number($('rec-size').value)*1024,min_free_disk_mb:Number($('rec-disk').value)*1024},'記録設定を保存しました。現在の記録状態は変わりません。');
 $('recording-start').onclick=()=>act('recording_start',{},'記録要求を受け付けました。センサー入力と保存状態を確認しています。');
 $('recording-stop').onclick=()=>act('recording_stop',{},'記録終了処理を開始しました。完了状態を確認してください。');
