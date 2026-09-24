@@ -296,14 +296,17 @@ class GlimSession:
         self.input_state = {"lidar": "waiting", "imu": "waiting", "odometry": "waiting", "errors": []}
         self._received_at = {}
         self._ensure_monitors(self._settings)
-        config_path = self.directory / "config"
+        # Keep generated launch config separate from GLIM's native output/config snapshot.
+        runtime_config = self.directory / ".glim_runtime" if self.directory.resolve() == output else self.directory
+        runtime_config.mkdir(parents=True, exist_ok=True)
+        config_path = runtime_config / "config"
         make_glim_config(settings, config_path)
         get_package_share_directory("glim_ros")
         logs = Path(logs_dir()); logs.mkdir(parents=True, exist_ok=True)
         import uuid
         self.log_path = logs / f"glim-{uuid.uuid4().hex}.log"
         self.log = self.log_path.open("w")
-        settings_path = self.directory / "settings.json"
+        settings_path = runtime_config / "settings.json"
         _json_write(settings_path, settings)
         cmd = ["ros2", "launch", "gouda_navigation", "glim_mapping.launch.py",
                f"settings_file:={settings_path}", f"config_path:={config_path}", f"dump_path:={output}",
