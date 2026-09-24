@@ -84,7 +84,7 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     if (capture.recording.phase!=='failed' || capture.recording.return_code===null || capture.recording.return_code===undefined) throw new Error('No-input capture did not finish as a verified failure: '+JSON.stringify(capture.recording));
     if ((await page.locator('#recording-phase').innerText()).includes('記録完了')) throw new Error('UI reported success for an empty capture');
     await pollText(page.locator('#recording-raw-coverage'),text=>text.startsWith('生センサー: 未検証'),'separate raw-sensor coverage result');
-    await pollText(page.locator('#recording-control-coverage'),text=>text.includes('未発生:'),'separate command/control coverage result');
+    await pollText(page.locator('#recording-control-coverage'),text=>text.includes('記録件数を照合できません')||text.includes('未取得:'),'separate command/control coverage result');
 
     await page.setViewportSize({width:390,height:844});
     if (await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth)) throw new Error('Recording tab overflows on a mobile-width viewport');

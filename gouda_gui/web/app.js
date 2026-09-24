@@ -98,7 +98,7 @@ function updateRecordingSettings(){
   const r=state?.recording||{};const labels={idle:'待機中',awaiting_sensor_data:'センサー入力待ち',recording:'記録中',finalizing:'ファイル確定中',no_sensor_data:'記録データなし',completed:'記録完了',failed:'記録エラー'};
   $('recording-phase').textContent=labels[r.phase]||'状態不明';$('recording-time').textContent=`${Math.floor((r.elapsed_sec||0)/60).toString().padStart(2,'0')}:${Math.floor((r.elapsed_sec||0)%60).toString().padStart(2,'0')}`;
   $('recording-size').textContent=r.directory?`bags/recordings/${r.directory.split('/').pop()}${Number.isFinite(r.bag_size_bytes)?' · '+(r.bag_size_bytes/1073741824).toFixed(2)+' GB':''}`:'保存先未作成';
-  $('recording-message').textContent=r.error||(!r.sensor_data_seen&&['completed','no_sensor_data'].includes(r.phase)?'センサーの記録データを確認できません。成功した記録として扱っていません。':r.phase==='finalizing'?'記録ファイルとメタデータを確定しています。完了までお待ちください。':r.phase==='recording'?'センサー入力を観測しました（暫定）。終了後に記録件数とファイルを照合します。':r.phase==='awaiting_sensor_data'?'入力データが届くまで記録結果は確定しません。':r.phase==='completed'&&!r.metadata_verified?'バッグのメタデータを確認できません。記録結果は未検証です。':r.phase==='completed'?`記録とメタデータを確認しました。センサー件数: ${Object.values(r.per_topic_counts||{}).reduce((a,b)=>a+b,0)}`:'設定保存は記録状態を変更しません。');
+  $('recording-message').textContent=r.error||(!r.sensor_data_seen&&['completed','no_sensor_data'].includes(r.phase)?'センサーの記録データを確認できません。成功した記録として扱っていません。':r.phase==='finalizing'?'記録ファイルとメタデータを確定しています。完了までお待ちください。':r.phase==='recording'?'センサー入力を観測しました（暫定）。終了後に記録件数とファイルを照合します。':r.phase==='awaiting_sensor_data'?'入力データが届くまで記録結果は確定しません。':r.phase==='completed'&&!r.metadata_verified?'バッグのメタデータを確認できません。記録結果は未検証です。':r.phase==='completed'?`記録とメタデータを確認しました。全トピックのメッセージ件数: ${Object.values(r.per_topic_counts||{}).reduce((a,b)=>a+b,0)}`:'設定保存は記録状態を変更しません。');
   updateRecordingCoverage(r);
   const running=['awaiting_sensor_data','recording','finalizing','no_sensor_data'].includes(r.phase);$('recording-start').disabled=busy||!connected||running;$('recording-stop').disabled=busy||!connected||!running;
 }
@@ -113,8 +113,8 @@ const CONTROL_ANALYSIS_TOPICS=['/cmd_motion','/gouda/motion_permit','/esp32/stat
 function updateRecordingCoverage(r){
   const counts=r.per_topic_counts||{},lidar=Number(counts['/lidar_points']||0),imu=Number(counts['/imu/data_raw']||0),terminal=['completed','failed'].includes(r.phase);
   $('recording-raw-coverage').textContent=r.metadata_verified?`生センサー: 検証済み · LiDAR ${lidar}件 / IMU ${imu}件`:terminal?`生センサー: 未検証 · LiDAR ${lidar}件 / IMU ${imu}件`:(r.sensor_data_seen?`生センサー: 入力を観測（暫定） · LiDAR ${lidar}件 / IMU ${imu}件`:'生センサー: 入力待ち · LiDAR・IMUの両方の記録を終了後に照合');
-  const topics=CONTROL_ANALYSIS_TOPICS,observed=topics.filter(topic=>Number(counts[topic]||0)>0),missing=Array.isArray(r.missing_control_topics)?r.missing_control_topics.filter(topic=>topics.includes(topic)):topics.filter(topic=>Number(counts[topic]||0)===0);
-  const detail=terminal?`未発生: ${missing.length?missing.join('、'):'なし'}`:r.control_data_seen?'制御関連入力を観測（暫定）':'制御関連入力を待っています';
+  const topics=CONTROL_ANALYSIS_TOPICS,observed=topics.filter(topic=>Number(counts[topic]||0)>0),missing=Array.isArray(r.missing_control_topics)?r.missing_control_topics.filter(topic=>topics.includes(topic)):null;
+  const detail=terminal?(missing===null?'記録件数を照合できません':`未取得: ${missing.length?missing.join('、'):'なし'}`):r.control_data_seen?'制御関連入力を観測（暫定）':'制御関連入力を待っています';
   $('recording-control-coverage').textContent=`操作・推定データ: ${observed.length}/${topics.length}項目に記録あり · ${detail}`;
 }
 function recordingTopics(){
