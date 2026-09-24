@@ -12,6 +12,49 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
 
+def compose_pose_transform(position, quaternion, translation, rotation):
+    """Apply one parent-frame rigid transform to a 3D pose."""
+    x,y,z=map(float,position);qx,qy,qz,qw=map(float,rotation)
+    u=(qx,qy,qz);dot=qx*x+qy*y+qz*z
+    cross=(qy*z-qz*y,qz*x-qx*z,qx*y-qy*x)
+    rotated=[2*dot*u[i]+(qw*qw-sum(v*v for v in u))*(x,y,z)[i]+2*qw*cross[i] for i in range(3)]
+    p=[rotated[0]+translation[0],rotated[1]+translation[1],rotated[2]+translation[2]]
+    ax,ay,az,aw=map(float,quaternion)
+    q=(qw*ax+qx*aw+qy*az-qz*ay,
+       qw*ay-qx*az+qy*aw+qz*ax,
+       qw*az+qx*ay-qy*ax+qz*aw,
+       qw*aw-qx*ax-qy*ay-qz*az)
+    return p,q
+
+
+def glim_session_output_directory(session, requested):
+    """Use GLIM's reported output path when set; otherwise keep the requested path."""
+    output=getattr(session, 'map_output_directory', None)
+    return Path(output) if output is not None else Path(requested)
+
+
+def mapping_start_backend(saved, runtime, effective_backend, validation_errors=(), *, package_available=None, glim_active=False):
+    """Return the only backend safe to start, or reject stale/missing runtime state."""
+    if not isinstance(saved, dict) or not isinstance(runtime, dict):
+        raise RuntimeError('SLAM設定を読み込めません')
+    if saved != runtime or saved.get('backend') != effective_backend:
+        raise RuntimeError('保存設定と処理起動時の方式が異なります。Mission Controlを再起動してください')
+    if validation_errors:
+        raise RuntimeError('SLAM設定を確認してください: '+' / '.join(map(str, validation_errors)))
+    backend=runtime.get('backend')
+    if backend=='glim_imu':
+        if package_available is not True:
+            raise RuntimeError('GLIMパッケージを利用できません')
+        if not glim_active:
+            raise RuntimeError('GLIMセンサー処理が起動していません。状態を確認してください')
+    elif backend=='kiss_icp':
+        if glim_active:
+            raise RuntimeError('KISSとGLIMが同時に有効です。Mission Controlを再起動してください')
+    else:
+        raise RuntimeError('SLAM方式が不正です')
+    return backend
+
+
 def finite_pose(data):
     values = [data.get(k) for k in ('x', 'y', 'yaw')]
     if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in values):

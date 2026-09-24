@@ -1,47 +1,91 @@
 'use strict';
 const { chromium } = require('playwright');
-const base = process.argv[2] || 'http://127.0.0.1:8765';
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const base = process.argv[2] || 'http://127.0.0.1:8766';
 (async () => {
   const browser = await chromium.launch({headless: true});
-  const page = await browser.newPage();
-  let originalRecording, originalMapping, token;
-  const api = async (path, data) => page.evaluate(async ({path,data}) => {
+  const page = await browser.newPage({viewport:{width:1440,height:1000}});
+  let originalRecording, originalMapping, sessionDirectory;
+  const api = async (route, data) => page.evaluate(async ({route,data}) => {
     const token=(await (await fetch('/api/session')).json()).token;
-    const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data)});
+    const response=await fetch('/api/'+route,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data)});
     return {status:response.status,body:await response.json()};
-  },{path,data});
+  },{route,data});
+  const state = () => page.evaluate(async()=>(await(await fetch('/api/state')).json()));
   try {
-    await page.goto(base, {waitUntil: 'domcontentloaded'});
-    const original=await page.evaluate(async()=>{const s=await(await fetch('/api/state')).json();return {recording:s.recording_config,mapping:s.mapping_settings?.saved};});
-    originalRecording=original.recording;originalMapping=original.mapping;
-    await page.getByRole('tab', {name: /記録・SLAM/}).click();
-    await page.getByText('生LiDAR /lidar_points（必須）').waitFor();
-    if (!(await page.locator('#rec-lidar').isChecked()) || !(await page.locator('#rec-imu').isChecked())) throw new Error('Required raw sensor topics are not selected');
-    if (!(await page.locator('#rec-lidar').isDisabled()) || !(await page.locator('#rec-imu').isDisabled())) throw new Error('Required raw topics can be disabled in the GUI');
+    await page.goto(base, {waitUntil:'domcontentloaded'});
+    await page.getByRole('tab',{name:/記録・SLAM/}).click();
+    await page.locator('#recording-phase').waitFor();
+    const initial=await state();
+    originalRecording=initial.recording_config;
+    originalMapping=initial.mapping_settings?.saved;
+    if (initial.ages?.lidar_raw!==undefined || initial.ages?.imu!==undefined) {
+      throw new Error('No-input capture test requires raw LiDAR and IMU topics to be absent');
+    }
+    if (!(await page.locator('#rec-lidar').isChecked()) || !(await page.locator('#rec-imu').isChecked()) || !(await page.locator('#rec-tf').isChecked())) throw new Error('Required raw sensor/TF topics are not selected');
+    if (!(await page.locator('#rec-lidar').isDisabled()) || !(await page.locator('#rec-imu').isDisabled()) || !(await page.locator('#rec-tf').isDisabled())) throw new Error('Required raw topics can be disabled in the GUI');
 
     await page.locator('#rec-glim-odom').check();
+    await page.locator('#rec-storage').selectOption('sqlite3');
+    await page.locator('#rec-duration').fill('1');
+    await page.locator('#rec-size').fill('1');
+    await page.locator('#rec-disk').fill('1');
     await page.locator('#recording-save').click();
     await page.getByText(/記録設定を保存しました/).waitFor();
-    const savedState=await page.evaluate(async()=>(await(await fetch('/api/state')).json()).recording_config);
-    if (!savedState.topics.includes('/glim_ros/lidar_odom')) throw new Error('Saved topics were not returned');
+    let saved=await state();
+    if (!saved.recording_config.topics.includes('/glim_ros/lidar_odom') || saved.recording_config.storage_id!=='sqlite3') throw new Error('Recording settings did not persist');
 
     await page.locator('#mapping-backend').selectOption('glim_imu');
+    for (const id of ['map-tx','map-ty','map-tz','map-quat','map-lidar-offset','map-imu-offset']) await page.locator('#'+id).fill('');
+    for (const id of ['map-point-mode','map-point-field','map-point-type','map-point-time','map-accel-unit','map-gyro-unit']) await page.locator('#'+id).selectOption('unknown');
     await page.locator('#mapping-settings-save').click();
     await page.getByText(/GLIM入力設定未準備/).waitFor();
-    const mapping = await page.evaluate(async () => (await (await fetch('/api/state')).json()).mapping_settings);
-    if (mapping.saved.backend !== 'glim_imu' || mapping.ready) throw new Error('Unknown GLIM calibration was incorrectly marked ready');
+    let mapping=await state();
+    if (mapping.mapping_settings.saved.backend!=='glim_imu' || mapping.mapping_settings.ready) throw new Error('UNKNOWN GLIM calibration was incorrectly marked ready');
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.getByRole('tab',{name:/記録・SLAM/}).click();
+    await page.locator('#recording-phase').waitFor();
+    if (!(await page.locator('#rec-glim-odom').isChecked()) || await page.locator('#rec-storage').inputValue()!=='sqlite3' || await page.locator('#mapping-backend').inputValue()!=='glim_imu') throw new Error('Saved settings did not survive page reload');
+    mapping=await state();
+    if (mapping.mapping_settings.ready) throw new Error('UNKNOWN GLIM calibration became ready after reload');
 
-    await page.route('**/api/state', async route => {
-      const response = await route.fetch();
-      const state = await response.json();
-      state.recording = {phase:'no_sensor_data',directory:'/test/bags/recordings/example',elapsed_sec:15,sensor_data_seen:false,return_code:0,error:null};
-      await route.fulfill({response,body:JSON.stringify(state)});
-    });
-    await page.getByText(/センサーの記録データを確認できません。成功した記録として扱っていません。/).waitFor();
+    await page.locator('#recording-start').click();
+    await page.waitForFunction(async()=>{
+      const s=await(await fetch('/api/state')).json();return s.recording?.phase==='no_sensor_data';
+    },null,{timeout:30000});
+    let capture=await state();
+    sessionDirectory=capture.recording.directory;
+    if (capture.recording.sensor_data_seen) throw new Error('No-input recording unexpectedly observed sensor data');
+    await page.locator('#recording-stop').click();
+    await page.waitForFunction(async()=>{
+      const s=await(await fetch('/api/state')).json();return !['finalizing','recording','awaiting_sensor_data','no_sensor_data'].includes(s.recording?.phase);
+    },null,{timeout:30000});
+    capture=await state();
+    if (capture.recording.phase==='completed' || capture.recording.metadata_verified || capture.recording.sensor_data_seen) throw new Error('Empty capture was reported as successful');
+    if (!['failed','no_sensor_data'].includes(capture.recording.phase)) throw new Error('Unexpected terminal no-input state: '+capture.recording.phase);
+    if ((await page.locator('#recording-phase').innerText()).includes('記録完了')) throw new Error('UI reported success for an empty capture');
+
+    await page.setViewportSize({width:390,height:844});
+    if (await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth)) throw new Error('Recording tab overflows on a mobile-width viewport');
     console.log('browser_recording: PASS');
   } finally {
+    try {
+      const current=await state();
+      if (['recording','awaiting_sensor_data','no_sensor_data','finalizing'].includes(current.recording?.phase)) {
+        await api('recording_stop',{});
+        await page.waitForFunction(async()=>{const s=await(await fetch('/api/state')).json();return !['finalizing','recording','awaiting_sensor_data','no_sensor_data'].includes(s.recording?.phase);},null,{timeout:30000});
+      }
+    } catch {}
     try { if (originalRecording) await api('recording_config_save',originalRecording); } catch {}
     try { if (originalMapping) await api('mapping_settings_save',originalMapping); } catch {}
+    if (sessionDirectory) {
+      const workspace=path.resolve(process.env.GOUDA_TEST_WORKSPACE||process.env.GOUDA_WORKSPACE||path.join(os.homedir(),'gouda_ws'));
+      const recordings=path.resolve(workspace,'bags','recordings');
+      const target=path.resolve(sessionDirectory);
+      if (path.dirname(target)===recordings && path.basename(target).startsWith('gouda_')) await fs.rm(target,{recursive:true,force:true});
+    }
     await browser.close();
   }
-})().catch(error => { console.error(error); process.exit(1); });
+})().catch(error=>{console.error(error);process.exit(1);});

@@ -6,7 +6,7 @@ import threading
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 import pytest
-from gouda_gui.core import MapStore, ProjectionMap, finite_pose, serve
+from gouda_gui.core import MapStore, ProjectionMap, finite_pose, serve, mapping_start_backend, glim_session_output_directory, compose_pose_transform
 
 
 def test_projection_preserves_unknown_and_hits():
@@ -76,3 +76,47 @@ def test_slam_map_commit_requires_graph_and_preserves_metadata(tmp_path):
                    finalize=graph)
     assert store.load(meta['id'])[0]['extrinsics_validated'] is False
     assert (tmp_path/meta['id']/'slam.data').read_bytes()==b'data'
+
+
+def test_mapping_start_requires_matching_saved_and_effective_backend():
+    saved={'backend':'glim_imu','compute':'cpu','calibration':'measured'}
+    runtime=dict(saved)
+    assert mapping_start_backend(saved,runtime,'glim_imu',package_available=True,glim_active=True)=='glim_imu'
+    with pytest.raises(RuntimeError,match='再起動'):
+        mapping_start_backend(saved,runtime,'kiss_icp',package_available=True,glim_active=False)
+    with pytest.raises(RuntimeError,match='再起動'):
+        mapping_start_backend(saved,{**runtime,'calibration':'changed'},'glim_imu',package_available=True,glim_active=True)
+
+
+def test_mapping_start_requires_glim_readiness_package_and_live_session():
+    config={'backend':'glim_imu','compute':'cpu'}
+    with pytest.raises(RuntimeError,match='T_lidar'):
+        mapping_start_backend(config,config,'glim_imu',['T_lidar_imu is UNKNOWN'],package_available=True,glim_active=True)
+    with pytest.raises(RuntimeError,match='GLIMパッケージ'):
+        mapping_start_backend(config,config,'glim_imu',package_available=False,glim_active=False)
+    with pytest.raises(RuntimeError,match='センサー処理'):
+        mapping_start_backend(config,config,'glim_imu',package_available=True,glim_active=False)
+
+
+def test_mapping_start_refuses_simultaneous_kiss_and_glim():
+    config={'backend':'kiss_icp','compute':'cpu'}
+    with pytest.raises(RuntimeError,match='同時'):
+        mapping_start_backend(config,config,'kiss_icp',package_available=None,glim_active=True)
+
+
+def test_glim_output_directory_handles_uninitialized_api_field(tmp_path):
+    class Session:map_output_directory=None
+    expected=tmp_path/'session'
+    assert glim_session_output_directory(Session(),expected)==expected
+    Session.map_output_directory=tmp_path/'reported'
+    assert glim_session_output_directory(Session(),expected)==tmp_path/'reported'
+
+
+def test_glim_odom_is_transformed_once_through_map_to_odom():
+    # map->odom_lidar has a 90-degree yaw and a translation; odom pose is local.
+    p,q=compose_pose_transform((1,0,0),(0,0,0,1),(10,2,0),(0,0,math.sqrt(.5),math.sqrt(.5)))
+    assert p==pytest.approx((10,3,0))
+    assert q==pytest.approx((0,0,math.sqrt(.5),math.sqrt(.5)))
+    # Applying the same transform twice would move the point to (7,12).
+    p2,_=compose_pose_transform(p,q,(10,2,0),(0,0,math.sqrt(.5),math.sqrt(.5)))
+    assert p2!=pytest.approx(p)

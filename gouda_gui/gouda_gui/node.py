@@ -29,7 +29,7 @@ from std_msgs.msg import String, Bool
 from std_srvs.srv import Trigger, SetBool
 from tf2_ros import Buffer, TransformListener, TransformException
 from ament_index_python.packages import get_package_share_directory
-from .core import ProjectionMap, MapStore, finite_pose, serve, validate_grid
+from .core import ProjectionMap, MapStore, finite_pose, serve, validate_grid, mapping_start_backend, glim_session_output_directory, compose_pose_transform
 
 
 def mapping_api():
@@ -44,7 +44,7 @@ def yaw(q):
 class MissionControl(Node):
     def __init__(self):
         super().__init__('gouda_mission_control')
-        for k, v in [('host','127.0.0.1'),('port',8765),('mode','live'),
+        for k, v in [('host','127.0.0.1'),('port',8765),('mode','live'),('mapping_backend','kiss_icp'),
                      ('observation_only',False),('map_directory',str(data_dir()/'maps'))]:
             self.declare_parameter(k,v)
         self.mode = self.get_parameter('mode').value
@@ -57,14 +57,15 @@ class MissionControl(Node):
         self.lock = threading.RLock(); self.operations = threading.Lock()
         self.recording_data_lock=threading.Lock();self.recording_data_seen=False
         self.recording_error=''
-        try:self.recorder=RecordingManager(sensor_data_seen=self.recording_sensor_data_seen)
+        try:self.recorder=RecordingManager(sensor_data_seen=self.recording_sensor_data_seen,use_sim_time=self.mode=='replay')
         except Exception as exc:self.recorder=None;self.recording_error=str(exc)[:300]
         self.store = MapStore(self.get_parameter('map_directory').value)
-        self.times = {}; self.pose = None; self.nav = {}; self.esp = {}; self.cloud = []
+        self.times = {}; self.pose = None; self.pose_frame='odom_lidar (LiDAR中心)' if observation_only else '車体'; self.nav = {}; self.esp = {}; self.cloud = []
         self.cloud_origin = None; self.cloud_note = '点群を待っています'
         self.grid = None; self.grid_revision = 0; self.map_meta = None
         self.mapping = False; self.mapper = None; self.mapping_started = 0.;self.mapping_elapsed=0
-        self.runtime_mapping_settings={};self.glim_session=None;self.glim_output_dir=None;self.glim_error=''
+        self.runtime_mapping_settings={};self.effective_mapping_backend=self.get_parameter('mapping_backend').value
+        self.glim_package_available=None;self.glim_session=None;self.glim_output_dir=None;self.glim_error=''
         self.goal = None; self.planning_start = None; self.preview = []; self.plan_id = None; self.planning = False
         self.plan_error = ''; self.plan_process = None
         self.epoch = 0; self.trail = []; self.logs = []; self.stop_requested = False
@@ -88,6 +89,7 @@ class MissionControl(Node):
             from .slam import SlamSession
             self.slam = SlamSession(self,self.store.root,replay=self.mode=='replay')
             self.create_timer(.05,self.process_pending_cloud)
+            self.create_subscription(Odometry,'/glim_ros/lidar_odom',self.on_glim_odom,qos_profile_sensor_data)
         self.create_subscription(Imu,'/imu/data_raw',self.on_imu,qos_profile_sensor_data)
         self.create_subscription(Bool,'/gouda/lidar_healthy',lambda m:self.touch('lidar_health') if m.data else None,1)
         if self.observation_only:self.initialize_mapping_runtime()
@@ -111,6 +113,27 @@ class MissionControl(Node):
         with self.recording_data_lock:self.recording_data_seen=True
         self.touch('imu')
 
+    def on_glim_odom(self,msg):
+        if not self.observation_only or self.effective_mapping_backend!='glim_imu':return
+        if msg.header.frame_id!='odom_lidar' or msg.child_frame_id!=self.runtime_mapping_settings.get('lidar_frame','hesai_lidar'):return
+        p=msg.pose.pose.position;q=msg.pose.pose.orientation;t=msg.twist.twist
+        position=[p.x,p.y,p.z];frame='odom_lidar (LiDAR中心)'
+        try:
+            stamp=rclpy.time.Time.from_msg(msg.header.stamp)
+            tf=self.tf.lookup_transform('map','odom_lidar',stamp)
+            r=tf.transform.rotation;offset=tf.transform.translation
+            position,combined=compose_pose_transform(position,(q.x,q.y,q.z,q.w),
+                (offset.x,offset.y,offset.z),(r.x,r.y,r.z,r.w))
+            from geometry_msgs.msg import Quaternion
+            q=Quaternion(x=combined[0],y=combined[1],z=combined[2],w=combined[3]);frame='map (LiDAR中心)'
+        except TransformException:pass
+        data=dict(x=position[0],y=position[1],yaw=yaw(q),v=t.linear.x,w=t.angular.z)
+        if not all(math.isfinite(v) for v in data.values()):return
+        with self.lock:
+            self.pose=data;self.pose_frame=frame;self.times['pose']=time.monotonic()
+            if not self.trail or math.dist(self.trail[-1],[position[0],position[1]])>.05:
+                self.trail.append([position[0],position[1]]);self.trail=self.trail[-3000:]
+
     def on_pose(self,msg):
         age=self.get_clock().now().nanoseconds*1e-9-msg.header.stamp.sec-msg.header.stamp.nanosec*1e-9
         if msg.header.frame_id!='map' or not -.05<=age<.5:return
@@ -118,7 +141,7 @@ class MissionControl(Node):
         data=dict(x=p.x,y=p.y,yaw=yaw(msg.pose.pose.orientation),v=t.linear.x,w=t.angular.z)
         if not all(math.isfinite(v) for v in data.values()):return
         with self.lock:
-            self.pose=data;self.times['pose']=time.monotonic()
+            self.pose=data;self.pose_frame='map (LiDAR中心)' if self.observation_only else '車体';self.times['pose']=time.monotonic()
             if not self.trail or math.dist(self.trail[-1],[p.x,p.y])>.05:
                 self.trail.append([p.x,p.y]);self.trail=self.trail[-3000:]
 
@@ -168,10 +191,13 @@ class MissionControl(Node):
                 if self.mapping:self.external_frames += 1
 
     def receive_cloud(self,msg):
-        age=self.get_clock().now().nanoseconds*1e-9-msg.header.stamp.sec-msg.header.stamp.nanosec*1e-9
-        if not -.05<=age<.5:return
+        # Raw recording/health follows arrival, independently of timestamp validity.
         self.touch('lidar_raw')
         with self.recording_data_lock:self.recording_data_seen=True
+        if self.observation_only and self.effective_mapping_backend=='glim_imu':
+            return
+        age=self.get_clock().now().nanoseconds*1e-9-msg.header.stamp.sec-msg.header.stamp.nanosec*1e-9
+        if not -.05<=age<.5:return
         if self.observation_only:self.pending_clouds.append(msg)
         else:self.on_cloud(msg)
 
@@ -263,11 +289,19 @@ class MissionControl(Node):
             load_settings,_,validate_settings,_=mapping_api()
             self.runtime_mapping_settings=load_settings()
             errors=validate_settings(self.runtime_mapping_settings,require_ready=self.runtime_mapping_settings.get('backend')=='glim_imu')
+            if self.runtime_mapping_settings.get('backend')!=self.effective_mapping_backend:
+                self.glim_error='保存設定と処理起動時のバックエンドが異なります。Mission Controlを再起動してください';return
             if errors and self.runtime_mapping_settings.get('backend')=='glim_imu':
                 self.glim_error='GLIM起動条件: '+' / '.join(errors);return
             if self.runtime_mapping_settings.get('compute')=='cuda':
                 self.glim_error='CUDAは未対応です。CPUを選択してMission Controlを再起動してください';return
-            if self.runtime_mapping_settings.get('backend')=='glim_imu':self.start_glim_runtime()
+            if self.runtime_mapping_settings.get('backend')=='glim_imu':
+                try:
+                    get_package_share_directory('glim');get_package_share_directory('glim_ros')
+                    self.glim_package_available=True
+                except Exception as exc:
+                    self.glim_package_available=False;self.glim_error='GLIMパッケージを利用できません: '+str(exc)[:200];return
+                self.start_glim_runtime()
         except Exception as exc:self.glim_error=str(exc)[:300]
 
     def start_glim_runtime(self):
@@ -277,8 +311,10 @@ class MissionControl(Node):
         GlimSession=mapping_api()[3]
         output=data_dir()/'maps_glim'/('session_'+uuid.uuid4().hex)
         session=GlimSession(self,output)
-        self.glim_session=session;self.glim_output_dir=FilePath(getattr(session,'map_output_directory',output))
-        session.start(self.runtime_mapping_settings,self.glim_output_dir,use_sim_time=self.mode=='replay');self.glim_error=''
+        self.glim_session=session;self.glim_output_dir=glim_session_output_directory(session,output)
+        session.start(self.runtime_mapping_settings,self.glim_output_dir,use_sim_time=self.mode=='replay')
+        self.glim_output_dir=glim_session_output_directory(session,self.glim_output_dir)
+        self.glim_error=''
         self.active_mapping_settings=copy.deepcopy(self.runtime_mapping_settings)
 
     def mapping_settings_snapshot(self):
@@ -293,13 +329,16 @@ class MissionControl(Node):
                 active_backend=getattr(self.glim_session,'active_backend','glim_imu') or 'glim_imu'
                 active_compute=(getattr(self,'active_mapping_settings',{}) or {}).get('compute')
             elif glim_status in ('failed','preflight_error'):
-                detail=getattr(self.glim_session,'error','') or getattr(self.glim_session,'input_state',{}).get('error','')
+                detail=getattr(self.glim_session,'error','') or '; '.join(getattr(self.glim_session,'input_state',{}).get('errors',[]))
                 if detail:self.glim_error=str(detail)[:300]
                 elif not self.glim_error:self.glim_error='GLIMプロセスが終了しました。ログを確認してMission Controlを再起動してください'
+        elif self.observation_only and self.effective_mapping_backend=='kiss_icp':
+            current=getattr(self,'active_mapping_settings',self.runtime_mapping_settings)
+            active_backend='kiss_icp';active_compute=current.get('compute')
         elif self.observation_only and self.slam is not None and self.slam.status() in ('mapping','paused','localization'):
             current=getattr(self,'active_mapping_settings',self.runtime_mapping_settings)
             active_backend=current.get('backend','kiss_icp');active_compute=current.get('compute')
-        return dict(saved=saved,ready=not errors,errors=errors,restart_required=bool(saved and saved!=self.runtime_mapping_settings),runtime_available=bool(self.glim_session and getattr(self.glim_session,'status',lambda:'')() not in ('preflight_error','failed')),active=dict(backend=active_backend,compute=active_compute,state=self.glim_session.status() if self.glim_session else ('configured' if self.runtime_mapping_settings.get('backend')=='kiss_icp' else 'unavailable'),input_state=getattr(self.glim_session,'input_state',None) if self.glim_session else None,error=self.glim_error or None,output_directory=str(self.glim_output_dir) if active_backend=='glim_imu' and self.glim_output_dir else None))
+        return dict(saved=saved,ready=not errors,errors=errors,restart_required=bool(self.observation_only and saved and (saved!=self.runtime_mapping_settings or saved.get('backend')!=self.effective_mapping_backend)),package_available=self.glim_package_available,runtime_backend=self.effective_mapping_backend,runtime_available=(bool(self.glim_session and self.glim_session.process is not None and self.glim_session.process.poll() is None) if self.effective_mapping_backend=='glim_imu' else None),active=dict(backend=active_backend,compute=active_compute,state=self.glim_session.status() if self.glim_session else ('configured' if self.runtime_mapping_settings.get('backend')=='kiss_icp' else 'unavailable'),input_state=getattr(self.glim_session,'input_state',None) if self.glim_session else None,error=self.glim_error or None,output_directory=str(self.glim_output_dir) if active_backend=='glim_imu' and self.glim_output_dir else None))
 
     def snapshot(self):
         with self.lock:
@@ -318,7 +357,7 @@ class MissionControl(Node):
                 recording=self.recorder.status() if self.recorder else dict(phase='failed',error=self.recording_error,sensor_data_seen=False),recording_config=self.recorder.get_config() if self.recorder else None,
                 mapping_settings=self.mapping_settings_snapshot(),
                 localization_available=bool(self.map_meta and (self.store.root/self.map_meta.get('id','')/'slam.posegraph').is_file() and (self.store.root/self.map_meta.get('id','')/'slam.data').is_file()),
-                pose_reference='LiDAR中心・取付未校正' if self.observation_only else '車体',pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
+                pose_reference=self.pose_frame,pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
                 map=self.grid,map_revision=self.grid_revision,map_meta=self.map_meta,maps=self.store.list(),
                 mapping=self.mapping,mapping_seconds=round(time.monotonic()-self.mapping_started) if self.mapping else self.mapping_elapsed,
                 mapping_frames=self.external_frames if self.observation_only else self.mapper.frames if self.mapper else 0,cloud=self.cloud,cloud_note=self.cloud_note,
@@ -365,19 +404,18 @@ class MissionControl(Node):
                 return dict(ok=True,recording=self.recorder.stop())
             if action=='mapping_settings_save':
                 if self.mapping:raise RuntimeError('SLAM実行中は方式や取付設定を変更できません。計測を終了してください')
-                try:saved=mapping_api()[1](data)
+                try:
+                    api=mapping_api();api[1](data);saved=api[0]()
                 except ImportError as exc:raise RuntimeError('SLAM設定機能を読み込めません。Ubuntuのワークスペースをビルドしてください') from exc
                 return dict(ok=True,mapping_settings=saved)
             if self.observation_only:
                 if action=='mapping_start':
                     load_settings,_,validate_settings,_=mapping_api();saved=load_settings()
-                    if saved!=self.runtime_mapping_settings:raise RuntimeError('保存したSLAM設定はまだ適用されていません。Mission Controlを再起動してください')
                     settings=self.runtime_mapping_settings
                     errors=validate_settings(settings,require_ready=settings.get('backend')=='glim_imu')
-                    if errors:raise RuntimeError('SLAM設定を確認してください: '+' / '.join(errors))
-                    if settings.get('compute')=='cuda':raise RuntimeError('CUDA実行環境は利用できません。CPUを選択してください')
-                    if settings.get('backend')=='glim_imu' and (self.glim_session is None or self.glim_session.status() not in ('waiting_for_sensors','processing','mapping')):
-                        self.start_glim_runtime()
+                    glim_active=bool(self.glim_session and self.glim_session.status() in ('waiting_for_sensors','processing','mapping'))
+                    mapping_start_backend(saved,settings,self.effective_mapping_backend,errors,
+                        package_available=self.glim_package_available,glim_active=glim_active)
                 return self.observation_command(action,data)
             if action in ('target','planning_start','plan','initial_pose','mapping_start','load_map'):
                 if not self.stationary() or self.esp.get('flags'):
@@ -758,7 +796,7 @@ def main():
             ('preview',lambda:node.close_preview_process()),
             ('recording',lambda:node.recorder.close() if node.recorder else None),
             ('SLAM',lambda:node.slam.close() if node.slam else None),
-            ('GLIM',lambda:node.glim_session.stop(wait=True,timeout=90.0) if node.glim_session is not None else None),
+            ('GLIM',lambda:node.glim_session.close(timeout=90.0) if node.glim_session is not None else None),
             ('vehicle stop',node.stop_motion),
         ):
             try:cleanup()
