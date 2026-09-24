@@ -35,6 +35,8 @@ bash scripts/gouda.sh doctor     # 設定・プロセス・表示状態の診断
 bash scripts/gouda.sh configure  # 機器設定をやり直す
 ```
 
+記録とGLIM/SLAMの設定、保存先、再生方法は[記録とSLAM設定](docs/gouda_recording_glim.md)を参照してください。
+
 起動コマンドはバックグラウンドで動作を維持します。再実行で生存中のセンサーを再起動しません。`view` から `observe` に切り替える場合もGUIとRVizを維持してセンサー受信を追加します。ブラウザの再読み込みやタブ切替もセンサー受信には影響しません。`stop` はこの起動処理が所有するプロセスだけを止めます。別の起動方法で同じAPIポートを使用している場合は、勝手に停止・流用せずエラーにします。
 
 ## 保存地図で経路を確認する
@@ -71,9 +73,11 @@ x86とParallelsの双方で、ワークスペース内にソース・ビルド�
 ├── install/
 ├── log/
 ├── bags/
-│   └── gouda/                  # host.json・機器設定・実行状態・ログ
+│   ├── gouda/                  # host.json・機器設定・実行状態・ログ
+│   └── recordings/             # GUIで記録したrosbag
 ├── maps/
-└── maps_sensor_slam/
+├── maps_sensor_slam/
+└── maps_glim/                  # GLIM 3D観測セッション
 ```
 
 `GOUDA_WORKSPACE` でワークスペースを変更できます。既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。

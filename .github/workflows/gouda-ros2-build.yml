@@ -2,6 +2,8 @@ name: Gouda ROS 2 Jazzy Build
 on:
   push:
     branches: [feature/aya-navsystem]
+  pull_request:
+    branches: [feature/aya-navsystem]
   workflow_dispatch:
 permissions:
   contents: read

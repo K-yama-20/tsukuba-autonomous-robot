@@ -17,6 +17,7 @@ p=runtime_dir()/'processes.json'
 pathlib.Path('/tmp/gouda-smoke/processes-before.json').write_bytes(p.read_bytes())
 PY
 node "$repo/tests/browser.cjs"
+node "$repo/gouda_gui/test/browser_recording.cjs" http://127.0.0.1:8766
 bash "$repo/scripts/gouda.sh" view
 python3 - <<'PY'
 import json,pathlib,socket
