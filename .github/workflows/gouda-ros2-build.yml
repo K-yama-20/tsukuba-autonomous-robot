@@ -37,6 +37,8 @@ jobs:
           bash scripts/setup.sh --skip-system --with-glim --no-configure
           cmp /tmp/host-before.json "$GOUDA_WORKSPACE/bags/gouda/host.json"
           test "$(cat "$GOUDA_WORKSPACE/maps/preserve.txt")" = keep
+      - name: GLIM CPU no-input lifecycle smoke
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/glim_cpu_smoke.sh"
       - name: Unit and protocol tests
         run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/test.sh"
       - name: Browser test dependencies
