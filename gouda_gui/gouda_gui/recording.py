@@ -19,6 +19,9 @@ from .paths import workspace_dir
 
 DEFAULT_TOPICS = ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static']
 OPTIONAL_TOPICS = ['/kiss/odometry', '/glim_ros/lidar_odom', '/clock']
+CONTROL_ANALYSIS_TOPICS = ['/cmd_motion', '/gouda/motion_permit', '/esp32/status',
+                           '/gouda/navigation_state', '/gouda/pose', '/glim_ros/lidar_odom',
+                           '/cmd_vel']
 REQUIRED_TOPICS = tuple(DEFAULT_TOPICS)
 TOPIC_RE = re.compile(r'^/(?:[A-Za-z][A-Za-z0-9_]*)(?:/[A-Za-z][A-Za-z0-9_]*)*$')
 STORAGE_IDS = {'mcap', 'sqlite3'}
@@ -28,8 +31,8 @@ def validate_config(config):
     if not isinstance(config, dict):
         raise ValueError('Recording configuration must be an object')
     topics = config.get('topics', DEFAULT_TOPICS)
-    if not isinstance(topics, list) or not topics or len(topics) > 32:
-        raise ValueError('Choose between 1 and 32 topics')
+    if not isinstance(topics, list) or not topics or len(topics) > 64:
+        raise ValueError('Choose between 1 and 64 topics')
     if any(not isinstance(topic, str) or len(topic) > 128 or not TOPIC_RE.fullmatch(topic) for topic in topics):
         raise ValueError('Topic names must be absolute ROS names with valid characters')
     if len(set(topics)) != len(topics):
@@ -87,10 +90,21 @@ class RecordingManager:
         self.phase = 'idle'; self.error = None; self._sensor_observed = False
         self._return_code = None; self._metadata_verified = False
         self._topic_counts = {}; self._bag_size_bytes = 0
+        self._missing_control_topics = None; self._control_data_seen = None
         self.config_snapshot = None
         self.config = self._load_config()
-        if self.use_sim_time and '/clock' not in self.config['topics']:
-            self.config['topics'].append('/clock')
+        self.config = self._with_effective_topics(self.config)
+
+    def _with_effective_topics(self, config):
+        result = dict(config, topics=list(config['topics']))
+        for topic in CONTROL_ANALYSIS_TOPICS:
+            if topic not in result['topics']:
+                result['topics'].append(topic)
+        if self.use_sim_time and '/clock' not in result['topics']:
+            result['topics'].append('/clock')
+        if len(result['topics']) > 64:
+            raise ValueError('Effective recording config exceeds the 64-topic limit after retaining analysis topics')
+        return result
 
     def _load_config(self):
         try:
@@ -109,9 +123,7 @@ class RecordingManager:
             return dict(self.config, topics=list(self.config['topics']))
 
     def update_config(self, config):
-        validated = validate_config(config)
-        if self.use_sim_time and '/clock' not in validated['topics']:
-            validated['topics'].append('/clock')
+        validated = self._with_effective_topics(validate_config(config))
         with self._lock:
             if self.process is not None and self.process.poll() is None:
                 raise RuntimeError('Stop the active recording before changing its configuration')
@@ -180,6 +192,7 @@ class RecordingManager:
             self.phase = 'awaiting_sensor_data'; self.error = None
             self._sensor_observed = False; self._return_code = None
             self._metadata_verified = False; self._topic_counts = {}; self._bag_size_bytes = 0
+            self._missing_control_topics = None; self._control_data_seen = None
             self._watchdog_stop.clear(); self._stopping = False; self._finalized.clear()
             self._watchdog = threading.Thread(target=self._watchdog_loop,
                                               name='gouda-recording-watchdog', daemon=True)
@@ -255,6 +268,8 @@ class RecordingManager:
                     'config': dict(self.config_snapshot, topics=list(self.config_snapshot['topics'])) if self.config_snapshot else None,
                     'per_topic_counts': dict(self._topic_counts),
                     'metadata_verified': self._metadata_verified,
+                    'control_data_seen': self._control_data_seen,
+                    'missing_control_topics': list(self._missing_control_topics) if self._missing_control_topics is not None else None,
                     'bag_size_bytes': self._bag_size_bytes,
                     'bag_size_available': self._bag_size_bytes > 0}
 
@@ -270,16 +285,19 @@ class RecordingManager:
         metadata = yaml.safe_load(metadata_paths[0].read_text())
         if not isinstance(metadata, dict):
             raise RuntimeError('Finalized bag metadata is invalid')
-        counts = {}
+        counts = {topic: 0 for topic in self.config_snapshot['topics']}
         for entry in metadata.get('rosbag2_bagfile_information', {}).get('topics_with_message_count', []):
             topic = entry.get('topic_metadata', {}).get('name')
             count = entry.get('message_count')
-            if isinstance(topic, str) and type(count) is int and count >= 0:
+            if topic in counts and type(count) is int and count >= 0:
                 counts[topic] = count
         files = [p for p in bag_dir.rglob('*') if p.is_file() and p.suffix in ('.mcap', '.db3')]
         size = sum(p.stat().st_size for p in files if p.stat().st_size > 0)
         self._topic_counts = counts
         self._bag_size_bytes = size
+        self._missing_control_topics = [topic for topic in CONTROL_ANALYSIS_TOPICS
+                                        if topic in counts and counts[topic] <= 0]
+        self._control_data_seen = any(counts.get(topic, 0) > 0 for topic in CONTROL_ANALYSIS_TOPICS)
         if not files or size <= 0:
             raise RuntimeError('Finalized bag has no nonempty MCAP or SQLite storage file')
         missing = [topic for topic in ('/lidar_points', '/imu/data_raw') if counts.get(topic, 0) <= 0]
@@ -343,6 +361,8 @@ class RecordingManager:
                     'return_code': self._return_code,
                     'metadata_verified': self._metadata_verified,
                     'per_topic_counts': self._topic_counts,
+                    'control_data_seen': self._control_data_seen,
+                    'missing_control_topics': self._missing_control_topics,
                     'bag_size_bytes': self._bag_size_bytes,
                     'error': self.error}
         temporary = self.directory/'.session.json.tmp'

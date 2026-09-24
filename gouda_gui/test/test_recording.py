@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from gouda_gui.recording import OPTIONAL_TOPICS, RecordingManager, validate_config
+from gouda_gui.recording import CONTROL_ANALYSIS_TOPICS, OPTIONAL_TOPICS, RecordingManager, validate_config
 
 
 class Result:
@@ -36,14 +36,15 @@ class FakeProcess:
     def finalize(self, counts=None, nonempty=True):
         self.output_dir.mkdir(parents=True, exist_ok=True)
         if counts is not None:
-            lidar, imu = counts
+            if isinstance(counts, dict):
+                topics = counts
+            else:
+                lidar, imu = counts
+                topics = {'/lidar_points': lidar, '/imu/data_raw': imu}
+            entries = ''.join(f'  - topic_metadata: {{name: {topic}}}\n    message_count: {count}\n'
+                              for topic, count in topics.items())
             (self.output_dir/'metadata.yaml').write_text(
-                'rosbag2_bagfile_information:\n'
-                '  topics_with_message_count:\n'
-                '  - topic_metadata: {name: /lidar_points}\n'
-                f'    message_count: {lidar}\n'
-                '  - topic_metadata: {name: /imu/data_raw}\n'
-                f'    message_count: {imu}\n')
+                'rosbag2_bagfile_information:\n  topics_with_message_count:\n'+entries)
         if nonempty:
             (self.output_dir/'recording_0.mcap').write_bytes(b'mock-bag-bytes')
 
@@ -55,11 +56,15 @@ class Harness:
         self.counts = counts
         self.nonempty = nonempty
         self.calls = []
+        self.topic_list = '/opt/ros/jazzy'
         self.processes = []
         self.kill_calls = []
         def run(args, **kwargs):
             self.calls.append(args)
-            return Result()
+            result = Result()
+            if args == ['ros2', 'topic', 'list']:
+                result.stdout = self.topic_list
+            return result
         def popen(args, **kwargs):
             output = Path(args[args.index('-o')+1])
             proc = FakeProcess(output)
@@ -84,6 +89,9 @@ def test_defaults_retain_raw_sensor_and_tf_topics():
     assert cfg['min_free_disk_mb'] == 2048
     assert '/kiss/odometry' in OPTIONAL_TOPICS
     assert '/glim_ros/lidar_odom' in OPTIONAL_TOPICS
+    assert set(CONTROL_ANALYSIS_TOPICS) == {'/cmd_motion', '/gouda/motion_permit', '/esp32/status',
+                                           '/gouda/navigation_state', '/gouda/pose',
+                                           '/glim_ros/lidar_odom', '/cmd_vel'}
     assert '/odom' not in OPTIONAL_TOPICS
     for missing in ('/lidar_points', '/imu/data_raw', '/tf', '/tf_static'):
         with pytest.raises(ValueError):
@@ -129,7 +137,11 @@ def test_defaults_probe_accepts_topic_argument_and_success_uses_metadata(tmp_pat
     final = h.manager.status()
     assert final['phase'] == 'completed'
     assert final['metadata_verified'] is True
-    assert final['per_topic_counts'] == {'/lidar_points': 12, '/imu/data_raw': 8}
+    assert final['per_topic_counts']['/lidar_points'] == 12
+    assert final['per_topic_counts']['/imu/data_raw'] == 8
+    assert all(topic in final['per_topic_counts'] for topic in CONTROL_ANALYSIS_TOPICS)
+    assert final['control_data_seen'] is False
+    assert final['missing_control_topics'] == CONTROL_ANALYSIS_TOPICS
     assert final['bag_size_bytes'] > 0
     assert final['config']['storage_id'] == 'mcap'
     assert final['return_code'] == 0
@@ -226,7 +238,7 @@ def test_close_stops_process_group_and_freezes_elapsed_and_config(tmp_path):
     final = h.manager.close()
     elapsed = final['elapsed_sec']
     assert final['phase'] == 'completed'
-    assert final['config']['topics'] == ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static']
+    assert final['config']['topics'] == ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static'] + CONTROL_ANALYSIS_TOPICS
     assert h.kill_calls == [(proc.pid, signal.SIGINT)]
     time.sleep(.02)
     assert h.manager.status()['elapsed_sec'] == elapsed
@@ -270,4 +282,47 @@ def test_live_capture_does_not_enable_ros_clock(tmp_path):
     _, args, _ = h.processes[0]
     assert '--use-sim-time' not in args
     assert '/clock' not in args[args.index('--topics')+1:]
+    h.manager.close()
+
+
+def test_old_saved_config_is_migrated_without_dropping_user_topics(tmp_path):
+    path = tmp_path/'bags/gouda/recording.json'
+    path.parent.mkdir(parents=True)
+    old = validate_config({'topics': ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static', '/kiss/odometry']})
+    path.write_text(json.dumps(old))
+    h = Harness(tmp_path)
+    effective = h.manager.get_config()
+    assert '/kiss/odometry' in effective['topics']
+    assert all(topic in effective['topics'] for topic in CONTROL_ANALYSIS_TOPICS)
+    saved = h.manager.update_config(effective)
+    assert '/kiss/odometry' in saved['topics']
+    assert all(topic in saved['topics'] for topic in CONTROL_ANALYSIS_TOPICS)
+
+
+def test_cmd_vel_is_selected_even_if_publisher_starts_after_recorder(tmp_path):
+    h = Harness(tmp_path)
+    h.manager.start()
+    _, args, _ = h.processes[0]
+    assert '/cmd_vel' in args[args.index('--topics')+1:]
+    assert '/cmd_vel' in h.manager.status()['config']['topics']
+    h.manager.close()
+
+
+def test_final_topic_coverage_counts_control_topics_and_reports_missing(tmp_path):
+    counts = {'/lidar_points': 4, '/imu/data_raw': 8,
+              '/cmd_motion': 7, '/esp32/status': 3, '/gouda/pose': 5}
+    h = Harness(tmp_path, counts=counts)
+    h.manager.start()
+    finalizing = h.manager.stop()
+    assert finalizing['phase'] in ('finalizing', 'completed', 'failed')
+    assert h.manager._finalized.wait(2)
+    final = h.manager.status()
+    assert final['phase'] == 'completed'
+    assert final['metadata_verified'] is True
+    assert final['control_data_seen'] is True
+    assert final['per_topic_counts']['/gouda/motion_permit'] == 0
+    assert set(final['missing_control_topics']) == {'/gouda/motion_permit', '/gouda/navigation_state', '/glim_ros/lidar_odom', '/cmd_vel'}
+    manifest = json.loads((Path(final['directory'])/'session.json').read_text())
+    assert manifest['control_data_seen'] is True
+    assert manifest['per_topic_counts']['/gouda/motion_permit'] == 0
     h.manager.close()

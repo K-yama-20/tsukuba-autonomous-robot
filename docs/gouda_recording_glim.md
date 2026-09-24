@@ -21,6 +21,15 @@ bash scripts/gouda.sh observe
 
 「記録を終了」を押すと画面に「finalizing」と表示され、rosbagのファイル確定をバックグラウンドで行います。終了後にLiDARとIMUの双方でメッセージ数が1以上あり、metadataと保存ファイルが確認された場合だけ「completed」になります。センサーを起動しただけ、記録プロセスが起動しただけでは、記録成功になりません。
 
+旧設定を読み込んだ場合も、分析に使う次のROSトピックを有効設定とbagへ自動追加します。/cmd_vel は別パッケージが後からpublisherを起動する場合に備えて選択します。bag内に現れなかったトピックは終了後の件数が0になります。
+
+- /cmd_motion、/gouda/motion_permit、/esp32/status
+- /gouda/navigation_state、/gouda/pose、/glim_ros/lidar_odom、/cmd_vel
+
+session.json とGUIのtopic countsは、各選択topicの記録件数と、終了metadataで0件だった分析topicを示します。metadata_verified はLiDAR/IMUの双方にメッセージがあり、保存ファイルが非空だったことを表します。control_data_seen と missing_control_topics は分析用topicの存在状況であり、制御成功や車輪の動作を表すものではありません。
+
+現在の /cmd_motion はheaderなしの UInt8 指令で、bag時刻はROS recorderの受信時刻です。指令生成時刻やマイコンでの適用時刻は含まれません。現在の /esp32/status はシリアルstatus frameのJSON (kind, token, seq, motion, flags, fault) で、DAC出力値、測定電圧、車輪の実測速度は含みません。したがって、このbagだけでは指令が物理系に適用されたことを確定できません。実際にbagへ入ったメッセージと取得時刻を確認し、制御応答の評価ではこの限界を考慮してください。
+
 この記録は入力データの保存です。取付TF、センサー時刻、LiDAR点の時刻列、IMU単位や補正を推定・校正する処理ではありません。実測や校正に使う場合は、`session.json`と元データを保全してください。
 
 ## GLIMを使う場合
