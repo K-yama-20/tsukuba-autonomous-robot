@@ -12,11 +12,13 @@ import uuid
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import yaml
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from nav2_msgs.action import ComputePathToPose
@@ -790,7 +792,7 @@ class MissionControl(Node):
 def main():
     rclpy.init();node=MissionControl()
     try:rclpy.spin(node)
-    except KeyboardInterrupt:pass
+    except (KeyboardInterrupt, ExternalShutdownException):pass
     finally:
         for label,cleanup in (
             ('preview',lambda:node.close_preview_process()),
@@ -800,11 +802,11 @@ def main():
             ('vehicle stop',node.stop_motion),
         ):
             try:cleanup()
-            except Exception as exc:node.get_logger().error(f'{label} cleanup failed: {exc}')
+            except Exception as exc:print(f'{label} cleanup failed: {exc}', file=sys.stderr, flush=True)
         try:node.server.shutdown()
-        except Exception as exc:node.get_logger().error(f'HTTP shutdown failed: {exc}')
+        except Exception as exc:print(f'HTTP shutdown failed: {exc}', file=sys.stderr, flush=True)
         try:node.server.server_close()
-        except Exception as exc:node.get_logger().error(f'HTTP close failed: {exc}')
+        except Exception as exc:print(f'HTTP close failed: {exc}', file=sys.stderr, flush=True)
         try:node.destroy_node()
         finally:
             if rclpy.ok():rclpy.shutdown()

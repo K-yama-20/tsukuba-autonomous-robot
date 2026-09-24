@@ -209,7 +209,7 @@ def main():
         for name, item in reversed(list(state['processes'].items())):
             if name == 'processing':
                 # MissionControl closes GLIM on SIGINT; allow the native graph dump to finish.
-                terminate(item, graceful_signal=signal.SIGINT, timeout=105.0, initial_group=False)
+                terminate(item, graceful_signal=signal.SIGINT, timeout=180.0, initial_group=False)
             else:
                 terminate(item)
         write_state(path,{'mode':None,'processes':{}})

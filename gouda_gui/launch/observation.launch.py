@@ -41,7 +41,7 @@ def generate_launch_description():
         'observation_only': True, 'use_sim_time': replay,
         'mapping_backend': LaunchConfiguration('backend'),
         'port': ParameterValue(LaunchConfiguration('port'), value_type=int),
-        'map_directory': str(data_dir() / 'maps_sensor_slam')}], sigterm_timeout='110')
+        'map_directory': str(data_dir() / 'maps_sensor_slam')}], sigterm_timeout='200')
     return LaunchDescription([
         SetEnvironmentVariable('ROS_DOMAIN_ID', '99'),
         SetEnvironmentVariable('ROS_AUTOMATIC_DISCOVERY_RANGE', 'LOCALHOST'),
