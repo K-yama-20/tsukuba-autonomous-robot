@@ -159,6 +159,26 @@ def mapping_phase(input_state: dict[str, str], errors: list[str], received_at: d
     return "waiting_for_sensors", state
 
 
+def saved_glim_map_complete(directory: str | Path) -> bool:
+    """Require nonempty serialized graph and at least one mapped submap/frame."""
+    root = Path(directory)
+    graph = root / "graph.txt"
+    if not graph.is_file():
+        return False
+    if any(not (root / name).is_file() or (root / name).stat().st_size == 0
+           for name in ("graph.bin", "values.bin")):
+        return False
+    counts = {}
+    for line in graph.read_text(errors="replace").splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            try:
+                counts[key.strip()] = int(value.strip())
+            except ValueError:
+                continue
+    return counts.get("num_submaps", 0) > 0 and counts.get("num_all_frames", 0) > 0
+
+
 def _finite_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
@@ -208,7 +228,7 @@ def make_glim_config(settings: dict[str, Any], config_dir: str | Path, upstream_
         "base_frame_id": cfg["lidar_frame"], "odom_frame_id": "odom_lidar", "map_frame_id": "glim_map",
         "publish_imu2lidar": False, "tf_time_offset": 0.000001,
         "extension_modules": ["librviz_viewer.so"],
-        "imu_topic": cfg["imu_topic"], "points_topic": cfg["lidar_topic"], "image_topic": "",
+        "imu_topic": cfg["imu_topic"], "points_topic": cfg["lidar_topic"], "image_topic": "/glim_unused/image",
         "imu_qos": {"profile": "sensor_data", "depth": 1000},
         "points_qos": {"profile": "sensor_data"},
     }})
@@ -416,7 +436,7 @@ class GlimSession:
                 self.active_backend = None
                 return
             output = self.map_output_directory
-            if not output or not (output / "graph.txt").is_file() or not (output / "values.bin").is_file():
+            if not output or not saved_glim_map_complete(output):
                 self.phase = "failed"
                 self.active_backend = None
                 return

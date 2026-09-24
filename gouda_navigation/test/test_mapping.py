@@ -9,6 +9,7 @@ from gouda_navigation.mapping import (
     static_tf_args,
     make_glim_config,
     mapping_phase,
+    saved_glim_map_complete,
     validate_mapping_settings,
 )
 
@@ -117,3 +118,12 @@ def test_static_transform_is_inverse_of_configured_lidar_from_imu():
     assert values['--z'] == pytest.approx(-3.0)
     assert values['--qz'] == pytest.approx(-half)
     assert values['--qw'] == pytest.approx(half)
+
+
+def test_empty_native_glim_graph_is_not_marked_saved(tmp_path):
+    (tmp_path / 'graph.bin').write_bytes(b'graph')
+    (tmp_path / 'values.bin').write_bytes(b'values')
+    (tmp_path / 'graph.txt').write_text('num_submaps: 0\nnum_all_frames: 0\n')
+    assert not saved_glim_map_complete(tmp_path)
+    (tmp_path / 'graph.txt').write_text('num_submaps: 1\nnum_all_frames: 4\n')
+    assert saved_glim_map_complete(tmp_path)

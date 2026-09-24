@@ -35,14 +35,18 @@ def occupied(port):
         return sock.connect_ex(('127.0.0.1', port)) == 0
 
 
-def terminate(item):
+def terminate(item, graceful_signal=signal.SIGTERM, timeout=10.0):
     if not alive(item):
         return
-    os.killpg(item['pid'], signal.SIGTERM)
-    for _ in range(100):
-        if not alive(item):
-            return
+    os.killpg(item['pid'], graceful_signal)
+    deadline = time.monotonic() + timeout
+    while alive(item) and time.monotonic() < deadline:
         time.sleep(.1)
+    if alive(item):
+        os.killpg(item['pid'], signal.SIGTERM)
+        deadline = time.monotonic() + 10.0
+        while alive(item) and time.monotonic() < deadline:
+            time.sleep(.1)
     if alive(item):
         os.killpg(item['pid'], signal.SIGKILL)
 
@@ -202,8 +206,12 @@ def main():
     path=root/'processes.json'
     state=json.loads(path.read_text()) if path.exists() else {'mode':None,'processes':{}}
     if args.command=='stop':
-        for item in reversed(list(state['processes'].values())):
-            terminate(item)
+        for name, item in reversed(list(state['processes'].items())):
+            if name == 'processing':
+                # MissionControl closes GLIM on SIGINT; allow the native graph dump to finish.
+                terminate(item, graceful_signal=signal.SIGINT, timeout=105.0)
+            else:
+                terminate(item)
         write_state(path,{'mode':None,'processes':{}})
         print('管理対象のプロセスを停止しました。'); return
     cfgfile=config_dir()/'host.json'
