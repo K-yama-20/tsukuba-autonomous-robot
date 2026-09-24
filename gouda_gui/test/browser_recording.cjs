@@ -63,11 +63,11 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
       const s=await(await fetch('/api/state')).json();return ['finalizing','failed','completed','no_sensor_data'].includes(s.recording?.phase);
     },null,{timeout:10000});
     await page.waitForFunction(async()=>{
-      const s=await(await fetch('/api/state')).json();return ['failed','completed','no_sensor_data'].includes(s.recording?.phase);
+      const s=await(await fetch('/api/state')).json();return ['failed','completed'].includes(s.recording?.phase);
     },null,{timeout:60000});
     capture=await state();
     if (capture.recording.phase==='completed' || capture.recording.metadata_verified || capture.recording.sensor_data_seen) throw new Error('Empty capture was reported as successful');
-    if (!['failed','no_sensor_data'].includes(capture.recording.phase)) throw new Error('Unexpected terminal no-input state: '+capture.recording.phase);
+    if (capture.recording.phase!=='failed' || capture.recording.return_code===null || capture.recording.return_code===undefined) throw new Error('No-input capture did not finish as a verified failure: '+JSON.stringify(capture.recording));
     if ((await page.locator('#recording-phase').innerText()).includes('記録完了')) throw new Error('UI reported success for an empty capture');
 
     await page.setViewportSize({width:390,height:844});
