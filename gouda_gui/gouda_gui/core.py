@@ -46,7 +46,7 @@ def mapping_start_backend(saved, runtime, effective_backend, validation_errors=(
         if package_available is not True:
             raise RuntimeError('GLIMパッケージを利用できません')
         if not glim_active:
-            raise RuntimeError('GLIMセンサー処理が起動していません。状態を確認してください')
+            raise RuntimeError('GLIMのLiDAR・IMU・オドメトリ入力が準備できていません')
     elif backend=='kiss_icp':
         if glim_active:
             raise RuntimeError('KISSとGLIMが同時に有効です。Mission Controlを再起動してください')

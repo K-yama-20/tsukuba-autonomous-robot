@@ -413,7 +413,7 @@ class MissionControl(Node):
                     load_settings,_,validate_settings,_=mapping_api();saved=load_settings()
                     settings=self.runtime_mapping_settings
                     errors=validate_settings(settings,require_ready=settings.get('backend')=='glim_imu')
-                    glim_active=bool(self.glim_session and self.glim_session.status() in ('waiting_for_sensors','processing','mapping'))
+                    glim_active=bool(self.glim_session and self.glim_session.status()=='mapping')
                     mapping_start_backend(saved,settings,self.effective_mapping_backend,errors,
                         package_available=self.glim_package_available,glim_active=glim_active)
                 return self.observation_command(action,data)

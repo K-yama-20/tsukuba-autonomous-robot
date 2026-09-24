@@ -94,7 +94,7 @@ def test_mapping_start_requires_glim_readiness_package_and_live_session():
         mapping_start_backend(config,config,'glim_imu',['T_lidar_imu is UNKNOWN'],package_available=True,glim_active=True)
     with pytest.raises(RuntimeError,match='GLIMパッケージ'):
         mapping_start_backend(config,config,'glim_imu',package_available=False,glim_active=False)
-    with pytest.raises(RuntimeError,match='センサー処理'):
+    with pytest.raises(RuntimeError,match='入力が準備'):
         mapping_start_backend(config,config,'glim_imu',package_available=True,glim_active=False)
 
 
