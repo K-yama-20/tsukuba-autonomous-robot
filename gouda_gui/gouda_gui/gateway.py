@@ -11,7 +11,7 @@ import argparse
 ROOT=Path(__file__).resolve().parent
 ALLOWED={'/','/style.css','/app.js','/api/state','/api/session','/api/stop',
          '/api/target','/api/planning_start','/api/plan','/api/start','/api/initial_pose','/api/mapping_start',
-         '/api/mapping_stop','/api/save_map','/api/load_map','/api/viewer'}
+         '/api/mapping_stop','/api/save_map','/api/recording_config_save','/api/recording_start','/api/recording_stop','/api/mapping_settings_save','/api/load_map','/api/viewer'}
 
 
 def allowed_path(path):

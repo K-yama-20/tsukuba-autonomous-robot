@@ -4,7 +4,8 @@ const titles = {
   mapping:['01 / MAPPING','地図をつくる','LiDARの観測を地図に重ね、保存します。'],
   planning:['02 / PLANNING','走行ルートを決める','位置を指定し、走行前に経路を確認します。'],
   monitor:['03 / MONITOR','走行を見守る','現在位置と予定経路、車体の状態を確認します。'],
-  diagnostics:['04 / SYSTEM','状態を確認する','センサー、座標、制御系の更新状況を確認します。']
+  diagnostics:['04 / SYSTEM','状態を確認する','センサー、座標、制御系の更新状況を確認します。'],
+  recording:['05 / RECORD','センサーを記録する','生データの保存と、次回のSLAM方式を設定します。']
 };
 const names = {IDLE:'待機中',PLANNING:'経路計算中',PREVIEW_READY:'経路確認待ち',TRACKING:'走行中',ALIGNING:'向きを調整中',REACHED:'到着',CANCELLED:'中止',PREVIEW_EXPIRED:'経路の再計算が必要',PREVIEW_STALE:'開始位置が変わりました',SENSOR_OR_TF_FAULT:'入力異常で停止',PLAN_FAILED:'経路が見つかりません',PLAN_UNAVAILABLE:'経路計算の準備待ち',NO_PROGRESS:'進行停止を検出'};
 let state=null, token=null, busy=false, connected=false, lastResponse=0, tab='mapping', view='2d', tool='pan', dirty=false, lastGoalKey='';
@@ -25,7 +26,7 @@ function selectTab(next){
 }
 for(const b of document.querySelectorAll('[data-tab]')){
   b.addEventListener('click',()=>selectTab(b.dataset.tab));
-  b.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-tab]')];let i=tabs.indexOf(b);i=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowDown'?1:3))%4;tabs[i].focus();selectTab(tabs[i].dataset.tab);});
+  b.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-tab]')];let i=tabs.indexOf(b);i=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowDown'?1:tabs.length-1))%tabs.length;tabs[i].focus();selectTab(tabs[i].dataset.tab);});
 }
 try{const remembered=localStorage.getItem('gouda-tab');if(titles[remembered])selectTab(remembered);}catch{}
 async function request(action,data={},timeoutMs=25000){
@@ -45,6 +46,7 @@ async function poll(){
     if(!token){const session=await fetch('/api/session',{signal:AbortSignal.timeout(2500)});if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
     const response=await fetch('/api/state',{signal:AbortSignal.timeout(2500)});if(!response.ok)throw new Error('State');
     state=await response.json();lastResponse=performance.now();
+    updateRecordingSettings(); updateMappingSettings();
     const selectedPose=tool==='start'?state.planning_start:tool==='goal'?state.goal:null;
     const selectedKey=JSON.stringify({tool,pose:selectedPose});
     if(selectedPose&&selectedKey!==lastGoalKey&&!dirty){writePose(selectedPose);lastGoalKey=selectedKey;}
@@ -88,6 +90,37 @@ $('plan').onclick=async()=>{if(dirty){notice('変更した位置を先に適用�
 $('to-monitor').onclick=()=>selectTab('monitor');
 $('start').onclick=()=>act('start',{plan_id:state?.plan_id},'走行開始を受け付けました。');
 $('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信しました。停止確認を待っています。');
+
+let recordingConfigLoaded=false,mappingConfigLoaded=false;
+function updateRecordingSettings(){
+  const c=state?.recording_config;if(c&&!recordingConfigLoaded){$('rec-lidar').checked=c.topics.includes('/lidar_points');$('rec-imu').checked=c.topics.includes('/imu/data_raw');$('rec-kiss-odom').checked=c.topics.includes('/kiss/odometry');$('rec-glim-odom').checked=c.topics.includes('/glim_ros/lidar_odom');$('rec-storage').value=c.storage_id||'mcap';$('rec-duration').value=Math.round(c.max_duration_sec/60);$('rec-size').value=Math.round(c.max_bag_size_mb/1024);$('rec-disk').value=Math.round(c.min_free_disk_mb/1024);recordingConfigLoaded=true;}
+  const r=state?.recording||{};const labels={idle:'待機中',awaiting_sensor_data:'センサー入力待ち',recording:'記録中',finalizing:'ファイル確定中',no_sensor_data:'記録データなし',completed:'記録完了',failed:'記録エラー'};
+  $('recording-phase').textContent=labels[r.phase]||'状態不明';$('recording-time').textContent=`${Math.floor((r.elapsed_sec||0)/60).toString().padStart(2,'0')}:${Math.floor((r.elapsed_sec||0)%60).toString().padStart(2,'0')}`;
+  $('recording-size').textContent=r.directory?`bags/recordings/${r.directory.split('/').pop()}${Number.isFinite(r.bag_size_bytes)?' · '+(r.bag_size_bytes/1073741824).toFixed(2)+' GB':''}`:'保存先未作成';
+  $('recording-message').textContent=r.error||(!r.sensor_data_seen&&['completed','no_sensor_data'].includes(r.phase)?'センサーの記録データを確認できません。成功した記録として扱っていません。':r.phase==='finalizing'?'記録ファイルとメタデータを確定しています。完了までお待ちください。':r.phase==='recording'?'センサー入力を観測しました（暫定）。終了後に記録件数とファイルを照合します。':r.phase==='awaiting_sensor_data'?'入力データが届くまで記録結果は確定しません。':r.phase==='completed'&&!r.metadata_verified?'バッグのメタデータを確認できません。記録結果は未検証です。':r.phase==='completed'?`記録とメタデータを確認しました。センサー件数: ${Object.values(r.per_topic_counts||{}).reduce((a,b)=>a+b,0)}`:'設定保存は記録状態を変更しません。');
+  const running=['awaiting_sensor_data','recording','finalizing','no_sensor_data'].includes(r.phase);$('recording-start').disabled=busy||!connected||running;$('recording-stop').disabled=busy||!connected||!running;
+}
+function updateMappingSettings(){
+  const m=state?.mapping_settings;if(!m)return;
+  if(!mappingConfigLoaded){const c=m.saved||{};$('mapping-backend').value=c.backend||'kiss_icp';$('mapping-compute').value=c.compute||'cpu';$('map-tx').value='';$('map-ty').value='';$('map-tz').value='';if(c.extrinsic_lidar_imu?.translation_m){$('map-tx').value=c.extrinsic_lidar_imu.translation_m[0];$('map-ty').value=c.extrinsic_lidar_imu.translation_m[1];$('map-tz').value=c.extrinsic_lidar_imu.translation_m[2];}$('map-quat').value=c.extrinsic_lidar_imu?.quaternion_xyzw?.join(',')||'';$('map-point-time').value=c.point_time_unit||'unknown';$('map-accel-unit').value=c.imu_accel_unit||'unknown';$('map-gyro-unit').value=c.imu_gyro_unit||'unknown';$('map-point-mode').value=c.point_time_mode||'unknown';$('map-point-field').value=c.point_time_field||'unknown';$('map-point-type').value=c.point_time_datatype||'unknown';$('map-lidar-offset').value=c.lidar_clock_offset_sec??'';$('map-imu-offset').value=c.imu_clock_offset_sec??'';mappingConfigLoaded=true;}
+  const glim=$('mapping-backend').value==='glim_imu';$('mapping-calibration').hidden=!glim;
+  const active=m.active||{};const readyLabel=m.saved?.backend==='glim_imu'?(m.ready?'GLIM入力設定確認済み':'GLIM入力設定未準備'):'GLIM入力設定は未選択';
+  $('mapping-settings-state').textContent=`保存設定: ${m.saved?.backend||'不明'} / ${readyLabel} · 起動時の動作方式: ${active.backend||'未起動'}${active.compute?' / '+active.compute:''}${active.state?' · '+active.state:''}${active.error?' · '+active.error:''}${active.output_directory?' · 3D記録 '+active.output_directory:''}${m.restart_required?' · 保存設定の適用にはMission Control再起動が必要':''}`;
+}
+function recordingTopics(){const t=[];if($('rec-lidar').checked)t.push('/lidar_points');if($('rec-imu').checked)t.push('/imu/data_raw');t.push('/tf','/tf_static');if($('rec-kiss-odom').checked)t.push('/kiss/odometry');if($('rec-glim-odom').checked)t.push('/glim_ros/lidar_odom');return t;}
+$('recording-save').onclick=()=>act('recording_config_save',{topics:recordingTopics(),storage_id:$('rec-storage').value,max_duration_sec:Number($('rec-duration').value)*60,max_bag_size_mb:Number($('rec-size').value)*1024,min_free_disk_mb:Number($('rec-disk').value)*1024},'記録設定を保存しました。現在の記録状態は変わりません。');
+$('recording-start').onclick=()=>act('recording_start',{},'記録要求を受け付けました。センサー入力と保存状態を確認しています。');
+$('recording-stop').onclick=()=>act('recording_stop',{},'記録終了処理を開始しました。完了状態を確認してください。');
+$('mapping-backend').onchange=()=>{$('mapping-calibration').hidden=$('mapping-backend').value!=='glim_imu';};
+$('mapping-settings-save').onclick=()=>{
+  let translation=[['map-tx','map-ty','map-tz'].map(id=>$(id).value.trim())];
+  const vals=translation[0].map(Number),q=$('map-quat').value.split(',').map(v=>Number(v.trim()));
+  let ext=null;if(translation[0].every(v=>v!=='')){if(vals.some(v=>!Number.isFinite(v))||q.length!==4||q.some(v=>!Number.isFinite(v)))return notice('取付変換は位置3値と回転4値を入力してください。',true);ext={translation_m:vals,quaternion_xyzw:q};}
+  let lidarOffset=$('map-lidar-offset').value.trim(),imuOffset=$('map-imu-offset').value.trim();const config={backend:$('mapping-backend').value,compute:$('mapping-compute').value,lidar_topic:'/lidar_points',imu_topic:'/imu/data_raw',lidar_frame:'hesai_lidar',imu_frame:'imu_link',extrinsic_lidar_imu:ext,point_time_mode:$('map-point-mode').value,point_time_field:$('map-point-field').value,point_time_datatype:$('map-point-type').value,point_time_unit:$('map-point-time').value,imu_accel_unit:$('map-accel-unit').value,imu_gyro_unit:$('map-gyro-unit').value,lidar_clock_offset_sec:lidarOffset===''?null:Number(lidarOffset),imu_clock_offset_sec:imuOffset===''?null:Number(imuOffset)};
+  if([lidarOffset,imuOffset].some(v=>v!==''&&!Number.isFinite(Number(v))))return notice('センサー時刻補正を数値で入力してください。',true);
+  act('mapping_settings_save',config,'SLAM設定を保存しました。動作中の方式は切り替わっていません。');
+};
+
 $('map-title').addEventListener('input',render);
 function setView(next){view='2d';$('view-label').textContent='2D 地図 / map座標系';draw();}
 $('fit').onclick=()=>{fit();draw();};
@@ -104,6 +137,7 @@ function render(){
   if(!state){$('mode').textContent='未接続';$('rviz-status').dataset.available='false';$('rviz-status').textContent='Ubuntu接続停止 · RViz2の状態を取得できません';return;}
   $('mode').textContent={simulation:'シミュレーション',live:'実機 · 走行無効',replay:'記録再生'}[state.mode]||state.mode;
   const observation=!!state.observation_only;
+  $('recording-save').disabled=busy||!connected||['awaiting_sensor_data','recording','finalizing','no_sensor_data'].includes(state.recording?.phase);$('mapping-settings-save').disabled=busy||!connected||state.mapping;
   $('stop').disabled=observation;$('cancel').disabled=observation;
   $('stop').textContent=observation?'車体停止は未接続':'■ 停止';
   $('position-reference').textContent=state.pose_reference||'現在位置';
