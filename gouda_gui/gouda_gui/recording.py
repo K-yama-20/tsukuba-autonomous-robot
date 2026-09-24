@@ -63,7 +63,8 @@ class RecordingManager:
     """
     def __init__(self, workspace=None, *, sensor_data_seen=None,
                  popen=subprocess.Popen, run=subprocess.run, clock=time.monotonic,
-                 disk_usage=shutil.disk_usage, killpg=os.killpg):
+                 disk_usage=shutil.disk_usage, killpg=os.killpg, use_sim_time=False):
+        self.use_sim_time = bool(use_sim_time)
         self.workspace = Path(workspace or workspace_dir()).expanduser().resolve()
         self.config_path = self.workspace/'bags'/'gouda'/'recording.json'
         self.recordings_dir = self.workspace/'bags'/'recordings'
@@ -88,6 +89,8 @@ class RecordingManager:
         self._topic_counts = {}; self._bag_size_bytes = 0
         self.config_snapshot = None
         self.config = self._load_config()
+        if self.use_sim_time and '/clock' not in self.config['topics']:
+            self.config['topics'].append('/clock')
 
     def _load_config(self):
         try:
@@ -107,6 +110,8 @@ class RecordingManager:
 
     def update_config(self, config):
         validated = validate_config(config)
+        if self.use_sim_time and '/clock' not in validated['topics']:
+            validated['topics'].append('/clock')
         with self._lock:
             if self.process is not None and self.process.poll() is None:
                 raise RuntimeError('Stop the active recording before changing its configuration')
@@ -157,7 +162,10 @@ class RecordingManager:
                     '--max-bag-duration', str(snapshot['max_duration_sec']),
                     '--max-bag-size', str(snapshot['max_bag_size_mb']*1024*1024),
                     '--qos-profile-overrides-path', str(qos_path),
-                    '--disable-keyboard-controls', '--topics'] + snapshot['topics']
+                    '--disable-keyboard-controls']
+            if self.use_sim_time:
+                args.append('--use-sim-time')
+            args += ['--topics'] + snapshot['topics']
             self.log = (self.directory/'recorder.log').open('ab')
             try:
                 self.process = self._popen(args, stdin=subprocess.DEVNULL,

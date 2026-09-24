@@ -49,7 +49,7 @@ class FakeProcess:
 
 
 class Harness:
-    def __init__(self, tmp_path, seen=lambda *_: False, counts=(3, 4), nonempty=True):
+    def __init__(self, tmp_path, seen=lambda *_: False, counts=(3, 4), nonempty=True, use_sim_time=False):
         self.tmp_path = tmp_path
         self.seen = seen
         self.counts = counts
@@ -74,7 +74,7 @@ class Harness:
             elif sig in (signal.SIGTERM, signal.SIGKILL):
                 proc.code = -int(sig)
         self.manager = RecordingManager(tmp_path, sensor_data_seen=seen,
-                                        popen=popen, run=run, killpg=killpg)
+                                        popen=popen, run=run, killpg=killpg, use_sim_time=use_sim_time)
 
 
 def test_defaults_retain_raw_sensor_and_tf_topics():
@@ -246,4 +246,28 @@ def test_new_session_resets_summary_and_replaces_watchdog(tmp_path):
     assert h.manager.status()['metadata_verified'] is False
     assert h.manager.status()['per_topic_counts'] == {}
     assert h.manager._watchdog is not old_watchdog
+    h.manager.close()
+
+
+def test_replay_capture_uses_ros_clock_and_records_clock_topic(tmp_path):
+    h = Harness(tmp_path, use_sim_time=True)
+    cfg = h.manager.get_config()
+    assert '/clock' in cfg['topics']
+    saved = h.manager.update_config(cfg)
+    assert '/clock' in saved['topics']
+    assert '/clock' in json.loads((tmp_path/'bags/gouda/recording.json').read_text())['topics']
+    h.manager.start()
+    _, args, _ = h.processes[0]
+    assert '--use-sim-time' in args
+    assert '/clock' in args[args.index('--topics')+1:]
+    assert '/clock' in h.manager.status()['config']['topics']
+    h.manager.close()
+
+
+def test_live_capture_does_not_enable_ros_clock(tmp_path):
+    h = Harness(tmp_path)
+    h.manager.start()
+    _, args, _ = h.processes[0]
+    assert '--use-sim-time' not in args
+    assert '/clock' not in args[args.index('--topics')+1:]
     h.manager.close()

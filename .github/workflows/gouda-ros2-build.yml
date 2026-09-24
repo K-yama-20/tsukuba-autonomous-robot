@@ -26,7 +26,7 @@ jobs:
       - name: Confirm architecture
         run: test "$(dpkg --print-architecture)" = "${{ matrix.arch }}"
       - name: Clean installation using user setup
-        run: bash scripts/setup.sh --no-configure
+        run: bash scripts/setup.sh --with-glim --no-configure
       - name: Repeat setup without replacing user data
         run: |
           cd "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot"
@@ -34,7 +34,7 @@ jobs:
           mkdir -p "$GOUDA_WORKSPACE/maps"
           echo keep > "$GOUDA_WORKSPACE/maps/preserve.txt"
           cp "$GOUDA_WORKSPACE/bags/gouda/host.json" /tmp/host-before.json
-          bash scripts/setup.sh --skip-system --no-configure
+          bash scripts/setup.sh --skip-system --with-glim --no-configure
           cmp /tmp/host-before.json "$GOUDA_WORKSPACE/bags/gouda/host.json"
           test "$(cat "$GOUDA_WORKSPACE/maps/preserve.txt")" = keep
       - name: Unit and protocol tests
