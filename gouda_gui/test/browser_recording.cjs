@@ -14,6 +14,12 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     return {status:response.status,body:await response.json()};
   },{route,data});
   const state = () => page.evaluate(async()=>(await(await fetch('/api/state')).json()));
+  const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
+  const pollState = async (predicate, description, timeoutMs) => {
+    const deadline=Date.now()+timeoutMs;let latest;
+    while(Date.now()<deadline){latest=await state();if(predicate(latest))return latest;await sleep(250);}
+    throw new Error(`Timed out waiting for ${description}; last state: ${JSON.stringify(latest?.recording)}`);
+  };
   try {
     await page.goto(base, {waitUntil:'domcontentloaded'});
     await page.getByRole('tab',{name:/記録・SLAM/}).click();
@@ -21,6 +27,7 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     const initial=await state();
     originalRecording=initial.recording_config;
     originalMapping=initial.mapping_settings?.saved;
+    if (!['idle','failed','completed'].includes(initial.recording?.phase)) throw new Error('Recording manager is not idle before the no-input capture test: '+JSON.stringify(initial.recording));
     if (initial.ages?.lidar_raw!==undefined || initial.ages?.imu!==undefined) {
       throw new Error('No-input capture test requires raw LiDAR and IMU topics to be absent');
     }
@@ -51,21 +58,15 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     mapping=await state();
     if (mapping.mapping_settings.ready) throw new Error('UNKNOWN GLIM calibration became ready after reload');
 
+    const previousDirectory=saved.recording?.directory||null;
+    const startedAt=Date.now();
     await page.locator('#recording-start').click();
-    await page.waitForFunction(async()=>{
-      const s=await(await fetch('/api/state')).json();return s.recording?.phase==='no_sensor_data';
-    },null,{timeout:30000});
-    let capture=await state();
+    await pollState(s=>s.recording?.directory&&s.recording.directory!==previousDirectory&&['awaiting_sensor_data','recording','no_sensor_data'].includes(s.recording.phase),'a new recording session to start',15000);
+    let capture=await pollState(s=>s.recording?.directory&&s.recording.directory!==previousDirectory&&s.recording.phase==='no_sensor_data'&&s.recording.elapsed_sec>=15,'15 seconds without raw sensor data',45000);
     sessionDirectory=capture.recording.directory;
-    if (capture.recording.sensor_data_seen) throw new Error('No-input recording unexpectedly observed sensor data');
+    if (Date.now()-startedAt<15000 || capture.recording.sensor_data_seen) throw new Error('No-input state arrived before 15 seconds or unexpectedly observed sensor data');
     await page.locator('#recording-stop').click();
-    await page.waitForFunction(async()=>{
-      const s=await(await fetch('/api/state')).json();return ['finalizing','failed','completed','no_sensor_data'].includes(s.recording?.phase);
-    },null,{timeout:10000});
-    await page.waitForFunction(async()=>{
-      const s=await(await fetch('/api/state')).json();return ['failed','completed'].includes(s.recording?.phase);
-    },null,{timeout:60000});
-    capture=await state();
+    capture=await pollState(s=>s.recording?.directory===sessionDirectory&&['failed','completed'].includes(s.recording.phase)&&s.recording.return_code!==null&&s.recording.return_code!==undefined,'the recorder to finish finalization',60000);
     if (capture.recording.phase==='completed' || capture.recording.metadata_verified || capture.recording.sensor_data_seen) throw new Error('Empty capture was reported as successful');
     if (capture.recording.phase!=='failed' || capture.recording.return_code===null || capture.recording.return_code===undefined) throw new Error('No-input capture did not finish as a verified failure: '+JSON.stringify(capture.recording));
     if ((await page.locator('#recording-phase').innerText()).includes('記録完了')) throw new Error('UI reported success for an empty capture');
@@ -78,7 +79,7 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
       const current=await state();
       if (['recording','awaiting_sensor_data','no_sensor_data','finalizing'].includes(current.recording?.phase)) {
         await api('recording_stop',{});
-        await page.waitForFunction(async()=>{const s=await(await fetch('/api/state')).json();return !['finalizing','recording','awaiting_sensor_data','no_sensor_data'].includes(s.recording?.phase);},null,{timeout:30000});
+        await pollState(s=>['failed','completed'].includes(s.recording?.phase)&&s.recording.return_code!==null&&s.recording.return_code!==undefined,'recording cleanup in test teardown',60000);
       }
     } catch {}
     try { if (originalRecording) await api('recording_config_save',originalRecording); } catch {}
