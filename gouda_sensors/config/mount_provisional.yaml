@@ -1,6 +1,6 @@
 # Planning evidence only. This file MUST NOT publish a body/sensor TF.
-# Vehicle is not yet fitted with the planned sensor mount.
-status: provisional_not_installed
+# Sensors are fixed in the planned mount; dimensions and axis calibration remain unmeasured.
+status: installed_dimensions_unmeasured
 body_reference: rear_axle_midpoint_at_ground
 axes: {x: forward, y: left, z: up}
 lidar:
@@ -27,4 +27,4 @@ drawing:
   source: user_photo_manual_page_33
   physical_verification: false
 body_tf_enabled: false
-imu_fusion_enabled: false
+imu_fusion_enabled_by_default: false  # GLIM fusion is selectable only after explicit calibration

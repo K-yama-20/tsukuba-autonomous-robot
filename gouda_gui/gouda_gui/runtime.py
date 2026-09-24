@@ -128,7 +128,13 @@ def validate_hardware(cfg):
 
 def rviz_command(cfg):
     from ament_index_python.packages import get_package_share_directory
-    config=Path(get_package_share_directory('kiss_icp'))/'rviz/kiss_icp.rviz'
+    try:
+        from gouda_navigation.mapping import load_mapping_settings
+        selected = load_mapping_settings().get('backend', 'kiss_icp')
+    except Exception:
+        selected = 'kiss_icp'
+    config = (Path(get_package_share_directory('gouda_navigation'))/'config/glim.rviz'
+              if selected == 'glim_imu' else Path(get_package_share_directory('kiss_icp'))/'rviz/kiss_icp.rviz')
     return [shutil.which('rviz2') or '/opt/ros/jazzy/lib/rviz2/rviz2','-d',str(config),'--ros-args',
             '-r','/initialpose:=/gouda/viewer/initialpose_unused',
             '-r','/goal_pose:=/gouda/viewer/goal_unused']
@@ -233,8 +239,11 @@ def main():
     if args.command=='observe':
         launches.append(('sensors',['ros2','launch','gouda_gui','sensors_only.launch.py',
                              'hesai_config:='+cfg['hesai_config'],'imu_device:='+cfg['imu_device']],[]))
+    from gouda_navigation.mapping import load_mapping_settings
+    mapping_backend = load_mapping_settings().get('backend', 'kiss_icp')
     launches.extend([
-        ('processing',['ros2','launch','gouda_gui','observation.launch.py','sensors:=false'],[8765])])
+        ('processing',['ros2','launch','gouda_gui','observation.launch.py','sensors:=false',
+                       'backend:='+mapping_backend],[8765])])
     launches.append(('gateway',[sys.executable,'-m','gouda_gui.gateway'],[8766]))
     # Check all resources before starting sensors. Never adopt an unrelated process.
     for name,cmd,ports in launches:

@@ -15,8 +15,11 @@ from ament_index_python.packages import get_package_share_directory
 def validate_mode(context):
     replay=LaunchConfiguration('replay').perform(context)
     sensors=LaunchConfiguration('sensors').perform(context)
+    backend=LaunchConfiguration('backend').perform(context)
     if replay not in ('true','false') or sensors not in ('true','false'):
         raise ValueError('replay/sensors must be true or false')
+    if backend not in ('kiss_icp', 'glim_imu'):
+        raise ValueError('backend must be kiss_icp or glim_imu')
     if replay=='true' and sensors=='true':
         raise ValueError('Do not mix live sensors with bag replay')
     if sensors=='true':
@@ -26,10 +29,13 @@ def validate_mode(context):
 
 
 def generate_launch_description():
+    from gouda_navigation.mapping import load_mapping_settings
+    backend_default = load_mapping_settings().get('backend', 'kiss_icp')
     replay = ParameterValue(LaunchConfiguration('replay'), value_type=bool)
     gui = Node(package='gouda_gui', executable='mission_control', output='screen', parameters=[{
         'mode': PythonExpression(["'replay' if '", LaunchConfiguration('replay'), "' == 'true' else 'live'"]),
         'observation_only': True, 'use_sim_time': replay,
+        'mapping_backend': LaunchConfiguration('backend'),
         'port': ParameterValue(LaunchConfiguration('port'), value_type=int),
         'map_directory': str(data_dir() / 'maps_sensor_slam')}])
     return LaunchDescription([
@@ -40,6 +46,7 @@ def generate_launch_description():
         DeclareLaunchArgument('replay', default_value='false'),
         DeclareLaunchArgument('port', default_value='8765'),
         DeclareLaunchArgument('sensors', default_value='false'),
+        DeclareLaunchArgument('backend', default_value=backend_default),
         DeclareLaunchArgument('imu_device',default_value=''),
         DeclareLaunchArgument('hesai_config', default_value=str(config_dir()/'hesai.yaml')),
         OpaqueFunction(function=validate_mode),
@@ -51,6 +58,7 @@ def generate_launch_description():
                           'frame_id': 'imu_link', 'parent_id': 'base_link', 'rate': 100., 'publish_tf': False}],
              condition=IfCondition(LaunchConfiguration('sensors')), output='screen'),
         Node(package='kiss_icp', executable='kiss_icp_node', output='screen',
+             condition=IfCondition(PythonExpression(["'", LaunchConfiguration('backend'), "' == 'kiss_icp'"])),
              remappings=[('pointcloud_topic', '/lidar_points')], parameters=[{
                  'use_sim_time': replay, 'base_frame': 'hesai_lidar', 'lidar_odom_frame': 'odom_lidar',
                  'invert_odom_tf': False, 'publish_odom_tf': True, 'publish_debug_clouds': True,

@@ -11,11 +11,13 @@ PYWORKSPACE
 workspace="${GOUDA_WORKSPACE:-$default_workspace}"
 configure=1
 system=1
+with_glim=0
 for arg in "$@"; do
   case "$arg" in
     --no-configure) configure=0 ;;
     --skip-system) system=0 ;;
-    *) echo "Usage: bash scripts/setup.sh [--no-configure] [--skip-system]" >&2; exit 2 ;;
+    --with-glim) with_glim=1 ;;
+    *) echo "Usage: bash scripts/setup.sh [--no-configure] [--skip-system] [--with-glim]" >&2; exit 2 ;;
   esac
 done
 . /etc/os-release
@@ -39,6 +41,19 @@ if (( system )); then
     python3-colcon-common-extensions python3-pytest python3-aiohttp python3-yaml \
     ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox \
     libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils
+  if (( with_glim )); then
+    # Official GLIM PPA for Ubuntu 24.04/Jazzy, CPU-only package set.
+    key=/usr/share/keyrings/gouda-koide3.gpg
+    list=/etc/apt/sources.list.d/gouda-koide3.list
+    if ! sudo grep -Rqs 'koide3.github.io/ppa/ubuntu2404' /etc/apt/sources.list.d; then
+      curl -fsSL --compressed https://koide3.github.io/ppa/ubuntu2404/KEY.gpg | sudo gpg --dearmor --yes -o "$key"
+      printf '%s\n' 'deb [signed-by=/usr/share/keyrings/gouda-koide3.gpg] https://koide3.github.io/ppa/ubuntu2404 ./' | sudo tee "$list" >/dev/null
+    fi
+    sudo chmod 644 "$key" "$list" 2>/dev/null || true
+    sudo apt-get update
+    sudo apt-get install -y libiridescence-dev libboost-all-dev libglfw3-dev libmetis-dev \
+      libgtsam-points-dev ros-jazzy-glim-ros
+  fi
   [[ -f /etc/ros/rosdep/sources.list.d/20-default.list ]] || sudo rosdep init
   rosdep update
 fi
