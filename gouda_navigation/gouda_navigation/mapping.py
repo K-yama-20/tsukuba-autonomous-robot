@@ -228,7 +228,7 @@ def make_glim_config(settings: dict[str, Any], config_dir: str | Path, upstream_
         "base_frame_id": cfg["lidar_frame"], "odom_frame_id": "odom_lidar", "map_frame_id": "glim_map",
         "publish_imu2lidar": False, "tf_time_offset": 0.000001,
         "extension_modules": ["librviz_viewer.so"],
-        "imu_topic": cfg["imu_topic"], "points_topic": cfg["lidar_topic"], "image_topic": "/glim_unused/image",
+        "imu_topic": cfg["imu_topic"], "points_topic": cfg["lidar_topic"], "image_topic": "/gouda/glim/image_unused",
         "imu_qos": {"profile": "sensor_data", "depth": 1000},
         "points_qos": {"profile": "sensor_data"},
     }})
@@ -401,7 +401,7 @@ class GlimSession:
             return
         if process.poll() is None and self.phase != "stopping":
             self.phase = "stopping"
-            os.killpg(process.pid, signal.SIGINT)
+            process.send_signal(signal.SIGINT)
             import threading
             self._stop_thread = threading.Thread(target=self._finish_process, args=(timeout,), daemon=True)
             self._stop_thread.start()
