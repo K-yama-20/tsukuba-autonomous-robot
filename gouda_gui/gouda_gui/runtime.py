@@ -35,10 +35,10 @@ def occupied(port):
         return sock.connect_ex(('127.0.0.1', port)) == 0
 
 
-def terminate(item, graceful_signal=signal.SIGTERM, timeout=10.0):
+def terminate(item, graceful_signal=signal.SIGTERM, timeout=10.0, initial_group=True):
     if not alive(item):
         return
-    os.killpg(item['pid'], graceful_signal)
+    (os.killpg if initial_group else os.kill)(item['pid'], graceful_signal)
     deadline = time.monotonic() + timeout
     while alive(item) and time.monotonic() < deadline:
         time.sleep(.1)
@@ -209,7 +209,7 @@ def main():
         for name, item in reversed(list(state['processes'].items())):
             if name == 'processing':
                 # MissionControl closes GLIM on SIGINT; allow the native graph dump to finish.
-                terminate(item, graceful_signal=signal.SIGINT, timeout=105.0)
+                terminate(item, graceful_signal=signal.SIGINT, timeout=105.0, initial_group=False)
             else:
                 terminate(item)
         write_state(path,{'mode':None,'processes':{}})

@@ -1,4 +1,5 @@
 """Provisional sensor-plane scan. No body transform or IMU fusion is invented."""
+import copy
 import math
 import numpy as np
 import rclpy
@@ -6,6 +7,23 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import PointCloud2, LaserScan
 from sensor_msgs_py.point_cloud2 import read_points
+
+
+def offset_stamp(sec, nanosec, offset_sec):
+    """Apply the configured LiDAR header clock correction without mutating input."""
+    if not math.isfinite(offset_sec):
+        raise ValueError('LiDAR timestamp offset must be finite')
+    total = int(sec) * 1_000_000_000 + int(nanosec) + round(offset_sec * 1_000_000_000)
+    if total < 0:
+        raise ValueError('corrected LiDAR timestamp cannot be negative')
+    return divmod(total, 1_000_000_000)
+
+
+def shifted_header(header, offset_sec):
+    """Return a corrected copy, leaving the raw PointCloud2 header untouched."""
+    out = copy.deepcopy(header)
+    out.stamp.sec, out.stamp.nanosec = offset_stamp(header.stamp.sec, header.stamp.nanosec, offset_sec)
+    return out
 
 
 def project(x, y, z, low=-.15, high=.15, bins=720, near=.4, far=20.):
@@ -24,6 +42,7 @@ class Scan(Node):
         super().__init__('gouda_sensor_plane_scan')
         self.declare_parameter('min_height', -.15)
         self.declare_parameter('max_height', .15)
+        self.declare_parameter('lidar_timestamp_offset_sec', 0.0)
         self.pub = self.create_publisher(LaserScan, '/scan', qos_profile_sensor_data)
         self.create_subscription(PointCloud2, '/lidar_points', self.cloud, qos_profile_sensor_data)
 
@@ -31,7 +50,12 @@ class Scan(Node):
         if msg.header.frame_id != 'hesai_lidar':
             return
         p = read_points(msg, field_names=('x', 'y', 'z'), skip_nans=False)
-        scan = LaserScan(); scan.header = msg.header
+        scan = LaserScan()
+        try:
+            scan.header = shifted_header(msg.header, float(self.get_parameter('lidar_timestamp_offset_sec').value))
+        except (TypeError, ValueError) as exc:
+            self.get_logger().error(str(exc))
+            return
         scan.angle_min = -math.pi; scan.angle_increment = 2 * math.pi / 720
         scan.angle_max = scan.angle_min + 719 * scan.angle_increment
         scan.range_min = .4; scan.range_max = 20.; scan.scan_time = .1
