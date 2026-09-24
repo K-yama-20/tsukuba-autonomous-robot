@@ -42,7 +42,7 @@ settings = {
 }
 rclpy.init()
 node = Node('glim_cpu_no_input_smoke')
-session = GlimSession(node, root / 'runtime')
+session = GlimSession(node, root / 'output')
 try:
     session.start(settings, root / 'output')
     deadline = time.monotonic() + 20.0
