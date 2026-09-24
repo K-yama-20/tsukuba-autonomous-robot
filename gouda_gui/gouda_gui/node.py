@@ -60,7 +60,7 @@ class MissionControl(Node):
         try:self.recorder=RecordingManager(sensor_data_seen=self.recording_sensor_data_seen,use_sim_time=self.mode=='replay')
         except Exception as exc:self.recorder=None;self.recording_error=str(exc)[:300]
         self.store = MapStore(self.get_parameter('map_directory').value)
-        self.times = {}; self.pose = None; self.pose_frame='odom_lidar (LiDAR中心)' if observation_only else '車体'; self.nav = {}; self.esp = {}; self.cloud = []
+        self.times = {}; self.pose = None; self.pose_frame='odom_lidar (LiDAR中心)' if self.observation_only else '車体'; self.nav = {}; self.esp = {}; self.cloud = []
         self.cloud_origin = None; self.cloud_note = '点群を待っています'
         self.grid = None; self.grid_revision = 0; self.map_meta = None
         self.mapping = False; self.mapper = None; self.mapping_started = 0.;self.mapping_elapsed=0
