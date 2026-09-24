@@ -4,6 +4,7 @@ from types import SimpleNamespace as NS
 import pytest
 
 pytest.importorskip('rclpy')
+from builtin_interfaces.msg import Time
 try:
     from gouda_gui.node import MissionControl
 except ImportError as exc:
@@ -15,7 +16,7 @@ def quaternion_yaw(angle):
 
 
 def pose_msg(frame, x, y, yaw=0.):
-    return NS(header=NS(frame_id=frame,stamp=NS(sec=1,nanosec=0)),
+    return NS(header=NS(frame_id=frame,stamp=Time(sec=1,nanosec=0)),
               child_frame_id='hesai_lidar',
               pose=NS(pose=NS(position=NS(x=x,y=y,z=0.),orientation=quaternion_yaw(yaw))),
               twist=NS(twist=NS(linear=NS(x=0.2),angular=NS(z=0.1))))
