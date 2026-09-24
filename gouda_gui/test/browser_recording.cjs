@@ -60,8 +60,11 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     if (capture.recording.sensor_data_seen) throw new Error('No-input recording unexpectedly observed sensor data');
     await page.locator('#recording-stop').click();
     await page.waitForFunction(async()=>{
-      const s=await(await fetch('/api/state')).json();return !['finalizing','recording','awaiting_sensor_data','no_sensor_data'].includes(s.recording?.phase);
-    },null,{timeout:30000});
+      const s=await(await fetch('/api/state')).json();return ['finalizing','failed','completed','no_sensor_data'].includes(s.recording?.phase);
+    },null,{timeout:10000});
+    await page.waitForFunction(async()=>{
+      const s=await(await fetch('/api/state')).json();return ['failed','completed','no_sensor_data'].includes(s.recording?.phase);
+    },null,{timeout:60000});
     capture=await state();
     if (capture.recording.phase==='completed' || capture.recording.metadata_verified || capture.recording.sensor_data_seen) throw new Error('Empty capture was reported as successful');
     if (!['failed','no_sensor_data'].includes(capture.recording.phase)) throw new Error('Unexpected terminal no-input state: '+capture.recording.phase);
