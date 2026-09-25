@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gouda_signal</name>
+  <version>0.1.0</version>
+  <description>Manual-ROI pedestrian signal color observation desktop application</description>
+  <maintainer email="ryoya-1@g.ecc.u-tokyo.ac.jp">Gouda Development Team</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-pyqt5</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
