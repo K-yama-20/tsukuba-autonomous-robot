@@ -27,4 +27,10 @@ fi
 [[ -f "$workspace/install/setup.bash" ]] || { echo 'First run: bash scripts/setup.sh'; exit 1; }
 source /opt/ros/jazzy/setup.bash
 source "$workspace/install/setup.bash"
+if [[ "${1:-}" == signal ]]; then
+  shift
+  export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-99}"
+  export ROS_AUTOMATIC_DISCOVERY_RANGE="${ROS_AUTOMATIC_DISCOVERY_RANGE:-LOCALHOST}"
+  exec python3 -m gouda_signal.app "$@"
+fi
 exec python3 -m gouda_gui.runtime "$@"

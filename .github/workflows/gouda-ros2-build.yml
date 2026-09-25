@@ -1,9 +1,9 @@
 name: Gouda ROS 2 Jazzy Build
 on:
   push:
-    branches: [feature/aya-navsystem]
+    branches: [main, feature/aya-navsystem, feature/pedestrian-signal-ubuntu]
   pull_request:
-    branches: [feature/aya-navsystem]
+    branches: [main, feature/aya-navsystem, feature/pedestrian-signal-ubuntu]
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +27,13 @@ jobs:
         run: test "$(dpkg --print-architecture)" = "${{ matrix.arch }}"
       - name: Clean installation using user setup
         run: bash scripts/setup.sh --with-glim --no-configure
+      - name: Pedestrian signal app CLI and Qt import smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source "$GOUDA_WORKSPACE/install/setup.bash"
+          python3 -m gouda_signal.app --help
       - name: Repeat setup without replacing user data
         run: |
           cd "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot"
