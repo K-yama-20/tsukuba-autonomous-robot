@@ -145,6 +145,8 @@ def rviz_command(cfg):
 
 
 def start_viewer(state,path,logs,cfg):
+    if os.environ.get('GOUDA_HEADLESS') == '1':
+        return
     if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         raise ValueError('Ubuntuデスクトップの表示環境がありません。デスクトップから gouda.sh observe を実行してください。')
     item=state['processes'].get('viewer',{})
@@ -220,7 +222,7 @@ def main():
         import shutil
         result={'config':str(cfgfile),'commands':{n:shutil.which(n) for n in ['ros2','rviz2','xwininfo']},
                 'mode':state['mode'],'processes':{k:alive(v) for k,v in state['processes'].items()},
-                'ports':{p:occupied(p) for p in (8765,8766)},'viewer':display_status(state['processes'].get('viewer')),'display':{'DISPLAY':os.environ.get('DISPLAY'),'WAYLAND_DISPLAY':os.environ.get('WAYLAND_DISPLAY')},**status()}
+                'ports':{p:occupied(p) for p in (8765,8766,8443)},'viewer':display_status(state['processes'].get('viewer')),'display':{'DISPLAY':os.environ.get('DISPLAY'),'WAYLAND_DISPLAY':os.environ.get('WAYLAND_DISPLAY')},**status()}
         try: validate_hardware(cfg); result['hardware']='configured'
         except Exception as exc: result['hardware']=str(exc)
         print(json.dumps(result,indent=2,ensure_ascii=False)); return
@@ -296,6 +298,151 @@ def main():
     print('GUI: http://127.0.0.1:8766')
     print('RViz2はUbuntuデスクトップの別ウィンドウです。再起動: bash scripts/gouda.sh viewer')
     print('自動MVPを起動しました。走行開始はGUIで明示操作してください。' if args.command=='autonomy' else '実機走行出力は起動していません。終了: bash scripts/gouda.sh stop')
+
+
+# The phone gateway imports these functions directly. Actions are an allowlist of
+# existing Gouda profiles; no client-supplied command, path, or ROS goal is run.
+LIFECYCLE_ACTIONS = {'start_observe', 'start_autonomy', 'stop', 'restart', 'apply_config'}
+ACTIVE_RECORDING_PHASES = {'awaiting_sensor_data', 'recording', 'no_sensor_data', 'finalizing'}
+ACTIVE_AUTONOMY_PHASES = {'arming', 'running', 'paused_manual', 'blocked'}
+TERMINAL_AUTONOMY_PHASES = {'idle', 'cancelled', 'completed', 'fault'}
+RECORDING_PHASES = {'idle', 'awaiting_sensor_data', 'recording', 'no_sensor_data', 'finalizing', 'completed', 'failed'}
+
+
+def _read_process_state():
+    path = runtime_dir()/'processes.json'
+    try:
+        value = json.loads(path.read_text())
+        if not isinstance(value, dict) or not isinstance(value.get('processes'), dict):
+            raise ValueError('Malformed Gouda process state')
+        return value
+    except FileNotFoundError:
+        return {'mode': None, 'processes': {}}
+
+
+def runtime_status():
+    """Return read-only process and backend status for the authenticated phone gateway."""
+    state = _read_process_state()
+    processes = {name: {'running': alive(item), 'pid': item.get('pid') if alive(item) else None}
+                 for name, item in state['processes'].items()}
+    result = {'mode': state.get('mode'), 'processes': processes,
+              'lifecycle_busy': (runtime_dir()/'lifecycle.lock').exists() and _lock_is_held(runtime_dir()/'lifecycle.lock'),
+              'backend': {'connected': False}}
+    if any(v['running'] for k, v in processes.items() if k in ('processing', 'gateway')):
+        try:
+            with urlopen('http://127.0.0.1:8765/api/state', timeout=2) as response:
+                result['backend'] = {'connected': response.status == 200, 'state': json.load(response)}
+        except Exception as exc:
+            result['backend'] = {'connected': False, 'error': str(exc)[:300]}
+    return result
+
+
+def _lock_is_held(path):
+    try:
+        with path.open('a') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return True
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            return False
+    except OSError:
+        return True
+
+
+def _ensure_disruption_safe(state=None):
+    """Reject shutdown/restart whenever data capture or motion may be underway."""
+    state = _read_process_state() if state is None else state
+    processing = alive(state.get('processes', {}).get('processing', {}))
+    if not processing:
+        return
+    try:
+        with urlopen('http://127.0.0.1:8765/api/state', timeout=2) as response:
+            if response.status != 200:
+                raise RuntimeError('Backend state is unavailable; refusing to stop or restart a live runtime')
+            backend = json.load(response)
+    except Exception as exc:
+        raise RuntimeError('Backend state is unavailable; refusing to stop or restart a live runtime') from exc
+    recording = backend.get('recording')
+    if not isinstance(recording, dict) or recording.get('phase') not in RECORDING_PHASES:
+        raise RuntimeError('Recording state is missing or malformed; refusing to stop or restart a live runtime')
+    if recording.get('phase') in ACTIVE_RECORDING_PHASES:
+        raise RuntimeError('Recording is active or finalizing. Finish recording and verify its saved result before stopping or restarting.')
+    if type(backend.get('mapping')) is not bool:
+        raise RuntimeError('Mapping state is missing or malformed; refusing to stop or restart a live runtime')
+    if backend['mapping']:
+        raise RuntimeError('Mapping is active. Stop mapping and preserve its result before stopping or restarting.')
+    if state.get('mode') == 'autonomy':
+        autonomy = backend.get('autonomy')
+        controller = autonomy.get('state') if isinstance(autonomy, dict) else None
+        esp = backend.get('esp')
+        ages = backend.get('ages')
+        esp_age = ages.get('esp32') if isinstance(ages, dict) else None
+        if (not isinstance(autonomy, dict) or autonomy.get('profile_enabled') is not True or
+                autonomy.get('state_fresh') is not True or not isinstance(controller, dict) or
+                controller.get('phase') not in TERMINAL_AUTONOMY_PHASES or
+                controller.get('device_fresh') is not True or not isinstance(esp, dict) or
+                esp.get('auto_enabled') is not False or not isinstance(esp_age, (int, float)) or
+                esp_age > .6):
+            raise RuntimeError('Autonomy state or fresh ESP32 disarmed readback is missing, stale, or active; refusing to stop or restart')
+
+
+def _profile(value):
+    if value not in ('observation', 'autonomy'):
+        raise ValueError('profile must be observation or autonomy')
+    return value
+
+
+def _run_profile(command):
+    env = dict(os.environ, GOUDA_HEADLESS='1')
+    result = subprocess.run([sys.executable, '-m', 'gouda_gui.runtime', command],
+                            env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, timeout=240)
+    if result.returncode:
+        raise RuntimeError((result.stdout or 'Gouda lifecycle command failed')[-1500:].strip())
+    return result.stdout.strip()
+
+
+def runtime_action(payload):
+    """Run one fixed lifecycle operation. Caller must enforce remote auth and origin."""
+    if not isinstance(payload, dict):
+        raise ValueError('Lifecycle action must be a JSON object')
+    action = payload.get('action')
+    if action not in LIFECYCLE_ACTIONS:
+        raise ValueError('Unsupported lifecycle action')
+    # Reject extra command-like fields to keep the adapter's input surface narrow.
+    permitted = {'action', 'profile'}
+    if set(payload) - permitted:
+        raise ValueError('Unsupported lifecycle fields')
+    if 'profile' in payload and action != 'restart':
+        raise ValueError('profile is accepted only for restart')
+    lock_path = runtime_dir()/'lifecycle.lock'
+    lock_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with lock_path.open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError('Another lifecycle action is in progress') from exc
+        state = _read_process_state()
+        if action in ('start_observe', 'start_autonomy'):
+            command = 'observe' if action == 'start_observe' else 'autonomy'
+            output = _run_profile(command)
+        elif action == 'stop':
+            _ensure_disruption_safe(state)
+            output = _run_profile('stop')
+        elif action == 'restart':
+            profile = _profile(payload.get('profile'))
+            _ensure_disruption_safe(state)
+            _run_profile('stop')
+            output = _run_profile('observe' if profile == 'observation' else 'autonomy')
+        else:  # apply_config restarts the currently selected fixed profile
+            profile = state.get('mode')
+            if profile not in ('observation', 'autonomy'):
+                raise RuntimeError('There is no running profile to apply configuration to')
+            _ensure_disruption_safe(state)
+            _run_profile('stop')
+            output = _run_profile('observe' if profile == 'observation' else 'autonomy')
+    return {'ok': True, 'action': action, 'message': output, 'status': runtime_status()}
 
 
 if __name__=='__main__':
