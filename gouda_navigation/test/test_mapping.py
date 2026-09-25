@@ -36,11 +36,42 @@ def valid_glim_settings():
 
 
 def test_unknown_calibration_can_be_saved_as_draft_but_cannot_start_glim(tmp_path):
-    path = save_mapping_settings(DEFAULT_SETTINGS, tmp_path / "mapping.json")
+    unknown = {
+        **DEFAULT_SETTINGS,
+        "clock_policy": "unknown",
+        "extrinsic_lidar_imu": None,
+        "point_time_field": "unknown",
+        "point_time_datatype": "unknown",
+        "point_time_mode": "unknown",
+        "point_time_unit": "unknown",
+        "imu_accel_unit": "unknown",
+        "imu_gyro_unit": "unknown",
+        "imu_clock_offset_sec": None,
+        "lidar_clock_offset_sec": None,
+    }
+    path = save_mapping_settings(unknown, tmp_path / "mapping.json")
     assert json.loads(path.read_text())["extrinsic_lidar_imu"] is None
-    errors = validate_mapping_settings({**DEFAULT_SETTINGS, "backend": "glim_imu"}, require_ready=True)
+    errors = validate_mapping_settings(unknown, require_ready=True)
     assert any("T_lidar_imu is UNKNOWN" in error for error in errors)
     assert any("point_time_field is UNKNOWN" in error for error in errors)
+
+
+def test_real_sensor_defaults_match_measured_mount_and_driver_contract():
+    assert DEFAULT_SETTINGS["backend"] == "glim_imu"
+    assert DEFAULT_SETTINGS["extrinsic_lidar_imu"] == {
+        "translation_m": [0.0, 0.0, -0.0514],
+        "quaternion_xyzw": [0.0, 0.0, 0.0, 1.0],
+    }
+    assert DEFAULT_SETTINGS["point_time_field"] == "timestamp"
+    assert DEFAULT_SETTINGS["point_time_datatype"] == "float64"
+    assert DEFAULT_SETTINGS["point_time_mode"] == "absolute"
+    assert DEFAULT_SETTINGS["point_time_unit"] == "seconds"
+    assert DEFAULT_SETTINGS["imu_accel_unit"] == "m/s^2"
+    assert DEFAULT_SETTINGS["imu_gyro_unit"] == "rad/s"
+    assert DEFAULT_SETTINGS["clock_policy"] == "host_mapped"
+    assert DEFAULT_SETTINGS["imu_clock_offset_sec"] == 0.0
+    assert DEFAULT_SETTINGS["lidar_clock_offset_sec"] == 0.0
+    assert validate_mapping_settings(DEFAULT_SETTINGS, require_ready=True) == []
 
 
 def test_glim_settings_require_explicit_transform_units_and_offsets():

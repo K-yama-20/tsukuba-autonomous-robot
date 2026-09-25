@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GOUDA · Mission Control</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081510"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><title>GOUDA · Mission Control</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
 <body>
+<div id="access-gate" class="access-gate" hidden><form id="access-form" class="access-card"><span class="brandmark">G</span><h1>Mission Controlへ接続</h1><p>HTTPSで接続しています。Ubuntu側で発行したアクセスキーを入力してください。</p><label for="access-key">アクセスキー</label><input id="access-key" type="password" autocomplete="current-password" required><button class="primary full" type="submit">接続</button><p id="access-error" role="alert"></p></form></div>
 <header class="topbar">
   <div class="brand"><span class="brandmark">G</span><div><strong>GOUDA</strong><small>EMC-270 / MISSION CONTROL</small></div></div>
   <div class="top-status"><span id="mode" class="badge">接続確認中</span><span id="connection">Ubuntuを待っています</span><span id="run-state">—</span></div>
@@ -24,7 +25,9 @@
     <div class="main-grid">
       <section class="viewport" aria-label="地図と点群">
         <div class="viewport-toolbar"><span id="view-label">2D 地図 <small>map座標系</small></span><div class="button-group"><button id="fit">全体表示</button></div></div>
-        <div id="rviz-status" class="rviz-status" role="status">RViz2はUbuntuデスクトップの別ウィンドウで表示します。状態を確認しています。</div><div class="canvas-wrap"><canvas id="map" aria-label="地図。ゴールと初期位置は右の数値入力でも指定できます"></canvas><div id="map-empty" class="empty"><strong>地図データを待っています</strong><span>2D SLAM地図が届くと、ここに表示します。点群は別ウィンドウのRVizで確認できます。</span></div><div class="map-badge" id="map-status">データ未受信</div><div id="tool-hint" class="tool-hint">ドラッグで移動 · ホイールで拡大</div><div class="scale" id="scale">—</div></div>
+        <div id="rviz-status" class="rviz-status" role="status">RViz2はUbuntuデスクトップの別ウィンドウで表示します。状態を確認しています。</div><div class="canvas-wrap">
+        <div class="map-zoom" aria-label="地図の拡大縮小"><button id="zoom-in" type="button" aria-label="拡大">＋</button><button id="zoom-out" type="button" aria-label="縮小">−</button></div>
+        <canvas id="map" aria-label="地図。ゴールと初期位置は右の数値入力でも指定できます"></canvas><div id="map-empty" class="empty"><strong>地図データを待っています</strong><span>2D SLAM地図が届くと、ここに表示します。点群は別ウィンドウのRVizで確認できます。</span></div><div class="map-badge" id="map-status">データ未受信</div><div id="tool-hint" class="tool-hint">ドラッグで移動 · ホイールで拡大</div><div class="scale" id="scale">—</div></div>
         <div class="legend"><span><i class="robot-dot"></i><span id="position-reference">現在位置</span></span><span><i class="goal-dot"></i>ゴール</span><span><i class="path-line"></i>予定経路</span><span><i class="unknown-dot"></i>未観測</span><span id="map-size">—</span></div>
         <div class="telemetry"><div><small>POSITION / m</small><strong id="position">— / —</strong></div><div><small>HEADING</small><strong id="heading">—</strong></div><div><small>VELOCITY</small><strong id="velocity">—</strong></div><div><small>POINT CLOUD</small><strong id="cloud-age">未受信</strong></div></div>
       </section>
@@ -141,7 +144,7 @@
           <div id="start-reasons" class="reasons">状態を確認しています。</div><button id="start" class="primary full" disabled>▶ 確認した経路で走行開始</button><button id="cancel" class="full">走行を中止</button><div id="stop-status" class="stop-status">—</div><p class="helper">タブ切替で走行状態は変わりません。停止操作後は上部と地図上の状態をご確認ください。</p>
         </section>
         <section id="panel-diagnostics" role="tabpanel" aria-labelledby="tab-diagnostics" hidden>
-          <div class="panel-title"><span>点検設定</span><small>HEALTH</small></div><div id="health-list" class="health-list"></div><div class="section-label">座標・接続</div><p id="cloud-note" class="helper">—</p><p class="helper">DualSense・電池残量・DAC実測値は、まだこの画面へ接続されていません。</p><div class="section-label">実装範囲</div><p class="helper" id="implementation-scope">実機の接続状態を確認しています。</p>
+          <div class="panel-title"><span>点検設定</span><small>HEALTH</small></div><div class="lifecycle-card"><h3>Mission Control</h3><label for="runtime-profile">起動設定</label><select id="runtime-profile"><option value="observation">観測</option><option value="autonomy">自動運転（明示選択）</option></select><p id="runtime-status">PCの稼働状態を確認しています。</p><div class="inline"><button id="runtime-start" class="primary full">観測を開始</button><button id="runtime-autonomy-start" class="full">自動運転プロファイルを開始</button><button id="runtime-restart" class="full">選択設定で再起動</button><button id="runtime-apply" class="full">保存設定を適用して再起動</button><button id="runtime-stop" class="full">Mission Controlを停止</button></div><p class="helper">自動運転プロファイルは起動時に選択します。ここから自動走行目標は送信しません。RVizはPC画面で確認してください。</p></div><div id="health-list" class="health-list"></div><div class="section-label">座標・接続</div><p id="cloud-note" class="helper">—</p><p class="helper">DualSense・電池残量・DAC実測値は、まだこの画面へ接続されていません。</p><div class="section-label">実装範囲</div><p class="helper" id="implementation-scope">実機の接続状態を確認しています。</p>
         </section>
       </aside>
     </div>

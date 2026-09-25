@@ -80,6 +80,7 @@ fi
 bash "$repo/scripts/gouda_apply_hesai_patch.sh"
 bash "$repo/scripts/gouda_apply_imu_patch.sh"
 python3 "$repo/scripts/gouda_apply_imu_clock_patch.py"
+python3 "$repo/scripts/gouda_apply_imu_reconnect_patch.py"
 # Migrate user settings and maps before changing generated build state.
 PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" --workspace "$workspace" --defaults
 PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" \
