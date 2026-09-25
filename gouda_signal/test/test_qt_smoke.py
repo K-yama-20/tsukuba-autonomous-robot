@@ -173,11 +173,11 @@ def test_learned_green_none_transitions_latch_blink_then_recover(monkeypatch):
 
     seq = 0
 
-    def feed(timestamp, color):
+    def feed(timestamp, color, target_box=(10.0, 10.0, 30.0, 30.0)):
         nonlocal seq
         seq += 1
         now[0] = timestamp + 0.01
-        box = (10.0, 10.0, 30.0, 30.0) if color is RawColor.GREEN else None
+        box = target_box if color is RawColor.GREEN else None
         window._handle_inference_result(_learned_result(4, seq, timestamp, color, box))
 
     for timestamp in (0.0, 0.3, 0.6, 0.9, 1.21):
@@ -203,8 +203,9 @@ def test_learned_green_none_transitions_latch_blink_then_recover(monkeypatch):
     )
     assert window.observation.state is SignalState.UNKNOWN
     assert window.observation.reason == "target_changed"
+    new_target_box = (70.0, 70.0, 90.0, 90.0)
     for timestamp in (5.3, 5.6, 5.9, 6.21):
-        feed(timestamp, RawColor.GREEN)
+        feed(timestamp, RawColor.GREEN, target_box=new_target_box)
     assert window.observation.state is SignalState.GREEN
 
     window.close()
