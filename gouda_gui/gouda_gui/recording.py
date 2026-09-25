@@ -21,7 +21,9 @@ DEFAULT_TOPICS = ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static']
 OPTIONAL_TOPICS = ['/kiss/odometry', '/glim_ros/lidar_odom', '/clock']
 CONTROL_ANALYSIS_TOPICS = ['/cmd_motion', '/gouda/motion_permit', '/esp32/status',
                            '/gouda/navigation_state', '/gouda/pose', '/glim_ros/lidar_odom',
-                           '/cmd_vel']
+                           '/cmd_vel', '/gouda/control/drive', '/gouda/control/reference',
+                           '/gouda/control/estimate', '/gouda/control/manual_input', '/gouda/control_trace',
+                           '/gouda/autonomy/state', '/gouda/autonomy/request', '/gouda/recording/state']
 REQUIRED_TOPICS = tuple(DEFAULT_TOPICS)
 TOPIC_RE = re.compile(r'^/(?:[A-Za-z][A-Za-z0-9_]*)(?:/[A-Za-z][A-Za-z0-9_]*)*$')
 STORAGE_IDS = {'mcap', 'sqlite3'}

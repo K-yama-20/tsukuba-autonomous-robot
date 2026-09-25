@@ -91,7 +91,9 @@ def test_defaults_retain_raw_sensor_and_tf_topics():
     assert '/glim_ros/lidar_odom' in OPTIONAL_TOPICS
     assert set(CONTROL_ANALYSIS_TOPICS) == {'/cmd_motion', '/gouda/motion_permit', '/esp32/status',
                                            '/gouda/navigation_state', '/gouda/pose',
-                                           '/glim_ros/lidar_odom', '/cmd_vel'}
+                                           '/glim_ros/lidar_odom', '/cmd_vel', '/gouda/control/drive',
+        '/gouda/control/reference', '/gouda/control/estimate', '/gouda/control/manual_input',
+        '/gouda/control_trace', '/gouda/autonomy/state', '/gouda/autonomy/request', '/gouda/recording/state'}
     assert '/odom' not in OPTIONAL_TOPICS
     for missing in ('/lidar_points', '/imu/data_raw', '/tf', '/tf_static'):
         with pytest.raises(ValueError):
@@ -321,7 +323,9 @@ def test_final_topic_coverage_counts_control_topics_and_reports_missing(tmp_path
     assert final['metadata_verified'] is True
     assert final['control_data_seen'] is True
     assert final['per_topic_counts']['/gouda/motion_permit'] == 0
-    assert set(final['missing_control_topics']) == {'/gouda/motion_permit', '/gouda/navigation_state', '/glim_ros/lidar_odom', '/cmd_vel'}
+    assert set(final['missing_control_topics']) == {'/gouda/motion_permit', '/gouda/navigation_state', '/glim_ros/lidar_odom', '/cmd_vel', '/gouda/control/drive',
+        '/gouda/control/reference', '/gouda/control/estimate', '/gouda/control/manual_input',
+        '/gouda/control_trace', '/gouda/autonomy/state', '/gouda/autonomy/request', '/gouda/recording/state'}
     manifest = json.loads((Path(final['directory'])/'session.json').read_text())
     assert manifest['control_data_seen'] is True
     assert manifest['per_topic_counts']['/gouda/motion_permit'] == 0

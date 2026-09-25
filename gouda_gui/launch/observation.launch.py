@@ -14,6 +14,9 @@ from ament_index_python.packages import get_package_share_directory
 
 def validate_mode(context):
     replay=LaunchConfiguration('replay').perform(context)
+    autonomy=LaunchConfiguration('autonomy_mvp_enabled').perform(context)
+    if autonomy not in ('true','false') or (autonomy=='true' and replay=='true'):
+        raise ValueError('Autonomy cannot run with replay')
     sensors=LaunchConfiguration('sensors').perform(context)
     backend=LaunchConfiguration('backend').perform(context)
     if replay not in ('true','false') or sensors not in ('true','false'):
@@ -39,6 +42,7 @@ def generate_launch_description():
     gui = Node(package='gouda_gui', executable='mission_control', output='screen', parameters=[{
         'mode': PythonExpression(["'replay' if '", LaunchConfiguration('replay'), "' == 'true' else 'live'"]),
         'observation_only': True, 'use_sim_time': replay,
+        'autonomy_mvp_enabled': ParameterValue(LaunchConfiguration('autonomy_mvp_enabled'),value_type=bool),
         'mapping_backend': LaunchConfiguration('backend'),
         'port': ParameterValue(LaunchConfiguration('port'), value_type=int),
         'map_directory': str(data_dir() / 'maps_sensor_slam')}], sigterm_timeout='200')
@@ -48,6 +52,7 @@ def generate_launch_description():
         SetEnvironmentVariable('FASTRTPS_DEFAULT_PROFILES_FILE', str(Path(get_package_share_directory('gouda_gui'))/'config/fastdds_observation.xml')),
         SetEnvironmentVariable('FASTDDS_DEFAULT_PROFILES_FILE', str(Path(get_package_share_directory('gouda_gui'))/'config/fastdds_observation.xml')),
         DeclareLaunchArgument('replay', default_value='false'),
+        DeclareLaunchArgument('autonomy_mvp_enabled', default_value='false'),
         DeclareLaunchArgument('port', default_value='8765'),
         DeclareLaunchArgument('sensors', default_value='false'),
         DeclareLaunchArgument('backend', default_value=backend_default),

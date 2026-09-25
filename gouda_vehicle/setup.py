@@ -8,4 +8,4 @@ setup(name='gouda_vehicle', version='0.1.0', packages=['gouda_vehicle'],
     install_requires=['setuptools'], zip_safe=True,
     maintainer='Gouda Development Team', maintainer_email='ryoya-1@g.ecc.u-tokyo.ac.jp',
     description='Gouda development and validation', license='Apache-2.0',
-    entry_points={'console_scripts': ['serial_bridge_node = gouda_vehicle.bridge:main']})
+    entry_points={'console_scripts': ['hardware_bridge = gouda_vehicle.hardware_bridge:main', 'serial_bridge_node = gouda_vehicle.bridge:main']})

@@ -15,6 +15,7 @@
       <button id="tab-monitor" role="tab" aria-selected="false" aria-controls="panel-monitor" data-tab="monitor"><span>03</span>走行監視<small>MONITOR</small></button>
       <button id="tab-diagnostics" role="tab" aria-selected="false" aria-controls="panel-diagnostics" data-tab="diagnostics"><span>04</span>点検設定<small>SYSTEM</small></button>
       <button id="tab-recording" role="tab" aria-selected="false" aria-controls="panel-recording" data-tab="recording"><span>05</span>記録・SLAM<small>RECORD</small></button>
+      <button id="tab-autonomy" role="tab" aria-selected="false" aria-controls="panel-autonomy" data-tab="autonomy"><span>06</span>自動運転MVP<small>OPT-IN</small></button>
     </div>
     <div class="nav-bottom"><span class="tiny-cross">＋</span><small>GOUDA<br>CONTROL STATION</small><span id="clock">—</span></div>
   </nav>
@@ -88,6 +89,37 @@
           <p id="mapping-settings-state" class="helper">設定状態を確認しています。</p>
           <button id="mapping-settings-save" class="full">SLAM設定を保存</button>
           <p class="helper">保存した設定と現在動作中の設定は別に表示します。センサー受信の再起動は画面更新や設定保存では行いません。</p></div>
+        </section>
+        <section id="panel-autonomy" role="tabpanel" aria-labelledby="tab-autonomy" hidden>
+          <div class="panel-title"><span>自動運転 MVP</span><small>明示開始のみ</small></div>
+          <p class="helper">この機能は <code>gouda.sh autonomy</code> で明示的に起動した場合だけ有効です。設定保存や画面更新ではシリアル接続も走行も開始しません。</p>
+          <div class="autonomy-grid">
+            <div class="autonomy-card">
+              <h3>起動設定と取付寸法</h3>
+              <label class="topic-option"><input type="checkbox" id="autonomy-hardware-enabled"> 自動運転MVPプロファイルを許可</label>
+              <label for="autonomy-serial-port">制御器のシリアルポート</label><select id="autonomy-serial-port"><option value="">未選択</option></select>
+              <p id="autonomy-config-state" class="helper">設定状態を確認しています。</p>
+              <div class="section-label">LiDARの取付変換 T_body_lidar</div>
+              <p class="helper">LiDAR原点の車体座標と、LiDAR軸から車体軸への回転を実測して入力してください。IMUの向きは、GLIMのT_lidar_imuとこの変換から計算します。未測定値に恒等変換を入れないでください。</p>
+              <div class="coordinates"><div><label for="autonomy-tx">LiDAR原点 X / m（車体軸）</label><input id="autonomy-tx" type="number" step="0.001" placeholder="未測定"></div><div><label for="autonomy-ty">LiDAR原点 Y / m（車体軸）</label><input id="autonomy-ty" type="number" step="0.001" placeholder="未測定"></div><div><label for="autonomy-tz">LiDAR原点 Z / m（車体軸）</label><input id="autonomy-tz" type="number" step="0.001" placeholder="未測定"></div></div>
+              <label for="autonomy-quat">LiDAR→車体 quaternion x,y,z,w（右手系・正規化）</label><input id="autonomy-quat" placeholder="未測定（実測値を入力）">
+              <p class="helper">車体は図面に基づく長さ1.105 m・幅0.600 m・高さ0.950 mの直方体です。追加架台の張り出しは含みません。変更は autonomy.json の footprint で設定できます。</p>
+              <button id="autonomy-settings-save" class="full">設定を保存</button>
+              <p class="helper">保存後、起動するのは次回の <code>gouda.sh autonomy</code> です。通常の表示・観測起動では制御器を開きません。</p>
+            </div>
+            <div class="autonomy-card">
+              <h3>相対目標</h3>
+              <p class="helper">現在の向きを基準にした相対目標です。左右移動は旋回と前進の組合せで行い、横滑り指令は出しません。</p>
+              <div class="coordinates"><div><label for="autonomy-forward">前方 / m</label><input id="autonomy-forward" type="number" step="0.01" value="0"></div><div><label for="autonomy-left">左 / m</label><input id="autonomy-left" type="number" step="0.01" value="0"></div><div><label for="autonomy-heading">最終向き / °</label><input id="autonomy-heading" type="number" step="1" value="0"></div></div>
+              <div class="coordinates"><div><label for="autonomy-target-v">要求前進速度 / m/s</label><input id="autonomy-target-v" type="number" min="0.001" step="0.01" placeholder="必須"></div><div><label for="autonomy-target-w">要求旋回速度 / rad/s</label><input id="autonomy-target-w" type="number" min="0.001" step="0.01" placeholder="必須"></div></div>
+              <p class="helper">速度は明示した走行目標値です。2.5 の機器設定から換算せず、DAC実出力や実測速度を示す値としても扱いません。</p>
+              <div class="mission-state"><small>PC自動制御状態</small><strong id="autonomy-phase">未接続</strong><span id="autonomy-detail">—</span></div>
+              <div id="autonomy-readiness" class="reasons" role="status">自動走行状態を確認しています。</div>
+              <div class="inline"><button id="autonomy-start" class="primary full" disabled>記録して自動走行を開始</button><button id="autonomy-cancel" class="full" disabled>自動走行を中止</button></div>
+              <p class="helper">開始操作の前にセンサー記録を起動・確認し、その後にPCへ一度だけ開始要求を送ります。手動操作があれば手動を優先し、目標は保持します。</p>
+              <p class="helper safety-note">物理的な駆動電源遮断・非常停止の状態は、この画面から確認できません。画面上の中止操作を物理非常停止の代わりにしないでください。</p>
+            </div>
+          </div>
         </section>
         <section id="panel-planning" role="tabpanel" aria-labelledby="tab-planning" hidden>
           <div class="panel-title"><span>走行計画</span><small>PLAN</small></div><p class="helper">地図上で位置を指定します。ゴールを置いても走行は始まりません。</p>

@@ -1,0 +1,39 @@
+name: Gouda MVP ESP32 firmware
+
+on:
+  push:
+    branches: [feature/aya-navsystem]
+    paths:
+      - 'firmware/gouda_dualsense_usb/**'
+      - 'docs/gouda_protocol_v3.md'
+      - '.github/workflows/gouda-mvp-firmware.yml'
+  pull_request:
+    branches: [feature/aya-navsystem]
+    paths:
+      - 'firmware/gouda_dualsense_usb/**'
+      - 'docs/gouda_protocol_v3.md'
+      - '.github/workflows/gouda-mvp-firmware.yml'
+  workflow_dispatch:
+
+jobs:
+  host-and-esp32-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host compiler and PlatformIO
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++
+          python3 -m pip install --user platformio==6.1.18 --break-system-packages
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Run native firmware tests
+        run: firmware/gouda_dualsense_usb/test/run_host_tests.sh
+      - name: Build ESP32-DevKitC-VE / ESP-WROVER-E image
+        run: pio run -d firmware/gouda_dualsense_usb -e esp32dev
+      - name: Upload build artifact (no flashing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: gouda-esp32dev-wrover-e-firmware
+          path: firmware/gouda_dualsense_usb/.pio/build/esp32dev/firmware.bin
+          if-no-files-found: error
+          retention-days: 14

@@ -5,7 +5,8 @@ const titles = {
   planning:['02 / PLANNING','走行ルートを決める','位置を指定し、走行前に経路を確認します。'],
   monitor:['03 / MONITOR','走行を見守る','現在位置と予定経路、車体の状態を確認します。'],
   diagnostics:['04 / SYSTEM','状態を確認する','センサー、座標、制御系の更新状況を確認します。'],
-  recording:['05 / RECORD','センサーを記録する','生データの保存と、次回のSLAM方式を設定します。']
+  recording:['05 / RECORD','センサーを記録する','生データの保存と、次回のSLAM方式を設定します。'],
+  autonomy:['06 / OPT-IN','自動運転 MVP','明示起動、未校正条件、センサーと運転状態を確認します。']
 };
 const names = {IDLE:'待機中',PLANNING:'経路計算中',PREVIEW_READY:'経路確認待ち',TRACKING:'走行中',ALIGNING:'向きを調整中',REACHED:'到着',CANCELLED:'中止',PREVIEW_EXPIRED:'経路の再計算が必要',PREVIEW_STALE:'開始位置が変わりました',SENSOR_OR_TF_FAULT:'入力異常で停止',PLAN_FAILED:'経路が見つかりません',PLAN_UNAVAILABLE:'経路計算の準備待ち',NO_PROGRESS:'進行停止を検出'};
 let state=null, token=null, busy=false, connected=false, lastResponse=0, tab='mapping', view='2d', tool='pan', dirty=false, lastGoalKey='';
@@ -46,7 +47,7 @@ async function poll(){
     if(!token){const session=await fetch('/api/session',{signal:AbortSignal.timeout(2500)});if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
     const response=await fetch('/api/state',{signal:AbortSignal.timeout(2500)});if(!response.ok)throw new Error('State');
     state=await response.json();lastResponse=performance.now();
-    updateRecordingSettings(); updateMappingSettings();
+    updateRecordingSettings(); updateMappingSettings(); updateAutonomy();
     const selectedPose=tool==='start'?state.planning_start:tool==='goal'?state.goal:null;
     const selectedKey=JSON.stringify({tool,pose:selectedPose});
     if(selectedPose&&selectedKey!==lastGoalKey&&!dirty){writePose(selectedPose);lastGoalKey=selectedKey;}
@@ -91,7 +92,7 @@ $('to-monitor').onclick=()=>selectTab('monitor');
 $('start').onclick=()=>act('start',{plan_id:state?.plan_id},'走行開始を受け付けました。');
 $('stop').onclick=$('cancel').onclick=()=>act('stop',{},'停止要求を送信しました。停止確認を待っています。');
 
-let recordingConfigLoaded=false,mappingConfigLoaded=false;
+let recordingConfigLoaded=false,mappingConfigLoaded=false,autonomyConfigLoaded=false,autonomyPortsKey='';
 function updateRecordingSettings(){
   const c=state?.recording_config;if(c&&!recordingConfigLoaded){const topics=new Set([...(c.topics||[]),...(state?.recording?.config?.topics||[])]);$('rec-lidar').checked=topics.has('/lidar_points');$('rec-imu').checked=topics.has('/imu/data_raw');$('rec-kiss-odom').checked=topics.has('/kiss/odometry');$('rec-glim-odom').checked=true;$('rec-cmd-vel').checked=true;$('rec-clock').checked=topics.has('/clock')||state.mode==='replay';$('rec-storage').value=c.storage_id||'mcap';$('rec-duration').value=Math.round(c.max_duration_sec/60);$('rec-size').value=Math.round(c.max_bag_size_mb/1024);$('rec-disk').value=Math.round(c.min_free_disk_mb/1024);recordingConfigLoaded=true;}
   $('rec-clock').disabled=state.mode==='replay';if(state.mode==='replay')$('rec-clock').checked=true;
@@ -129,6 +130,73 @@ function recordingTopics(){
 $('recording-save').onclick=()=>act('recording_config_save',{topics:recordingTopics(),storage_id:$('rec-storage').value,max_duration_sec:Number($('rec-duration').value)*60,max_bag_size_mb:Number($('rec-size').value)*1024,min_free_disk_mb:Number($('rec-disk').value)*1024},'記録設定を保存しました。現在の記録状態は変わりません。');
 $('recording-start').onclick=()=>act('recording_start',{},'記録要求を受け付けました。センサー入力と保存状態を確認しています。');
 $('recording-stop').onclick=()=>act('recording_stop',{},'記録終了処理を開始しました。完了状態を確認してください。');
+const autonomyPhases={idle:'待機中',arming:'開始確認中',blocked:'障害物で停止中',running:'自動走行中',paused_manual:'手動操作を優先中（目標は保持）',blocked_sensor:'センサー入力待ち',blocked_calibration:'校正待ち',blocked_obstacle:'障害物で停止中',completed:'目標に到達',cancelled:'中止',fault:'異常停止'};
+function updateAutonomy(){
+  const a=state?.autonomy;if(!a)return;
+  const settings=a.settings||{},saved=settings.saved||{},ports=settings.serial_ports||[];
+  const portsKey=JSON.stringify(ports);
+  if(portsKey!==autonomyPortsKey){const select=$('autonomy-serial-port'),selected=select.value;select.replaceChildren(new Option('未選択',''));for(const port of ports)select.add(new Option(port,port));autonomyPortsKey=portsKey;if(ports.includes(selected))select.value=selected;}
+  if(!autonomyConfigLoaded&&settings.saved){
+    $('autonomy-hardware-enabled').checked=saved.hardware_enabled===true;
+    if(saved.serial_port&&ports.includes(saved.serial_port))$('autonomy-serial-port').value=saved.serial_port;
+    const t=saved.body_to_lidar?.translation_m,q=saved.body_to_lidar?.quaternion_xyzw;
+    if(Array.isArray(t)&&t.length===3){$('autonomy-tx').value=t[0];$('autonomy-ty').value=t[1];$('autonomy-tz').value=t[2];}
+    if(Array.isArray(q)&&q.length===4)$('autonomy-quat').value=q.join(',');
+    autonomyConfigLoaded=true;
+  }
+  const runtime=a.state||{},active=['arming','running','paused_manual','blocked'].includes(runtime.phase);
+  const phase=runtime.phase||(!a.profile_enabled?'プロフィール未起動':'状態待ち');
+  $('autonomy-phase').textContent=autonomyPhases[phase]||phase;
+  const ref=runtime.command_ref||{},estimate=runtime.estimate||{};
+  const dataParts=[];
+  if(runtime.manual_override===true)dataParts.push('手動入力を優先中');
+  if(typeof runtime.reason==='string'&&runtime.reason)dataParts.push(runtime.reason);
+  if(runtime.pose_fresh===true)dataParts.push('位置推定: 更新中');else if(runtime.pose_fresh===false)dataParts.push('位置推定: 停止/未受信');
+  if(runtime.imu_fresh===true)dataParts.push('IMU: 更新中');else if(runtime.imu_fresh===false)dataParts.push('IMU: 停止/未受信');
+  if(runtime.command_ref&&Number.isFinite(ref.v_mps)&&Number.isFinite(ref.w_rps))dataParts.push(`要求値 ${ref.v_mps.toFixed(2)} m/s · ${ref.w_rps.toFixed(2)} rad/s`);
+  if(runtime.estimate&&Number.isFinite(estimate.v_mps))dataParts.push(`推定 ${estimate.v_mps.toFixed(2)} m/s`);
+  $('autonomy-detail').textContent=dataParts.join(' · ')|| (a.state_fresh?'状態を受信しています':'自動制御ノードの状態を待っています');
+  const reasons=[];
+  if(!a.profile_enabled)reasons.push('この画面だけでは自動制御を開始できません。設定後に gouda.sh autonomy で明示起動してください。');
+  if(settings.restart_required)reasons.push('保存設定の適用には自動運転プロファイルの再起動が必要です。');
+  if(!settings.ready)reasons.push(...(settings.errors||['シリアル接続または取付設定が未準備です。']));
+  if(!a.state_fresh)reasons.push('PC自動制御状態が未受信または古くなっています。');
+  if(a.state_fresh&&runtime.pose_fresh!==true)reasons.push('位置推定が新しく届いていません。');
+  if(a.state_fresh&&runtime.imu_fresh!==true)reasons.push('IMU入力が新しく届いていません。');
+  if(a.state_fresh&&runtime.calibration_ready!==true)reasons.push(runtime.reason||'LiDAR・IMU・車体の取付変換または制御校正が未確認です。');
+  if(runtime.manual_override===true)reasons.push('手動操作が優先です。手動入力が中立になり、PC状態が更新されるまで開始できません。');
+  if(active)reasons.push(runtime.reason||'自動制御が進行中です。');
+  const inputs=['autonomy-forward','autonomy-left','autonomy-heading','autonomy-target-v','autonomy-target-w'].map(id=>$(id).value.trim());
+  const nums=inputs.map(Number),targetsValid=inputs.every(v=>v!=='')&&nums.every(Number.isFinite)&&nums[3]>0&&nums[4]>0;
+  if(!targetsValid)reasons.push('前進速度と旋回速度を0より大きい数値で入力してください。');
+  $('autonomy-readiness').textContent=reasons.length?reasons.join(' '):'準備完了。開始操作で記録を起動・確認し、PCに一度だけ開始要求を送ります。';
+  const startReady=a.profile_enabled&&settings.ready&&!settings.restart_required&&a.state_fresh&&runtime.pose_fresh===true&&runtime.imu_fresh===true&&runtime.calibration_ready===true&&runtime.manual_override!==true&&!active&&['idle','cancelled','completed','fault'].includes(runtime.phase)&&targetsValid;
+  $('autonomy-start').disabled=busy||!connected||!startReady;
+  $('autonomy-cancel').disabled=busy||!a.profile_enabled||!a.state||['idle','completed','cancelled'].includes(runtime.phase);
+  $('autonomy-settings-save').disabled=busy||!connected||['arming','running','paused_manual','blocked'].includes(runtime.phase);
+  $('autonomy-hardware-enabled').disabled=busy||!connected;
+  $('autonomy-serial-port').disabled=busy||!connected;
+  for(const id of ['autonomy-tx','autonomy-ty','autonomy-tz','autonomy-quat'])$(id).disabled=busy||!connected;
+}
+function autonomySettingsFromForm(){
+  const current=state?.autonomy?.settings?.saved;if(!current)throw new Error('自動運転設定を読み込めません');
+  const raw=['autonomy-tx','autonomy-ty','autonomy-tz'].map(id=>$(id).value.trim()),q=$('autonomy-quat').value.split(',').map(v=>Number(v.trim()));
+  let bodyToLidar=null;
+  if(raw.some(v=>v!=='')){
+    const t=raw.map(Number);
+    if(raw.some(v=>v==='')||t.some(v=>!Number.isFinite(v))||q.length!==4||q.some(v=>!Number.isFinite(v)))throw new Error('T_body_lidarは位置3値とquaternion 4値をすべて入力してください');
+    bodyToLidar={translation_m:t,quaternion_xyzw:q};
+  }else if($('autonomy-quat').value.trim()!=='')throw new Error('T_body_lidarの位置と回転をそろえて入力してください');
+  return {...current,hardware_enabled:$('autonomy-hardware-enabled').checked,serial_port:$('autonomy-serial-port').value||null,body_to_lidar:bodyToLidar};
+}
+$('autonomy-settings-save').onclick=async()=>{try{await act('autonomy_settings_save',autonomySettingsFromForm(),'設定を保存しました。シリアル接続は次回の明示起動時に行います。');autonomyConfigLoaded=false;}catch(error){notice(error.message,true);}};
+$('autonomy-start').onclick=()=>{
+  const vals=['autonomy-forward','autonomy-left','autonomy-heading','autonomy-target-v','autonomy-target-w'].map(id=>Number($(id).value));
+  act('autonomy_start',{goal:{forward_m:vals[0],left_m:vals[1],yaw_rad:vals[2]*Math.PI/180},target_v_mps:vals[3],target_w_rps:vals[4]},'開始要求を送りました。PC自動制御状態を確認しています。');
+};
+$('autonomy-cancel').onclick=()=>act('autonomy_cancel',{},'中止要求を送りました。PC状態の更新を確認してください。');
+for(const id of ['autonomy-forward','autonomy-left','autonomy-heading','autonomy-target-v','autonomy-target-w'])$(id).addEventListener('input',updateAutonomy);
+
 $('mapping-backend').onchange=()=>{$('mapping-calibration').hidden=$('mapping-backend').value!=='glim_imu';};
 $('mapping-settings-save').onclick=()=>{
   let translation=[['map-tx','map-ty','map-tz'].map(id=>$(id).value.trim())];
@@ -153,7 +221,7 @@ function render(){
   document.body.classList.toggle('disconnected',!connected);
   $('connection').textContent=connected?'● Ubuntu 接続中':'接続停止 · 表示は最終受信値';
   if(!state){$('mode').textContent='未接続';$('rviz-status').dataset.available='false';$('rviz-status').textContent='Ubuntu接続停止 · RViz2の状態を取得できません';return;}
-  $('mode').textContent={simulation:'シミュレーション',live:'実機 · 走行無効',replay:'記録再生'}[state.mode]||state.mode;
+  $('mode').textContent=state.autonomy?.profile_enabled?'実機 · 自動MVP':{simulation:'シミュレーション',live:'実機 · 走行無効',replay:'記録再生'}[state.mode]||state.mode;
   const observation=!!state.observation_only;
   $('recording-save').disabled=busy||!connected||['awaiting_sensor_data','recording','finalizing','no_sensor_data'].includes(state.recording?.phase);$('mapping-settings-save').disabled=busy||!connected||state.mapping;
   $('stop').disabled=observation;$('cancel').disabled=observation;

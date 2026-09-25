@@ -6,7 +6,7 @@ import threading
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 import pytest
-from gouda_gui.core import MapStore, ProjectionMap, finite_pose, serve, mapping_start_backend, glim_session_output_directory, compose_pose_transform
+from gouda_gui.core import MapStore, ProjectionMap, finite_pose, serve, mapping_start_backend, glim_session_output_directory, compose_pose_transform, validate_autonomy_goal, autonomy_start_blocker
 
 
 def test_projection_preserves_unknown_and_hits():
@@ -120,3 +120,27 @@ def test_glim_odom_is_transformed_once_through_map_to_odom():
     # Applying the same transform twice would move the point to (7,12).
     p2,_=compose_pose_transform(p,q,(10,2,0),(0,0,math.sqrt(.5),math.sqrt(.5)))
     assert p2!=pytest.approx(p)
+
+
+def test_autonomy_relative_goal_requires_finite_target_and_positive_speed():
+    goal=validate_autonomy_goal({'goal':{'forward_m':1.2,'left_m':-.3,'yaw_rad':.5},'target_v_mps':.2,'target_w_rps':.4})
+    assert goal=={'goal':{'forward_m':1.2,'left_m':-.3,'yaw_rad':.5},'target_v_mps':.2,'target_w_rps':.4}
+    for data in (
+        {'goal':{'forward_m':float('nan'),'left_m':0,'yaw_rad':0},'target_v_mps':.2,'target_w_rps':.4},
+        {'goal':{'forward_m':0,'left_m':0,'yaw_rad':0},'target_v_mps':0,'target_w_rps':.4},
+        {'goal':{'forward_m':0,'left_m':0,'yaw_rad':0},'target_v_mps':.2,'target_w_rps':float('inf')},
+    ):
+        with pytest.raises(ValueError):validate_autonomy_goal(data)
+
+
+def test_autonomy_start_gate_requires_profile_config_fresh_sensors_calibration_recording():
+    state={'phase':'idle','pose_fresh':True,'imu_fresh':True,'calibration_ready':True,'manual_override':False}
+    gate=dict(profile_enabled=True,config_ready=True,state=state,state_fresh=True,recording_active=True)
+    assert autonomy_start_blocker(**gate) is None
+    for change in (
+        {'profile_enabled':False}, {'config_ready':False}, {'state_fresh':False}, {'recording_active':False},
+        {'state':{**state,'pose_fresh':False}}, {'state':{**state,'imu_fresh':False}},
+        {'state':{**state,'calibration_ready':False,'reason':'T_body_lidar未測定'}},
+        {'state':{**state,'manual_override':True}}, {'state':{**state,'phase':'running'}},
+    ):
+        assert autonomy_start_blocker(**(gate|change))

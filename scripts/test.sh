@@ -8,3 +8,5 @@ python3 -m pytest -q "$repo/gouda_sensors/test" "$repo/gouda_navigation/test" "$
 mkdir -p "$workspace/build/gouda_core"
 g++ -std=c++17 -Wall -Wextra -Werror -I "$repo/firmware/gouda_esp32/include" "$repo/firmware/gouda_esp32/test/core_test.cpp" -o "$workspace/build/gouda_core/core_test"
 "$workspace/build/gouda_core/core_test"
+
+bash "$repo/firmware/gouda_dualsense_usb/test/run_host_tests.sh"

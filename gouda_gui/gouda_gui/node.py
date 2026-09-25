@@ -5,6 +5,7 @@ from .recording import RecordingManager
 from collections import deque
 import json
 import math
+import glob
 from pathlib import Path as FilePath
 import threading
 import time
@@ -31,12 +32,17 @@ from std_msgs.msg import String, Bool
 from std_srvs.srv import Trigger, SetBool
 from tf2_ros import Buffer, TransformListener, TransformException
 from ament_index_python.packages import get_package_share_directory
-from .core import ProjectionMap, MapStore, finite_pose, serve, validate_grid, mapping_start_backend, glim_session_output_directory, compose_pose_transform
+from .core import ProjectionMap, MapStore, finite_pose, serve, validate_grid, mapping_start_backend, glim_session_output_directory, compose_pose_transform, validate_autonomy_goal, autonomy_start_blocker
 
 
 def mapping_api():
     from gouda_navigation.mapping import load_mapping_settings, save_mapping_settings, validate_mapping_settings, GlimSession
     return load_mapping_settings, save_mapping_settings, validate_mapping_settings, GlimSession
+
+
+def autonomy_api():
+    from gouda_navigation.autonomy_core import load_autonomy_settings, save_autonomy_settings, validate_autonomy_settings
+    return load_autonomy_settings, save_autonomy_settings, validate_autonomy_settings
 
 
 def yaw(q):
@@ -47,14 +53,20 @@ class MissionControl(Node):
     def __init__(self):
         super().__init__('gouda_mission_control')
         for k, v in [('host','127.0.0.1'),('port',8765),('mode','live'),('mapping_backend','kiss_icp'),
-                     ('observation_only',False),('map_directory',str(data_dir()/'maps'))]:
+                     ('observation_only',False),('autonomy_mvp_enabled',False),('map_directory',str(data_dir()/'maps'))]:
             self.declare_parameter(k,v)
         self.mode = self.get_parameter('mode').value
         if self.mode not in ('simulation','live','replay'):
             raise ValueError('mode must be simulation, live, or replay')
         self.observation_only = self.get_parameter('observation_only').value
+        self.autonomy_mvp_enabled = bool(self.get_parameter('autonomy_mvp_enabled').value)
+        self.autonomy_state=None;self.autonomy_state_time=None;self.autonomy_error='';self.autonomy_runtime_settings=None
+        try:self.autonomy_runtime_settings=autonomy_api()[0]()
+        except Exception as exc:self.autonomy_error=str(exc)[:300]
         if self.observation_only and self.mode == 'simulation':
             raise ValueError('observation_only requires live or replay')
+        if self.autonomy_mvp_enabled and (not self.observation_only or self.mode!='live'):
+            raise ValueError('autonomy_mvp_enabled requires live observation mode')
         self.slam = None; self.external_frames = 0; self.pending_clouds = deque(maxlen=10)
         self.lock = threading.RLock(); self.operations = threading.Lock()
         self.recording_data_lock=threading.Lock();self.recording_data_seen=False
@@ -79,6 +91,13 @@ class MissionControl(Node):
         self.goal_pub = self.create_publisher(PoseStamped,'/goal_pose',1)
         self.initial_pub = self.create_publisher(PoseWithCovarianceStamped,'/initialpose',1)
         self.sim_pose_pub = self.create_publisher(PoseStamped,'/gouda/sim/set_pose',1)
+        self.autonomy_request_pub=None
+        if self.autonomy_mvp_enabled:
+            volatile=QoSProfile(depth=1,durability=DurabilityPolicy.VOLATILE)
+            self.recording_state_pub=self.create_publisher(String,'/gouda/recording/state',10)
+            self.create_timer(.2,self.publish_recording_state)
+            self.autonomy_request_pub=self.create_publisher(String,'/gouda/autonomy/request',volatile)
+            self.create_subscription(String,'/gouda/autonomy/state',self.on_autonomy_state,10)
         self.cancel = self.create_client(Trigger,'/gouda/cancel')
         self.start = self.create_client(Trigger,'/gouda/start')
         self.arm = self.create_client(SetBool,'/gouda/arm')
@@ -319,6 +338,84 @@ class MissionControl(Node):
         self.glim_error=''
         self.active_mapping_settings=copy.deepcopy(self.runtime_mapping_settings)
 
+    def publish_recording_state(self):
+        status=self.recorder.status() if self.recorder else {}
+        active=status.get("phase") in ("awaiting_sensor_data","recording","no_sensor_data") and status.get("return_code") is None
+        self.recording_state_pub.publish(String(data=json.dumps(dict(active=active,phase=status.get("phase")))))
+
+    def on_autonomy_state(self,msg):
+        try:
+            value=json.loads(msg.data)
+            if not isinstance(value,dict) or not isinstance(value.get('phase'),str):raise ValueError('自動制御状態の形式が不正です')
+        except (ValueError,TypeError) as exc:
+            self.autonomy_error=str(exc)[:300];return
+        with self.lock:
+            self.autonomy_state=value;self.autonomy_state_time=time.monotonic();self.autonomy_error=''
+
+    @staticmethod
+    def autonomy_serial_ports(config=None):
+        ports=set()
+        for pattern in ('/dev/serial/by-id/*','/dev/ttyUSB[0-9]*','/dev/ttyACM[0-9]*'):
+            ports.update(glob.glob(pattern))
+        configured=config.get('serial_port') if isinstance(config,dict) else None
+        if isinstance(configured,str) and (configured.startswith('/dev/serial/by-id/') or __import__('re').fullmatch(r'/dev/tty(?:USB|ACM)[0-9]+',configured)):
+            ports.add(configured)
+        return sorted(ports)
+
+    def autonomy_settings_snapshot(self):
+        try:
+            load,_,validate=autonomy_api();saved=load();errors=validate(saved,require_ready=False)
+            errors=list(errors or [])
+            return dict(saved=saved,ready=not errors,errors=errors,
+                restart_required=bool(self.autonomy_mvp_enabled and saved!=self.autonomy_runtime_settings),
+                serial_ports=self.autonomy_serial_ports(saved))
+        except Exception as exc:
+            return dict(saved=None,ready=False,errors=[str(exc)[:300]],restart_required=False,serial_ports=self.autonomy_serial_ports())
+
+    def autonomy_snapshot(self):
+        with self.lock:
+            value=copy.deepcopy(self.autonomy_state);received=self.autonomy_state_time
+        age=max(0.,time.monotonic()-received) if received is not None else None
+        return dict(profile_enabled=self.autonomy_mvp_enabled,settings=self.autonomy_settings_snapshot(),
+            state=value,state_age_sec=age,state_fresh=bool(value is not None and age is not None and age<1.0),error=self.autonomy_error or None)
+
+    def autonomy_state_gate(self):
+        snapshot=self.autonomy_snapshot();settings=snapshot['settings'];state=snapshot['state']
+        errors=settings.get('errors') or []
+        ready=bool(settings.get('ready') and not settings.get('restart_required') and isinstance(settings.get('saved'),dict) and settings['saved'].get('hardware_enabled') is True)
+        if snapshot.get('restart_required'):errors=errors+['保存設定を適用するには自動運転プロファイルの再起動が必要です']
+        if not snapshot['profile_enabled']:errors=errors+['自動MVPプロファイルが起動していません']
+        if snapshot.get('error'):errors=errors+[snapshot['error']]
+        blocker=autonomy_start_blocker(profile_enabled=snapshot['profile_enabled'],config_ready=ready,
+            state=state,state_fresh=snapshot['state_fresh'],recording_active=True)
+        if blocker and errors and not ready:blocker=' / '.join(str(e) for e in errors)
+        return snapshot,blocker
+
+    def ensure_recording_for_autonomy(self):
+        if self.recorder is None:raise RuntimeError('センサー記録を利用できません: '+self.recording_error)
+        active={'awaiting_sensor_data','recording','no_sensor_data'}
+        current=self.recorder.status()
+        if current.get('phase') not in active or current.get('return_code') is not None:
+            self.recorder.start()
+        deadline=time.monotonic()+5.0
+        while time.monotonic()<deadline:
+            current=self.recorder.status()
+            if current.get('phase') not in active or current.get('return_code') is not None:
+                raise RuntimeError('センサー記録を開始できません: '+str(current.get('error') or current.get('phase')))
+            if current.get('sensor_data_seen') is True:return current
+            time.sleep(.1)
+        raise RuntimeError('記録プロセスは起動しましたが、生LiDARまたはIMU入力を確認できません。自動開始要求は送信していません。')
+
+    def publish_autonomy_request(self,action,goal=None):
+        if not self.autonomy_mvp_enabled or self.autonomy_request_pub is None:
+            raise RuntimeError('自動MVPプロファイルを起動していません。gouda.sh autonomy を使用してください')
+        now=self.get_clock().now().to_msg();request_id=uuid.uuid4().hex
+        request={'action':action,'request_id':request_id,'issued_at':{'sec':int(now.sec),'nanosec':int(now.nanosec)}}
+        if goal:request.update(goal)
+        msg=String();msg.data=json.dumps(request,allow_nan=False,separators=(',',':'))
+        self.autonomy_request_pub.publish(msg)
+        return dict(ok=True,request_id=request_id,phase=(self.autonomy_state or {}).get('phase','unknown'),message='要求を送りました。実行状態はPC状態の更新で確認してください。')
+
     def mapping_settings_snapshot(self):
         try:
             load_settings,_,validate_settings,_=mapping_api();saved=load_settings();errors=validate_settings(saved,require_ready=saved.get('backend')=='glim_imu')
@@ -357,7 +454,7 @@ class MissionControl(Node):
             return copy.deepcopy(dict(mode=self.mode,observation_only=self.observation_only,viewer=self.viewer_status(),
                 slam_phase=self.slam.status() if self.slam else None,
                 recording=self.recorder.status() if self.recorder else dict(phase='failed',error=self.recording_error,sensor_data_seen=False),recording_config=self.recorder.get_config() if self.recorder else None,
-                mapping_settings=self.mapping_settings_snapshot(),
+                mapping_settings=self.mapping_settings_snapshot(),autonomy=self.autonomy_snapshot(),
                 localization_available=bool(self.map_meta and (self.store.root/self.map_meta.get('id','')/'slam.posegraph').is_file() and (self.store.root/self.map_meta.get('id','')/'slam.data').is_file()),
                 pose_reference=self.pose_frame,pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
                 map=self.grid,map_revision=self.grid_revision,map_meta=self.map_meta,maps=self.store.list(),
@@ -380,6 +477,8 @@ class MissionControl(Node):
             self.epoch+=1;self.plan_id=None;self.preview=[];self.planning=False;self.plan_error=''
 
     def stop_motion(self):
+        if self.autonomy_mvp_enabled:
+            return self.publish_autonomy_request('cancel')
         if self.observation_only:
             return dict(ok=False,message='この画面は計測専用です。車体の停止機能へ接続していません')
         self.invalidate()
@@ -394,6 +493,34 @@ class MissionControl(Node):
         if action=='stop':return self.stop_motion()
         if not self.operations.acquire(blocking=False):raise RuntimeError('前の操作を処理中です')
         try:
+            if action=='autonomy_settings_save':
+                with self.lock:
+                    if self.autonomy_state and self.autonomy_state.get('phase') in ('arming','running','paused_manual','blocked'):
+                        raise RuntimeError('自動制御中は取付設定を変更できません。先に中止してください')
+                try:
+                    _,save_settings,_=autonomy_api();save_settings(data);settings=self.autonomy_settings_snapshot()
+                except ImportError as exc:raise RuntimeError('自動運転設定機能がありません。ワークスペースをビルドしてください') from exc
+                if settings.get('saved') is None:raise RuntimeError('自動運転設定を保存できません: '+' / '.join(settings.get('errors') or []))
+                return dict(ok=True,autonomy=settings)
+            if action=='autonomy_start':
+                goal=validate_autonomy_goal(data)
+                snapshot,blocker=self.autonomy_state_gate()
+                if blocker:raise RuntimeError(blocker)
+                try:
+                    load_settings,_,validate_settings=autonomy_api();saved=load_settings();errors=validate_settings(saved,require_ready=True)
+                except Exception as exc:raise RuntimeError('自動運転設定を確認できません: '+str(exc)) from exc
+                if errors:raise RuntimeError('自動運転の準備ができていません: '+' / '.join(map(str,errors)))
+                if saved!=self.autonomy_runtime_settings:raise RuntimeError('保存設定は次回の自動運転プロファイル起動後に適用されます')
+                state=snapshot.get('state') or {}
+                blocker=autonomy_start_blocker(profile_enabled=snapshot['profile_enabled'],config_ready=True,state=state,
+                    state_fresh=snapshot['state_fresh'],recording_active=True)
+                if blocker:raise RuntimeError(blocker)
+                self.ensure_recording_for_autonomy()
+                latest,blocker=self.autonomy_state_gate()
+                if blocker:raise RuntimeError(blocker)
+                return self.publish_autonomy_request('start',goal)
+            if action=='autonomy_cancel':
+                return self.publish_autonomy_request('cancel')
             if action=='recording_config_save':
                 if not self.recorder:raise RuntimeError('記録設定を読み込めません: '+self.recording_error)
                 return dict(ok=True,config=self.recorder.update_config(data))

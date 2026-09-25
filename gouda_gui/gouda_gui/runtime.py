@@ -197,7 +197,7 @@ def restart_viewer(state,path,logs,cfg):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('command',choices=['view','observe','viewer','doctor','stop'])
+    parser.add_argument('command',choices=['view','observe','autonomy','viewer','doctor','stop'])
     args=parser.parse_args()
     root=runtime_dir(); root.mkdir(parents=True,exist_ok=True,mode=0o700)
     logs=logs_dir(); logs.mkdir(parents=True,exist_ok=True,mode=0o700)
@@ -237,21 +237,24 @@ def main():
     if args.command=='viewer':
         restart_viewer(state,path,logs,cfg)
         return
-    if state['mode'] not in (None,'observation') and any(alive(v) for v in state['processes'].values()):
+    desired_mode='autonomy' if args.command=='autonomy' else 'observation'
+    if state['mode'] not in (None,desired_mode) and any(alive(v) for v in state['processes'].values()):
         raise ValueError('以前の起動が稼働中です。先に gouda.sh stop を実行してください。')
-    if args.command=='observe': validate_hardware(cfg)
+    if args.command in ('observe','autonomy'): validate_hardware(cfg)
 
     env=dict(os.environ,ROS_DOMAIN_ID='99',ROS_AUTOMATIC_DISCOVERY_RANGE='LOCALHOST')
     env.pop('ROS_LOCALHOST_ONLY',None)
     launches=[]
-    if args.command=='observe':
+    if args.command in ('observe','autonomy'):
         launches.append(('sensors',['ros2','launch','gouda_gui','sensors_only.launch.py',
                              'hesai_config:='+cfg['hesai_config'],'imu_device:='+cfg['imu_device']],[]))
     from gouda_navigation.mapping import load_mapping_settings
     mapping_backend = load_mapping_settings().get('backend', 'kiss_icp')
+    if args.command=='autonomy' and mapping_backend!='glim_imu':
+        raise ValueError('GUIの地図設定でGLIM + IMUを選択して保存してください。')
     launches.extend([
-        ('processing',['ros2','launch','gouda_gui','observation.launch.py','sensors:=false',
-                       'backend:='+mapping_backend],[8765])])
+        ('processing',(['ros2','launch','gouda_gui','autonomy_mvp.launch.py'] if args.command=='autonomy' else ['ros2','launch','gouda_gui','observation.launch.py','sensors:=false',
+                       'backend:='+mapping_backend]),[8765])])
     launches.append(('gateway',[sys.executable,'-m','gouda_gui.gateway'],[8766]))
     # Check all resources before starting sensors. Never adopt an unrelated process.
     for name,cmd,ports in launches:
@@ -259,7 +262,7 @@ def main():
             for port in ports:
                 if occupied(port): raise ValueError(f'Port {port} is already used by another process.')
 
-    state['mode']='observation'
+    state['mode']=desired_mode
     new=[]
     try:
         for name,cmd,ports in launches:
@@ -292,7 +295,7 @@ def main():
         raise
     print('GUI: http://127.0.0.1:8766')
     print('RViz2はUbuntuデスクトップの別ウィンドウです。再起動: bash scripts/gouda.sh viewer')
-    print('実機走行出力は起動していません。終了: bash scripts/gouda.sh stop')
+    print('自動MVPを起動しました。走行開始はGUIで明示操作してください。' if args.command=='autonomy' else '実機走行出力は起動していません。終了: bash scripts/gouda.sh stop')
 
 
 if __name__=='__main__':

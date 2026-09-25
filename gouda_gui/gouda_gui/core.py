@@ -55,6 +55,36 @@ def mapping_start_backend(saved, runtime, effective_backend, validation_errors=(
     return backend
 
 
+def validate_autonomy_goal(data):
+    """Validate a mapless relative goal and explicit requested speed references."""
+    if not isinstance(data, dict) or not isinstance(data.get('goal'), dict):
+        raise ValueError('相対目標を設定してください')
+    goal=data['goal']
+    values={name:goal.get(name) for name in ('forward_m','left_m','yaw_rad')}
+    values.update(target_v_mps=data.get('target_v_mps'),target_w_rps=data.get('target_w_rps'))
+    if any(isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) for value in values.values()):
+        raise ValueError('相対目標と要求速度には有限の数値を入力してください')
+    if values['target_v_mps']<=0 or values['target_w_rps']<=0:
+        raise ValueError('要求速度は0より大きい値を入力してください')
+    return dict(goal={name:float(values[name]) for name in ('forward_m','left_m','yaw_rad')},
+                target_v_mps=float(values['target_v_mps']),target_w_rps=float(values['target_w_rps']))
+
+
+def autonomy_start_blocker(*, profile_enabled, config_ready, state, state_fresh, recording_active):
+    """Return a concrete reason when the explicit autonomy start gate is closed."""
+    if not profile_enabled:return '自動MVPプロファイルが起動していません。gouda.sh autonomy を使用してください。'
+    if not config_ready:return 'シリアル接続と取付校正の設定を完了してください。'
+    if not state_fresh or not isinstance(state,dict):return '自動制御状態が未受信または古くなっています。'
+    if state.get('pose_fresh') is not True:return '位置推定が更新されていません。'
+    if state.get('imu_fresh') is not True:return 'IMU入力が更新されていません。'
+    if state.get('calibration_ready') is not True:return str(state.get('reason') or '取付変換または制御校正が未準備です。')
+    if state.get('manual_override') is True:return '手動操作を優先中です。手動入力が中立になってから状態を確認してください。'
+    if state.get('phase') not in ('idle','cancelled','completed','fault'):
+        return str(state.get('reason') or '自動制御の状態が開始可能ではありません。')
+    if not recording_active:return 'センサー記録が動作していません。記録を開始してから再試行してください。'
+    return None
+
+
 def finite_pose(data):
     values = [data.get(k) for k in ('x', 'y', 'yaw')]
     if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in values):
