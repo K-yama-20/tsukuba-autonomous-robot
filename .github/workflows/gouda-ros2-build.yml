@@ -1,0 +1,66 @@
+name: Gouda ROS 2 Jazzy Build
+on:
+  push:
+    branches: [feature/aya-navsystem]
+  pull_request:
+    branches: [feature/aya-navsystem]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      GOUDA_WORKSPACE: /home/runner/gouda_ws
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm architecture
+        run: test "$(dpkg --print-architecture)" = "${{ matrix.arch }}"
+      - name: Clean installation using user setup
+        run: bash scripts/setup.sh --with-glim --no-configure
+      - name: Repeat setup without replacing user data
+        run: |
+          cd "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot"
+          test ! -L "$PWD"
+          mkdir -p "$GOUDA_WORKSPACE/maps"
+          echo keep > "$GOUDA_WORKSPACE/maps/preserve.txt"
+          cp "$GOUDA_WORKSPACE/bags/gouda/host.json" /tmp/host-before.json
+          bash scripts/setup.sh --skip-system --with-glim --no-configure
+          cmp /tmp/host-before.json "$GOUDA_WORKSPACE/bags/gouda/host.json"
+          test "$(cat "$GOUDA_WORKSPACE/maps/preserve.txt")" = keep
+      - name: GLIM CPU no-input lifecycle smoke
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/glim_cpu_smoke.sh"
+      - name: Unit and protocol tests
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/test.sh"
+      - name: Browser test dependencies
+        run: |
+          sudo apt-get install -y xvfb xauth x11-utils wmctrl
+          npm install --prefix /tmp/gouda-browser playwright@1.55.0
+          /tmp/gouda-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: GUI and separate RViz window acceptance (test desktop only)
+        env:
+          NODE_PATH: /tmp/gouda-browser/node_modules
+          WAYLAND_DISPLAY: wayland-ci-inherited
+        run: xvfb-run -a -s "-screen 0 1280x720x24" bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/smoke.sh"
+      - name: Stop owned processes
+        if: always()
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/gouda.sh" stop || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-${{ matrix.arch }}
+          path: |
+            ~/gouda_ws/log/
+            ~/gouda_ws/bags/gouda/runtime/*.log
+            ~/gouda_ws/bags/gouda/logs/*.log
+            ~/gouda_ws/bags/gouda/logs/**/*.log
+            /tmp/gouda-smoke/

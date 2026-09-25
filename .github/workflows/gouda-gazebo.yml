@@ -1,0 +1,24 @@
+name: Gouda Gazebo simulation
+on:
+  push:
+    branches: [feature/aya-navsystem]
+    paths: ['gouda_sim/**', 'gouda_navigation/**', 'scripts/gazebo*', '.github/workflows/gouda-gazebo.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scenarios:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GOUDA_WORKSPACE: /home/runner/gouda_ws
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/setup.sh --with-glim --with-gazebo --no-configure
+      - run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/test.sh"
+      - run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/gazebo_smoke.sh"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gazebo-results
+          path: /tmp/gouda-gazebo-acceptance/

@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+from gouda_sim.sensor_adapter import main
+main()

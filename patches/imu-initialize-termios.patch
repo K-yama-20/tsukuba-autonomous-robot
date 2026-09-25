@@ -1,0 +1,13 @@
+--- a/lib/src/adis_rcv_bin.cpp
++++ b/lib/src/adis_rcv_bin.cpp
+@@ -115,8 +115,9 @@
+     return false;
+   }
+ 
+-  struct termios config;
++  struct termios config = defaults_;
+   cfmakeraw(&config);
++  config.c_cflag |= CLOCAL | CREAD;
+   config.c_cc[VMIN] = 0;
+   config.c_cc[VTIME] = 10;  // 1 second read timeout
+ 

@@ -1,0 +1,26 @@
+# Intentionally NOT launchable. Replace nulls using recorded measurements.
+lidar:
+  - driver:
+      source_type: 1
+      use_gpu: false
+      transform_flag: false
+      use_timestamp_type: null
+      lidar_udp_type:
+        device_ip_address: null
+        host_ip_address: null
+        udp_port: null
+        ptc_port: null
+        multicast_ip_address: ''
+        use_ptc_connected: true
+        correction_file_path: null
+        firetimes_path: null
+        standby_mode: -1
+        speed: -1
+    ros:
+      ros_frame_id: hesai_lidar
+      ros_send_point_cloud_topic: /lidar_points
+      ros_send_packet_topic: /lidar_packets
+      ros_recv_packet_topic: /lidar_packets
+      send_point_cloud_ros: true
+      send_packet_ros: true
+      send_imu_ros: false

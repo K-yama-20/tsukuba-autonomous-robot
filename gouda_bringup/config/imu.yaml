@@ -1,0 +1,15 @@
+adi_rcv_bin_node:
+  ros__parameters:
+    device: "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00"
+
+    # Gouda coordinate frame
+    frame_id: "imu_link"
+    parent_id: "base_link"
+
+    # ADIS16607-2 internal sampling rate is 1000 Hz.
+    # ROS publication rate is intentionally limited to 100 Hz.
+    rate: 100.0
+
+    # TF is managed by Gouda's URDF / robot_state_publisher.
+    # The IMU driver must not publish its own odom -> imu transform.
+    publish_tf: false

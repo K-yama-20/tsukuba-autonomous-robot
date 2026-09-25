@@ -1,0 +1,30 @@
+# Planning evidence only. This file MUST NOT publish a body/sensor TF.
+# Sensors are fixed in the planned mount; dimensions and axis calibration remain unmeasured.
+status: installed_dimensions_unmeasured
+body_reference: rear_axle_midpoint_at_ground
+axes: {x: forward, y: left, z: up}
+lidar:
+  height_m: 1.60
+  height_range_m: [1.55, 1.65]
+  height_source: user_estimate
+  forward_offset_m: null
+  forward_offset_description: user_reports_several_cm_to_10cm_forward
+  lateral_offset_m: null
+  lateral_description: user_wrote_210_plus_15_cm_unit_and_side_pending
+  rotation_rpy_rad: null
+imu:
+  placement: directly_below_lidar
+  separation_m: null
+  rotation_rpy_rad: null
+mount:
+  backrest: fixed_vertical
+  support: aluminum_3030_frame_attached_to_backrest_pipe
+drawing:
+  model: EMC-260_270
+  width_m: 0.600
+  rear_wheel_diameter_m: 0.330
+  front_caster_diameter_m: 0.220
+  source: user_photo_manual_page_33
+  physical_verification: false
+body_tf_enabled: false
+imu_fusion_enabled_by_default: false  # GLIM fusion is selectable only after explicit calibration

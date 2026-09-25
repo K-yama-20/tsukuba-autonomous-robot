@@ -1,0 +1,38 @@
+diff --git a/src/manager/source_driver_ros2.hpp b/src/manager/source_driver_ros2.hpp
+index 4d5c823..4bad2be 100644
+--- a/src/manager/source_driver_ros2.hpp
++++ b/src/manager/source_driver_ros2.hpp
+@@ -335,6 +335,9 @@ inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t&
+     rawpacket.size = ros_msg[i].packet_len;
+     rawpacket.data.resize(ros_msg[i].packet_len);
+     memcpy(&rawpacket.data[0], &ros_msg[i].buffer[0], ros_msg[i].packet_len);
++    // Preserve receive time for packet replay (SDK timestamps are microseconds).
++    rawpacket.stamp.sec = static_cast<int32_t>(ros_msg[i].recv_timestamp / 1000000ULL);
++    rawpacket.stamp.nanosec = static_cast<uint32_t>((ros_msg[i].recv_timestamp % 1000000ULL) * 1000ULL);
+     rs_msg.packets.push_back(rawpacket);
+   }
+   auto sec = (uint64_t)floor(timestamp);
+@@ -403,8 +406,22 @@ inline sensor_msgs::msg::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_conf
+ inline void SourceDriver::ReceivePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg)
+ {
+   for (size_t i = 0; i < msg->packets.size(); i++) {
++    const auto& packet = msg->packets[i];
++    if (packet.size == 0 || packet.size > sizeof(UdpPacket().buffer) || packet.size > packet.data.size()) {
++      RCLCPP_WARN(node_ptr_->get_logger(), "Reject malformed replay packet length");
++      continue;
++    }
++    // Older bags lack per-packet stamps. The frame stamp is a coarse fallback,
++    // not restored per-point timing; do not use it to claim calibrated deskew.
++    const auto& stamp = (packet.stamp.sec != 0 || packet.stamp.nanosec != 0)
++        ? packet.stamp : msg->header.stamp;
++    if (stamp.sec < 0 || stamp.nanosec >= 1000000000U || (stamp.sec == 0 && stamp.nanosec == 0)) {
++      RCLCPP_WARN(node_ptr_->get_logger(), "Reject replay packet without valid time");
++      continue;
++    }
++    const uint64_t receive_us = uint64_t(stamp.sec) * 1000000ULL + stamp.nanosec / 1000ULL;
+     if(driver_ptr_->lidar_ptr_->origin_packets_buffer_.full()) std::this_thread::sleep_for(std::chrono::microseconds(10000));
+-    driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg->packets[i].data[0], msg->packets[i].size);
++    driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(packet.data.data(), packet.size, receive_us);
+   }
+ }
+ 

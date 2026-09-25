@@ -1,0 +1,17 @@
+repositories:
+  HesaiLidar_ROS_2.0:
+    type: git
+    url: https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+    version: e7e112f0809f0eed5e3c81c55a1a0376474db234
+  urg_node2:
+    type: git
+    url: https://github.com/Hokuyo-aut/urg_node2.git
+    version: f02d8af22db2a4322217f4c5803494f4ca2903ff
+  kiss-icp:
+    type: git
+    url: https://github.com/PRBonn/kiss-icp.git
+    version: 1ffa7d7512f10bfc8b1185095011fa31184019e3
+  ADI_IMU_TR_Driver_ROS2:
+    type: git
+    url: https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2.git
+    version: 742b7babec7e7a20937d4e8be0df77a771a1294a
