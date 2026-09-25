@@ -1,36 +1,40 @@
-# Gouda 歩行者信号 色判定プロトタイプ
+# Gouda 歩行者信号認識プロトタイプ
 
-Ubuntu 24.04 / ROS 2 Jazzy向けのネイティブQt5デスクトップアプリです。カメラ映像のユーザー指定ROI内で赤・緑の画素を調べ、状態をGUIと`std_msgs/msg/String`で表示します。
+Ubuntu 24.04 / ROS 2 Jazzy向けのネイティブQt5アプリです。手動で確定した検索範囲の中からAutoware由来のONNX歩行者信号検出器が対象を見つけ、信号状態分類器が赤・緑・不明を判定します。カメラ映像をGUIに表示し、結果を`std_msgs/msg/String`のJSONとして発行します。
 
 ## 起動
 
-依存パッケージはリポジトリの`bash scripts/setup.sh`で導入します。ROS 2環境を読み込んだ後、次のいずれかで起動します。
+依存関係とモデル実行環境を`bash scripts/setup.sh`で導入した後、次のコマンドで起動します。ランチャーがROS 2とワークスペースの環境を読み込みます。
 
 ```bash
-ros2 run gouda_signal pedestrian_signal
 bash scripts/gouda.sh signal
 ```
 
-アプリはカメラを自動で開始しません。入力欄にV4L2番号（既定値`0`）、`/dev/videoN`、動画ファイルまたはOpenCVが対応するURIを指定し、Startを押します。映像が表示されたら点灯部をドラッグし、ROIを確定します。カメラを開始するたび、または入力を編集するたびにROIの確定が必要です。入力の変更は実行中カメラを停止し、映像・ROI・判定を直ちに消去します。
+カメラは自動で開始しません。V4L2番号（既定値`0`）、`/dev/videoN`、動画ファイルまたはOpenCV対応URIを入力して「開始」を押します。映像が表示されたら歩行者信号器全体を囲み、「ROIを確定」を押してください。ROIはモデルの検索範囲です。カメラを開始するたび、また入力を編集したときは再度ROIを確定してください。入力を編集するとカメラ、映像、ROI、前の判定を直ちにリセットします。
+
+追加引数はランチャーの後ろに指定します。
 
 ```bash
-ros2 run gouda_signal pedestrian_signal -- --camera /dev/video0
-ros2 run gouda_signal pedestrian_signal -- --camera ./intersection.mp4 --no-ros
-ros2 run gouda_signal pedestrian_signal -- --no-ros
+bash scripts/gouda.sh signal --camera /dev/video0
+bash scripts/gouda.sh signal --camera ./intersection.mp4 --no-ros
+bash scripts/gouda.sh signal --model-dir /path/to/models --confidence 0.8
+bash scripts/gouda.sh signal --classifier hsv --no-ros
 ```
 
-`--no-ros`は単体GUIの起動用です。ROSを使う場合の既定トピックは`/perception/pedestrian_signal`で、`--ros-topic /other/topic`で変更できます。ランチャーはROSの`ROS_DOMAIN_ID=99`を設定します。
+既定では学習済みモデルを使います。ONNXファイルは`GOUDA_SIGNAL_MODEL_DIR`または`$GOUDA_WORKSPACE/models/pedestrian_signal`から読み込みます。`--confidence`は分類器の最低スコアで、既定値は0.8です。検出器のスコアしきい値はモデルマニフェストの0.3を使います。必要なファイルや実行環境がない場合はUNKNOWNを表示して理由を示し、HSVへ自動で切り替わることはありません。HSV色判定は明示的なデバッグ用`--classifier hsv`でのみ使います。
 
-## 判定
+`--no-ros`はROSを使わずにGUIを開く指定です。ROSの既定トピックは`/perception/pedestrian_signal`で、`--ros-topic /other/topic`で変更できます。ランチャーは`ROS_DOMAIN_ID=99`を既定値として設定します。
 
-これは信号器を自動検出・追跡するAIではなく、確定したROI内の色だけを見るプロトタイプです。分類条件はiOS版コアと同じ固定HSVしきい値です。画素の明度は0.28以上、彩度は0.42以上、赤の色相は0–22度または338–360度、緑は72–175度で、ROI面積の0.8%以上の画素を必要とします。赤と緑がともにしきい値を満たす場合はUNKNOWNです。
+## 判定と鮮度
 
-緑は1.2秒連続して見えた後にGREENになります。フレーム間隔が0.45秒を超えれば連続時間をリセットします。3.2秒以内に緑の消灯が2回起きると点滅としてUNKNOWNにし、緑が2秒安定してから回復します。赤はREDを出し、しきい値を満たす色がない場合はUNKNOWNです。confidenceは色の画素量と優勢度から計算するヒューリスティック値で、確率ではありません。
+検出器は確定ROIの中から歩行者信号器を見つけ、分類器が赤・緑・不明を返します。分類にはCPU向けONNX Runtimeを使い、GUIとは別の終了可能なプロセス内で推論します。処理要求・結果は各1件に制限し、遅れてきたフレームやROI変更前の結果は破棄します。検出位置が前の対象から大きく移動した場合は判定時間をリセットします。これは物体追跡を行う機能ではありません。複数または未検出など単一の信号器を選べない場合はUNKNOWNです。
 
-最新フレームだけを扱い、処理間の古いフレームを蓄積しません。動画ファイルはファイルに報告されたFPS（1–120の範囲外または無効なら30 FPS）に合わせて読みます。映像プレビューは縦横比を保ち、最大1280×960ピクセルに縮小します。ROIの座標はプレビューの余白を除いたカメラ画像に対応します。OpenCVの読み込み完了時刻を単調時計で記録します。カメラの露光時刻やネットワーク内の遅延を測った値ではありません。
+緑は1.2秒連続して確認した後にGREENになります。推論フレーム間隔が0.45秒を超えれば連続時間をリセットします。3.2秒以内に緑が2回消えると点滅としてUNKNOWNにし、2秒安定してから回復します。赤はREDです。confidenceはモデルの出力スコアで、校正済みの確率を意味しません。
 
-開始直後、ROI未確定、カメラ停止、動画終端、読み込みエラー、500 msを超える映像停止、アプリ終了ではUNKNOWNを発行します。新しいGREEN/RED判定はフレームごとに発行し、古いGREEN/REDを周期送信で延命しません。UNKNOWNは状態と理由を定期送信します。
+最新フレームだけを処理し、古いフレームをためません。動画ファイルは報告FPS（1–120の範囲外または無効なら30 FPS）に合わせて進み、終端で停止します。プレビューは縦横比を保ち、最大1280×960ピクセルに縮小します。ROI座標はレターボックスの余白を除いたカメラ画像に対応します。OpenCVのフレーム読み込み完了時刻を単調時計で記録します。カメラ露光時刻やネットワーク内の遅延を測定した値ではありません。
 
-ROSのStringデータはUTF-8のコンパクトなJSONです。主な項目は`version`、`session_id`、`seq`、`state`、`reason`、`target_id`、`confidence`、`source`、`frame_seq`、`processing_age_ms`です。`source`は`ubuntu_roi_color_v1`です。`processing_age_ms`はOpenCVの読み込み完了から発行時までの時間で、カメラ撮影や露光からの年齢を意味しません。初回の映像前は`frame_seq`と`processing_age_ms`を`null`にします。
+起動、ROI未確定、モデル不在、カメラ停止、動画終端、読み込みエラー、0.5秒を超えるカメラまたは推論停止、終了はUNKNOWNです。GREEN/REDは新しい推論結果に対して発行し、古い状態を周期送信で延命しません。UNKNOWNは0.5秒ごとに発行します。
 
-このアプリのGREEN/RED/UNKNOWNは観測状態だけを表します。横断可否の判断や車両の移動制御には接続しないでください。映像の録画やデモカメラは含みません。
+ROSのStringデータはUTF-8のコンパクトなJSONです。主な項目は`version`、`session_id`、`seq`、`state`、`reason`、`target_id`、`confidence`、`source`、`frame_seq`、`processing_age_ms`です。学習済みモードの`source`は`autoware_pedestrian_onnx_v1`、デバッグ用HSVモードでは`ubuntu_roi_color_v1`です。`frame_seq`と`processing_age_ms`は推論に入力したフレームを指します。`processing_age_ms`はOpenCVの読み込み完了から発行までの時間で、露光開始からの年齢ではありません。まだ推論フレームがない場合は両項目を`null`にします。
+
+GREEN/RED/UNKNOWNは画像からの観測状態です。横断可否の判断や車両の移動制御には接続しないでください。映像録画やデモ映像は含みません。

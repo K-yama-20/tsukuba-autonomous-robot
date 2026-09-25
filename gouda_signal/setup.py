@@ -8,7 +8,7 @@ setup(
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", [f"resource/{package_name}"]),
-        (f"share/{package_name}", ["package.xml"]),
+        (f"share/{package_name}", ["package.xml", "model_manifest.json"]),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -18,7 +18,7 @@ setup(
     license="Apache-2.0",
     entry_points={
         "console_scripts": [
-            "pedestrian_signal = gouda_signal.app:main",
+            "pedestrian_signal = gouda_signal.bootstrap:main",
         ],
     },
 )

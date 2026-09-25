@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+from pathlib import Path
 import signal
 import sys
 import time
@@ -24,7 +26,8 @@ from PyQt5.QtWidgets import (
 )
 
 from .capture import CaptureSession, parse_camera_source
-from .classifier import Observation, SignalClassifier, SignalState
+from .classifier import Observation, RawColor, SignalClassifier, SignalState
+from .inference import InferenceResult, InferenceSession, box_iou, normalized_box
 from .roi import (
     NormalizedROI,
     Rect,
@@ -34,6 +37,14 @@ from .roi import (
     roi_to_pixels,
 )
 from .vision import measure_bgr
+
+
+def default_model_directory() -> Path:
+    configured = os.environ.get("GOUDA_SIGNAL_MODEL_DIR")
+    if configured:
+        return Path(configured).expanduser()
+    workspace = Path(os.environ.get("GOUDA_WORKSPACE", Path.home() / "gouda_ws"))
+    return workspace / "models" / "pedestrian_signal"
 
 
 class RosBridge:
@@ -125,7 +136,7 @@ class PreviewWidget(QWidget):
         painter.fillRect(self.rect(), QColor("#15191f"))
         if self._pixmap is None:
             painter.setPen(QColor("#d5dbe2"))
-            painter.drawText(self.rect(), Qt.AlignCenter, "Startを押してカメラ映像を表示")
+            painter.drawText(self.rect(), Qt.AlignCenter, "開始を押してカメラ映像を表示")
             return
 
         fitted = self.displayed_image_rect()
@@ -189,20 +200,36 @@ class SignalWindow(QMainWindow):
         topic: str = "/perception/pedestrian_signal",
         ros: RosBridge | None = None,
         *,
+        classifier: str = "learned",
+        model_dir: Path | str | None = None,
+        confidence_threshold: float = 0.8,
         capture_session: CaptureSession | None = None,
+        inference_session: InferenceSession | None = None,
     ) -> None:
         super().__init__()
-        self.setWindowTitle("Gouda 歩行者信号 色判定プロトタイプ")
+        self.setWindowTitle("Gouda 歩行者信号認識プロトタイプ")
         self.resize(1040, 740)
         self._ros = ros
         self._session = capture_session or CaptureSession()
+        self._inference = inference_session or InferenceSession()
+        self._classifier_mode = classifier
+        self._model_dir = Path(model_dir) if model_dir is not None else default_model_directory()
+        self._confidence_threshold = float(confidence_threshold)
+        self._model_state = "not_started"
         self._camera_active = False
         self._closing = False
         self._classifier = SignalClassifier()
         self._confirmed_roi: NormalizedROI | None = None
         self._selected_roi: NormalizedROI | None = None
-        self._last_frame_time: float | None = None
-        self._last_frame_seq: int | None = None
+        self._last_preview_frame_time: float | None = None
+        self._last_preview_frame_seq: int | None = None
+        self._last_observation_frame_time: float | None = None
+        self._last_observation_frame_seq: int | None = None
+        self._last_target_box: tuple[float, float, float, float] | None = None
+        self._last_inference_time: float | None = None
+        self._last_inference_seq: int | None = None
+        self._roi_confirmed_time: float | None = None
+        self._generation = 0
         self._minimum_frame_time = 0.0
         self._camera_start_time: float | None = None
         self._last_unknown_publish = 0.0
@@ -221,8 +248,8 @@ class SignalWindow(QMainWindow):
         title.setStyleSheet("font-size: 20px; font-weight: 600;")
         layout.addWidget(title)
         explanation = QLabel(
-            "画面に信号機を映し、点灯部をドラッグで囲んでから「ROIを確定」を押してください。"
-            "開始時とカメラ入力の変更時には、ROIの再確認が必要です。"
+            "画面に歩行者信号を映し、信号器全体をドラッグで囲んでから「ROIを確定」を押してください。"
+            "学習済みモデルがROI内の信号器を検出して点灯状態を分類します。開始時と入力変更時にはROIの再確認が必要です。"
         )
         explanation.setWordWrap(True)
         layout.addWidget(explanation)
@@ -233,10 +260,10 @@ class SignalWindow(QMainWindow):
         self.camera_input.setPlaceholderText("0 または /dev/video0、動画ファイル、ネットワークURI")
         self.camera_input.setToolTip("V4L2番号 /dev/videoN、動画ファイル、またはOpenCVが対応するURI")
         input_row.addWidget(self.camera_input, 1)
-        self.start_button = QPushButton("Start")
+        self.start_button = QPushButton("開始")
         self.start_button.clicked.connect(self.start_camera)
         input_row.addWidget(self.start_button)
-        self.stop_button = QPushButton("Stop")
+        self.stop_button = QPushButton("停止")
         self.stop_button.setEnabled(False)
         self.stop_button.clicked.connect(self.stop_camera)
         input_row.addWidget(self.stop_button)
@@ -253,7 +280,7 @@ class SignalWindow(QMainWindow):
         self.confirm_button.clicked.connect(self.confirm_roi)
         actions.addWidget(self.confirm_button)
         self.state_label = QLabel("UNKNOWN")
-        self.state_label.setMinimumWidth(190)
+        self.state_label.setMinimumWidth(250)
         self.state_label.setAlignment(Qt.AlignCenter)
         self.state_label.setStyleSheet(
             "font-size: 25px; font-weight: 700; padding: 8px; color: white; background: #555b64;"
@@ -265,7 +292,7 @@ class SignalWindow(QMainWindow):
         layout.addLayout(actions)
 
         limitation = QLabel(
-            "手動で選んだ範囲の色だけを見る試作です。信号機の自動検出・追跡や、横断可否・車両制御には使えません。"
+            "手動で指定した範囲内で学習済みモデルが信号器を検出します。対象物の追跡、横断可否判断、車両制御には使えません。"
         )
         limitation.setWordWrap(True)
         limitation.setStyleSheet("color: #5d6670;")
@@ -293,7 +320,12 @@ class SignalWindow(QMainWindow):
 
     def _show_observation(self, observation: Observation, detail: str | None = None) -> None:
         self._observation = observation
-        self.state_label.setText(observation.state.value)
+        labels = {
+            SignalState.GREEN: "青 (GREEN)",
+            SignalState.RED: "赤 (RED)",
+            SignalState.UNKNOWN: "未検出 (UNKNOWN)",
+        }
+        self.state_label.setText(labels[observation.state])
         colors = {
             SignalState.GREEN: "#138c37",
             SignalState.RED: "#c33535",
@@ -305,8 +337,22 @@ class SignalWindow(QMainWindow):
         messages = {
             "startup": "起動しました。カメラは自動で開始しません。",
             "camera_starting": "カメラを開始しています。映像が出たらROIを指定してください。",
-            "camera_opened": "映像を受信しています。点灯部をドラッグしてください。",
+            "camera_opened": "映像を受信しています。信号器全体をドラッグしてください。",
+            "model_loading": "学習済みONNXモデルをロードしています。画面はUNKNOWNのままです。",
+            "model_pending": "新しい判定を待っています。画面はUNKNOWNのままです。",
+            "model_unavailable": "学習済みモデルをロードできません。モデルの配置を確認してください。",
+            "model_inference_error": "学習済みモデルの推論に失敗しました。画面はUNKNOWNです。",
+            "detector_no_pedestrian": "ROI内に歩行者信号を検出できません。",
+            "detector_multiple_pedestrians": "ROI内に複数の対象があります。単一の信号器が映るようROIを調整してください。",
+            "detector_inference_error": "信号器の検出に失敗しました。画面はUNKNOWNです。",
+            "classifier_low_confidence": "信号の色を十分な確かさで分類できません。画面はUNKNOWNです。",
+            "classifier_unknown": "信号の状態を分類できません。画面はUNKNOWNです。",
+            "classifier_inference_error": "信号の分類に失敗しました。画面はUNKNOWNです。",
             "target_unconfirmed": "ROIをドラッグして「ROIを確定」を押してください。",
+            "target_changed": "ROI内の検出対象が変わりました。新しい対象を続けて確認します。",
+            "no_pedestrian": "ROI内に歩行者信号を検出できません。",
+            "multiple_pedestrians": "ROI内に複数の対象があります。単一の信号器が映るようROIを調整してください。",
+            "stale_inference": "新しい判定が0.5秒以上ありません。状態をUNKNOWNにしました。",
             "roi_green_pixels": "ROI内に緑色を検出しています。点灯が1.2秒続くまでUNKNOWNです。",
             "roi_red_pixels": "ROI内に赤色を検出しています。",
             "roi_color_ambiguous": "ROI内で赤色と緑色の両方を検出しました。ROIを見直してください。",
@@ -315,11 +361,11 @@ class SignalWindow(QMainWindow):
             "steady_green": "ROI内の緑色が連続して確認されました。",
             "green_blink_latched": "緑色の点滅を検出しました。2秒間の安定を確認中です。",
             "stale_frame": "0.5秒以上新しい映像がありません。状態をUNKNOWNにしました。",
-            "camera_open_failed": "カメラを開けません。入力を確認してStartで再試行してください。",
-            "camera_read_failed": "カメラから映像を読めません。入力を確認してStartで再試行してください。",
-            "camera_error": "カメラ処理でエラーが発生しました。入力を確認してStartで再試行してください。",
+            "camera_open_failed": "カメラを開けません。入力を確認して開始を押し、再試行してください。",
+            "camera_read_failed": "カメラから映像を読めません。入力を確認して開始を押し、再試行してください。",
+            "camera_error": "カメラ処理でエラーが発生しました。入力を確認して開始を押し、再試行してください。",
             "camera_stopped": "カメラを停止しました。",
-            "camera_source_changed": "入力変更によりカメラとROI確認をリセットしました。Startを押してください。",
+            "camera_source_changed": "入力変更によりカメラとROI確認をリセットしました。開始を押してください。",
             "roi_editing": "ROIを編集しています。新しい範囲を囲んでください。",
             "roi_confirmed": "ROIを確定しました。次の新しい映像から判定します。",
             "invalid_camera_source": "カメラ入力が空または不正です。入力を確認してください。",
@@ -333,17 +379,17 @@ class SignalWindow(QMainWindow):
         now = time.monotonic()
         if (
             self._observation.state != SignalState.UNKNOWN
-            and self._last_frame_time is not None
-            and now - self._last_frame_time > 0.5
+            and self._last_observation_frame_time is not None
+            and now - self._last_observation_frame_time > 0.5
         ):
-            self._classifier.invalidate("stale_frame")
-            self._show_observation(Observation(SignalState.UNKNOWN, "stale_frame", 0.0))
+            self._classifier.invalidate("stale_inference")
+            self._show_observation(Observation(SignalState.UNKNOWN, "stale_inference", 0.0))
             force = True
         if not force and self._observation.state != SignalState.UNKNOWN:
             return
         frame_age = None
-        if self._last_frame_time is not None:
-            frame_age = max(0.0, (now - self._last_frame_time) * 1000.0)
+        if self._last_observation_frame_time is not None:
+            frame_age = max(0.0, (now - self._last_observation_frame_time) * 1000.0)
         payload = {
             "version": 1,
             "session_id": self._session_id,
@@ -352,8 +398,8 @@ class SignalWindow(QMainWindow):
             "reason": self._observation.reason,
             "target_id": self._target_id,
             "confidence": self._observation.confidence,
-            "source": "ubuntu_roi_color_v1",
-            "frame_seq": self._last_frame_seq,
+            "source": "autoware_pedestrian_onnx_v1" if self._classifier_mode == "learned" else "ubuntu_roi_color_v1",
+            "frame_seq": self._last_observation_frame_seq,
             "processing_age_ms": frame_age,
         }
         try:
@@ -363,16 +409,32 @@ class SignalWindow(QMainWindow):
         except Exception as exc:
             self.reason_label.setText(f"ROS発行エラー: {exc}")
 
-    def _set_unknown(self, reason: str, detail: str | None = None, publish: bool = True) -> None:
+    def _set_unknown(
+        self,
+        reason: str,
+        detail: str | None = None,
+        publish: bool = True,
+        preserve_frame: bool = False,
+    ) -> None:
         self._classifier.invalidate(reason)
+        if not preserve_frame:
+            self._last_observation_frame_time = None
+            self._last_observation_frame_seq = None
         self._show_observation(Observation(SignalState.UNKNOWN, reason, 0.0), detail)
         if publish:
             self._publish_snapshot(force=True)
 
     def _clear_roi(self) -> None:
+        self._generation += 1
         self._confirmed_roi = None
         self._selected_roi = None
         self._target_id = ""
+        self._last_target_box = None
+        self._last_observation_frame_time = None
+        self._last_observation_frame_seq = None
+        self._last_inference_time = None
+        self._last_inference_seq = None
+        self._roi_confirmed_time = None
         self.preview.clear_selection()
         self.confirm_button.setEnabled(False)
 
@@ -388,14 +450,27 @@ class SignalWindow(QMainWindow):
         self._clear_roi()
         self.preview.clear_frame()
         self._classifier.reset()
-        self._last_frame_time = None
-        self._last_frame_seq = None
+        self._last_preview_frame_time = None
+        self._last_preview_frame_seq = None
         self._minimum_frame_time = time.monotonic()
         self._camera_start_time = self._minimum_frame_time
         self._camera_active = True
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
-        self._set_unknown("camera_starting", publish=True)
+        start_reason = "camera_starting"
+        start_detail = None
+        if self._classifier_mode == "learned":
+            try:
+                if not self._inference.running:
+                    self._inference.start(self._model_dir, self._confidence_threshold)
+                self._model_state = "ready" if self._inference.ready else "loading"
+                if self._model_state == "loading":
+                    start_reason = "model_loading"
+            except Exception as exc:
+                self._model_state = "failed"
+                start_reason = "model_unavailable"
+                start_detail = f"モデルワーカーを開始できません: {exc}"
+        self._set_unknown(start_reason, detail=start_detail, publish=True)
         try:
             self._session.start(source, frame_seq_base=self._frame_seq)
         except Exception as exc:
@@ -411,6 +486,9 @@ class SignalWindow(QMainWindow):
         was_active = self._camera_active
         self._camera_active = False
         self._session.stop()
+        if self._classifier_mode == "learned":
+            self._inference.stop()
+            self._model_state = "not_started"
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self._clear_roi()
@@ -425,8 +503,8 @@ class SignalWindow(QMainWindow):
         # Editing the source immediately invalidates both ROI and any pending
         # observation. The new source starts only when the user presses Start.
         self._stop_camera("camera_source_changed")
-        self._last_frame_time = None
-        self._last_frame_seq = None
+        self._last_preview_frame_time = None
+        self._last_preview_frame_seq = None
         self.preview.clear_frame()
 
     def roi_editing_started(self) -> None:
@@ -436,7 +514,10 @@ class SignalWindow(QMainWindow):
 
     def roi_selected(self, roi: NormalizedROI | None) -> None:
         self._selected_roi = roi
-        fresh = self._last_frame_time is not None and time.monotonic() - self._last_frame_time <= 0.5
+        fresh = (
+            self._last_preview_frame_time is not None
+            and time.monotonic() - self._last_preview_frame_time <= 0.5
+        )
         self.confirm_button.setEnabled(self._camera_active and roi is not None and fresh)
         self._set_unknown("target_unconfirmed")
 
@@ -446,28 +527,128 @@ class SignalWindow(QMainWindow):
         roi = getattr(self, "_selected_roi", None)
         if (
             roi is None
-            or self._last_frame_time is None
-            or time.monotonic() - self._last_frame_time > 0.5
+            or self._last_preview_frame_time is None
+            or time.monotonic() - self._last_preview_frame_time > 0.5
         ):
             self.confirm_button.setEnabled(False)
             self._set_unknown("stale_frame")
             return
         self._confirmed_roi = roi
         self._target_id = "manual_roi"
+        self._generation += 1
         self._minimum_frame_time = time.monotonic()
         self._classifier.reset()
+        self._last_target_box = None
+        self._last_observation_frame_time = None
+        self._last_observation_frame_seq = None
+        self._last_inference_time = None
+        self._last_inference_seq = None
+        self._roi_confirmed_time = self._minimum_frame_time
         self.preview.set_confirmed(True)
         self.confirm_button.setEnabled(False)
-        self._set_unknown("roi_confirmed")
+        if self._classifier_mode == "learned" and self._model_state == "failed":
+            reason = "model_unavailable"
+        elif self._classifier_mode == "learned" and self._model_state == "loading":
+            reason = "model_loading"
+        elif self._classifier_mode == "learned":
+            reason = "model_pending"
+        else:
+            reason = "roi_confirmed"
+        self._set_unknown(reason)
+
+    def _handle_inference_event(self, event: tuple[Any, ...]) -> None:
+        if not event:
+            return
+        kind = event[0]
+        if kind == "ready":
+            self._inference.ready = True
+            self._inference.failed = False
+            self._model_state = "ready"
+            if self._camera_active and self._confirmed_roi is not None:
+                self._set_unknown("model_pending")
+            return
+        if kind == "error":
+            self._inference.ready = False
+            self._inference.failed = True
+            self._model_state = "failed"
+            detail = str(event[2]) if len(event) > 2 else "model unavailable"
+            self._last_target_box = None
+            self._set_unknown("model_unavailable", detail=detail)
+            return
+        if kind == "inference_error":
+            detail = str(event[2]) if len(event) > 2 else "model inference failed"
+            self._last_target_box = None
+            self._set_unknown("model_inference_error", detail=detail)
+
+    def _handle_inference_result(self, result: InferenceResult) -> None:
+        if result.generation != self._generation or self._confirmed_roi is None:
+            return
+        if self._last_inference_seq is not None and result.frame_seq <= self._last_inference_seq:
+            return
+        self._last_inference_seq = result.frame_seq
+        self._last_inference_time = result.frame_time
+        self._last_observation_frame_seq = result.frame_seq
+        self._last_observation_frame_time = result.frame_time
+        now = time.monotonic()
+        if now - result.frame_time > 0.5:
+            self._last_target_box = None
+            self._set_unknown("stale_inference", publish=True, preserve_frame=True)
+            return
+
+        if result.color not in (RawColor.GREEN, RawColor.RED) or result.box is None:
+            self._last_target_box = None
+            temporal_color = result.color if result.color in (RawColor.NONE, RawColor.AMBIGUOUS) else RawColor.NONE
+            temporal = self._classifier.process(temporal_color, result.frame_time, 0.0)
+            reason = (
+                "green_blink_latched"
+                if temporal.reason == "green_blink_latched"
+                else result.reason or "no_pedestrian"
+            )
+            observation = Observation(
+                SignalState.UNKNOWN,
+                reason,
+                temporal.confidence if reason == "green_blink_latched" else 0.0,
+            )
+            self._show_observation(observation)
+            self._publish_snapshot(force=True)
+            return
+
+        current_box = normalized_box(result.box, result.search_width, result.search_height)
+        target_changed = self._last_target_box is not None and box_iou(self._last_target_box, current_box) < 0.3
+        self._last_target_box = current_box
+        if target_changed:
+            self._classifier.reset()
+        observation = self._classifier.process(result.color, result.frame_time, result.confidence)
+        if target_changed:
+            observation = Observation(SignalState.UNKNOWN, "target_changed", 0.0)
+
+        self._show_observation(observation)
+        self._publish_snapshot(force=True)
+
+    def _process_hsv_frame(
+        self,
+        frame: Any,
+        frame_seq: int,
+        timestamp: float,
+        bounds: tuple[int, int, int, int],
+    ) -> None:
+        x0, y0, x1, y1 = bounds
+        evidence = measure_bgr(frame[y0:y1, x0:x1])
+        self._last_observation_frame_seq = frame_seq
+        self._last_observation_frame_time = timestamp
+        observation = self._classifier.process(evidence.color, timestamp, evidence.confidence)
+        if time.monotonic() - timestamp > 0.5:
+            self._set_unknown("stale_inference", preserve_frame=True)
+            return
+        self._show_observation(observation)
+        self._publish_snapshot(force=True)
 
     def _handle_capture_event(self, event: tuple[str, ...]) -> None:
         if not self._camera_active or not event:
             return
         kind = event[0]
         if kind == "opened":
-            self._show_observation(
-                Observation(SignalState.UNKNOWN, "camera_opened", 0.0)
-            )
+            self._show_observation(Observation(SignalState.UNKNOWN, "camera_opened", 0.0))
         elif kind in ("error", "eof"):
             code = (
                 "camera_open_failed"
@@ -480,6 +661,16 @@ class SignalWindow(QMainWindow):
 
     def tick(self) -> None:
         now = time.monotonic()
+        for event in self._inference.take_events():
+            self._handle_inference_event(event)
+        result = self._inference.take_latest()
+        if result is not None:
+            self._handle_inference_result(result)
+        if self._camera_active and self._model_state == "ready" and not self._inference.running:
+            self._model_state = "failed"
+            self._inference.failed = True
+            self._set_unknown("model_unavailable", "推論プロセスが終了しました。Startで再試行してください。")
+
         for event in self._session.take_events():
             self._handle_capture_event(event)
         if self._camera_active:
@@ -487,47 +678,59 @@ class SignalWindow(QMainWindow):
             if item is not None:
                 frame_seq, timestamp, frame = item
                 if timestamp > self._minimum_frame_time and (
-                    self._last_frame_time is None or timestamp > self._last_frame_time
+                    self._last_preview_frame_time is None or timestamp > self._last_preview_frame_time
                 ):
                     if now - timestamp <= 0.5:
-                        self._last_frame_time = timestamp
-                        self._last_frame_seq = int(frame_seq)
+                        self._last_preview_frame_time = timestamp
+                        self._last_preview_frame_seq = int(frame_seq)
                         self._frame_seq = max(self._frame_seq, int(frame_seq))
                         self.preview.set_frame(frame)
                         if self._confirmed_roi is None:
                             self._set_unknown("target_unconfirmed", publish=False)
-                            self._publish_snapshot(force=True)
                         else:
-                            bounds = roi_to_pixels(
-                                self._confirmed_roi, frame.shape[1], frame.shape[0]
-                            )
-                            if bounds is None:
-                                self._set_unknown("target_unconfirmed", publish=False)
-                            else:
-                                x0, y0, x1, y1 = bounds
-                                evidence = measure_bgr(frame[y0:y1, x0:x1])
-                                observation = self._classifier.process(
-                                    evidence.color, timestamp, evidence.confidence
-                                )
-                                if time.monotonic() - timestamp > 0.5:
-                                    self._set_unknown("stale_frame")
-                                    self.confirm_button.setEnabled(False)
+                            bounds = roi_to_pixels(self._confirmed_roi, frame.shape[1], frame.shape[0])
+                            if bounds is not None:
+                                if self._classifier_mode == "hsv":
+                                    self._process_hsv_frame(frame, int(frame_seq), timestamp, bounds)
+                                elif self._model_state == "ready":
+                                    x0, y0, x1, y1 = bounds
+                                    submitted = self._inference.submit(
+                                        self._generation,
+                                        int(frame_seq),
+                                        timestamp,
+                                        bounds,
+                                        frame[y0:y1, x0:x1],
+                                    )
+                                    if not submitted:
+                                        self._model_state = "failed"
+                                        self._set_unknown("model_unavailable")
+                                elif self._model_state == "failed":
+                                    self._set_unknown("model_unavailable", publish=False)
                                 else:
-                                    self._show_observation(observation)
-                                    self._publish_snapshot(force=True)
+                                    self._set_unknown("model_loading", publish=False)
 
-            frame_age = None if self._last_frame_time is None else now - self._last_frame_time
-            if self._last_frame_time is not None and frame_age is not None and frame_age > 0.5:
+            preview_age = None if self._last_preview_frame_time is None else now - self._last_preview_frame_time
+            if self._last_preview_frame_time is not None and preview_age is not None and preview_age > 0.5:
                 if self._observation.reason != "stale_frame":
-                    self._set_unknown("stale_frame")
+                    self._set_unknown("stale_frame", preserve_frame=True)
                 self.confirm_button.setEnabled(False)
             elif (
-                self._last_frame_time is None
+                self._last_preview_frame_time is None
                 and self._camera_start_time is not None
                 and now - self._camera_start_time > 0.5
             ):
                 if self._observation.reason not in ("stale_frame", "camera_open_failed"):
-                    self._set_unknown("stale_frame")
+                    self._set_unknown("stale_frame", preserve_frame=True)
+
+            if self._confirmed_roi is not None and self._classifier_mode == "learned":
+                watchdog_time = self._last_observation_frame_time or self._roi_confirmed_time
+                if (
+                    watchdog_time is not None
+                    and now - watchdog_time > 0.5
+                    and self._model_state == "ready"
+                    and self._observation.reason not in ("stale_inference", "stale_frame")
+                ):
+                    self._set_unknown("stale_inference", preserve_frame=True)
 
         if self._observation.state == SignalState.UNKNOWN and now - self._last_unknown_publish >= 0.5:
             self._publish_snapshot(force=True)
@@ -570,7 +773,36 @@ def build_argument_parser() -> argparse.ArgumentParser:
         metavar="TOPIC",
         help="ROS 2 std_msgs/String topic for compact JSON snapshots",
     )
+    parser.add_argument(
+        "--classifier",
+        choices=("learned", "hsv"),
+        default="learned",
+        help="learned ONNX detector/classifier (default) or explicit HSV debugging mode",
+    )
+    parser.add_argument(
+        "--model-dir",
+        default=str(default_model_directory()),
+        metavar="PATH",
+        help="directory containing the installed pedestrian-signal ONNX models",
+    )
+    parser.add_argument(
+        "--confidence",
+        type=_confidence_argument,
+        default=0.8,
+        metavar="THRESHOLD",
+        help="minimum classifier score from 0 through 1 (default: 0.8)",
+    )
     return parser
+
+
+def _confidence_argument(value: str) -> float:
+    try:
+        threshold = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("confidence must be a number from 0 through 1") from exc
+    if not 0.0 <= threshold <= 1.0:
+        raise argparse.ArgumentTypeError("confidence must be between 0 and 1")
+    return threshold
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -592,7 +824,14 @@ def main(argv: list[str] | None = None) -> int:
 
     app = QApplication([sys.argv[0]])
     app.setApplicationName("Gouda Pedestrian Signal")
-    window = SignalWindow(args.camera, args.ros_topic, ros)
+    window = SignalWindow(
+        args.camera,
+        args.ros_topic,
+        ros,
+        classifier=args.classifier,
+        model_dir=args.model_dir,
+        confidence_threshold=args.confidence,
+    )
     window.show()
 
     def request_quit(_signum: int, _frame: Any) -> None:
