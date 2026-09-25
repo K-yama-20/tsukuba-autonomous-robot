@@ -25,6 +25,8 @@ bash scripts/gouda.sh signal --ros-topic /perception/pedestrian_signal
 
 ROS 2 有効時は、既定の `/perception/pedestrian_signal` に `std_msgs/msg/String` を送ります。文字列の内容は JSON で、`state`、`reason`、`target_id`、`confidence`、`frame_seq`、`session_id`、`seq`、`source`、`processing_age_ms` を含みます。`source` は `ubuntu_roi_color_v1` です。`processing_age_ms` はアプリ側の処理経過時間で、カメラの露光時刻や撮影時刻を保証するタイムスタンプではありません。
 
+アプリは起動時、判定が古くなった時、停止時に `UNKNOWN` を送ります。受信側でも受信後の経過時間を監視し、例えばメッセージが 0.5 秒届かなければ保持中の状態を期限切れにしてください。`session_id` と `seq` を使って、古いセッションや順序が戻ったメッセージも拒否します。プロセスの異常終了やネットワーク断では最後の `UNKNOWN` が届く保証がないため、受信側の期限切れ処理は常に必要です。
+
 別の端末で出力を確認する場合は、アプリと同じ ROS 2 ドメインでトピックを購読します。既定の設定は次のとおりです。
 
 ```bash
