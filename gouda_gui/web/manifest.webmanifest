@@ -1,0 +1,23 @@
+{
+  "name": "GOUDA Mission Control",
+  "short_name": "GOUDA",
+  "lang": "ja",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060f0e",
+  "theme_color": "#081510",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

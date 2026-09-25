@@ -232,6 +232,8 @@ def serve(backend, web_root, host='127.0.0.1', port=8765):
                 self.reply(200, backend.viewer_status()); return
             files = {'/': ('index.html', 'text/html; charset=utf-8'),
                      '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
+                     '/manifest.webmanifest': ('manifest.webmanifest', 'application/manifest+json'),
+                     '/icon.svg': ('icon.svg', 'image/svg+xml'),
                      '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if path not in files:
                 self.reply(404, dict(error='Not found')); return

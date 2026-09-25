@@ -10,6 +10,7 @@ const titles = {
 };
 const names = {IDLE:'待機中',PLANNING:'経路計算中',PREVIEW_READY:'経路確認待ち',TRACKING:'走行中',ALIGNING:'向きを調整中',REACHED:'到着',CANCELLED:'中止',PREVIEW_EXPIRED:'経路の再計算が必要',PREVIEW_STALE:'開始位置が変わりました',SENSOR_OR_TF_FAULT:'入力異常で停止',PLAN_FAILED:'経路が見つかりません',PLAN_UNAVAILABLE:'経路計算の準備待ち',NO_PROGRESS:'進行停止を検出'};
 let state=null, token=null, busy=false, connected=false, lastResponse=0, tab='mapping', view='2d', tool='pan', dirty=false, lastGoalKey='';
+const remoteMode=location.protocol==='https:';let accessKey=remoteMode?sessionStorage.getItem('gouda-access-key'):null;let accessOpen=false;let gesturePointers=new Map(),gesture=null,suppressPointerAction=false;
 let camera={x:0,y:0,scale:35}, cameraInitialized=false, draft=null, pointer=null, mapCache=null, mapRevision=-1, mapListKey='';
 const canvas=$('map'), ctx=canvas.getContext('2d');
 function notice(message,error=false){$('notice').textContent=message;$('notice').classList.toggle('error',error);}
@@ -32,8 +33,8 @@ for(const b of document.querySelectorAll('[data-tab]')){
 try{const remembered=localStorage.getItem('gouda-tab');if(titles[remembered])selectTab(remembered);}catch{}
 async function request(action,data={},timeoutMs=25000){
   if(!token)throw new Error('Ubuntuへの接続を確認してください');
-  const response=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token},body:JSON.stringify(data),signal:AbortSignal.timeout(timeoutMs)});
-  const body=await response.json();if(!response.ok||body.ok===false)throw new Error(body.error||body.message||'操作できませんでした');return body;
+  const response=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Gouda-Session':token,...(accessKey?{Authorization:'Bearer '+accessKey}:{})},body:JSON.stringify(data),signal:AbortSignal.timeout(timeoutMs)});
+  const body=await response.json().catch(()=>({}));if(!response.ok||body.ok===false)throw new Error(body.error||body.message||'操作できませんでした');return body;
 }
 async function act(action,data={},success='操作を受け付けました。',timeoutMs=25000){
   if(busy&&action!=='stop')return false;
@@ -43,9 +44,10 @@ async function act(action,data={},success='操作を受け付けました。',ti
   finally{if(normal)busy=false;render();}
 }
 async function poll(){
+  if(remoteMode&&!accessKey){openAccessGate();setTimeout(poll,1000);return;}
   try{
-    if(!token){const session=await fetch('/api/session',{signal:AbortSignal.timeout(2500)});if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
-    const response=await fetch('/api/state',{signal:AbortSignal.timeout(2500)});if(!response.ok)throw new Error('State');
+    if(!token){const session=await fetch('/api/session',{headers:accessKey?{Authorization:'Bearer '+accessKey}:{},signal:AbortSignal.timeout(2500)});if(session.status===401)throw new Error('REMOTE_AUTH');if(!session.ok)throw new Error('Session');token=(await session.json()).token;}
+    const response=await fetch('/api/state',{headers:accessKey?{Authorization:'Bearer '+accessKey}:{},signal:AbortSignal.timeout(2500)});if(response.status===401)throw new Error('REMOTE_AUTH');if(!response.ok)throw new Error('State');
     state=await response.json();lastResponse=performance.now();
     updateRecordingSettings(); updateMappingSettings(); updateAutonomy();
     const selectedPose=tool==='start'?state.planning_start:tool==='goal'?state.goal:null;
@@ -54,7 +56,7 @@ async function poll(){
     if(!connected)notice('Ubuntuに接続しました。状態を受信しています。');connected=true;
     if(state.map&&state.map_revision!==mapRevision){buildMap();if(!cameraInitialized)cameraInitialized=fit();}
     updateSavedMaps();render();draw();
-  }catch{connected=false;token=null;render();draw();}
+  }catch(error){connected=false;token=null;if(remoteMode&&error.message==='REMOTE_AUTH'){accessKey=null;sessionStorage.removeItem('gouda-access-key');openAccessGate();}render();draw();}
   setTimeout(poll,500);
 }
 function fresh(key,limit=.7){return connected&&state?.ages[key]!==undefined&&state.ages[key]+(performance.now()-lastResponse)/1000<limit;}
@@ -303,10 +305,19 @@ function draw(){
   $('scale').textContent=`${(62/camera.scale).toFixed(1)} m`;
 }
 canvas.addEventListener('wheel',e=>{e.preventDefault();const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,before=world(x,y);camera.scale=Math.min(300,Math.max(3,camera.scale*Math.exp(-e.deltaY*.001)));const after=world(x,y);camera.x+=before.x-after.x;camera.y+=before.y-after.y;draw();},{passive:false});
-canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;canvas.setPointerCapture(e.pointerId);pointer={x,y,start:world(x,y),camera:{...camera},id:e.pointerId};if(tool!=='pan'&&tab==='planning'&&view==='2d'){draft={...pointer.start,yaw:0};dirty=true;writePose(draft);}draw();});
-canvas.addEventListener('pointermove',e=>{if(!pointer||pointer.id!==e.pointerId)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(tool==='pan'){camera.x=pointer.camera.x-(x-pointer.x)/camera.scale;camera.y=pointer.camera.y+(y-pointer.y)/camera.scale;}else if(draft){const now=world(x,y);if(Math.hypot(x-pointer.x,y-pointer.y)>5)draft.yaw=Math.atan2(now.y-draft.y,now.x-draft.x);writePose(draft);}draw();});
-canvas.addEventListener('pointerup',e=>{if(!pointer||pointer.id!==e.pointerId)return;pointer=null;if(tool==='goal'&&draft)applyPose();else if(tool==='initial')notice('初期位置を指定しました。右側の設定ボタンで適用してください。');render();});
-canvas.addEventListener('pointercancel',()=>{pointer=null;});
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;canvas.setPointerCapture(e.pointerId);gesturePointers.set(e.pointerId,{x,y});if(gesturePointers.size===2){suppressPointerAction=true;pointer=null;draft=null;const points=[...gesturePointers.values()],center={x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};gesture={distance:Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y),scale:camera.scale,worldAnchor:world(center.x,center.y)};return;}if(gesturePointers.size>1)return;pointer={x,y,start:world(x,y),camera:{...camera},id:e.pointerId};if(tool!=='pan'&&tab==='planning'&&view==='2d'){draft={...pointer.start,yaw:0};dirty=true;writePose(draft);}draw();});
+canvas.addEventListener('pointermove',e=>{if(gesturePointers.has(e.pointerId)){const r=canvas.getBoundingClientRect();gesturePointers.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});}if(gesture&&gesturePointers.size>=2){const points=[...gesturePointers.values()],distance=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y),center={x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};camera.scale=Math.min(300,Math.max(3,gesture.scale*distance/Math.max(1,gesture.distance)));const size=dimensions();camera.x=gesture.worldAnchor.x-(center.x-size.w/2)/camera.scale;camera.y=gesture.worldAnchor.y+(center.y-size.h/2)/camera.scale;draw();return;}if(!pointer||pointer.id!==e.pointerId)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(tool==='pan'){camera.x=pointer.camera.x-(x-pointer.x)/camera.scale;camera.y=pointer.camera.y+(y-pointer.y)/camera.scale;}else if(draft){const now=world(x,y);if(Math.hypot(x-pointer.x,y-pointer.y)>5)draft.yaw=Math.atan2(now.y-draft.y,now.x-draft.x);writePose(draft);}draw();});
+canvas.addEventListener('pointerup',e=>{gesturePointers.delete(e.pointerId);if(gesturePointers.size<2)gesture=null;if(suppressPointerAction){if(gesturePointers.size===0){suppressPointerAction=false;pointer=null;draft=null;}return;}if(!pointer||pointer.id!==e.pointerId)return;pointer=null;if(tool==='goal'&&draft)applyPose();else if(tool==='initial')notice('初期位置を指定しました。右側の設定ボタンで適用してください。');render();});
+canvas.addEventListener('pointercancel',e=>{gesturePointers.delete(e.pointerId);pointer=null;gesture=null;draft=null;suppressPointerAction=false;});
 new ResizeObserver(()=>draw()).observe(canvas.parentElement);
-setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(connected&&performance.now()-lastResponse>3000){connected=false;render();draw();}},1000);
+
+function openAccessGate(){if(!remoteMode)return;accessOpen=true;$('access-gate').hidden=false;setTimeout(()=>$('access-key').focus(),0);}
+$('access-form').addEventListener('submit',async e=>{e.preventDefault();const candidate=$('access-key').value;try{const response=await fetch('/api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:candidate}),signal:AbortSignal.timeout(5000)});if(!response.ok)throw new Error('アクセスキーを確認してください');accessKey=candidate;sessionStorage.setItem('gouda-access-key',candidate);$('access-gate').hidden=true;accessOpen=false;token=null;}catch(error){$('access-error').textContent=error.message;$('access-key').select();}});
+function zoomAt(factor){const {w,h}=dimensions(),x=w/2,y=h/2,before=world(x,y);camera.scale=Math.min(300,Math.max(3,camera.scale*factor));const after=world(x,y);camera.x+=before.x-after.x;camera.y+=before.y-after.y;draw();}
+$('zoom-in').onclick=()=>zoomAt(1.25);$('zoom-out').onclick=()=>zoomAt(0.8);if(!remoteMode)$('panel-diagnostics').querySelector('.lifecycle-card').hidden=true;
+async function runtimeCall(action,profile=$('runtime-profile').value){if(!accessKey){notice('アクセスキーを入力してください。',true);openAccessGate();return;}const payload={action,...(action==='restart'?{profile}: {})};try{const response=await fetch('/api/runtime/action',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+accessKey},body:JSON.stringify(payload),signal:AbortSignal.timeout(5000)});const body=await response.json();if(!response.ok)throw new Error(body.error||'操作を受け付けられませんでした');notice('PCの処理を受け付けました。状態の更新を確認してください。'+(body.job_id?' 処理ID: '+body.job_id:''));}catch(error){notice(error.name==='TimeoutError'?'応答待ちが終了しました。操作結果を状態表示で確認してください。':error.message,true);}}
+for(const [id,action] of [['runtime-start','start_observe'],['runtime-autonomy-start','start_autonomy'],['runtime-stop','stop'],['runtime-restart','restart'],['runtime-apply','apply_config']])$(id).onclick=()=>runtimeCall(action);
+
+let runtimeStatusPending=false;
+setInterval(()=>{if(accessKey&&!runtimeStatusPending){runtimeStatusPending=true;fetch('/api/runtime/status',{headers:{Authorization:'Bearer '+accessKey},signal:AbortSignal.timeout(2000)}).then(r=>r.ok?r.json():null).then(v=>{if(!v)return;for(const id of ['runtime-start','runtime-autonomy-start','runtime-stop','runtime-restart','runtime-apply'])$(id).disabled=Boolean(v.lifecycle_busy||['accepted','running'].includes(v.lifecycle_job?.state));$('runtime-status').textContent=v.lifecycle_job?.state==='running'?'PCの'+v.lifecycle_job.action+'処理中 · '+v.lifecycle_job.job_id:v.lifecycle_job?.state==='failed'?'PC操作エラー · '+(v.lifecycle_job.error||''):v.backend?.connected?'PC接続中 · '+(v.mode||'状態確認済み'):v.lifecycle_busy?'PCの起動・停止処理中':(v.mode||'PCの待機状態');}).catch(()=>{}).finally(()=>runtimeStatusPending=false);}$('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(connected&&performance.now()-lastResponse>3000){connected=false;render();draw();}},1000);
 poll();
