@@ -19,11 +19,17 @@ bash scripts/gouda.sh signal --no-ros
 bash scripts/gouda.sh signal --ros-topic /perception/pedestrian_signal
 ```
 
-起動直後は検出を始めません。画面の Start 操作で ROI の選択に進み、選択範囲を確認して確定すると検出を始めます。ROI は利用者が手動で選びます。認識器は調整可能な HSV 色の分類器で、学習済み AI モデルではなく、自動追跡もしません。
+起動直後は検出を始めません。画面の Start 操作で ROI の選択に進み、選択範囲を確認して確定すると検出を始めます。ROI は利用者が手動で選びます。認識器は固定の HSV 閾値を使う色分類器で、学習済み AI モデルではなく、自動追跡もしません。
 
 ## ROS 2 出力
 
 ROS 2 有効時は、既定の `/perception/pedestrian_signal` に `std_msgs/msg/String` を送ります。文字列の内容は JSON で、`state`、`reason`、`target_id`、`confidence`、`frame_seq`、`session_id`、`seq`、`source`、`processing_age_ms` を含みます。`source` は `ubuntu_roi_color_v1` です。`processing_age_ms` はアプリ側の処理経過時間で、カメラの露光時刻や撮影時刻を保証するタイムスタンプではありません。
+
+別の端末で出力を確認する場合は、アプリと同じ ROS 2 ドメインでトピックを購読します。既定の設定は次のとおりです。
+
+```bash
+ROS_DOMAIN_ID=99 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST ros2 topic echo /perception/pedestrian_signal
+```
 
 ## 動作範囲
 
