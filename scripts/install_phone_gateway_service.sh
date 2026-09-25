@@ -42,7 +42,7 @@ import shlex, sys
 from pathlib import Path
 wrapper, workspace, config = map(Path, sys.argv[1:])
 code = "import json,os,sys; c=json.load(open(sys.argv[1])); args=c['gateway_arguments']; os.execvpe('ros2',['ros2','run','gouda_gui','phone_gateway',*args],dict(os.environ))"
-body = "#!/usr/bin/env bash\nset -euo pipefail\nexport GOUDA_WORKSPACE="+shlex.quote(str(workspace))+"\nsource /opt/ros/jazzy/setup.bash\nsource "+shlex.quote(str(workspace/'install/setup.bash'))+"\nexec python3 -c "+shlex.quote(code)+" "+shlex.quote(str(config))+"\n"
+body = "#!/usr/bin/env bash\nset -eo pipefail\nexport GOUDA_WORKSPACE="+shlex.quote(str(workspace))+"\nsource /opt/ros/jazzy/setup.bash\nsource "+shlex.quote(str(workspace/'install/setup.bash'))+"\nexec python3 -c "+shlex.quote(code)+" "+shlex.quote(str(config))+"\n"
 wrapper.write_text(body)
 wrapper.chmod(0o700)
 PY

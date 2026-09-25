@@ -2,6 +2,7 @@
 import argparse
 import fcntl
 import json
+import math
 import os
 import re
 from pathlib import Path
@@ -331,7 +332,24 @@ def runtime_status():
     if any(v['running'] for k, v in processes.items() if k in ('processing', 'gateway')):
         try:
             with urlopen('http://127.0.0.1:8765/api/state', timeout=2) as response:
-                result['backend'] = {'connected': response.status == 200, 'state': json.load(response)}
+                snapshot = json.load(response)
+                recording = snapshot.get('recording') if isinstance(snapshot, dict) else None
+                autonomy = snapshot.get('autonomy') if isinstance(snapshot, dict) else None
+                controller = autonomy.get('state') if isinstance(autonomy, dict) else None
+                ages = snapshot.get('ages') if isinstance(snapshot, dict) else None
+                result['backend'] = {
+                    'connected': response.status == 200,
+                    'recording_phase': recording.get('phase') if isinstance(recording, dict) else None,
+                    'mapping': snapshot.get('mapping') if isinstance(snapshot.get('mapping'), bool) else None,
+                    'autonomy': {
+                        'profile_enabled': autonomy.get('profile_enabled') if isinstance(autonomy, dict) else None,
+                        'state_fresh': autonomy.get('state_fresh') if isinstance(autonomy, dict) else None,
+                        'phase': controller.get('phase') if isinstance(controller, dict) else None,
+                        'device_fresh': controller.get('device_fresh') if isinstance(controller, dict) else None,
+                    },
+                    'esp_auto_enabled': (snapshot.get('esp') or {}).get('auto_enabled') if isinstance(snapshot.get('esp'), dict) else None,
+                    'esp_age_sec': ages.get('esp32') if isinstance(ages, dict) else None,
+                }
         except Exception as exc:
             result['backend'] = {'connected': False, 'error': str(exc)[:300]}
     return result
@@ -382,8 +400,8 @@ def _ensure_disruption_safe(state=None):
                 autonomy.get('state_fresh') is not True or not isinstance(controller, dict) or
                 controller.get('phase') not in TERMINAL_AUTONOMY_PHASES or
                 controller.get('device_fresh') is not True or not isinstance(esp, dict) or
-                esp.get('auto_enabled') is not False or not isinstance(esp_age, (int, float)) or
-                esp_age > .6):
+                esp.get('auto_enabled') is not False or not isinstance(esp_age, (int, float)) or not math.isfinite(esp_age) or
+                esp_age < 0 or esp_age > .6):
             raise RuntimeError('Autonomy state or fresh ESP32 disarmed readback is missing, stale, or active; refusing to stop or restart')
 
 
