@@ -107,7 +107,10 @@ mapper_include = ROOT / 'include/adi_imu_tr_driver_ros2'
 mapper_header = mapper_include / 'affine_clock_mapper.hpp'
 mapper_impl = ROOT / 'src/affine_clock_mapper.cpp'
 if BACKUP_NODE.exists():
-    exact = (current_node == node and current_cmake == cmake and
+    # Accept only the exact reviewed reconnect overlay; preserve the clock backup contract.
+    from gouda_apply_imu_reconnect_patch import transform, changes
+    reconnect_node = transform(node, changes()['src/adis_rcv_bin_node.hpp'])
+    exact = (current_node in (node, reconnect_node) and current_cmake == cmake and
              mapper_header.is_file() and mapper_header.read_text() == header.read_text() and
              mapper_impl.is_file() and mapper_impl.read_text() == impl.read_text())
     if exact:

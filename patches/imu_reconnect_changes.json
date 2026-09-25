@@ -1,0 +1,92 @@
+{
+  "src/adis_rcv_bin_node.hpp": [
+    [
+      "  void Prepare()\n  {\n    std::chrono::seconds sec(1);\n    rclcpp::Rate r(sec);\n\n    // Open serial port\n    while (rclcpp::ok() && !imu_.Open(device_)) {\n      RCLCPP_WARN(this->get_logger(), \"Keep trying to open [%s] in 1 second period...\",\n                  device_.c_str());\n      r.sleep();\n    }\n\n    // Stop any ongoing telemetry and flush\n    imu_.StopTelemetry();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n\n    // Read settings to get sensitivity and product info\n    int retry = 3;\n    bool settings_ok = false;\n    for (int i = 0; i < retry && rclcpp::ok(); i++) {\n      if (imu_.ReadSettings()) {\n        settings_ok = true;\n        break;\n      }\n      RCLCPP_WARN(this->get_logger(), \"Failed to read settings, retry %d/%d...\", i + 1, retry);\n      r.sleep();\n    }\n\n    if (settings_ok) {\n      auto& s = imu_.GetSettings();\n      RCLCPP_INFO(this->get_logger(), \"Product: %s\", imu_.GetProductIdStr().c_str());\n      RCLCPP_INFO(this->get_logger(), \"Build date: %u\", s.build_date);\n      RCLCPP_INFO(this->get_logger(), \"Sample rate: %u Hz\", s.sample_rate);\n      RCLCPP_INFO(this->get_logger(), \"Filter: %u, Grav corr: %u\", s.filter_select,\n                  s.grav_corr_en);\n      RCLCPP_INFO(this->get_logger(), \"Accel sensitivity: %lu, Gyro sensitivity: %lu\",\n                  static_cast<unsigned long>(s.accl_sensitivity),\n                  static_cast<unsigned long>(s.gyro_sensitivity));\n      updater_->setHardwareID(imu_.GetProductIdStr());\n    } else {\n      RCLCPP_ERROR(this->get_logger(), \"Could not read settings! Sensitivity values may be wrong.\");\n      updater_->setHardwareID(\"UNKNOWN\");\n    }\n\n    // Start telemetry\n    if (!imu_.StartTelemetry()) {\n      RCLCPP_ERROR(this->get_logger(), \"Failed to start telemetry!\");\n    }\n  }\n",
+      "  // GOUDA_USB_RECONNECT_V1: retry only the configured device, never scan other ports.\n  void PublishDisconnected()\n  {\n    std_msgs::msg::String msg;\n    msg.data = R\"({\"state\":\"disconnected\",\"hardware_synchronized\":false,\"timestamp_basis\":\"unavailable\",\"usb_offset_bias_unresolved\":true})\";\n    clock_status_pub_->publish(msg);\n  }\n\n  void Disconnect()\n  {\n    imu_.Close();\n    clock_mapper_.Reset();\n    have_last_imu_counter_ = false;\n    last_imu_counter_ = 0;\n    last_mcu_time_us_ = 0;\n    have_pps_low_ = false;\n    last_pps_level_ = false;\n    cant_rcv_cnt_ = 1;\n    imu_error_ = false;\n    next_connect_ = std::chrono::steady_clock::now() + std::chrono::seconds(1);\n    PublishDisconnected();\n  }\n\n  void Prepare()\n  {\n    const auto now = std::chrono::steady_clock::now();\n    if (!rclcpp::ok() || now < next_connect_) return;\n    PublishDisconnected();\n    imu_.Close();\n    if (!imu_.Open(device_)) {\n      RCLCPP_WARN(this->get_logger(), \"IMU disconnected; retrying configured device in 1 second: %s\", device_.c_str());\n      Disconnect();\n      return;\n    }\n    imu_.StopTelemetry();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n    if (!rclcpp::ok() || !imu_.ReadSettings()) {\n      RCLCPP_WARN(this->get_logger(), \"IMU settings unavailable; withholding samples and reconnecting\");\n      Disconnect();\n      return;\n    }\n    const auto& s = imu_.GetSettings();\n    if (!s.accl_sensitivity || !s.gyro_sensitivity || (s.mpu_error & kMpuErrImuNotFound)) {\n      RCLCPP_ERROR(this->get_logger(), \"Invalid IMU settings; withholding samples and reconnecting\");\n      Disconnect();\n      return;\n    }\n    RCLCPP_INFO(this->get_logger(), \"IMU connected: %s; sample rate %u Hz; relearning measurement clock\", imu_.GetProductIdStr().c_str(), s.sample_rate);\n    updater_->setHardwareID(imu_.GetProductIdStr());\n    if (!imu_.StartTelemetry()) {\n      Disconnect();\n      return;\n    }\n    last_fresh_measurement_ = std::chrono::steady_clock::now();\n    cant_rcv_cnt_ = 1;\n  }\n"
+    ],
+    [
+      "  int cant_rcv_cnt_;",
+      "  std::chrono::steady_clock::time_point next_connect_{};\n  std::chrono::steady_clock::time_point last_fresh_measurement_{};\n  int cant_rcv_cnt_;"
+    ],
+    [
+      "    cant_rcv_cnt_ = 0;\n    imu_error_ = false;",
+      "    cant_rcv_cnt_ = 1;\n    imu_error_ = false;"
+    ],
+    [
+      "    imu_.StopTelemetry();\n    imu_.Close();",
+      "    if (imu_.GetState() == AdisRcvBin::State::RUNNING) imu_.StopTelemetry();\n    imu_.Close();"
+    ],
+    [
+      "    if (imu_.GetState() != AdisRcvBin::State::RUNNING) return;",
+      "    if (imu_.GetState() != AdisRcvBin::State::RUNNING) {\n      Prepare();\n      return;\n    }\n    if (std::chrono::steady_clock::now() - last_fresh_measurement_ > std::chrono::milliseconds(1500)) {\n      RCLCPP_WARN(this->get_logger(), \"No fresh IMU measurement for 1.5 s; reconnecting configured device\");\n      Disconnect();\n      return;\n    }"
+    ],
+    [
+      "    have_last_imu_counter_ = true;",
+      "    last_fresh_measurement_ = steady_now;\n    have_last_imu_counter_ = true;"
+    ],
+    [
+      "    res->is_ok = true;",
+      "    res->is_ok = true;\n    if (imu_.GetState() != AdisRcvBin::State::RUNNING) {\n      res->is_ok = false; res->msg = \"IMU disconnected or initializing\"; return;\n    }"
+    ],
+    [
+      "      PrintErrorCode(res);",
+      "      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, \"IMU receive error %d; automatic reconnect pending\", res);"
+    ]
+  ],
+  "lib/src/adis_rcv_bin.cpp": [
+    [
+      "#include <sys/stat.h>",
+      "#include <sys/stat.h>\n#include <sys/ioctl.h>\n#include <cerrno>"
+    ],
+    [
+      "  fd_ = open(device.c_str(), O_RDWR | O_NOCTTY);",
+      "  // GOUDA_USB_RECONNECT_V1: close stale descriptor and discard previous session data.\n  Close();\n  fd_ = open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);"
+    ],
+    [
+      "  config.c_cc[VMIN] = 0;",
+      "  config.c_cflag &= ~CRTSCTS;\n  config.c_cc[VMIN] = 0;"
+    ],
+    [
+      "  config.c_cc[VTIME] = 10;  // 1 second read timeout",
+      "  config.c_cc[VTIME] = 1;  // Bound reads to 100 ms; reconnect watchdog uses steady time."
+    ],
+    [
+      "  state_ = State::READY;\n  return true;",
+      "  // STM32 CDC may wait for host DTR before sending. PTYs do not support modem lines.\n  int modem_bits = TIOCM_DTR | TIOCM_RTS;\n  if (ioctl(fd_, TIOCMBIS, &modem_bits) < 0 && errno != ENOTTY && errno != EINVAL) {\n    Close();\n    return false;\n  }\n  const int flags = fcntl(fd_, F_GETFL);\n  if (flags < 0 || fcntl(fd_, F_SETFL, flags & ~O_NONBLOCK) < 0) {\n    Close();\n    return false;\n  }\n  state_ = State::READY;\n  return true;"
+    ],
+    [
+      "  state_ = State::INITIAL;\n}",
+      "  state_ = State::INITIAL;\n  ring_write_pos_ = 0;\n  ring_data_count_ = 0;\n  last_response_id_ = 0;\n  memset(&telemetry_, 0, sizeof(telemetry_));\n  memset(&settings_, 0, sizeof(settings_));\n}"
+    ],
+    [
+      "    uint8_t response_id = packet[2];",
+      "    uint8_t response_id = packet[2];\n    last_response_id_ = response_id;"
+    ],
+    [
+      "      // Check if we got the expected response type\n      if (expected_id >= 0x70 && expected_id <= 0x77) {\n        // Settings response \u2014 always parsed into settings_\n        return true;\n      } else {\n        // Telemetry response \u2014 check response_id\n        if (telemetry_.response_id == expected_id) {\n          return true;\n        }\n      }",
+      "      // Telemetry echoes must not count as a successful settings response.\n      if (last_response_id_ == expected_id) return true;"
+    ],
+    [
+      "int AdisRcvBin::ReadSerial()\n{\n  constexpr int kReadBufSize = 1024;\n  uint8_t buf[kReadBufSize];\n  int rcv_cnt = read(fd_, buf, kReadBufSize);\n\n  if (rcv_cnt <= 0) {\n    return rcv_cnt;\n  }\n\n  for (int i = 0; i < rcv_cnt; i++) {\n    ring_buf_[ring_write_pos_] = buf[i];\n    ring_write_pos_ = (ring_write_pos_ + 1) % kBinRingBufSize;\n    if (ring_data_count_ < kBinRingBufSize) {\n      ring_data_count_++;\n    }\n  }\n\n  return rcv_cnt;\n}\n",
+      "int AdisRcvBin::ReadSerial()\n{\n  // Drain the queued burst so slow ROS publish rates do not accumulate old samples.\n  // Each first read is bounded by VTIME, and the drain has a finite byte budget.\n  constexpr int kReadBufSize = 1024;\n  uint8_t buf[kReadBufSize];\n  int total = 0;\n  for (int burst = 0; burst < 64; ++burst) {\n    const int count = read(fd_, buf, kReadBufSize);\n    if (count <= 0) return total > 0 ? total : count;\n    for (int i = 0; i < count; ++i) {\n      ring_buf_[ring_write_pos_] = buf[i];\n      ring_write_pos_ = (ring_write_pos_ + 1) % kBinRingBufSize;\n      if (ring_data_count_ < kBinRingBufSize) ++ring_data_count_;\n    }\n    total += count;\n    int pending = 0;\n    if (ioctl(fd_, FIONREAD, &pending) < 0 || pending <= 0) break;\n  }\n  return total;\n}\n"
+    ]
+  ],
+  "lib/include/adis_rcv_bin.h": [
+    [
+      "  int fd_;",
+      "  int fd_;\n  uint8_t last_response_id_{0};  // GOUDA_USB_RECONNECT_V1"
+    ]
+  ],
+  "src/test/fake_imu.py": [
+    [
+      "    struct.pack_into(\"<Q\", p, 48, 0)  # timestamp",
+      "    struct.pack_into(\"<Q\", p, 48, int(time.monotonic() * 1_000_000))  # advancing MCU-like clock"
+    ]
+  ],
+  "src/test/test_node_device.py": [
+    [
+      "\"expect_log\": \"Keep trying to open\"",
+      "\"expect_log\": \"IMU disconnected; retrying configured device\""
+    ]
+  ]
+}
