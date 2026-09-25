@@ -1,8 +1,14 @@
 import math
+import hashlib
+import json
+from pathlib import Path
+import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
+import gouda_signal.model as model_module
 from gouda_signal.classifier import RawColor
 from gouda_signal.model import (
     PedestrianModel,
@@ -30,6 +36,33 @@ def _add_detection(predictions, grid_x, grid_y, *, vehicle=0.0, pedestrian=0.0):
         vehicle,
         pedestrian,
     )
+
+
+class _FakeSession:
+    def __init__(self, output):
+        self.output = output
+        self.run_count = 0
+
+    def run(self, _output_names, _feeds):
+        self.run_count += 1
+        return [self.output]
+
+
+def _ready_model(detector_output, classifier_output):
+    model = PedestrianModel.__new__(PedestrianModel)
+    model.model_dir = Path("/unused/test/model/dir")
+    model.confidence_threshold = 0.8
+    model.available = True
+    model.load_error = None
+    manifest_path = Path(__file__).resolve().parents[1] / "model_manifest.json"
+    model._manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    model._detector_session = _FakeSession(detector_output)
+    model._classifier_session = _FakeSession(classifier_output)
+    model._detector_input_name = "images"
+    model._detector_output_name = "output"
+    model._classifier_input_name = "input"
+    model._classifier_output_name = "probabilities"
+    return model
 
 
 def test_yolox_decoder_decodes_stride_grid_objectness_and_pedestrian_class():
@@ -175,3 +208,102 @@ def test_default_model_directory_obeys_launcher_environment(monkeypatch, tmp_pat
 
     monkeypatch.delenv("GOUDA_SIGNAL_MODEL_DIR")
     assert default_model_directory() == workspace / "models" / "pedestrian_signal"
+
+
+def test_classify_vehicle_only_does_not_invoke_classifier():
+    detector_output = _prediction_tensor()
+    _add_detection(detector_output, 10, 10, vehicle=0.9)
+    model = _ready_model(detector_output, np.asarray([[0.9, 0.05, 0.05]], dtype=np.float32))
+
+    result = model.classify(np.zeros((416, 416, 3), dtype=np.uint8))
+
+    assert result.color is RawColor.NONE
+    assert result.reason == "detector_no_pedestrian"
+    assert result.box is None
+    assert model._classifier_session.run_count == 0
+
+
+def test_classify_multiple_pedestrian_boxes_does_not_invoke_classifier():
+    detector_output = _prediction_tensor()
+    _add_detection(detector_output, 10, 10, pedestrian=0.9)
+    _add_detection(detector_output, 30, 30, pedestrian=0.85)
+    model = _ready_model(detector_output, np.asarray([[0.9, 0.05, 0.05]], dtype=np.float32))
+
+    result = model.classify(np.zeros((416, 416, 3), dtype=np.uint8))
+
+    assert result.color is RawColor.NONE
+    assert result.reason == "detector_multiple_pedestrians"
+    assert result.box is None
+    assert result.detector_confidence == pytest.approx(0.99 * 0.9)
+    assert model._classifier_session.run_count == 0
+
+
+def test_classify_one_pedestrian_with_low_classifier_confidence_stays_unknown():
+    detector_output = _prediction_tensor()
+    _add_detection(detector_output, 10, 10, pedestrian=0.9)
+    model = _ready_model(detector_output, np.asarray([[0.55, 0.35, 0.10]], dtype=np.float32))
+
+    result = model.classify(np.zeros((416, 416, 3), dtype=np.uint8))
+
+    assert result.color is RawColor.NONE
+    assert result.reason == "classifier_low_confidence"
+    assert result.confidence == pytest.approx(0.55)
+    assert result.box is not None
+    assert result.detector_confidence == pytest.approx(0.99 * 0.9)
+    assert model._classifier_session.run_count == 1
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected_message"),
+    [("size", "size mismatch"), ("sha", "SHA-256 mismatch")],
+)
+def test_existing_artifact_integrity_failure_keeps_model_unavailable(
+    failure, expected_message, monkeypatch, tmp_path
+):
+    artifact_name = "detector.onnx"
+    payload = b"modified artifact"
+    (tmp_path / artifact_name).write_bytes(payload)
+    expected_size = len(payload) + 1 if failure == "size" else len(payload)
+    expected_hash = "0" * 64
+    manifest = {
+        "schema_version": 1,
+        "license": "Apache-2.0",
+        "backend": {
+            "name": "onnxruntime",
+            "minimum_version": "1.22.1",
+            "providers": ["CPUExecutionProvider"],
+            "intra_op_threads": 2,
+            "inter_op_threads": 1,
+        },
+        "models": {
+            "detector": {
+                "filename": artifact_name,
+                "size_bytes": expected_size,
+                "sha256": expected_hash,
+            },
+            "classifier": {
+                "filename": "classifier.onnx",
+                "size_bytes": 10,
+                "sha256": expected_hash,
+            },
+        },
+    }
+
+    class _SessionOptions:
+        pass
+
+    runtime = SimpleNamespace(
+        __version__="1.22.1",
+        SessionOptions=_SessionOptions,
+        ExecutionMode=SimpleNamespace(ORT_SEQUENTIAL="sequential"),
+    )
+    monkeypatch.setitem(sys.modules, "onnxruntime", runtime)
+    monkeypatch.setattr(model_module, "_load_manifest", lambda: manifest)
+    if model_module.cv2 is None:
+        monkeypatch.setattr(model_module, "cv2", object())
+
+    model = PedestrianModel(tmp_path)
+
+    assert not model.available
+    assert model.load_error is not None
+    assert expected_message in model.load_error
