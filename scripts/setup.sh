@@ -12,12 +12,14 @@ workspace="${GOUDA_WORKSPACE:-$default_workspace}"
 configure=1
 system=1
 with_glim=0
+with_gazebo=0
 for arg in "$@"; do
   case "$arg" in
     --no-configure) configure=0 ;;
     --skip-system) system=0 ;;
     --with-glim) with_glim=1 ;;
-    *) echo "Usage: bash scripts/setup.sh [--no-configure] [--skip-system] [--with-glim]" >&2; exit 2 ;;
+    --with-gazebo) with_gazebo=1 ;;
+    *) echo "Usage: bash scripts/setup.sh [--no-configure] [--skip-system] [--with-glim] [--with-gazebo]" >&2; exit 2 ;;
   esac
 done
 . /etc/os-release
@@ -69,8 +71,10 @@ repo="$workspace/src/tsukuba-autonomous-robot"
 # Do not discover the separate historical ICR workspace under Sensors/.
 # It has another ADI package with the same name.
 packages=("$repo"/gouda_gui "$repo"/gouda_sensors "$repo"/gouda_navigation "$repo"/gouda_vehicle "$repo"/gouda_bringup)
+if (( with_gazebo )); then packages+=("$repo"/gouda_sim); fi
 external=("$workspace/src/ADI_IMU_TR_Driver_ROS2" "$workspace/src/HesaiLidar_ROS_2.0" "$workspace/src/kiss-icp" "$workspace/src/urg_node2")
 if (( system )); then
+  if (( with_gazebo )); then sudo apt-get install -y xvfb xauth; fi
   rosdep install --from-paths "${packages[@]}" "${external[@]}" --ignore-src --rosdistro jazzy -y
 fi
 bash "$repo/scripts/gouda_apply_hesai_patch.sh"

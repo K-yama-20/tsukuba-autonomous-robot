@@ -2,6 +2,8 @@
 import collections
 import json
 import math
+import os
+import numpy as np
 import time
 
 import rclpy
@@ -15,7 +17,7 @@ from std_srvs.srv import SetBool
 
 from .autonomy_core import (load_autonomy_settings, save_autonomy_settings,
     validate_autonomy_settings, compose_transforms, body_pose_from_lidar,
-    estimate_body_twist, normalize_quaternion, AxisPI, obstacle_in_swept_envelope)
+    estimate_body_twist, normalize_quaternion, rotate, AxisPI, obstacle_in_swept_envelope)
 from .mapping import load_mapping_settings, validate_mapping_settings
 
 
@@ -45,11 +47,16 @@ def goal_reference(pose, goal, speed, turn_speed, cfg):
 class AutonomyMVP(Node):
     def __init__(self):
         super().__init__('gouda_autonomy_mvp')
-        if self.get_parameter('use_sim_time').value:
+        self.declare_parameter('gazebo_simulation',False)
+        self.simulation=self.get_parameter('gazebo_simulation').value
+        if self.get_parameter('use_sim_time').value and not self.simulation:
             raise RuntimeError('Autonomy cannot run with replay/simulation clock')
         self.cfg = load_autonomy_settings()
         self.mapping = load_mapping_settings()
-        self.errors = validate_autonomy_settings(self.cfg, require_ready=True)
+        if self.simulation and (not self.get_parameter('use_sim_time').value or os.environ.get('ROS_DOMAIN_ID')!='101' or self.cfg.get('hardware_enabled') or self.cfg.get('simulation_fixture') is not True):
+            raise RuntimeError('Gazebo requires isolated domain 101, simulation fixture, simulation clock and disabled hardware')
+        checked_cfg={**self.cfg,'hardware_enabled':True,'serial_port':'/dev/ttyUSB0'} if self.simulation else self.cfg
+        self.errors = validate_autonomy_settings(checked_cfg, require_ready=True)
         self.errors += validate_mapping_settings(self.mapping, require_ready=True)
         if self.mapping['backend'] != 'glim_imu':
             self.errors.append('GLIM + IMU must be selected')
@@ -59,6 +66,7 @@ class AutonomyMVP(Node):
         self.seen = collections.deque(maxlen=256)
         self.odom = self.imu = self.cloud = self.device = None
         self.stamps, self.received = {}, {}
+        self.imu_history=collections.deque(maxlen=1000)
         self.last_tick = time.monotonic()
         self.arm_future = None
         self.arm_deadline = 0.
@@ -123,12 +131,14 @@ class AutonomyMVP(Node):
         if msg.header.frame_id != self.mapping['imu_frame'] or not all(math.isfinite(v) for v in (a.x,a.y,a.z)):
             return
         if msg.angular_velocity_covariance[0] == -1:return
-        if self.receive_sensor('imu',msg,self.mapping.get('imu_clock_offset_sec') or 0.):self.imu=msg
+        if self.receive_sensor('imu',msg,self.mapping.get('imu_clock_offset_sec') or 0.):
+            self.imu=msg;self.imu_history.append((self.stamps['imu'],msg))
 
     def on_cloud(self,msg):
         if msg.header.frame_id != self.mapping['lidar_frame'] or not msg.width*msg.height:return
         try:
             points=point_cloud2.read_points_numpy(msg,field_names=('x','y','z'),skip_nans=True).reshape(-1,3)
+            points=points[np.isfinite(points).all(axis=1)]
             if not len(points):return
         except (ValueError,AssertionError,KeyError):return
         if self.receive_sensor('cloud',msg,self.mapping.get('lidar_clock_offset_sec') or 0.):self.cloud=points
@@ -142,6 +152,7 @@ class AutonomyMVP(Node):
     def on_device(self,msg):
         try:
             d=json.loads(msg.data)
+            if bool(d.get('simulation')) != self.simulation:return
             if type(d.get('boot_token')) is not int or d.get('owner') not in (0,1,2):return
             self.device=d;self.received['device']=time.monotonic()
         except (ValueError,TypeError):return
@@ -154,12 +165,17 @@ class AutonomyMVP(Node):
         ros_age=self.get_clock().now().nanoseconds/1e9-self.stamps[key]
         return age<=self.cfg['max_sensor_age_sec'] and -.05<=ros_age<=self.cfg['max_sensor_age_sec']
 
+    def aligned_imu(self):
+        if not self.imu_history or 'pose' not in self.stamps:return None
+        stamp,msg=min(self.imu_history,key=lambda entry:abs(entry[0]-self.stamps['pose']))
+        return (stamp,msg) if abs(stamp-self.stamps['pose'])<=self.cfg['max_sensor_skew_sec'] else None
+
     def readiness(self):
         if self.errors:return '; '.join(self.errors)
         for key in ('pose','imu','cloud','device'):
             if not self.fresh(key):return key+' input missing or stale'
-        if abs(self.stamps['pose']-self.stamps['imu'])>self.cfg['max_sensor_skew_sec']:
-            return 'LiDAR odometry / IMU timestamp skew'
+        if self.aligned_imu() is None:
+            return 'No IMU sample aligned with LiDAR odometry timestamp'
         if not self.device.get('connected') or not self.device.get('fresh'):
             return 'Manual controller disconnected or stale'
         return ''
@@ -168,12 +184,19 @@ class AutonomyMVP(Node):
         if self.errors or self.odom is None or self.imu is None:return
         p,q,v=self.odom.pose.pose.position,self.odom.pose.pose.orientation,self.odom.twist.twist.linear
         pb,qb=body_pose_from_lidar((p.x,p.y,p.z),(q.x,q.y,q.z,q.w),self.t_bl,self.q_bl)
-        gyro=self.imu.angular_velocity
+        aligned=self.aligned_imu()
+        if aligned is None:return
+        aligned_stamp,aligned_msg=aligned
+        gyro=aligned_msg.angular_velocity
         scale=math.pi/180 if self.mapping['imu_gyro_unit']=='deg/s' else 1.
         vb,wb=estimate_body_twist((v.x,v.y,v.z),tuple(a*scale for a in (gyro.x,gyro.y,gyro.z)),qb,self.t_bi,self.q_bi,self.cfg['imu_gyro_bias_body_rad_s'])
         x,y,z,w=qb
         self.pose=(pb[0],pb[1],math.atan2(2*(w*z+x*y),1-2*(y*y+z*z)))
-        self.estimate={'v_mps':vb[0],'lateral_mps':vb[1],'w_rps':wb[2]}
+        current=self.imu.angular_velocity
+        current_w=rotate(self.q_bi,tuple(a*scale for a in (current.x,current.y,current.z)))
+        current_w=tuple(current_w[i]-self.cfg['imu_gyro_bias_body_rad_s'][i] for i in range(3))
+        self.estimate={'v_mps':vb[0],'lateral_mps':vb[1],'w_rps':current_w[2],
+            'translation_stamp':self.stamps['pose'],'aligned_imu_stamp':aligned_stamp,'yaw_stamp':self.stamps['imu']}
 
     def disarm(self):
         if not self.disarm_sent and self.arm.service_is_ready():
@@ -260,7 +283,7 @@ class AutonomyMVP(Node):
         self.publish(self.ref_pub,reference)
         if self.estimate:self.publish(self.estimate_pub,dict(issued_at=stamp,**self.estimate,sensor_stamps=self.stamps,valid=not bool(reason)))
         self.publish(self.state_pub,dict(phase=self.phase,reason=self.reason or reason,goal=self.goal,request_id=self.request_id,
-            manual_override=self.manual,command_ref=dict(v_mps=v,w_rps=w),estimate=self.estimate if not reason else None,
+            recording_active=self.recording and self.fresh('recording'),manual_override=self.manual,command_ref=dict(v_mps=v,w_rps=w),estimate=self.estimate if not reason else None,
             pose=self.pose,pose_fresh=self.fresh('pose'),imu_fresh=self.fresh('imu'),cloud_fresh=self.fresh('cloud'),
             calibration_ready=not bool(self.errors),device_fresh=self.fresh('device'),emergency_stop_readback='unknown',
             configuration={'autonomy':self.cfg,'mapping':self.mapping}))
@@ -271,5 +294,6 @@ def main():
     try:rclpy.spin(node)
     except KeyboardInterrupt:pass
     finally:
-        node.disarm();node.destroy_node()
+        if rclpy.ok():node.disarm()
+        node.destroy_node()
         if rclpy.ok():rclpy.shutdown()

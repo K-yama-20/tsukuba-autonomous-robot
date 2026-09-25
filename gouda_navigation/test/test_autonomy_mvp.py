@@ -85,3 +85,24 @@ def test_relative_goal_uses_current_heading_and_reverse():
     v,w,done=m.goal_reference((0,0,0),(0,0,-1),.2,.3,c)
     assert v==0 and w<0 and not done
     assert m.goal_reference((0,0,0),(0,0,0),.2,.3,c)==(0.,0.,True)
+
+
+def test_nonfinite_cloud_does_not_refresh_sensor(controller):
+    import numpy as np
+    from sensor_msgs.msg import PointCloud2
+    n=controller
+    cloud=PointCloud2();cloud.header.frame_id='hesai_lidar';cloud.header.stamp=n.get_clock().now().to_msg();cloud.width=2;cloud.height=1
+    with patch.object(m.point_cloud2,'read_points_numpy',return_value=np.asarray([[np.inf,0.,0.],[np.nan,0.,0.]])):
+        n.on_cloud(cloud)
+    assert 'cloud' not in n.received
+
+
+def test_imu_history_aligns_delayed_odometry_without_relaxing_skew(controller):
+    from sensor_msgs.msg import Imu
+    n=controller
+    old=Imu();new=Imu()
+    n.stamps['pose']=10.
+    n.imu_history.extend([(9.999,old),(10.2,new)])
+    assert n.aligned_imu()==(9.999,old)
+    n.stamps['pose']=9.
+    assert n.aligned_imu() is None

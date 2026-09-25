@@ -20,7 +20,7 @@ def validate_and_start(context):
     static_tf = Node(package='tf2_ros', executable='static_transform_publisher', name='glim_calibrated_imu_lidar_tf',
              arguments=static_tf_args(settings), parameters=[{'use_sim_time': use_sim_time}],
              remappings=private_tf, output='screen')
-    glim_node = Node(package='glim_ros', executable='glim_rosnode', name='glim_ros', output='screen',
+    glim_node = Node(package='glim_ros', executable='glim_rosnode', name='glim_ros', output='screen', sigterm_timeout='70',
              parameters=[{'config_path': config_path, 'dump_path': dump_path, 'use_sim_time': use_sim_time}], remappings=private_tf)
     odom_bridge = Node(package='gouda_navigation', executable='glim_odom_tf', output='screen',
              parameters=[{'odom_frame': 'odom_lidar', 'base_frame': settings['lidar_frame'],

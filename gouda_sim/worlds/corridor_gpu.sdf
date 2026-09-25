@@ -1,0 +1,353 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.9">
+  <world name="gouda_corridor">
+    <physics name="physics" type="ignored">
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
+    <light name="sun" type="directional">
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-.5 .1 -1</direction>
+      <diffuse>.8 .8 .8 1</diffuse>
+    </light>
+    <model name="ground">
+      <static>true</static>
+      <link name="ground">
+        <collision name="ground">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="ground">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="left_wall">
+      <static>true</static>
+      <pose>10 1.7 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="box">
+          <geometry>
+            <box>
+              <size>30 .2 3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="box">
+          <geometry>
+            <box>
+              <size>30 .2 3</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="right_wall">
+      <static>true</static>
+      <pose>10 -1.7 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="box">
+          <geometry>
+            <box>
+              <size>30 .2 3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="box">
+          <geometry>
+            <box>
+              <size>30 .2 3</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="end_wall">
+      <static>true</static>
+      <pose>25 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="box">
+          <geometry>
+            <box>
+              <size>.2 3.4 3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="box">
+          <geometry>
+            <box>
+              <size>.2 3.4 3</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="obstacle">
+      <static>true</static>
+      <pose>5 0 .6 0 0 0</pose>
+      <link name="link">
+        <collision name="box">
+          <geometry>
+            <box>
+              <size>.4 .8 1.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="box">
+          <geometry>
+            <box>
+              <size>.4 .8 1.2</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="gouda">
+      <pose>0 0 .005 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 .5 0 0 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>10.0</ixx>
+            <iyy>10.0</iyy>
+            <izz>10.0</izz>
+          </inertia>
+        </inertial>
+        <collision name="body_box">
+          <geometry>
+            <box>
+              <size>1.105 .600 .900</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="body_box">
+          <geometry>
+            <box>
+              <size>1.105 .600 .900</size>
+            </box>
+          </geometry>
+          <visibility_flags>2</visibility_flags>
+        </visual>
+        <sensor name="imu" type="imu">
+          <always_on>true</always_on>
+          <update_rate>100</update_rate>
+          <topic>/gouda/imu</topic>
+        </sensor>
+        <sensor name="lidar" type="gpu_lidar">
+          <pose>0 0 .6 0 0 0</pose>
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <topic>/gouda/lidar</topic>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>720</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159265359</min_angle>
+                <max_angle>3.14159265359</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>16</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.4</min_angle>
+                <max_angle>0.3</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.4</min>
+              <max>30</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+            <visibility_mask>1</visibility_mask>
+          </lidar>
+        </sensor>
+      </link>
+      <link name="left_wheel">
+        <pose>0 0.275 .16 -1.57079632679 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.2</ixx>
+            <iyy>0.2</iyy>
+            <izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="wheel">
+          <geometry>
+            <cylinder>
+              <radius>0.16</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="wheel">
+          <geometry>
+            <cylinder>
+              <radius>0.16</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+          <visibility_flags>2</visibility_flags>
+        </visual>
+      </link>
+      <joint name="left_joint" type="revolute">
+        <parent>body</parent>
+        <child>left_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <link name="right_wheel">
+        <pose>0 -0.275 .16 -1.57079632679 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.2</ixx>
+            <iyy>0.2</iyy>
+            <izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="wheel">
+          <geometry>
+            <cylinder>
+              <radius>0.16</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="wheel">
+          <geometry>
+            <cylinder>
+              <radius>0.16</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+          <visibility_flags>2</visibility_flags>
+        </visual>
+      </link>
+      <joint name="right_joint" type="revolute">
+        <parent>body</parent>
+        <child>right_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <link name="front_support">
+        <pose>0.43 0 .04 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.010000000000000002</ixx>
+            <iyy>0.010000000000000002</iyy>
+            <izz>0.010000000000000002</izz>
+          </inertia>
+        </inertial>
+        <collision name="support">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="support">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+          <visibility_flags>2</visibility_flags>
+        </visual>
+      </link>
+      <joint name="front_fixed" type="fixed">
+        <parent>body</parent>
+        <child>front_support</child>
+      </joint>
+      <link name="rear_support">
+        <pose>-0.43 0 .04 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.010000000000000002</ixx>
+            <iyy>0.010000000000000002</iyy>
+            <izz>0.010000000000000002</izz>
+          </inertia>
+        </inertial>
+        <collision name="support">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="support">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+          <visibility_flags>2</visibility_flags>
+        </visual>
+      </link>
+      <joint name="rear_fixed" type="fixed">
+        <parent>body</parent>
+        <child>rear_support</child>
+      </joint>
+      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <left_joint>left_joint</left_joint>
+        <right_joint>right_joint</right_joint>
+        <wheel_separation>0.55</wheel_separation>
+        <wheel_radius>0.16</wheel_radius>
+        <topic>/model/gouda/cmd_vel</topic>
+        <odom_topic>/model/gouda/odometry</odom_topic>
+        <frame_id>odom_lidar</frame_id>
+        <child_frame_id>base_link</child_frame_id>
+        <odom_publish_frequency>50</odom_publish_frequency>
+      </plugin>
+      <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+        <odom_topic>/model/gouda/ground_truth</odom_topic>
+        <odom_frame>odom_lidar</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>50</odom_publish_frequency>
+      </plugin>
+    </model>
+  </world>
+</sdf>
