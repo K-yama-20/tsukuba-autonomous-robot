@@ -15,7 +15,8 @@ let camera={x:0,y:0,scale:35}, cameraInitialized=false, draft=null, pointer=null
 const canvas=$('map'), ctx=canvas.getContext('2d');
 function notice(message,error=false){$('notice').textContent=message;$('notice').classList.toggle('error',error);}
 function selectTab(next){
-  tab=next;document.body.dataset.tab=next;
+  tab=next;
+  document.querySelector(`[data-tab=\"${next}\"]`)?.scrollIntoView({inline:'nearest',block:'nearest'});document.body.dataset.tab=next;
   if(next==='planning')view='2d';
   for(const button of document.querySelectorAll('[data-tab]')){
     const selected=button.dataset.tab===next;button.setAttribute('aria-selected',String(selected));

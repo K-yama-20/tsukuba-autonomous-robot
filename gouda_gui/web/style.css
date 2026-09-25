@@ -48,3 +48,29 @@ body[data-tab="autonomy"] #panel-autonomy{display:grid;grid-template-columns:min
   .main-grid{grid-template-columns:minmax(0,1fr);gap:10px}.viewport{width:100%}.canvas-wrap{height:clamp(230px,42dvh,410px);min-height:230px}.operations{padding:13px;min-height:0}.telemetry{grid-template-columns:repeat(2,minmax(0,1fr))}.telemetry>div{padding:9px}.telemetry strong{font-size:12px}.viewport-toolbar{gap:4px}.viewport-toolbar>span{font-size:10px}.button-group button{min-height:40px;padding:8px 10px}.selection-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.coordinates{gap:6px}.coordinates input{min-height:44px;font-size:16px}.operations input,.operations select,.operations textarea{min-height:44px;font-size:16px}.operations button{min-height:44px;touch-action:manipulation}.activity{margin-top:8px}.tool-hint{bottom:12px;max-width:76%}
 }
 @media(max-width:390px){.sidebar [role=tab]{min-width:74px;padding-left:7px;padding-right:7px}.top-status #mode{display:none}.telemetry strong{white-space:normal}.canvas-wrap{height:36dvh}}
+
+/* Keep the tab strip viewport-sized; the tab list itself owns horizontal overflow. */
+@media(max-width:700px){
+  html,body{width:100%;min-width:0;overflow-x:hidden}
+  .workspace{width:100%;min-width:0}
+  .sidebar{width:100%;min-width:0;max-width:100%;flex:0 0 auto;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .sidebar::-webkit-scrollbar{display:block;height:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .sidebar [role=tablist]{width:max-content;min-width:max-content;flex-wrap:nowrap}
+  .sidebar [role=tab]{flex:0 0 auto;scroll-snap-align:start}
+}
+
+/* Short landscape screens need the same reachable tab strip as portrait phones. */
+@media(max-height:500px){
+  .workspace{display:flex;flex-direction:column;width:100%;min-width:0}
+  .sidebar{position:sticky;top:0;z-index:8;width:100%;min-width:0;max-width:100%;height:60px;max-height:60px;flex:0 0 60px;display:block;padding:0;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .sidebar::-webkit-scrollbar{display:block;height:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .sidebar .nav-caption,.sidebar .nav-bottom{display:none}
+  .sidebar [role=tablist]{display:flex;flex-wrap:nowrap;width:max-content;min-width:max-content;height:59px;gap:0}
+  .sidebar [role=tab]{display:block;position:relative;flex:0 0 auto;width:auto;min-width:100px;height:59px;min-height:59px;margin:0;padding:8px 12px;text-align:center;border:0;border-bottom:2px solid transparent;white-space:nowrap;scroll-snap-align:start}
+  .sidebar [role=tab] span{display:inline;margin:0 4px 0 0;font-size:9px}
+  .sidebar [role=tab] small{display:none}
+  .sidebar [aria-selected=true]{border-bottom-color:var(--accent);border-left:0}
+  main{width:100%;min-width:0}
+}
