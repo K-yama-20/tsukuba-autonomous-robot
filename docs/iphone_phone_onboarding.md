@@ -17,7 +17,7 @@ python3 scripts/setup_phone_access.py --hostname gouda.local --ip-address 10.42.
 
 出力先は通常 `$GOUDA_WORKSPACE/bags/gouda/phone-access/` です。`GOUDA_WORKSPACE` が未設定なら `~/gouda_ws/bags/gouda/phone-access/` を使います。公開証明書 `ca.crt` だけをiPhoneへ渡してください。`ca.key`、`tls.key`、`token` は秘密情報です。ディレクトリはモード0700、秘密鍵・トークン・設定ファイルは0600で作られます。コマンドの出力にはトークンを表示しません。
 
-同じ名前とIPで再実行すると既存の一式を検査して再利用します。異なるIDや手作業で置かれたファイルがある場合は上書きせず停止します。iPhoneテザリングなどでUbuntuのIPが後から変わった場合は、先にゲートウェイを停止し、新しいIPだけを明示して既存CAのSANを拡張できます。CAとトークンは維持されるので、iPhoneでCAを再インストールする必要はありません。
+同じ名前とIPで再実行すると既存の一式を検査して再利用します。異なるIDや手作業で置かれたファイルがある場合は上書きせず停止します。iPhoneテザリングなどでUbuntuのIPが後から変わった場合は、先にゲートウェイを停止し、新しいIPだけを明示して既存CAを維持してサーバー証明書のSANを拡張できます。CAとトークンは維持されるので、iPhoneでCAを再インストールする必要はありません。
 
 ```bash
 python3 scripts/setup_phone_access.py --hostname gouda.local --ip-address 172.20.10.4 --extend-existing
@@ -33,7 +33,7 @@ python3 scripts/setup_phone_access.py --check-network
 
 ## 2. 公開CA証明書をiPhoneへ移して信頼する
 
-UbuntuからMacへ、既存のローカル転送手段（USB、ファイル共有、SSHなど）で `ca.crt` をコピーし、MacからAirDropでiPhoneへ送ります。Ubuntu自身はAirDropを使いません。AirDropによる近距離転送にインターネット接続は不要です。秘密鍵やトークンは転送しないでください。
+UbuntuからMacへ、既存のローカル転送手段（USB、ファイル共有、SSHなど）で `ca.crt` をコピーし、MacからAirDropでiPhoneへ送ります。Ubuntu自身はAirDropを使いません。AirDropによる近距離転送にインターネット接続は不要です。この手順でiPhoneへ渡すファイルは公開証明書の `ca.crt` だけです。秘密鍵は絶対に転送しません。認証トークンは別途、Ubuntuの自分専用端末で表示して、信頼できるiPhoneへ入力するか、パスワードマネージャーを使って安全に入力してください。
 
 iPhoneで受け取った `ca.crt` をタップし、内容を確認して端末へ追加します。iOSがプロファイルのダウンロードを表示した場合は、**設定 → 一般 → VPNとデバイス管理**からインストールしてください。その後、次を開きます。
 
@@ -71,7 +71,7 @@ nmcli connection modify gouda-phone-ap connection.autoconnect yes
 
 ## 4. GUIパッケージをビルドしてユーザーサービスを登録する
 
-まだGoudaワークスペースをビルドしていない場合は、Ubuntu 24.04上でROS 2 Jazzyと必要な依存パッケージを用意した後、次のようにビルドします。通常の `scripts/setup.sh` を完了済みなら再ビルドは不要です。
+この版で追加された `phone_gateway` エントリーポイントを使うため、更新後にGUIパッケージを一度ビルドしてください。この版の `scripts/setup.sh` を最後まで実行済みなら、そのビルドは完了しています。古い版でセットアップ済みの場合は、次を実行します。Ubuntu 24.04上でROS 2 Jazzyと必要な依存パッケージが用意されていることが前提です。
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -99,7 +99,13 @@ iPhoneのSafariで、証明書SANと一致するアドレスを開きます。
 - `https://10.42.0.1:8443`
 - `https://gouda.local:8443`
 
-これらは例です。ホスト名が解決できない場合はIPアドレスを使ってください。PWAが求めたら、Ubuntuの `phone-access/token` にあるトークンを入力します。トークンは秘密情報として扱ってください。Safariの共有メニューから **ホーム画面に追加** を選ぶと、ホーム画面にアイコンを作れます。
+これらは例です。ホスト名が解決できない場合はIPアドレスを使ってください。PWAが求めたら、Ubuntuで自分のユーザーとして開いた端末からトークンを表示し、内容をiPhoneへ入力します。`GOUDA_WORKSPACE` が未設定の場合のコマンドです。
+
+```bash
+cat "$HOME/gouda_ws/bags/gouda/phone-access/token"
+```
+
+`GOUDA_WORKSPACE` を設定している場合は、その値に合わせてパスを置き換えてください。これは自分専用の端末だけで実行し、トークンをチャット、ログ、共有画面へ貼り付けないでください。必要なら信頼できるパスワードマネージャーに保管してください。Safariの共有メニューから **ホーム画面に追加** を選ぶと、ホーム画面にアイコンを作れます。
 
 証明書名エラーが出た場合、Safariに入力した名前/IPがサーバー証明書SANに含まれているか確認します。ホストが見つからない場合は、先にiPhoneから名前解決できるか、同じローカルネットワークにいるかを確認してください。証明書の設定だけでは名前解決や通信経路は作られません。
 
