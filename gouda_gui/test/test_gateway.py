@@ -121,4 +121,3 @@ class GatewayHandlerTests(unittest.IsolatedAsyncioTestCase):
         status=await self.client.get('/api/runtime/status',headers=self.headers)
         result=await status.json()
         self.assertEqual(result['lifecycle_job']['state'],'completed')
-
