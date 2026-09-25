@@ -13,23 +13,26 @@ from typing import Any
 SCHEMA_VERSION = 1
 DEFAULT_SETTINGS = {
     "schema_version": SCHEMA_VERSION,
-    "backend": "kiss_icp",
+    "backend": "glim_imu",
     "compute": "cpu",
-    "clock_policy": "unknown",
-    "clock_evidence": "",
+    "clock_policy": "host_mapped",
+    "clock_evidence": "No sync wiring; MCU acquisition time mapped to PC clock. Offsets 0 s are provisional and synchronization accuracy is unverified.",
     "lidar_topic": "/lidar_points",
     "imu_topic": "/imu/data_raw",
     "lidar_frame": "hesai_lidar",
     "imu_frame": "imu_link",
-    "extrinsic_lidar_imu": None,
-    "point_time_field": "unknown",
-    "point_time_datatype": "unknown",
-    "point_time_mode": "unknown",
-    "point_time_unit": "unknown",
-    "imu_accel_unit": "unknown",
-    "imu_gyro_unit": "unknown",
-    "imu_clock_offset_sec": None,
-    "lidar_clock_offset_sec": None,
+    "extrinsic_lidar_imu": {
+        "translation_m": [0.0, 0.0, -0.0514],
+        "quaternion_xyzw": [0.0, 0.0, 0.0, 1.0],
+    },
+    "point_time_field": "timestamp",
+    "point_time_datatype": "float64",
+    "point_time_mode": "absolute",
+    "point_time_unit": "seconds",
+    "imu_accel_unit": "m/s^2",
+    "imu_gyro_unit": "rad/s",
+    "imu_clock_offset_sec": 0.0,
+    "lidar_clock_offset_sec": 0.0,
 }
 
 
