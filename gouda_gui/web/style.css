@@ -31,3 +31,46 @@ body[data-tab="autonomy"] #panel-autonomy{display:grid;grid-template-columns:min
 
 #time-sync-state[data-sync-state="blocked"]{color:var(--red);border-left:2px solid var(--red)}
 #time-sync-state[data-sync-state="unverified"]{color:var(--amber);border-left:2px solid var(--amber)}
+
+/* Phone field use: keep all six work areas reachable in a horizontal strip. */
+.access-gate{position:fixed;inset:0;z-index:100;background:#050c0beF;display:grid;place-items:center;padding:24px env(safe-area-inset-right) calc(24px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+.access-card{width:min(100%,420px);padding:24px;background:var(--surface);border:1px solid var(--line);box-shadow:0 18px 80px #000b}.access-card h1{font-size:22px}.access-card p{color:var(--muted);font-size:13px}.access-card #access-error{color:var(--red);min-height:1.4em}.map-zoom{position:absolute;right:12px;top:12px;z-index:2;display:grid;gap:6px}.map-zoom button{width:42px;height:42px;padding:0;font-size:23px;background:#07120eeF;touch-action:manipulation}
+.lifecycle-card{border:1px solid var(--line);background:var(--panel);padding:14px;margin:12px 0}.lifecycle-card h3{margin:0;color:var(--accent)}.lifecycle-card .inline{flex-wrap:wrap}.lifecycle-card .inline button{flex:1;min-width:90px}
+@media(max-width:700px){
+  .topbar{padding:calc(8px + env(safe-area-inset-top)) 12px 9px;gap:10px;min-height:0}
+  .brand{min-width:0;gap:8px}.brandmark{width:30px;height:32px;font-size:19px}.brand strong{font-size:19px}.brand small{font-size:8px}
+  .top-status{order:initial;flex:1;flex-basis:auto;gap:4px;justify-content:flex-end;min-width:0}.top-status #run-state{display:none}.top-status #connection{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stop{min-width:62px;padding:9px 7px;font-size:13px}
+  .workspace{display:flex;flex-direction:column;min-height:calc(100dvh - 58px)}
+  .sidebar{position:sticky;top:0;z-index:8;width:100%;height:auto;flex:0 0 auto;display:block;padding:0;border-right:0;border-bottom:1px solid var(--line);background:#081510f5;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.nav-caption,.nav-bottom{display:none}
+  .sidebar [role=tablist]{display:flex;width:max-content;min-width:100%;gap:0}.sidebar [role=tab]{width:auto;min-width:82px;min-height:56px;margin:0;padding:8px 10px;text-align:center;border-left:0;border-bottom:2px solid transparent;white-space:nowrap;font-size:11px}.sidebar [role=tab] span{display:inline;margin:0 4px 0 0;font-size:9px}.sidebar [role=tab] small{display:none}.sidebar [aria-selected=true]{border-bottom-color:var(--accent)}
+  main{padding:14px 10px calc(18px + env(safe-area-inset-bottom));width:100%}.page-heading{display:block;margin-bottom:12px}.page-heading h1{font-size:21px}.map-name{text-align:left;max-width:none;margin-top:8px}.map-name small{display:none}.map-name strong{font-size:12px;margin-top:0}
+  .main-grid{grid-template-columns:minmax(0,1fr);gap:10px}.viewport{width:100%}.canvas-wrap{height:clamp(230px,42dvh,410px);min-height:230px}.operations{padding:13px;min-height:0}.telemetry{grid-template-columns:repeat(2,minmax(0,1fr))}.telemetry>div{padding:9px}.telemetry strong{font-size:12px}.viewport-toolbar{gap:4px}.viewport-toolbar>span{font-size:10px}.button-group button{min-height:40px;padding:8px 10px}.selection-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.coordinates{gap:6px}.coordinates input{min-height:44px;font-size:16px}.operations input,.operations select,.operations textarea{min-height:44px;font-size:16px}.operations button{min-height:44px;touch-action:manipulation}.activity{margin-top:8px}.tool-hint{bottom:12px;max-width:76%}
+}
+@media(max-width:390px){.sidebar [role=tab]{min-width:74px;padding-left:7px;padding-right:7px}.top-status #mode{display:none}.telemetry strong{white-space:normal}.canvas-wrap{height:36dvh}}
+
+/* Keep the tab strip viewport-sized; the tab list itself owns horizontal overflow. */
+@media(max-width:700px){
+  html,body{width:100%;min-width:0;overflow-x:hidden}
+  .workspace{width:100%;min-width:0}
+  .sidebar{width:100%;min-width:0;max-width:100%;flex:0 0 auto;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .sidebar::-webkit-scrollbar{display:block;height:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .sidebar [role=tablist]{width:max-content;min-width:max-content;flex-wrap:nowrap}
+  .sidebar [role=tab]{flex:0 0 auto;scroll-snap-align:start}
+}
+
+/* Short landscape screens need the same reachable tab strip as portrait phones. */
+@media(max-height:500px){
+  .workspace{display:flex;flex-direction:column;width:100%;min-width:0}
+  .sidebar{position:sticky;top:0;z-index:8;width:100%;min-width:0;max-width:100%;height:60px;max-height:60px;flex:0 0 60px;display:block;padding:0;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .sidebar::-webkit-scrollbar{display:block;height:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .sidebar .nav-caption,.sidebar .nav-bottom{display:none}
+  .sidebar [role=tablist]{display:flex;flex-wrap:nowrap;width:max-content;min-width:max-content;height:59px;gap:0}
+  .sidebar [role=tab]{display:block;position:relative;flex:0 0 auto;width:auto;min-width:100px;height:59px;min-height:59px;margin:0;padding:8px 12px;text-align:center;border:0;border-bottom:2px solid transparent;white-space:nowrap;scroll-snap-align:start}
+  .sidebar [role=tab] span{display:inline;margin:0 4px 0 0;font-size:9px}
+  .sidebar [role=tab] small{display:none}
+  .sidebar [aria-selected=true]{border-bottom-color:var(--accent);border-left:0}
+  main{width:100%;min-width:0}
+}
