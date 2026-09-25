@@ -40,7 +40,9 @@ if (( system )); then
   sudo apt-get install -y ros-jazzy-desktop ros-dev-tools python3-rosdep python3-vcstool \
     python3-colcon-common-extensions python3-pytest python3-aiohttp python3-yaml \
     ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox \
-    libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils
+    libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils \
+    gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad gstreamer1.0-libav
   if (( with_glim )); then
     # Official GLIM PPA for Ubuntu 24.04/Jazzy, CPU-only package set.
     key=/usr/share/keyrings/gouda-koide3.gpg
@@ -68,7 +70,7 @@ python3 "$repo/scripts/prepare_sources.py" "$repo" "$workspace"
 repo="$workspace/src/tsukuba-autonomous-robot"
 # Do not discover the separate historical ICR workspace under Sensors/.
 # It has another ADI package with the same name.
-packages=("$repo"/gouda_gui "$repo"/gouda_sensors "$repo"/gouda_navigation "$repo"/gouda_vehicle "$repo"/gouda_bringup)
+packages=("$repo"/gouda_gui "$repo"/gouda_sensors "$repo"/gouda_navigation "$repo"/gouda_vehicle "$repo"/gouda_bringup "$repo"/gouda_camera)
 external=("$workspace/src/ADI_IMU_TR_Driver_ROS2" "$workspace/src/HesaiLidar_ROS_2.0" "$workspace/src/kiss-icp" "$workspace/src/urg_node2")
 if (( system )); then
   rosdep install --from-paths "${packages[@]}" "${external[@]}" --ignore-src --rosdistro jazzy -y
