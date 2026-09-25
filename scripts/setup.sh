@@ -41,7 +41,7 @@ if (( system )); then
   sudo apt-get update
   sudo apt-get install -y ros-jazzy-desktop ros-dev-tools python3-rosdep python3-vcstool \
     python3-colcon-common-extensions python3-pytest python3-aiohttp python3-yaml \
-    python3-opencv python3-pyqt5 python3-numpy \
+    python3-opencv python3-pyqt5 python3-numpy python3-venv \
     ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox \
     libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils linuxptp ethtool
   if (( with_glim )); then
@@ -69,6 +69,13 @@ fi
 mkdir -p "$workspace/src"
 python3 "$repo/scripts/prepare_sources.py" "$repo" "$workspace"
 repo="$workspace/src/tsukuba-autonomous-robot"
+signal_model_dir="${GOUDA_SIGNAL_MODEL_DIR:-$workspace/models/pedestrian_signal}"
+mkdir -p "$signal_model_dir"
+signal_model_dir="$(cd "$signal_model_dir" && pwd -P)"
+export GOUDA_SIGNAL_MODEL_DIR="$signal_model_dir"
+bash "$repo/scripts/install_signal_runtime.sh" "$workspace"
+python3 "$repo/scripts/install_signal_models.py" \
+  "$repo/gouda_signal/model_manifest.json" "$signal_model_dir"
 # Do not discover the separate historical ICR workspace under Sensors/.
 # It has another ADI package with the same name.
 packages=("$repo"/gouda_gui "$repo"/gouda_sensors "$repo"/gouda_navigation "$repo"/gouda_vehicle "$repo"/gouda_bringup "$repo"/gouda_signal)
@@ -96,3 +103,4 @@ source "$workspace/install/setup.bash"
 if (( configure )); then python3 "$repo/scripts/configure_host.py" --workspace "$workspace"; fi
 printf '\nセットアップ完了。画面のみ: bash %q/scripts/gouda.sh view\n' "$repo"
 printf '実機観測: bash %q/scripts/gouda.sh observe\n' "$repo"
+printf '歩行者信号: bash %q/scripts/gouda.sh signal\n' "$repo"

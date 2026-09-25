@@ -30,10 +30,7 @@ jobs:
       - name: Pedestrian signal app CLI and Qt import smoke
         env:
           QT_QPA_PLATFORM: offscreen
-        run: |
-          source /opt/ros/jazzy/setup.bash
-          source "$GOUDA_WORKSPACE/install/setup.bash"
-          python3 -m gouda_signal.app --help
+        run: bash "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot/scripts/gouda.sh" signal --help
       - name: Repeat setup without replacing user data
         run: |
           cd "$GOUDA_WORKSPACE/src/tsukuba-autonomous-robot"

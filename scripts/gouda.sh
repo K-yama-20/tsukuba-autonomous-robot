@@ -19,6 +19,10 @@ print(json.loads(config.read_text())['workspace'] if config.exists() else worksp
 PYCONFIG
 )}"
 export GOUDA_WORKSPACE="$workspace"
+if [[ "${1:-}" == signal ]]; then
+  signal_ros_domain="${ROS_DOMAIN_ID:-99}"
+  signal_discovery_range="${ROS_AUTOMATIC_DISCOVERY_RANGE:-LOCALHOST}"
+fi
 if [[ "${1:-}" == configure ]]; then
   source /opt/ros/jazzy/setup.bash
   source "$workspace/install/setup.bash"
@@ -29,8 +33,14 @@ source /opt/ros/jazzy/setup.bash
 source "$workspace/install/setup.bash"
 if [[ "${1:-}" == signal ]]; then
   shift
-  export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-99}"
-  export ROS_AUTOMATIC_DISCOVERY_RANGE="${ROS_AUTOMATIC_DISCOVERY_RANGE:-LOCALHOST}"
-  exec python3 -m gouda_signal.app "$@"
+  export ROS_DOMAIN_ID="$signal_ros_domain"
+  export ROS_AUTOMATIC_DISCOVERY_RANGE="$signal_discovery_range"
+  export GOUDA_SIGNAL_MODEL_DIR="${GOUDA_SIGNAL_MODEL_DIR:-$workspace/models/pedestrian_signal}"
+  signal_python="$workspace/.venvs/pedestrian_signal/bin/python"
+  [[ -x "$signal_python" ]] || {
+    echo "Pedestrian signal runtime is missing at '$signal_python'; run bash '$repo/scripts/setup.sh'." >&2
+    exit 1
+  }
+  exec "$signal_python" -m gouda_signal.app "$@"
 fi
 exec python3 -m gouda_gui.runtime "$@"
