@@ -53,6 +53,9 @@
             <label class="topic-option"><input type="checkbox" id="rec-tf" checked disabled> 座標変換 /tf・/tf_static</label>
             <label class="topic-option"><input type="checkbox" id="rec-kiss-odom"> KISSオドメトリ /kiss/odometry</label>
             <label class="topic-option"><input type="checkbox" id="rec-clock"> 再生時刻 /clock（再生時は必須）</label>
+            <label class="topic-option"><input type="checkbox" checked disabled> IMU時刻参照 /imu/time_reference（必須）</label>
+            <label class="topic-option"><input type="checkbox" checked disabled> IMU時計状態 /imu/clock_status（必須）</label>
+            <label class="topic-option"><input type="checkbox" checked disabled> 時刻同期状態 /gouda/time_sync/state（必須）</label>
           </div>
           <div class="section-label">操作・推定の分析データ（自動記録）</div>
           <div class="field" id="recording-analysis-topics">
@@ -85,6 +88,10 @@
             <label for="map-accel-unit">IMU加速度単位</label><select id="map-accel-unit"><option value="unknown">未確認</option><option value="m/s^2">m/s²（ソース契約）</option><option value="g">g</option></select>
             <label for="map-gyro-unit">IMU角速度単位</label><select id="map-gyro-unit"><option value="unknown">未確認</option><option value="rad/s">rad/s（ソース契約）</option><option value="deg/s">度/秒</option></select>
             <div class="coordinates"><div><label for="map-lidar-offset">LiDAR時刻補正 / 秒</label><input id="map-lidar-offset" type="number" step="0.0001" placeholder="未確認"></div><div><label for="map-imu-offset">IMU時刻補正 / 秒</label><input id="map-imu-offset" type="number" step="0.0001" placeholder="未確認"></div></div>
+            <label for="map-clock-policy">時計の合わせ方</label><select id="map-clock-policy"><option value="unknown">未確認</option><option value="host_mapped">PC時計へソフトウェア換算（推定）</option><option value="external_common">外部共通時計（配線・設定を現物確認）</option></select>
+            <label for="map-clock-evidence">配線・機器時刻設定の確認記録</label><textarea id="map-clock-evidence" rows="2" maxlength="1000" placeholder="確認した配線、機器設定、確認者・日付などを記録。記録だけでは同期成立の証明になりません"></textarea>
+            <div class="section-label">時刻同期の受信状態</div><div id="time-sync-state" class="reasons" role="status">未確認 · 状態トピック未受信 · 同期は未検証</div>
+            <p class="helper">監視: <code>/gouda/time_sync/state</code>（JSON文字列）。記録必須: <code>/imu/time_reference</code>、<code>/imu/clock_status</code>。IMUドライバーは sensor_msgs/TimeReference と std_msgs/String を使用します。時刻同期状態の受信は実測の同期精度を保証しません。</p>
           </div>
           <p id="mapping-settings-state" class="helper">設定状態を確認しています。</p>
           <button id="mapping-settings-save" class="full">SLAM設定を保存</button>

@@ -17,13 +17,14 @@ import yaml
 
 from .paths import workspace_dir
 
-DEFAULT_TOPICS = ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static']
+DEFAULT_TOPICS = ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static', '/imu/time_reference', '/imu/clock_status', '/gouda/time_sync/state']
 OPTIONAL_TOPICS = ['/kiss/odometry', '/glim_ros/lidar_odom', '/clock']
 CONTROL_ANALYSIS_TOPICS = ['/cmd_motion', '/gouda/motion_permit', '/esp32/status',
                            '/gouda/navigation_state', '/gouda/pose', '/glim_ros/lidar_odom',
                            '/cmd_vel', '/gouda/control/drive', '/gouda/control/reference',
                            '/gouda/control/estimate', '/gouda/control/manual_input', '/gouda/control_trace',
                            '/gouda/autonomy/state', '/gouda/autonomy/request', '/gouda/recording/state']
+CLOCK_EVIDENCE_TOPICS = ('/imu/time_reference', '/imu/clock_status', '/gouda/time_sync/state')
 REQUIRED_TOPICS = tuple(DEFAULT_TOPICS)
 TOPIC_RE = re.compile(r'^/(?:[A-Za-z][A-Za-z0-9_]*)(?:/[A-Za-z][A-Za-z0-9_]*)*$')
 STORAGE_IDS = {'mcap', 'sqlite3'}
@@ -102,6 +103,9 @@ class RecordingManager:
         for topic in CONTROL_ANALYSIS_TOPICS:
             if topic not in result['topics']:
                 result['topics'].append(topic)
+        for topic in CLOCK_EVIDENCE_TOPICS:
+            if topic not in result['topics']:
+                result['topics'].append(topic)
         if self.use_sim_time and '/clock' not in result['topics']:
             result['topics'].append('/clock')
         if len(result['topics']) > 64:
@@ -116,6 +120,10 @@ class RecordingManager:
         except (OSError, json.JSONDecodeError) as exc:
             raise RuntimeError(f'Cannot read recording configuration: {exc}') from exc
         try:
+            config=dict(config)
+            topics=config.get('topics', DEFAULT_TOPICS)
+            if isinstance(topics,list):
+                config['topics']=list(dict.fromkeys([*topics,*CLOCK_EVIDENCE_TOPICS]))
             return validate_config(config)
         except ValueError as exc:
             raise RuntimeError(f'Invalid saved recording configuration: {exc}') from exc
@@ -125,6 +133,10 @@ class RecordingManager:
             return dict(self.config, topics=list(self.config['topics']))
 
     def update_config(self, config):
+        if isinstance(config,dict):
+            config=dict(config)
+            topics=config.get('topics',DEFAULT_TOPICS)
+            if isinstance(topics,list):config['topics']=list(dict.fromkeys([*topics,*CLOCK_EVIDENCE_TOPICS]))
         validated = self._with_effective_topics(validate_config(config))
         with self._lock:
             if self.process is not None and self.process.poll() is None:

@@ -71,6 +71,7 @@ class MissionControl(Node):
         self.lock = threading.RLock(); self.operations = threading.Lock()
         self.recording_data_lock=threading.Lock();self.recording_data_seen=False
         self.recording_error=''
+        self.time_sync_state=None;self.time_sync_received_at=None
         try:self.recorder=RecordingManager(sensor_data_seen=self.recording_sensor_data_seen,use_sim_time=self.mode=='replay')
         except Exception as exc:self.recorder=None;self.recording_error=str(exc)[:300]
         self.store = MapStore(self.get_parameter('map_directory').value)
@@ -103,6 +104,7 @@ class MissionControl(Node):
         self.arm = self.create_client(SetBool,'/gouda/arm')
         self.create_subscription(Odometry,'/gouda/pose',self.on_pose,1)
         self.create_subscription(String,'/gouda/navigation_state',self.on_nav,1)
+        self.create_subscription(String,'/gouda/time_sync/state',self.on_time_sync_state,10)
         self.create_subscription(String,'/esp32/status',self.on_esp,1)
         self.create_subscription(Path,'/gouda/preview_path',self.on_path,1)
         self.create_subscription(PointCloud2,'/lidar_points',self.receive_cloud,qos_profile_sensor_data)
@@ -129,6 +131,27 @@ class MissionControl(Node):
 
     def recording_sensor_data_seen(self,*_):
         with self.recording_data_lock:return self.recording_data_seen
+
+    def on_time_sync_state(self,msg):
+        try:
+            data=json.loads(msg.data)
+            if not isinstance(data,dict):raise ValueError('状態JSONはオブジェクトではありません')
+            status=str(data.get('status','unknown'))[:80]
+            errors=data.get('errors',[])
+            if not isinstance(errors,list):errors=[str(errors)]
+            record=dict(data,status=status,errors=[str(v)[:200] for v in errors[:20]])
+        except (ValueError,TypeError) as exc:
+            record=dict(status='invalid',errors=[f'状態JSONを読めません: {exc}'])
+        with self.lock:
+            self.time_sync_state=record
+            self.time_sync_received_at=time.monotonic()
+
+    def time_sync_snapshot(self):
+        with self.lock:
+            if self.time_sync_state is None or self.time_sync_received_at is None:
+                return dict(status='unverified',fresh=False,age_sec=None,errors=['状態トピック未受信'])
+            age=max(0.,time.monotonic()-self.time_sync_received_at)
+            return dict(self.time_sync_state,fresh=age<2.5,age_sec=round(age,2))
 
     def on_imu(self,msg):
         with self.recording_data_lock:self.recording_data_seen=True
@@ -454,7 +477,7 @@ class MissionControl(Node):
             return copy.deepcopy(dict(mode=self.mode,observation_only=self.observation_only,viewer=self.viewer_status(),
                 slam_phase=self.slam.status() if self.slam else None,
                 recording=self.recorder.status() if self.recorder else dict(phase='failed',error=self.recording_error,sensor_data_seen=False),recording_config=self.recorder.get_config() if self.recorder else None,
-                mapping_settings=self.mapping_settings_snapshot(),autonomy=self.autonomy_snapshot(),
+                mapping_settings=self.mapping_settings_snapshot(),time_sync=self.time_sync_snapshot(),autonomy=self.autonomy_snapshot(),
                 localization_available=bool(self.map_meta and (self.store.root/self.map_meta.get('id','')/'slam.posegraph').is_file() and (self.store.root/self.map_meta.get('id','')/'slam.data').is_file()),
                 pose_reference=self.pose_frame,pose=self.pose,nav=self.nav,esp=self.esp,ages=ages,
                 map=self.grid,map_revision=self.grid_revision,map_meta=self.map_meta,maps=self.store.list(),

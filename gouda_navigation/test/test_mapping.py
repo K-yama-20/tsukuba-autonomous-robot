@@ -18,6 +18,8 @@ def valid_glim_settings():
     return {
         **DEFAULT_SETTINGS,
         "backend": "glim_imu",
+        "clock_policy": "host_mapped",
+        "clock_evidence": "Test fixture: sensor time aligned with host",
         "extrinsic_lidar_imu": {
             "translation_m": [0.12, -0.03, 0.21],
             "quaternion_xyzw": [0.0, 0.0, 0.0, 1.0],

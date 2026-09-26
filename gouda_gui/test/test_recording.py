@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from gouda_gui.recording import CONTROL_ANALYSIS_TOPICS, OPTIONAL_TOPICS, RecordingManager, validate_config
+from gouda_gui.recording import CLOCK_EVIDENCE_TOPICS, CONTROL_ANALYSIS_TOPICS, DEFAULT_TOPICS, OPTIONAL_TOPICS, RecordingManager, validate_config
 
 
 class Result:
@@ -84,7 +84,7 @@ class Harness:
 
 def test_defaults_retain_raw_sensor_and_tf_topics():
     cfg = validate_config({})
-    assert cfg['topics'] == ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static']
+    assert cfg['topics'] == ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static', *CLOCK_EVIDENCE_TOPICS]
     assert cfg['storage_id'] == 'mcap'
     assert cfg['min_free_disk_mb'] == 2048
     assert '/kiss/odometry' in OPTIONAL_TOPICS
@@ -95,7 +95,7 @@ def test_defaults_retain_raw_sensor_and_tf_topics():
         '/gouda/control/reference', '/gouda/control/estimate', '/gouda/control/manual_input',
         '/gouda/control_trace', '/gouda/autonomy/state', '/gouda/autonomy/request', '/gouda/recording/state'}
     assert '/odom' not in OPTIONAL_TOPICS
-    for missing in ('/lidar_points', '/imu/data_raw', '/tf', '/tf_static'):
+    for missing in ('/lidar_points', '/imu/data_raw', '/tf', '/tf_static', *CLOCK_EVIDENCE_TOPICS):
         with pytest.raises(ValueError):
             validate_config(dict(cfg, topics=[t for t in cfg['topics'] if t != missing]))
 
@@ -240,7 +240,7 @@ def test_close_stops_process_group_and_freezes_elapsed_and_config(tmp_path):
     final = h.manager.close()
     elapsed = final['elapsed_sec']
     assert final['phase'] == 'completed'
-    assert final['config']['topics'] == ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static'] + CONTROL_ANALYSIS_TOPICS
+    assert final['config']['topics'] == DEFAULT_TOPICS + list(CONTROL_ANALYSIS_TOPICS)
     assert h.kill_calls == [(proc.pid, signal.SIGINT)]
     time.sleep(.02)
     assert h.manager.status()['elapsed_sec'] == elapsed
@@ -290,15 +290,17 @@ def test_live_capture_does_not_enable_ros_clock(tmp_path):
 def test_old_saved_config_is_migrated_without_dropping_user_topics(tmp_path):
     path = tmp_path/'bags/gouda/recording.json'
     path.parent.mkdir(parents=True)
-    old = validate_config({'topics': ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static', '/kiss/odometry']})
+    old = {'topics': ['/lidar_points', '/imu/data_raw', '/tf', '/tf_static', '/kiss/odometry']}
     path.write_text(json.dumps(old))
     h = Harness(tmp_path)
     effective = h.manager.get_config()
     assert '/kiss/odometry' in effective['topics']
     assert all(topic in effective['topics'] for topic in CONTROL_ANALYSIS_TOPICS)
+    assert all(topic in effective['topics'] for topic in CLOCK_EVIDENCE_TOPICS)
     saved = h.manager.update_config(effective)
     assert '/kiss/odometry' in saved['topics']
     assert all(topic in saved['topics'] for topic in CONTROL_ANALYSIS_TOPICS)
+    assert all(topic in saved['topics'] for topic in CLOCK_EVIDENCE_TOPICS)
 
 
 def test_cmd_vel_is_selected_even_if_publisher_starts_after_recorder(tmp_path):

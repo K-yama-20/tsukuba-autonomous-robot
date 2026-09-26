@@ -24,7 +24,7 @@ def start(context):
     # Known synthetic plant gains, not measurements or changes to hardware settings.
     a['controller'].update(linear_ff_norm_per_mps=1.,linear_kp_norm_per_mps=.4,yaw_ff_norm_per_rps=.5,yaw_kp_norm_per_rps=.3)
     save_autonomy_settings(a)
-    m={**M,'backend':'glim_imu','extrinsic_lidar_imu':{'translation_m':[0.,0.,-.6],'quaternion_xyzw':[0.,0.,0.,1.]},'point_time_field':'time','point_time_datatype':'float32','point_time_mode':'relative','point_time_unit':'seconds','imu_accel_unit':'m/s^2','imu_gyro_unit':'rad/s','imu_clock_offset_sec':0.,'lidar_clock_offset_sec':0.}
+    m={**M,'clock_policy':'simulation','clock_evidence':'Gazebo /clock shared sensor timestamps','backend':'glim_imu','extrinsic_lidar_imu':{'translation_m':[0.,0.,-.6],'quaternion_xyzw':[0.,0.,0.,1.]},'point_time_field':'time','point_time_datatype':'float32','point_time_mode':'relative','point_time_unit':'seconds','imu_accel_unit':'m/s^2','imu_gyro_unit':'rad/s','imu_clock_offset_sec':0.,'lidar_clock_offset_sec':0.}
     save_mapping_settings(m)
     share=Path(get_package_share_directory('gouda_sim'))
     backend=LaunchConfiguration('lidar_backend').perform(context)

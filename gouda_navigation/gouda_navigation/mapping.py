@@ -15,6 +15,8 @@ DEFAULT_SETTINGS = {
     "schema_version": SCHEMA_VERSION,
     "backend": "kiss_icp",
     "compute": "cpu",
+    "clock_policy": "unknown",
+    "clock_evidence": "",
     "lidar_topic": "/lidar_points",
     "imu_topic": "/imu/data_raw",
     "lidar_frame": "hesai_lidar",
@@ -79,6 +81,10 @@ def validate_mapping_settings(settings: dict[str, Any], require_ready: bool = Fa
     for key in ("lidar_topic", "imu_topic", "lidar_frame", "imu_frame"):
         if not isinstance(cfg[key], str) or not cfg[key].strip():
             errors.append(f"{key} must be a non-empty string")
+    if cfg["clock_policy"] not in ("unknown", "host_mapped", "external_common", "simulation"):
+        errors.append("clock_policy must be unknown, host_mapped, external_common, or simulation")
+    if not isinstance(cfg["clock_evidence"], str):
+        errors.append("clock_evidence must be a string")
     if cfg["backend"] == "glim_imu":
         enums = {
             "point_time_field": ("unknown", "t", "time", "time_stamp", "timestamp"),
@@ -109,6 +115,12 @@ def validate_mapping_settings(settings: dict[str, Any], require_ready: bool = Fa
                 elif _finite_vector(quaternion, 4) and abs(math.sqrt(sum(float(v) ** 2 for v in quaternion)) - 1.0) > 1e-3:
                     errors.append("T_lidar_imu quaternion must be normalized")
     if cfg["backend"] == "glim_imu" and require_ready:
+        if cfg["clock_policy"] == "unknown":
+            errors.append("Clock configuration is UNKNOWN; inspect device settings before GLIM")
+        if cfg["clock_policy"] == "external_common":
+            errors.append("External IMU clock is not supported by the current USB driver; PPS observation alone is insufficient")
+        if not isinstance(cfg["clock_evidence"], str) or not cfg["clock_evidence"].strip():
+            errors.append("clock_evidence is required: record terminals, LiDAR clock source/lock and PC clock relationship")
         ext = cfg.get("extrinsic_lidar_imu")
         if not isinstance(ext, dict):
             errors.append("T_lidar_imu is UNKNOWN; measure and enter the LiDAR/IMU transform")
@@ -228,7 +240,7 @@ def make_glim_config(settings: dict[str, Any], config_dir: str | Path, upstream_
         "base_frame_id": cfg["lidar_frame"], "odom_frame_id": "odom_lidar", "map_frame_id": "glim_map",
         "publish_imu2lidar": False, "tf_time_offset": 0.000001,
         "extension_modules": ["librviz_viewer.so"],
-        "imu_topic": cfg["imu_topic"], "points_topic": cfg["lidar_topic"], "image_topic": "/gouda/glim/image_unused",
+        "imu_topic": "/gouda/synced/imu", "points_topic": "/gouda/synced/points", "image_topic": "/gouda/glim/image_unused",
         "imu_qos": {"profile": "sensor_data", "depth": 1000},
         "points_qos": {"profile": "sensor_data"},
     }})
@@ -333,12 +345,27 @@ class GlimSession:
             return
         from sensor_msgs.msg import PointCloud2, Imu
         from nav_msgs.msg import Odometry
+        from std_msgs.msg import String
         from rclpy.qos import qos_profile_sensor_data
+        self._replace_input_errors("clock", ["Waiting for clock provenance checks"])
         self._subscriptions = [
+            self.node.create_subscription(String, "/gouda/time_sync/state", self._on_sync_state, 10),
             self.node.create_subscription(PointCloud2, settings["lidar_topic"], self._on_points, qos_profile_sensor_data),
             self.node.create_subscription(Imu, settings["imu_topic"], self._on_imu, qos_profile_sensor_data),
             self.node.create_subscription(Odometry, "/glim_ros/lidar_odom", self._on_odom, 10),
         ]
+
+    def _on_sync_state(self, msg: Any) -> None:
+        if not self._settings or self.process is None or self.process.poll() is not None:
+            return
+        try:
+            state = json.loads(msg.data)
+            valid = state.get('status') in ('host_mapped', 'simulation')
+            self._replace_input_errors('clock', [] if valid else state.get('errors') or ['Clock gate blocked'])
+            self._received_at['clock'] = time.monotonic()
+        except (ValueError, AttributeError, TypeError):
+            self._replace_input_errors('clock', ['Invalid clock status'])
+        self._refresh_phase()
 
     def _on_points(self, msg: Any) -> None:
         if not self._settings or self.process is None or self.process.poll() is not None:
@@ -394,6 +421,8 @@ class GlimSession:
     def _refresh_phase(self) -> None:
         if self.phase in ("stopping", "stopped", "failed", "idle"):
             return
+        if self._settings and time.monotonic()-self._received_at.get("clock", 0) > 2.0:
+            self._replace_input_errors("clock", ["Clock status is stale or missing"])
         self.phase, self.input_state = mapping_phase(
             self.input_state, self.input_state["errors"], self._received_at)
 

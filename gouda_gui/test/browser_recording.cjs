@@ -33,6 +33,10 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     originalRecording=initial.recording_config;
     originalMapping=initial.mapping_settings?.saved;
     if (!['idle','failed','completed'].includes(initial.recording?.phase)) throw new Error('Recording manager is not idle before the no-input capture test: '+JSON.stringify(initial.recording));
+    const syncPanel=page.locator('#time-sync-state');
+    if (initial.time_sync?.fresh!==false || initial.time_sync?.status!=='unverified' || await syncPanel.getAttribute('data-sync-state')!=='blocked' || !(await syncPanel.innerText()).includes('ブロック')) throw new Error('Missing/stale clock status must be visibly blocked');
+    const staleColor=await syncPanel.evaluate(el=>getComputedStyle(el).color);
+    if (staleColor==='rgb(148, 232, 170)' || staleColor==='rgb(102, 219, 189)') throw new Error('Missing/stale clock status must not use a green status color');
     if (initial.ages?.lidar_raw!==undefined || initial.ages?.imu!==undefined) {
       throw new Error('No-input capture test requires raw LiDAR and IMU topics to be absent');
     }
@@ -58,12 +62,15 @@ const base = process.argv[2] || 'http://127.0.0.1:8766';
     if (!fixedTopics.every(topic=>saved.recording_config.topics.includes(topic)) || !saved.recording_config.topics.includes(customTopic) || saved.recording_config.storage_id!=='sqlite3') throw new Error('Fixed analysis topics or custom topic did not persist');
 
     await page.locator('#mapping-backend').selectOption('glim_imu');
+    await page.locator('#map-clock-policy').selectOption('host_mapped');
+    await page.locator('#map-clock-evidence').fill('VM integration test: host time mapping configured; physical synchronization unverified');
     for (const id of ['map-tx','map-ty','map-tz','map-quat','map-lidar-offset','map-imu-offset']) await page.locator('#'+id).fill('');
     for (const id of ['map-point-mode','map-point-field','map-point-type','map-point-time','map-accel-unit','map-gyro-unit']) await page.locator('#'+id).selectOption('unknown');
     await page.locator('#mapping-settings-save').click();
     await page.getByText(/GLIM入力設定未準備/).waitFor();
     let mapping=await state();
     if (mapping.mapping_settings.saved.backend!=='glim_imu' || mapping.mapping_settings.ready) throw new Error('UNKNOWN GLIM calibration was incorrectly marked ready');
+    if (mapping.mapping_settings.saved.clock_policy!=='host_mapped' || !mapping.mapping_settings.saved.clock_evidence.includes('physical synchronization unverified')) throw new Error('Clock policy/evidence payload did not persist');
     await page.reload({waitUntil:'domcontentloaded'});
     await page.getByRole('tab',{name:/記録・SLAM/}).click();
     await page.locator('#recording-phase').waitFor();

@@ -19,6 +19,7 @@ smoke_root="$(mktemp -d "${TMPDIR:-/tmp}/gouda-glim-smoke.XXXXXX")"
 export GLIM_SMOKE_ROOT="$smoke_root"
 if /usr/bin/python3 - <<'PY'
 import os
+import json
 from pathlib import Path
 import time
 import rclpy
@@ -26,11 +27,17 @@ from rclpy.node import Node
 from gouda_navigation.mapping import DEFAULT_SETTINGS, GlimSession
 
 root = Path(os.environ['GLIM_SMOKE_ROOT'])
+os.environ['GOUDA_WORKSPACE'] = str(root)
+config = root/'bags/gouda'
+config.mkdir(parents=True)
+(config/'hesai.yaml').write_text(json.dumps({'lidar':[{'driver':{'source_type':1,'use_timestamp_type':0}}]}))
+(config/'host.json').write_text(json.dumps({'hesai_config':str(config/'hesai.yaml')}))
 # Test-only upstream Ouster example transform. It is never saved to workspace settings,
 # and there are no LiDAR/IMU publishers in domain 97.
 settings = {
     **DEFAULT_SETTINGS,
     'backend': 'glim_imu', 'compute': 'cpu',
+    'clock_policy': 'host_mapped', 'clock_evidence': 'No-input synthetic fixture; no hardware clock claim',
     'extrinsic_lidar_imu': {
         'translation_m': [0.006, -0.012, 0.008],
         'quaternion_xyzw': [0.0, 0.0, 0.0, 1.0],
@@ -58,8 +65,8 @@ try:
         time.sleep(0.1)
     else:
         raise TimeoutError('GLIM CPU modules did not load; inspect the unique GLIM log')
-    if session.status() != 'waiting_for_sensors':
-        raise AssertionError(f'no-input GLIM state was {session.status()}, expected waiting_for_sensors')
+    if session.status() != 'preflight_error':
+        raise AssertionError(f'no-input GLIM state was {session.status()}, expected preflight_error (missing clock evidence)')
     print('Loaded CPU odometry, global mapping, and RViz modules; no sensor messages were received.')
     print(f'GLIM log: {session.log_path}')
     try:

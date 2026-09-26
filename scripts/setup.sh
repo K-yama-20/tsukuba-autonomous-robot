@@ -42,7 +42,7 @@ if (( system )); then
   sudo apt-get install -y ros-jazzy-desktop ros-dev-tools python3-rosdep python3-vcstool \
     python3-colcon-common-extensions python3-pytest python3-aiohttp python3-yaml \
     ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox \
-    libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils
+    libboost-all-dev libyaml-cpp-dev libpcap-dev network-manager x11-utils linuxptp ethtool
   if (( with_glim )); then
     # Official GLIM PPA for Ubuntu 24.04/Jazzy, CPU-only package set.
     key=/usr/share/keyrings/gouda-koide3.gpg
@@ -79,6 +79,7 @@ if (( system )); then
 fi
 bash "$repo/scripts/gouda_apply_hesai_patch.sh"
 bash "$repo/scripts/gouda_apply_imu_patch.sh"
+python3 "$repo/scripts/gouda_apply_imu_clock_patch.py"
 # Migrate user settings and maps before changing generated build state.
 PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" --workspace "$workspace" --defaults
 PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scripts/configure_host.py" \

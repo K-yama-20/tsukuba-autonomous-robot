@@ -28,3 +28,6 @@ body[data-tab="autonomy"] #panel-autonomy{display:grid;grid-template-columns:min
 #panel-autonomy .autonomy-card h3{margin:0 0 10px}
 #panel-autonomy .safety-note{border-left:3px solid #d78b33;padding-left:9px}
 @media(max-width:850px){#panel-autonomy .autonomy-grid{grid-template-columns:minmax(0,1fr)}}
+
+#time-sync-state[data-sync-state="blocked"]{color:var(--red);border-left:2px solid var(--red)}
+#time-sync-state[data-sync-state="unverified"]{color:var(--amber);border-left:2px solid var(--amber)}

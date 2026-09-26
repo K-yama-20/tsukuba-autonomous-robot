@@ -32,7 +32,7 @@ def test_pc_to_cpp_firmware_arm_drive_and_sensor_fault(tmp_path):
     cfg=copy.deepcopy(DEFAULT_SETTINGS)
     transform=dict(translation_m=[0,0,0],quaternion_xyzw=[0,0,0,1])
     cfg.update(hardware_enabled=True,serial_port='/dev/ttyUSB0',body_to_lidar=transform)
-    mapping={**MAPPING,'backend':'glim_imu','extrinsic_lidar_imu':transform,
+    mapping={**MAPPING,'backend':'glim_imu','clock_policy':'host_mapped','clock_evidence':'fixture','extrinsic_lidar_imu':transform,
         'point_time_field':'timestamp','point_time_datatype':'uint32','point_time_mode':'relative','point_time_unit':'nanoseconds',
         'imu_accel_unit':'m/s^2','imu_gyro_unit':'rad/s','imu_clock_offset_sec':0.,'lidar_clock_offset_sec':0.}
     rclpy.init(args=['--ros-args','-p','hardware_enabled:=true','-p','port:=/dev/ttyUSB0'])

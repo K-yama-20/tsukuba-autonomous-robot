@@ -26,7 +26,7 @@ class Arm:
 def controller():
     cfg=copy.deepcopy(DEFAULT_SETTINGS)
     cfg.update(hardware_enabled=True,serial_port='/dev/ttyUSB0',body_to_lidar=dict(translation_m=[0,0,0],quaternion_xyzw=[0,0,0,1]))
-    mapping={**MAPPING,'backend':'glim_imu','extrinsic_lidar_imu':cfg['body_to_lidar'],
+    mapping={**MAPPING,'backend':'glim_imu','clock_policy':'host_mapped','clock_evidence':'fixture','extrinsic_lidar_imu':cfg['body_to_lidar'],
         'point_time_field':'timestamp','point_time_datatype':'uint32','point_time_mode':'relative','point_time_unit':'nanoseconds',
         'imu_accel_unit':'m/s^2','imu_gyro_unit':'rad/s','imu_clock_offset_sec':0.,'lidar_clock_offset_sec':0.}
     rclpy.init()

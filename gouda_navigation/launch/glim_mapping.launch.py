@@ -16,6 +16,11 @@ def validate_and_start(context):
     config_path = LaunchConfiguration('config_path').perform(context)
     dump_path = LaunchConfiguration('dump_path').perform(context)
     use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower() == 'true'
+    from gouda_navigation.time_sync import check_runtime_clock
+    check_runtime_clock(settings, use_sim_time)
+    clock_gate = Node(package='gouda_navigation', executable='time_sync_gate',
+        parameters=[{'settings_file': LaunchConfiguration('settings_file').perform(context),
+                     'use_sim_time': use_sim_time}], output='screen')
     private_tf = [('/tf', '/glim_internal/tf'), ('/tf_static', '/glim_internal/tf_static')]
     static_tf = Node(package='tf2_ros', executable='static_transform_publisher', name='glim_calibrated_imu_lidar_tf',
              arguments=static_tf_args(settings), parameters=[{'use_sim_time': use_sim_time}],
@@ -27,7 +32,9 @@ def validate_and_start(context):
                           'imu_frame': settings['imu_frame'], 'lidar_topic': settings['lidar_topic'],
                           'imu_topic': settings['imu_topic'], 'point_time_field': settings['point_time_field'],
                           'point_time_datatype': settings['point_time_datatype'], 'use_sim_time': use_sim_time}])
-    return [static_tf, glim_node, odom_bridge,
+    return [clock_gate, static_tf, glim_node, odom_bridge,
+            RegisterEventHandler(OnProcessExit(target_action=clock_gate,
+                on_exit=[EmitEvent(event=Shutdown(reason="Sensor time gate exited"))])),
             RegisterEventHandler(OnProcessExit(target_action=glim_node,
                 on_exit=[EmitEvent(event=Shutdown(reason='GLIM mapping process exited'))]))]
 

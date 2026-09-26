@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-26",
+  "python_tests": 143,
+  "python_result": "passed",
+  "cpp_control_tests": "passed",
+  "cpp_clock_mapper_test": "passed",
+  "imu_driver_build": "passed on isolated Ubuntu 24.04 ARM64",
+  "imu_pty": {
+    "result": "passed",
+    "imu_samples": 33,
+    "clock_status_samples": 230,
+    "checks": [
+      "unlocked withholds IMU",
+      "epoch precision preserved",
+      "TimeReference pairs",
+      "duplicates suppressed",
+      "MCU restart relocks"
+    ],
+    "hardware_used": false
+  },
+  "gui_browser_recording": "passed: settings save/reload, clock evidence topics, missing sync state blocked",
+  "glim_cpu_lifecycle": "passed: actual modules load, clock missing blocks input, empty map rejected, processes exit",
+  "ptp_config": "Ubuntu linuxptp parsed configuration; expected nonexistent-interface failure before any network interface opened",
+  "hardware_used": false,
+  "limits": [
+    "No physical PTP lock verification",
+    "IMU software time mapping retains unknown fixed USB delay",
+    "Module manual describes acquisition timestamp as logging-oriented; suitability for mapping remains to be verified",
+    "Prior Gazebo GLIM pose/velocity failure is not claimed fixed",
+    "IMU extrinsic dimensions and orientation remain unknown"
+  ]
+}
