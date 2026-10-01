@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="lc-_yTM2-hEJOly5ozWo">
-    <mxGraphModel dx="2053" dy="1855" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1265" dy="1360" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -78,6 +78,14 @@
             <mxPoint x="1330" y="445" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-3" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="f_vb0bReNq_PyX6GKsqe-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="4S4QAY9o3vVNfXHAsMHo-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1530.06" y="350" />
+              <mxPoint x="1530.06" y="642.47" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="f_vb0bReNq_PyX6GKsqe-37" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="hesai_ros_driver" vertex="1">
           <mxGeometry height="180" width="200" x="1570" y="170" as="geometry" />
         </mxCell>
@@ -117,6 +125,14 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-70" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="f_vb0bReNq_PyX6GKsqe-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="f_vb0bReNq_PyX6GKsqe-9">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1330" y="475" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-4" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="f_vb0bReNq_PyX6GKsqe-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.25;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="4S4QAY9o3vVNfXHAsMHo-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1570" y="617.52" />
+            </Array>
+            <mxPoint x="1570.06" y="617.5" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="f_vb0bReNq_PyX6GKsqe-38" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="adi_imu_driver" vertex="1">
@@ -394,7 +410,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-33" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="障害物認識" vertex="1">
-          <mxGeometry height="200" width="200" x="1330" y="670" as="geometry" />
+          <mxGeometry height="200" width="200" x="1340" y="700" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-105" parent="x5bDQh8FaZrcMh8EckeY-33" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="原則として障害物情報はNavigationに渡して停止・回避動作を行わせるが、緊急時はmotion_controllerに緊急停止信号をいれる。" vertex="1">
           <mxGeometry height="90" width="160" x="10" y="82" as="geometry" />
@@ -523,6 +539,18 @@
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-277" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="log_database" vertex="1">
           <mxGeometry height="90" width="144" x="1106" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-2" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="4S4QAY9o3vVNfXHAsMHo-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="f_vb0bReNq_PyX6GKsqe-14">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1090.06" y="642.47" />
+              <mxPoint x="1090.06" y="430" />
+              <mxPoint x="800.06" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-1" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="local_odometry" vertex="1">
+          <mxGeometry height="100" width="200" x="1160" y="592.5" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-13" edge="1" parent="f_vb0bReNq_PyX6GKsqe-3" source="f_vb0bReNq_PyX6GKsqe-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.201;entryY=0.006;entryDx=0;entryDy=0;entryPerimeter=0;" target="f_vb0bReNq_PyX6GKsqe-8">
           <mxGeometry relative="1" as="geometry" />
