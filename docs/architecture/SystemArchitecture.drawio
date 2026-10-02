@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="lc-_yTM2-hEJOly5ozWo">
-    <mxGraphModel dx="1853" dy="1729" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2116" dy="1895" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -34,11 +34,6 @@
               <mxPoint x="1330" y="323.76" />
               <mxPoint x="1292.48" y="323.76" />
             </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="4S4QAY9o3vVNfXHAsMHo-16" connectable="0" parent="x5bDQh8FaZrcMh8EckeY-67" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="オフライン時実行" vertex="1">
-          <mxGeometry relative="1" x="-0.0542" y="-2" as="geometry">
-            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-89" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="f_vb0bReNq_PyX6GKsqe-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#009900;" target="x5bDQh8FaZrcMh8EckeY-83">
@@ -218,8 +213,8 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-27" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="Global_localization" vertex="1">
           <mxGeometry height="100" width="180" x="620" y="165" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-75" parent="x5bDQh8FaZrcMh8EckeY-27" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="保存済み地図上での現在位置の推定" vertex="1">
-          <mxGeometry height="30" width="60" x="50" y="47.5" as="geometry" />
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-75" parent="x5bDQh8FaZrcMh8EckeY-27" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="保存済み地図上での現在位置と map→odom の対応を推定・提供" vertex="1">
+          <mxGeometry height="47.5" width="135" x="16" y="37.5" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-30" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="f_vb0bReNq_PyX6GKsqe-39">
           <mxGeometry relative="1" as="geometry" />
@@ -324,10 +319,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-55" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="Map_Database" vertex="1">
-          <mxGeometry height="75" width="170" x="910" y="190" as="geometry" />
+          <mxGeometry height="75" width="175" x="910" y="190" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-60" parent="x5bDQh8FaZrcMh8EckeY-55" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="mapと付随情報を保存するデータベース" vertex="1">
-          <mxGeometry height="30" width="120" x="25" y="30" as="geometry" />
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-60" parent="x5bDQh8FaZrcMh8EckeY-55" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="mapと付随情報を保存・提供するデータベース" vertex="1">
+          <mxGeometry height="30" width="150" x="12.5" y="30" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-58" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.686;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="f_vb0bReNq_PyX6GKsqe-14">
           <mxGeometry relative="1" as="geometry" />
@@ -352,7 +347,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-77" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="Waypoint_database" vertex="1">
-          <mxGeometry height="180" width="210" x="380" y="305" as="geometry" />
+          <mxGeometry height="180" width="225" x="380" y="305" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-119" parent="x5bDQh8FaZrcMh8EckeY-77" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="選択課題Bについて、信号機の場所情報も保持" vertex="1">
           <mxGeometry height="30" width="120" x="15" y="87" as="geometry" />
@@ -360,8 +355,8 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-125" parent="x5bDQh8FaZrcMh8EckeY-77" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="共通課題について、追越禁止場所・停止線の場所等の情報保持" vertex="1">
           <mxGeometry height="30" width="128" x="11" y="137" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-79" parent="x5bDQh8FaZrcMh8EckeY-77" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="地図上のウェイポイントを保存するデータベース" vertex="1">
-          <mxGeometry height="30" width="110" x="15" y="37" as="geometry" />
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-79" parent="x5bDQh8FaZrcMh8EckeY-77" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="地図上のwaypointを参照map_id・座標系とともに保存し、編集ツール・Navigation・task controllerへ提供するデータベース" vertex="1">
+          <mxGeometry height="30" width="210" x="11" y="37" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-273" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-269">
           <mxGeometry relative="1" as="geometry">
@@ -461,8 +456,8 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-113" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" value="gouda_crosswalk_controller_for_tc2026" vertex="1">
           <mxGeometry height="147.5" width="260" x="110" y="382.5" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-115" parent="x5bDQh8FaZrcMh8EckeY-113" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="選択課題B信号機認識について、2026年大会公式ルールにそって、横断歩道における待機列への進入、停止線での停止、オペレータ再開、道路端での停止、横断開始条件の判定、横断完了までの状態遷移を管理&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="90" width="240" x="10" y="42.5" as="geometry" />
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-115" parent="x5bDQh8FaZrcMh8EckeY-113" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;2026年大会公式ルールにそって、横断歩道における待機列への進入、停止線での停止、オペレータ再開、道路端での停止、横断開始条件の判定、横断完了までの状態遷移を管理&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="240" x="10" y="39.5" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-116" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.691;entryY=0.014;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="x5bDQh8FaZrcMh8EckeY-113">
           <mxGeometry relative="1" as="geometry">
@@ -480,7 +475,7 @@
           <mxGeometry height="100" width="240" x="30" y="269" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-121" parent="x5bDQh8FaZrcMh8EckeY-120" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="横断歩道前の白線を認識。共通課題でも使用。ロボットとの相対位置を提供" vertex="1">
-          <mxGeometry height="30" width="100" x="55" y="56" as="geometry" />
+          <mxGeometry height="30" width="144" x="55" y="56" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-134" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.597;entryY=0.015;entryDx=0;entryDy=0;entryPerimeter=0;" target="x5bDQh8FaZrcMh8EckeY-113">
           <mxGeometry relative="1" as="geometry">
@@ -521,21 +516,17 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-264" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-166" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.547;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="x5bDQh8FaZrcMh8EckeY-77">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="4S4QAY9o3vVNfXHAsMHo-17" connectable="0" parent="x5bDQh8FaZrcMh8EckeY-264" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="オフライン時実行" vertex="1">
-          <mxGeometry relative="1" x="-0.4148" y="-2" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-166" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="gouda_waypoint_manager" vertex="1">
           <mxGeometry height="130" width="200" x="415" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-265" parent="x5bDQh8FaZrcMh8EckeY-166" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="保存済みmapとwaypointの整合性を担保 （座標系、識別情報）&amp;amp; waypointの作成" vertex="1">
-          <mxGeometry height="30" width="128" x="36" y="50" as="geometry" />
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-265" parent="x5bDQh8FaZrcMh8EckeY-166" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="保存済みmapを参照し、waypoint（目標点列・通過順序）の作成・編集と、参照地図・座標系の整合性確認を行う" vertex="1">
+          <mxGeometry height="75" width="160" x="20" y="35" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-280" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-269" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-12">
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-280" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-269" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="x5bDQh8FaZrcMh8EckeY-12">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="-10" y="805" />
+              <mxPoint x="430" y="880" />
+              <mxPoint x="-10" y="880" />
               <mxPoint x="-10" y="220" />
               <mxPoint x="200" y="220" />
             </Array>
@@ -746,12 +737,14 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-126" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="camera1" vertex="1">
           <mxGeometry height="150" width="210" x="-730" y="1020" as="geometry" />
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-133" edge="1" parent="1" source="x5bDQh8FaZrcMh8EckeY-132" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;">
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-27" parent="x5bDQh8FaZrcMh8EckeY-126" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
+          <mxGeometry height="30" width="60" x="60" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-133" edge="1" parent="1" source="x5bDQh8FaZrcMh8EckeY-132" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-32">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="-380" y="855" />
-              <mxPoint x="-600" y="855" />
-              <mxPoint x="-600" y="710" />
+              <mxPoint x="-572.52" y="855" />
             </Array>
             <mxPoint x="-600" y="710" as="targetPoint" />
           </mxGeometry>
@@ -767,11 +760,8 @@
         <mxCell id="x5bDQh8FaZrcMh8EckeY-132" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="camera2" vertex="1">
           <mxGeometry height="200" width="200" x="-430" y="1000" as="geometry" />
         </mxCell>
-        <mxCell id="4S4QAY9o3vVNfXHAsMHo-27" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
-          <mxGeometry height="30" width="60" x="-650" y="1100" as="geometry" />
-        </mxCell>
-        <mxCell id="4S4QAY9o3vVNfXHAsMHo-28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
-          <mxGeometry height="30" width="60" x="-340" y="1110" as="geometry" />
+        <mxCell id="4S4QAY9o3vVNfXHAsMHo-28" parent="x5bDQh8FaZrcMh8EckeY-132" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
+          <mxGeometry height="30" width="60" x="80" y="110" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
