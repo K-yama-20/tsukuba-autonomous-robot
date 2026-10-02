@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="lc-_yTM2-hEJOly5ozWo">
-    <mxGraphModel dx="2116" dy="1895" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2354" dy="2044" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -41,6 +41,14 @@
             <Array as="points">
               <mxPoint x="1260" y="362.56" />
               <mxPoint x="1083" y="362.56" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="2TSgiu6-nVzXwyzMdGmE-3" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="f_vb0bReNq_PyX6GKsqe-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-269">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1140" y="532.47" />
+              <mxPoint x="1140" y="782.47" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -379,11 +387,22 @@
             </Array>
           </mxGeometry>
         </mxCell>
+        <mxCell id="2TSgiu6-nVzXwyzMdGmE-2" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-269">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="425" />
+              <mxPoint x="1000" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-83" parent="f_vb0bReNq_PyX6GKsqe-8" style="swimlane;whiteSpace=wrap;html=1;" value="gouda_logger" vertex="1">
           <mxGeometry height="100" width="200" x="883" y="325" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-91" parent="x5bDQh8FaZrcMh8EckeY-83" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="観測・推定・判断・制御・システム状態を時刻付きで記録" vertex="1">
-          <mxGeometry height="30" width="100" x="50" y="45" as="geometry" />
+          <mxGeometry height="30" width="100" y="37" as="geometry" />
+        </mxCell>
+        <mxCell id="2TSgiu6-nVzXwyzMdGmE-1" parent="x5bDQh8FaZrcMh8EckeY-83" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="loggerは全topicを受動的に購読する" vertex="1">
+          <mxGeometry height="30" width="60" x="117" y="47" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-90" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.875;entryY=0.023;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#009900;" target="x5bDQh8FaZrcMh8EckeY-83">
           <mxGeometry relative="1" as="geometry" />
@@ -417,7 +436,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="x5bDQh8FaZrcMh8EckeY-163" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="f_vb0bReNq_PyX6GKsqe-16" value="emergency_stop">
+        <mxCell id="x5bDQh8FaZrcMh8EckeY-163" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="x5bDQh8FaZrcMh8EckeY-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="f_vb0bReNq_PyX6GKsqe-16" value="collision_stop_request">
           <mxGeometry relative="1" x="0.7297" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
@@ -583,9 +602,9 @@
         <mxCell id="4S4QAY9o3vVNfXHAsMHo-18" edge="1" parent="f_vb0bReNq_PyX6GKsqe-8" source="4S4QAY9o3vVNfXHAsMHo-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-27">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1090" y="592.5" />
-              <mxPoint x="1090" y="270" />
-              <mxPoint x="800" y="270" />
+              <mxPoint x="1100" y="592.47" />
+              <mxPoint x="1100" y="270.05" />
+              <mxPoint x="800" y="270.05" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -738,7 +757,7 @@
           <mxGeometry height="150" width="210" x="-730" y="1020" as="geometry" />
         </mxCell>
         <mxCell id="4S4QAY9o3vVNfXHAsMHo-27" parent="x5bDQh8FaZrcMh8EckeY-126" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
-          <mxGeometry height="30" width="60" x="60" y="80" as="geometry" />
+          <mxGeometry height="30" width="60" x="79" y="65" as="geometry" />
         </mxCell>
         <mxCell id="x5bDQh8FaZrcMh8EckeY-133" edge="1" parent="1" source="x5bDQh8FaZrcMh8EckeY-132" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="x5bDQh8FaZrcMh8EckeY-32">
           <mxGeometry relative="1" as="geometry">
@@ -761,7 +780,7 @@
           <mxGeometry height="200" width="200" x="-430" y="1000" as="geometry" />
         </mxCell>
         <mxCell id="4S4QAY9o3vVNfXHAsMHo-28" parent="x5bDQh8FaZrcMh8EckeY-132" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ドライバは省略" vertex="1">
-          <mxGeometry height="30" width="60" x="80" y="110" as="geometry" />
+          <mxGeometry height="30" width="60" x="76" y="85" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
