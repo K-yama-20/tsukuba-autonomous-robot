@@ -67,7 +67,7 @@ class DesignRuleTests(unittest.TestCase):
         m = copy.deepcopy(self.m); self.ent(m, 'TR-13')['transition']['trigger_kind'] = 'human'
         self.assertEqual(self.res(m)['DR-09']['result'], '違反')
     def test_version_dependent_if_approved(self):
-        m = copy.deepcopy(self.m); e = self.ent(m, 'IFD-35'); e['issue_refs'] = []
+        m = copy.deepcopy(self.m); e = self.ent(m, 'IFD-38'); e['issue_refs'] = []  # IFD-35 は REV-012 で実車版照合済みになったため、版未照合の IFD-38 で検査する
         self.assertEqual(self.res(m)['DR-10']['result'], '違反')
     def test_generic_value_filled(self):
         m = copy.deepcopy(self.m); p = self.ent(m, 'PRM-08')['parameter']; p['value'] = 0.5; p['value_state'] = 'source_value'

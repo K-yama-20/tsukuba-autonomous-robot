@@ -1,0 +1,4 @@
+# 実車PC の GLIM パッケージ版（人がコマンドを実行し、チャットで出力を提供。原文のまま保存。2026-10-09、DEC-062）
+aya@aya-Parallels-ARM-Virtual-Machine:~$ dpkg -l | grep glim
+ii  ros-jazzy-glim                                   1.2.2-0noble                                     arm64        3D LiDAR-IMU mapping framework
+ii  ros-jazzy-glim-ros                               1.2.2-0noble                                     arm64        LiDAR-IMU odometry based on tight coupling of geometric and inertial constraints

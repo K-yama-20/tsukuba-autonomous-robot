@@ -1,12 +1,12 @@
 schema_version: '1.1'
 metadata:
-  authority_ref: FILE-INTENT-V6
+  authority_ref: FILE-INTENT-V7
   scope: スキーマ・既存資料移行・出典・矛盾整理・移行検査のみ。新規下位設計、ROS実装、完成図表は対象外。
   id_policy: 既存IDを保持。新IDは今回割当てたregistryを固定し、位置変更や名称変更で再採番しない。
   extraction_verification_ref: FILE-EXTRACT-VERIFY
   design_validity: 未判定
   vehicle_verification: 未実施
-  model_revision: REV-011
+  model_revision: REV-013
 files:
   - id: FILE-INTENT
     path: design/intent.md
@@ -77,6 +77,16 @@ files:
   - id: FILE-INTENT-V6
     path: design/intent.md
     sha256: 4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V7
+    archived_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+  - id: FILE-VEHICLE-PC-GLIM
+    path: design/research/vehicle_pc/2026-10-09_glim_version.txt
+    sha256: 1a3cf8659a4039d38e974c358ba44727dd6d2c7318c1ab03269670827c541bfd
+    role: evidence
+  - id: FILE-INTENT-V7
+    path: design/intent.md
+    sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
     role: authority
 sources:
   - id: SRC-I001
@@ -12450,6 +12460,36 @@ sources:
       basis: intent.md 新版 AR-006（DEC-055 の回答）を上位要求とする
       locations:
         - intent.md:13
+  - id: SRC-I027-V7
+    file_ref: FILE-INTENT-V7
+    kind: intent_lines
+    locator:
+      line_start: 27
+      line_end: 27
+    raw_fields:
+      text: SpeedLimitの発行手段（Speed Filter／Route 
+        Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば
+        waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-007（DEC-063 の回答）を上位要求とする
+      locations:
+        - intent.md:27
+  - id: SRC-I095-V7
+    file_ref: FILE-INTENT-V7
+    kind: intent_lines
+    locator:
+      line_start: 95
+      line_end: 95
+    raw_fields:
+      text: ・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-007（DEC-063 の回答）を上位要求とする
+      locations:
+        - intent.md:95
 entities:
   - id: RQ-I001
     kind: requirement
@@ -12794,17 +12834,19 @@ entities:
     source_refs:
       - SRC-I027
     design_status: 未設計
-    adoption: upper_requirement
+    adoption: superseded
     field_bindings:
       statement:
         source_ref: SRC-I027
         field: text
-    related_refs: []
+    related_refs:
+      - C-024
     issue_refs:
       - H-001
-    interpretation: ''
+    interpretation: 'REV-013: intent.md 第7版で位置ベース上限の補足を追記した行に置換（C-024、DEC-063）。後継は RQ-I079。'
     sensitivity:
       - intent
+    revision_ref: REV-013
   - id: RQ-I022
     kind: requirement
     name: intent.md:32
@@ -13520,16 +13562,18 @@ entities:
     source_refs:
       - SRC-I094
     design_status: 未設計
-    adoption: upper_requirement
+    adoption: superseded
     field_bindings:
       statement:
         source_ref: SRC-I094
         field: text
-    related_refs: []
+    related_refs:
+      - C-025
     issue_refs: []
-    interpretation: ''
+    interpretation: 'REV-013: intent.md 第7版で「手動走行モード」表記に置換（C-025、DEC-063）。後継は RQ-I080。'
     sensitivity:
       - intent
+    revision_ref: REV-013
   - id: RQ-I067
     kind: requirement
     name: intent.md:95
@@ -31520,13 +31564,13 @@ entities:
       - RQ-I065
       - RQ-I066
     issue_refs: []
-    interpretation: 正式名は「手動走行」（RQ-I065。設計要素はこの表記で統一）。intent.md:1・95 
-      の「手動操縦（モード）」と旧資料（LEG-05-0004）の「手動操縦」は同一モードの別表記として扱う（DEC-054）。
+    interpretation: 正式名は「手動走行」（RQ-I065・RQ-I080。設計要素はこの表記で統一）。intent.md 第7版で 95 
+      行も「手動走行モード」に統一された（DEC-063）。残る「手動操縦」は intent.md:1 の目的文と旧資料（LEG-05-0004）で、同一モードの別表記として扱う（DEC-054）。
     sensitivity: []
     mode:
       runtime: true
       current_name: 手動走行
-    revision_ref: REV-010
+    revision_ref: REV-013
   - id: C-001
     kind: reconciliation
     name: ソフトモードの集合
@@ -31574,7 +31618,7 @@ entities:
         - RQ-I025
         - RQ-I064
         - RQ-I065
-        - RQ-I066
+        - RQ-I080
       scope: 旧map_editをruntime modeとして採用しない。一時停止を4モードの一つとして管理。内部状態との対応は未設計。
       rationale: 最新intent.mdを上位要求とする。旧原文は出典に保持し、記載の影響範囲だけを置換。
       issue_refs: []
@@ -31585,7 +31629,7 @@ entities:
         モードと一時停止の内部状態扱いを直接置換。RQ-I066・RQ-I064・RQ-I025 も同文。範囲外の責務・入出力は retained_scope。
       clarification: 「内部状態との対応は未設計」は REV-002（初回移行）時点の記述。現在は SO-01 の software_mode（4値）と 
         processing_state（変換中・goal 送信中・取消待ち・復旧段階）で設計済み（REV-004・REV-008、DEC-010）。残る未設計はない。
-    revision_ref: REV-010
+    revision_ref: REV-013
   - id: C-002
     kind: reconciliation
     name: 区間属性の帰属
@@ -33985,9 +34029,9 @@ entities:
       - operation
     requirement_refs:
       - RQ-I008
-      - RQ-I066
+      - RQ-I080
       - RQ-I065
-    revision_ref: REV-004
+    revision_ref: REV-013
     issue:
       category: human
       state: resolved
@@ -34021,9 +34065,9 @@ entities:
     interpretation: ''
     sensitivity: []
     requirement_refs:
-      - RQ-I021
+      - RQ-I079
       - RQ-I001
-    revision_ref: REV-003
+    revision_ref: REV-013
     issue:
       category: source_missing
       state: resolved
@@ -34119,15 +34163,16 @@ entities:
       - RQ-I033
       - RQ-I044
       - RQ-I070
-    revision_ref: REV-011
+    revision_ref: REV-012
     ros_node:
       node_name: gouda_monitor
       responsibilities:
         - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
         - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）
         - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
-        - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I010）。保存時に Speed Filter 用の速度マスクと filter 
+        - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I078）。保存時に Speed Filter 用の速度マスクと filter 
           info を生成して同じ由来 ID・ハッシュで保存（IFD-41、DEC-031。幅は PRM-19、刻みは PRM-20）
+        - 保存時に、重複する cell で上限が異なる区間を検出して警告する（対象区間と採用される低い方の値を示す。保存は拒否しない。DEC-059 案 A、TS-22）
         - 地図とwaypointの組の選択とプレビュー（RQ-I011）
         - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
         - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に 
@@ -34221,10 +34266,10 @@ entities:
       - RQ-I026
       - RQ-I064
       - RQ-I065
-      - RQ-I066
+      - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-008
+    revision_ref: REV-013
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34411,7 +34456,7 @@ entities:
       - RQ-I006
       - RQ-I007
       - RQ-I004
-    revision_ref: REV-002
+    revision_ref: REV-012
     ros_node:
       node_name: glim_rosnode
       responsibilities:
@@ -34433,7 +34478,8 @@ entities:
       serves_refs: []
       calls_refs: []
       owned_state_refs: []
-      placement_rationale: 第三者ソフト。交換は部品と launch の変更で済ませる（RQ-I036）。
+      placement_rationale: 第三者ソフト。交換は部品と launch の変更で済ませる（RQ-I036）。版は実車PC の 1.2.2-0noble 
+        で固定（DEC-062、IFD-35）。LTS 版へ変える場合は証拠を取り直す。
   - id: ND-07
     kind: ros_node
     name: gouda_global_localization（map→odom、方式未確定）
@@ -35839,8 +35885,8 @@ entities:
       - RQ-I011
       - RQ-I018
       - RQ-I019
-      - RQ-I021
-    revision_ref: REV-003
+      - RQ-I079
+    revision_ref: REV-013
     designed_interface:
       transport: action
       name: navigate_through_poses
@@ -35897,9 +35943,9 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-      - RQ-I021
+      - RQ-I079
       - RQ-I062
-    revision_ref: REV-011
+    revision_ref: REV-013
     designed_interface:
       transport: topic
       name: speed_limit（Nav2 costmap の SpeedFilter が発行。DEC-031）
@@ -36904,11 +36950,11 @@ entities:
     requirement_refs:
       - RQ-I008
       - RQ-I009
-    revision_ref: REV-005
+    revision_ref: REV-012
     designed_interface:
       transport: file
       name: map_root/{session_id}/source/
-      message_type: GLIM 成果物（形式は版依存）＋ manifest
+      message_type: GLIM 1.2.2 の成果物（形式は 1.2.2 で確認する）＋ manifest
       standard_type: false
       custom_type_reason: GLIM 固有形式。変換器（ND-05）の入力契約として manifest を付ける
       purpose: data
@@ -36925,10 +36971,11 @@ entities:
         durability: not_applicable
         history_depth:
       version_dependency:
-        status: unconfirmed
-        evidence: []
-        note: AI の選定（DEC-033）：apt ros-jazzy-glim-ros（CPU 版）。実装リポジトリの確認 VM では 1.2.2-0noble。実車PC の dpkg 
-          出力で版を固定する（未取得）。出力形式は固定後に確認。
+        status: confirmed_installed_version
+        evidence:
+          - research/vehicle_pc/2026-10-09_glim_version.txt
+        note: 実車PC は ros-jazzy-glim／ros-jazzy-glim-ros 1.2.2-0noble（DEC-062）。AI の選定（DEC-033）と一致。LTS 
+          版の使用も可とされたが、版を変える場合は導入の証拠を取り直す。出力形式は 1.2.2 で確認する（工程 5-3）。
       legacy_refs:
         - IF-011
   - id: IFD-36
@@ -37042,10 +37089,10 @@ entities:
     sensitivity:
       - operation
     requirement_refs:
-      - RQ-I066
+      - RQ-I080
       - RQ-I065
       - RQ-I004
-    revision_ref: REV-002
+    revision_ref: REV-013
     transition:
       from_mode_ref:
       to_mode_ref: MODE-MANUAL
@@ -39340,6 +39387,7 @@ entities:
     field_bindings: {}
     related_refs:
       - C-023
+      - C-024
     issue_refs:
       - H-011
       - Q-06
@@ -39351,7 +39399,7 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-011
+    revision_ref: REV-013
     designed_interface:
       transport: file
       name: route_root/{waypoint_set_id}/{revision}/speed_mask.yaml ＋ speed_mask.pgm ＋ filter_info.yaml
@@ -39367,8 +39415,8 @@ entities:
         - ND-03
       unit: m/s（cell 値 1..100 × multiplier + base）
       frame: map（変換後地図と同じ原点・解像度）
-      time_semantics: waypoint セット保存時に生成し、同じ由来 ID・内容ハッシュで保存。地図版が変われば再生成。区間の帯の幅は PRM-19（tbd）、速度刻みは PRM-20。重複 
-        cell は低い方の上限（DEC-045。再訪・重複ルートには同じ値を設定する運用）
+      time_semantics: waypoint セット保存時に生成し、同じ由来 ID・内容ハッシュで保存。地図版が変われば再生成。区間の帯の幅は PRM-19（実機調整）、速度刻みは PRM-20。 重複 
+        cell は低い方の上限（DEC-045）。再訪・重複する区間には同じ上限を設定する運用で、値が異なれば ND-02 が保存時に警告する（DEC-059 案 A、TS-22）。
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -39900,6 +39948,8 @@ entities:
       - H-013
       - C-002
       - C-022
+      - C-024
+      - RQ-I079
     issue_refs:
       - H-013
     interpretation: ''
@@ -39909,9 +39959,9 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-011
+    revision_ref: REV-013
     reconciliation:
-      state: open
+      state: resolved_by_decision
       affected_refs:
         - RQ-I078
         - IFD-14
@@ -39930,6 +39980,10 @@ entities:
       rationale: ゲート3の未解消条件 2（DEC-058）。解消方法は人の判断（H-013、DEC-059）。intent.md の補足は人が編集する。
       issue_refs:
         - H-013
+      decision_ref: DEC-059
+      clarification: DEC-059（案 A）で解消。区間の属性（RQ-I078）は編集時の属性として成立し、実行時は Speed Filter 
+        が位置で適用する。再訪・重複する区間には同じ上限を設定する運用とし、 waypoint_manager は保存時に重複 cell で値が異なる区間を警告する（保存は拒否しない）。重複 cell 
+        は低い方の上限（DEC-045）。
   - id: H-013
     kind: issue
     name: 区間属性の上限と位置ベース上限（Speed Filter）の食い違いの解消方法
@@ -39953,10 +40007,10 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-011
+    revision_ref: REV-012
     issue:
       category: human
-      state: open
+      state: resolved
       affected_refs:
         - RQ-I078
         - C-023
@@ -39969,10 +40023,12 @@ entities:
         - TS-03
         - TS-14
         - PRM-19
-      resolution_refs: []
+      resolution_refs:
+        - DEC-059
       question: RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位置ベース上限（DEC-031）と重複時は低い方（DEC-045）でどう実現するか。 
         再訪・交差・重複する区間に異なる上限を設定した場合、実行時の上限は位置で決まり、区間順序には従わない。
-      next_action: ゲート3の未解消条件 2（DEC-058）。工程 5-4（waypoint・速度マスク生成器）の実装前に人が選択（DEC-059）。
+      next_action: 回答済み（DEC-059、案 A）。位置ベースを維持し、再訪・重複する区間には同じ上限を設定する運用。保存時に waypoint_manager 
+        が警告（ND-02、TS-22）。RQ-I078 への補足は人の編集（任意）。
       options:
         - label: 案 A（推奨）位置ベースを採用し、再訪・重複する区間には同じ上限を設定する運用。waypoint_manager は重複 cell で値が異なる区間を保存時に警告し、mask 
             は低い方を採用する
@@ -40141,6 +40197,135 @@ entities:
       observe: NavigateThroughPoses goal の送信の有無と時刻、motion_hold の値、IFD-01 のモード。
       expected: IFD-02 を呼ぶまで goal は送信されず motion_hold=true のまま。起動後は手動走行（TR-01）か一時停止（TR-02）。IFD-02 を 1 
         回呼ぶと追加の承認なしに goal が送信される（RQ-I025・RQ-I011、TR-05）。復帰（TR-13）での再 goal は自律走行中に限られる。
+  - id: TS-22
+    kind: test
+    name: waypoint 保存時の警告（重複 cell で上限が異なる区間）
+    source_refs:
+      - SRC-I013-V6
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-02
+      - IFD-30
+      - IFD-41
+      - H-013
+      - DEC-059
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I078
+    revision_ref: REV-012
+    test:
+      execution_status: 未実行
+      stage: waypoint
+      procedure: 同じ場所を 2 回通る（再訪・交差・重複）waypoint セットで、重複する区間に異なる上限を設定して保存する。次に同じ上限にして保存する。
+      observe: waypoint_manager の警告の有無と内容（対象区間・cell・採用される値）、保存結果、生成された mask の重複 cell の値。
+      expected: 上限が異なる場合は警告が表示され、対象区間と「重複 cell は低い方の上限が適用される」ことが示される。保存は拒否しない（運用は同じ上限を設定すること：DEC-059 案 A）。mask
+        の重複 cell は低い方（DEC-045）。同じ上限なら警告なし。
+  - id: RQ-I079
+    kind: requirement
+    name: intent.md:27（FILE-INTENT-V7）
+    source_refs:
+      - SRC-I027-V7
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I027-V7
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-013
+  - id: RQ-I080
+    kind: requirement
+    name: intent.md:95（FILE-INTENT-V7）
+    source_refs:
+      - SRC-I095-V7
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I095-V7
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-013
+  - id: C-024
+    kind: reconciliation
+    name: SpeedLimit の文への位置ベース上限の補足（intent.md 第6版 27 行 → 第7版 27 行）
+    source_refs:
+      - SRC-I027-V7
+      - SRC-I027
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - C-023
+      - H-013
+      - DEC-059
+      - DEC-063
+      - AR-007
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+      - safety
+    requirement_refs:
+      - RQ-I079
+    revision_ref: REV-013
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I021
+      adopted_requirement_refs:
+        - RQ-I079
+      scope: 第6版 27 
+        行「SpeedLimitの発行手段（…）は、採用するNav2の版に合わせてAIが提案し、人が承認する」の文末に、位置ベースで上限を決める、再訪・交差・重複する区間は同じ上限を設定する運用、 
+        異なる値は保存時に warning し実行時は低い方、帯の外は無制限、帯の幅は実機調整、を追記した第7版 27 行で置換（人の編集）。
+      retained_scope: 発行手段は AI が提案し人が承認する、という前段は同一。承認済みの発行手段は Speed Filter（DEC-031）。
+      rationale: 人が intent.md を編集（DEC-063）。H-013 の案 A（DEC-059）と DEC-045 
+        の方針を上位要求にしたもの。設計（IFD-41・ND-02・TS-22、G-TUNING）と一致。
+      issue_refs: []
+  - id: C-025
+    kind: reconciliation
+    name: 既定モードの表記の統一（intent.md 第6版 95 行「手動操縦モード」→ 第7版 95 行「手動走行モード」）
+    source_refs:
+      - SRC-I095-V7
+      - SRC-I094
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - MODE-MANUAL
+      - DEC-054
+      - DEC-063
+      - AR-007
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    requirement_refs:
+      - RQ-I080
+    revision_ref: REV-013
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I066
+      adopted_requirement_refs:
+        - RQ-I080
+      scope: 「起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。」を「起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。」で置換（表記のみ。意味は同一）。
+      retained_scope: 起動直後の既定モードが手動走行であること（TR-01、DR-04）は同一。
+      rationale: 人が intent.md を編集（DEC-063）。DEC-054 の用語照合で提案した統一。MODE-MANUAL の正式名「手動走行」と一致。
+      issue_refs: []
 migration:
   baseline_definition_count: 198
   id_map:
@@ -47803,6 +47988,34 @@ authority_revisions:
     note: 人の編集（DEC-055。「intent.mdから該当文言を削除した。」）。機械比較の結果は 13 行の置換のみ（「区間境界では、進入する区間の値を適用する。」の 1 文の削除。他の文は同一）。 
       人はワークスペース直下の design/intent.md を編集したため、AI がその内容をリポジトリの design/intent.md へ一字も変えずに複製した（差分は 13 行のみ、SHA-256 
       4f9f8606…）。旧版（第5版）は archived_previous_copy に保持。
+  - id: AR-007
+    file_ref: FILE-INTENT-V7
+    previous_file_ref: FILE-INTENT-V6
+    sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
+    previous_sha256: 4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f
+    archived_previous_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+    added_lines:
+      - line: 27
+        text: SpeedLimitの発行手段（Speed Filter／Route 
+          Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば
+          waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。
+      - line: 95
+        text: ・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。
+    removed_lines:
+      - line: 27
+        text: SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する
+      - line: 95
+        text: ・起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。
+    changed_lines: []
+    instruction_expected_added_lines: 0
+    observed_added_lines: 2
+    decision_ref: DEC-063
+    requirement_refs:
+      - RQ-I079
+      - RQ-I080
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-09 07:10）。チャットでの言及はなく機械比較で検出。27 
+      行の置換（文末に位置ベース上限・重複時の運用と警告・帯外無制限・帯幅は実機調整の補足を追記）と 95 行の置換（「手動操縦モード」→「手動走行モード」）。削除・追加行なし。内容は DEC-059（H-013 
+      案 A）と proposals/intent_edit_requests.md §2・§3 の提案と一致する。
 decisions:
   - id: DEC-001
     kind: approval
@@ -48414,8 +48627,9 @@ decisions:
       - ND-06
     resulting_refs:
       - IFD-35
-    note: 'AI の選定: apt パッケージ ros-jazzy-glim-ros（CPU 版。実装リポジトリ docs/gouda_recording_glim.md が導入手順として使用。確認済み VM では
-      1.2.2-0noble）。版は実車PC の dpkg 出力で固定する（人に `dpkg -l | grep glim` の出力を依頼）。GLIM 本体の改変はしない。'
+    note: 'AI の選定: apt パッケージ ros-jazzy-glim-ros（CPU 版。実装リポジトリ docs/gouda_recording_glim.md が導入手順として使用）。 実車PC の dpkg
+      出力（DEC-062、FILE-VEHICLE-PC-GLIM）で ros-jazzy-glim／ros-jazzy-glim-ros 1.2.2-0noble に固定。人は「これでなくとも、LTS版を使用するのでもよい」としたため、別版へ変える場合は実車PC
+      での導入の証拠を取り直し IFD-35 を更新する。GLIM 本体の改変はしない。'
     disposition: answered
   - id: DEC-034
     kind: approval
@@ -48922,35 +49136,41 @@ decisions:
       - TS-21
       - C-012
       - DEC-059
-    note: "DEC-053 を補う第2回の承認。承認は「確認が完了した」意味ではない。未解消の 4 条件の状態（いずれも AI の対応を提示した段階で、人の確認は未了）:\n条件 1（DEC-011 と DEC-031
-      の整合。解消期限は工程 5-6 自律走行の為の最小構成の前）: 残存は 4 か所（IFD-14 の名称「発行元は H-001 承認待ち」、TR-05 の「先頭区間の速度上限を発行（IFD-14）」、TR-10 の「進入区間の速度上限を発行（IFD-14）」、TS-01
-      の「帯外は H-011 の回答に従う」）。REV-010 で Speed Filter 前提に更新済み。SO-01（区間番号は記録用）、TS-02〜TS-05 に残存なし。状態は「更新済み・人の確認待ち」。\n\
-      条件 2（RQ-I010 と位置ベース上限・DEC-045 の食い違い。解消期限は工程 5-4 waypoint の前）: 衝突 C-023 と人の判断 H-013 に登録し、選択肢 3 件と影響範囲を示した（DEC-059
-      pending）。状態は「登録済み・人の選択待ち」。\n条件 3（基本契約の試験が入る工程。解消期限は工程 5-5 車体出力の前）: TS-17（手動優先）・TS-18（gamepad 途絶で中立）・TS-19（PC
-      指令途絶で中立）は 5-5 車体出力、TS-20（一時停止）は 5-5 の hold 中立（TS-07）と 5-7 の遷移、TS-21（自律走行の開始は人の操作のみ）は 5-6。車体出力段階の完了条件に 5 契約すべての
-      stub 試験を含める案は docs/implementation_stages.md §1 の 5-5 行と §5。状態は「案を提示・人の確認待ち」。\n条件 4（IFD-31、DEC-015・032・044
-      の反映先、C-003、C-012。解消期限は工程 5-4〜5-6 の前）: IFD-31 は REV-002 で割り当てなかった欠番（削除ではない）。DEC-015 は Q-07 を後工程に回す指示で設計要素を生まない。DEC-032
-      の反映先は各 parameter の measurement 欄と生成物。DEC-044 の反映先は検査器と試験（モデル外）。C-003 は clarification（飽和は RQ-I020 に当たらない、境界付近の揺らぎは詳細設計しない）。C-012
-      は clarification（薄い adapter は ND-03 の action client、IFD-13 の標準 action。独立モジュールは置かない）。状態は「回答済み・人の確認待ち」。\n"
+    note: "DEC-053 を補う第2回の承認。承認は「確認が完了した」意味ではない。未解消の 4 条件の状態:\n条件 1（DEC-011 と DEC-031 の整合。解消期限は工程 5-6 自律走行の為の最小構成の前）:
+      残存は 4 か所（IFD-14 の名称「発行元は H-001 承認待ち」、TR-05 の「先頭区間の速度上限を発行（IFD-14）」、TR-10 の「進入区間の速度上限を発行（IFD-14）」、TS-01 の「帯外は
+      H-011 の回答に従う」）。REV-010 で Speed Filter 前提に更新済み。SO-01（区間番号は記録用）、TS-02〜TS-05 に残存なし。\n条件 2（RQ-I010 と位置ベース上限・DEC-045
+      の食い違い。解消期限は工程 5-4 waypoint の前）: 衝突 C-023 と人の判断 H-013 に登録し、選択肢 3 件と影響範囲を示した。人が案 A を選択（DEC-059）。REV-012 で反映。\n\
+      条件 3（基本契約の試験が入る工程。解消期限は工程 5-5 車体出力の前）: TS-17（手動優先）・TS-18（gamepad 途絶で中立）・TS-19（PC 指令途絶で中立）は 5-5 車体出力、TS-20（一時停止）は
+      5-5 の hold 中立（TS-07）と 5-7 の遷移、TS-21（自律走行の開始は人の操作のみ）は 5-6。車体出力段階の完了条件に 5 契約すべての stub 試験を含める案は docs/implementation_stages.md
+      §1 の 5-5 行と §5。\n条件 4（IFD-31、DEC-015・032・044 の反映先、C-003、C-012。解消期限は工程 5-4〜5-6 の前）: IFD-31 は REV-002 で割り当てなかった欠番（削除ではない）。DEC-015
+      は Q-07 を後工程に回す指示で設計要素を生まない。DEC-032 の反映先は各 parameter の measurement 欄と生成物。DEC-044 の反映先は検査器と試験（モデル外）。C-003 は
+      clarification（飽和は RQ-I020 に当たらない、境界付近の揺らぎは詳細設計しない）。C-012 は clarification（薄い adapter は ND-03 の action client、IFD-13
+      の標準 action。独立モジュールは置かない）。\n人の確認（2026-10-09、DEC-061 原文）「DEC-058 の未解消 4 条件の確認をした。」。4 条件の AI の対応は人が確認済み。条件 3
+      の「車体出力の完了条件に 5 契約を含める案」の採否は明示の回答がないため案のまま。\n"
     disposition: answered
   - id: DEC-059
     kind: question
-    status: pending
+    status: answered
     asked_on: '2026-10-09'
-    answered_on:
+    answered_on: '2026-10-09'
     channel: chat
     question: 【人の判断】H-013 区間属性の上限（RQ-I078）と Speed Filter の位置ベース上限・重複時は低い方（DEC-045）の食い違いの解消方法（選択肢と影響範囲は H-013）
-    answer_verbatim: ''
+    answer_verbatim: 'H-013: 案Aを採用。位置ベースを維持し、再訪・重複する区間には同じ上限を設定する運用。保存時に waypoint_manager が警告。'
     affected_refs:
       - H-013
       - C-023
       - RQ-I078
       - IFD-14
       - IFD-41
-    resulting_refs: []
-    note: ゲート3の未解消条件 2（DEC-058）。工程 5-4（waypoint・速度マスク生成器）の実装前に回答が必要。推奨は H-013 の案 
-      A（位置ベースを採用し、再訪・重複区間には同じ値を設定する運用。intent.md への補足は人の編集）。
-    disposition: open_human
+    resulting_refs:
+      - H-013
+      - C-023
+      - IFD-41
+      - ND-02
+      - TS-22
+    note: '案 A を採用。設計への反映: C-023 を resolved_by_decision、H-013 を resolved、ND-02 に「保存時に重複 cell で値が異なる区間を警告（保存は拒否しない）」を追加、IFD-41
+      に運用を明記、TS-22（保存時警告）を追加。 intent.md への補足は人が 27 行（RQ-I079）に追記した（AR-007、DEC-063）。これにより位置ベース・同値運用・保存時警告・帯外無制限・帯幅は実機調整が上位要求になった。'
+    disposition: answered
   - id: DEC-060
     kind: confirmation
     status: recorded
@@ -48964,6 +49184,67 @@ decisions:
     resulting_refs: []
     note: ブランチ design/gate3-baseline-2026-10-09 を作成し design/ 配下のみをコミット（.venv・.DS_Store は .gitignore で除外）。コミット 
       ID は作業記録と baselines/gate3_2026-10-09/README.md に記録。
+    disposition: answered
+  - id: DEC-061
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: DEC-058 の未解消 4 条件に対する AI の対応の確認
+    answer_verbatim: DEC-058 の未解消 4 条件の確認をした。
+    affected_refs:
+      - DEC-058
+    resulting_refs: []
+    note: 条件 1・4 は REV-010・011 の対応、条件 2 は DEC-059（案 A）、条件 3 は TS-17〜TS-21 の工程割当を確認したものとして記録。条件 3 
+      の「車体出力の完了条件に含める案」の採否は明示されていないため案のまま。
+    disposition: answered
+  - id: DEC-062
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 実車PC の GLIM 版の確認コマンドの出力（IFD-35 の版固定、DEC-033）
+    answer_verbatim: "GLIMの版は次の通り。\naya@aya-Parallels-ARM-Virtual-Machine:~$ dpkg -l | grep glim\nii  ros-jazzy-glim\
+      \                                   1.2.2-0noble                                     arm64        3D LiDAR-IMU
+      mapping framework\nii  ros-jazzy-glim-ros                               1.2.2-0noble                     \
+      \                arm64        LiDAR-IMU odometry based on tight coupling of geometric and inertial constraints\n\
+      これでなくとも、LTS版を使用するのでもよい。\n"
+    affected_refs:
+      - IFD-35
+      - ND-06
+      - DEC-033
+    resulting_refs:
+      - FILE-VEHICLE-PC-GLIM
+      - IFD-35
+    note: 出力は research/vehicle_pc/2026-10-09_glim_version.txt に原文で保存。IFD-35 の版依存を 
+      confirmed_installed_version（1.2.2-0noble）にした。LTS 版への変更は可だが、変更時は導入の証拠を取り直す。
+    disposition: answered
+  - id: DEC-063
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: intent.md
+    question: intent.md 第7版（人の編集。27 行の追記と 95 行の表記変更。チャットでの言及なし、機械比較で検出）
+    answer_verbatim: "SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば
+      waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。\n・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。\n"
+    affected_refs:
+      - FILE-INTENT-V6
+      - RQ-I021
+      - RQ-I066
+      - H-013
+      - C-023
+      - MODE-MANUAL
+    resulting_refs:
+      - AR-007
+      - RQ-I079
+      - RQ-I080
+      - C-024
+      - C-025
+    note: 27 行は DEC-059（案 A）の補足で、位置ベース上限・同値運用・保存時警告・低い方の適用（DEC-045）・帯外無制限・帯幅は実機調整（G-TUNING）を上位要求にした。 95 
+      行は用語の統一（DEC-054 の照合で提案したもの）。残る「手動操縦」は intent.md:1 の目的文のみ。
     disposition: answered
 revisions:
   - id: REV-002
@@ -49642,4 +49923,57 @@ revisions:
       - SRC-I013-V6
     added_file_ids:
       - FILE-INTENT-V6
+    removed_entity_ids: []
+  - id: REV-012
+    date: '2026-10-09'
+    summary: H-013（区間属性の上限と Speed Filter の位置ベース上限の食い違い）に人が案 A を選択（DEC-059。位置ベースを維持、再訪・重複する区間には同じ上限を設定する運用、保存時に
+      waypoint_manager が警告）。 C-023 を決定で解消し、ND-02 の保存時警告と TS-22 を追加。DEC-058 の未解消 4 条件を人が確認（DEC-061）。実車PC の GLIM
+      版（ros-jazzy-glim／glim-ros 1.2.2-0noble）を証拠ファイルで固定し IFD-35 を実車版照合済みに（DEC-062。LTS 版の使用も可）。
+    basis_refs:
+      - DEC-059
+      - DEC-061
+      - DEC-062
+    added_entity_ids:
+      - TS-22
+    modified_entity_ids:
+      - ND-02
+      - ND-06
+      - IFD-35
+      - IFD-41
+      - C-023
+      - H-013
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-GLIM
+    removed_entity_ids: []
+  - id: REV-013
+    date: '2026-10-09'
+    summary: リポジトリの design/intent.md が人により編集された（チャットでの言及なし。機械比較で検出。SHA 4f9f8606… → f69dd98b…）。 27 
+      行（RQ-I021）に「実行時は位置ベースで速度上限を決める…帯の幅は実機調整で決める。」が追記され、95 行（RQ-I066）の「手動操縦モード」が「手動走行モード」に置換された。 AR-007 
+      として記録し、RQ-I021 → RQ-I079、RQ-I066 → RQ-I080 に置換（C-024・C-025）。DEC-059（案 A）の intent への補足として扱う。
+    basis_refs:
+      - DEC-063
+    added_entity_ids:
+      - RQ-I079
+      - RQ-I080
+      - C-024
+      - C-025
+    modified_entity_ids:
+      - RQ-I021
+      - RQ-I066
+      - MODE-MANUAL
+      - C-001
+      - H-008
+      - V-001
+      - ND-03
+      - IFD-13
+      - IFD-14
+      - TR-01
+      - IFD-41
+      - C-023
+    added_source_ids:
+      - SRC-I027-V7
+      - SRC-I095-V7
+    added_file_ids:
+      - FILE-INTENT-V7
     removed_entity_ids: []

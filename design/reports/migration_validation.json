@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5881,
+    "executed_checks": 5896,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -62,6 +62,15 @@
       "intent instruction expectation compared AR-006",
       "intent non-append edit recorded with decision AR-006",
       "intent added line AR-006:13 has requirement entity",
+      "intent previous copy archived AR-007",
+      "intent removed line text recorded AR-007:27",
+      "intent removed line text recorded AR-007:95",
+      "intent reproduced from archived copy plus recorded lines AR-007",
+      "intent observed added line count recorded AR-007",
+      "intent instruction expectation compared AR-007",
+      "intent non-append edit recorded with decision AR-007",
+      "intent added line AR-007:27 has requirement entity",
+      "intent added line AR-007:95 has requirement entity",
       "unchanged design/docs/Gouda_architecture_detail.xlsx",
       "unchanged design/docs/SystemArchitecture.drawio",
       "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
@@ -144,7 +153,9 @@
       "model file hash (archived) FILE-INTENT-V5",
       "model file hash FILE-GATE3-MODEL",
       "model file hash FILE-CLAUDE-MD-ORIGINAL",
-      "model file hash FILE-INTENT-V6",
+      "model file hash (archived) FILE-INTENT-V6",
+      "model file hash FILE-VEHICLE-PC-GLIM",
+      "model file hash FILE-INTENT-V7",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -2414,6 +2425,8 @@
       "intent verbatim (its version) SRC-I103-V4",
       "intent verbatim (its version) SRC-I104-V5",
       "intent verbatim (its version) SRC-I013-V6",
+      "intent verbatim (its version) SRC-I027-V7",
+      "intent verbatim (its version) SRC-I095-V7",
       "row disposition inventory",
       "row disposition ('モジュール定義', 1)",
       "row disposition ('モジュール定義', 2)",
@@ -4332,6 +4345,8 @@
       "intent requirement lines complete",
       "live intent requirements still present in current file",
       "superseded requirement justified RQ-I010",
+      "superseded requirement justified RQ-I021",
+      "superseded requirement justified RQ-I066",
       "superseded requirement justified RQ-I071",
       "original 198 definition IDs",
       "baseline ID count",
@@ -7327,7 +7342,7 @@
       {
         "id": "H-013",
         "category": "human",
-        "state": "open",
+        "state": "resolved",
         "affected_refs": [
           "RQ-I078",
           "C-023",
@@ -7341,9 +7356,11 @@
           "TS-14",
           "PRM-19"
         ],
-        "resolution_refs": [],
+        "resolution_refs": [
+          "DEC-059"
+        ],
         "question": "RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位置ベース上限（DEC-031）と重複時は低い方（DEC-045）でどう実現するか。 再訪・交差・重複する区間に異なる上限を設定した場合、実行時の上限は位置で決まり、区間順序には従わない。",
-        "next_action": "ゲート3の未解消条件 2（DEC-058）。工程 5-4（waypoint・速度マスク生成器）の実装前に人が選択（DEC-059）。",
+        "next_action": "回答済み（DEC-059、案 A）。位置ベースを維持し、再訪・重複する区間には同じ上限を設定する運用。保存時に waypoint_manager が警告（ND-02、TS-22）。RQ-I078 への補足は人の編集（任意）。",
         "options": [
           {
             "label": "案 A（推奨）位置ベースを採用し、再訪・重複する区間には同じ上限を設定する運用。waypoint_manager は重複 cell で値が異なる区間を保存時に警告し、mask は低い方を採用する",
@@ -7364,8 +7381,7 @@
     ],
     "open_conflicts": [
       "C-014",
-      "C-016",
-      "C-023"
+      "C-016"
     ],
     "resolved_by_intent": [
       "C-001",
@@ -7383,12 +7399,14 @@
       "C-013",
       "C-017",
       "C-021",
-      "C-022"
+      "C-022",
+      "C-024",
+      "C-025"
     ]
   },
   "design_maturity": {
-    "未設計": 399,
-    "案": 389,
+    "未設計": 403,
+    "案": 390,
     "承認済み": 4
   },
   "revisions": [
@@ -7491,6 +7509,26 @@
       "added_source_ids": 1,
       "added_file_ids": 1,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-012",
+      "date": "2026-10-09",
+      "basis_refs": 3,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 6,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-013",
+      "date": "2026-10-09",
+      "basis_refs": 1,
+      "added_entity_ids": 4,
+      "modified_entity_ids": 12,
+      "added_source_ids": 2,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7591,21 +7629,40 @@
       "added_line_numbers": [
         13
       ]
+    },
+    {
+      "id": "AR-007",
+      "file_ref": "FILE-INTENT-V7",
+      "previous_file_ref": "FILE-INTENT-V6",
+      "sha256": "f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062",
+      "previous_sha256": "4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f",
+      "archived_previous_copy": "design/baselines/intent_history/intent_v6_4f9f8606689b.md",
+      "instruction_expected_added_lines": 0,
+      "observed_added_lines": 2,
+      "decision_ref": "DEC-063",
+      "requirement_refs": [
+        "RQ-I079",
+        "RQ-I080"
+      ],
+      "note": "人の編集（リポジトリ側の design/intent.md、更新 2026-10-09 07:10）。チャットでの言及はなく機械比較で検出。27 行の置換（文末に位置ベース上限・重複時の運用と警告・帯外無制限・帯幅は実機調整の補足を追記）と 95 行の置換（「手動操縦モード」→「手動走行モード」）。削除・追加行なし。内容は DEC-059（H-013 案 A）と proposals/intent_edit_requests.md §2・§3 の提案と一致する。",
+      "added_line_numbers": [
+        27,
+        95
+      ]
     }
   ],
   "decisions": {
-    "count": 59,
+    "count": 62,
     "by_status": {
-      "answered": 31,
-      "recorded": 23,
-      "pending": 5
+      "answered": 32,
+      "recorded": 26,
+      "pending": 4
     },
     "pending": [
       "DEC-021",
       "DEC-022",
       "DEC-024",
-      "DEC-050",
-      "DEC-059"
+      "DEC-050"
     ]
   },
   "vehicle_verification": {
@@ -7613,8 +7670,8 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 792,
-    "source_count": 495,
+    "entity_count": 797,
+    "source_count": 497,
     "id_map_count": 202,
     "legacy_198_count": 198,
     "unbound_edges": 1,

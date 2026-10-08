@@ -1,0 +1,110 @@
+# 変更セット REV-013（2026-10-09 第8便: intent.md 第7版。人の編集 2 行（27 行の位置ベース上限の補足、95 行の「手動走行」表記）を機械比較で検出し記録）
+# 適用: design/tools/apply_revision.py REV-013
+id: REV-013
+date: '2026-10-09'
+summary: >-
+  リポジトリの design/intent.md が人により編集された（チャットでの言及なし。機械比較で検出。SHA 4f9f8606… → f69dd98b…）。
+  27 行（RQ-I021）に「実行時は位置ベースで速度上限を決める…帯の幅は実機調整で決める。」が追記され、95 行（RQ-I066）の「手動操縦モード」が「手動走行モード」に置換された。
+  AR-007 として記録し、RQ-I021 → RQ-I079、RQ-I066 → RQ-I080 に置換（C-024・C-025）。DEC-059（案 A）の intent への補足として扱う。
+basis_refs: [DEC-063]
+
+authority_revision:
+  id: AR-007
+  file_id: FILE-INTENT-V7
+  previous_file_id: FILE-INTENT-V6
+  archived_previous_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+  current_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    27: RQ-I079
+    95: RQ-I080
+  decision_ref: DEC-063
+  note: >-
+    人の編集（リポジトリ側の design/intent.md、更新 2026-10-09 07:10）。チャットでの言及はなく機械比較で検出。27 行の置換（文末に位置ベース上限・重複時の運用と警告・帯外無制限・帯幅は実機調整の補足を追記）と
+    95 行の置換（「手動操縦モード」→「手動走行モード」）。削除・追加行なし。内容は DEC-059（H-013 案 A）と proposals/intent_edit_requests.md §2・§3 の提案と一致する。
+
+requirement_ref_replacements:
+  RQ-I021: RQ-I079
+  RQ-I066: RQ-I080
+
+decision_updates:
+  - id: DEC-059
+    set:
+      note: >-
+        案 A を採用。設計への反映: C-023 を resolved_by_decision、H-013 を resolved、ND-02 に「保存時に重複 cell で値が異なる区間を警告（保存は拒否しない）」を追加、IFD-41 に運用を明記、TS-22（保存時警告）を追加。
+        intent.md への補足は人が 27 行（RQ-I079）に追記した（AR-007、DEC-063）。これにより位置ベース・同値運用・保存時警告・帯外無制限・帯幅は実機調整が上位要求になった。
+
+decisions:
+  - id: DEC-063
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: intent.md
+    question: intent.md 第7版（人の編集。27 行の追記と 95 行の表記変更。チャットでの言及なし、機械比較で検出）
+    answer_verbatim: |
+      SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。
+      ・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。
+    affected_refs: [FILE-INTENT-V6, RQ-I021, RQ-I066, H-013, C-023, MODE-MANUAL]
+    resulting_refs: [AR-007, RQ-I079, RQ-I080, C-024, C-025]
+    note: >-
+      27 行は DEC-059（案 A）の補足で、位置ベース上限・同値運用・保存時警告・低い方の適用（DEC-045）・帯外無制限・帯幅は実機調整（G-TUNING）を上位要求にした。
+      95 行は用語の統一（DEC-054 の照合で提案したもの）。残る「手動操縦」は intent.md:1 の目的文のみ。
+    disposition: answered
+
+entities:
+  - id: C-024
+    kind: reconciliation
+    name: SpeedLimit の文への位置ベース上限の補足（intent.md 第6版 27 行 → 第7版 27 行）
+    intent_lines: [27]
+    source_from_affected: true
+    related_refs: [C-023, H-013, DEC-059, DEC-063, AR-007]
+    sensitivity: [intent, safety]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [RQ-I021]
+      adopted_requirement_refs: [RQ-I079]
+      scope: >-
+        第6版 27 行「SpeedLimitの発行手段（…）は、採用するNav2の版に合わせてAIが提案し、人が承認する」の文末に、位置ベースで上限を決める、再訪・交差・重複する区間は同じ上限を設定する運用、
+        異なる値は保存時に warning し実行時は低い方、帯の外は無制限、帯の幅は実機調整、を追記した第7版 27 行で置換（人の編集）。
+      retained_scope: 発行手段は AI が提案し人が承認する、という前段は同一。承認済みの発行手段は Speed Filter（DEC-031）。
+      rationale: 人が intent.md を編集（DEC-063）。H-013 の案 A（DEC-059）と DEC-045 の方針を上位要求にしたもの。設計（IFD-41・ND-02・TS-22、G-TUNING）と一致。
+      issue_refs: []
+  - id: C-025
+    kind: reconciliation
+    name: 既定モードの表記の統一（intent.md 第6版 95 行「手動操縦モード」→ 第7版 95 行「手動走行モード」）
+    intent_lines: [95]
+    source_from_affected: true
+    related_refs: [MODE-MANUAL, DEC-054, DEC-063, AR-007]
+    sensitivity: [intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [RQ-I066]
+      adopted_requirement_refs: [RQ-I080]
+      scope: 「起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。」を「起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。」で置換（表記のみ。意味は同一）。
+      retained_scope: 起動直後の既定モードが手動走行であること（TR-01、DR-04）は同一。
+      rationale: 人が intent.md を編集（DEC-063）。DEC-054 の用語照合で提案した統一。MODE-MANUAL の正式名「手動走行」と一致。
+      issue_refs: []
+
+modifications:
+  - id: RQ-I021
+    set: {adoption: superseded}
+    interpretation_append: 'REV-013: intent.md 第7版で位置ベース上限の補足を追記した行に置換（C-024、DEC-063）。後継は RQ-I079。'
+  - id: RQ-I066
+    set: {adoption: superseded}
+    interpretation_append: 'REV-013: intent.md 第7版で「手動走行モード」表記に置換（C-025、DEC-063）。後継は RQ-I080。'
+  - id: C-001
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I025, RQ-I064, RQ-I065, RQ-I080]
+  - id: MODE-MANUAL
+    set:
+      interpretation: 正式名は「手動走行」（RQ-I065・RQ-I080。設計要素はこの表記で統一）。intent.md 第7版で 95 行も「手動走行モード」に統一された（DEC-063）。残る「手動操縦」は intent.md:1 の目的文と旧資料（LEG-05-0004）で、同一モードの別表記として扱う（DEC-054）。
+  - id: C-023
+    append: {related_refs: [C-024, RQ-I079]}
+  - id: IFD-41
+    append: {related_refs: [C-024]}

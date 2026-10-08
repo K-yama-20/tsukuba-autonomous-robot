@@ -1,0 +1,126 @@
+# 変更セット REV-012（2026-10-09 第8便: H-013 の回答（案 A）、DEC-058 の 4 条件の人の確認、GLIM 版の固定）
+# 適用: design/tools/apply_revision.py REV-012
+id: REV-012
+date: '2026-10-09'
+summary: >-
+  H-013（区間属性の上限と Speed Filter の位置ベース上限の食い違い）に人が案 A を選択（DEC-059。位置ベースを維持、再訪・重複する区間には同じ上限を設定する運用、保存時に waypoint_manager が警告）。
+  C-023 を決定で解消し、ND-02 の保存時警告と TS-22 を追加。DEC-058 の未解消 4 条件を人が確認（DEC-061）。実車PC の GLIM 版（ros-jazzy-glim／glim-ros 1.2.2-0noble）を証拠ファイルで固定し IFD-35 を実車版照合済みに（DEC-062。LTS 版の使用も可）。
+basis_refs: [DEC-059, DEC-061, DEC-062]
+intent_version_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+
+files:
+  - id: FILE-VEHICLE-PC-GLIM
+    path: design/research/vehicle_pc/2026-10-09_glim_version.txt
+    role: evidence
+
+decision_updates:
+  - id: DEC-059
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      disposition: answered
+      answer_verbatim: 'H-013: 案Aを採用。位置ベースを維持し、再訪・重複する区間には同じ上限を設定する運用。保存時に waypoint_manager が警告。'
+      resulting_refs: [H-013, C-023, IFD-41, ND-02, TS-22]
+      note: >-
+        案 A を採用。設計への反映: C-023 を resolved_by_decision、H-013 を resolved、ND-02 に「保存時に重複 cell で値が異なる区間を警告（保存は拒否しない）」を追加、IFD-41 に運用を明記、TS-22（保存時警告）を追加。
+        RQ-I078 への「実行時は位置で適用し、重複区間は同じ値」の補足は人の編集（proposals/intent_edit_requests.md §3。任意）。
+  - id: DEC-058
+    set:
+      note: |
+        DEC-053 を補う第2回の承認。承認は「確認が完了した」意味ではない。未解消の 4 条件の状態:
+        条件 1（DEC-011 と DEC-031 の整合。解消期限は工程 5-6 自律走行の為の最小構成の前）: 残存は 4 か所（IFD-14 の名称「発行元は H-001 承認待ち」、TR-05 の「先頭区間の速度上限を発行（IFD-14）」、TR-10 の「進入区間の速度上限を発行（IFD-14）」、TS-01 の「帯外は H-011 の回答に従う」）。REV-010 で Speed Filter 前提に更新済み。SO-01（区間番号は記録用）、TS-02〜TS-05 に残存なし。
+        条件 2（RQ-I010 と位置ベース上限・DEC-045 の食い違い。解消期限は工程 5-4 waypoint の前）: 衝突 C-023 と人の判断 H-013 に登録し、選択肢 3 件と影響範囲を示した。人が案 A を選択（DEC-059）。REV-012 で反映。
+        条件 3（基本契約の試験が入る工程。解消期限は工程 5-5 車体出力の前）: TS-17（手動優先）・TS-18（gamepad 途絶で中立）・TS-19（PC 指令途絶で中立）は 5-5 車体出力、TS-20（一時停止）は 5-5 の hold 中立（TS-07）と 5-7 の遷移、TS-21（自律走行の開始は人の操作のみ）は 5-6。車体出力段階の完了条件に 5 契約すべての stub 試験を含める案は docs/implementation_stages.md §1 の 5-5 行と §5。
+        条件 4（IFD-31、DEC-015・032・044 の反映先、C-003、C-012。解消期限は工程 5-4〜5-6 の前）: IFD-31 は REV-002 で割り当てなかった欠番（削除ではない）。DEC-015 は Q-07 を後工程に回す指示で設計要素を生まない。DEC-032 の反映先は各 parameter の measurement 欄と生成物。DEC-044 の反映先は検査器と試験（モデル外）。C-003 は clarification（飽和は RQ-I020 に当たらない、境界付近の揺らぎは詳細設計しない）。C-012 は clarification（薄い adapter は ND-03 の action client、IFD-13 の標準 action。独立モジュールは置かない）。
+        人の確認（2026-10-09、DEC-061 原文）「DEC-058 の未解消 4 条件の確認をした。」。4 条件の AI の対応は人が確認済み。条件 3 の「車体出力の完了条件に 5 契約を含める案」の採否は明示の回答がないため案のまま。
+  - id: DEC-033
+    set:
+      note: >-
+        AI の選定: apt パッケージ ros-jazzy-glim-ros（CPU 版。実装リポジトリ docs/gouda_recording_glim.md が導入手順として使用）。
+        実車PC の dpkg 出力（DEC-062、FILE-VEHICLE-PC-GLIM）で ros-jazzy-glim／ros-jazzy-glim-ros 1.2.2-0noble に固定。人は「これでなくとも、LTS版を使用するのでもよい」としたため、別版へ変える場合は実車PC での導入の証拠を取り直し IFD-35 を更新する。GLIM 本体の改変はしない。
+
+decisions:
+  - id: DEC-061
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: DEC-058 の未解消 4 条件に対する AI の対応の確認
+    answer_verbatim: DEC-058 の未解消 4 条件の確認をした。
+    affected_refs: [DEC-058]
+    resulting_refs: []
+    note: 条件 1・4 は REV-010・011 の対応、条件 2 は DEC-059（案 A）、条件 3 は TS-17〜TS-21 の工程割当を確認したものとして記録。条件 3 の「車体出力の完了条件に含める案」の採否は明示されていないため案のまま。
+    disposition: answered
+  - id: DEC-062
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 実車PC の GLIM 版の確認コマンドの出力（IFD-35 の版固定、DEC-033）
+    answer_verbatim: |
+      GLIMの版は次の通り。
+      aya@aya-Parallels-ARM-Virtual-Machine:~$ dpkg -l | grep glim
+      ii  ros-jazzy-glim                                   1.2.2-0noble                                     arm64        3D LiDAR-IMU mapping framework
+      ii  ros-jazzy-glim-ros                               1.2.2-0noble                                     arm64        LiDAR-IMU odometry based on tight coupling of geometric and inertial constraints
+      これでなくとも、LTS版を使用するのでもよい。
+    affected_refs: [IFD-35, ND-06, DEC-033]
+    resulting_refs: [FILE-VEHICLE-PC-GLIM, IFD-35]
+    note: 出力は research/vehicle_pc/2026-10-09_glim_version.txt に原文で保存。IFD-35 の版依存を confirmed_installed_version（1.2.2-0noble）にした。LTS 版への変更は可だが、変更時は導入の証拠を取り直す。
+    disposition: answered
+
+entities:
+  - id: TS-22
+    kind: test
+    name: waypoint 保存時の警告（重複 cell で上限が異なる区間）
+    intent_lines: [13]
+    issue_refs: []
+    related_refs: [ND-02, IFD-30, IFD-41, H-013, DEC-059]
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: waypoint
+      procedure: 同じ場所を 2 回通る（再訪・交差・重複）waypoint セットで、重複する区間に異なる上限を設定して保存する。次に同じ上限にして保存する。
+      observe: waypoint_manager の警告の有無と内容（対象区間・cell・採用される値）、保存結果、生成された mask の重複 cell の値。
+      expected: 上限が異なる場合は警告が表示され、対象区間と「重複 cell は低い方の上限が適用される」ことが示される。保存は拒否しない（運用は同じ上限を設定すること：DEC-059 案 A）。mask の重複 cell は低い方（DEC-045）。同じ上限なら警告なし。
+
+modifications:
+  - id: H-013
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-059]
+      issue.next_action: 回答済み（DEC-059、案 A）。位置ベースを維持し、再訪・重複する区間には同じ上限を設定する運用。保存時に waypoint_manager が警告（ND-02、TS-22）。RQ-I078 への補足は人の編集（任意）。
+  - id: C-023
+    set_nested:
+      reconciliation.state: resolved_by_decision
+      reconciliation.decision_ref: DEC-059
+      reconciliation.clarification: >-
+        DEC-059（案 A）で解消。区間の属性（RQ-I078）は編集時の属性として成立し、実行時は Speed Filter が位置で適用する。再訪・重複する区間には同じ上限を設定する運用とし、
+        waypoint_manager は保存時に重複 cell で値が異なる区間を警告する（保存は拒否しない）。重複 cell は低い方の上限（DEC-045）。
+  - id: IFD-41
+    set_nested:
+      designed_interface.time_semantics: >-
+        waypoint セット保存時に生成し、同じ由来 ID・内容ハッシュで保存。地図版が変われば再生成。区間の帯の幅は PRM-19（実機調整）、速度刻みは PRM-20。
+        重複 cell は低い方の上限（DEC-045）。再訪・重複する区間には同じ上限を設定する運用で、値が異なれば ND-02 が保存時に警告する（DEC-059 案 A、TS-22）。
+  - id: ND-02
+    set_nested:
+      ros_node.responsibilities:
+        - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+        - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）
+        - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
+        - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I078）。保存時に Speed Filter 用の速度マスクと filter info を生成して同じ由来 ID・ハッシュで保存（IFD-41、DEC-031。幅は PRM-19、刻みは PRM-20）
+        - 保存時に、重複する cell で上限が異なる区間を検出して警告する（対象区間と採用される低い方の値を示す。保存は拒否しない。DEC-059 案 A、TS-22）
+        - 地図とwaypointの組の選択とプレビュー（RQ-I011）
+        - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+        - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に transient_local の状態を取得する（DEC-014）
+  - id: IFD-35
+    set_nested:
+      designed_interface.message_type: GLIM 1.2.2 の成果物（形式は 1.2.2 で確認する）＋ manifest
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_glim_version.txt]
+        note: 実車PC は ros-jazzy-glim／ros-jazzy-glim-ros 1.2.2-0noble（DEC-062）。AI の選定（DEC-033）と一致。LTS 版の使用も可とされたが、版を変える場合は導入の証拠を取り直す。出力形式は 1.2.2 で確認する（工程 5-3）。
+  - id: ND-06
+    set_nested:
+      ros_node.placement_rationale: 第三者ソフト。交換は部品と launch の変更で済ませる（RQ-I036）。版は実車PC の 1.2.2-0noble で固定（DEC-062、IFD-35）。LTS 版へ変える場合は証拠を取り直す。

@@ -1,5 +1,7 @@
 # intent.md の編集依頼（人が編集する。AI は intent.md を編集しない: DEC-013、CLAUDE.md 1.5）
 
+状態（2026-10-09 第8便）: §1 は第6版（AR-006、RQ-I078）、§2 は第7版（AR-007、RQ-I080）で人が編集済み。第7版では 27 行に位置ベース上限の補足も追記された（RQ-I079、C-024。H-013 案 A の補足）。残る依頼はない。
+
 対象: `design/intent.md` 第5版（SHA-256 `81d71f07cc72bb7d64f3684779196caeff968410c87b6875b30a2e20fa750404`、103 行）。
 編集後の手順: 旧版を `design/baselines/intent_history/intent_v5_81d71f07cc72.md` に保存し、変更セット（REV-011 予定）の `authority_revision`（AR-006、`allow_non_append: true`、`decision_ref` を付ける）で機械検証して記録する。
 

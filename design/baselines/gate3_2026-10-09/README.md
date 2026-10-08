@@ -4,5 +4,5 @@
 - 内容ハッシュ（SHA-256）: `6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`
 - 凍結コピー: `model.yaml`（本ディレクトリ。手編集しない。model.yaml の `files` に FILE-GATE3-MODEL として登録し、検査でハッシュを照合する）
 - 再現方法: `baselines/migration_v1/model.yaml` に `revisions/REV-002.yaml` 〜 `REV-009.yaml` を順に適用すると同じ内容になる。
-- Git コミット: 未コミット（人の指示待ち）。コミット後はそのコミット ID を worklog に追記する。
+- Git コミット: ブランチ design/gate3-baseline-2026-10-09、コミット 4b7bdbeb38015299c8436c84686d963ad8422bdb（REV-011 適用後の design/ 一式を含む。承認対象の内容ハッシュは上記のまま）。
 - 承認の範囲（DEC-053 原文）: 下位設計案 122 件を以後の設計・実装の暫定ベースラインとして採用。値に依存しない下位設計、実車出力を伴わないソフト実装と stub 試験まで。122 件の個別最終承認・未確定値の確定・未実施試験の合格・実車投入は含まない。

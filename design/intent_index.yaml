@@ -19,6 +19,9 @@ authority:
     role: authority_superseded
   FILE-INTENT-V6:
     sha256: 4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f
+    role: authority_superseded
+  FILE-INTENT-V7:
+    sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
     role: authority
 line_count: 76
 lines:
@@ -187,6 +190,7 @@ lines:
       - TS-06
       - TS-14
       - TS-16
+      - TS-22
     issue_refs:
       - H-013
   - line: 14
@@ -413,17 +417,18 @@ lines:
     issue_refs:
       - H-001
   - line: 27
-    requirement_id: RQ-I021
-    text: SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する
-    source_id: SRC-I027
-    authority_file: FILE-INTENT
+    requirement_id: RQ-I079
+    text: SpeedLimitの発行手段（Speed Filter／Route 
+      Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば
+      waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。
+    source_id: SRC-I027-V7
+    authority_file: FILE-INTENT-V7
     referenced_by:
-      - H-001
+      - C-024
       - IFD-13
       - IFD-14
       - V-001
-    issue_refs:
-      - H-001
+    issue_refs: []
   - line: 32
     requirement_id: RQ-I022
     text: ' 「1.デバッグ性 2.交換性 3.安全性」→「基本契約を満たす案の中で、1.デバッグ性 2.交換性 3.追加的な安全性向上」'
@@ -927,12 +932,13 @@ lines:
       - TR-01
     issue_refs: []
   - line: 95
-    requirement_id: RQ-I066
-    text: ・起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。
-    source_id: SRC-I094
-    authority_file: FILE-INTENT
+    requirement_id: RQ-I080
+    text: ・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。
+    source_id: SRC-I095-V7
+    authority_file: FILE-INTENT-V7
     referenced_by:
       - C-001
+      - C-025
       - H-008
       - ND-03
       - TR-01

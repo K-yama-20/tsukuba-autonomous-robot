@@ -61,3 +61,7 @@
 - 人の確認待ち: DEC-058 の 4 条件の対応（gate3_package §3b）。H-013 の選択（DEC-059）。implementation_stages §5 の案の採否。
 - 進められる: 工程 5-1（起動と記録）。独自型 4 件の定義、G-FIRMWARE、Q-02 候補比較。
 - 止まっている: 5-4（H-013 待ち）、GLIM 版固定、DEC-050。
+
+## コミット ID（追記）
+
+- ブランチ `design/gate3-baseline-2026-10-09`、コミット `4b7bdbeb38015299c8436c84686d963ad8422bdb`（"Added design sheets"、design/ 配下のみ）。この追記自体はコミット後に書いたため未コミット。
