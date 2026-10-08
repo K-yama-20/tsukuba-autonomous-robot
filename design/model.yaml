@@ -88,6 +88,10 @@ files:
     path: design/intent.md
     sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
     role: authority
+  - id: FILE-VEHICLE-PC-STAGE51
+    path: design/research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt
+    sha256: e17dbd0d28bebce16dcf02e6504bd58bc210b7b1247d13d33d7567137b476659
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34105,7 +34109,7 @@ entities:
       - RQ-I003
       - RQ-I004
       - RQ-I058
-    revision_ref: REV-017
+    revision_ref: REV-018
     ros_node:
       node_name: gouda_launcher
       responsibilities:
@@ -34130,8 +34134,9 @@ entities:
       placement_rationale: ROS node ではなく launch を起動するシェル。モード依存の有効化は lifecycle 
         遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。 実装はリポジトリ直下の 
         gouda.sh（start／stop／status。gouda_core/launch/gouda_core.launch.py を起動し、設定は design/generated/params 
-        から読む）。 旧 scripts/gouda.sh・gouda_gui.sh・smoke.sh は削除した（DEC-068、2026-10-09）。旧 gouda_gui 
-        パッケージは残っており置き換え対象。
+        から読む）。 停止は launch のプロセスグループに SIGINT→SIGTERM→SIGKILL の順で送り、グループの全プロセスが消えたことを確認する（初回試験で node 
+        の残存を検出し修正。FILE-VEHICLE-PC-STAGE51 §3〜4）。 旧 scripts/gouda.sh・gouda_gui.sh・smoke.sh 
+        は削除した（DEC-068、2026-10-09）。旧 gouda_gui パッケージは残っており置き換え対象。
   - id: ND-02
     kind: ros_node
     name: gouda_monitor（HMI・waypoint_manager GUI・/config）
@@ -34360,7 +34365,7 @@ entities:
       - RQ-I028
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-016
+    revision_ref: REV-018
     ros_node:
       node_name: gouda_recorder
       responsibilities:
@@ -34395,9 +34400,11 @@ entities:
       calls_refs: []
       owned_state_refs:
         - SO-02
-      placement_rationale: 記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する。 実装は 
-        gouda_core/gouda_core/recorder_core.py（rclpy 非依存の中核）と recorder_node.py（ROS ラッパ）。セッションは 
-        <data_root>/records/<session_id>/ に log/・rosbag/・session.json・gaps.jsonl。
+      placement_rationale: 記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する（ros2 bag record -a。対象 
+        topic の限定は後の工程）。 実装は gouda_core/gouda_core/recorder_core.py（rclpy 非依存の中核）と recorder_node.py（ROS 
+        ラッパ）。セッションは <data_root>/records/<session_id>/ に log/・rosbag/・session.json・gaps.jsonl。 記録開始時には最後に受信した 
+        mode/state 等を元の受信時刻付きの snapshot として書き、開始時点の状態をたどれるようにする（受信していない値は書かない：RQ-I015）。Ubuntu 上の試験記録は 
+        FILE-VEHICLE-PC-STAGE51。
   - id: ND-05
     kind: ros_node
     name: gouda_map_creator（地図変換と地図データベース）
@@ -40401,13 +40408,14 @@ entities:
       - RQ-I015
       - RQ-I016
       - RQ-I034
-    revision_ref: REV-016
+    revision_ref: REV-018
     test:
       execution_status: 未実行
       stage: 起動と記録
-      procedure: gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest 
-        で実行）。起動直後の状態、boot・復帰・再開・monitor 再接続での自動開始の拒否、ログと rosbag の独立、rosbag 
-        の人のみ開始、人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、書込失敗と rosbag 起動失敗の扱い。
+      procedure: 'gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest で実行）。起動直後の状態、boot・復帰・再開・monitor
+        再接続での自動開始の拒否、ログと rosbag の独立、rosbag の人のみ開始、 人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、記録開始時の snapshot、書込失敗と rosbag 起動失敗の扱い。ROS
+        上では Ubuntu で record/log・record/rosbag のサービス、record/status、セッションディレクトリ、欠落範囲を確認 （実行記録: research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt。単体
+        18 件 OK、ROS 上の run A〜C OK）。'
       observe: 各 assert の結果、生成されるセッションディレクトリ（log/・rosbag/・session.json・gaps.jsonl）。
       expected: 起動時に何も記録しない。自動開始は地図作成開始・自律走行開始のみ。rosbag 
         は人のみ。人が開始した記録は自動停止しない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。
@@ -40436,12 +40444,14 @@ entities:
       - RQ-I025
       - RQ-I064
       - RQ-I080
-    revision_ref: REV-016
+    revision_ref: REV-018
     test:
       execution_status: 未実行
       stage: 起動と記録
-      procedure: gouda_core/test/test_mode_core.py（rclpy 
-        非依存）。記録なし・手動走行・自律走行・事前地図作成・一時停止の各直前記録で起動を判定し、記録の往復と不正な記録、state_revision の単調性を確認。
+      procedure: 'gouda_core/test/test_mode_core.py（rclpy 非依存）。記録なし・手動走行・自律走行・事前地図作成・一時停止の各直前記録で起動を判定し、記録の往復と不正な記録、state_revision
+        の単調性を確認。 ROS 上では Ubuntu で previous_mode_record.json を書き換えて gouda.sh start し、mode/state（TR-01: mode=1、TR-02:
+        mode=4・initial_pose_required=true・human_pause_or_end の保持）と永続記録を確認 （実行記録: research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt。単体
+        7 件 OK、ROS 上 run B OK）。'
       observe: 遷移 ID、モード、initial_pose_required、human_pause_or_end の保持、state_revision。
       expected: 記録なし／手動走行 → 手動走行（TR-01）。自律走行／事前地図作成／一時停止 → 一時停止（TR-02）で自律走行指令は再許可されず 
         initial_pose_required=true（DEC-009）。人の一時停止・終了のフラグは再起動で消えない（RQ-I025）。不正な記録は記録なしとして扱う。state_revision 
@@ -50268,4 +50278,22 @@ revisions:
       - ND-01
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-018
+    date: '2026-10-09'
+    summary: Parallels の Ubuntu（ROS 2 Jazzy）で工程5-1 
+      をビルド・試験した記録（research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt）を証拠ファイルとして登録。 初回の起動試験で見つかった gouda.sh
+      stop の不具合（node プロセスの残存）を修正（プロセスグループへの SIGINT→SIGTERM→SIGKILL）し、recorder に記録開始時の状態 snapshot を追加。 
+      TS-23・TS-24 の手順に実行記録の場所を追記。試験の合否は正本の test.execution_status（スキーマで「未実行」固定）ではなく作業記録と証拠ファイルで管理する。
+    basis_refs:
+      - DEC-067
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-01
+      - ND-04
+      - TS-23
+      - TS-24
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-STAGE51
     removed_entity_ids: []
