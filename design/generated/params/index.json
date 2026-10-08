@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "f6f070d362801ae7e0723250361ab23b0dcfbfc38d94ee1d085fd5a63cce3e09",
+  "model_entities_sha256": "0e03e7c1c52ce2e941835bc6dcf9bab319766558a887597a0e325d33a10cd681",
   "parameters": [
     {
       "id": "PRM-11",
@@ -72,6 +72,18 @@
       "value_state": "approved",
       "value": 0.25,
       "unit": "s"
+    },
+    {
+      "id": "PRM-25",
+      "file": "gouda_core.launch.py.yaml",
+      "key": "data_root",
+      "target": "gouda_core.launch.py",
+      "declaration": "launch_argument",
+      "apply_timing": "launch",
+      "value_type": "string",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": null
     },
     {
       "id": "PRM-10",

@@ -1,0 +1,89 @@
+# 変更セット REV-016（2026-10-09 第10便: 工程5-1（起動と記録）の実装着手の反映。PRM-25 データルート、TS-23・TS-24、独自型 2 件の定義、実装の置き場所）
+# 適用: design/tools/apply_revision.py REV-016
+id: REV-016
+date: '2026-10-09'
+summary: >-
+  工程5-1 の実装（gouda_interfaces: SoftwareMode・DecisionEvent、gouda_core: gouda_recorder・最小 gouda_mode_manager、リポジトリ直下 gouda.sh）に合わせ、
+  データルート（PRM-25、launch 引数。値は運用で決める）、試験 TS-23（recorder 中核）・TS-24（起動遷移）を追加し、IFD-01・IFD-28 の型名を定義済みの名前にし、ND-01・ND-04 に実装の置き場所を記録。
+basis_refs: [DEC-066]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decision_updates:
+  - id: DEC-066
+    set:
+      resulting_refs: [PRM-25, TS-23, TS-24, IFD-01, IFD-28, ND-01, ND-04]
+
+entities:
+  - id: PRM-25
+    kind: parameter
+    name: データルート（記録セッションと永続状態の置き場所）
+    intent_lines: [19, 20, 93]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    parameter:
+      owner_ref: ND-01
+      value: null
+      value_state: unresolved
+      unit: null
+      stage: 起動と記録
+      purpose: gouda.sh が launch 引数 data_root として渡す。<data_root>/records に記録セッション（log/ と rosbag/ を同じセッション直下に分ける：RQ-I016）、<data_root>/state に直前モードの永続記録（SO-01）
+      measurement: 不要（運用値。実測ではない）
+      decision_deadline: 工程5-1 の実車PC での起動前に人が置き場所を決める（gouda.sh は GOUDA_DATA_ROOT、未設定時は $GOUDA_WORKSPACE/gouda_data を使う）
+      software_trial_value: $GOUDA_WORKSPACE/gouda_data
+      software_trial_basis: 旧実装の記録先（docs/gouda_recording_glim.md の ~/gouda_ws/bags）と同じワークスペース配下に置く慣例に倣った作業値。実車採用値ではない
+      declaration: launch_argument
+      target: gouda_core.launch.py
+      param_key: data_root
+      value_type: string
+      apply_timing: launch
+    interpretation: ''
+  - id: TS-23
+    kind: test
+    name: recorder 中核の単体試験（独立した開始・停止、自動開始の契機、欠落範囲、失敗時に止めない）
+    intent_lines: [8, 19, 20, 46]
+    issue_refs: []
+    related_refs: [ND-04, SO-02, IFD-08, IFD-09, IFD-10, IFD-11, IFD-12]
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: 起動と記録
+      procedure: gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest で実行）。起動直後の状態、boot・復帰・再開・monitor 再接続での自動開始の拒否、ログと rosbag の独立、rosbag の人のみ開始、人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、書込失敗と rosbag 起動失敗の扱い。
+      observe: 各 assert の結果、生成されるセッションディレクトリ（log/・rosbag/・session.json・gaps.jsonl）。
+      expected: 起動時に何も記録しない。自動開始は地図作成開始・自律走行開始のみ。rosbag は人のみ。人が開始した記録は自動停止しない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。
+  - id: TS-24
+    kind: test
+    name: 起動遷移の単体試験（TR-01／TR-02、永続記録、人の操作フラグの保持）
+    intent_lines: [36, 93, 95]
+    issue_refs: []
+    related_refs: [ND-03, SO-01, TR-01, TR-02, IFD-01]
+    sensitivity: [safety, operation]
+    test:
+      execution_status: 未実行
+      stage: 起動と記録
+      procedure: gouda_core/test/test_mode_core.py（rclpy 非依存）。記録なし・手動走行・自律走行・事前地図作成・一時停止の各直前記録で起動を判定し、記録の往復と不正な記録、state_revision の単調性を確認。
+      observe: 遷移 ID、モード、initial_pose_required、human_pause_or_end の保持、state_revision。
+      expected: 記録なし／手動走行 → 手動走行（TR-01）。自律走行／事前地図作成／一時停止 → 一時停止（TR-02）で自律走行指令は再許可されず initial_pose_required=true（DEC-009）。人の一時停止・終了のフラグは再起動で消えない（RQ-I025）。不正な記録は記録なしとして扱う。state_revision は減らない。
+
+modifications:
+  - id: IFD-01
+    set_nested:
+      designed_interface.message_type: gouda_interfaces/msg/SoftwareMode（定義済み。REV-016）
+  - id: IFD-28
+    set_nested:
+      designed_interface.message_type: gouda_interfaces/msg/DecisionEvent（定義済み。REV-016）
+  - id: ND-01
+    set_nested:
+      ros_node.placement_rationale: >-
+        ROS node ではなく launch を起動するシェル。モード依存の有効化は lifecycle 遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。
+        実装はリポジトリ直下の gouda.sh（start／stop／status。gouda_core/launch/gouda_core.launch.py を起動し、設定は design/generated/params から読む）。
+        旧実装の scripts/gouda.sh（Mission Control GUI）は置き換え対象だが工程5-1 では触らない。統合または撤去は承認事項。
+  - id: ND-04
+    set_nested:
+      ros_node.placement_rationale: >-
+        記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する。
+        実装は gouda_core/gouda_core/recorder_core.py（rclpy 非依存の中核）と recorder_node.py（ROS ラッパ）。セッションは <data_root>/records/<session_id>/ に log/・rosbag/・session.json・gaps.jsonl。
+  - id: ND-03
+    set_nested:
+      ros_node.placement_rationale: >-
+        旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。
+        工程5-1 の実装は gouda_core/gouda_core/mode_core.py（起動遷移 TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent の発行）。モードサービス（IFD-02〜07）・motion_hold（IFD-40）・他の遷移は後の工程で追加。

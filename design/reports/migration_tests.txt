@@ -23,6 +23,8 @@ test_tf_dual_publisher_same_mode (test_check_design.DesignRuleTests.test_tf_dual
 test_unconfirmed_boundary_used (test_check_design.DesignRuleTests.test_unconfirmed_boundary_used) ... ok
 test_version_dependent_if_approved (test_check_design.DesignRuleTests.test_version_dependent_if_approved) ... ok
 test_whole_row_superseded (test_check_design.DesignRuleTests.test_whole_row_superseded) ... ok
+test_bare_integer_one_is_not_flagged_as_approved_one_second (test_check_design.HardcodeScanTests.test_bare_integer_one_is_not_flagged_as_approved_one_second) ... ok
+test_float_literal_of_approved_value_is_flagged (test_check_design.HardcodeScanTests.test_float_literal_of_approved_value_is_flagged) ... ok
 test_current_intent_passes (test_check_intent_identity.IntentIdentityTests.test_current_intent_passes) ... ok
 test_unrecorded_contract_change_fails (test_check_intent_identity.IntentIdentityTests.test_unrecorded_contract_change_fails) ... ok
 test_answered_decision_needs_verbatim (test_validate_model.CoreTests.test_answered_decision_needs_verbatim) ... ok
@@ -61,6 +63,6 @@ test_superseded_requirement_needs_intent_justification (test_validate_model.Migr
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 61 tests in 31.873s
+Ran 63 tests in 33.159s
 
 OK

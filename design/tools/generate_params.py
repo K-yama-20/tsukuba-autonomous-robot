@@ -39,7 +39,8 @@ def render(model):
         tbd = [e for e in ents if e['parameter']['value_state'] == 'unresolved']
         if fname not in ('firmware_config.yaml', 'bt_params.yaml'):
             lines.append(f"{ents[0]['parameter']['target']}:")
-            lines.append('  ros__parameters:')
+            # An empty mapping must stay a valid ROS 2 parameter file (a bare "ros__parameters:" would parse as null).
+            lines.append('  ros__parameters:' + (' {}' if not decided else ''))
             indent = '    '
         else:
             indent = ''

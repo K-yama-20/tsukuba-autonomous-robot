@@ -268,7 +268,10 @@ def run(model, schema, manifest):
             try: text = src.read_text()
             except Exception: continue
             for pid, key, val in approved:
-                if re.search(rf'(?<![\w.]){re.escape("%g" % val)}(?![\w.])', text) and key not in text: u.append(f'{pid}: 承認値 {val} に一致するリテラルが {src.relative_to(root.parent)} にある（param_key 不在。確認が必要）')
+                # Literal forms of the approved value as written in Python source: the float form (1.0, 0.7) and, for a
+                # float with an integral value, also "1." — but not the bare integer "1", which would flag every index.
+                forms = {repr(float(val)), '%g' % val} if isinstance(val, float) and not float(val).is_integer() else {repr(float(val)), f'{int(val)}.'}
+                if any(re.search(rf'(?<![\w.]){re.escape(f)}(?![\w.])', text) for f in forms) and key not in text: u.append(f'{pid}: 承認値 {val} に一致するリテラルが {src.relative_to(root.parent)} にある（param_key 不在。確認が必要）')
     result('DR-15', v, u)
     return results
 

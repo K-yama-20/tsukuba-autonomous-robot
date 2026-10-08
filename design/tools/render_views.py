@@ -184,7 +184,9 @@ def main():
     rev = m['revisions'][-1]
     approved_ids = [e['id'] for e in m['entities'] if e['design_status'] == '承認済み']
     gate3 = decisions.get('DEC-053')
-    gate3_line = (f"状態: ゲート3は条件付き・範囲限定で承認（DEC-053、{gate3['answered_on']}。暫定ベースライン＝FILE-GATE3-MODEL）。122 件の design_status は案のまま（個別最終承認ではない）。" if gate3 and gate3['status'] == 'answered'
+    final = decisions.get('DEC-064')
+    gate3_line = (f"状態: ゲート3は条件付きで承認（DEC-064・DEC-065、{final['answered_on']}。条件は DEC-053・DEC-058）。工程5 は条件付き承認の範囲で進める。122 件の design_status は案のまま（要素ごとの最終承認ではない）。" if final and final['status'] == 'answered'
+                  else f"状態: ゲート3は条件付き・範囲限定で承認（DEC-053、{gate3['answered_on']}。暫定ベースライン＝FILE-GATE3-MODEL）。122 件の design_status は案のまま（個別最終承認ではない）。" if gate3 and gate3['status'] == 'answered'
                   else '状態: 案。ゲート3（人の承認）が済むまで工程5は暫定扱い（DEC-019）。')
     lines = [HEADER, f"# レビュー資料 r3（{rev['id']}。工程5-1 の前のレビュー）", '', f"{gate3_line} 承認済み（人の決定値）は {refs(approved_ids)}。設計検査合格／ソフト試験合格／実車検証済みは別の状態で、ROS 動作確認・実車検証は未実施。", '',
              f"モデル: {len(m['entities'])} 要素、revisions {len(m['revisions'])}、decisions {len(m['decisions'])}（pending {sum(d['status'] == 'pending' for d in m['decisions'])}）。検査: `reports/migration_validation.json`（忠実性）、`reports/design_check.json`（設計整合性 {design_check['overall']}）。", '',
@@ -241,7 +243,12 @@ def main():
     answered = [d for d in m['decisions'] if d['status'] == 'answered']
     open_h = [e for e in m['entities'] if e['kind'] == 'issue' and e['issue']['category'] == 'human' and e['issue']['state'] in ('open', 'partially_superseded')]
     gate3 = decisions.get('DEC-053'); gate3_file = next((f for f in m['files'] if f['id'] == 'FILE-GATE3-MODEL'), None)
-    if gate3 and gate3['status'] == 'answered':
+    final = decisions.get('DEC-064')
+    if final and final['status'] == 'answered':
+        status_line = (f"状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、{final['answered_on']}）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。"
+                       f"承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは {gate3_file['path'] if gate3_file else '（未登録）'}（`{gate3_file['sha256'] if gate3_file else '-'}`）。"
+                       f"下位設計案 {len(proposals)} 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。")
+    elif gate3 and gate3['status'] == 'answered':
         status_line = (f"状態: 条件付き・範囲限定で承認（DEC-053、{gate3['answered_on']}）。承認対象モデルは {gate3_file['path'] if gate3_file else '（未登録）'}（SHA-256 `{gate3_file['sha256'] if gate3_file else '-'}`、Git は未コミット）。"
                        f"下位設計案 {len(proposals)} 件は暫定ベースライン（design_status は案のまま。個別最終承認・未確定値の確定・未実施試験の合格・実車投入は含まない）。"
                        f"CLAUDE.md は修復済み（DEC-052）。工程と完了条件は docs/implementation_stages.md（DEC-056）。")

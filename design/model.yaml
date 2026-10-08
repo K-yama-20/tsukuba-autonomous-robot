@@ -34105,7 +34105,7 @@ entities:
       - RQ-I003
       - RQ-I004
       - RQ-I058
-    revision_ref: REV-002
+    revision_ref: REV-017
     ros_node:
       node_name: gouda_launcher
       responsibilities:
@@ -34128,7 +34128,10 @@ entities:
         - IFD-36
       owned_state_refs: []
       placement_rationale: ROS node ではなく launch を起動するシェル。モード依存の有効化は lifecycle 
-        遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。
+        遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。 実装はリポジトリ直下の 
+        gouda.sh（start／stop／status。gouda_core/launch/gouda_core.launch.py を起動し、設定は design/generated/params 
+        から読む）。 旧 scripts/gouda.sh・gouda_gui.sh・smoke.sh は削除した（DEC-068、2026-10-09）。旧 gouda_gui 
+        パッケージは残っており置き換え対象。
   - id: ND-02
     kind: ros_node
     name: gouda_monitor（HMI・waypoint_manager GUI・/config）
@@ -34269,7 +34272,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-013
+    revision_ref: REV-016
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34326,7 +34329,9 @@ entities:
       owned_state_refs:
         - SO-01
       placement_rationale: 旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と 
-        feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。
+        feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。 工程5-1 の実装は gouda_core/gouda_core/mode_core.py（起動遷移 
+        TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent 
+        の発行）。モードサービス（IFD-02〜07）・motion_hold（IFD-40）・他の遷移は後の工程で追加。
   - id: ND-04
     kind: ros_node
     name: gouda_recorder（ログとrosbagの独立記録）
@@ -34355,7 +34360,7 @@ entities:
       - RQ-I028
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-002
+    revision_ref: REV-016
     ros_node:
       node_name: gouda_recorder
       responsibilities:
@@ -34390,7 +34395,9 @@ entities:
       calls_refs: []
       owned_state_refs:
         - SO-02
-      placement_rationale: 記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する案。
+      placement_rationale: 記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する。 実装は 
+        gouda_core/gouda_core/recorder_core.py（rclpy 非依存の中核）と recorder_node.py（ROS ラッパ）。セッションは 
+        <data_root>/records/<session_id>/ に log/・rosbag/・session.json・gaps.jsonl。
   - id: ND-05
     kind: ros_node
     name: gouda_map_creator（地図変換と地図データベース）
@@ -35339,11 +35346,11 @@ entities:
       - RQ-I065
       - RQ-I029
       - RQ-I030
-    revision_ref: REV-008
+    revision_ref: REV-016
     designed_interface:
       transport: topic
       name: mode/state
-      message_type: gouda_interfaces/msg/SoftwareMode（提案）
+      message_type: gouda_interfaces/msg/SoftwareMode（定義済み。REV-016）
       standard_type: false
       custom_type_reason: 
         モード（4値列挙）・processing_state・run_id・残waypoint数・現在区間番号・停止原因区分・speed_limit_application_state（DEC-047）・state_revision
@@ -36665,11 +36672,11 @@ entities:
       - RQ-I029
       - RQ-I030
       - RQ-I032
-    revision_ref: REV-002
+    revision_ref: REV-016
     designed_interface:
       transport: topic
       name: log/decision
-      message_type: gouda_interfaces/msg/DecisionEvent（提案）
+      message_type: gouda_interfaces/msg/DecisionEvent（定義済み。REV-016）
       standard_type: false
       custom_type_reason: 判断に理由・走行ID・区間ID・入力の時刻を構造化して付ける（RQ-I030）。rcl_interfaces/Log は自由文で ID を構造化できない。
       purpose: diagnostic
@@ -40326,6 +40333,119 @@ entities:
       retained_scope: 起動直後の既定モードが手動走行であること（TR-01、DR-04）は同一。
       rationale: 人が intent.md を編集（DEC-063）。DEC-054 の用語照合で提案した統一。MODE-MANUAL の正式名「手動走行」と一致。
       issue_refs: []
+  - id: PRM-25
+    kind: parameter
+    name: データルート（記録セッションと永続状態の置き場所）
+    source_refs:
+      - SRC-I019
+      - SRC-I020
+      - SRC-I092
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-LOG
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I015
+      - RQ-I016
+      - RQ-I064
+    revision_ref: REV-016
+    parameter:
+      owner_ref: ND-01
+      value:
+      value_state: unresolved
+      unit:
+      stage: 起動と記録
+      purpose: gouda.sh が launch 引数 data_root として渡す。<data_root>/records に記録セッション（log/ と rosbag/ 
+        を同じセッション直下に分ける：RQ-I016）、<data_root>/state に直前モードの永続記録（SO-01）
+      measurement: 不要（運用値。実測ではない）
+      decision_deadline: 工程5-1 の実車PC での起動前に人が置き場所を決める（gouda.sh は GOUDA_DATA_ROOT、未設定時は 
+        $GOUDA_WORKSPACE/gouda_data を使う）
+      software_trial_value: $GOUDA_WORKSPACE/gouda_data
+      software_trial_basis: 旧実装の記録先（docs/gouda_recording_glim.md の 
+        ~/gouda_ws/bags）と同じワークスペース配下に置く慣例に倣った作業値。実車採用値ではない
+      declaration: launch_argument
+      target: gouda_core.launch.py
+      param_key: data_root
+      value_type: string
+      apply_timing: launch
+  - id: TS-23
+    kind: test
+    name: recorder 中核の単体試験（独立した開始・停止、自動開始の契機、欠落範囲、失敗時に止めない）
+    source_refs:
+      - SRC-I008
+      - SRC-I019
+      - SRC-I020
+      - SRC-I046
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-04
+      - SO-02
+      - IFD-08
+      - IFD-09
+      - IFD-10
+      - IFD-11
+      - IFD-12
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I005
+      - RQ-I015
+      - RQ-I016
+      - RQ-I034
+    revision_ref: REV-016
+    test:
+      execution_status: 未実行
+      stage: 起動と記録
+      procedure: gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest 
+        で実行）。起動直後の状態、boot・復帰・再開・monitor 再接続での自動開始の拒否、ログと rosbag の独立、rosbag 
+        の人のみ開始、人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、書込失敗と rosbag 起動失敗の扱い。
+      observe: 各 assert の結果、生成されるセッションディレクトリ（log/・rosbag/・session.json・gaps.jsonl）。
+      expected: 起動時に何も記録しない。自動開始は地図作成開始・自律走行開始のみ。rosbag 
+        は人のみ。人が開始した記録は自動停止しない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。
+  - id: TS-24
+    kind: test
+    name: 起動遷移の単体試験（TR-01／TR-02、永続記録、人の操作フラグの保持）
+    source_refs:
+      - SRC-I036
+      - SRC-I092
+      - SRC-I095-V7
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-03
+      - SO-01
+      - TR-01
+      - TR-02
+      - IFD-01
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I025
+      - RQ-I064
+      - RQ-I080
+    revision_ref: REV-016
+    test:
+      execution_status: 未実行
+      stage: 起動と記録
+      procedure: gouda_core/test/test_mode_core.py（rclpy 
+        非依存）。記録なし・手動走行・自律走行・事前地図作成・一時停止の各直前記録で起動を判定し、記録の往復と不正な記録、state_revision の単調性を確認。
+      observe: 遷移 ID、モード、initial_pose_required、human_pause_or_end の保持、state_revision。
+      expected: 記録なし／手動走行 → 手動走行（TR-01）。自律走行／事前地図作成／一時停止 → 一時停止（TR-02）で自律走行指令は再許可されず 
+        initial_pose_required=true（DEC-009）。人の一時停止・終了のフラグは再起動で消えない（RQ-I025）。不正な記録は記録なしとして扱う。state_revision 
+        は減らない。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -48359,9 +48479,9 @@ decisions:
     answer_verbatim: 修正したモデル・遷移表・IF・故障時の対応・試験の期待結果をまとめてレビューに出してから、工程5-1以降の実装に進む。ゲート3の承認が済むまで、行程5は暫定扱い。
     affected_refs: []
     resulting_refs: []
-    note: レビュー資料は generated/review_r3.md。ゲート3は 2026-10-09 に条件付き・範囲限定で承認された（DEC-053）。 工程5 
-      は暫定ベースライン（FILE-GATE3-MODEL）の上で、値に依存しない下位設計、実車出力を伴わないソフト実装と stub 試験まで着手できる。 122 
-      件の個別最終承認・未確定値の確定・未実施試験の合格・実車投入は含まれない。進め方は docs/implementation_stages.md（DEC-056）。
+    note: ゲート3は条件付きで承認された（DEC-053・DEC-058 → 条件確認 DEC-061 → DEC-064、文言は DEC-065 で「条件付きで承認する」）。工程5 
+      は条件付き承認の範囲（値に依存しない下位設計、実車出力を伴わないソフト実装と stub 試験）で進める。 承認対象は push 済みコミット f208066 時点の design/。進め方は 
+      docs/implementation_stages.md（DEC-056）。工程5-1 の着手は DEC-066。実車値の確定・未実施試験の合格・実車投入可能の判断は含まれない。
     disposition: answered
   - id: DEC-020
     kind: confirmation
@@ -49126,6 +49246,7 @@ decisions:
       - C-011
       - C-012
       - C-013
+      - DEC-064
     resulting_refs:
       - C-023
       - H-013
@@ -49246,6 +49367,118 @@ decisions:
     note: 27 行は DEC-059（案 A）の補足で、位置ベース上限・同値運用・保存時警告・低い方の適用（DEC-045）・帯外無制限・帯幅は実機調整（G-TUNING）を上位要求にした。 95 
       行は用語の統一（DEC-054 の照合で提案したもの）。残る「手動操縦」は intent.md:1 の目的文のみ。
     disposition: answered
+  - id: DEC-064
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3の承認（条件付き承認 DEC-053・DEC-058 と条件の確認 DEC-061 を経た最終承認）
+    answer_verbatim: ゲート3は承認する。
+    affected_refs:
+      - DEC-053
+      - DEC-058
+      - DEC-061
+      - DEC-019
+      - FILE-GATE3-MODEL
+    resulting_refs: []
+    note: '文言は DEC-065 により「ゲート3は条件付きで承認する」に差し替えられた（原文はそのまま保持。確定済みの項目は書き換えない）。 条件は DEC-053・DEC-058 のとおり。承認対象: ブランチ
+      design/gate3-baseline-2026-10-09 の push 済みコミット f208066 時点の design/ 一式（model.yaml REV-013 適用後 SHA-256 af7f5bc2a854cf7d4084e889bcd512f940b3c77a09e547b9ef585932c6a69b7a、intent.md
+      第7版 f69dd98b…）。 含まれないもの: 確定設計としての個別承認、実車値の確定（Q-04〜Q-06）、未実施試験（TS-01〜22）の合格、DEC-050 の実機照合、実車投入可能の判断。'
+    disposition: answered
+  - id: DEC-065
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3承認（DEC-064）の文言の差し替え
+    answer_verbatim: ゲート3は条件付きで承認する、に文言を差し替えて。
+    affected_refs:
+      - DEC-064
+      - DEC-019
+      - DEC-053
+      - DEC-058
+    resulting_refs: []
+    note: DEC-064 
+      の原文は書き換えず、本項目で「ゲート3は条件付きで承認する」に差し替えたことを記録。生成物（gate3_package・review_r3）、status.md、baselines/gate3_2026-10-09/README.md
+      の文言を更新。 条件の内容は人から新たに示されていないため、DEC-053・DEC-058 の条件（暫定ベースライン、確定設計でも実車投入の承認でもない、値非依存の設計と実車出力を伴わないソフト実装・stub
+      試験まで）を適用する。
+    disposition: answered
+  - id: DEC-066
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 工程5-1（起動と記録）の実装着手の指示
+    answer_verbatim: それから、工程5-1の実装に着手
+    affected_refs:
+      - ND-01
+      - ND-03
+      - ND-04
+      - SO-01
+      - SO-02
+      - IFD-01
+      - IFD-08
+      - IFD-09
+      - IFD-10
+      - IFD-11
+      - IFD-12
+      - IFD-28
+      - TR-01
+      - TR-02
+    resulting_refs:
+      - PRM-25
+      - TS-23
+      - TS-24
+      - IFD-01
+      - IFD-28
+      - ND-01
+      - ND-04
+    note: 実装は新パッケージ gouda_core（gouda_recorder、最小の gouda_mode_manager＝起動遷移 TR-01／TR-02 と mode/state 
+      の発行）、gouda_interfaces（IFD-01 SoftwareMode、IFD-28 DecisionEvent）、 起動スクリプト gouda.sh（リポジトリ直下。旧 
+      scripts/gouda.sh は置き換え対象だが本便では触らない）。設定値は generated/params から読み、ハードコードしない（RQ-I076、DR-15）。 ROS 2 
+      実行環境はこの作業機にないため、rclpy に依存しない中核ロジックを単体試験し、ROS 上の試験は実車PC で行う。詳細は 
+      reports/worklog/2026-10-09_rev015_stage5-1.md。
+    disposition: answered
+  - id: DEC-067
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 試験環境（Parallels 上の Ubuntu 24.04）への接続方法と、以後のコマンド実行・試験の方針
+    answer_verbatim: "Parallels上のUbuntu 24.04に、Macから ssh -o BatchMode=yes aya@10.211.55.4 でパスワードなしで接続できる。開発対象はUbuntu内の
+      ~/gouda_ws。まずSSH経由でそのディレクトリとGitの状態を確認して。以後、Ubuntu上のコマンド実行はSSH経由で行って。ROS 2 Jazzyのコマンドを実行する際は、先に /opt/ros/jazzy/setup.bash
+      を読み込む必要がある。\n\nこのubuntu環境を使って試験して。（センサー類はまだつながっていない）\n"
+    affected_refs:
+      - ND-01
+      - ND-03
+      - ND-04
+      - TS-23
+      - TS-24
+    resulting_refs: []
+    note: 以前の記録（鍵認証不可、パスワードは使わない）を更新する指示。パスワードは引き続き使わない。センサー未接続のため、試験は ROS 上の 
+      node・サービス・記録（stub）までで、センサー・実車の確認は含まない。 第11便の接続試行では 10.211.55.4 が応答せず（ping 不達、ssh "Host is down"）。VM 
+      の起動後に再試行する。
+    disposition: answered
+  - id: DEC-068
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 旧起動スクリプト（scripts/gouda.sh 類）の削除
+    answer_verbatim: 旧scripts/gouda.sh類は一式削除して良い。
+    affected_refs:
+      - ND-01
+      - M-001
+    resulting_refs:
+      - ND-01
+    note: '削除したもの: scripts/gouda.sh（旧 Mission Control の起動）、scripts/gouda_gui.sh（同 view の別名）、scripts/smoke.sh（旧 gouda.sh
+      を直接呼ぶ煙試験）。 参照の更新: README.md（起動節を新 gouda.sh に差し替え、旧版移行節の参照を修正）、scripts/setup.sh（完了メッセージ）、scripts/configure_host.py（案内文）、docs/gouda_gui.md・gouda_recording_glim.md・autonomy_mvp.md・phone_field_runtime.md（先頭に削除の注記。本文は履歴として保持）。
+      gouda_gui パッケージ本体・configure_host.py・setup.sh は削除していない（指示の範囲は gouda.sh 類）。gouda_gui の撤去は旧実装の置き換え（DEC-030 の方針）として別に判断する。'
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -49976,4 +50209,63 @@ revisions:
       - SRC-I095-V7
     added_file_ids:
       - FILE-INTENT-V7
+    removed_entity_ids: []
+  - id: REV-014
+    date: '2026-10-09'
+    summary: 人がゲート3を承認した（DEC-064、原文「ゲート3は承認する。」）。承認対象は push 済みコミット f208066（"Before gate 3 approved"）時点の 
+      design/ 一式（model.yaml SHA-256 af7f5bc2…、REV-013 適用後）。 工程5 の暫定扱い（DEC-019）を解除。下位設計案 122 件の design_status 
+      は「案」のまま（個別要素の最終承認・実車値の確定・実車投入の承認ではない。DR-12）。
+    basis_refs:
+      - DEC-064
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-015
+    date: '2026-10-09'
+    summary: 人の指示によりゲート3の承認文言を「ゲート3は条件付きで承認する」に差し替えた（DEC-065。DEC-064 の原文は書き換えず参照で結ぶ）。 条件は DEC-053・DEC-058 
+      のとおり（暫定ベースライン、値に依存しない下位設計と実車出力を伴わないソフト実装・stub 試験まで。確定設計・実車値の確定・未実施試験の合格・実車投入は含まない）。 
+      工程5-1（起動と記録）の実装着手を記録（DEC-066）。
+    basis_refs:
+      - DEC-065
+      - DEC-066
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-016
+    date: '2026-10-09'
+    summary: '工程5-1 の実装（gouda_interfaces: SoftwareMode・DecisionEvent、gouda_core: gouda_recorder・最小 gouda_mode_manager、リポジトリ直下
+      gouda.sh）に合わせ、 データルート（PRM-25、launch 引数。値は運用で決める）、試験 TS-23（recorder 中核）・TS-24（起動遷移）を追加し、IFD-01・IFD-28 の型名を定義済みの名前にし、ND-01・ND-04
+      に実装の置き場所を記録。'
+    basis_refs:
+      - DEC-066
+    added_entity_ids:
+      - PRM-25
+      - TS-23
+      - TS-24
+    modified_entity_ids:
+      - ND-01
+      - ND-03
+      - ND-04
+      - IFD-01
+      - IFD-28
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-017
+    date: '2026-10-09'
+    summary: '人の指示を台帳に記録: (1) Mac から SSH（BatchMode）で Parallels 上の Ubuntu 24.04 に接続でき、開発対象は ~/gouda_ws、Ubuntu 上のコマンドは
+      SSH 経由、ROS 2 Jazzy は setup.bash を先に読む、 この環境で試験する（センサー未接続）（DEC-067）。(2) 旧 scripts/gouda.sh 類の削除を許可（DEC-068）。scripts/gouda.sh・gouda_gui.sh・smoke.sh
+      を削除し、README・setup.sh・configure_host.py・旧文書の参照を更新。ND-01 の記述を更新。'
+    basis_refs:
+      - DEC-067
+      - DEC-068
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-01
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

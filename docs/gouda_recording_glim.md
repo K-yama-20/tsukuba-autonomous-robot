@@ -1,5 +1,7 @@
 # 記録とSLAM設定
 
+> **注記（2026-10-09、DEC-068）**: この文書が参照する旧起動スクリプト `scripts/gouda.sh`（`view`／`observe`／`stop`／`autonomy` など）は削除された。旧 Mission Control の手順は履歴として残す。新実装の起動はリポジトリ直下の `gouda.sh`（`start`／`stop`／`status`、工程5-1）で行う。
+
 この手順はセンサー観測、rosbag保存、GLIM/SLAM設定の操作案内です。記録が完了しても、センサー時刻、IMU/LiDARの取付姿勢、校正、地図や自己位置の精度が確認されたことにはなりません。
 
 ## 起動と生データの記録

@@ -1,5 +1,7 @@
 # Mission Controlの起動
 
+> **注記（2026-10-09、DEC-068）**: この文書が参照する旧起動スクリプト `scripts/gouda.sh`（`view`／`observe`／`stop`／`autonomy` など）は削除された。旧 Mission Control の手順は履歴として残す。新実装の起動はリポジトリ直下の `gouda.sh`（`start`／`stop`／`status`、工程5-1）で行う。
+
 現在の導入・起動手順は [README](../README.md) を参照してください。
 
 - `bash scripts/setup.sh`：初回セットアップ。

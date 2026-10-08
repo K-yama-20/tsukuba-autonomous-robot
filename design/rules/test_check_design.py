@@ -104,3 +104,32 @@ class DesignRuleTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)
+
+
+
+class HardcodeScanTests(unittest.TestCase):
+    """DR-15 literal scan: an approved float value is detected only in its float literal form, so that bare integers
+    such as list indexes or enum codes ("1") are not reported as the approved 1.0 s (REV-016 の精度修正)."""
+    @classmethod
+    def setUpClass(cls):
+        cls.m = load_yaml(DESIGN / 'model.yaml'); cls.s = schema(); cls.man = json.loads((DESIGN / 'migration_manifest.json').read_text())
+        cls.cfg = DESIGN / 'tools' / 'hardcode_scan_roots.json'; cls.saved = cls.cfg.read_text()
+        cls.tmp = DESIGN / 'rules' / 'fixtures' / '_scan_tmp'
+
+    def _scan(self, source):
+        import shutil
+        self.tmp.mkdir(parents=True, exist_ok=True); (self.tmp / 'x.py').write_text(source)
+        self.cfg.write_text(json.dumps({'roots': ['design/rules/fixtures/_scan_tmp']}))
+        try:
+            return run(copy.deepcopy(self.m), self.s, self.man)['DR-15']
+        finally:
+            self.cfg.write_text(self.saved); shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_bare_integer_one_is_not_flagged_as_approved_one_second(self):
+        r = self._scan('codes = {"manual": 1, "pause": 4}\nx = items[1]\n')
+        self.assertEqual([u for u in r['undetermined'] if 'PRM-13' in u], [])
+
+    def test_float_literal_of_approved_value_is_flagged(self):
+        r = self._scan('timeout = 1.0\nother = 0.7\n')
+        self.assertTrue(any('PRM-13' in u for u in r['undetermined']), r['undetermined'])
+        self.assertTrue(any('PRM-08' in u for u in r['undetermined']), r['undetermined'])

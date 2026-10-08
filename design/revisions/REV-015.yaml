@@ -1,0 +1,54 @@
+# 変更セット REV-015（2026-10-09 第10便: ゲート3承認の文言差し替え（条件付き承認）、工程5-1 実装の着手）
+# 適用: design/tools/apply_revision.py REV-015
+id: REV-015
+date: '2026-10-09'
+summary: >-
+  人の指示によりゲート3の承認文言を「ゲート3は条件付きで承認する」に差し替えた（DEC-065。DEC-064 の原文は書き換えず参照で結ぶ）。
+  条件は DEC-053・DEC-058 のとおり（暫定ベースライン、値に依存しない下位設計と実車出力を伴わないソフト実装・stub 試験まで。確定設計・実車値の確定・未実施試験の合格・実車投入は含まない）。
+  工程5-1（起動と記録）の実装着手を記録（DEC-066）。
+basis_refs: [DEC-065, DEC-066]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decision_updates:
+  - id: DEC-064
+    set:
+      note: >-
+        文言は DEC-065 により「ゲート3は条件付きで承認する」に差し替えられた（原文はそのまま保持。確定済みの項目は書き換えない）。
+        条件は DEC-053・DEC-058 のとおり。承認対象: ブランチ design/gate3-baseline-2026-10-09 の push 済みコミット f208066 時点の design/ 一式（model.yaml REV-013 適用後 SHA-256 af7f5bc2a854cf7d4084e889bcd512f940b3c77a09e547b9ef585932c6a69b7a、intent.md 第7版 f69dd98b…）。
+        含まれないもの: 確定設計としての個別承認、実車値の確定（Q-04〜Q-06）、未実施試験（TS-01〜22）の合格、DEC-050 の実機照合、実車投入可能の判断。
+  - id: DEC-019
+    set:
+      note: >-
+        ゲート3は条件付きで承認された（DEC-053・DEC-058 → 条件確認 DEC-061 → DEC-064、文言は DEC-065 で「条件付きで承認する」）。工程5 は条件付き承認の範囲（値に依存しない下位設計、実車出力を伴わないソフト実装と stub 試験）で進める。
+        承認対象は push 済みコミット f208066 時点の design/。進め方は docs/implementation_stages.md（DEC-056）。工程5-1 の着手は DEC-066。実車値の確定・未実施試験の合格・実車投入可能の判断は含まれない。
+
+decisions:
+  - id: DEC-065
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3承認（DEC-064）の文言の差し替え
+    answer_verbatim: ゲート3は条件付きで承認する、に文言を差し替えて。
+    affected_refs: [DEC-064, DEC-019, DEC-053, DEC-058]
+    resulting_refs: []
+    note: >-
+      DEC-064 の原文は書き換えず、本項目で「ゲート3は条件付きで承認する」に差し替えたことを記録。生成物（gate3_package・review_r3）、status.md、baselines/gate3_2026-10-09/README.md の文言を更新。
+      条件の内容は人から新たに示されていないため、DEC-053・DEC-058 の条件（暫定ベースライン、確定設計でも実車投入の承認でもない、値非依存の設計と実車出力を伴わないソフト実装・stub 試験まで）を適用する。
+    disposition: answered
+  - id: DEC-066
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 工程5-1（起動と記録）の実装着手の指示
+    answer_verbatim: それから、工程5-1の実装に着手
+    affected_refs: [ND-01, ND-03, ND-04, SO-01, SO-02, IFD-01, IFD-08, IFD-09, IFD-10, IFD-11, IFD-12, IFD-28, TR-01, TR-02]
+    resulting_refs: []
+    note: >-
+      実装は新パッケージ gouda_core（gouda_recorder、最小の gouda_mode_manager＝起動遷移 TR-01／TR-02 と mode/state の発行）、gouda_interfaces（IFD-01 SoftwareMode、IFD-28 DecisionEvent）、
+      起動スクリプト gouda.sh（リポジトリ直下。旧 scripts/gouda.sh は置き換え対象だが本便では触らない）。設定値は generated/params から読み、ハードコードしない（RQ-I076、DR-15）。
+      ROS 2 実行環境はこの作業機にないため、rclpy に依存しない中核ロジックを単体試験し、ROS 上の試験は実車PC で行う。詳細は reports/worklog/2026-10-09_rev015_stage5-1.md。
+    disposition: answered

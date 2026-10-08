@@ -92,6 +92,7 @@ lines:
       - IFD-30
       - ND-02
       - ND-04
+      - TS-23
     issue_refs:
       - G-LOG
   - line: 9
@@ -309,6 +310,7 @@ lines:
       - IFD-40
       - ND-03
       - ND-04
+      - PRM-25
       - SO-02
       - TR-02
       - TR-03
@@ -318,6 +320,7 @@ lines:
       - TR-11
       - TR-12
       - TS-10
+      - TS-23
     issue_refs:
       - G-LOG
   - line: 20
@@ -332,7 +335,9 @@ lines:
       - IFD-10
       - IFD-11
       - ND-04
+      - PRM-25
       - SO-02
+      - TS-23
     issue_refs:
       - G-LOG
   - line: 21
@@ -498,6 +503,7 @@ lines:
       - TS-08
       - TS-20
       - TS-21
+      - TS-24
     issue_refs:
       - G-RECOVERY
   - line: 37
@@ -610,6 +616,7 @@ lines:
       - IFD-12
       - ND-04
       - SO-02
+      - TS-23
     issue_refs: []
   - line: 48
     requirement_id: RQ-I035
@@ -904,6 +911,7 @@ lines:
       - IFD-33
       - IFD-39
       - ND-03
+      - PRM-25
       - SO-01
       - TR-02
       - TR-09
@@ -914,6 +922,7 @@ lines:
       - TS-08
       - TS-09
       - TS-21
+      - TS-24
     issue_refs:
       - G-RECOVERY
       - H-006
@@ -942,6 +951,7 @@ lines:
       - H-008
       - ND-03
       - TR-01
+      - TS-24
     issue_refs: []
   - line: 96
     requirement_id: RQ-I067

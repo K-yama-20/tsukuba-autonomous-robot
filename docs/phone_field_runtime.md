@@ -1,5 +1,7 @@
 # Phone field runtime
 
+> **注記（2026-10-09、DEC-068）**: この文書が参照する旧起動スクリプト `scripts/gouda.sh`（`view`／`observe`／`stop`／`autonomy` など）は削除された。旧 Mission Control の手順は履歴として残す。新実装の起動はリポジトリ直下の `gouda.sh`（`start`／`stop`／`status`、工程5-1）で行う。
+
 The phone gateway is a separate process on port 8443. It starts without RViz and stays available while the Gouda observation or autonomy profile is stopped. Its lifecycle adapter is `gouda_gui.runtime.runtime_status()` / `runtime_action(payload)`; the gateway must authenticate remote requests and enforce same-origin before calling it. The allowed actions are `start_observe`, `start_autonomy`, `stop`, `restart`, and `apply_config`. `restart` accepts only `profile: observation|autonomy`; `apply_config` restarts the current profile after loading the saved host settings. No action accepts a shell command, arbitrary path, navigation goal, or drive request.
 
 Starting the autonomy profile starts the existing autonomy process and its readiness gates. It does not start a vehicle goal. Actual movement still requires the existing authenticated explicit goal request and the backend's recording, sensor freshness, calibration, and controller-state gates.

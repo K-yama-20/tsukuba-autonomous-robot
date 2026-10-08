@@ -6,6 +6,7 @@ DEC-017 の指示による一覧。「実車採用値」は value_state=approved
 
 | 段階 | ID | パラメータ | 用途 | 必要な実測 | 決定期限 | 実車採用値 | 値の状態 | ソフト設計用の仮値 | 仮値の根拠 | 未決 |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 起動と記録 | PRM-25 | データルート（記録セッションと永続状態の置き場所） | gouda.sh が launch 引数 data_root として渡す。<data_root>/records に記録セッション（log/ と rosbag/ を同じセッション直下に分ける：RQ-I016）、<data_root>/state に直前モードの永続記録（SO-01） | 不要（運用値。実測ではない） | 工程5-1 の実車PC での起動前に人が置き場所を決める（gouda.sh は GOUDA_DATA_ROOT、未設定時は $GOUDA_WORKSPACE/gouda_data を使う） | 未確定 | unresolved | $GOUDA_WORKSPACE/gouda_data | 旧実装の記録先（docs/gouda_recording_glim.md の ~/gouda_ws/bags）と同じワークスペース配下に置く慣例に倣った作業値。実車採用値ではない | `G-LOG` |
 | waypoint | PRM-19 | 速度マスクの帯の半幅 | 区間 i→i+1 の線分の周囲を mask に塗る幅（Speed Filter の適用範囲） | 実車の経路追従誤差と推定誤差の実測（Q-06） | mask 生成器の実装前に仮の幅を引数で与える。採用値は実機調整（DEC-055。設計規則は設けない。人の判断事項にしない：DEC-045） | 未確定 | unresolved | - | 仮値なし。生成器の単体試験は幅を引数にして任意値で行う | `Q-06`, `G-TUNING`, `H-013` |
 | waypoint | PRM-20 | 速度マスクの速度刻み（CostmapFilterInfo の multiplier。base=0） | cell 値 1..100 を m/s に変換する刻み。区間上限の最大値（Q-06）を 100 で割った値以上が必要 | 不要（区間上限の最大値が決まれば計算で決まる） | mask 生成器の実装前 | 未確定 | unresolved | - | 仮値なし。最大速度（Q-06）に依存 | `H-011`, `Q-06` |
 | 車体出力 | PRM-04 | 後輪径 | base_link 高さの導出 | 後輪径の実測 | 静的TF の作成前 | （記載値 0.33 m。実測未） | source_value | 0.33 | intent.md:100 の記載値 | `Q-06`, `H-005` |

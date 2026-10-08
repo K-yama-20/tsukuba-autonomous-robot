@@ -1,1 +1,1 @@
-generated ['bt_params.yaml', 'controller_server.yaml', 'firmware_config.yaml', 'gouda_mode_manager.yaml', 'gouda_monitor.yaml', 'gouda_motion_controller.yaml', 'gouda_static_tf.yaml', 'index.json', 'vehicle_bridge.yaml']
+generated ['bt_params.yaml', 'controller_server.yaml', 'firmware_config.yaml', 'gouda_core.launch.py.yaml', 'gouda_mode_manager.yaml', 'gouda_monitor.yaml', 'gouda_motion_controller.yaml', 'gouda_static_tf.yaml', 'index.json', 'vehicle_bridge.yaml']

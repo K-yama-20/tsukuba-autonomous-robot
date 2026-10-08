@@ -94,5 +94,4 @@ PYTHONPATH="$repo/gouda_sensors${PYTHONPATH:+:$PYTHONPATH}" python3 "$repo/scrip
   --workspace "$workspace" --record-build --source "$repo"
 source "$workspace/install/setup.bash"
 if (( configure )); then python3 "$repo/scripts/configure_host.py" --workspace "$workspace"; fi
-printf '\nセットアップ完了。画面のみ: bash %q/scripts/gouda.sh view\n' "$repo"
-printf '実機観測: bash %q/scripts/gouda.sh observe\n' "$repo"
+printf '\nセットアップ完了。新実装の起動: bash %q/gouda.sh start（工程5-1）。旧 scripts/gouda.sh は削除済み（DEC-068）\n' "$repo"
