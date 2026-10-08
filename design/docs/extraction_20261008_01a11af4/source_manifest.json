@@ -1,0 +1,213 @@
+{
+  "sha256": {
+    "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/design/docs/Gouda_architecture_detail.xlsx": "9b4158c625404c2672af16253be2035f891f8ad953970f7cd6ecbea5f357b983",
+    "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/design/docs/SystemArchitecture.drawio": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
+  },
+  "package": [
+    {
+      "part": "xl/drawings/drawing1.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing2.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing3.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing4.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing5.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing6.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing7.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing8.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing9.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing10.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/drawings/drawing11.xml",
+      "sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "bytes": 775
+    },
+    {
+      "part": "xl/worksheets/sheet1.xml",
+      "sha256": "933fc396bceb89cc8dfdc633e9f8c37e1dacfc11cd9307b8c6c4733fa7e5f738",
+      "bytes": 211965
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet1.xml.rels",
+      "sha256": "d259701279b28e0860deb349a5d8d2feaef34bb1082b8e8e27396ef302a48720",
+      "bytes": 455
+    },
+    {
+      "part": "xl/worksheets/sheet2.xml",
+      "sha256": "6173e05c508ff758829b39e41117a6c90715b210f83cf8e4dd396c1441ddbf26",
+      "bytes": 78157
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet2.xml.rels",
+      "sha256": "eace0cae9b4278f2954e555cfc3944b18802739a2d6d5930bb473590e18ed4fd",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet3.xml",
+      "sha256": "3461f964fd4a38ed65955a6b2434563f9d609e9901a4da7b9ecc4adc2ac03a5f",
+      "bytes": 4624
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet3.xml.rels",
+      "sha256": "415576c07ecf629b3f0143ac8b1480862eab992262dc68cc9ed91f9632ee7524",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet4.xml",
+      "sha256": "561bae3ce615cc12fa5214c54a3ad2653789c84ae43ea9203d10fa03b5013946",
+      "bytes": 7016
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet4.xml.rels",
+      "sha256": "1e6da2012b4300f7e65f86dcce2d30a258a6df6444a065fa464d97a8a8ca82ca",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet5.xml",
+      "sha256": "bdf760c0333e38f70f4e83600c96cc3fa433136d88e33495242e3d18cd9bcdee",
+      "bytes": 3344
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet5.xml.rels",
+      "sha256": "4f7aefe2ca16e6be537157c55112d03434865c97d679f669015971a281609b84",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet6.xml",
+      "sha256": "3fdd1103fa419ea44fa28266848eb3a50fd51e902417bb4f99ddc62cf699c15c",
+      "bytes": 5521
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet6.xml.rels",
+      "sha256": "80e227f486e2d10d014a6f48bb5e3a7c6ed30688a8204591df56a43bc76b0a85",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet7.xml",
+      "sha256": "0d6c8ac5de35833d83a95cfebda27eee8533568391a1e970f5305062b90a1a6c",
+      "bytes": 6509
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet7.xml.rels",
+      "sha256": "da13361ee47dec424543bf3217c76a1244a6fc282403455816c2887fa8fa6651",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet8.xml",
+      "sha256": "adf4acadaa479a5ece8b1259ad6053758b7120b1b81473fb28305dc6dd930034",
+      "bytes": 5683
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet8.xml.rels",
+      "sha256": "191dfa43053c7eb189fe0176f3d24118b4d44229ca14dc6d3ede5b4ab1a7db61",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet9.xml",
+      "sha256": "b14415db955bc2b8da35dc53623f9b5c0a8a1caa5795499f4786f848854dc200",
+      "bytes": 6751
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet9.xml.rels",
+      "sha256": "12f2762b1e26fe691016aa6bce0c1c86928ade80b018e80eb812eba7ddba2d20",
+      "bytes": 298
+    },
+    {
+      "part": "xl/worksheets/sheet10.xml",
+      "sha256": "37c309e2dda11448a7436f2a077c0bf210b236edfd05d8b5874387b094b1d1ae",
+      "bytes": 3696
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet10.xml.rels",
+      "sha256": "dfa6150b1f3a5de2467f1618da26538a4c9b7e38273596c77449a664d71e389f",
+      "bytes": 299
+    },
+    {
+      "part": "xl/worksheets/sheet11.xml",
+      "sha256": "ba28434d814d600885b4425927dcad0e603dfab90f53f86e495b8c41b7afb37e",
+      "bytes": 3532
+    },
+    {
+      "part": "xl/worksheets/_rels/sheet11.xml.rels",
+      "sha256": "bbd9595fe1331a7fd6f139767607cd4f0446042e7d70c6f0e0b0e15b18cc7c6c",
+      "bytes": 299
+    },
+    {
+      "part": "xl/theme/theme1.xml",
+      "sha256": "ae5d71054ede722ca536030c3010fecb3f6ce424a0a7518978bdbf2d32003b19",
+      "bytes": 3757
+    },
+    {
+      "part": "xl/sharedStrings.xml",
+      "sha256": "532abed48b75831325eb01114e671e1ce8b3b1f4e828879c0c740843bdb30d86",
+      "bytes": 104593
+    },
+    {
+      "part": "xl/styles.xml",
+      "sha256": "2cbc8d571bdda98b56d704fd881f15073e77f16b22621ead748d3778195bc776",
+      "bytes": 3636
+    },
+    {
+      "part": "xl/persons/person.xml",
+      "sha256": "4ebd5532d853723b706f7de3d7ec4f8824ff5885c1b2fad14760298a574b608c",
+      "bytes": 161
+    },
+    {
+      "part": "xl/workbook.xml",
+      "sha256": "4111f81ce477c157faf631c06e31531c73a196a1885fcd8b67518bb538cfc569",
+      "bytes": 1813
+    },
+    {
+      "part": "xl/_rels/workbook.xml.rels",
+      "sha256": "038cf336e70cb7d580e90c3d61baabc7c508c9f9e8eecbede1737548a008a4d8",
+      "bytes": 2240
+    },
+    {
+      "part": "_rels/.rels",
+      "sha256": "8cbbdc48821190ccc33949fb8f8d021399ddbd526f770a8e86afae1c19e8d3e5",
+      "bytes": 296
+    },
+    {
+      "part": "[Content_Types].xml",
+      "sha256": "54320ccfd546f35f205edc2356c17f810d579e5bf79e6c702f73e1519a12fb37",
+      "bytes": 3811
+    }
+  ]
+}

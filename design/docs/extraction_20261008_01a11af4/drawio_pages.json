@@ -1,0 +1,30 @@
+[
+  {
+    "attributes": {
+      "name": "Page-1",
+      "id": "lc-_yTM2-hEJOly5ozWo"
+    },
+    "model_attributes": {
+      "dx": "1838",
+      "dy": "2152",
+      "grid": "1",
+      "gridSize": "10",
+      "guides": "1",
+      "tooltips": "1",
+      "connect": "1",
+      "arrows": "1",
+      "fold": "1",
+      "page": "1",
+      "pageScale": "1",
+      "pageWidth": "850",
+      "pageHeight": "1100",
+      "math": "0",
+      "shadow": "0"
+    },
+    "counts": {
+      "structural": 2,
+      "vertex": 101,
+      "edge": 84
+    }
+  }
+]

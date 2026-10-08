@@ -1,0 +1,16 @@
+{
+  "design/model.yaml": "f61aa633853afc1702e405974bac7267280de20d8c3b783d8ba0a7dee3ce5151",
+  "design/schema.json": "37f18626e668416bbe69131e62205cfa208127d90fa13e85b10a8b5d8f956e71",
+  "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
+  "design/migration_review.md": "46aaafb805231d6ee6f726395bcb25a20a7eebc4de7ab67df6d9692b3de72090",
+  "design/tools/validate_model.py": "93a6616643dadef6f74fe912b82b0075334619fbe8db8c9af32fd49bbd41c498",
+  "design/tools/build_migration.py": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
+  "design/tools/run_migration_checks.py": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
+  "design/tools/render_migration_review.py": "bba6ee012ea6965177098847ececaa65f68510d5ff428993961085bb6ea49651",
+  "design/rules/test_validate_model.py": "7f9611a0b4fc8a96c64e4968ea8de40394a1aeddeb75a69c95de041cff799364",
+  "design/reports/migration_validation.json": "06a96a51ffd924d4da61a04b5af8fc74b57dc2309b4dcd47b7aa4838c1e9f2b3",
+  "design/reports/migration_tests.txt": "c8a021fcd4a2e58d4fbf2fad5b365bf78d364798fdcec4450656ff507c1c41e0",
+  "design/reports/migration_validator.txt": "ed7a29751f8aa3b54b756b08badc5029a994ded9571167bf403b5e9e5a366f9d",
+  "design/reports/migration_check_run.json": "40dbe9a7dfcf099bfbdef71e6f64f4b5bd563a3e85582ca8d4062b81f8211d72",
+  "design/intent.md": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9"
+}

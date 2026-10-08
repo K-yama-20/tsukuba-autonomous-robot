@@ -1,0 +1,2 @@
+{"design_maturity": {"未設計": 364, "案": 265}, "vehicle_verification": {"result": "未実施", "deployment_decision": "人の判断待ち"}, "summary": {"entity_count": 629, "source_count": 486, "id_map_count": 202, "legacy_198_count": 198, "unbound_edges": 1}}
+{"result": "合格", "executed_checks": 5316, "violations": []}

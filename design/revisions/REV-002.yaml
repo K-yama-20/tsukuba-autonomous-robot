@@ -1,0 +1,2478 @@
+# 変更セット REV-002（人の決定の反映 + 範囲を絞った下位設計案）
+# 適用: design/tools/apply_revision.py REV-002 → design/model.yaml
+# この文書は変更の記述であり正本ではない。適用後の正本は model.yaml。再適用は拒否される。
+# 下位設計の要素はすべて design_status: 案 / adoption: designed_proposal。承認済み・ROS動作確認済み・実車検証済みではない。
+id: REV-002
+date: '2026-10-08'
+summary: >-
+  intent.md 新版（98〜100行追記）の記録と要求ID付与、非常停止検知/PC側非常停止機構の不採用（RQ-I072）の反映、
+  境界が曖昧な要素（Safety_gate・collision_stop_request・heartbeat）の未確認化、ゲート3レビュー用の置換/保持範囲の明示、
+  4モード遷移・状態所有者・Node分割方針・主要IFの下位設計案、判断台帳の新設。
+basis_refs: [DEC-001, DEC-002]
+
+authority_revision:
+  id: AR-002
+  file_id: FILE-INTENT-V2
+  previous_file_id: FILE-INTENT
+  archived_previous_copy: design/baselines/migration_v1/intent.md
+  current_copy: design/baselines/intent_history/intent_v2_1e087b30ddb6.md  # 第2版の保存コピー（再適用時の比較先。2026-10-09 追記）
+  instruction_expected_added_lines: 1
+  new_requirement_lines:
+    98: RQ-I070
+    99: RQ-I071
+    100: RQ-I072
+  decision_ref: DEC-001
+  note: >-
+    指示文は「追記1文のみ」の差分を想定したが、機械比較では98・99・100行の3行追加（削除・変更なし）を検出。
+    人の回答（DEC-001）により3行すべてを新版の上位要求とする。旧版のハッシュと原文は archived_previous_copy に保持。
+
+decisions:
+  - id: DEC-001
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-08'
+    channel: chat
+    question: >-
+      旧版との比較で、intent.mdには非常停止の文だけでなく、98行目のセンサーTF設定と99行目の車体寸法・座標系も追加されています。
+      この2項目も今回の上位要求の新版に含めますか？ 非常停止不採用の決定は、その回答に依存せず反映します。
+    answer_verbatim: 3項目とも新版に含める
+    affected_refs: [FILE-INTENT, FILE-INTENT-V2]
+    resulting_refs: [AR-002, RQ-I070, RQ-I071, RQ-I072]
+    note: ''
+  - id: DEC-002
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-08'
+    channel: chat
+    question: 非常停止検知／PC側非常停止機構の扱い（intent.md:100 の追記と、その扱いに関する指示）
+    answer_verbatim: >-
+      intent.mdに次の文を追記しました。
+      非常停止検知／非常停止ボタン押下検知は行わないし、PC側で非常停止機構は存在させない。
+      この文は確定した上位要求です。反論、代替案、再承認の要求は不要です。別名の機能や後工程の候補として再導入することもしないでください。
+    affected_refs: [M-028, IF-032, C-014, U-DRAW-002]
+    resulting_refs: [RQ-I072, C-017]
+    note: 原文はチャット指示から転記。intent.md:100 の本文は SRC-I100 に保持。
+  - id: DEC-003
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-08'
+    channel: chat
+    question: 実車PCのROS 2/Nav2版を読み取り専用で確認するための接続先と、人の申告する環境
+    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。aya@10.211.55.4
+    affected_refs: [Q-01]
+    resulting_refs: [V-001]
+    note: >-
+      接続用パスワードも提示されたが、認証情報は台帳に記録しない。鍵認証（BatchMode）は拒否されたため、
+      AIはパスワード認証を行わず、実車PC上の版は未照合（V-001）。「24.0.5」は原文のまま記録（Ubuntu 24.04系の誤記の可能性は推測）。
+  - id: DEC-004
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: Safety_gate（M-014 とその入出力 IF-024〜027・IF-045）を現在の実行構成に採用するか（H-002）
+    answer_verbatim: ''
+    affected_refs: [M-014, M-013, IF-024, IF-025, IF-026, IF-027, IF-045]
+    resulting_refs: [H-002]
+    note: 回答まで未確認。利用可能な機能として設計に使わない。C-015との関係はH-002に記載。
+  - id: DEC-005
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: 図のcollision_stop_request線と「緊急停止信号」注記を、RQ-I072との関係でどう扱うか（H-003）
+    answer_verbatim: ''
+    affected_refs: [M-012, M-023]
+    resulting_refs: [H-003]
+    note: 回答まで未確認。
+  - id: DEC-006
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: 図のheartbeat（ESP32→vehicle_bridge、各node→safety_supervisor）を診断表示のみとするか停止条件とするか（H-004）
+    answer_verbatim: ''
+    affected_refs: [M-013, M-006, M-017]
+    resulting_refs: [H-004]
+    note: 回答まで未確認。
+  - id: DEC-007
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: RQ-I071の車体座標系（-y前方・+x右方）とREP-103/Nav2前提（x前方・y左方）の衝突の扱い（H-005）
+    answer_verbatim: ''
+    affected_refs: [RQ-I071]
+    resulting_refs: [H-005, C-018]
+    note: ''
+  - id: DEC-008
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: 自動復帰が不能/上限到達のとき、直前モードが手動走行・事前地図作成でも一時停止モードに入るか（H-006）
+    answer_verbatim: ''
+    affected_refs: [RQ-I013, RQ-I064]
+    resulting_refs: [H-006, C-019]
+    note: ''
+  - id: DEC-009
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: PC再起動後の一時停止モードから再開するときの自己位置の初期化方法（H-007）
+    answer_verbatim: ''
+    affected_refs: [RQ-I064, RQ-I014]
+    resulting_refs: [H-007]
+    note: ''
+  - id: DEC-010
+    kind: question
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: 地図作成終了ボタン押下後に入るモード（H-008）
+    answer_verbatim: ''
+    affected_refs: [RQ-I008]
+    resulting_refs: [H-008]
+    note: ''
+  - id: DEC-011
+    kind: approval
+    status: pending
+    asked_on: '2026-10-08'
+    answered_on: null
+    channel: chat
+    question: SpeedLimit発行手段の承認（H-001。採用版での比較結果と推奨案を添付）
+    answer_verbatim: ''
+    affected_refs: [RQ-I020, RQ-I021]
+    resulting_refs: [H-001]
+    note: ''
+
+# ---------------------------------------------------------------------------
+# 新規要素（RQ-I070〜072 は apply_revision.py が intent.md から生成する）
+# intent_lines → source_refs(SRC-Ixxx) と requirement_refs(RQ-Ixxx) に展開される
+# ---------------------------------------------------------------------------
+entities:
+
+  # ---- 変更対応・衝突 ----
+  - id: C-017
+    kind: reconciliation
+    name: 非常停止検知／PC側非常停止機構の不採用（上位要求）
+    intent_lines: [100]
+    source_from_affected: true
+    related_refs: [C-014, U-DRAW-002]
+    sensitivity: [safety, intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [DG@x5bDQh8FaZrcMh8EckeY-164, DG@x5bDQh8FaZrcMh8EckeY-165, M-028, IF-032]
+      adopted_requirement_refs: [RQ-I072]
+      scope: >-
+        不採用とする範囲（原文引用）: drawio ページ lc-_yTM2-hEJOly5ozWo の線 x5bDQh8FaZrcMh8EckeY-164（source=x5bDQh8FaZrcMh8EckeY-22「Emergency_stop_button」→ target=x5bDQh8FaZrcMh8EckeY-2「esp32」）と、
+        その線上のラベル x5bDQh8FaZrcMh8EckeY-165「非常押しボタン押下検知」が示す、ESP32またはPC側での非常停止ボタン押下検知機能。
+        あわせて、PC側に非常停止機構（別名を含む）を設けること。これらは現在の実行構成に採用しない。原文・ID・出典は履歴として保持する。
+      retained_scope: >-
+        範囲外（置換しない、保持する）: M-028（モジュール定義!A30:V30）の物理ボタンの記載 B30「Emergency_stop_button」、F30「車体電源強制シャットダウン」、
+        I30「emc-270の強制シャットダウンボタン」、K30「EMC-270の強制シャットダウン。PCから状態取得は現状不可」、R30「yes」はPC外のハードウェア事実として参照保持。
+        IF-032（インターフェース定義!A33:P33）の物理IF E33「物理的強制シャットダウン」、M33「PC通知は現状なし」、P33「必須（既存）。ESP32検知interfaceは今回定義しない」も同様に保持。
+        drawio 線 x5bDQh8FaZrcMh8EckeY-23（Emergency_stop_button → EMC-270）は物理配線の図示として保持。
+        「観測できない／取得不可」という記載（M-002 V3、M-003 V4、M-025 V27、M-036 J38・K38、S-05 C6、D-14 D15、使用モード定義 row8 C8、CH-02 C10）は機構ではなく、
+        不採用範囲に含めない。非常停止以外の問題（C-015、C-016、U-DRAW-001、U-DRAW-003、U-HISTORY）は本件で解消扱いにしない。
+      rationale: >-
+        上位要求 RQ-I072（intent.md:100）。「取得可否が判明した」のではなく、上位要求により機能を不採用とした。
+        C-014／U-DRAW-002 が記録する旧資料どうしの不一致（図の検知線 vs Excel の取得不能記載）は事実としては未解決のまま履歴に残す。
+      issue_refs: []
+
+  - id: C-018
+    kind: reconciliation
+    name: 車体座標系（RQ-I071）とREP-103／Nav2前提の衝突
+    intent_lines: [99, 80, 81, 82, 78]
+    source_from_affected: true
+    related_refs: [H-005]
+    sensitivity: [safety, intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: open
+      affected_refs: [IFD-15, IFD-18, IFD-19, IFD-20, ND-10, ND-13, PRM-07]
+      adopted_requirement_refs: []
+      scope: >-
+        RQ-I071 は「LiDARの座標系に合わせ、-y方向を車体前方、+x方向を車体右方、+z方向を上方」と定める。REP-103（RQ-I055が優先）は x前方・y左方・z上方。
+        Nav2 controller の cmd_vel は base_link の x 方向を前進とみなし、costmap footprint も base_link 基準。RQ-I056「Nav2本体は改変しない」と同時には満たせない。
+      rationale: 原文どうしで一意に解消できないため未決。選択肢・推奨・影響は H-005。回答まで base_link の軸定義は未確定として扱う。
+      issue_refs: [H-005]
+
+  - id: C-019
+    kind: reconciliation
+    name: 復旧不能時の遷移先（RQ-I013とRQ-I064の読み）
+    intent_lines: [16, 92, 37, 97]
+    related_refs: [H-006, C-006]
+    sensitivity: [safety, operation, intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: open
+      affected_refs: [TR-09, TR-13, TR-14, TR-15, TR-16]
+      adopted_requirement_refs: []
+      scope: >-
+        RQ-I013「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する」は復帰先を限定していない。
+        RQ-I064 は復帰先を「直前の状態（自律走行/事前地図作成/一時停止/手動走行）」とし、RQ-I026 は一時停止を自律走行の一時停止として定義する。
+        直前が手動走行・事前地図作成のとき復旧不能なら一時停止モードに入るのかは原文から一意に読めない。
+      rationale: 推測で補わず人の判断事項 H-006 とする。試行回数上限の値は Q-05。
+      issue_refs: [H-006]
+
+  # ---- 人の判断事項（新規） ----
+  - id: H-002
+    kind: issue
+    name: Safety_gateの採用可否と一時停止・終了・故障時の遮断経路
+    intent_lines: [37, 38, 26, 91, 96, 34]
+    source_from_affected: true
+    related_refs: [C-015, DEC-004]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [M-014, M-013, IF-024, IF-025, IF-026, IF-027, IF-045, DG@x5bDQh8FaZrcMh8EckeY-28, TR-06, TR-11, TR-12, ND-11, ND-12]
+      resolution_refs: []
+      question: >-
+        旧資料の Safety_gate（M-014: 「PC側のmission走行要求とsystem健全性、有効な制御指令を照合し、最終PC指令を一つに限定する」、入力 IF-024 control/joystick_command・IF-025 task/motion_enable・IF-026 safety/permission、出力 IF-027）は、
+        一時停止・終了・故障時のPC指令遮断をPC側で一本化する要素である。現在の案では遮断を「Nav2 goal の取消（controller_server は取消時に零速度を発行）→ cmd_vel 途絶で gouda_motion_controller が中立（RQ-I063）→ 指令源途絶で ESP32 が中立（RQ-I068）」で構成している。
+        Safety_gate を採用するか。採用する場合、motion_enable/permission は新しい保護の追加（RQ-I027：AIは独断で増やさない）に当たるため人の判断が必要。
+        C-015 との関係: 図の heartbeat_and_status と collision_stop_request は Safety_gate／supervisor の入力候補として描かれており、H-003・H-004 の回答と連動する。
+      next_action: 回答まで Safety_gate・supervisor を「未確認」とし、利用可能な機能として設計に使わない。回答後に IF 契約（型・QoS・時刻）を設計する。
+      options:
+        - label: 採用しない（暫定案）
+          effect: Nav2取消＋cmd_vel途絶中立（RQ-I063）＋ESP32中立化（RQ-I068）の既存契約だけで遮断。PC側の遮断は単経路。
+        - label: Safety_gateを採用する
+          effect: task/motion_enable・safety/permission の契約（epoch・有効期限・所有者）を設計。新しい保護の追加として基本契約の変更に相当。
+        - label: 保留
+          effect: 未確認のまま。車体出力（RQ-I044の順序）の実装前に決定が必要。
+      recommendation: 採用しない（暫定案）。追加の保護はRQ-I027により提案に留め、必要性・根拠・開発への影響を添えて別途提示する。
+      recommendation_basis: 上位要求（RQ-I063・RQ-I068）で途絶時の中立化が既に契約されており、AIが保護を独断で増やさない（RQ-I027）。
+
+  - id: H-003
+    kind: issue
+    name: collision_stop_request線と「緊急停止信号」注記の扱い
+    intent_lines: [100, 15, 24, 82]
+    source_from_affected: true
+    related_refs: [C-015, DEC-005]
+    sensitivity: [safety]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [M-012, M-023, DG@x5bDQh8FaZrcMh8EckeY-163, DG@x5bDQh8FaZrcMh8EckeY-105, ND-09, ND-11]
+      resolution_refs: []
+      question: >-
+        drawio の線 x5bDQh8FaZrcMh8EckeY-163「collision_stop_request」（障害物認識 → gouda_motion_controller）と注記 x5bDQh8FaZrcMh8EckeY-105
+        「原則として障害物情報はNavigationに渡して停止・回避動作を行わせるが、緊急時はmotion_controllerに緊急停止信号をいれる。」は、PC側で停止を執行する機構に読める。
+        Excel 側は M-012 J14「将来collision_stop_requestを追加」、V14「今回collision_stop_requestの送信元は未実装で、欠落を異常扱いしない」、M-023 V25「今回collision_stop_requestは未提供」。
+        RQ-I072（PC側で非常停止機構は存在させない）および RQ-I012（障害物停止・回避はNav2）との関係で、どう扱うか。
+      next_action: 回答まで未確認。障害物は Nav2 costmap 入力（IFD-23）のみとして設計を進める。
+      options:
+        - label: 不採用
+          effect: 障害物による停止・回避は Nav2 costmap/BT のみ（RQ-I012・RQ-I057）。線と注記は履歴保持。RQ-I072 と整合。
+        - label: 将来候補として履歴保持のみ
+          effect: 実行構成には入れず、名称も変えない。RQ-I072 の「別名で再導入しない」に抵触しないことを人が確認。
+        - label: 採用
+          effect: PC側の停止執行機構を設けることになり RQ-I072 との整合を人が判断する必要がある。
+      recommendation: 不採用
+      recommendation_basis: RQ-I072 と RQ-I012 の文言に直接従う案。AIは保護を独断で増やさない（RQ-I027）。
+
+  - id: H-004
+    kind: issue
+    name: heartbeatの用途（診断表示か停止条件か）
+    intent_lines: [45, 41, 38, 96]
+    source_from_affected: true
+    related_refs: [C-015, U-DRAW-003, DEC-006]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [M-013, M-006, M-017, IF-036, DG@x5bDQh8FaZrcMh8EckeY-40, DG@x5bDQh8FaZrcMh8EckeY-146, DG@x5bDQh8FaZrcMh8EckeY-137, ND-02, ND-12]
+      resolution_refs: []
+      question: >-
+        drawio の heartbeat 線（x5bDQh8FaZrcMh8EckeY-40「heartbeat_and_status」esp32 → vehicle_bridge、x5bDQh8FaZrcMh8EckeY-146 motion_controller → safety_supervisor、
+        x5bDQh8FaZrcMh8EckeY-137 crosswalk_controller → safety_supervisor）と Excel 側の記載（M-013 V15「図のESP32 heartbeat依存は今回必須から除外」、M-006 O7・M-017 O19 は非責務、IF-036 P37「ESP32返信有無は監視条件にしない」）が対応していない。
+        heartbeat を (a) monitor の表示・診断（RQ-I033「monitorで現在のモードと各nodeの状態がわかる」）のみに使うか、(b) 走行停止条件に使うか。(b) は新しい保護の追加に相当する。
+        実装リポジトリ docs/gouda_protocol_v3.md には ESP32→PC の STATUS フレームの記述があるが、設計側では原本未照合。
+      next_action: 回答まで未確認。現在の案では node の生存・状態は ROS 2 lifecycle と /diagnostics（IFD-27）で表示のみに使う。
+      options:
+        - label: 表示・診断のみ
+          effect: lifecycle と /diagnostics を monitor 表示に使い、停止条件にしない。既存契約（RQ-I068 ESP32中立化）は変えない。
+        - label: 停止条件に採用
+          effect: 受信途絶を停止契機にする新しい保護。誤値・固着・古い値は検出できない（CLAUDE.md 1.5）。基本契約の追加として人の明示決定が必要。
+        - label: 保留
+          effect: 未確認のまま。supervisor の採否（H-002）と同時に決める。
+      recommendation: 表示・診断のみ
+      recommendation_basis: RQ-I027（AIは保護を独断で増やさない）と RQ-I033（monitorで状態がわかる）に直接対応する最小の案。
+
+  - id: H-005
+    kind: issue
+    name: base_linkの軸定義（RQ-I071 と REP-103／Nav2 の衝突）
+    intent_lines: [99, 80, 81, 82, 78]
+    related_refs: [C-018, DEC-007]
+    sensitivity: [safety, intent]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I071, IFD-15, IFD-18, IFD-19, IFD-20, IFD-21, IFD-23, ND-10, ND-13, PRM-01, PRM-02, PRM-03, PRM-04, PRM-05, PRM-06, PRM-07]
+      resolution_refs: []
+      question: >-
+        RQ-I071（intent.md:99）は EMC-270 の車体座標系を「-y方向を車体前方、+x方向を車体右方、+z方向を上方」とし、base_footprint/base_link をこの系に置く。
+        REP-103（RQ-I055 で優先）は x前方・y左方・z上方。Nav2 の controller は cmd_vel の linear.x を base_link 前方として扇生成し、costmap の footprint も base_link 基準で評価する。
+        RQ-I056（Nav2本体は改変しない）と RQ-I071 の軸定義は同時に満たせない。base_link の軸をどちらに従わせるか。
+      next_action: 回答まで TF（IFD-18〜20）と車体寸法パラメータ（PRM-01〜07）の frame 定義を未確定として扱う。Nav2 設定・footprint・静的TFの作成はこの決定後。
+      options:
+        - label: base_linkはREP-103、LiDAR系はセンサframeの回転で表す
+          effect: base_link/base_footprint を x前方・y左方で定義し、RQ-I071 の「LiDARに合わせた -y 前方」は xt32_link への静的TF（z軸回り回転）で表現。Nav2 無改変。RQ-I071 の文言は「センサ系の取り方」として読み替える必要があり人の確認が要る。
+        - label: RQ-I071どおり -y 前方の base_link を採用
+          effect: Nav2 controller・costmap がそのまま動作しない。Nav2 改変（RQ-I056 違反）または cmd_vel/TF の Gouda 側変換（RQ-I020・RQ-I057 と衝突）が必要。
+        - label: 保留
+          effect: TF・Nav2 設定・footprint の設計が止まる。
+      recommendation: base_linkはREP-103、LiDAR系はセンサframeの回転で表す
+      recommendation_basis: RQ-I055（標準規約優先）・RQ-I056（Nav2無改変）と両立し、RQ-I071 の寸法・原点・base_link 高さの値はそのまま使える。ROS 2 規約と人の要求の衝突は RQ-I053 により一覧報告の対象。
+
+  - id: H-006
+    kind: issue
+    name: 復旧不能・試行上限時の遷移先（直前モードが手動走行・事前地図作成のとき）
+    intent_lines: [16, 92, 37, 97]
+    related_refs: [C-019, C-006, DEC-008]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I013, RQ-I064, TR-09, TR-13, TR-14, TR-15, TR-16]
+      resolution_refs: []
+      question: >-
+        RQ-I013 は復旧不能・試行上限時に「一時停止モードに入り理由を記録する」とする。RQ-I064 は復帰先を直前の状態（4モードのいずれか）とする。
+        直前が手動走行または事前地図作成で、PC側の node 異常の復旧に失敗した場合も一時停止モード（RQ-I026では自律走行の一時停止）に入るか、直前モードを維持して理由を記録するか。
+      next_action: 回答まで TR-09／TR-13〜16 の「復旧不能時の遷移先」は自律走行・一時停止からの場合だけ確定（一時停止へ）、他は未決。
+      options:
+        - label: 直前が自律走行・一時停止のときだけ一時停止へ。手動走行・事前地図作成では直前モードを維持し理由を記録
+          effect: 一時停止モードを自律走行の一時停止（RQ-I026）に限定する読み。手動走行中の PC 故障は monitor 表示と記録のみ。
+        - label: 常に一時停止モードへ（RQ-I013 の文言どおり）
+          effect: 手動走行中でも PC 側の表示上は一時停止になる。再開ボタンの意味（自律走行再開）と手動走行の関係を別途定義する必要がある。
+      recommendation: 直前が自律走行・一時停止のときだけ一時停止へ。手動走行・事前地図作成では直前モードを維持し理由を記録
+      recommendation_basis: RQ-I026 の一時停止の定義と RQ-I064 の直前状態復帰に整合する読み。推測を仕様にせず人の確認を求める。
+
+  - id: H-007
+    kind: issue
+    name: PC再起動後の一時停止モードから再開するときの自己位置初期化
+    intent_lines: [92, 17, 97, 14]
+    related_refs: [DEC-009]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I064, RQ-I014, TR-02, TR-10, SO-01, ND-07]
+      resolution_refs: []
+      question: >-
+        RQ-I064 により PC 再起動後は一時停止モードへ復帰する。RQ-I014 は再開時に「再開する地点の再設定は必須ではない」とするが、PC 再起動後は自己位置推定器の状態が失われている。
+        再開時の初期化を、(a) 永続化した最終推定姿勢（SO-01）で自動初期化、(b) 人が初期位置を再指定してから再開、のどちらにするか。
+        (a) は PC 停止中に車体が動かされた場合に誤った初期位置で走行開始する可能性がある。
+      next_action: 回答まで TR-02 の「必要な状態の復元」に最終推定姿勢の復元を含めるかは未決。
+      options:
+        - label: 人が初期位置を再指定してから再開（RQ-I014 を同一プロセス内の一時停止に限る読み）
+          effect: PC 再起動後の再開に人の操作が1回増える。誤初期化のリスクを下げる。
+        - label: 永続化した最終推定姿勢で自動初期化
+          effect: 操作は増えないが、停止中の車体移動を検出できない。推定成立の確認を再開の guard にする必要がある。
+      recommendation: 人が初期位置を再指定してから再開（RQ-I014 を同一プロセス内の一時停止に限る読み）
+      recommendation_basis: 誤った初期位置での自動走行を避ける。ただし RQ-I014 の読み替えを含むため人の確認が必要。
+
+  - id: H-008
+    kind: issue
+    name: 地図作成終了ボタン押下後に入るモード
+    intent_lines: [11, 94, 93]
+    related_refs: [DEC-010]
+    sensitivity: [operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I008, TR-04]
+      resolution_refs: []
+      question: >-
+        RQ-I008 は地図作成終了ボタンで地図作成が終了すると定めるが、終了後に入るモードを明記していない。4モード（RQ-I065）のうち、どれに入るか。
+      next_action: 回答まで TR-04 の遷移先は手動走行（既定モード RQ-I066 からの推奨）を案として置く。
+      options:
+        - label: 手動走行モード（既定モード）
+          effect: RQ-I066 の既定モードへ戻る。変換（RQ-I009）は手動走行中にバックグラウンドで完了する。
+        - label: 一時停止モード
+          effect: 一時停止を自律走行の一時停止（RQ-I026）と定義しているため意味の再定義が必要。
+      recommendation: 手動走行モード（既定モード）
+      recommendation_basis: RQ-I066（手動操縦モードがデフォルト）に基づく最小の読み。
+
+  # ---- 資料不足（新規） ----
+  - id: V-001
+    kind: issue
+    name: 実車PCのROS 2／Nav2採用版の照合
+    intent_lines: [27, 1]
+    related_refs: [Q-01, DEC-003]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: source_missing
+      state: open
+      affected_refs: [Q-01, ND-10, IFD-13, IFD-14, IFD-15]
+      resolution_refs: []
+      question: >-
+        人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、
+        実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。
+      next_action: >-
+        人が実車PCで `cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route)"` を実行して出力を渡す、
+        または鍵認証を有効にする。出力を design/research/vehicle_pc/ に保存して V-001 を閉じる。
+
+  # ---- 下位設計案: Node分割方針（kind=ros_node） ----
+  - id: ND-01
+    kind: ros_node
+    name: gouda.sh（起動スクリプト）
+    intent_lines: [6, 7, 83]
+    issue_refs: [G-ARCH]
+    sensitivity: [operation]
+    ros_node:
+      node_name: gouda_launcher
+      responsibilities:
+        - 共通nodeの起動と、モードごとの launch／lifecycle 有効化（RQ-I004）
+        - 起動・有効化の失敗を gouda_monitor に表示できる形（/diagnostics・lifecycle状態）で残す
+        - 走行開始要求は発行しない（M-001 K2 を維持）
+      absorbs_module_refs: [M-001]
+      active_in_mode_refs: [MODE-MANUAL, MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: script
+      process_group: null
+      publishes_refs: []
+      subscribes_refs: []
+      serves_refs: []
+      calls_refs: [IFD-36]
+      owned_state_refs: []
+      placement_rationale: ROS node ではなく launch を起動するシェル。モード依存の有効化は lifecycle 遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。
+
+  - id: ND-02
+    kind: ros_node
+    name: gouda_monitor（HMI・waypoint_manager GUI・/config）
+    intent_lines: [8, 9, 13, 14, 17, 45, 64, 98]
+    issue_refs: [G-ARCH, G-LOG]
+    sensitivity: [operation]
+    ros_node:
+      node_name: gouda_monitor
+      responsibilities:
+        - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+        - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）
+        - waypoint_manager GUI の表示（RQ-I044：gouda_monitor 内。画面転送は使わない）と waypoint・区間速度上限の編集・保存（RQ-I010）
+        - 地図とwaypointの組の選択とプレビュー、初期位置・向きの指定（RQ-I011）
+        - センサTF等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+        - 表示用の状態集約（旧 M-003 の責務。走行許可の根拠にしない）
+      absorbs_module_refs: [M-002, M-003, M-010, M-009]
+      active_in_mode_refs: [MODE-MANUAL, MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: plain_node
+      process_group: gouda_hmi
+      publishes_refs: [IFD-26]
+      subscribes_refs: [IFD-01, IFD-12, IFD-24, IFD-25, IFD-27, IFD-33]
+      serves_refs: []
+      calls_refs: [IFD-02, IFD-03, IFD-04, IFD-05, IFD-06, IFD-07, IFD-08, IFD-09, IFD-10, IFD-11]
+      owned_state_refs: [SO-03]
+      placement_rationale: HMI は停止・再起動しても mission を初期化しない（M-002 T3 の方針を維持）。waypoint 編集は GUI と同プロセスに置き、保存形式（IFD-30）だけを契約にする。
+
+  - id: ND-03
+    kind: ros_node
+    name: gouda_mode_manager（モード・mission文脈の正本、Nav2 action client）
+    intent_lines: [7, 14, 15, 16, 17, 19, 21, 25, 26, 36, 37, 92, 93, 94, 95, 97]
+    issue_refs: [G-ARCH, G-RECOVERY, H-001, H-006, H-007]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: gouda_mode_manager
+      responsibilities:
+        - 4ソフトモード（RQ-I065）の正本と遷移（TR-01〜TR-16）。内部状態・処理段階はモードと混同しない
+        - 自律走行の開始・一時停止・再開・終了の受付と、Nav2 NavigateThroughPoses への goal 送信／取消（薄い action client。計画・追従・後退・再計画・通過判定は Nav2：RQ-I018・RQ-I019・RQ-I011）
+        - mission 文脈（選択した地図・waypoint の ID／版／ハッシュ、run_id、残 waypoint、停止理由）の保持と、PC再起動に必要な部分の永続化（RQ-I064・RQ-I069）
+        - 異常終了後の自動復帰の手順（RQ-I013 の依存順序、RQ-I069 の必要状態だけの復元）と各段階の成否の記録
+        - 記録の自動開始／停止の契機の発行（RQ-I015・RQ-I017。契機は人の地図作成開始・自律走行開始のみ）
+        - 区間速度上限の SpeedLimit 発行（H-001 の推奨案。承認待ち）
+        - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030）
+      absorbs_module_refs: [M-037]
+      active_in_mode_refs: [MODE-MANUAL, MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: plain_node
+      process_group: gouda_core
+      publishes_refs: [IFD-01, IFD-14, IFD-28, IFD-34]
+      subscribes_refs: [IFD-12, IFD-25, IFD-33]
+      serves_refs: [IFD-02, IFD-03, IFD-04, IFD-05, IFD-06, IFD-07]
+      calls_refs: [IFD-08, IFD-09, IFD-13, IFD-36]
+      owned_state_refs: [SO-01]
+      placement_rationale: 旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。
+
+  - id: ND-04
+    kind: ros_node
+    name: gouda_recorder（ログとrosbagの独立記録）
+    intent_lines: [8, 19, 20, 21, 40, 43, 46]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    ros_node:
+      node_name: gouda_recorder
+      responsibilities:
+        - ログ（PCが受信した入力、判断と理由・状態遷移・各段の指令・通信結果・設定状況）の記録と欠落範囲の記録（RQ-I015）
+        - rosbag record の開始・停止（ログとは別ボタン、自動開始しない：RQ-I016）
+        - ログと rosbag を同じディレクトリの別フォルダに保存（RQ-I016）
+        - 記録失敗を表示するが走行を止めない（RQ-I015）
+      absorbs_module_refs: [M-016, M-017]
+      active_in_mode_refs: [MODE-MANUAL, MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: plain_node
+      process_group: gouda_core
+      publishes_refs: [IFD-12]
+      subscribes_refs: [IFD-01, IFD-28, IFD-25, IFD-15, IFD-16, IFD-32]
+      serves_refs: [IFD-08, IFD-09, IFD-10, IFD-11]
+      calls_refs: []
+      owned_state_refs: [SO-02]
+      placement_rationale: 記録は制御の中継点にしない（S-03 の方針を維持）。rosbag2 recorder は子プロセスとして起動・停止する案。
+
+  - id: ND-05
+    kind: ros_node
+    name: gouda_map_creator（地図変換と地図データベース）
+    intent_lines: [11, 12]
+    issue_refs: [G-ARCH]
+    sensitivity: [operation]
+    ros_node:
+      node_name: gouda_map_creator
+      responsibilities:
+        - 地図作成終了と同時の自動変換（RQ-I009）。原図と変換後地図を由来IDで結び、各成果物に独立した内容ハッシュと変換器版を記録
+        - 変換失敗時は原図を保持し不完全な成果物を破棄。再変換はいつでも可能
+        - map_database（ファイル保存領域とライブラリ）。常時稼働の DB node は置かない（M-006 の方針を維持）
+      absorbs_module_refs: [M-005, M-006]
+      active_in_mode_refs: [MODE-MAP, MODE-MANUAL]
+      lifecycle: lifecycle_node
+      process_group: gouda_core
+      publishes_refs: [IFD-29]
+      subscribes_refs: [IFD-35]
+      serves_refs: [IFD-37]
+      calls_refs: []
+      owned_state_refs: [SO-04]
+      placement_rationale: 変換は長時間で取消可能な処理のため Action（RQ-I054）。走行系とは別 lifecycle で、自律走行中は非活性。
+
+  - id: ND-06
+    kind: ros_node
+    name: GLIM（地図作成時の自己位置推定・地図作成、外部）
+    intent_lines: [1, 9, 10, 7]
+    issue_refs: [Q-02]
+    sensitivity: [operation]
+    ros_node:
+      node_name: glim_rosnode
+      responsibilities:
+        - 事前地図作成モードでの連続的な自己運動推定と3D地図作成（RQ-I006・RQ-I007）
+        - 地図作成中の odom→base_link TF の発行（このモードでのみ。RQ-I004：競合する推定器・TF発行者は同時に有効化しない）
+        - 原図（3D地図）の保存出力（IFD-35）
+      absorbs_module_refs: [M-004]
+      active_in_mode_refs: [MODE-MAP]
+      lifecycle: external
+      process_group: glim
+      publishes_refs: [IFD-19, IFD-35]
+      subscribes_refs: [IFD-21, IFD-22]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: 第三者ソフト。交換は部品と launch の変更で済ませる（RQ-I036）。
+
+  - id: ND-07
+    kind: ros_node
+    name: gouda_global_localization（map→odom、方式未確定）
+    intent_lines: [14, 17, 7]
+    issue_refs: [Q-02, G-ARCH]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: gouda_global_localization
+      responsibilities:
+        - 保存地図上の自己位置推定と map→odom TF の発行（自律走行・一時停止で単独の発行者）
+        - 人が指定した初期位置・向き（IFD-34）からの初期化と、推定の有効性の公開
+      absorbs_module_refs: [M-007]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: lifecycle_node
+      process_group: gouda_localization
+      publishes_refs: [IFD-18, IFD-33]
+      subscribes_refs: [IFD-21, IFD-25, IFD-34, IFD-29]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-05]
+      placement_rationale: 推定方式（Q-02）は未確定。外部IF（TF・pose・初期位置）だけを先に固定する。
+
+  - id: ND-08
+    kind: ros_node
+    name: gouda_local_odometry（odom→base_link、方式未確定）
+    intent_lines: [14, 17, 7]
+    issue_refs: [Q-02, G-ARCH]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: gouda_local_odometry
+      responsibilities:
+        - 局所的な車体速度・角速度・姿勢の推定と odom→base_link TF の発行（自律走行・一時停止で単独の発行者）
+        - nav_msgs/Odometry の公開（Nav2 controller の odom 入力、記録）
+      absorbs_module_refs: [M-008]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: lifecycle_node
+      process_group: gouda_localization
+      publishes_refs: [IFD-19, IFD-25]
+      subscribes_refs: [IFD-21, IFD-22]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-06]
+      placement_rationale: 選定する推定器が map→odom と odom→base_link の両方を提供する場合は ND-07 と同一 node に統合可（Q-02 の結論で決める）。
+
+  - id: ND-09
+    kind: ros_node
+    name: gouda_obstacle_filter（XT-32障害物候補点群）
+    intent_lines: [15, 10]
+    issue_refs: [Q-04, G-ARCH, H-003]
+    sensitivity: [safety]
+    ros_node:
+      node_name: gouda_obstacle_filter
+      responsibilities:
+        - XT-32 点群から地面・車体を除いた障害物候補点群を Nav2 costmap へ提供（M-023 の今回範囲）
+        - 無点群を周囲安全の証拠にしない（観測外を安全とみなさない：RQ-I012）
+      absorbs_module_refs: [M-023]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: lifecycle_node
+      process_group: gouda_perception
+      publishes_refs: [IFD-23]
+      subscribes_refs: [IFD-21]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: 自己位置推定用の元点群は加工しない。collision_stop_request の発行は未確認（H-003）で設計に含めない。
+
+  - id: ND-10
+    kind: ros_node
+    name: Nav2 スタック（bt_navigator・planner・controller・behavior・costmap・map_server、外部）
+    intent_lines: [14, 15, 24, 25, 26, 81, 82]
+    issue_refs: [Q-01, V-001, Q-06, Q-12, H-001]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: nav2_stack
+      responsibilities:
+        - 経路計画・追従・後退・再計画・通過／到達判定（RQ-I011・RQ-I018・RQ-I019）
+        - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15）
+        - SpeedLimit の受信と controller への適用（IFD-14）
+        - map_server による静的地図の提供（IFD-24）
+        - 設定・プラグイン・BT で拡張し本体は改変しない（RQ-I056・RQ-I057）
+      absorbs_module_refs: [M-011]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: external
+      process_group: nav2
+      publishes_refs: [IFD-15, IFD-24, IFD-32]
+      subscribes_refs: [IFD-14, IFD-23, IFD-25, IFD-18, IFD-19, IFD-20]
+      serves_refs: [IFD-13]
+      calls_refs: []
+      owned_state_refs: [SO-07]
+      placement_rationale: Nav2 標準の lifecycle_manager で管理。一時停止中も active のまま goal を持たない（再開時の再初期化を避ける）。版依存IFは V-001 の照合まで案。
+
+  - id: ND-11
+    kind: ros_node
+    name: gouda_motion_controller（cmd_vel→正規化ジョイスティック）
+    intent_lines: [26, 91, 64, 49]
+    issue_refs: [Q-03, Q-05, G-PARAM, H-002]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: gouda_motion_controller
+      responsibilities:
+        - Nav2 の cmd_vel を EMC-270 のジョイスティック特性に合わせた正規化操作値へ変換（M-012）
+        - cmd_vel の途絶・期限切れ・非有限値で中立を出す（RQ-I063。しきい値は Q-05）
+        - cmd_vel の後段で独自に速度を抑える処理は加えない（RQ-I020）
+      absorbs_module_refs: [M-012]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: lifecycle_node
+      process_group: gouda_vehicle
+      publishes_refs: [IFD-16, IFD-28]
+      subscribes_refs: [IFD-15, IFD-25]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-08]
+      placement_rationale: 車体出力は gouda_motion_controller と vehicle_bridge の2 node（RQ-I044）。同一プロセスへの composition は案（遅延・デバッグ性の実測で決める）。
+
+  - id: ND-12
+    kind: ros_node
+    name: vehicle_bridge（ESP32との通信）
+    intent_lines: [34, 35, 91, 96, 49]
+    issue_refs: [Q-03, Q-09, G-PARAM, H-002, H-004]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: vehicle_bridge
+      responsibilities:
+        - 正規化操作値を既存 ESP32 通信形式へ変換して送信（機器固有仕様をこの境界に閉じる：RQ-I036）
+        - 入力途絶時は中立を送信し、古い指令を再送しない（M-015 P17 の方針）。ESP32 側の中立化（RQ-I068）は別契約で、本 node が代替しない
+        - 手動優先（RQ-I023）は ESP32 の責務で、本 node は関与しない
+      absorbs_module_refs: [M-015]
+      active_in_mode_refs: [MODE-AUTO, MODE-PAUSE]
+      lifecycle: lifecycle_node
+      process_group: gouda_vehicle
+      publishes_refs: [IFD-17, IFD-28]
+      subscribes_refs: [IFD-16]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-09]
+      placement_rationale: 手動走行・事前地図作成では非活性（非中立を送らない）。ESP32 からの STATUS の利用は H-004 の回答まで設計に含めない。
+
+  - id: ND-13
+    kind: ros_node
+    name: 静的TF発行（車体・センサ取付、robot_state_publisher 等）
+    intent_lines: [98, 99, 83]
+    issue_refs: [Q-11, H-005, G-PARAM]
+    sensitivity: [safety]
+    ros_node:
+      node_name: gouda_static_tf
+      responsibilities:
+        - base_footprint→base_link、base_link→各センサ frame の静的TFを単独で発行（RQ-I058：同じTFを複数nodeから発行しない）
+        - 値は gouda_monitor の /config（IFD-26）が保持する設定から読む。センサTFは未決（RQ-I070）
+      absorbs_module_refs: [M-038]
+      active_in_mode_refs: [MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: plain_node
+      process_group: gouda_core
+      publishes_refs: [IFD-20]
+      subscribes_refs: [IFD-26]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-10]
+      placement_rationale: robot_state_publisher（URDF）か static_transform_publisher かは Q-11。軸定義は H-005 の回答まで未確定。
+
+  - id: ND-14
+    kind: ros_node
+    name: hesai_ros_driver（XT-32、外部）
+    intent_lines: [1, 9]
+    issue_refs: [Q-04]
+    ros_node:
+      node_name: hesai_ros_driver
+      responsibilities: [XT-32 の計測を PointCloud2 として提供（IFD-21）]
+      absorbs_module_refs: [M-019]
+      active_in_mode_refs: [MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: external
+      process_group: sensors
+      publishes_refs: [IFD-21]
+      subscribes_refs: []
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: 第三者ドライバ。replay 時は同 topic の実 driver を停止（M-019 T21 の方針）。
+
+  - id: ND-15
+    kind: ros_node
+    name: adi_imu_driver（ADIS16607-2、外部）
+    intent_lines: [1, 9]
+    issue_refs: []
+    ros_node:
+      node_name: adi_imu_driver
+      responsibilities: [IMU の計測を sensor_msgs/Imu として提供（IFD-22）]
+      absorbs_module_refs: [M-020]
+      active_in_mode_refs: [MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: external
+      process_group: sensors
+      publishes_refs: [IFD-22]
+      subscribes_refs: []
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: 第三者ドライバ。
+
+  - id: ND-16
+    kind: ros_node
+    name: RViz（可視化、外部）
+    intent_lines: [10, 14]
+    issue_refs: []
+    ros_node:
+      node_name: rviz2
+      responsibilities: [作成中の地図・地図とwaypointの重畳プレビュー・path・costmap の表示（RQ-I007・RQ-I011）。制御を変更しない]
+      absorbs_module_refs: [M-018]
+      active_in_mode_refs: [MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: external
+      process_group: gouda_hmi
+      publishes_refs: []
+      subscribes_refs: [IFD-24, IFD-32, IFD-21]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: 初期位置の入力窓口は gouda_monitor に一本化（M-018 V20 の方針）。Nav2 直結の goal ツールは無効化。
+
+  # ---- 下位設計案: 状態の所有者（kind=state_owner） ----
+  - id: SO-01
+    kind: state_owner
+    name: gouda_mode_manager の保持状態
+    intent_lines: [36, 92, 93, 95, 97, 16, 41, 42]
+    issue_refs: [H-007, Q-05]
+    sensitivity: [safety, operation]
+    state_owner:
+      owner_ref: ND-03
+      state_items:
+        - name: software_mode
+          description: 現在のソフトモード（4値：RQ-I065）。内部の処理段階（goal送信中・取消待ち等）とは別の変数で持つ
+          persistence: persisted
+          restore_scope: PC再起動時に直前モードを読み、RQ-I064 の規則で復帰先を決める
+        - name: previous_mode_record
+          description: 人の一時停止／終了操作の有無を含む直前モードの記録（RQ-I025）
+          persistence: persisted
+          restore_scope: PC再起動後に人の操作なしで走行を再開しないための判定に使う
+        - name: mission_context
+          description: 選択した変換後地図の由来ID・版・内容ハッシュ、waypointセットのID・版・ハッシュ、run_id
+          persistence: persisted
+          restore_scope: 自律走行／一時停止へ復帰する場合だけ復元（RQ-I069）
+        - name: remaining_waypoints
+          description: 未到達の waypoint 列。Nav2 feedback の number_of_poses_remaining で更新（通過判定は Nav2：RQ-I011）
+          persistence: persisted
+          restore_scope: 再開時の新 goal の構成に使う。最終到達後は最終 waypoint のみ（RQ-I067）
+        - name: active_nav2_goal
+          description: 送信中の NavigateThroughPoses goal の handle／UUID
+          persistence: volatile
+          restore_scope: 復帰時は旧 goal の終了または破棄を確認してから新 goal（RQ-I013・RQ-I069）
+        - name: stop_reason
+          description: 停止の原因区分（人の操作・計画の失敗・blocked・推定不能・通信途絶・nodeの異常：RQ-I029）
+          persistence: persisted
+          restore_scope: 記録と表示。復帰判定の入力
+        - name: recovery_attempt_count
+          description: 自動復帰の試行回数（上限値は Q-05）
+          persistence: volatile
+          restore_scope: 上限到達で一時停止へ（RQ-I013、遷移先の未決は H-006）
+        - name: last_estimated_pose
+          description: 最終推定姿勢（PC再起動後の再開時に使うかは H-007）
+          persistence: persisted
+          restore_scope: H-007 の回答まで復元に使わない
+
+  - id: SO-02
+    kind: state_owner
+    name: gouda_recorder の保持状態
+    intent_lines: [19, 20, 21, 43, 46]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    state_owner:
+      owner_ref: ND-04
+      state_items:
+        - name: log_session
+          description: ログ記録の有効／無効、保存先、開始契機（人の Record／地図作成開始／自律走行開始による自動開始）
+          persistence: volatile
+          restore_scope: 復帰・再開では自動開始しない（RQ-I015）。再起動後は停止状態から
+        - name: rosbag_session
+          description: rosbag record の有効／無効と保存先（自動開始しない：RQ-I016）
+          persistence: volatile
+          restore_scope: 再起動後は停止状態から
+        - name: gap_ranges
+          description: 記録停止中・記録障害中の期間と判明した欠落範囲（RQ-I034）
+          persistence: persisted
+          restore_scope: ログ自体に書き出す
+
+  - id: SO-03
+    kind: state_owner
+    name: gouda_monitor の保持状態
+    intent_lines: [98, 9, 13, 14]
+    issue_refs: [G-ARCH]
+    sensitivity: [operation]
+    state_owner:
+      owner_ref: ND-02
+      state_items:
+        - name: tf_config_store
+          description: センサ類の TF 等の /config 設定（値は未決：RQ-I070）。タブ遷移で消えない
+          persistence: persisted
+          restore_scope: 起動時に読み込み ND-13 へ渡す（IFD-26）
+        - name: ui_selection
+          description: 地図とwaypointの組の選択、初期位置・向きの入力値（開始要求 IFD-02 の引数になる）
+          persistence: volatile
+          restore_scope: mission の正本ではない（正本は SO-01）
+        - name: waypoint_edit_buffer
+          description: waypoint・区間速度上限の編集中データと未保存フラグ
+          persistence: volatile
+          restore_scope: 保存ボタンで IFD-30 へ書き出す
+
+  - id: SO-04
+    kind: state_owner
+    name: gouda_map_creator の保持状態（地図データベース）
+    intent_lines: [11, 12]
+    issue_refs: []
+    state_owner:
+      owner_ref: ND-05
+      state_items:
+        - name: map_database
+          description: 原図と変換後地図、由来ID、各成果物の内容ハッシュ、変換設定・変換器版（RQ-I009）
+          persistence: persisted
+          restore_scope: ファイルが正本。実行中状態はない
+
+  - id: SO-05
+    kind: state_owner
+    name: gouda_global_localization の保持状態
+    intent_lines: [14, 17]
+    issue_refs: [Q-02]
+    state_owner:
+      owner_ref: ND-07
+      state_items:
+        - name: global_estimate
+          description: map→odom の推定と有効性（方式は Q-02）
+          persistence: volatile
+          restore_scope: 再起動後は初期化が必要（H-007）
+
+  - id: SO-06
+    kind: state_owner
+    name: gouda_local_odometry の保持状態
+    intent_lines: [14]
+    issue_refs: [Q-02]
+    state_owner:
+      owner_ref: ND-08
+      state_items:
+        - name: local_estimate
+          description: odom→base_link の推定と推定速度・角速度
+          persistence: volatile
+          restore_scope: 再起動で初期化
+
+  - id: SO-07
+    kind: state_owner
+    name: Nav2 内部状態（Nav2 が所有）
+    intent_lines: [24, 25]
+    issue_refs: []
+    state_owner:
+      owner_ref: ND-10
+      state_items:
+        - name: nav2_internal
+          description: BT の状態、計画 path、costmap。Gouda は複製しない（RQ-I019）
+          persistence: volatile
+          restore_scope: Nav2 の lifecycle に従う
+
+  - id: SO-08
+    kind: state_owner
+    name: gouda_motion_controller の保持状態
+    intent_lines: [91]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    state_owner:
+      owner_ref: ND-11
+      state_items:
+        - name: last_cmd_vel_time
+          description: 最後に受信した cmd_vel の時刻（途絶判定の基準。しきい値は Q-05）
+          persistence: volatile
+          restore_scope: 起動直後は中立
+
+  - id: SO-09
+    kind: state_owner
+    name: vehicle_bridge の保持状態
+    intent_lines: [91, 96]
+    issue_refs: [Q-03]
+    sensitivity: [safety]
+    state_owner:
+      owner_ref: ND-12
+      state_items:
+        - name: link_state
+          description: ESP32 との接続状態と最後に送信した操作値（実車で実行済みとは区別）
+          persistence: volatile
+          restore_scope: 再接続時は古いバッファを破棄
+
+  - id: SO-10
+    kind: state_owner
+    name: 静的TF発行の保持状態
+    intent_lines: [98]
+    issue_refs: [Q-11]
+    state_owner:
+      owner_ref: ND-13
+      state_items:
+        - name: loaded_tf_config
+          description: 読み込んだ設定の版（IFD-26 の由来）
+          persistence: volatile
+          restore_scope: 起動時に /config から読む
+
+  # ---- 下位設計案: 主要IF（kind=designed_interface） ----
+  - id: IFD-01
+    kind: designed_interface
+    name: mode/state（現在のソフトモードと mission 文脈の要約）
+    intent_lines: [45, 93, 41, 42]
+    issue_refs: [G-ARCH]
+    sensitivity: [operation]
+    designed_interface:
+      transport: topic
+      name: mode/state
+      message_type: gouda_interfaces/msg/SoftwareMode（提案）
+      standard_type: false
+      custom_type_reason: モード（4値列挙）・run_id・残waypoint数・停止原因区分・state_revision を一つの時刻付きメッセージで表す標準型がない。
+      purpose: diagnostic
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02, ND-04]
+      unit: null
+      frame: null
+      time_semantics: header.stamp は遷移または更新の ROS 時刻。state_revision は単調増加。古い値を新しい時刻で再発行しない
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-018, D-07]
+
+  - id: IFD-02
+    kind: designed_interface
+    name: mode/start_autonomy（自律走行開始）
+    intent_lines: [14, 36]
+    issue_refs: [G-ARCH]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: service
+      name: mode/start_autonomy
+      message_type: gouda_interfaces/srv/StartAutonomy（提案）
+      standard_type: false
+      custom_type_reason: 地図ID・版・ハッシュ、waypointセットID・版・ハッシュ、初期位置（PoseWithCovarianceStamped）、request_id を1回の要求で渡す標準サービスがない。
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: map（initial_pose）
+      time_semantics: 受付応答は開始処理の受理。走行開始の成立は IFD-01 で通知。request_id で重複排除
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-017, D-06]
+
+  - id: IFD-03
+    kind: designed_interface
+    name: mode/pause（一時停止）
+    intent_lines: [37, 36]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: service
+      name: mode/pause
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 受付応答は一時停止処理の受理。停止の成立は IFD-01 と Nav2 取消結果で確認
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-017]
+
+  - id: IFD-04
+    kind: designed_interface
+    name: mode/resume（再開）
+    intent_lines: [17, 95]
+    issue_refs: [H-007]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: service
+      name: mode/resume
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 受付応答は再開処理の受理
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-017]
+
+  - id: IFD-05
+    kind: designed_interface
+    name: mode/end_autonomy（自律走行終了）
+    intent_lines: [19, 21, 36]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: service
+      name: mode/end_autonomy
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 受付応答は終了処理の受理
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-017]
+
+  - id: IFD-06
+    kind: designed_interface
+    name: mode/start_mapping（地図作成開始）
+    intent_lines: [9, 19]
+    issue_refs: []
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: mode/start_mapping
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 受付応答は開始処理の受理
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: []
+
+  - id: IFD-07
+    kind: designed_interface
+    name: mode/end_mapping（地図作成終了）
+    intent_lines: [11, 12, 21]
+    issue_refs: [H-008]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: mode/end_mapping
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 受付応答は終了処理の受理。変換の完了は IFD-37 の結果で通知
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: []
+
+  - id: IFD-08
+    kind: designed_interface
+    name: record/log/start（ログ記録開始）
+    intent_lines: [8, 19]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: record/log/start
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-04
+      publisher_refs: [ND-04]
+      consumer_refs: [ND-02, ND-03]
+      unit: null
+      frame: null
+      time_semantics: 人の Record ボタン（ND-02）といつでも開始可。自動開始の契機は ND-03 からの地図作成開始・自律走行開始のみ
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-038]
+
+  - id: IFD-09
+    kind: designed_interface
+    name: record/log/stop（ログ記録停止）
+    intent_lines: [8, 19, 21]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: record/log/stop
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-04
+      publisher_refs: [ND-04]
+      consumer_refs: [ND-02, ND-03]
+      unit: null
+      frame: null
+      time_semantics: 自動開始した記録だけを ND-03 が地図作成終了・自律走行終了で停止。手動開始の記録は自動停止しない
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-038]
+
+  - id: IFD-10
+    kind: designed_interface
+    name: record/rosbag/start（rosbag記録開始）
+    intent_lines: [20]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: record/rosbag/start
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-04
+      publisher_refs: [ND-04]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 人の操作のみ。自動開始しない
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-040]
+
+  - id: IFD-11
+    kind: designed_interface
+    name: record/rosbag/stop（rosbag記録停止）
+    intent_lines: [20]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: record/rosbag/stop
+      message_type: std_srvs/srv/Trigger
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-04
+      publisher_refs: [ND-04]
+      consumer_refs: [ND-02]
+      unit: null
+      frame: null
+      time_semantics: 人の操作のみ
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-040]
+
+  - id: IFD-12
+    kind: designed_interface
+    name: record/status（記録状態）
+    intent_lines: [8, 43, 46]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: topic
+      name: record/status
+      message_type: diagnostic_msgs/msg/DiagnosticArray
+      standard_type: true
+      custom_type_reason: null
+      purpose: diagnostic
+      owner_ref: ND-04
+      publisher_refs: [ND-04]
+      consumer_refs: [ND-02, ND-03]
+      unit: null
+      frame: null
+      time_semantics: header.stamp は状態判定時刻。key/value に log_active・rosbag_active・session_dir・auto_started_by・last_gap
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-038]
+
+  - id: IFD-13
+    kind: designed_interface
+    name: navigate_through_poses（Nav2 action）
+    intent_lines: [14, 24, 25, 27]
+    issue_refs: [Q-01, V-001]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: action
+      name: navigate_through_poses
+      message_type: nav2_msgs/action/NavigateThroughPoses
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-10
+      publisher_refs: [ND-10]
+      consumer_refs: [ND-03]
+      unit: m, rad（PoseStamped）
+      frame: map
+      time_semantics: goal の各 pose の header.stamp は作成時刻。feedback の number_of_poses_remaining は Nav2 の通過判定（RemovePassedGoals, BT の radius）に従う。result の error_code!=NONE で失敗
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency:
+        status: confirmed_upstream
+        evidence: [research/upstream_jazzy/nav2_msgs/action/NavigateThroughPoses.action, research/upstream_jazzy/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml, research/upstream_jazzy/nav2_behavior_tree/plugins/action/remove_passed_goals_action.cpp]
+        note: 上流 jazzy（navigation2 645abd95…、nav2_msgs 1.3.13）で goal=poses[]+behavior_tree、feedback に number_of_poses_remaining、result に error_code/error_msg を確認。実車PCの版は未照合（V-001）。
+      legacy_refs: [IF-020, IF-019]
+
+  - id: IFD-14
+    kind: designed_interface
+    name: speed_limit（区間速度上限。発行元は H-001 承認待ち）
+    intent_lines: [13, 26, 27, 90]
+    issue_refs: [H-001, Q-01, V-001]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: speed_limit
+      message_type: nav2_msgs/msg/SpeedLimit
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-10]
+      unit: m/s（percentage=false）
+      frame: null
+      time_semantics: 区間境界（Nav2 feedback で waypoint i の通過が確定した時点）で進入区間の上限を1回発行。speed_limit=0.0 は無制限であり停止用途に使わない。境界時点の実速度が上限以下である保証は要求しない（RQ-I062）
+      qos: {reliability: reliable, durability: volatile, history_depth: 10}
+      version_dependency:
+        status: confirmed_upstream
+        evidence: [research/upstream_jazzy/nav2_msgs/msg/SpeedLimit.msg, research/upstream_jazzy/nav2_controller/src/controller_server.cpp]
+        note: controller_server は param speed_limit_topic（既定 "speed_limit"）を rclcpp::QoS(10) で購読し setSpeedLimit(speed_limit, percentage) を各 controller に適用。発行元は推奨案（ND-03）で、承認は人（H-001）。
+      legacy_refs: [IF-022, D-16]
+
+  - id: IFD-15
+    kind: designed_interface
+    name: cmd_vel（Nav2 controller の速度指令）
+    intent_lines: [26, 91, 80]
+    issue_refs: [Q-01, V-001, H-005, Q-05]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: cmd_vel
+      message_type: geometry_msgs/msg/Twist（jazzy 既定）／ TwistStamped（enable_stamped_cmd_vel=true の案）
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-10
+      publisher_refs: [ND-10]
+      consumer_refs: [ND-11, ND-04]
+      unit: linear.x m/s, angular.z rad/s
+      frame: base_link（軸定義は H-005 の回答まで未確定）
+      time_semantics: Twist は時刻を持たないため途絶判定は受信時刻で行う。TwistStamped 採用時は header.stamp で期限切れを判定（案）。取消時は controller_server が零速度を1回発行し、以後は発行が止まる
+      qos: {reliability: reliable, durability: volatile, history_depth: 1}
+      version_dependency:
+        status: confirmed_upstream
+        evidence: [research/upstream_jazzy/nav2_util/include/nav2_util/twist_publisher.hpp, research/upstream_jazzy/nav2_controller/src/controller_server.cpp]
+        note: controller_server は TwistPublisher(node,"cmd_vel",1) で発行し、param enable_stamped_cmd_vel で Twist/TwistStamped を切替（上流 jazzy で確認。既定値は実車PCの版で確認：V-001）。
+      legacy_refs: [IF-023, D-15]
+
+  - id: IFD-16
+    kind: designed_interface
+    name: vehicle/joystick_command（正規化ジョイスティック操作値）
+    intent_lines: [91, 49, 80]
+    issue_refs: [Q-03, Q-05]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: vehicle/joystick_command
+      message_type: sensor_msgs/msg/Joy
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-11
+      publisher_refs: [ND-11]
+      consumer_refs: [ND-12, ND-04]
+      unit: 正規化値 [-1,1]（axes[0]=前後, axes[1]=旋回。符号は Q-03 で確認）
+      frame: null
+      time_semantics: header.stamp は生成時刻。ND-12 は期限切れ（しきい値 Q-05）を中立に置き換える。古い非中立を保持しない
+      qos: {reliability: reliable, durability: volatile, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-024, IF-027, D-12]
+
+  - id: IFD-17
+    kind: designed_interface
+    name: ESP32 向け既存シリアル通信
+    intent_lines: [34, 35, 96, 49]
+    issue_refs: [Q-03, Q-09]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: serial
+      name: ESP32 serial link（既存プロトコル）
+      message_type: 既存パケット仕様（Q-03。実装リポジトリ docs/gouda_protocol_v3.md が候補資料。設計側で原本未照合）
+      standard_type: false
+      custom_type_reason: 機器固有の既存通信。vehicle_bridge の境界に閉じる（RQ-I036）
+      purpose: command
+      owner_ref: ND-12
+      publisher_refs: [ND-12]
+      consumer_refs: [M-025]
+      unit: 既存仕様に従う（未照合）
+      frame: null
+      time_semantics: 送信周期・watchdog 時間は Q-03／Q-05。ESP32 は現在採用している指令源の途絶で中立を出す（RQ-I068。本IFの契約ではなく ESP32 側の契約）
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-028]
+
+  - id: IFD-18
+    kind: designed_interface
+    name: TF map→odom
+    intent_lines: [7, 83, 14]
+    issue_refs: [Q-02, H-005]
+    sensitivity: [safety]
+    designed_interface:
+      transport: tf
+      name: /tf (map→odom)
+      message_type: tf2_msgs/msg/TFMessage
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-07
+      publisher_refs: [ND-07]
+      consumer_refs: [ND-10, ND-02, ND-16]
+      unit: m, rad
+      frame: map → odom（軸定義は H-005）
+      time_semantics: stamp は推定に用いた観測時刻。自律走行・一時停止で単独発行（RQ-I004・RQ-I058）
+      qos: {reliability: reliable, durability: volatile, history_depth: 100}
+      version_dependency: {status: none, evidence: [], note: tf2 の既定 QoS}
+      legacy_refs: [IF-007, D-17]
+
+  - id: IFD-19
+    kind: designed_interface
+    name: TF odom→base_link（モードで発行者が切り替わる）
+    intent_lines: [7, 83]
+    issue_refs: [Q-02, H-005]
+    sensitivity: [safety]
+    designed_interface:
+      transport: tf
+      name: /tf (odom→base_link)
+      message_type: tf2_msgs/msg/TFMessage
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-08
+      publisher_refs: [ND-08, ND-06]
+      consumer_refs: [ND-10, ND-07, ND-02, ND-16]
+      unit: m, rad
+      frame: odom → base_link（軸定義は H-005）
+      time_semantics: stamp は推定に用いた観測時刻。事前地図作成では GLIM（ND-06）だけ、自律走行・一時停止では ND-08 だけが発行（同一モードで同時発行しない：RQ-I004）
+      qos: {reliability: reliable, durability: volatile, history_depth: 100}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-006, D-17]
+
+  - id: IFD-20
+    kind: designed_interface
+    name: TF static base_footprint→base_link→センサ
+    intent_lines: [98, 99, 83]
+    issue_refs: [Q-11, H-005, G-PARAM]
+    sensitivity: [safety]
+    designed_interface:
+      transport: tf
+      name: /tf_static
+      message_type: tf2_msgs/msg/TFMessage
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-13
+      publisher_refs: [ND-13]
+      consumer_refs: [ND-06, ND-07, ND-08, ND-09, ND-10, ND-16]
+      unit: m, rad
+      frame: base_footprint → base_link → xt32_link, imu_link（軸定義は H-005。センサ取付値は未決 RQ-I070）
+      time_semantics: 静的。設定変更時に再発行（transient_local で後続の購読者に届く）
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-004, D-17]
+
+  - id: IFD-21
+    kind: designed_interface
+    name: sensors/xt32/points（XT-32 点群）
+    intent_lines: [1, 9, 15]
+    issue_refs: [Q-04, Q-05]
+    sensitivity: [safety]
+    designed_interface:
+      transport: topic
+      name: sensors/xt32/points
+      message_type: sensor_msgs/msg/PointCloud2
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-14
+      publisher_refs: [ND-14]
+      consumer_refs: [ND-06, ND-07, ND-08, ND-09, ND-16]
+      unit: m
+      frame: xt32_link
+      time_semantics: header.stamp は計測時刻。古い点群を新しい時刻で再発行しない
+      qos: {reliability: best_effort, durability: volatile, history_depth: 5}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-001, IF-002, D-18]
+
+  - id: IFD-22
+    kind: designed_interface
+    name: sensors/imu/data（IMU）
+    intent_lines: [1, 9]
+    issue_refs: [Q-05]
+    sensitivity: []
+    designed_interface:
+      transport: topic
+      name: sensors/imu/data
+      message_type: sensor_msgs/msg/Imu
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-15
+      publisher_refs: [ND-15]
+      consumer_refs: [ND-06, ND-08]
+      unit: m/s², rad/s（SI）
+      frame: imu_link
+      time_semantics: header.stamp は計測時刻
+      qos: {reliability: best_effort, durability: volatile, history_depth: 5}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-003]
+
+  - id: IFD-23
+    kind: designed_interface
+    name: perception/obstacle_points（障害物候補点群）
+    intent_lines: [15]
+    issue_refs: [Q-04, H-003]
+    sensitivity: [safety]
+    designed_interface:
+      transport: topic
+      name: perception/obstacle_points
+      message_type: sensor_msgs/msg/PointCloud2
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-09
+      publisher_refs: [ND-09]
+      consumer_refs: [ND-10]
+      unit: m
+      frame: xt32_link（raytrace 原点は実センサ位置）
+      time_semantics: header.stamp は元点群の計測時刻。stale を空間が空いた証拠にしない（RQ-I012）
+      qos: {reliability: best_effort, durability: volatile, history_depth: 5}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-033, D-19]
+
+  - id: IFD-24
+    kind: designed_interface
+    name: map（Nav2 map_server の静的占有地図）
+    intent_lines: [12, 14]
+    issue_refs: [Q-01]
+    sensitivity: []
+    designed_interface:
+      transport: topic
+      name: map
+      message_type: nav_msgs/msg/OccupancyGrid
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-10
+      publisher_refs: [ND-10]
+      consumer_refs: [ND-02, ND-16]
+      unit: m（resolution）
+      frame: map
+      time_semantics: 地図読込時に1回。読込版は mission_context の地図ID・ハッシュと照合
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency: {status: unconfirmed, evidence: [], note: map_server の公開 QoS は採用版で確認}
+      legacy_refs: [IF-014]
+
+  - id: IFD-25
+    kind: designed_interface
+    name: localization/odometry（局所姿勢と推定速度）
+    intent_lines: [14, 41]
+    issue_refs: [Q-02, Q-05]
+    sensitivity: [safety]
+    designed_interface:
+      transport: topic
+      name: localization/odometry
+      message_type: nav_msgs/msg/Odometry
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-08
+      publisher_refs: [ND-08]
+      consumer_refs: [ND-10, ND-03, ND-11, ND-02, ND-04]
+      unit: m, m/s, rad/s
+      frame: header=odom, child=base_link
+      time_semantics: header.stamp は推定に用いた観測時刻。速度は推定値であり実測エンコーダ値ではない（M-008 V9 の注意を維持）
+      qos: {reliability: best_effort, durability: volatile, history_depth: 5}
+      version_dependency: {status: none, evidence: [], note: Nav2 controller の odom 入力は remap で接続}
+      legacy_refs: [IF-005]
+
+  - id: IFD-26
+    kind: designed_interface
+    name: /config（センサTF等の設定。gouda_monitor が保持）
+    intent_lines: [98, 83]
+    issue_refs: [Q-11, G-PARAM]
+    sensitivity: [safety]
+    designed_interface:
+      transport: parameter
+      name: gouda_monitor /config → 永続化 YAML → ND-13 の ROS parameter
+      message_type: rcl_interfaces（ROS parameter）＋ YAML ファイル
+      standard_type: true
+      custom_type_reason: null
+      purpose: configuration
+      owner_ref: ND-02
+      publisher_refs: [ND-02]
+      consumer_refs: [ND-13]
+      unit: m, rad
+      frame: base_link → sensor frames（H-005）
+      time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-042]
+
+  - id: IFD-27
+    kind: designed_interface
+    name: /diagnostics と lifecycle 状態（各nodeの状態表示）
+    intent_lines: [45, 7]
+    issue_refs: [H-004]
+    sensitivity: [operation]
+    designed_interface:
+      transport: topic
+      name: /diagnostics, <node>/transition_event
+      message_type: diagnostic_msgs/msg/DiagnosticArray, lifecycle_msgs/msg/TransitionEvent
+      standard_type: true
+      custom_type_reason: null
+      purpose: diagnostic
+      owner_ref: null
+      publisher_refs: [ND-03, ND-04, ND-05, ND-07, ND-08, ND-09, ND-11, ND-12, ND-13]
+      consumer_refs: [ND-02, ND-04]
+      unit: null
+      frame: null
+      time_semantics: 各 node が自身の状態を発行する共有 topic。表示・記録のみに使い、停止条件にしない（H-004 の回答まで）
+      qos: {reliability: reliable, durability: volatile, history_depth: 20}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-036]
+
+  - id: IFD-28
+    kind: designed_interface
+    name: log/decision（判断・理由・走行ID・区間ID付きイベント）
+    intent_lines: [19, 40, 41, 42, 44]
+    issue_refs: [G-LOG]
+    sensitivity: [operation]
+    designed_interface:
+      transport: topic
+      name: log/decision
+      message_type: gouda_interfaces/msg/DecisionEvent（提案）
+      standard_type: false
+      custom_type_reason: 判断に理由・走行ID・区間ID・入力の時刻を構造化して付ける（RQ-I030）。rcl_interfaces/Log は自由文で ID を構造化できない。
+      purpose: diagnostic
+      owner_ref: null
+      publisher_refs: [ND-03, ND-11, ND-12]
+      consumer_refs: [ND-04]
+      unit: null
+      frame: null
+      time_semantics: header.stamp は判断時刻。参照した入力の受信時刻を別フィールドに持つ。受信していない値は記録しない（RQ-I015）
+      qos: {reliability: reliable, durability: volatile, history_depth: 50}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-039, D-24]
+
+  - id: IFD-29
+    kind: designed_interface
+    name: 地図データベース（ファイル契約）
+    intent_lines: [11, 12, 13]
+    issue_refs: [G-ARCH]
+    sensitivity: []
+    designed_interface:
+      transport: file
+      name: map_root/{lineage_id}/{artifact}/manifest.yaml ＋ 本体
+      message_type: MapManifest（YAML。由来ID・各成果物の内容ハッシュ・変換設定・変換器版・座標対応）
+      standard_type: false
+      custom_type_reason: 標準の地図ファイル（Nav2 YAML+image）に由来ID・ハッシュ・変換器版を付ける manifest が必要（RQ-I009）
+      purpose: data
+      owner_ref: ND-05
+      publisher_refs: [ND-05]
+      consumer_refs: [ND-02, ND-07, ND-10]
+      unit: m
+      frame: map
+      time_semantics: 一時領域に書いて検証後に公開（部分書込を公開しない）。同一性はファイル名でなく内容ハッシュ
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-011, IF-012, IF-013, D-01]
+
+  - id: IFD-30
+    kind: designed_interface
+    name: waypointセット（ファイル契約）
+    intent_lines: [13, 8]
+    issue_refs: [Q-12, Q-06]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: file
+      name: route_root/{waypoint_set_id}/{revision}.yaml
+      message_type: WaypointSet（YAML。参照する変換後地図のID・版・内容ハッシュ、自身の内容ハッシュ、waypoint列、区間 i→i+1 の速度上限 m/s）
+      standard_type: false
+      custom_type_reason: 区間属性としての速度上限と地図参照ハッシュを持つ標準形式がない（RQ-I010）
+      purpose: data
+      owner_ref: ND-02
+      publisher_refs: [ND-02]
+      consumer_refs: [ND-03]
+      unit: m, rad, m/s
+      frame: map
+      time_semantics: 保存ボタンで atomic に公開。実行中の run では版を固定。旧 waypoint_radius_default_m=5.0（D-02）は流用しない
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-015, IF-016, D-02, D-03]
+
+  - id: IFD-32
+    kind: designed_interface
+    name: Nav2 の plan・costmap（観察用）
+    intent_lines: [10, 40]
+    issue_refs: [Q-01]
+    sensitivity: []
+    designed_interface:
+      transport: topic
+      name: plan, local_costmap/costmap, global_costmap/costmap
+      message_type: nav_msgs/msg/Path, nav_msgs/msg/OccupancyGrid
+      standard_type: true
+      custom_type_reason: null
+      purpose: diagnostic
+      owner_ref: ND-10
+      publisher_refs: [ND-10]
+      consumer_refs: [ND-16, ND-04]
+      unit: m
+      frame: map／odom（topic ごとに固定）
+      time_semantics: Nav2 の更新時。表示欠落を制御結果の代用にしない
+      qos: {reliability: unconfirmed, durability: unconfirmed, history_depth: null}
+      version_dependency: {status: unconfirmed, evidence: [], note: Nav2 の公開 QoS に合わせる。採用版で確認}
+      legacy_refs: [IF-035]
+
+  - id: IFD-33
+    kind: designed_interface
+    name: localization/pose（地図上の推定姿勢）
+    intent_lines: [14, 92]
+    issue_refs: [Q-02, H-007]
+    sensitivity: [safety]
+    designed_interface:
+      transport: topic
+      name: localization/pose
+      message_type: geometry_msgs/msg/PoseWithCovarianceStamped
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-07
+      publisher_refs: [ND-07]
+      consumer_refs: [ND-02, ND-03, ND-04]
+      unit: m, rad
+      frame: map
+      time_semantics: header.stamp は推定に用いた観測時刻。無効な推定を到達判定に使わない（到達判定は Nav2）
+      qos: {reliability: best_effort, durability: volatile, history_depth: 5}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-008]
+
+  - id: IFD-34
+    kind: designed_interface
+    name: localization/initial_pose（人が指定した初期位置・向き）
+    intent_lines: [14]
+    issue_refs: [H-007]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: localization/initial_pose
+      message_type: geometry_msgs/msg/PoseWithCovarianceStamped
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-07]
+      unit: m, rad
+      frame: map
+      time_semantics: 開始要求（IFD-02）の引数を ND-03 が1回転送。走行中の再指定は拒否
+      qos: {reliability: reliable, durability: volatile, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-009]
+
+  - id: IFD-35
+    kind: designed_interface
+    name: GLIM 原図出力（ファイル契約）
+    intent_lines: [11, 12]
+    issue_refs: [Q-02]
+    sensitivity: []
+    designed_interface:
+      transport: file
+      name: map_root/{session_id}/source/
+      message_type: GLIM 成果物（形式は版依存）＋ manifest
+      standard_type: false
+      custom_type_reason: GLIM 固有形式。変換器（ND-05）の入力契約として manifest を付ける
+      purpose: data
+      owner_ref: ND-06
+      publisher_refs: [ND-06]
+      consumer_refs: [ND-05]
+      unit: m
+      frame: mapping_frame
+      time_semantics: 地図作成終了時に保存。保存失敗時は完成版を公開しない
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: unconfirmed, evidence: [], note: GLIM の版で形式を確認}
+      legacy_refs: [IF-011]
+
+  - id: IFD-36
+    kind: designed_interface
+    name: lifecycle 遷移サービス（モード別の有効化）
+    intent_lines: [7, 83]
+    issue_refs: [G-ARCH]
+    sensitivity: [operation]
+    designed_interface:
+      transport: service
+      name: <node>/change_state, <node>/get_state
+      message_type: lifecycle_msgs/srv/ChangeState, lifecycle_msgs/srv/GetState
+      standard_type: true
+      custom_type_reason: null
+      purpose: configuration
+      owner_ref: null
+      publisher_refs: [ND-05, ND-07, ND-08, ND-09, ND-10, ND-11, ND-12]
+      consumer_refs: [ND-01, ND-03]
+      unit: null
+      frame: null
+      time_semantics: 遷移の失敗は /diagnostics と IFD-01 に反映し monitor に表示（RQ-I004）
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-042]
+
+  - id: IFD-37
+    kind: designed_interface
+    name: map/convert（地図変換 Action）
+    intent_lines: [12, 79]
+    issue_refs: [G-ARCH]
+    sensitivity: []
+    designed_interface:
+      transport: action
+      name: map/convert
+      message_type: gouda_interfaces/action/ConvertMap（提案）
+      standard_type: false
+      custom_type_reason: 長時間で取消可能な変換処理（RQ-I054）。入力の原図ID・変換設定、feedback の進捗、result の成果物ID・ハッシュを持つ標準 action がない
+      purpose: command
+      owner_ref: ND-05
+      publisher_refs: [ND-05]
+      consumer_refs: [ND-03, ND-02]
+      unit: null
+      frame: null
+      time_semantics: 地図作成終了（TR-04）で ND-03 が自動起動。人の再変換は ND-02 から
+      qos: {reliability: reliable, durability: volatile, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-012]
+
+  # ---- 下位設計案: 4ソフトモードの遷移（kind=transition, payload あり） ----
+  - id: TR-01
+    kind: transition
+    name: 起動 → 手動走行（既定）
+    intent_lines: [94, 93, 7]
+    issue_refs: []
+    sensitivity: [operation]
+    transition:
+      from_mode_ref: null
+      to_mode_ref: MODE-MANUAL
+      event_class: boot
+      trigger: gouda.sh による起動完了。直前モードの永続記録がない、または手動走行
+      trigger_kind: system
+      owner_ref: ND-03
+      guard: 直前モード記録が存在しないか MODE-MANUAL（それ以外は TR-02）
+      actions:
+        - 共通 node を起動し、手動走行モードを IFD-01 で公開
+        - 自律走行系（ND-07〜ND-12）は非活性のまま
+        - 記録は開始しない（自動開始の契機ではない：RQ-I015）
+
+  - id: TR-02
+    kind: transition
+    name: PC再起動 → 一時停止（直前が自律走行・事前地図作成・一時停止）
+    intent_lines: [92, 36, 97, 16, 19]
+    issue_refs: [H-007]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: null
+      to_mode_ref: MODE-PAUSE
+      event_class: pc_restart
+      trigger: 起動時に直前モードの永続記録が MODE-AUTO／MODE-MAP／MODE-PAUSE
+      trigger_kind: system
+      owner_ref: ND-03
+      guard: 人の一時停止／終了操作の後なら走行を再開しない（RQ-I025）。再開は人の操作（TR-10）のみ
+      actions:
+        - 一時停止モードへ復帰する場合に必要な状態（mission_context・remaining_waypoints・stop_reason）だけを復元（RQ-I069）
+        - 旧 Nav2 goal が残っていないことを確認（Nav2 は再起動で goal を持たない）
+        - 自律走行指令の再許可はしない（一時停止への復帰のため：RQ-I069）
+        - 自動 Record は開始しない（契機ではない：RQ-I015）。再開時の自己位置初期化は H-007
+
+  - id: TR-03
+    kind: transition
+    name: 手動走行 → 事前地図作成（地図作成開始ボタン）
+    intent_lines: [9, 7, 19]
+    issue_refs: []
+    sensitivity: [operation]
+    transition:
+      from_mode_ref: MODE-MANUAL
+      to_mode_ref: MODE-MAP
+      event_class: map_start
+      trigger: 人が gouda_monitor の地図作成開始ボタンを押す（IFD-06）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）
+      actions:
+        - GLIM（ND-06）を起動・有効化。失敗は monitor に表示
+        - ログ記録が未開始なら自動開始（IFD-08。契機は人の地図作成開始ボタン：RQ-I015）
+        - 設定状況を記録（地図作成前：RQ-I015）
+
+  - id: TR-04
+    kind: transition
+    name: 事前地図作成 → 手動走行（地図作成終了ボタン。遷移先は H-008 の案）
+    intent_lines: [11, 12, 21]
+    issue_refs: [H-008]
+    sensitivity: [operation]
+    transition:
+      from_mode_ref: MODE-MAP
+      to_mode_ref: MODE-MANUAL
+      event_class: map_end
+      trigger: 人が地図作成終了ボタンを押す（IFD-07）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: なし（人の操作は常に受け付ける）
+      actions:
+        - GLIM に保存を要求し、原図を map_database へ保管（RQ-I008）。GLIM の TF 発行を停止
+        - 自動変換を Action（IFD-37）で起動。失敗しても原図は保持（RQ-I009）
+        - 自動開始したログ記録を停止。手動開始の記録は停止しない（RQ-I017）
+        - 設定状況を記録（地図作成後：RQ-I015）
+
+  - id: TR-05
+    kind: transition
+    name: 手動走行 → 自律走行（自律走行開始ボタン）
+    intent_lines: [14, 36, 19, 7, 13]
+    issue_refs: [H-001, H-005]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-MANUAL
+      to_mode_ref: MODE-AUTO
+      event_class: start
+      trigger: 人が地図とwaypointの組を選択し初期位置・向きを指定して自律走行開始ボタンを1回押す（IFD-02）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: ND-07・ND-08・ND-10 が活性、ND-06 が非活性（RQ-I004）。選択した地図・waypoint の ID と内容ハッシュが一致。追加の承認は挟まない（RQ-I011）
+      actions:
+        - 初期位置を ND-07 へ送る（IFD-34）
+        - run_id を発行し、remaining_waypoints を全区間で初期化
+        - 先頭区間の速度上限を発行（IFD-14。発行元は H-001）し、NavigateThroughPoses goal を送信（IFD-13）
+        - ログ記録が未開始なら自動開始（契機は人の自律走行開始ボタン：RQ-I015）。設定状況を記録
+        - 直前モード記録を MODE-AUTO に更新
+
+  - id: TR-06
+    kind: transition
+    name: 自律走行 → 一時停止（一時停止ボタン）
+    intent_lines: [37, 36, 19, 41, 91]
+    issue_refs: [H-002]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-PAUSE
+      event_class: pause
+      trigger: 人が gouda_monitor の一時停止ボタンを押す（IFD-03）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: なし（人の操作は常に受け付ける）
+      actions:
+        - Nav2 goal を取消（controller_server は取消時に零速度を発行）
+        - cmd_vel 途絶で ND-11 が中立（RQ-I063）。遮断経路の冗長化は H-002
+        - 停止原因区分=人の操作を記録（RQ-I029）。ログ記録は継続（RQ-I015）
+        - 直前モード記録を「人の一時停止操作あり」で更新（RQ-I025）
+
+  - id: TR-07
+    kind: transition
+    name: 自律走行 → 一時停止（Nav2 BT の失敗）
+    intent_lines: [15, 24, 41]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-PAUSE
+      event_class: nav_failure
+      trigger: NavigateThroughPoses の result が失敗（error_code != NONE）。後退・再計画は Nav2 BT の責務で尽くした結果
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 自律走行中で、人の操作による取消ではない
+      actions:
+        - Nav2 の結果（error_code・error_msg）をログに記録（RQ-I012）
+        - 停止原因区分を「計画の失敗／blocked」と「推定不能／通信途絶」で区別して記録（RQ-I012・RQ-I029）
+        - 残 waypoint は保持（再開で同じ目標へ：RQ-I014）
+
+  - id: TR-08
+    kind: transition
+    name: 自律走行 → 一時停止（最終 waypoint 到達）
+    intent_lines: [21, 95, 11]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-PAUSE
+      event_class: goal_reached
+      trigger: NavigateThroughPoses の result が成功（最終 waypoint 到達。到達判定は Nav2：RQ-I011）
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: なし
+      actions:
+        - 車体を停止（Nav2 は goal 完了で cmd_vel 発行を止める→ND-11 中立）し一時停止モードへ（RQ-I017）
+        - remaining_waypoints を「最終 waypoint のみ」にする（再開時も最終 waypoint を目指す：RQ-I067）
+        - 自動開始した記録は停止しない（人の終了操作で停止：RQ-I017）
+
+  - id: TR-09
+    kind: transition
+    name: 自律走行 → 一時停止（自動復帰不能・試行上限）
+    intent_lines: [16, 92]
+    issue_refs: [Q-05, H-006]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-PAUSE
+      event_class: recovery_failed
+      trigger: TR-13 の自動復帰が不能、または試行回数が上限（値は Q-05）に達した
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 直前モードが自律走行（他のモードからの場合は H-006）
+      actions:
+        - 理由（失敗した段階と原因区分）を記録（RQ-I013）
+        - 旧 Nav2 goal の終了または破棄を確認してから一時停止へ
+
+  - id: TR-10
+    kind: transition
+    name: 一時停止 → 自律走行（再開ボタン）
+    intent_lines: [17, 95, 19, 36]
+    issue_refs: [H-007, H-001]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-PAUSE
+      to_mode_ref: MODE-AUTO
+      event_class: resume
+      trigger: 人が再開ボタンを押す（IFD-04）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: ND-07・ND-08・ND-10 が活性で推定が有効。旧 goal が終了済み。再開地点の再設定は要求しない（RQ-I014。PC再起動後は H-007）
+      actions:
+        - remaining_waypoints（最終到達後は最終 waypoint のみ：RQ-I067）で新しい NavigateThroughPoses goal を送信
+        - 進入区間の速度上限を発行（IFD-14）
+        - 自動 Record は開始しない。記録が停止中なら人が Record で再開できる（RQ-I015）
+        - 直前モード記録を MODE-AUTO に更新
+
+  - id: TR-11
+    kind: transition
+    name: 自律走行 → 手動走行（自律走行終了ボタン）
+    intent_lines: [19, 21, 36]
+    issue_refs: [H-002]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-MANUAL
+      event_class: end
+      trigger: 人が自律走行終了ボタンを押す（IFD-05）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: なし（人の操作は常に受け付ける）
+      actions:
+        - Nav2 goal を取消し、停止原因区分=人の操作を記録
+        - 自動開始したログ記録を停止。手動開始の記録は継続（RQ-I017）
+        - 直前モード記録を MODE-MANUAL（人の終了操作あり）に更新（RQ-I025）
+        - 自律走行系（ND-07〜ND-12）を非活性化
+
+  - id: TR-12
+    kind: transition
+    name: 一時停止 → 手動走行（自律走行終了ボタン）
+    intent_lines: [19, 21, 36]
+    issue_refs: [H-002]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-PAUSE
+      to_mode_ref: MODE-MANUAL
+      event_class: end
+      trigger: 人が自律走行終了ボタンを押す（IFD-05）
+      trigger_kind: human
+      owner_ref: ND-03
+      guard: なし
+      actions:
+        - 残っている Nav2 goal があれば取消
+        - 自動開始したログ記録を停止。手動開始の記録は継続（RQ-I017）
+        - 直前モード記録を MODE-MANUAL（人の終了操作あり）に更新（RQ-I025）
+        - 自律走行系（ND-07〜ND-12）を非活性化
+
+  - id: TR-13
+    kind: transition
+    name: 自律走行中の個別異常からの自動復帰（同モードへ復帰）
+    intent_lines: [16, 92, 97, 36]
+    issue_refs: [Q-05, H-006, G-RECOVERY]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-AUTO
+      to_mode_ref: MODE-AUTO
+      event_class: fault_recovery
+      trigger: node 異常・推定不能・通信途絶の検出（lifecycle 状態・/diagnostics・IF の途絶）
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 人の一時停止／終了操作が先行していない（RQ-I025）。試行回数が上限未満（Q-05）
+      actions:
+        - 必要な場合だけプロセス再起動（RQ-I013 の依存順序の第1段。不要な故障では省く：RQ-I069）
+        - 自律走行への復帰に必要な状態だけを復元（mission_context・remaining_waypoints）
+        - 当該 mission に属する旧 Nav2 goal の終了または破棄を確認
+        - 自律走行指令の再許可（新 goal の送信）。自律走行へ復帰する場合に限る（RQ-I069）
+        - 各段階の成否を記録。人の追加承認は求めない（RQ-I013）
+
+  - id: TR-14
+    kind: transition
+    name: 事前地図作成中の個別異常からの自動復帰（同モードへ復帰）
+    intent_lines: [16, 92, 97]
+    issue_refs: [Q-05, H-006, G-RECOVERY]
+    sensitivity: [operation]
+    transition:
+      from_mode_ref: MODE-MAP
+      to_mode_ref: MODE-MAP
+      event_class: fault_recovery
+      trigger: node 異常・通信途絶の検出（GLIM・ドライバ・記録）
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 試行回数が上限未満（Q-05）
+      actions:
+        - 必要な場合だけプロセス再起動
+        - 事前地図作成に必要な状態だけを復元（記録セッションは自動開始しない：RQ-I015）
+        - 自律走行指令の再許可は行わない（RQ-I069）
+        - 各段階の成否を記録
+
+  - id: TR-15
+    kind: transition
+    name: 一時停止中の個別異常からの自動復帰（同モードへ復帰）
+    intent_lines: [16, 92, 97]
+    issue_refs: [Q-05, H-006, G-RECOVERY]
+    sensitivity: [safety, operation]
+    transition:
+      from_mode_ref: MODE-PAUSE
+      to_mode_ref: MODE-PAUSE
+      event_class: fault_recovery
+      trigger: node 異常・推定不能・通信途絶の検出
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 試行回数が上限未満（Q-05）
+      actions:
+        - 必要な場合だけプロセス再起動
+        - 一時停止への復帰に必要な状態だけを復元
+        - 自律走行指令の再許可は行わない（一時停止のまま：RQ-I069）
+        - 各段階の成否を記録
+
+  - id: TR-16
+    kind: transition
+    name: 手動走行中の個別異常からの自動復帰（同モードへ復帰）
+    intent_lines: [16, 92, 97]
+    issue_refs: [Q-05, H-006, G-RECOVERY]
+    sensitivity: [operation]
+    transition:
+      from_mode_ref: MODE-MANUAL
+      to_mode_ref: MODE-MANUAL
+      event_class: fault_recovery
+      trigger: node 異常・通信途絶の検出（手動走行では PC の自律系は非活性のため対象は monitor・recorder 等）
+      trigger_kind: automatic
+      owner_ref: ND-03
+      guard: 試行回数が上限未満（Q-05）
+      actions:
+        - 必要な場合だけプロセス再起動
+        - 手動走行に必要な状態だけを復元
+        - 自律走行指令の再許可は行わない（RQ-I069）
+        - 各段階の成否を記録
+
+  # ---- 下位設計案: 車体寸法・座標パラメータ（値は intent.md:99 の記載。実測値ではない） ----
+  - id: PRM-01
+    kind: parameter
+    name: 車体全長（直方体近似）
+    intent_lines: [99]
+    issue_refs: [H-005, Q-06]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-13, value: 1.010, value_state: source_value, unit: m}
+    interpretation: intent.md:99「全長 1,010 mm」の転記。Nav2 footprint へ使う前に軸定義（H-005）と実測（Q-06）を確認する。
+  - id: PRM-02
+    kind: parameter
+    name: 車体全幅（直方体近似）
+    intent_lines: [99]
+    issue_refs: [H-005, Q-06]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-13, value: 0.598, value_state: source_value, unit: m}
+    interpretation: intent.md:99「全幅 598 mm」の転記。
+  - id: PRM-03
+    kind: parameter
+    name: 車体全高（直方体近似）
+    intent_lines: [99]
+    issue_refs: [Q-06]
+    sensitivity: []
+    parameter: {owner_ref: ND-13, value: 0.950, value_state: source_value, unit: m}
+    interpretation: intent.md:99「全高 950 mm」の転記。
+  - id: PRM-04
+    kind: parameter
+    name: 後輪径
+    intent_lines: [99]
+    issue_refs: [Q-06]
+    sensitivity: []
+    parameter: {owner_ref: ND-13, value: 0.330, value_state: source_value, unit: m}
+    interpretation: intent.md:99「後輪径は330 mm」の転記。
+  - id: PRM-05
+    kind: parameter
+    name: base_link の高さ（後輪軸中心、base_footprint 基準）
+    intent_lines: [99]
+    issue_refs: [H-005]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-13, value: 0.165, value_state: source_value, unit: m}
+    interpretation: intent.md:99「`base_link` の高さは約 `z = 0.165 m`」の転記。「約」の値であり実測確定ではない。
+  - id: PRM-06
+    kind: parameter
+    name: ホイールベース（後輪軸→前キャスタ基準位置）
+    intent_lines: [99]
+    issue_refs: [H-005, Q-06]
+    sensitivity: []
+    parameter: {owner_ref: ND-13, value: 0.415, value_state: source_value, unit: m}
+    interpretation: intent.md:99「ホイールベースは415 mm」の転記。前キャスタ位置の符号・軸は H-005 の回答で決まる（原文は y = -0.415 m）。
+  - id: PRM-07
+    kind: parameter
+    name: 車体座標系の軸定義（原点・前方軸）
+    intent_lines: [99]
+    issue_refs: [H-005]
+    sensitivity: [safety, intent]
+    parameter: {owner_ref: ND-13, value: null, value_state: unresolved, unit: null}
+    interpretation: >-
+      intent.md:99 は原点を「左右後輪の駆動軸中央の地面投影点」、前方を -y、右方を +x、上方を +z とする。REP-103/Nav2 との衝突（C-018）が未決のため、
+      モデル上の値は未確定（null）。原文は SRC-I099 に保持。
+  - id: PRM-08
+    kind: parameter
+    name: cmd_vel 途絶判定のしきい値
+    intent_lines: [91]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-11, value: null, value_state: unresolved, unit: s}
+    interpretation: 実測（受信周期・停止応答）で決める実車値。一般的な値で埋めない。
+  - id: PRM-09
+    kind: parameter
+    name: joystick_command 期限切れのしきい値
+    intent_lines: [91]
+    issue_refs: [Q-05, Q-03]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-12, value: null, value_state: unresolved, unit: s}
+    interpretation: ESP32 の watchdog 時間（Q-03）との関係で決める実車値。
+  - id: PRM-10
+    kind: parameter
+    name: 自動復帰の試行回数上限
+    intent_lines: [16]
+    issue_refs: [Q-05]
+    sensitivity: [safety, operation]
+    parameter: {owner_ref: ND-03, value: null, value_state: unresolved, unit: 回}
+    interpretation: RQ-I013 の上限値。人が決める（Q-05）。
+  - id: PRM-11
+    kind: parameter
+    name: Nav2 RemovePassedGoals の radius（waypoint 通過判定半径）
+    intent_lines: [14]
+    issue_refs: [Q-12, Q-06]
+    sensitivity: [safety, operation]
+    parameter: {owner_ref: ND-10, value: null, value_state: unresolved, unit: m}
+    interpretation: 上流 jazzy の既定 BT では radius=0.7。旧資料の 5 m は流用しない。値は Q-12／Q-06 の回答後に人が決める。
+  - id: PRM-12
+    kind: parameter
+    name: Nav2 enable_stamped_cmd_vel
+    intent_lines: [91, 80]
+    issue_refs: [Q-01, V-001]
+    sensitivity: [safety]
+    parameter: {owner_ref: ND-10, value: null, value_state: unresolved, unit: null}
+    interpretation: 案は true（TwistStamped で期限切れ判定を可能にする）。採用版の既定値と対応は V-001 の照合後に確定。
+
+# ---------------------------------------------------------------------------
+# 既存要素の変更（追跡対象。削除はしない）
+# ---------------------------------------------------------------------------
+modifications:
+  # 非常停止検知線とラベル: 上位要求により全体を不採用（履歴保持）
+  - id: DG@x5bDQh8FaZrcMh8EckeY-164
+    set: {adoption: superseded}
+    append: {related_refs: [C-017], issue_refs: []}
+    interpretation_append: 'REV-002：RQ-I072 により押下検知機能として不採用（C-017）。図の原文・端点は保持。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-165
+    set: {adoption: superseded}
+    append: {related_refs: [C-017], issue_refs: []}
+    interpretation_append: 'REV-002: ラベル「非常押しボタン押下検知」。RQ-I072 により不採用（C-017）。'
+  # 物理ボタン・物理IF: PC外のハードウェア事実として参照保持（取得可否が判明したのではない）
+  - id: M-028
+    set: {adoption: reference_only}
+    append: {related_refs: [C-017]}
+    interpretation_append: 'REV-002: 物理ボタンと電源遮断の記載は PC 外のハードウェア事実として保持。PC/ESP32 側の押下検知は RQ-I072 により不採用（C-017）。行全体を破棄も承認もしない。'
+  - id: IF-032
+    set: {adoption: reference_only}
+    append: {related_refs: [C-017]}
+    interpretation_append: 'REV-002: 物理 IF として保持。P33「ESP32検知interfaceは今回定義しない」は RQ-I072 と整合。'
+  - id: C-014
+    append: {related_refs: [C-017]}
+    set_nested:
+      reconciliation.clarification: >-
+        REV-002: 図の検知線と Excel の取得不能記載の不一致は履歴として残す（事実としては未解決）。検知機能そのものは上位要求 RQ-I072 により不採用（C-017）。
+        「取得可否が判明した」とは扱わない。
+  - id: U-DRAW-002
+    append: {related_refs: [C-017]}
+    set_nested:
+      issue.state: partially_superseded
+      issue.resolution_refs: [C-017]
+      issue.next_action: >-
+        REV-002: 機能は RQ-I072 により不採用（C-017）のため、現物回路・既存実装での確認は設計上不要。資料間の不一致は履歴として保持し、解決済みとは記録しない。
+  # 観測不可の記載を持つ要素: 範囲外。C-017 への参照だけを付け、採用状態は変えない
+  - id: M-002
+    append: {related_refs: [C-017]}
+  - id: M-003
+    append: {related_refs: [C-017]}
+  - id: M-025
+    append: {related_refs: [C-017]}
+  - id: M-036
+    append: {related_refs: [C-017]}
+  - id: S-05
+    append: {related_refs: [C-017]}
+  - id: D-14
+    append: {related_refs: [C-017]}
+  - id: LEG-05-0008
+    append: {related_refs: [C-017]}
+  - id: CH-02
+    append: {related_refs: [C-017]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-22
+    append: {related_refs: [C-017]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-94
+    append: {related_refs: [C-017]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-23
+    append: {related_refs: [C-017]}
+  # C-006 の要約の補正（固定四段階ではなく依存順序）
+  - id: C-006
+    append: {related_refs: [C-019]}
+    set_nested:
+      reconciliation.clarification: >-
+        REV-002：RQ-I013 の［プロセス再起動 → mission状態の復元 → 旧Nav2 goalの終了または破棄の確認 → 自律走行指令の再許可］は依存順序であり、
+        毎回この4段階をすべて実行する要求ではない。RQ-I069 により、故障の種類と復帰先モードに応じて必要な処理だけを行い、
+        指令の再許可は自律走行へ復帰する場合に限る。推定不能・通信途絶（RQ-I064）ではプロセス再起動なしの復元がありうる。
+        原文どうしで一意に読めない「復旧不能時の遷移先」は C-019／H-006 に分離した。
+  # 境界が曖昧な要素: 未確認。利用可能な機能として設計に使わない
+  - id: M-014
+    boundary: {status: 未確認, decision_ref: DEC-004, note: Safety_gate の採否は H-002。回答まで実行構成に置かない}
+    append: {issue_refs: [H-002]}
+  - id: M-013
+    boundary: {status: 未確認, decision_ref: DEC-004, note: safety_supervisor の採否は H-002（permission）と H-004（heartbeat）}
+    append: {issue_refs: [H-002, H-004]}
+  - id: IF-024
+    boundary: {status: 未確認, decision_ref: DEC-004, note: Safety_gate への入力。H-002}
+    append: {issue_refs: [H-002]}
+  - id: IF-025
+    boundary: {status: 未確認, decision_ref: DEC-004, note: task/motion_enable。H-002}
+    append: {issue_refs: [H-002]}
+  - id: IF-026
+    boundary: {status: 未確認, decision_ref: DEC-004, note: safety/permission。H-002}
+    append: {issue_refs: [H-002]}
+  - id: IF-027
+    boundary: {status: 未確認, decision_ref: DEC-004, note: Safety_gate の出力。H-002。現在の案では ND-11 → ND-12 を IFD-16 で直結}
+    append: {issue_refs: [H-002]}
+  - id: IF-045
+    boundary: {status: 未確認, decision_ref: DEC-004, note: gate_status。H-002}
+    append: {issue_refs: [H-002]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-28
+    boundary: {status: 未確認, decision_ref: DEC-004, note: 図の Safety_gate。H-002}
+    append: {issue_refs: [H-002]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-163
+    boundary: {status: 未確認, decision_ref: DEC-005, note: 図の collision_stop_request 線。H-003}
+    append: {issue_refs: [H-003]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-105
+    boundary: {status: 未確認, decision_ref: DEC-005, note: 注記「緊急時はmotion_controllerに緊急停止信号をいれる」。RQ-I072 との関係は H-003}
+    append: {issue_refs: [H-003]}
+  - id: M-012
+    append: {issue_refs: [H-003]}
+    interpretation_append: 'REV-002: J14/V14 の collision_stop_request 入力は未確認（H-003）。それ以外の責務は ND-11 の案に吸収。'
+  - id: M-023
+    append: {issue_refs: [H-003]}
+    interpretation_append: 'REV-002: 今回範囲（障害物候補点群）は ND-09 の案に吸収。collision_stop_request は未確認（H-003）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-40
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat_and_status（esp32 → vehicle_bridge）。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-162
+    boundary: {status: 未確認, decision_ref: DEC-006, note: ラベル heartbeat_and_status。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-146
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat（motion_controller → safety_supervisor）。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-137
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat（crosswalk_controller → safety_supervisor）。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-160
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat ラベル。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-157
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat ラベル。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-161
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat ラベル。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@x5bDQh8FaZrcMh8EckeY-159
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat ラベル。H-004}
+    append: {issue_refs: [H-004]}
+  - id: DG@4S4QAY9o3vVNfXHAsMHo-7
+    boundary: {status: 未確認, decision_ref: DEC-006, note: 図の heartbeat ラベル（local_odometry → safety_supervisor 線上）。H-004}
+    append: {issue_refs: [H-004]}
+  - id: IF-036
+    append: {issue_refs: [H-004]}
+  - id: M-006
+    append: {issue_refs: [H-004]}
+  - id: M-017
+    append: {issue_refs: [H-004]}
+  # H-001: 採用版（上流 jazzy）での3案比較の結果を反映（承認は人）
+  - id: H-001
+    append: {issue_refs: [], related_refs: [V-001, DEC-011]}
+    set_nested:
+      issue.options:
+        - label: Gouda側発行器（gouda_mode_manager が単一発行）
+          effect: >-
+            NavigateThroughPoses の feedback number_of_poses_remaining の変化（Nav2 の RemovePassedGoals による通過判定）で区間 i→i+1 への進入を検出し、
+            進入区間の上限を SpeedLimit(percentage=false, m/s) で speed_limit topic へ1回発行。発行元は一つ。Nav2 本体の改変なし。区間境界の「進入する区間の値を適用」（RQ-I010）に直接対応。
+            境界時点の実速度保証は要求しない（RQ-I062）。独自の通過判定は作らない（Nav2 の feedback を使う）。
+        - label: Route Server（nav2_route の AdjustSpeedLimit route operation）
+          effect: >-
+            上流 jazzy に nav2_route 1.3.13 が存在。経路グラフの edge metadata（speed_tag）から SpeedLimit を発行するが percentage=true（最大速度に対する%）で m/s 指定ではない。
+            waypoint 列を route graph に変換し BT を route 系へ変える大きな構成変更。区間=edge の対応は良い。採用版・実車PCでの提供状況は未照合（V-001）。
+        - label: Speed Filter（costmap filter）
+          effect: >-
+            OccupancyGrid の mask と CostmapFilterInfo（type 1=%, 2=m/s）で領域ごとの上限を与える。区間 i→i+1 を平面領域（corridor）として塗る必要があり、
+            折れ線区間の境界をどの cell に割り当てるかの幾何定義がなく（Q-06/Q-12）、waypoint セットごとに mask の再生成が要る。境界の意味づけが「進入する区間の値」と一致しにくい。
+      issue.recommendation: >-
+        Gouda側発行器（gouda_mode_manager が単一発行）。上流 jazzy で NavigateThroughPoses の feedback と controller_server の speed_limit 購読を確認済み。
+        代替は Route Server（route graph への移行を受け入れる場合）。Speed Filter は区間境界の幾何定義が未決のため推奨しない。承認は人（DEC-011）。実車PCの版照合（V-001）が前提。
+      issue.recommendation_basis: >-
+        RQ-I020（Nav2標準のSpeedLimit経路を単一発行元から）・RQ-I010（区間境界では進入する区間の値を適用）・RQ-I011（通過判定はNav2）・RQ-I056（Nav2無改変）を同時に満たす案を優先。
+        根拠ファイル: research/upstream_jazzy/nav2_controller/src/controller_server.cpp, nav2_route/src/plugins/route_operations/adjust_speed_limit.cpp, nav2_costmap_2d/plugins/costmap_filters/speed_filter.cpp, nav2_msgs/msg/CostmapFilterInfo.msg。
+      issue.next_action: 人が DEC-011 で承認する。承認後、発行タイミング（feedback 周期）と初回区間の発行を IFD-14 の契約として固定し、V-001 で実車PCの版を照合する。
+  # Q-01: 実車PCの版は V-001 で照合中（旧記録は保持）
+  - id: Q-01
+    append: {related_refs: [V-001]}
+    set_nested:
+      issue.next_action: >-
+        REV-002: 人の申告は ROS 2 Jazzy（DEC-003）。上流 jazzy ブランチを暫定の照合先とし、実車PC上の版は V-001 で照合する。照合まで版依存IF（IFD-13〜15）は案。
+  # ゲート3レビュー用: C-001〜C-013 の「置換しない範囲」を明示
+  - id: C-001
+    set_nested:
+      reconciliation.retained_scope: >-
+        使用モード定義の各行（LEG-05-0002〜0008）の定義文・起動対象・備考は旧資料の記録として保持。M-001/M-002/M-005/M-010 の責務・入出力・非責務（I〜O列）、S-05 の Auto/P 動作（D6「Auto/P動作は確定」）、
+        D-06/D-07 のフィールド案、ST-01/ST-20 の手順は置換対象外。置換したのは「地図整備（map_edit）を runtime mode とする」部分と「一時停止を内部状態とする」部分のみ。
+  - id: C-002
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-08 の「step 0への進入区間も明示」「連続pass点はまとめて実行し、stop点と最終点は停止する」、D-03 の pose・kind・max_speed_mps の各項目、M-010/M-037 の編集・進行の責務は保持。
+        置換したのは「前点から当該点へ進む区間の属性」という帰属の向きのみ（waypoint i → i+1 の属性へ）。
+  - id: C-003
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-13 の「max_speed_mps は最高速度」「Nav2 は曲率・障害物・終点に応じて減速可」「停止は最高速度0では表現しない」、D-16 の「値0は無制限」「外部publisherとの競合禁止」、
+        IF-022 の型・topic、T-12 の観察項目、M-012 の変換・飽和・中立の責務は保持。置換したのは「減速区間へ入る前に制限速度まで減速できる設計とする」（境界での実速度保証）のみ。
+  - id: C-004
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-14 の「停止を必須にしない」、D-09 の通過イベント項目（記録用途）、ST-04/ST-17 の進捗更新・直列化の手順、T-14 の試験観点、Q-08 の問い、M-037 の進行管理、M-039 の原文は保持。
+        置換したのは「Gouda が幾何条件で通過成立を判定する」「通過証拠による再判定」の所有者のみ（Nav2 へ）。
+  - id: C-005
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-17 の「未達点を保持」「monitor の明示的な再試行で同じ未達点から」、M-011 の Nav2 境界、IF-020 の型、REF-05 の参照、ST-09/ST-10 の未達保持は保持。
+        置換したのは「既定BTの無断後退・旋回・自動リトライは導入しない」（後退・再計画を一律に外す）部分のみ。
+  - id: C-006
+    set_nested:
+      reconciliation.retained_scope: >-
+        D-22 の「map と route は永続」「保存済み達成点と未処理停止点を混同しない」、ST-11 の理由保持、ST-12 の「新鮮な観測と新 section に限定」、M-007 の停止中再初期化、M-037 の状態項目、T-21 の切り分け観点、Q-10 の monitor 断の問いは保持。
+        置換したのは「再起動時は無条件自動復帰しない案」「回復だけで自動発進しない案」「人間の再試行を受理」（自動復帰の可否と人の承認）のみ。
+  - id: C-007
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-15 の停止成立の確認方法（位置・姿勢・静止継続を別々に確認）、ST-14 の「単なる Nav2 成功だけで completed にしない」、T-24 の観察項目、M-037 の完了管理は保持。
+        置換したのは「最終点では停止成立後に mission 完了」「mission 終了後に node を停止」（最終点での自動終了）のみ。
+  - id: C-008
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-04 の「ESP32 の状態通知を待たず PC 自律指令を送る」「P 押下中の gamepad 操作を優先し、P 解放で PC 指令へ戻る」「PC 指令断は watchdog で停止」、M-025 の責務、Q-09 の問い、T-18 の試験は保持。
+        置換したのは「Bluetooth 断に対する追加処理は現状ない」を採用要件とする部分のみ（現在採用している指令源の途絶で ESP32 が中立：RQ-I068）。
+  - id: C-009
+    set_nested:
+      reconciliation.retained_scope: >-
+        M-016/M-017 の記録対象・保存先・容量の記載、IF-038〜040 の型・topic、D-24 の manifest 項目、T-23 の観点、Q-10 の問いは保持。
+        置換したのは「記録の自動開始条件」「ログと rosbag を同一操作とする」「記録失敗の扱い」に関わる部分のみ。
+  - id: C-010
+    set_nested:
+      reconciliation.retained_scope: >-
+        S-06 の「地図・経路版を選択」「人間が地図上で初期位置と向きを指定」「地図を選ぶだけで発進しない」、ST-02/ST-03 の準備確認・run_id 発行、M-002/M-007 の責務は保持。
+        置換したのは「開始後に追加の承認を挟む」読みと「準備条件の成立を人が確認してから開始」の手順のみ。
+  - id: C-011
+    set_nested:
+      reconciliation.retained_scope: >-
+        M-005/M-006/M-009 の責務、D-01/D-02 のフィールド、IF-011〜016 の保存先・形式、「部分書込を公開しない」「版不一致は失敗」は保持。
+        置換したのは「変換を人が操作で起動」「同一性をファイル名・manifest の参照で判定」の部分のみ（自動変換・由来ID・内容ハッシュへ）。
+  - id: C-012
+    set_nested:
+      reconciliation.retained_scope: >-
+        M-039 の原文（責務・非責務）、D-08 の goal/feedback/result の項目、IF-019/IF-020 の型と topic、図の gouda_progress_tracker/gouda_section_executor の記録は保持。
+        置換したのは「Gouda 側で区間実行・通過追跡を独立主体として二重に実行する」部分のみ。薄い action client（ND-03）の要否は次段階。
+  - id: C-013
+    set_nested:
+      reconciliation.retained_scope: >-
+        M-010 の編集責務・整合性確認、M-002 の操作・表示責務、M-018 の可視化と「初期位置入力の窓口は一方に」は保持。
+        置換したのは「waypoint manager を独立 GUI とする」「画面転送を使う」部分のみ。

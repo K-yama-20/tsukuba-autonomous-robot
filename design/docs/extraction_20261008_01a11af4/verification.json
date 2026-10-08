@@ -1,0 +1,322 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "モジュール定義 cell ID ordered list",
+      "pass_": true,
+      "source_count": 9286,
+      "output_count": 9286
+    },
+    {
+      "check": "モジュール定義 row ordered list",
+      "pass_": true,
+      "source_count": 1003,
+      "output_count": 1003
+    },
+    {
+      "check": "モジュール定義 XML element equality",
+      "pass_": true,
+      "source_count": 9286,
+      "output_count": 9286
+    },
+    {
+      "check": "インターフェース定義 cell ID ordered list",
+      "pass_": true,
+      "source_count": 2800,
+      "output_count": 2800
+    },
+    {
+      "check": "インターフェース定義 row ordered list",
+      "pass_": true,
+      "source_count": 500,
+      "output_count": 500
+    },
+    {
+      "check": "インターフェース定義 XML element equality",
+      "pass_": true,
+      "source_count": 2800,
+      "output_count": 2800
+    },
+    {
+      "check": "命名規則 cell ID ordered list",
+      "pass_": true,
+      "source_count": 88,
+      "output_count": 88
+    },
+    {
+      "check": "命名規則 row ordered list",
+      "pass_": true,
+      "source_count": 22,
+      "output_count": 22
+    },
+    {
+      "check": "命名規則 XML element equality",
+      "pass_": true,
+      "source_count": 88,
+      "output_count": 88
+    },
+    {
+      "check": "選択肢 cell ID ordered list",
+      "pass_": true,
+      "source_count": 171,
+      "output_count": 171
+    },
+    {
+      "check": "選択肢 row ordered list",
+      "pass_": true,
+      "source_count": 25,
+      "output_count": 25
+    },
+    {
+      "check": "選択肢 XML element equality",
+      "pass_": true,
+      "source_count": 171,
+      "output_count": 171
+    },
+    {
+      "check": "使用モード定義 cell ID ordered list",
+      "pass_": true,
+      "source_count": 56,
+      "output_count": 56
+    },
+    {
+      "check": "使用モード定義 row ordered list",
+      "pass_": true,
+      "source_count": 8,
+      "output_count": 8
+    },
+    {
+      "check": "使用モード定義 XML element equality",
+      "pass_": true,
+      "source_count": 56,
+      "output_count": 56
+    },
+    {
+      "check": "基本仕様 cell ID ordered list",
+      "pass_": true,
+      "source_count": 100,
+      "output_count": 100
+    },
+    {
+      "check": "基本仕様 row ordered list",
+      "pass_": true,
+      "source_count": 25,
+      "output_count": 25
+    },
+    {
+      "check": "基本仕様 XML element equality",
+      "pass_": true,
+      "source_count": 100,
+      "output_count": 100
+    },
+    {
+      "check": "データ契約 cell ID ordered list",
+      "pass_": true,
+      "source_count": 125,
+      "output_count": 125
+    },
+    {
+      "check": "データ契約 row ordered list",
+      "pass_": true,
+      "source_count": 25,
+      "output_count": 25
+    },
+    {
+      "check": "データ契約 XML element equality",
+      "pass_": true,
+      "source_count": 125,
+      "output_count": 125
+    },
+    {
+      "check": "状態遷移 cell ID ordered list",
+      "pass_": true,
+      "source_count": 105,
+      "output_count": 105
+    },
+    {
+      "check": "状態遷移 row ordered list",
+      "pass_": true,
+      "source_count": 21,
+      "output_count": 21
+    },
+    {
+      "check": "状態遷移 XML element equality",
+      "pass_": true,
+      "source_count": 105,
+      "output_count": 105
+    },
+    {
+      "check": "使用・開発検証 cell ID ordered list",
+      "pass_": true,
+      "source_count": 130,
+      "output_count": 130
+    },
+    {
+      "check": "使用・開発検証 row ordered list",
+      "pass_": true,
+      "source_count": 26,
+      "output_count": 26
+    },
+    {
+      "check": "使用・開発検証 XML element equality",
+      "pass_": true,
+      "source_count": 130,
+      "output_count": 130
+    },
+    {
+      "check": "未決事項 cell ID ordered list",
+      "pass_": true,
+      "source_count": 56,
+      "output_count": 56
+    },
+    {
+      "check": "未決事項 row ordered list",
+      "pass_": true,
+      "source_count": 14,
+      "output_count": 14
+    },
+    {
+      "check": "未決事項 XML element equality",
+      "pass_": true,
+      "source_count": 56,
+      "output_count": 56
+    },
+    {
+      "check": "参照・変更記録 cell ID ordered list",
+      "pass_": true,
+      "source_count": 52,
+      "output_count": 52
+    },
+    {
+      "check": "参照・変更記録 row ordered list",
+      "pass_": true,
+      "source_count": 13,
+      "output_count": 13
+    },
+    {
+      "check": "参照・変更記録 XML element equality",
+      "pass_": true,
+      "source_count": 52,
+      "output_count": 52
+    },
+    {
+      "check": "raw XLSX package byte hashes",
+      "pass_": true,
+      "source_count": 41,
+      "output_count": 41
+    },
+    {
+      "check": "independent openpyxl decoded values/formulas",
+      "pass_": true,
+      "source_count": 0,
+      "output_count": 0
+    },
+    {
+      "check": "business ID occurrence list",
+      "pass_": true,
+      "source_count": 214,
+      "output_count": 214
+    },
+    {
+      "check": "drawio ordered ID list",
+      "pass_": true,
+      "source_count": 187,
+      "output_count": 187
+    },
+    {
+      "check": "drawio edge ID + endpoints",
+      "pass_": true,
+      "source_count": 84,
+      "output_count": 84
+    },
+    {
+      "check": "drawio labels",
+      "pass_": true,
+      "source_count": 187,
+      "output_count": 187
+    },
+    {
+      "check": "drawio all attributes",
+      "pass_": true,
+      "source_count": 187,
+      "output_count": 187
+    },
+    {
+      "check": "drawio full XML including geometry",
+      "pass_": true,
+      "source_count": 187,
+      "output_count": 187
+    },
+    {
+      "check": "drawio_parts.csv logical record count",
+      "pass_": true,
+      "source_count": 101,
+      "output_count": 101
+    },
+    {
+      "check": "drawio_connections.csv logical record count",
+      "pass_": true,
+      "source_count": 84,
+      "output_count": 84
+    },
+    {
+      "check": "excel_cells.csv logical record count",
+      "pass_": true,
+      "source_count": 12969,
+      "output_count": 12969
+    },
+    {
+      "check": "excel_rows.csv logical record count",
+      "pass_": true,
+      "source_count": 1682,
+      "output_count": 1682
+    },
+    {
+      "check": "drawio duplicate IDs",
+      "pass_": true,
+      "source_count": 0,
+      "output_count": 0
+    },
+    {
+      "check": "Excel duplicate definition IDs",
+      "pass_": true,
+      "source_count": 0,
+      "output_count": 0
+    },
+    {
+      "check": "sources unchanged",
+      "pass_": true,
+      "source_count": 2,
+      "output_count": 2
+    }
+  ],
+  "source_issues": [
+    {
+      "page": "lc-_yTM2-hEJOly5ozWo",
+      "id": "2TSgiu6-nVzXwyzMdGmE-18",
+      "issue": "unbound_endpoint",
+      "field": "target"
+    }
+  ],
+  "counts": {
+    "sheets": 11,
+    "stored_rows": 1682,
+    "content_rows": 266,
+    "stored_cells": 12969,
+    "content_cells": 2360,
+    "business_id_whole_cell_occurrences": 214,
+    "definition_ids": 198,
+    "drawio_objects": 187,
+    "vertices": 101,
+    "edges": 84
+  },
+  "status_counts": {
+    "excel_rows": {
+      "未決": 254,
+      "確定": 12
+    },
+    "drawio": {
+      "未決": 187
+    }
+  }
+}

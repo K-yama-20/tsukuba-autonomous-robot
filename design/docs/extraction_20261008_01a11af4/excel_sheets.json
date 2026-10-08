@@ -1,0 +1,200 @@
+[
+  {
+    "name": "モジュール定義",
+    "attributes": {
+      "state": "visible",
+      "name": "モジュール定義",
+      "sheetId": "1",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId5"
+    },
+    "part": "xl/worksheets/sheet1.xml",
+    "dimension": null,
+    "stored_rows": 1003,
+    "content_rows": 40,
+    "nonempty_rows": 40,
+    "stored_cells": 9286,
+    "content_cells": 753,
+    "nonempty_cells": 691,
+    "merges": []
+  },
+  {
+    "name": "インターフェース定義",
+    "attributes": {
+      "state": "visible",
+      "name": "インターフェース定義",
+      "sheetId": "2",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId6"
+    },
+    "part": "xl/worksheets/sheet2.xml",
+    "dimension": null,
+    "stored_rows": 500,
+    "content_rows": 47,
+    "nonempty_rows": 47,
+    "stored_cells": 2800,
+    "content_cells": 749,
+    "nonempty_cells": 749,
+    "merges": []
+  },
+  {
+    "name": "命名規則",
+    "attributes": {
+      "state": "visible",
+      "name": "命名規則",
+      "sheetId": "3",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId7"
+    },
+    "part": "xl/worksheets/sheet3.xml",
+    "dimension": null,
+    "stored_rows": 22,
+    "content_rows": 22,
+    "nonempty_rows": 22,
+    "stored_cells": 88,
+    "content_cells": 88,
+    "nonempty_cells": 88,
+    "merges": []
+  },
+  {
+    "name": "選択肢",
+    "attributes": {
+      "state": "hidden",
+      "name": "選択肢",
+      "sheetId": "4",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId8"
+    },
+    "part": "xl/worksheets/sheet4.xml",
+    "dimension": null,
+    "stored_rows": 25,
+    "content_rows": 25,
+    "nonempty_rows": 25,
+    "stored_cells": 171,
+    "content_cells": 146,
+    "nonempty_cells": 85,
+    "merges": []
+  },
+  {
+    "name": "使用モード定義",
+    "attributes": {
+      "state": "visible",
+      "name": "使用モード定義",
+      "sheetId": "5",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId9"
+    },
+    "part": "xl/worksheets/sheet5.xml",
+    "dimension": null,
+    "stored_rows": 8,
+    "content_rows": 8,
+    "nonempty_rows": 7,
+    "stored_cells": 56,
+    "content_cells": 56,
+    "nonempty_cells": 49,
+    "merges": []
+  },
+  {
+    "name": "基本仕様",
+    "attributes": {
+      "state": "visible",
+      "name": "基本仕様",
+      "sheetId": "6",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId10"
+    },
+    "part": "xl/worksheets/sheet6.xml",
+    "dimension": null,
+    "stored_rows": 25,
+    "content_rows": 25,
+    "nonempty_rows": 25,
+    "stored_cells": 100,
+    "content_cells": 100,
+    "nonempty_cells": 100,
+    "merges": []
+  },
+  {
+    "name": "データ契約",
+    "attributes": {
+      "state": "visible",
+      "name": "データ契約",
+      "sheetId": "7",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId11"
+    },
+    "part": "xl/worksheets/sheet7.xml",
+    "dimension": null,
+    "stored_rows": 25,
+    "content_rows": 25,
+    "nonempty_rows": 25,
+    "stored_cells": 125,
+    "content_cells": 125,
+    "nonempty_cells": 125,
+    "merges": []
+  },
+  {
+    "name": "状態遷移",
+    "attributes": {
+      "state": "visible",
+      "name": "状態遷移",
+      "sheetId": "8",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId12"
+    },
+    "part": "xl/worksheets/sheet8.xml",
+    "dimension": null,
+    "stored_rows": 21,
+    "content_rows": 21,
+    "nonempty_rows": 21,
+    "stored_cells": 105,
+    "content_cells": 105,
+    "nonempty_cells": 105,
+    "merges": []
+  },
+  {
+    "name": "使用・開発検証",
+    "attributes": {
+      "state": "visible",
+      "name": "使用・開発検証",
+      "sheetId": "9",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId13"
+    },
+    "part": "xl/worksheets/sheet9.xml",
+    "dimension": null,
+    "stored_rows": 26,
+    "content_rows": 26,
+    "nonempty_rows": 26,
+    "stored_cells": 130,
+    "content_cells": 130,
+    "nonempty_cells": 130,
+    "merges": []
+  },
+  {
+    "name": "未決事項",
+    "attributes": {
+      "state": "visible",
+      "name": "未決事項",
+      "sheetId": "10",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId14"
+    },
+    "part": "xl/worksheets/sheet10.xml",
+    "dimension": null,
+    "stored_rows": 14,
+    "content_rows": 14,
+    "nonempty_rows": 14,
+    "stored_cells": 56,
+    "content_cells": 56,
+    "nonempty_cells": 56,
+    "merges": []
+  },
+  {
+    "name": "参照・変更記録",
+    "attributes": {
+      "state": "visible",
+      "name": "参照・変更記録",
+      "sheetId": "11",
+      "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId15"
+    },
+    "part": "xl/worksheets/sheet11.xml",
+    "dimension": null,
+    "stored_rows": 13,
+    "content_rows": 13,
+    "nonempty_rows": 13,
+    "stored_cells": 52,
+    "content_cells": 52,
+    "nonempty_cells": 52,
+    "merges": []
+  }
+]

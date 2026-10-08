@@ -1,0 +1,182 @@
+{
+  "scope": "下位設計案（REV-002）の設計整合性。移行忠実性は migration_validation.json。合格は設計承認・ROS動作確認・実車検証を意味しない。",
+  "result_counts": {
+    "合格": 11,
+    "違反": 0,
+    "未判定": 4
+  },
+  "overall": "違反0件・未判定4件",
+  "rules": [
+    {
+      "id": "DR-01",
+      "description": "参照切れ・型不一致がない",
+      "basis": "依頼5「参照切れ」、CLAUDE.md 1.8（IDと参照関係）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-02",
+      "description": "所有者不明がない（IFのデータ所有者、状態の所有者、TFの単独所有）",
+      "basis": "RQ-I059（intent.md:84 IFにデータの所有者を定義）、RQ-I058（intent.md:83 同じTFを複数nodeから発行しない）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-03",
+      "description": "モード内の発行者競合がない（指令・データtopicとTF）",
+      "basis": "RQ-I004（intent.md:7 競合する推定器・TF発行者は同時に有効化しない）、RQ-I020（intent.md:26 SpeedLimitは単一の発行元）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-04",
+      "description": "状態遷移の整合（4モード、起動既定、到達可能性、必須イベント、自律開始は人の操作のみ）",
+      "basis": "RQ-I065（intent.md:93）、RQ-I066（intent.md:94）、RQ-I025（intent.md:36）、RQ-I064（intent.md:92）、依頼4の7イベント",
+      "result": "未判定",
+      "violations": [],
+      "undetermined": [
+        "TR-09: 遷移先/復元内容が人の判断待ち ['Q-05']",
+        "TR-13: 遷移先/復元内容が人の判断待ち ['Q-05']",
+        "TR-14: 遷移先/復元内容が人の判断待ち ['Q-05']",
+        "TR-15: 遷移先/復元内容が人の判断待ち ['Q-05']",
+        "TR-16: 遷移先/復元内容が人の判断待ち ['Q-05']"
+      ]
+    },
+    {
+      "id": "DR-05",
+      "description": "要求の対応漏れがない（対象範囲の上位要求が設計要素または問題に対応付く）",
+      "basis": "依頼5「要求の対応漏れ」、RQ-I061（intent.md:86 機械可読モデルで管理）",
+      "result": "未判定",
+      "violations": [],
+      "undetermined": [
+        "RQ-I027（intent.md:38）は問題/衝突 ['H-002', 'H-004'] だけで対応。設計要素は人の判断待ち",
+        "RQ-I072（intent.md:101）は問題/衝突 ['C-017', 'C-020', 'H-003'] だけで対応。設計要素は人の判断待ち"
+      ]
+    },
+    {
+      "id": "DR-06",
+      "description": "非常停止検知・PC側非常停止機構を設計要素に含めない",
+      "basis": "RQ-I072（intent.md:100）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-07",
+      "description": "未確認の境界要素を利用可能な機能として設計に使わない",
+      "basis": "依頼2「回答があるまでは未確認とし、利用可能な機能として設計に使わない」",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-08",
+      "description": "既存契約（手動優先・人の一時停止操作・ESP32の中立化）を維持し参照している",
+      "basis": "RQ-I023（intent.md:34）、RQ-I026（intent.md:37）、RQ-I068（intent.md:96）、RQ-I024（intent.md:35）、RQ-I063（intent.md:91）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-09",
+      "description": "新しいモード・保護・承認操作を追加していない",
+      "basis": "RQ-I065（4モードのみ）、RQ-I027（intent.md:38 保護を独断で増やさない）、RQ-I011（intent.md:14 追加の承認を挟まない）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-10",
+      "description": "版依存IFを確定扱いしていない",
+      "basis": "RQ-I021（intent.md:27）、依頼4「版に依存するIFは…確認できるまで確定しない」",
+      "result": "未判定",
+      "violations": [],
+      "undetermined": [
+        "IFD-35: 版・QoSの照合待ち",
+        "IFD-38: 版・QoSの照合待ち"
+      ]
+    },
+    {
+      "id": "DR-11",
+      "description": "実車値・未確定値を一般値で埋めていない",
+      "basis": "RQ-I060（intent.md:85）、CLAUDE.md 1.5、依頼4「実車値を一般的な値で埋めない」",
+      "result": "未判定",
+      "violations": [],
+      "undetermined": [
+        "PAR-M-001: 値未確定 ['G-PARAM']",
+        "PAR-M-002: 値未確定 ['G-PARAM']",
+        "PAR-M-003: 値未確定 ['G-PARAM']",
+        "PAR-M-004: 値未確定 ['G-PARAM']",
+        "PAR-M-005: 値未確定 ['G-PARAM']",
+        "PAR-M-006: 値未確定 ['G-PARAM']",
+        "PAR-M-007: 値未確定 ['G-PARAM']",
+        "PAR-M-008: 値未確定 ['G-PARAM']",
+        "PAR-M-009: 値未確定 ['G-PARAM']",
+        "PAR-M-010: 値未確定 ['G-PARAM']",
+        "PAR-M-011: 値未確定 ['Q-07', 'Q-12', 'G-PARAM']",
+        "PAR-M-012: 値未確定 ['G-PARAM']",
+        "PAR-M-013: 値未確定 ['G-PARAM']",
+        "PAR-M-014: 値未確定 ['G-PARAM']",
+        "PAR-M-015: 値未確定 ['G-PARAM']",
+        "PAR-M-016: 値未確定 ['G-PARAM']",
+        "PAR-M-017: 値未確定 ['G-PARAM']",
+        "PAR-M-018: 値未確定 ['G-PARAM']",
+        "PAR-M-019: 値未確定 ['G-PARAM']",
+        "PAR-M-020: 値未確定 ['G-PARAM']",
+        "PAR-M-023: 値未確定 ['G-PARAM']",
+        "PAR-M-025: 値未確定 ['G-PARAM']",
+        "PAR-M-037: 値未確定 ['G-PARAM']",
+        "PAR-M-038: 値未確定 ['Q-11', 'G-PARAM']",
+        "PRM-09: 値未確定 ['Q-05', 'Q-03', 'H-009']",
+        "PRM-10: 値未確定 ['Q-05']",
+        "PRM-11: 値未確定 ['Q-12', 'Q-06']",
+        "PRM-12: 値未確定 ['Q-01', 'V-001']",
+        "PRM-14: 値未確定 ['H-009', 'Q-03', 'G-FIRMWARE']",
+        "PRM-15: 値未確定 ['Q-05', 'H-010']",
+        "PRM-16: 値未確定 ['Q-05']",
+        "PRM-17: 値未確定 ['Q-05', 'Q-06']",
+        "PRM-18: 値未確定 ['Q-06']",
+        "PRM-19: 値未確定 ['Q-06', 'G-TUNING', 'H-013']",
+        "PRM-20: 値未確定 ['H-011', 'Q-06']",
+        "PRM-22: 値未確定 ['G-TUNING']",
+        "PRM-23: 値未確定 ['G-TUNING']",
+        "PRM-24: 値未確定 ['G-TUNING']"
+      ]
+    },
+    {
+      "id": "DR-12",
+      "description": "旧設計候補を自動採用せず、行全体の破棄・承認をしていない",
+      "basis": "依頼3・4、CLAUDE.md 1.8（確定／設計案／提案／未解決の区別）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-13",
+      "description": "旧値の5 mを流用していない",
+      "basis": "依頼4「旧値の5 mを流用しない」",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-14",
+      "description": "人の判断・資料不足の問題はすべて判断台帳に項目がある",
+      "basis": "RQ-I073（intent.md:87 決定は全て判断台帳に記録せよ。旧Qで台帳項目がないものも記録対象）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-15",
+      "description": "設定値は正本で一度だけ宣言され、生成物と一致し、コードにハードコードされていない",
+      "basis": "RQ-I076（intent.md:103 実測値はプログラムにハードコードせず、宣言的に書く）、RQ-I058（intent.md:83 設定はROS parameterで行う）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    }
+  ]
+}

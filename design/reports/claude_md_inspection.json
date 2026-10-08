@@ -1,0 +1,26 @@
+{
+  "source": "CLAUDE.md",
+  "source_sha256": "2c90ed2183c8361177f943f4802d9e219c1c750fa0b1cbaf78d45dbcb169df3b",
+  "source_lines": 186,
+  "trailing_newline": false,
+  "numbered_lines": 185,
+  "numbering_first": 18,
+  "numbering_last": 202,
+  "numbering_consecutive": true,
+  "stripped_prefixes": 185,
+  "lines_kept_unchanged": [
+    1
+  ],
+  "proposal_sha256": "4e071b7ee8ca6ed3e1e31521fd46050e1e2f15d05d4b34ed9caf852b52b10111",
+  "proposal_lines": 186,
+  "unconfirmed": [
+    "numbers 1..17 are absent: whether lines existed before the first heading is unknown; no text is proposed for them"
+  ],
+  "sources_checked": [
+    "tsukuba-autonomous-robot git history (no CLAUDE.md ever tracked)",
+    "workspace .bkp files (drawio only)",
+    "mi3 editor DocumentData (preferences only, no content)",
+    "~/.claude/CLAUDE.md (different file: global instructions)",
+    "Spotlight copies in other projects (unrelated)"
+  ]
+}

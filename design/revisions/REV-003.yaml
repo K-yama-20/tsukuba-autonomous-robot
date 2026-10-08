@@ -1,0 +1,213 @@
+# 変更セット REV-003（H-005 の回答の反映、実車PC版の照合による V-001・Q-01 の解消）
+# 適用: design/tools/apply_revision.py REV-003
+id: REV-003
+date: '2026-10-09'
+summary: >-
+  H-005（base_link の軸定義）の人の回答を判断台帳に原文で記録し、C-018 を決定により解消。LiDAR・IMU の座標方向は gouda_monitor の /config で指定し、
+  静的TF発行（ND-13）が Nav2 前提（REP-103 の base_link）へ変換する方針を下位設計案に反映。実車PC の出力を証拠ファイルとして保存し、
+  ROS 2 Jazzy / Nav2 1.3.13 の照合により V-001・Q-01 を解消。版依存IFを「実車版照合済み」へ更新。上流で確認した map/costmap/plan の QoS を反映。
+basis_refs: [DEC-007, DEC-012]
+intent_version_copy: design/baselines/intent_history/intent_v2_1e087b30ddb6.md  # この変更セットの intent_lines は第2版の行番号（2026-10-09 追記）
+
+files:
+  - id: FILE-VEHICLE-PC
+    path: design/research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt
+    role: evidence
+
+decision_updates:
+  - id: DEC-007
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: lidarやIMUの座標方向はgouda_monitorで指定することとし、内部でNav2前提の方向に変換する方針を採用する。
+      resulting_refs: [H-005, C-018, PRM-07, ND-13, IFD-26, P-001]
+      note: >-
+        回答は H-005 の選択肢「base_linkはREP-103、LiDAR系はセンサframeの回転で表す」に相当し、センサ座標方向の指定を gouda_monitor の /config に置く点を追加する。
+        intent.md:99 の文言（-y前方・+x右方）は人が所有するファイルのため AI は変更していない（P-001）。
+
+decisions:
+  - id: DEC-012
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 実車PC の OS・ROS 2・Nav2 版の確認コマンドの出力（V-001）
+    answer_verbatim: |
+      aya@aya-Parallels-ARM-Virtual-Machine:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)"
+      PRETTY_NAME="Ubuntu 24.04.5 LTS"
+      NAME="Ubuntu"
+      VERSION_ID="24.04"
+      VERSION="24.04.5 LTS (Noble Numbat)"
+      VERSION_CODENAME=noble
+      ID=ubuntu
+      ID_LIKE=debian
+      HOME_URL="https://www.ubuntu.com/"
+      SUPPORT_URL="https://help.ubuntu.com/"
+      BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+      PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+      UBUNTU_CODENAME=noble
+      LOGO=ubuntu-logo
+      jazzy
+      ii  ros-jazzy-nav2-bringup                           1.3.13-1noble.20260907.050450                    arm64        Bringup scripts and configurations for the Nav2 stack
+      ii  ros-jazzy-nav2-bt-navigator                      1.3.13-1noble.20260903.005322                    arm64        Nav2 BT Navigator Server
+      ii  ros-jazzy-nav2-controller                        1.3.13-1noble.20260903.005511                    arm64        Controller action interface
+      ii  ros-jazzy-nav2-msgs                              1.3.13-1noble.20260902.193503                    arm64        Messages and service files for the Nav2 stack
+      ii  ros-jazzy-nav2-route                             1.3.13-1noble.20260903.010339                    arm64        A Route Graph planner to compliment the Planner Server
+      ii  ros-jazzy-navigation2                            1.3.13-1noble.20260907.041002                    arm64        ROS2 Navigation Stack
+    affected_refs: [Q-01, V-001, ND-10, IFD-13, IFD-14, IFD-15]
+    resulting_refs: [FILE-VEHICLE-PC]
+    note: >-
+      Ubuntu 24.04.5 LTS（arm64）、/opt/ros/jazzy、Nav2 パッケージ版 1.3.13（navigation2, bringup, bt-navigator, controller, msgs, route）。
+      上流 jazzy ブランチ commit 645abd95 の package.xml version 1.3.13 と一致。パッケージ版での照合であり、インストール済みバイナリ内の IDL を直接読んだものではない。
+  - id: DEC-013
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: intent.md:99 の座標系の文言（-y前方・+x右方）を DEC-007 の方針に合わせて人が更新するか（P-001）
+    answer_verbatim: ''
+    affected_refs: [RQ-I071]
+    resulting_refs: [P-001]
+    note: intent.md は人が所有する。AI は編集しない。
+
+entities:
+  - id: P-001
+    kind: issue
+    name: intent.md:99 の座標系文言の更新案（人の作業）
+    intent_lines: [99, 80, 2]
+    related_refs: [C-018, DEC-007, DEC-013]
+    sensitivity: [intent]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I071]
+      resolution_refs: []
+      question: >-
+        DEC-007 により base_link は Nav2 前提（REP-103：x前方・y左方・z上方）とし、LiDAR・IMU の座標方向は gouda_monitor の /config で指定して内部で変換する。
+        intent.md:99 は「-y方向を車体前方、+x方向を車体右方、+z方向を上方」と記したまま。文言を更新するか、現文を残して判断台帳で補足するか。
+      next_action: 人が intent.md を編集する場合は、編集後に authority revision（AR-003）として記録・検証する。AI は編集しない。
+      options:
+        - label: intent.md:99 を人が更新する
+          effect: 車体座標系を REP-103 とし、センサ座標方向は /config 指定・内部変換と明記。次の authority revision で機械検証。
+        - label: 現文を残し判断台帳（DEC-007）で補足する
+          effect: 正本と上位要求の文言が一致しない状態が続く。C-018 は resolved_by_decision のまま。
+      recommendation: intent.md:99 を人が更新する
+      recommendation_basis: 上位要求の文言と採用方針を一致させ、以後の読み直しで衝突が再発しないようにする。
+
+modifications:
+  - id: H-005
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-007]
+      issue.next_action: >-
+        回答済み（DEC-007）。base_link は REP-103。LiDAR・IMU の座標方向は gouda_monitor の /config（IFD-26）で指定し、静的TF発行（ND-13）が Nav2 前提へ変換する。
+        intent.md:99 の文言更新は P-001。
+  - id: C-018
+    set_nested:
+      reconciliation.state: resolved_by_decision
+      reconciliation.decision_ref: DEC-007
+      reconciliation.clarification: >-
+        REV-003: 人の回答（DEC-007 原文「lidarやIMUの座標方向はgouda_monitorで指定することとし、内部でNav2前提の方向に変換する方針を採用する。」）により、
+        base_link/base_footprint は REP-103（x前方・y左方・z上方）とし、RQ-I071 の「LiDARの座標系に合わせた -y 前方」はセンサ座標方向の指定値として /config に置き、
+        ND-13 の静的TF（回転）で変換する。RQ-I071 の寸法・原点・base_link 高さの値はそのまま使う。intent.md:99 の文言は未更新（P-001）。
+  - id: V-001
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-012, FILE-VEHICLE-PC]
+      issue.next_action: >-
+        解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。
+        上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。
+  - id: Q-01
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-012, FILE-VEHICLE-PC]
+      issue.next_action: >-
+        REV-003: 採用版は実車PCの実測で ROS 2 Jazzy / Nav2 1.3.13 と確定（DEC-012）。NavigateThroughPoses・SpeedLimit・cmd_vel の IDL と既定値は上流 jazzy 645abd95 で確認（IFD-13〜15）。
+  - id: IFD-13
+    set_nested:
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_msgs/action/NavigateThroughPoses.action, research/upstream_jazzy/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml, research/upstream_jazzy/nav2_behavior_tree/plugins/action/remove_passed_goals_action.cpp]
+        note: 実車PC nav2_msgs 1.3.13（DEC-012）と上流 jazzy 645abd95（nav2_msgs 1.3.13）が版一致。goal=poses[]+behavior_tree、feedback number_of_poses_remaining、result error_code/error_msg。
+  - id: IFD-14
+    set_nested:
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_msgs/msg/SpeedLimit.msg, research/upstream_jazzy/nav2_controller/src/controller_server.cpp]
+        note: 実車PC nav2_controller / nav2_msgs 1.3.13 と版一致。controller_server は speed_limit_topic（既定 "speed_limit"）を QoS(10) で購読。発行元の承認は H-001（DEC-011）で未。
+  - id: IFD-15
+    set_nested:
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_util/include/nav2_util/twist_publisher.hpp, research/upstream_jazzy/nav2_controller/src/controller_server.cpp]
+        note: 実車PC nav2_controller 1.3.13 と版一致。TwistPublisher(node,"cmd_vel",1)、enable_stamped_cmd_vel で Twist/TwistStamped 切替。既定値の採用は PRM-12（未確定）。
+      designed_interface.frame: base_link（REP-103：x前方・y左方・z上方。DEC-007）
+  - id: IFD-24
+    set_nested:
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_map_server/src/map_server/map_server.cpp]
+        note: map_server は OccupancyGrid を QoS(KeepLast(1)).transient_local().reliable() で発行（上流 jazzy 115-118 行）。実車PC navigation2 1.3.13 と版一致。
+  - id: IFD-32
+    set_nested:
+      designed_interface.qos: {reliability: reliable, durability: volatile, history_depth: 1}
+      designed_interface.time_semantics: Nav2 の更新時。plan は planner_server が QoS(1)（reliable/volatile）、costmap は Costmap2DPublisher が KeepLast(1).transient_local().reliable() で発行。表示欠落を制御結果の代用にしない
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_planner/src/planner_server.cpp, research/upstream_jazzy/nav2_costmap_2d/src/costmap_2d_publisher.cpp]
+        note: planner_server.cpp 150 行、costmap_2d_publisher.cpp 70-82 行（上流 jazzy）。実車PC navigation2 1.3.13 と版一致。
+  - id: IFD-18
+    set_nested:
+      designed_interface.frame: map → odom（base_link は REP-103。DEC-007）
+  - id: IFD-19
+    set_nested:
+      designed_interface.frame: odom → base_link（REP-103：x前方・y左方・z上方。DEC-007）
+  - id: IFD-20
+    set_nested:
+      designed_interface.frame: base_footprint → base_link（REP-103）→ xt32_link, imu_link（センサの座標方向は /config の指定値から ND-13 が回転として変換。取付値は未決 RQ-I070）
+  - id: IFD-21
+    set_nested:
+      designed_interface.frame: xt32_link（LiDAR 固有の座標方向。base_link への変換は IFD-20 の静的TF）
+  - id: IFD-23
+    set_nested:
+      designed_interface.frame: xt32_link（raytrace 原点は実センサ位置。base_link への変換は IFD-20）
+  - id: IFD-26
+    set_nested:
+      designed_interface.unit: m, rad。LiDAR・IMU の座標方向（各軸の向き）の指定を含む
+      designed_interface.frame: base_link（REP-103）→ sensor frames。センサ座標方向の指定値は人が gouda_monitor で入力（DEC-007）
+      designed_interface.time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新
+  - id: ND-13
+    set_nested:
+      ros_node.responsibilities:
+        - base_footprint→base_link（REP-103：x前方・y左方・z上方）、base_link→各センサ frame の静的TFを単独で発行（RQ-I058）
+        - gouda_monitor の /config（IFD-26）で人が指定した LiDAR・IMU の座標方向と取付位置を読み、Nav2 前提の方向への変換を静的TFの回転として表す（DEC-007）
+        - センサ取付値は未決（RQ-I070）。値が未入力のときは TF を発行せず準備不成立として表示する
+      ros_node.placement_rationale: robot_state_publisher（URDF）か static_transform_publisher かは Q-11。軸の変換は TF のみで行い、点群・IMU データ自体を書き換えない（元 topic を上書きしない）。
+  - id: SO-03
+    set_nested:
+      state_owner.state_items:
+        - name: tf_config_store
+          description: センサ類の取付位置・姿勢と、LiDAR・IMU の座標方向の指定（DEC-007）。値は未決（RQ-I070）。タブ遷移で消えない
+          persistence: persisted
+          restore_scope: 起動時に読み込み ND-13 へ渡す（IFD-26）
+        - name: ui_selection
+          description: 地図とwaypointの組の選択、初期位置・向きの入力値（開始要求 IFD-02 の引数になる）
+          persistence: volatile
+          restore_scope: mission の正本ではない（正本は SO-01）
+        - name: waypoint_edit_buffer
+          description: waypoint・区間速度上限の編集中データと未保存フラグ
+          persistence: volatile
+          restore_scope: 保存ボタンで IFD-30 へ書き出す
+  - id: PRM-07
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-007
+    set_nested:
+      parameter.value: 原点=左右後輪の駆動軸中央の地面投影点（RQ-I071）。軸=REP-103（x前方・y左方・z上方）。LiDAR・IMU の座標方向は gouda_monitor の /config で指定し ND-13 が静的TFで変換
+      parameter.value_state: approved
+    interpretation_append: 'REV-003: DEC-007 により確定。RQ-I071 の -y 前方の記述はセンサ座標方向の指定値として扱う。intent.md:99 の文言更新は P-001。'

@@ -1,0 +1,40 @@
+std_msgs/Header header
+
+uint8 MODE_BOOT_SAFE=0
+uint8 MODE_MANUAL_SAFE=1
+uint8 MODE_READY=2
+uint8 MODE_ARMING=3
+uint8 MODE_DRIVE=4
+uint8 MODE_CALIBRATING=5
+uint8 MODE_FAILSAFE=6
+
+uint32 WARNING_ADC_UNAVAILABLE=1
+uint32 WARNING_OUTPUT_MISMATCH_X=2
+uint32 WARNING_OUTPUT_MISMATCH_Y=4
+uint32 WARNING_ENCODER_STALE=8
+uint32 WARNING_LOG_UNAVAILABLE=16
+uint32 WARNING_CONFIG_STORE=32
+uint32 WARNING_USB_WATCHDOG=64
+uint32 WARNING_FRAME_CRC=128
+uint32 WARNING_SEQUENCE_GAP=256
+uint32 WARNING_ARM_VERIFICATION=512
+uint32 WARNING_CALIBRATION_FAILED=1024
+
+uint8 mode
+bool relay_energized
+bool config_valid
+bool encoder_valid
+bool rearm_required
+uint32 warnings
+uint32 command_age_ms
+uint32 encoder_age_ms
+float32 command_x
+float32 command_y
+uint16 target_x_mv
+uint16 target_y_mv
+uint16 actual_x_mv
+uint16 actual_y_mv
+int32 left_mm_s
+int32 right_mm_s
+uint32 config_generation
+uint16 last_calibration_failure

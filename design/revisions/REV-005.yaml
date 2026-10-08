@@ -1,0 +1,561 @@
+# 変更セット REV-005（2026-10-09 第2便の回答: H-009 対応表、H-010 firmware 書き直し、H-001 Speed Filter、実車値・GLIM版・firmware版の方針）
+# 適用: design/tools/apply_revision.py REV-005
+id: REV-005
+date: '2026-10-09'
+summary: >-
+  H-001 を Speed Filter（costmap filter）発行に変更し IFD-14・IFD-41・IFD-42・試験を更新。H-010 は ESP32 firmware の書き直しで解消し、参照 Joystick270-Firmware の抽出と新 firmware の設計要素（ND-17・IFD-43・SO-11・G-FIRMWARE）を追加。
+  参照 firmware の手動経路（純正ジョイスティックへのリレー切替）と基本契約（Bluetooth ゲームパッド優先）の差を H-012 として提示。H-009 の対応表、実車値の方針（実測計画）、GLIM 版の AI 選定、firmware 版の一本化を記録。
+basis_refs: [DEC-030, DEC-031, DEC-032, DEC-033, DEC-034, DEC-035, DEC-036]
+
+authority_revision:
+  id: AR-004
+  file_id: FILE-INTENT-V4
+  previous_file_id: FILE-INTENT-V3
+  archived_previous_copy: design/baselines/intent_history/intent_v3_f0df295f9927.md
+  current_copy: design/baselines/intent_history/intent_v4_6b7ab4b145fb.md  # 第4版の保存コピー（再適用時の比較先。2026-10-09 追記）
+  allow_non_append: false
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    103: RQ-I076
+  decision_ref: DEC-036
+  note: 人の編集。103 行「実測値はプログラムにハードコードせず、宣言的に書く。」の追加（削除・変更なし）。チャットでの言及はなく、機械比較で検出。
+
+decision_updates:
+  - id: DEC-030
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: "H-010: esp32用ファームウェアは初めから書き直せ。'https://github.com/aaa111aaa-111a/Joystick270-Firmware'から、必要な情報を抜き出せ。"
+      resulting_refs: [H-010, ND-17, IFD-17, IFD-38, IFD-43, SO-11, G-FIRMWARE, H-012]
+      note: >-
+        参照リポジトリ commit 2961d372 を research/joystick270_firmware/src に読み取り専用で保存（SHA-256 一覧あり。ビルド・実行はしていない）。抽出は research/joystick270_firmware/extract.md。
+        参照設計は手動操作を純正ジョイスティックへのリレー切替で実現し Bluetooth ゲームパッドを持たないため、基本契約（RQ-I023・RQ-I024）との関係を H-012 として人に提示。
+  - id: DEC-029
+    set:
+      note: >-
+        2026-10-09 の指示（DEC-035）により対応表 research/timing_values_h009.md を作成。回答待ち（PC 側 timeout の配分、ESP32 watchdog の値）。DEC-030 により firmware は書き直すため、現 firmware の 250 ms は置き換え対象の参考値になった。
+
+decisions:
+  - id: DEC-036
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: intent.md
+    question: intent.md 第4版（人の編集。103 行の追加）
+    answer_verbatim: '・実測値はプログラムにハードコードせず、宣言的に書く。'
+    affected_refs: [FILE-INTENT-V3]
+    resulting_refs: [AR-004, RQ-I076]
+    note: 実測値（PRM の実車採用値）はパラメータファイル・設定（IFD-26 等）で宣言し、コードに埋め込まない。
+  - id: DEC-031
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: H-001 SpeedLimit の発行手段
+    answer_verbatim: 'H-001：speed filter(costmap filter)が発行。'
+    affected_refs: [H-001, IFD-14]
+    resulting_refs: [IFD-14, IFD-41, IFD-42, PRM-19, PRM-20, H-011, TS-01, TS-02, TS-03, TS-04, TS-05, TS-06, TS-14]
+    note: DEC-011（Gouda 側発行器の暫定採用）を置き換える。設計は docs/speed_filter_design.md。Speed Filter は値が変わるまで再発行しない上流仕様のため、controller 再起動後の再適用は Nav2 の挙動に依存する（TS-06 で記録）。
+  - id: DEC-032
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 実車値の決め方（Q-04・Q-05・Q-06）
+    answer_verbatim: '実車値：AIが測定計画と採用根拠を整理し、人間は実測への協力と採用判断を行う。但し、測定値は測定無しで進められる部分は'
+    affected_refs: [Q-04, Q-05, Q-06]
+    resulting_refs: []
+    note: 原文は「進められる部分は」で途切れている。続きの確認が必要。測定計画は generated/measurement_plan.md、仮値と実車採用値の区別は generated/parameters_by_stage.md。
+  - id: DEC-033
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: GLIM の版の選定
+    answer_verbatim: 'GLIM版：上位要求や運用に影響しない範囲なら、AIの技術選定してよい。'
+    affected_refs: [Q-02, IFD-35, ND-06]
+    resulting_refs: [IFD-35]
+    note: >-
+      AI の選定: apt パッケージ ros-jazzy-glim-ros（CPU 版。実装リポジトリ docs/gouda_recording_glim.md が導入手順として使用。確認済み VM では 1.2.2-0noble）。版は実車PC の dpkg 出力で固定する（人に `dpkg -l | grep glim` の出力を依頼）。GLIM 本体の改変はしない。
+  - id: DEC-034
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: firmware 版の問題（H-010 と DR-10 の IFD-38 未判定）の管理
+    answer_verbatim: 'firmware版：H-010と重複しているため、一本化して管理せよ。'
+    affected_refs: [H-010, IFD-38]
+    resulting_refs: [G-FIRMWARE]
+    note: H-010 は DEC-030（書き直し）で解消。以後の firmware・通信の設計は技術問題 G-FIRMWARE に一本化し、IFD-17・IFD-38・IFD-43 はこれだけを参照する。
+  - id: DEC-035
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: H-009 の対応表の作成指示
+    answer_verbatim: |
+      H:009: 次の対応表を作れ。
+      700 ms、1 s、250 ms（firmware と bridge）が、それぞれどの入力の途絶を、どの部品が判定する値か
+      期限切れのときの動作
+      根拠となるコード・設定の場所
+      要求値を維持する場合の変更箇所と、250 msを採用する場合に必要な要求変更
+    affected_refs: [H-009]
+    resulting_refs: []
+    note: 対応表は research/timing_values_h009.md。
+
+entities:
+  - id: H-011
+    kind: issue
+    name: 速度マスクの帯の幅と帯外の扱い（Speed Filter 採用に伴う幾何条件）
+    intent_lines: [13, 26, 91]
+    related_refs: [DEC-031, Q-06]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [IFD-14, IFD-41, IFD-42, PRM-19, PRM-20, ND-02, ND-10]
+      resolution_refs: []
+      question: >-
+        Speed Filter は mask の cell 値で上限を決めるため、区間 i→i+1 の線分の周囲をどの幅（PRM-19）で塗るかと、帯の外（cell=0、無制限）に車体が出たときの扱いを決める必要がある。
+        また cell 値は 1..100 の整数で、速度刻み（PRM-20、base/multiplier）に量子化される。
+      next_action: 回答まで mask 生成（ND-02）の幅と帯外の扱いは未確定。生成手順（線分→帯、重なりは進行方向で後の区間を優先）は設計済み。
+      options:
+        - label: 帯の外は無制限（cell=0）のまま。幅は Q-06 の実車値で決める
+          effect: Nav2 標準の挙動。経路から外れた場合に上限がなくなる。
+        - label: 地図全体に既定上限（最も低い区間値）を敷き、区間の帯だけ区間値で上書きする
+          effect: 帯外でも上限が残る。既定上限の値を人が決める必要がある。
+        - label: 保留
+          effect: mask 生成の実装は進めず、生成器の単体試験は仮の幅で行う。
+      recommendation: 地図全体に既定上限（最も低い区間値）を敷き、区間の帯だけ区間値で上書きする
+      recommendation_basis: RQ-I010（区間の速度上限）の意図を帯外でも損なわない。値は人が決める（一般値で補わない）。
+
+  - id: H-012
+    kind: issue
+    name: 新 firmware の手動操作経路（Bluetooth ゲームパッド優先か、純正ジョイスティックへのリレー切替か）
+    intent_lines: [34, 35, 97]
+    related_refs: [DEC-030, Q-09, G-FIRMWARE]
+    sensitivity: [safety, intent]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [ND-17, IFD-17, IFD-43, SO-11, M-025, M-026, M-027, Q-09]
+      resolution_refs: []
+      question: >-
+        基本契約は「bluetooth接続の手動操作がESP32で優先される」「bluetooth gamepadからの指令が途絶えたらESP32が中立を出す」（RQ-I023・RQ-I024）。
+        参照 Joystick270-Firmware は Bluetooth を持たず、手動操作は純正ジョイスティックへリレーで戻す方式（DISARM・指令途絶・電源断で純正側）。新 firmware をどの手動経路で設計するか。
+      next_action: 回答まで ND-17 の手動経路は未確定。DAC・ADC・ピン・プロトコル・watchdog・ARM 手順（参照抽出 §8）は経路に依存しない範囲で設計を進める。
+      options:
+        - label: Bluetooth ゲームパッド優先を維持（基本契約どおり）。リレー・純正ジョイスティックは使わない
+          effect: 現 firmware の方式を新 firmware で再実装。ESP32 に Bluetooth（Bluepad32 等）が必要。参照 firmware のリレー・ADC 監視・中央探索は採用しない部分が出る。
+        - label: 参照設計のリレー＋純正ジョイスティックに切り替える（基本契約の文言変更）
+          effect: intent.md:34-35 の変更が必要（人の編集）。手動操作は純正ジョイスティック。ESP32 故障・電源断で自動的に純正側へ戻る。
+        - label: 両立（Bluetooth 優先＋リレーで純正へも戻れる）
+          effect: 回路（Joystick270 基板のリレー）と Bluetooth の両方を新 firmware が扱う。優先順位の定義が必要。
+      recommendation: 保留せず人が決める。AI は推奨を出さない（基本契約の変更可否は人の判断）。
+      recommendation_basis: RQ-I027（基本契約は AI が独断で変えない）。
+
+  - id: G-FIRMWARE
+    kind: issue
+    name: 新 ESP32 firmware と PC-ESP32 通信の設計（AI の技術作業）
+    intent_lines: [34, 35, 97, 102, 49]
+    related_refs: [DEC-030, DEC-034, H-009, H-012]
+    sensitivity: [safety]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: technical
+      state: open
+      affected_refs: [ND-17, IFD-17, IFD-38, IFD-43, SO-11, PRM-13, PRM-14, Q-03]
+      resolution_refs: []
+      question: >-
+        参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。
+      next_action: H-012（手動経路）と H-009（時間値）の回答後に、経路に依存しない部分から設計する。実装は工程5（ゲート3承認後）。
+
+  - id: ND-17
+    kind: ros_node
+    name: ESP32 firmware（新規に書き直し。DEC-030）
+    intent_lines: [34, 35, 97, 102, 103]
+    issue_refs: [G-FIRMWARE, H-012, H-009]
+    sensitivity: [safety, operation]
+    ros_node:
+      node_name: esp32_firmware
+      responsibilities:
+        - PC からの正規化操作値を受け、DAC（MCP4922）で EMC-270 のジョイスティック相当電圧を出す（参照抽出 §1・§2。方向別端点は人が設定）
+        - 現在採用している指令源の入力が途絶えたら中立を出す（RQ-I068。watchdog は PRM-13、値は H-009）
+        - 手動操作の優先（RQ-I023）。経路は H-012 の回答で決める
+        - STATUS／EVENT を理由コード付きで PC へ送る（IFD-43。表示・診断のみ、DEC-006）
+        - 非常停止の検知・通知は行わない（RQ-I072）
+      absorbs_module_refs: [M-025, M-026]
+      active_in_mode_refs: [MODE-MANUAL, MODE-MAP, MODE-AUTO, MODE-PAUSE]
+      lifecycle: firmware
+      process_group: esp32
+      publishes_refs: [IFD-43]
+      subscribes_refs: [IFD-17]
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: [SO-11]
+      placement_rationale: ESP32 上の firmware（ROS node ではない）。既存 firmware（gouda_dualsense_usb・gouda_esp32）は置き換える（DEC-030）。参照 Joystick270-Firmware のピン配置・DAC/ADC・プロトコル形式を入力にする。
+
+  - id: SO-11
+    kind: state_owner
+    name: ESP32 firmware の保持状態
+    intent_lines: [34, 35, 97]
+    issue_refs: [G-FIRMWARE, Q-03]
+    sensitivity: [safety]
+    state_owner:
+      owner_ref: ND-17
+      state_items:
+        - name: axis_config
+          description: 方向別端点（x/y の負端・正端 mV）、中央値、DAC フルスケール、watchdog_ms 等の設定（参照抽出 §3）。人が登録し NVS に二重保存
+          persistence: persisted
+          restore_scope: 起動時に CRC 正常な最新世代を読む。無効なら ARM を拒否
+        - name: ownership_state
+          description: 現在の指令源（PC／手動）、ARM 状態、最後に受けた PC 指令の時刻
+          persistence: volatile
+          restore_scope: 起動直後は中立・非 ARM
+
+  - id: IFD-41
+    kind: designed_interface
+    name: 速度マスク（waypoint セットから生成する Speed Filter 用 mask と filter info のファイル契約）
+    intent_lines: [13, 26]
+    issue_refs: [H-011, Q-06]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: file
+      name: route_root/{waypoint_set_id}/{revision}/speed_mask.yaml ＋ speed_mask.pgm ＋ filter_info.yaml
+      message_type: Nav2 map YAML＋PGM（mask）、CostmapFilterInfo の設定（type=2 m/s、base、multiplier）
+      standard_type: true
+      custom_type_reason: null
+      purpose: data
+      owner_ref: ND-02
+      publisher_refs: [ND-02]
+      consumer_refs: [ND-10, ND-03]
+      unit: m/s（cell 値 1..100 × multiplier + base）
+      frame: map（変換後地図と同じ原点・解像度）
+      time_semantics: waypoint セット保存時に生成し、同じ由来 ID・内容ハッシュで保存。地図版が変われば再生成。区間の帯の幅は PRM-19、速度刻みは PRM-20。重なりは進行方向で後の区間を優先（RQ-I010）
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [D-16, D-20]
+
+  - id: IFD-42
+    kind: designed_interface
+    name: costmap_filter_info と speed_filter_mask（Nav2 標準 server の配信）
+    intent_lines: [26, 81]
+    issue_refs: [H-011]
+    sensitivity: [safety]
+    designed_interface:
+      transport: topic
+      name: costmap_filter_info, speed_filter_mask
+      message_type: nav2_msgs/msg/CostmapFilterInfo, nav_msgs/msg/OccupancyGrid
+      standard_type: true
+      custom_type_reason: null
+      purpose: configuration
+      owner_ref: ND-10
+      publisher_refs: [ND-10]
+      consumer_refs: [ND-10]
+      unit: m/s
+      frame: map
+      time_semantics: 自律走行開始時に ND-03 が選択 waypoint セットの mask を Nav2 の costmap_filter_info_server と mask 用 map_server に読み込ませる。transient_local keep_last 1 で後から購読する costmap にも届く
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_costmap_2d/plugins/costmap_filters/speed_filter.cpp, research/upstream_jazzy/nav2_msgs/msg/CostmapFilterInfo.msg]
+        note: SpeedFilter は filter_info・mask を KeepLast(1).transient_local().reliable() で購読（speed_filter.cpp 79・150 行）。実車PC navigation2 1.3.13 と版一致。
+      legacy_refs: [IF-022]
+
+  - id: IFD-43
+    kind: designed_interface
+    name: ESP32 → PC の STATUS／EVENT フレーム（新 firmware。シリアル）
+    intent_lines: [45, 97]
+    issue_refs: [G-FIRMWARE, H-012]
+    sensitivity: [operation]
+    designed_interface:
+      transport: serial
+      name: ESP32 serial link（新プロトコル。参照 Joystick270-Firmware PROTOCOL.md の STATUS 0x81／EVENT 0x82 を入力）
+      message_type: 新プロトコル（G-FIRMWARE で設計）。理由コード付き STATUS／EVENT
+      standard_type: false
+      custom_type_reason: 機器固有の既存通信。vehicle_bridge の境界に閉じる（RQ-I036）
+      purpose: diagnostic
+      owner_ref: ND-17
+      publisher_refs: [ND-17]
+      consumer_refs: [ND-12]
+      unit: 参照抽出 §5（mV・ms・mm/s 等）
+      frame: null
+      time_semantics: 周期送信（参照 firmware は 100 ms）。PC 側は表示・診断のみに使い停止条件にしない（DEC-006）。取得できない項目は「不明」
+      qos: {reliability: not_applicable, durability: not_applicable, history_depth: null}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: []
+
+  - id: PRM-19
+    kind: parameter
+    name: 速度マスクの帯の半幅
+    intent_lines: [13]
+    issue_refs: [H-011, Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-02
+      value: null
+      value_state: unresolved
+      unit: m
+      stage: waypoint
+      purpose: 区間 i→i+1 の線分の周囲を mask に塗る幅（Speed Filter の適用範囲）
+      measurement: 実車の経路追従誤差と推定誤差の実測（Q-06）
+      decision_deadline: mask 生成器の実装前（waypoint 段階）
+      software_trial_value: null
+      software_trial_basis: 仮値なし。生成器の単体試験は幅を引数にして任意値で行う
+    interpretation: ''
+  - id: PRM-20
+    kind: parameter
+    name: 速度マスクの速度刻み（CostmapFilterInfo の multiplier。base=0）
+    intent_lines: [13, 26]
+    issue_refs: [H-011, Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-02
+      value: null
+      value_state: unresolved
+      unit: m/s per cell step
+      stage: waypoint
+      purpose: cell 値 1..100 を m/s に変換する刻み。区間上限の最大値（Q-06）を 100 で割った値以上が必要
+      measurement: 不要（区間上限の最大値が決まれば計算で決まる）
+      decision_deadline: mask 生成器の実装前
+      software_trial_value: null
+      software_trial_basis: 仮値なし。最大速度（Q-06）に依存
+    interpretation: ''
+
+  - id: TS-14
+    kind: test
+    name: 速度マスクの境界で進入区間の値が適用される
+    intent_lines: [13, 91]
+    issue_refs: [H-011]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 2 区間（上限 v0 > v1）の waypoint セットから mask を生成し、Nav2 stub または実 costmap で境界を跨ぐ姿勢を与える。
+      observe: 境界前後の speed_limit の値と発行時刻、重なり cell の値。
+      expected: 境界を越えた直後に v1 が1回発行される（進入する区間の値：RQ-I010）。重なり cell は後の区間の値。境界時点の実速度は評価しない（RQ-I062）。
+
+modifications:
+  - id: IFD-26
+    append_intent_lines: [103]
+    set_nested:
+      designed_interface.time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新。実測値は本設定と各 node の ROS parameter ファイルで宣言し、コードにハードコードしない（RQ-I076）
+  - id: ND-11
+    append_intent_lines: [103]
+  - id: ND-12
+    append_intent_lines: [103]
+  - id: ND-13
+    append_intent_lines: [103]
+  - id: H-001
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-031]
+      issue.next_action: 回答済み（DEC-031）。Nav2 costmap の Speed Filter が発行。設計は docs/speed_filter_design.md。帯の幅・帯外の扱いは H-011。
+  - id: IFD-14
+    set:
+      issue_refs: [H-011, Q-06]
+    set_nested:
+      designed_interface.name: speed_limit（Nav2 costmap の SpeedFilter が発行。DEC-031）
+      designed_interface.owner_ref: ND-10
+      designed_interface.publisher_refs: [ND-10]
+      designed_interface.consumer_refs: [ND-10]
+      designed_interface.qos: {reliability: reliable, durability: volatile, history_depth: 10}
+      designed_interface.time_semantics: >-
+        costmap の SpeedFilter がロボット位置の mask cell 値から上限を計算し、値が変わったときだけ speed_limit を発行（上流 speed_filter.cpp 242-258 行）。percentage=false、m/s。
+        区間境界は mask の cell 境界（IFD-41、進入する区間の値を優先）。Gouda は SpeedLimit を発行しない（単一発行元：RQ-I020）。controller_server のみ再起動した場合は値が変わるまで再適用されない（Nav2 の挙動。TS-06 で記録）。
+      designed_interface.version_dependency:
+        status: confirmed_installed_version
+        evidence: [research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt, research/upstream_jazzy/nav2_msgs/msg/SpeedLimit.msg, research/upstream_jazzy/nav2_controller/src/controller_server.cpp, research/upstream_jazzy/nav2_costmap_2d/plugins/costmap_filters/speed_filter.cpp]
+        note: controller_server は speed_limit_topic を QoS(10) で購読。SpeedFilter は同 topic へ QoS(10) で発行し、値変化時のみ。実車PC 1.3.13 と版一致。
+  - id: ND-03
+    set_nested:
+      ros_node.publishes_refs: [IFD-01, IFD-28, IFD-34, IFD-40]
+      ros_node.calls_refs: [IFD-08, IFD-09, IFD-13, IFD-36, IFD-42]
+      ros_node.responsibilities:
+        - 4ソフトモード（RQ-I065）の正本と遷移（TR-01〜TR-16）。内部状態・処理段階（変換中・goal送信中・取消待ち・復旧段階）はモードと混同しない
+        - 自律走行の開始・一時停止・再開・終了の受付と、Nav2 NavigateThroughPoses への goal 送信／取消（薄い action client。計画・追従・後退・再計画・通過判定は Nav2）
+        - 自律走行開始時に、選択した waypoint セットの速度マスク（IFD-41）を Nav2 の filter info server と mask 用 map_server に読み込ませる（IFD-42）。SpeedLimit 自体は Nav2 の SpeedFilter が発行（DEC-031）
+        - 一時停止・終了・故障・非自律モードでは motion_hold=true を motion_controller へ直接入力（IFD-40、DEC-004）。自律走行中だけ hold=false
+        - mission 文脈（地図・waypoint の ID／版／ハッシュ、run_id、残 waypoint、停止理由）の保持と、PC再起動に必要な部分の永続化（RQ-I064・RQ-I069）。区間番号は記録用に feedback から求める（RQ-I030）
+        - PC 再起動後の再開は人の初期位置要求（IFD-39）の受理後に限る（DEC-009）
+        - 異常終了後の自動復帰の手順（RQ-I013 の依存順序、RQ-I069 の必要状態だけの復元）。復旧不能時は自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持し理由を記録（DEC-008）
+        - 記録の自動開始／停止の契機の発行（RQ-I015・RQ-I017）
+        - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030）
+  - id: ND-02
+    append: {issue_refs: [H-011]}
+    set_nested:
+      ros_node.publishes_refs: [IFD-26, IFD-39, IFD-41]
+      ros_node.responsibilities:
+        - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+        - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）
+        - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
+        - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I010）。保存時に Speed Filter 用の速度マスクと filter info を生成して同じ由来 ID・ハッシュで保存（IFD-41、DEC-031。幅は PRM-19、刻みは PRM-20）
+        - 地図とwaypointの組の選択とプレビュー（RQ-I011）
+        - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+        - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に transient_local の状態を取得する（DEC-014）
+  - id: ND-10
+    append: {issue_refs: [H-011]}
+    set_nested:
+      ros_node.publishes_refs: [IFD-14, IFD-15, IFD-24, IFD-32, IFD-42]
+      ros_node.subscribes_refs: [IFD-14, IFD-23, IFD-25, IFD-18, IFD-19, IFD-20, IFD-42]
+      ros_node.responsibilities:
+        - 経路計画・追従・後退・再計画・通過／到達判定（RQ-I011・RQ-I018・RQ-I019）
+        - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15）
+        - costmap の SpeedFilter による SpeedLimit の発行と controller への適用（IFD-14、DEC-031）。mask・filter info は標準 server で配信（IFD-42）
+        - map_server による静的地図の提供（IFD-24）
+        - 設定・プラグイン・BT で拡張し本体は改変しない（RQ-I056・RQ-I057）
+  - id: ND-12
+    set:
+      issue_refs: [Q-03, Q-09, G-PARAM, H-009, G-FIRMWARE, H-012]
+    set_nested:
+      ros_node.subscribes_refs: [IFD-16, IFD-43]
+      ros_node.responsibilities:
+        - 正規化操作値を新 firmware（ND-17）の通信形式へ変換して送信（機器固有仕様をこの境界に閉じる。RQ-I036。形式は G-FIRMWARE）
+        - cmd_vel の有無に関係なく一定周期（PRM-14）で最新値または中立を送り、入力途絶時は中立を送信する。古い指令を再送しない
+        - ESP32 の STATUS／EVENT（IFD-43）を受信して /esp32/status に公開（IFD-38。表示・診断のみ、DEC-006）
+        - 現 bridge の停止条件（STATUS 鮮度 0.25 s・drive 鮮度 0.15 s での DISARM）は firmware 書き直し（DEC-030）に伴い再設計対象。値は H-009（research/timing_values_h009.md）
+        - 手動優先（RQ-I023）と ESP32 側の中立化（RQ-I068）は ESP32 の責務で、本 node が代替しない
+  - id: IFD-17
+    set:
+      issue_refs: [G-FIRMWARE, H-009, H-012, Q-03]
+    set_nested:
+      designed_interface.name: ESP32 serial link（新プロトコル。DEC-030）
+      designed_interface.message_type: 新プロトコル（G-FIRMWARE で設計。参照 Joystick270-Firmware PROTOCOL.md の COMMAND/ARM/DISARM/SET_PRESET 形式を入力）
+      designed_interface.consumer_refs: [ND-17]
+      designed_interface.unit: 正規化値（参照は x/y ±10000）。DAC 端点 mV は人が設定（Q-03）
+      designed_interface.time_semantics: 送信周期 PRM-14。ESP32 は指令途絶（PRM-13、値は H-009）で中立（RQ-I068）。ARM 手順は参照抽出 §4 を入力に G-FIRMWARE で設計
+  - id: IFD-38
+    set:
+      issue_refs: [G-FIRMWARE, H-012]
+    set_nested:
+      designed_interface.message_type: 新 STATUS／EVENT を表示用に公開（型は G-FIRMWARE で確定。参照 JoystickStatus／ControllerEvent 相当）
+      designed_interface.time_semantics: >-
+        IFD-43 の受信ごと。表示・診断のみに使い、停止条件にしない（DEC-006）。取得できる項目は新 firmware の STATUS 定義に従い、非常停止状態・電池・実車運動は取得できないため「不明」。途絶時も「不明」表示でモードは変えない
+      designed_interface.version_dependency: {status: unconfirmed, evidence: [], note: 新 firmware の設計（G-FIRMWARE）で確定。firmware 版の管理は G-FIRMWARE に一本化（DEC-034）}
+  - id: H-010
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-030, DEC-034]
+      issue.next_action: 回答済み（DEC-030「初めから書き直せ」）。実機の既存 firmware 版の確認は不要になった。新 firmware の設計は G-FIRMWARE に一本化（DEC-034）。参照抽出は research/joystick270_firmware/extract.md。
+  - id: H-009
+    set_nested:
+      issue.next_action: 対応表 research/timing_values_h009.md を提示（DEC-035）。人が (a) 700 ms の配分、(b) 新 firmware の watchdog（1 s か 250 ms か）、(c) PC 側 timeout を決める。firmware は書き直すため既存 250 ms は参考値。
+  - id: Q-03
+    set_nested:
+      issue.next_action: >-
+        firmware を書き直す（DEC-030）ため既存プロトコルの照合は不要。DAC 端点（方向別 mV）・中立・遅延は実車で計測して人が設定する（参照 firmware は人が端点を登録し中央範囲を車輪速度で探索する方式）。計測計画は generated/measurement_plan.md。
+  - id: Q-09
+    set_nested:
+      issue.next_action: 新 firmware の手動経路（H-012）が決まってから、Bluetooth 切断時の挙動を設計・確認する。
+  - id: M-025
+    interpretation_append: 'REV-005: 既存 firmware は書き直す（DEC-030）。新 firmware は ND-17。手動経路は H-012。'
+  - id: M-026
+    interpretation_append: 'REV-005: DAC は参照 Joystick270-Firmware の MCP4922 仕様を入力に ND-17 で設計。'
+  - id: M-027
+    interpretation_append: 'REV-005: Bluetooth ゲームパッドを新 firmware で維持するかは H-012。'
+  - id: IFD-30
+    set_nested:
+      designed_interface.message_type: WaypointSet（YAML。参照する変換後地図のID・版・内容ハッシュ、自身の内容ハッシュ、waypoint列、区間 i→i+1 の速度上限 m/s）＋ 同じ由来 ID の速度マスク（IFD-41）
+  - id: SO-01
+    set_nested:
+      state_owner.state_items:
+        - name: software_mode
+          description: 現在のソフトモード（4値：RQ-I065）。内部の処理段階（goal送信中・取消待ち・変換中等）とは別の変数で持つ
+          persistence: persisted
+          restore_scope: PC再起動時に直前モードを読み、RQ-I064 の規則で復帰先を決める
+        - name: processing_state
+          description: モードとは別の処理状態（地図変換中・goal送信中・取消待ち・復旧段階）。IFD-01 で表示（DEC-010）
+          persistence: volatile
+          restore_scope: 再起動で初期化。変換ジョブの有無は SO-04 から再取得
+        - name: previous_mode_record
+          description: 人の一時停止／終了操作の有無を含む直前モードの記録（RQ-I025）
+          persistence: persisted
+          restore_scope: PC再起動後に人の操作なしで走行を再開しないための判定に使う
+        - name: mission_context
+          description: 選択した変換後地図の由来ID・版・内容ハッシュ、waypointセット（と速度マスク）のID・版・ハッシュ、run_id
+          persistence: persisted
+          restore_scope: 自律走行／一時停止へ復帰する場合だけ復元（RQ-I069）
+        - name: remaining_waypoints
+          description: 未到達の waypoint 列。Nav2 feedback の number_of_poses_remaining で更新（通過判定は Nav2：RQ-I011）
+          persistence: persisted
+          restore_scope: 再開時の新 goal の構成に使う。最終到達後は最終 waypoint のみ（RQ-I067）
+        - name: goal_waypoint_offset
+          description: 現在の Nav2 goal の先頭 pose が waypoint セット全体の何番目かを示す offset（記録用の区間番号の復元に使う。SpeedLimit の発行には使わない：DEC-031）
+          persistence: volatile
+          restore_scope: goal 送信ごとに更新
+        - name: current_section_index
+          description: 進入中の区間番号（waypoint i → i+1 の i）。記録（RQ-I030 の区間ID）用
+          persistence: volatile
+          restore_scope: goal 送信時に offset から再計算
+        - name: active_nav2_goal
+          description: 送信中の NavigateThroughPoses goal の handle／UUID
+          persistence: volatile
+          restore_scope: 復帰時は旧 goal の終了または破棄を確認してから新 goal（RQ-I013・RQ-I069）
+        - name: stop_reason
+          description: 停止の原因区分（人の操作・計画の失敗・blocked・推定不能・通信途絶・nodeの異常：RQ-I029）
+          persistence: persisted
+          restore_scope: 記録と表示。復帰判定の入力
+        - name: recovery_attempt_count
+          description: 自動復帰の試行回数（上限値は PRM-10）
+          persistence: volatile
+          restore_scope: 上限到達で RQ-I013／DEC-008 の規則に従う
+        - name: initial_pose_received_after_restart
+          description: PC 再起動後に人の初期位置要求（IFD-39）を受理したか（DEC-009）
+          persistence: volatile
+          restore_scope: 再起動で false。再開（TR-10）の guard
+        - name: last_estimated_pose
+          description: 最終推定姿勢（記録用。初期化には使わない：DEC-009）
+          persistence: persisted
+          restore_scope: 復元に使わない
+  - id: IFD-35
+    set_nested:
+      designed_interface.version_dependency:
+        status: unconfirmed
+        evidence: []
+        note: AI の選定（DEC-033）：apt ros-jazzy-glim-ros（CPU 版）。実装リポジトリの確認 VM では 1.2.2-0noble。実車PC の dpkg 出力で版を固定する（未取得）。出力形式は固定後に確認。
+  - id: PRM-13
+    set_nested:
+      parameter.software_trial_value: 0.3
+      parameter.software_trial_basis: 参照 Joystick270-Firmware の kDefaultWatchdogMs=300（設定項目 watchdog_ms）。新 firmware では設定値として持たせる案。実車採用値ではない
+      parameter.measurement: 新 firmware での実測（PC 送信周期・jitter との関係）。既存 firmware の 250 ms は参考値（research/timing_values_h009.md）
+    interpretation: intent.md:102「ESP32のwatchdog=1s周期」の転記。新 firmware（DEC-030）では設定値として採用可能。値の決定は H-009。
+  - id: TS-01
+    set_nested:
+      test.procedure: 速度マスク（IFD-41）と filter info を Nav2 の mask 用 map_server・costmap_filter_info_server に読み込ませてから自律走行開始（IFD-02）を1回行う。開始地点は区間 0 の帯内。
+      test.observe: speed_limit topic の受信内容と受信時刻、SpeedFilter のログ。
+      test.expected: 開始直後に区間 0 の上限（percentage=false, m/s、PRM-20 の刻みに量子化）が1回発行される。値 0.0（無制限）は帯内では発行されない。帯外から開始した場合の挙動は H-011 の回答に従う。
+  - id: TS-02
+    set:
+      name: 残り pose 数が一度に複数減っても上限は位置で決まる
+    set_nested:
+      test.procedure: Nav2 stub の feedback で number_of_poses_remaining を N→N-2 に1回で減らしつつ、ロボット位置を区間 i+2 の帯内に置く。
+      test.observe: speed_limit の発行回数・値、DecisionEvent の区間番号。
+      test.expected: 上限は位置（mask）で決まり、区間 i+2 の値が発行される。記録には区間 i+1 を飛ばしたことが残る。Gouda は SpeedLimit を発行しない。
+  - id: TS-03
+    set:
+      name: 再開・再 goal 後の上限と区間番号
+    set_nested:
+      test.procedure: 区間 3 で一時停止し、再開する。再開後の goal は残 waypoint 列から作る。
+      test.observe: speed_limit の発行、SO-01 の goal_waypoint_offset と current_section_index（記録用）。
+      test.expected: mask は不変なので再開時に新しい speed_limit は発行されない（位置が同じ cell なら値も同じ）。区間番号は offset により元の区間 3 に対応付けられ記録に残る。
+  - id: TS-04
+    set_nested:
+      test.expected: speed_limit は追加発行されない（mask の値は位置が変わるまで同じ。速度 0 を SpeedLimit で送らない）。motion_hold=true が発行され、joystick_command は中立になる。
+  - id: TS-06
+    set:
+      name: controller 再起動・購読開始後の上限再適用（Nav2 の挙動の記録）
+    set_nested:
+      test.procedure: 自律走行中に controller_server のみを lifecycle で deactivate→activate する。別途、costmap を含む node を再起動する場合も行う。
+      test.observe: 再購読後に speed_limit を受信するか、受信するまでの時間と条件。
+      test.expected: SpeedFilter は値が変わるまで再発行しない（上流 speed_filter.cpp 242-258 行）ため、controller のみ再起動した場合は mask 値が変わる cell に入るまで上限なし。costmap 再起動では speed_limit_prev_ が初期化され最初の計算で発行される。結果を人に報告し、受入基準は人が決める（Nav2 は改変しない）。

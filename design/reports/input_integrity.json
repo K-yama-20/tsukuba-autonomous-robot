@@ -1,0 +1,462 @@
+{
+  "result": "合格",
+  "note": "原資料・抽出結果・初回移行baselineは変更されていないこと。intent.md は人が編集した新版で、差分は authority_revisions で機械検証する。",
+  "files": [
+    {
+      "path": "design/intent.md",
+      "baseline_sha256": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9",
+      "current_sha256": "4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f",
+      "status": "intent新版（AR-002として記録・検証）"
+    },
+    {
+      "path": "design/docs/Gouda_architecture_detail.xlsx",
+      "baseline_sha256": "9b4158c625404c2672af16253be2035f891f8ad953970f7cd6ecbea5f357b983",
+      "current_sha256": "9b4158c625404c2672af16253be2035f891f8ad953970f7cd6ecbea5f357b983",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/SystemArchitecture.drawio",
+      "baseline_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
+      "current_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/.DS_Store",
+      "baseline_sha256": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf",
+      "current_sha256": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/README.md",
+      "baseline_sha256": "966969d782f9e36e0fd447815e31686bb8f577e55fe79635edd5f19acee164aa",
+      "current_sha256": "966969d782f9e36e0fd447815e31686bb8f577e55fe79635edd5f19acee164aa",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/drawio_connections.csv",
+      "baseline_sha256": "880ff8270824319897c9e1f272a35566e5afc885a1b5f2895ea026eacf7b4eaa",
+      "current_sha256": "880ff8270824319897c9e1f272a35566e5afc885a1b5f2895ea026eacf7b4eaa",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/drawio_objects.jsonl",
+      "baseline_sha256": "9fe4e238b7a141fceb10b35b20db9887bf7b3b993eecbe250303f1cfa2d4eca4",
+      "current_sha256": "9fe4e238b7a141fceb10b35b20db9887bf7b3b993eecbe250303f1cfa2d4eca4",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/drawio_page_1.xml",
+      "baseline_sha256": "b1e95ad183751ef832cebadb5bbf5c362846d2a63abea01efc6be527fc3e86ce",
+      "current_sha256": "b1e95ad183751ef832cebadb5bbf5c362846d2a63abea01efc6be527fc3e86ce",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/drawio_pages.json",
+      "baseline_sha256": "ae2dd14db4d4b00eee52ce74b65aec7fb424c15a77cc54a46fb8e1334273c03c",
+      "current_sha256": "ae2dd14db4d4b00eee52ce74b65aec7fb424c15a77cc54a46fb8e1334273c03c",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/drawio_parts.csv",
+      "baseline_sha256": "975c57e85dc65bea07209b52687dcfc3cbec4620ad59623115ba57ce749edef3",
+      "current_sha256": "975c57e85dc65bea07209b52687dcfc3cbec4620ad59623115ba57ce749edef3",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_cells.csv",
+      "baseline_sha256": "af53dae5095beb232a335bfae2a4b2febdf2c7993cf5e293cb7bc892b1e9282a",
+      "current_sha256": "af53dae5095beb232a335bfae2a4b2febdf2c7993cf5e293cb7bc892b1e9282a",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_cells.jsonl",
+      "baseline_sha256": "ee1b2a49f4d944f004e3dcb55e62085be9750263fb389ec6f64cd3f55a54307d",
+      "current_sha256": "ee1b2a49f4d944f004e3dcb55e62085be9750263fb389ec6f64cd3f55a54307d",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_ids.csv",
+      "baseline_sha256": "c697331ce090d775cae9debbe9d72569ea1c4733eac43065a872e8d291d0f0b6",
+      "current_sha256": "c697331ce090d775cae9debbe9d72569ea1c4733eac43065a872e8d291d0f0b6",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_rows.csv",
+      "baseline_sha256": "a8895eb4a1f8612700b0169920e2d00c6b05f0bbcc01af750e29b05969f35d4d",
+      "current_sha256": "a8895eb4a1f8612700b0169920e2d00c6b05f0bbcc01af750e29b05969f35d4d",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_rows.jsonl",
+      "baseline_sha256": "3ad9a41bce641eba11faad8848458e3406092bf965a8cab9bf39a4d1aea7d5f7",
+      "current_sha256": "3ad9a41bce641eba11faad8848458e3406092bf965a8cab9bf39a4d1aea7d5f7",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/excel_sheets.json",
+      "baseline_sha256": "240c1b59b7acb98bb88b3dd8253050a2324ba021014d141c3030a71c94efa46d",
+      "current_sha256": "240c1b59b7acb98bb88b3dd8253050a2324ba021014d141c3030a71c94efa46d",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/extract_verify.py",
+      "baseline_sha256": "cad04bcafa46277320b5b12ce78987eedf28f00b67f587e5af672314dfd8673e",
+      "current_sha256": "cad04bcafa46277320b5b12ce78987eedf28f00b67f587e5af672314dfd8673e",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw.drawio",
+      "baseline_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
+      "current_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/.DS_Store",
+      "baseline_sha256": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574",
+      "current_sha256": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/[Content_Types].xml",
+      "baseline_sha256": "54320ccfd546f35f205edc2356c17f810d579e5bf79e6c702f73e1519a12fb37",
+      "current_sha256": "54320ccfd546f35f205edc2356c17f810d579e5bf79e6c702f73e1519a12fb37",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/_rels/.rels",
+      "baseline_sha256": "8cbbdc48821190ccc33949fb8f8d021399ddbd526f770a8e86afae1c19e8d3e5",
+      "current_sha256": "8cbbdc48821190ccc33949fb8f8d021399ddbd526f770a8e86afae1c19e8d3e5",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/_rels/workbook.xml.rels",
+      "baseline_sha256": "038cf336e70cb7d580e90c3d61baabc7c508c9f9e8eecbede1737548a008a4d8",
+      "current_sha256": "038cf336e70cb7d580e90c3d61baabc7c508c9f9e8eecbede1737548a008a4d8",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing1.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing10.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing11.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing2.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing3.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing4.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing5.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing6.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing7.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing8.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/drawings/drawing9.xml",
+      "baseline_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "current_sha256": "394373ea7e1b1dfd8633980cf12b48a29def82f40be77ecb084131e50739dc4b",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/persons/person.xml",
+      "baseline_sha256": "4ebd5532d853723b706f7de3d7ec4f8824ff5885c1b2fad14760298a574b608c",
+      "current_sha256": "4ebd5532d853723b706f7de3d7ec4f8824ff5885c1b2fad14760298a574b608c",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/sharedStrings.xml",
+      "baseline_sha256": "532abed48b75831325eb01114e671e1ce8b3b1f4e828879c0c740843bdb30d86",
+      "current_sha256": "532abed48b75831325eb01114e671e1ce8b3b1f4e828879c0c740843bdb30d86",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/styles.xml",
+      "baseline_sha256": "2cbc8d571bdda98b56d704fd881f15073e77f16b22621ead748d3778195bc776",
+      "current_sha256": "2cbc8d571bdda98b56d704fd881f15073e77f16b22621ead748d3778195bc776",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/theme/theme1.xml",
+      "baseline_sha256": "ae5d71054ede722ca536030c3010fecb3f6ce424a0a7518978bdbf2d32003b19",
+      "current_sha256": "ae5d71054ede722ca536030c3010fecb3f6ce424a0a7518978bdbf2d32003b19",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/workbook.xml",
+      "baseline_sha256": "4111f81ce477c157faf631c06e31531c73a196a1885fcd8b67518bb538cfc569",
+      "current_sha256": "4111f81ce477c157faf631c06e31531c73a196a1885fcd8b67518bb538cfc569",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet1.xml.rels",
+      "baseline_sha256": "d259701279b28e0860deb349a5d8d2feaef34bb1082b8e8e27396ef302a48720",
+      "current_sha256": "d259701279b28e0860deb349a5d8d2feaef34bb1082b8e8e27396ef302a48720",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet10.xml.rels",
+      "baseline_sha256": "dfa6150b1f3a5de2467f1618da26538a4c9b7e38273596c77449a664d71e389f",
+      "current_sha256": "dfa6150b1f3a5de2467f1618da26538a4c9b7e38273596c77449a664d71e389f",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet11.xml.rels",
+      "baseline_sha256": "bbd9595fe1331a7fd6f139767607cd4f0446042e7d70c6f0e0b0e15b18cc7c6c",
+      "current_sha256": "bbd9595fe1331a7fd6f139767607cd4f0446042e7d70c6f0e0b0e15b18cc7c6c",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet2.xml.rels",
+      "baseline_sha256": "eace0cae9b4278f2954e555cfc3944b18802739a2d6d5930bb473590e18ed4fd",
+      "current_sha256": "eace0cae9b4278f2954e555cfc3944b18802739a2d6d5930bb473590e18ed4fd",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet3.xml.rels",
+      "baseline_sha256": "415576c07ecf629b3f0143ac8b1480862eab992262dc68cc9ed91f9632ee7524",
+      "current_sha256": "415576c07ecf629b3f0143ac8b1480862eab992262dc68cc9ed91f9632ee7524",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet4.xml.rels",
+      "baseline_sha256": "1e6da2012b4300f7e65f86dcce2d30a258a6df6444a065fa464d97a8a8ca82ca",
+      "current_sha256": "1e6da2012b4300f7e65f86dcce2d30a258a6df6444a065fa464d97a8a8ca82ca",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet5.xml.rels",
+      "baseline_sha256": "4f7aefe2ca16e6be537157c55112d03434865c97d679f669015971a281609b84",
+      "current_sha256": "4f7aefe2ca16e6be537157c55112d03434865c97d679f669015971a281609b84",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet6.xml.rels",
+      "baseline_sha256": "80e227f486e2d10d014a6f48bb5e3a7c6ed30688a8204591df56a43bc76b0a85",
+      "current_sha256": "80e227f486e2d10d014a6f48bb5e3a7c6ed30688a8204591df56a43bc76b0a85",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet7.xml.rels",
+      "baseline_sha256": "da13361ee47dec424543bf3217c76a1244a6fc282403455816c2887fa8fa6651",
+      "current_sha256": "da13361ee47dec424543bf3217c76a1244a6fc282403455816c2887fa8fa6651",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet8.xml.rels",
+      "baseline_sha256": "191dfa43053c7eb189fe0176f3d24118b4d44229ca14dc6d3ede5b4ab1a7db61",
+      "current_sha256": "191dfa43053c7eb189fe0176f3d24118b4d44229ca14dc6d3ede5b4ab1a7db61",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/_rels/sheet9.xml.rels",
+      "baseline_sha256": "12f2762b1e26fe691016aa6bce0c1c86928ade80b018e80eb812eba7ddba2d20",
+      "current_sha256": "12f2762b1e26fe691016aa6bce0c1c86928ade80b018e80eb812eba7ddba2d20",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet1.xml",
+      "baseline_sha256": "933fc396bceb89cc8dfdc633e9f8c37e1dacfc11cd9307b8c6c4733fa7e5f738",
+      "current_sha256": "933fc396bceb89cc8dfdc633e9f8c37e1dacfc11cd9307b8c6c4733fa7e5f738",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet10.xml",
+      "baseline_sha256": "37c309e2dda11448a7436f2a077c0bf210b236edfd05d8b5874387b094b1d1ae",
+      "current_sha256": "37c309e2dda11448a7436f2a077c0bf210b236edfd05d8b5874387b094b1d1ae",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet11.xml",
+      "baseline_sha256": "ba28434d814d600885b4425927dcad0e603dfab90f53f86e495b8c41b7afb37e",
+      "current_sha256": "ba28434d814d600885b4425927dcad0e603dfab90f53f86e495b8c41b7afb37e",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet2.xml",
+      "baseline_sha256": "6173e05c508ff758829b39e41117a6c90715b210f83cf8e4dd396c1441ddbf26",
+      "current_sha256": "6173e05c508ff758829b39e41117a6c90715b210f83cf8e4dd396c1441ddbf26",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet3.xml",
+      "baseline_sha256": "3461f964fd4a38ed65955a6b2434563f9d609e9901a4da7b9ecc4adc2ac03a5f",
+      "current_sha256": "3461f964fd4a38ed65955a6b2434563f9d609e9901a4da7b9ecc4adc2ac03a5f",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet4.xml",
+      "baseline_sha256": "561bae3ce615cc12fa5214c54a3ad2653789c84ae43ea9203d10fa03b5013946",
+      "current_sha256": "561bae3ce615cc12fa5214c54a3ad2653789c84ae43ea9203d10fa03b5013946",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet5.xml",
+      "baseline_sha256": "bdf760c0333e38f70f4e83600c96cc3fa433136d88e33495242e3d18cd9bcdee",
+      "current_sha256": "bdf760c0333e38f70f4e83600c96cc3fa433136d88e33495242e3d18cd9bcdee",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet6.xml",
+      "baseline_sha256": "3fdd1103fa419ea44fa28266848eb3a50fd51e902417bb4f99ddc62cf699c15c",
+      "current_sha256": "3fdd1103fa419ea44fa28266848eb3a50fd51e902417bb4f99ddc62cf699c15c",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet7.xml",
+      "baseline_sha256": "0d6c8ac5de35833d83a95cfebda27eee8533568391a1e970f5305062b90a1a6c",
+      "current_sha256": "0d6c8ac5de35833d83a95cfebda27eee8533568391a1e970f5305062b90a1a6c",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet8.xml",
+      "baseline_sha256": "adf4acadaa479a5ece8b1259ad6053758b7120b1b81473fb28305dc6dd930034",
+      "current_sha256": "adf4acadaa479a5ece8b1259ad6053758b7120b1b81473fb28305dc6dd930034",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/xl/worksheets/sheet9.xml",
+      "baseline_sha256": "b14415db955bc2b8da35dc53623f9b5c0a8a1caa5795499f4786f848854dc200",
+      "current_sha256": "b14415db955bc2b8da35dc53623f9b5c0a8a1caa5795499f4786f848854dc200",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/source_manifest.json",
+      "baseline_sha256": "c7f1f4b2a59b2dd611ff69f4ddf55fd81db7c7fce20a43e42572fa9ab73fd566",
+      "current_sha256": "c7f1f4b2a59b2dd611ff69f4ddf55fd81db7c7fce20a43e42572fa9ab73fd566",
+      "status": "一致"
+    },
+    {
+      "path": "design/docs/extraction_20261008_01a11af4/verification.json",
+      "baseline_sha256": "39cf8a91a17a194a3ba5ecfaf81f4d9c1e65a3f75443e6e8d5db35e560b4f4b8",
+      "current_sha256": "39cf8a91a17a194a3ba5ecfaf81f4d9c1e65a3f75443e6e8d5db35e560b4f4b8",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/model.yaml",
+      "baseline_sha256": "f61aa633853afc1702e405974bac7267280de20d8c3b783d8ba0a7dee3ce5151",
+      "current_sha256": "f61aa633853afc1702e405974bac7267280de20d8c3b783d8ba0a7dee3ce5151",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/schema.json",
+      "baseline_sha256": "37f18626e668416bbe69131e62205cfa208127d90fa13e85b10a8b5d8f956e71",
+      "current_sha256": "37f18626e668416bbe69131e62205cfa208127d90fa13e85b10a8b5d8f956e71",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/migration_manifest.json",
+      "baseline_sha256": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
+      "current_sha256": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/migration_review.md",
+      "baseline_sha256": "46aaafb805231d6ee6f726395bcb25a20a7eebc4de7ab67df6d9692b3de72090",
+      "current_sha256": "46aaafb805231d6ee6f726395bcb25a20a7eebc4de7ab67df6d9692b3de72090",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/tools/validate_model.py",
+      "baseline_sha256": "93a6616643dadef6f74fe912b82b0075334619fbe8db8c9af32fd49bbd41c498",
+      "current_sha256": "93a6616643dadef6f74fe912b82b0075334619fbe8db8c9af32fd49bbd41c498",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/tools/build_migration.py",
+      "baseline_sha256": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
+      "current_sha256": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/tools/run_migration_checks.py",
+      "baseline_sha256": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
+      "current_sha256": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/tools/render_migration_review.py",
+      "baseline_sha256": "bba6ee012ea6965177098847ececaa65f68510d5ff428993961085bb6ea49651",
+      "current_sha256": "bba6ee012ea6965177098847ececaa65f68510d5ff428993961085bb6ea49651",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/rules/test_validate_model.py",
+      "baseline_sha256": "7f9611a0b4fc8a96c64e4968ea8de40394a1aeddeb75a69c95de041cff799364",
+      "current_sha256": "7f9611a0b4fc8a96c64e4968ea8de40394a1aeddeb75a69c95de041cff799364",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/reports/migration_validation.json",
+      "baseline_sha256": "06a96a51ffd924d4da61a04b5af8fc74b57dc2309b4dcd47b7aa4838c1e9f2b3",
+      "current_sha256": "06a96a51ffd924d4da61a04b5af8fc74b57dc2309b4dcd47b7aa4838c1e9f2b3",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/reports/migration_tests.txt",
+      "baseline_sha256": "c8a021fcd4a2e58d4fbf2fad5b365bf78d364798fdcec4450656ff507c1c41e0",
+      "current_sha256": "c8a021fcd4a2e58d4fbf2fad5b365bf78d364798fdcec4450656ff507c1c41e0",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/reports/migration_validator.txt",
+      "baseline_sha256": "ed7a29751f8aa3b54b756b08badc5029a994ded9571167bf403b5e9e5a366f9d",
+      "current_sha256": "ed7a29751f8aa3b54b756b08badc5029a994ded9571167bf403b5e9e5a366f9d",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/reports/migration_check_run.json",
+      "baseline_sha256": "40dbe9a7dfcf099bfbdef71e6f64f4b5bd563a3e85582ca8d4062b81f8211d72",
+      "current_sha256": "40dbe9a7dfcf099bfbdef71e6f64f4b5bd563a3e85582ca8d4062b81f8211d72",
+      "status": "一致"
+    },
+    {
+      "path": "design/baselines/migration_v1/intent.md",
+      "baseline_sha256": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9",
+      "current_sha256": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9",
+      "status": "一致"
+    }
+  ]
+}

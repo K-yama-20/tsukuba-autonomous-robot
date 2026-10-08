@@ -1,0 +1,44 @@
+{
+  "run_time_utc": "2026-10-08T11:31:57.963887+00:00",
+  "PYTHONPATH": "/private/tmp/gouda-model-deps",
+  "runs": [
+    {
+      "command": [
+        "/Users/AYARyoya/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "design/tools/validate_model.py"
+      ],
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge",
+      "exit_code": 0,
+      "output": "design/reports/migration_validator.txt"
+    },
+    {
+      "command": [
+        "/Users/AYARyoya/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "design/rules",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge",
+      "exit_code": 0,
+      "output": "design/reports/migration_tests.txt"
+    }
+  ],
+  "sha256": {
+    "design/model.yaml": "f61aa633853afc1702e405974bac7267280de20d8c3b783d8ba0a7dee3ce5151",
+    "design/schema.json": "37f18626e668416bbe69131e62205cfa208127d90fa13e85b10a8b5d8f956e71",
+    "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
+    "design/tools/build_migration.py": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
+    "design/tools/render_migration_review.py": "bba6ee012ea6965177098847ececaa65f68510d5ff428993961085bb6ea49651",
+    "design/tools/run_migration_checks.py": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
+    "design/tools/validate_model.py": "93a6616643dadef6f74fe912b82b0075334619fbe8db8c9af32fd49bbd41c498",
+    "design/rules/test_validate_model.py": "7f9611a0b4fc8a96c64e4968ea8de40394a1aeddeb75a69c95de041cff799364",
+    "design/rules/fixtures/minimal.yaml": "b201374fd52abc7853609ca6e802ba7ab64e446a87e3490635dd58d9f2a7bb9d",
+    "design/rules/fixtures/violations.json": "fc62aa2f1b98cd42017faee6546e0af86e94c5cc7a83f0a86685d6148dd06e47"
+  },
+  "scope": "移行と検査器のみ。ロボット/ROS/実車試験は実行していない。"
+}

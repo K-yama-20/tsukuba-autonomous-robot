@@ -1,0 +1,5 @@
+[
+  {"name":"意図的なID重複","operation":"duplicate_entity","expected_code":"DUPLICATE_ID"},
+  {"name":"意図的な参照切れ","operation":"set_related_refs","value":["DOES-NOT-EXIST"],"expected_code":"DANGLING_REF"},
+  {"name":"意図的な出典欠落","operation":"clear_source_refs","expected_code":"SCHEMA"}
+]

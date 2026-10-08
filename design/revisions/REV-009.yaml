@@ -1,0 +1,204 @@
+# 変更セット REV-009（2026-10-09 第5便: CLAUDE.md 検査の指示、判断台帳 pending の分類、DEC-042 の分割、ゲート3 の承認対象整理、C-001〜C-013 の置換範囲確認）
+# 適用: design/tools/apply_revision.py REV-009
+id: REV-009
+date: '2026-10-09'
+summary: >-
+  pending だった判断台帳（DEC-021〜029・042）を「既存決定で解消／ゲート3一括承認／本当に未決／技術調査・実測・実機照合待ち」に分類し disposition を付与。
+  DEC-042 を設計前提（確定）と実機照合（別の事実確認）に分割。C-001〜C-013 に置換範囲が intent 該当文の範囲内かの確認を記録。CLAUDE.md の検査・修復差分の提出を台帳に記録。
+basis_refs: [DEC-051, DEC-052]
+
+decision_updates:
+  - id: DEC-021
+    set: {disposition: technical_pending, note: 'Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。人の承認待ちから外す。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。'}
+  - id: DEC-022
+    set: {disposition: technical_pending, note: 'Q-03（通信・校正）は firmware を書き直す（DEC-030）ため既存プロトコルの照合は不要。DAC 端点・中立・遅延は実測（generated/measurement_plan.md）。人の承認待ちから外す。'}
+  - id: DEC-023
+    set: {status: recorded, disposition: resolved_by_existing, answer_verbatim: '', note: 'Q-08（P 介入で通った点）は C-004（通過・到達判定は Nav2：RQ-I011）で解消。介入中も Nav2 の判定に従い、Gouda は独自に計上しない。根拠: C-004、RQ-I011、DEC-015（標準 Nav2 で成立させる）。'}
+  - id: DEC-024
+    set: {disposition: fact_check_pending, note: 'Q-09（Bluetooth 切断時の P 状態）は新 firmware の設計（G-FIRMWARE。BT 途絶 250 ms で手動入力無効＝PRM-21、DEC-048）で定義し、実機照合で確認する。人の承認待ちから外す。'}
+  - id: DEC-025
+    set: {disposition: gate3_bundle, note: 'Q-11（robot_state_publisher 等の補助構成・独自型 4 件）は下位設計案の一部としてゲート3で一括承認（ND-13、IFD-01・02・28・37・40）。'}
+  - id: DEC-026
+    set: {status: recorded, disposition: resolved_by_existing, answer_verbatim: '', note: 'Q-13（後工程の保留）は S-02（利用者確定）と DEC-015（標準 Nav2 で成立させ、後工程へ回す）で解消。deferred のまま。'}
+  - id: DEC-027
+    set: {status: recorded, disposition: resolved_by_existing, answer_verbatim: '', note: 'U-DRAW-001（接続先 ID のない線）: 図は参照のみ（adoption reference_only）で、下位設計は図の線に依存しない（C-012、G-GRAPH）。接続先の推測はせず原文を保持して閉じる。'}
+  - id: DEC-028
+    set: {status: recorded, disposition: resolved_by_existing, answer_verbatim: '', note: 'U-HISTORY（CH-02 と現在図の時点差）: 変更記録は履歴、図は参照のみ。下位設計は両方に依存しない（C-016 は履歴として open のまま保持、問題としては閉じる）。'}
+  - id: DEC-029
+    set: {status: recorded, disposition: resolved_by_existing, answer_verbatim: '', note: 'H-009 は DEC-048（ESP32 watchdog 1 s、cmd_vel 途絶 700 ms、Bluetooth 途絶 250 ms）で解消。'}
+  - id: DEC-042
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      disposition: answered
+      question: 【設計前提】新 firmware の手動操作経路（DEC-042 を設計前提と実機照合に分割。実機照合は DEC-050）
+      answer_verbatim: '設計前提：基本契約どおり「Bluetoothゲームパッド→ESP32→DAC、手動操作優先」とすること。これは確定である。'
+      resulting_refs: [ND-17, IFD-17, DEC-050]
+      note: 設計前提として確定。実際の配線・書き込まれた firmware・操作結果がこの前提と一致するかは別の事実確認（DEC-050）。
+  - id: DEC-004
+    set: {disposition: answered}
+  - id: DEC-005
+    set: {disposition: answered}
+  - id: DEC-006
+    set: {disposition: answered}
+  - id: DEC-007
+    set: {disposition: answered}
+  - id: DEC-008
+    set: {disposition: answered}
+  - id: DEC-009
+    set: {disposition: answered}
+  - id: DEC-010
+    set: {disposition: answered}
+  - id: DEC-011
+    set: {disposition: answered, note: '暫定採用（Gouda 側発行器）。DEC-031（Speed Filter）と DEC-046（復帰手順）で置き換えられ、H-001 は resolved。'}
+  - id: DEC-013
+    set: {disposition: answered}
+  - id: DEC-014
+    set: {disposition: answered}
+  - id: DEC-015
+    set: {disposition: answered}
+  - id: DEC-016
+    set: {disposition: answered}
+  - id: DEC-017
+    set: {disposition: answered}
+  - id: DEC-030
+    set: {disposition: answered}
+  - id: DEC-031
+    set: {disposition: answered}
+  - id: DEC-032
+    set: {disposition: answered}
+  - id: DEC-033
+    set: {disposition: answered}
+  - id: DEC-034
+    set: {disposition: answered}
+  - id: DEC-037
+    set: {disposition: answered}
+  - id: DEC-044
+    set: {disposition: answered}
+  - id: DEC-045
+    set: {disposition: answered}
+  - id: DEC-046
+    set: {disposition: answered}
+  - id: DEC-047
+    set: {disposition: answered}
+  - id: DEC-048
+    set: {disposition: answered}
+
+decisions:
+  - id: DEC-050
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: 【実機照合】実際の配線、書き込まれた firmware、操作結果が設計前提（Bluetooth ゲームパッド→ESP32→DAC、手動操作優先、リレー不使用）と一致するか
+    answer_verbatim: ''
+    affected_refs: [ND-17, M-025, M-027]
+    resulting_refs: []
+    note: 事実確認であり承認ではない。新 firmware の実装・書き込み後に実機で確認する（人の協力）。
+    disposition: fact_check_pending
+  - id: DEC-051
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 判断台帳の pending の分類、DEC-042 の分割、ゲート3 の承認対象の整理の指示
+    answer_verbatim: |
+      「承認待ちはDEC-042とゲート3」としているが、DEC-021〜029もpendingのままである。項目を次の4つに分類せよ。
+      ・既存の決定や回答済み事項で解消済み → 根拠IDを付けて閉じる
+      ・ゲート3で一括承認する下位設計案 → 承認対象にまとめる
+      ・本当に未決の人の判断 → 選択肢と推奨案を示す
+      ・技術調査・実測・実機照合待ち → 人の承認待ちから外す
+      ・前回「人の最終判断待ち」に戻されたH-001の台帳上の状態も、あわせて示せ。
+
+      DEC-042は二つに分けて記録する。
+      設計前提：基本契約どおり「Bluetoothゲームパッド→ESP32→DAC、手動操作優先」とすること。これは確定である。
+      実機照合：実際の配線、書き込まれたfirmware、操作結果がこの前提と一致するか。これは別の事実確認である。
+
+      また、ゲート3について、以下をまとめて示せ。
+      承認対象の設計・決定ID
+      承認によって着手する機能（下位設計の継続か、車体出力の実装か、実車試験への移行か）
+      未確定事項と、それが止める作業
+      上位要求からの変更・例外
+      C-001〜C-013の各衝突で、置き換えた範囲がintent.mdの該当文の範囲に収まっているか
+    affected_refs: []
+    resulting_refs: [DEC-050]
+    note: 分類は generated/pending_classification.md、ゲート3 の資料は generated/gate3_package.md。
+    disposition: answered
+  - id: DEC-052
+    kind: approval
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: |
+      CLAUDE.md の修復差分の承認。指示（原文）:
+      まず、CLAUDE.mdを検査して。
+      Git履歴・バックアップ・原本と読み取り専用で照合せよ。
+      貼り付け時に混入した行番号と、本来の本文を区別せよ。
+      「先頭16行が欠けている可能性」は、欠落が確定するまで推測扱いのままにせよ。
+      根拠付きの修復差分を提出せよ。人間は差分だけを確認して承認する。
+      原文が分からない指示を、AIが推測で補ってはいけない。
+      修復が済むまでは、このファイルの指示に依存する新規作業を止める。既存資料の照合や台帳の整理は並行して進めて構わない。
+    answer_verbatim: ''
+    affected_refs: []
+    resulting_refs: []
+    note: 修復差分は design/proposals/CLAUDE.md.diff、修復後本文は design/proposals/CLAUDE.md.repaired、根拠は design/reports/claude_md_inspection.json と design/research/claude_md_inspection.md。先頭 1〜17 の欠落は推測のまま（本文を補っていない）。承認まで CLAUDE.md の指示に依存する新規作業は止める。
+    disposition: open_human
+
+modifications:
+  - id: Q-08
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [C-004, DEC-023]
+      issue.next_action: 解消（REV-009）。通過・到達判定は Nav2（C-004、RQ-I011）。P 介入中も Nav2 の判定に従い、Gouda は独自に計上しない。
+  - id: Q-11
+    set_nested:
+      issue.next_action: ゲート3で下位設計案（ND-13、独自型 IFD-01・02・28・37・40）として一括承認（DEC-025）。
+  - id: U-DRAW-001
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-027]
+      issue.next_action: 閉じる（REV-009）。図は参照のみで下位設計は依存しない。接続先は推測せず原文（targetPoint）を保持。
+  - id: U-HISTORY
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-028]
+      issue.next_action: 閉じる（REV-009）。変更記録と図は履歴・参照であり下位設計は依存しない。
+  - id: H-001
+    set_nested:
+      issue.next_action: >-
+        台帳上の経緯：DEC-011（Gouda 側発行器の暫定採用）→ DEC-031（Speed Filter が発行）→ DEC-039（復帰後の再適用の再比較指示。人の最終判断待ちに戻す）→ DEC-046（復帰手順を cleanup→configure→activate の 1 つに定める）。
+        現在の状態は resolved（発行元：Nav2 SpeedFilter、復帰手順：TR-13）。ゲート3で承認対象。
+  - id: ND-17
+    append_intent_lines: [34]
+    set_nested:
+      ros_node.placement_rationale: ESP32 上の firmware（ROS node ではない）。既存 firmware は置き換える（DEC-030）。設計前提は「Bluetooth ゲームパッド→ESP32→DAC、手動操作優先」で確定（DEC-042）。リレー切替は採用しない（RQ-I077）。実際の配線・firmware・操作結果との一致は実機照合（DEC-050）。
+  # ---- C-001〜C-013: 置換範囲が intent 該当文の範囲に収まっているかの確認 ----
+  - id: C-001
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I065「4モードしかない」「完全停止モードは存在しない」が旧 map_edit モードと一時停止の内部状態扱いを直接置換。RQ-I066・RQ-I064・RQ-I025 も同文。範囲外の責務・入出力は retained_scope。'}
+  - id: C-002
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I010「区間（waypoint i → i+1）の属性」が帰属の向きを直接定める。'}
+  - id: C-003
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I062「境界到達時点で、実速度が進入区間の上限以下であることは保証しなくて良い」、RQ-I020「cmd_velの後段で独自に速度を抑える処理は加えない」が置換部分と一致。既存保護全体の削除ではないと明記。'}
+  - id: C-004
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I011「waypointの通過や到達の判定はNav2が行う」、RQ-I019「Gouda側で二重に実行しない」。進捗保持・イベント順序は置換対象にしていない。'}
+  - id: C-005
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I012「後退しても良い。Nav2のBTが…失敗を返した場合、Goudaは一時停止モードに入り」、RQ-I018「後退と再計画はNav2のBTが管理」。'}
+  - id: C-006
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I013（自動復帰・依存順序・人の追加承認不要）、RQ-I064（直前状態へ復帰、PC再起動は一時停止へ）、RQ-I069（必要な状態だけ復元）。REV-002 の clarification で固定四段階ではなく依存順序と明記。復旧不能時の遷移先は intent から一意でなかったため C-019→DEC-008 で人が決めた（置換ではなく補足）。'}
+  - id: C-007
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I017「ゴールが最後のwaypoint。…自動で車体を停止して一時停止モードに入る」、RQ-I067「再開ボタンを押した場合も、最終waypointを目指して走る」、RQ-I015「自律走行終了ボタンを押さない限り、自律走行を終了してはならない」。'}
+  - id: C-008
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I068「esp32は、現在採用している指令源からの入力が途絶えたら中立を出す」、RQ-I024。「Bluetooth断に追加処理なし」を採用要件にしない部分だけを置換し、S-04 の他の記載は保持。'}
+  - id: C-009
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I005（独立した Record／Stop Record）、RQ-I015（自動開始の契機、復帰では開始しない、記録失敗で止めない）、RQ-I016（rosbag は別、自動開始しない）、RQ-I017（手動開始は自動停止しない）。'}
+  - id: C-010
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I011「自律走行開始ボタンを一回押すと…追加の承認を挟まない」。準備条件の内部処理は置換対象外。'}
+  - id: C-011
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I008・RQ-I009（自動変換、由来ID、独立ハッシュ、失敗時は原図保持）、RQ-I010（waypoint は地図のID・版・ハッシュを参照し独立保存）。'}
+  - id: C-012
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I011（通過判定は Nav2）、RQ-I018・RQ-I019（実行主体は Nav2、二重実行しない）、RQ-I055・RQ-I057（Nav2 の機能を独自実装しない）。薄い adapter（ND-03 の action client）は intent にない設計案であり置換ではない。'}
+  - id: C-013
+    set_nested: {reconciliation.scope_within_intent: '収まる。RQ-I044「waypoint_manager（guiはgouda_monitor内に表示。画面転送は使用禁止。）」。'}

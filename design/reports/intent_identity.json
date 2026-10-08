@@ -1,0 +1,136 @@
+{
+  "old_file": "design/baselines/intent_history/intent_v3_f0df295f9927.md",
+  "old_sha256": "f0df295f9927c0867705359693ff536a21bc913dc014b677628a4982352763e4",
+  "new_file": "design/intent.md",
+  "new_sha256": "4f9f8606689baa4527ff82fe7c449e84d4feaf8a4d63b101113c5de95b2ca67f",
+  "all_identical": true,
+  "rows": [
+    {
+      "requirement": "RQ-I023",
+      "text": "・bluetooth接続の手動操作がESP32で優先される",
+      "old_line": 34,
+      "new_line": 34,
+      "old_sha256": "cabac4e1820fb33b5e2e743ad4a21a5ed5d0b0aa38e5affeaec2dd70e1719ee6",
+      "new_sha256": "cabac4e1820fb33b5e2e743ad4a21a5ed5d0b0aa38e5affeaec2dd70e1719ee6",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I024",
+      "text": "・bluetooth gamepadからの指令が途絶えたらESP32が中立を出す。",
+      "old_line": 35,
+      "new_line": 35,
+      "old_sha256": "1576b5e34da856efa87ea205dbf28421f29c1d32dbd049c53a9d47625cbdc6ec",
+      "new_sha256": "1576b5e34da856efa87ea205dbf28421f29c1d32dbd049c53a9d47625cbdc6ec",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I025",
+      "text": "自律走行の開始は人の開始操作でのみ行う。再開（異常終了後の復帰）は自動で行ってよい。人が一時停止ボタン/自律走行終了ボタンを押した後は、プロセスが再起動しても、人の操作なしに走行を再開せず、一時停止状態/手動走行に自動で戻るところまで進める。",
+      "old_line": 36,
+      "new_line": 36,
+      "old_sha256": "83610d5ca1fb61f3bad7223f426b4a6d6c2d5003b69601aa73557bec9ac7bae8",
+      "new_sha256": "83610d5ca1fb61f3bad7223f426b4a6d6c2d5003b69601aa73557bec9ac7bae8",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I026",
+      "text": "人がgouda_monitor上の一時停止ボタンを押下すると自律走行が一時停止する。",
+      "old_line": 37,
+      "new_line": 37,
+      "old_sha256": "a6afbbea27a36941ccff1a24b9b0dce1ba79a601762b42f6f2da359a469ba479",
+      "new_sha256": "a6afbbea27a36941ccff1a24b9b0dce1ba79a601762b42f6f2da359a469ba479",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I027",
+      "text": "・ 双方向の歯止め：AIは基本契約を独断で増やさず、優先順位を理由に既存の保護を削らない。追加の保護は、必要性・根拠・開発への影響を添えた提案として出す。",
+      "old_line": 38,
+      "new_line": 38,
+      "old_sha256": "3fd9d115a98a8646b73d22fb300aee1baa1e3e248383f0c7015b5ba63a4be8d0",
+      "new_sha256": "3fd9d115a98a8646b73d22fb300aee1baa1e3e248383f0c7015b5ba63a4be8d0",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I062",
+      "text": "・境界到達時点で、実速度が進入区間の上限以下であることは保証しなくて良い。",
+      "old_line": 91,
+      "new_line": 91,
+      "old_sha256": "b67df2d6a2a8f882ee687839bc24562fc73fe3655addcc20ab87db1530141b86",
+      "new_sha256": "b67df2d6a2a8f882ee687839bc24562fc73fe3655addcc20ab87db1530141b86",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I063",
+      "text": "・自律走行中にPCからの指令が途絶えた場合も、中立位置に戻す。",
+      "old_line": 92,
+      "new_line": 92,
+      "old_sha256": "8d9f5750e009666f44cf4ffcbd4c91f9a2a5775fd437b2869ce56d1a33fd09e0",
+      "new_sha256": "8d9f5750e009666f44cf4ffcbd4c91f9a2a5775fd437b2869ce56d1a33fd09e0",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I064",
+      "text": "・node異常、推定不能、通信途絶、からの自動復帰後は直前の状態（自律走行/事前地図作成/一時停止/手動走行）に復帰する。PC再起動後は、直前が自律走行/事前地図作成/一時停止モードなら一時停止モードへ復帰し、手動走行モードなら手動走行モードに復帰する。",
+      "old_line": 93,
+      "new_line": 93,
+      "old_sha256": "9265cd87db08fa1c3c656d533b477c75a8a8506ad1422a402b776d7ea66c3c92",
+      "new_sha256": "9265cd87db08fa1c3c656d533b477c75a8a8506ad1422a402b776d7ea66c3c92",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I065",
+      "text": "・ソフトのモードは自律走行/事前地図作成/一時停止/手動走行の4モードしかない。完全停止モードは存在しない。",
+      "old_line": 94,
+      "new_line": 94,
+      "old_sha256": "c3a8f45b7389872b37ee856af636c12c6ef4ac68577f832e4ba31e6e6cd9c32b",
+      "new_sha256": "c3a8f45b7389872b37ee856af636c12c6ef4ac68577f832e4ba31e6e6cd9c32b",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I066",
+      "text": "・起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。",
+      "old_line": 95,
+      "new_line": 95,
+      "old_sha256": "83429ef41e5dff7e532b8e9bfa8a4d957b18c2773a3113c3d3ba5a6158bbe58a",
+      "new_sha256": "83429ef41e5dff7e532b8e9bfa8a4d957b18c2773a3113c3d3ba5a6158bbe58a",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I067",
+      "text": "・最終waypoint到達後の一時停止で再開ボタンを押した場合も、最終waypointを目指して走る。",
+      "old_line": 96,
+      "new_line": 96,
+      "old_sha256": "716b3fdfb5653a70680bfd2bd3f150468acf580b37b3f6e6dd17fce7f3e8151b",
+      "new_sha256": "716b3fdfb5653a70680bfd2bd3f150468acf580b37b3f6e6dd17fce7f3e8151b",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I068",
+      "text": "・esp32は、現在採用している指令源からの入力が途絶えたら中立を出す。",
+      "old_line": 97,
+      "new_line": 97,
+      "old_sha256": "e14c6c348072c74b133f2c2d08ea3f440877c7d479615f4e9493ad1ea91614da",
+      "new_sha256": "e14c6c348072c74b133f2c2d08ea3f440877c7d479615f4e9493ad1ea91614da",
+      "identical": true
+    },
+    {
+      "requirement": "RQ-I069",
+      "text": "・故障の種類と復帰先のモードに応じて、必要な状態だけを復元する。旧goalと新goalが競合しない方法で自動復帰し、各処理の成否を記録する。自律走行指令の再許可は、自律走行へ復帰する場合に限る。",
+      "old_line": 98,
+      "new_line": 98,
+      "old_sha256": "17b661005e422f123bcade3aa62ba332dfe47782a7e0a5e4ec0cd0d2e7ba9838",
+      "new_sha256": "17b661005e422f123bcade3aa62ba332dfe47782a7e0a5e4ec0cd0d2e7ba9838",
+      "identical": true
+    }
+  ],
+  "unified_diff": [
+    "--- design/baselines/intent_history/intent_v3_f0df295f9927.md",
+    "+++ design/intent.md",
+    "@@ -13 +13 @@",
+    "-8. waypoint_managerにより、人間がwaypointと次のwaypointに向かうまでの区間の速度上限を設定して保存ボタンを押す。区間の速度上限は、区間（waypoint i → i+1）の属性とする。区間境界では、進入する区間の値を適用する。するとwaypoint_databaseに保存される。waypointデータは、参照する変換後地図のID・版・内容ハッシュを記録し、waypointデータ自身も独立した内容ハッシュを持つ。地図とは別々に保存する。",
+    "+8. waypoint_managerにより、人間がwaypointと次のwaypointに向かうまでの区間の速度上限を設定して保存ボタンを押す。区間の速度上限は、区間（waypoint i → i+1）の属性とする。するとwaypoint_databaseに保存される。waypointデータは、参照する変換後地図のID・版・内容ハッシュを記録し、waypointデータ自身も独立した内容ハッシュを持つ。地図とは別々に保存する。",
+    "@@ -102,0 +103,2 @@",
+    "+・実測値はプログラムにハードコードせず、宣言的に書く。",
+    "+・リレーによる切り替え機能は使わない。esp32が電源に接続されている限り、常にdacが電圧を出す。"
+  ]
+}
