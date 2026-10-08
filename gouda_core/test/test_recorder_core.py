@@ -85,6 +85,16 @@ class RecorderCoreTests(unittest.TestCase):
         kinds = [e['kind'] for e in events]; self.assertEqual(kinds, ['record_start', 'input'])
         self.assertEqual(events[1]['t'], 101.5); self.assertEqual(events[1]['data'], {'mode': 1, 'state_revision': 3})
 
+    def test_last_received_state_is_written_as_snapshot_when_log_starts(self):
+        # mode/state arrived (transient_local) before the human pressed Record: it is not recorded then (log inactive),
+        # but when the log starts the last received value is written as a snapshot with its original receive time.
+        self.assertFalse(self.core.record('input', 'mode/state', 90.0, {'mode': 1, 'state_revision': 1}))
+        self.core.start_log(TRIGGER_HUMAN)
+        events = [json.loads(l) for l in (self.root / 'S1' / 'log' / 'events.jsonl').read_text().splitlines()]
+        self.assertEqual([e['kind'] for e in events], ['record_start', 'snapshot'])
+        self.assertEqual(events[1]['topic'], 'mode/state'); self.assertEqual(events[1]['t'], 90.0); self.assertEqual(events[1]['data']['mode'], 1)
+        self.assertEqual(events[1]['written_at'], self.clock())
+
     def test_write_failure_is_reported_as_gap_and_does_not_raise(self):
         self.core.start_log(TRIGGER_HUMAN)
         events = self.root / 'S1' / 'log' / 'events.jsonl'

@@ -21,7 +21,10 @@ ros_setup="${ROS_SETUP:-/opt/ros/jazzy/setup.bash}"
 
 usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; }
 
-running() { [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; }
+# The launch runs in its own process group (job control on) so that SIGINT is not ignored by the background job and
+# the whole group (launch + nodes) can be signalled together; "running" means any process of that group is alive.
+pgid() { [[ -f "$pid_file" ]] && cat "$pid_file"; }
+running() { local g; g="$(pgid)" && [[ -n "$g" ]] && pgrep -g "$g" >/dev/null 2>&1; }
 
 case "${1:-}" in
   start)
@@ -32,20 +35,27 @@ case "${1:-}" in
     mkdir -p "$run_dir" "$data_root/records" "$data_root/state"
     # shellcheck disable=SC1090
     source "$ros_setup"; source "$workspace/install/setup.bash"
-    nohup ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" >"$log_file" 2>&1 &
-    echo $! >"$pid_file"
-    echo "started gouda_core (pid $!); params=$params_dir data=$data_root log=$log_file"
+    set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
+    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" >"$log_file" 2>&1 &
+    launch_pid=$!
+    set +m
+    echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid
+    echo "started gouda_core (pgid $launch_pid); params=$params_dir data=$data_root log=$log_file"
     ;;
   stop)
     if ! running; then echo "not running"; rm -f "$pid_file"; exit 0; fi
-    pid="$(cat "$pid_file")"
-    kill -INT "$pid" 2>/dev/null || true
-    for _ in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
-    kill -0 "$pid" 2>/dev/null && { echo "still running after SIGINT; sending SIGTERM"; kill -TERM "$pid" 2>/dev/null || true; }
-    rm -f "$pid_file"; echo "stopped"
+    g="$(pgid)"
+    kill -INT -- "-$g" 2>/dev/null || true          # launch and every node of the group shut down on SIGINT
+    for _ in $(seq 1 30); do pgrep -g "$g" >/dev/null 2>&1 || break; sleep 1; done
+    if pgrep -g "$g" >/dev/null 2>&1; then
+      echo "still running after SIGINT; sending SIGTERM to the group"; kill -TERM -- "-$g" 2>/dev/null || true
+      for _ in $(seq 1 10); do pgrep -g "$g" >/dev/null 2>&1 || break; sleep 1; done
+      pgrep -g "$g" >/dev/null 2>&1 && { echo "still running after SIGTERM; sending SIGKILL"; kill -KILL -- "-$g" 2>/dev/null || true; }
+    fi
+    rm -f "$pid_file"; echo "stopped (no process of group $g remains: $(pgrep -g "$g" >/dev/null 2>&1 && echo no || echo yes))"
     ;;
   status)
-    if running; then echo "running (pid $(cat "$pid_file"))"; else echo "not running"; fi
+    if running; then echo "running (pgid $(pgid); processes: $(pgrep -g "$(pgid)" | wc -l | tr -d ' '))"; else echo "not running"; fi
     echo "data_root=$data_root"; echo "params_dir=$params_dir"; echo "log=$log_file"
     [[ -f "$data_root/state/previous_mode_record.json" ]] && { echo -n "previous_mode_record: "; cat "$data_root/state/previous_mode_record.json"; }
     ;;

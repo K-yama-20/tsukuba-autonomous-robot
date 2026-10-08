@@ -63,6 +63,9 @@ class RecorderCore:
         self.session: Optional[Session] = None
         self.last_gap: Optional[GapRange] = None
         self.status_revision = 0
+        # Last received message per topic (kind, received_at, payload). Written as a snapshot when a log starts so that
+        # the state in force at the start of a recording is traceable; it carries the original receive time (RQ-I015).
+        self.last_received: dict = {}
 
     # ---- session ----
     def _ensure_session(self) -> Session:
@@ -99,6 +102,8 @@ class RecorderCore:
         self.status_revision += 1
         self._write_session_json()
         self._append(s.directory / 'log' / 'events.jsonl', {'t': self.clock(), 'kind': 'record_start', 'trigger': trigger})
+        for topic, (kind, received_at, payload) in sorted(self.last_received.items()):
+            self._append(s.directory / 'log' / 'events.jsonl', {'t': received_at, 'kind': 'snapshot', 'of': kind, 'topic': topic, 'data': payload, 'written_at': self.clock()})
         return True, f'log recording started ({trigger}) in {s.directory}'
 
     def stop_log(self, trigger: str) -> tuple[bool, str]:
@@ -152,6 +157,7 @@ class RecorderCore:
     def record(self, kind: str, topic: str, received_at: float, payload: dict) -> bool:
         """Append one received message (input or decision) to the log. Only what was received is written (RQ-I015).
         Returns False (and opens a failure gap) when the write fails; the caller keeps running."""
+        self.last_received[topic] = (kind, received_at, payload)
         s = self.session
         if s is None or not s.log_active:
             return False
