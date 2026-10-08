@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "backend": {
+    "name": "onnxruntime",
+    "minimum_version": "1.22.1",
+    "providers": ["CPUExecutionProvider"],
+    "intra_op_threads": 2,
+    "inter_op_threads": 1
+  },
+  "license": "Apache-2.0",
+  "autoware_source": {
+    "repository": "https://github.com/autowarefoundation/autoware_universe",
+    "revision": "aad308b21e333954ec9326b0ccff4382fe4a664c"
+  },
+  "models": {
+    "detector": {
+      "filename": "tlr_car_ped_yolox_s_batch_1.onnx",
+      "url": "https://huggingface.co/AutowareFoundation/traffic_light_fine_detector/resolve/3f0616ffda0c19fc84fc455f988421c0df970e5d/tlr_car_ped_yolox_s_batch_1.onnx",
+      "revision": "3f0616ffda0c19fc84fc455f988421c0df970e5d",
+      "sha256": "1ad633066a1195006f4709f8fa07800dd65a74a814b3efb4c99bcc5a1a7962f6",
+      "size_bytes": 35794092,
+      "license": "Apache-2.0",
+      "input": {
+        "shape": [1, 3, 416, 416],
+        "layout": "NCHW",
+        "color_space": "BGR",
+        "scale_factor": 1.0,
+        "resize": "bilinear_letterbox_top_left",
+        "padding_value": 114.0
+      },
+      "output": {
+        "shape": [1, 3549, 8],
+        "layout": "anchor_major",
+        "fields": [
+          "center_x",
+          "center_y",
+          "width",
+          "height",
+          "objectness",
+          "background_score",
+          "traffic_light_score",
+          "pedestrian_traffic_light_score"
+        ],
+        "strides": [8, 16, 32]
+      },
+      "class_ids": {
+        "background": 0,
+        "traffic_light": 1,
+        "pedestrian_traffic_light": 2
+      },
+      "score_threshold": 0.3,
+      "nms_threshold": 0.65
+    },
+    "classifier": {
+      "filename": "ped_traffic_light_classifier_mobilenetv2_batch_1.onnx",
+      "url": "https://huggingface.co/AutowareFoundation/traffic_light_classifier/resolve/527c4905afd8f1bfcc03253529a105f7fa5a6d36/ped_traffic_light_classifier_mobilenetv2_batch_1.onnx",
+      "revision": "527c4905afd8f1bfcc03253529a105f7fa5a6d36",
+      "sha256": "b52632fee96d1bc99922e743335ebfd49d6a0645c8a04e615f156e38661add24",
+      "size_bytes": 8885654,
+      "license": "Apache-2.0",
+      "input": {
+        "shape": [1, 3, 224, 224],
+        "layout": "NCHW",
+        "color_space": "RGB",
+        "resize": "bilinear_letterbox_top_left",
+        "padding_value": 0.0,
+        "normalization": {
+          "mean": [123.675, 116.28, 103.53],
+          "std": [58.395, 57.12, 57.375]
+        }
+      },
+      "output": {
+        "shape": [1, 3],
+        "kind": "probabilities",
+        "labels": ["red", "green", "unknown"]
+      },
+      "confidence_threshold": 0.8
+    }
+  }
+}
