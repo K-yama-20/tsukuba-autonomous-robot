@@ -73,9 +73,9 @@ class SensorConfigTests(unittest.TestCase):
     def test_invalid_values_are_refused_as_a_whole(self):
         with tempfile.TemporaryDirectory() as d:
             c = SensorConfig(Path(d) / 'cfg.json')
-            ok, msg = c.update({'lidar_mount_x_m': 'abc'}, 1.0); self.assertFalse(ok); self.assertIn('not a number', msg); self.assertEqual(c.config_revision, 0)
-            ok, msg = c.update({'no_such_field': 1}, 1.0); self.assertFalse(ok); self.assertIn('unknown config field', msg)
-            ok, msg = c.update({'imu_mount_y_m': ''}, 1.0); self.assertTrue(ok); self.assertEqual(c.values['imu_mount_y_m'], 'UNKNOWN')
+            ok, msg = c.update({'lidar_mount_x_m': 'abc'}, 10.0); self.assertFalse(ok); self.assertIn('not a number', msg); self.assertEqual(c.config_revision, 0)
+            ok, msg = c.update({'no_such_field': 1}, 10.0); self.assertFalse(ok); self.assertIn('unknown config field', msg)
+            ok, msg = c.update({'imu_mount_y_m': ''}, 10.0); self.assertTrue(ok); self.assertEqual(c.values['imu_mount_y_m'], 'UNKNOWN')
 
     def test_unreadable_file_is_treated_as_empty(self):
         with tempfile.TemporaryDirectory() as d:

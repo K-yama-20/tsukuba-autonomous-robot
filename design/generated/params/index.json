@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "9be8c64ee373ac6701babbc86cac6805478bb1abb734d4d2883f7b1de94a82af",
+  "model_entities_sha256": "39a6c4c193f77db48a1460e4d37f8a3de5a1aef06d58953e606102df5511ff21",
   "parameters": [
     {
       "id": "PRM-11",
@@ -81,6 +81,18 @@
       "declaration": "launch_argument",
       "apply_timing": "launch",
       "value_type": "string",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": null
+    },
+    {
+      "id": "PRM-26",
+      "file": "gouda_core.launch.py.yaml",
+      "key": "monitor_port",
+      "target": "gouda_core.launch.py",
+      "declaration": "launch_argument",
+      "apply_timing": "launch",
+      "value_type": "int",
       "value_state": "unresolved",
       "value": null,
       "unit": null

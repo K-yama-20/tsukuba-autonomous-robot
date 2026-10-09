@@ -92,6 +92,14 @@ files:
     path: design/research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt
     sha256: e17dbd0d28bebce16dcf02e6504bd58bc210b7b1247d13d33d7567137b476659
     role: evidence
+  - id: FILE-GUI-DESIGN-RULES
+    path: design/docs/gouda_gui_design_rules.md
+    sha256: 1a5a42e9deb543f4fb6c30d8f6b085bccae62e4f9f736741c5556753bf031aeb
+    role: evidence
+  - id: FILE-VEHICLE-PC-STAGE52
+    path: design/research/vehicle_pc/2026-10-09_stage5-2_ubuntu_test.txt
+    sha256: 41d1b39a9e46e1a73b150b7341e066e913051136fb61c6ac9cea36f86f8216d5
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34171,7 +34179,7 @@ entities:
       - RQ-I033
       - RQ-I044
       - RQ-I070
-    revision_ref: REV-012
+    revision_ref: REV-019
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34223,8 +34231,10 @@ entities:
         - IFD-11
       owned_state_refs:
         - SO-03
-      placement_rationale: HMI は停止・再起動しても mission を初期化しない（M-002 T3 の方針を維持）。waypoint 編集は GUI 
-        と同プロセスに置き、保存形式（IFD-30）だけを契約にする。
+      placement_rationale: 'HMI は停止・再起動しても mission を初期化しない（M-002 T3 の方針を維持）。waypoint 編集は GUI と同プロセスに置き、保存形式（IFD-30）だけを契約にする。
+        実装（工程5-2）: gouda_core/gouda_core/monitor_core.py（表示規則・/config、rclpy 非依存）、monitor_server.py（127.0.0.1 の HTTP/SSE、標準ライブラリのみ）、monitor_node.py（購読・サービス呼出し）、web/（16:9
+        の運行画面。 デザインルール design/docs/gouda_gui_design_rules.md を参考。外部表示領域は確保のみ）。ポートは PRM-26（既定は OS 選択、URL は <data_root>/run/monitor.url）。waypoint_manager
+        GUI・初期位置指定・発進準備は 5-4／5-6 で追加。'
   - id: ND-03
     kind: ros_node
     name: gouda_mode_manager（モード・mission文脈の正本、Nav2 action client）
@@ -34277,7 +34287,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-016
+    revision_ref: REV-019
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34335,8 +34345,9 @@ entities:
         - SO-01
       placement_rationale: 旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と 
         feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。 工程5-1 の実装は gouda_core/gouda_core/mode_core.py（起動遷移 
-        TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent 
-        の発行）。モードサービス（IFD-02〜07）・motion_hold（IFD-40）・他の遷移は後の工程で追加。
+        TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent の発行）。 工程5-2 でサービス IFD-02〜07 
+        を受け付ける（mode_core.request_transition）。現在のモードと遷移表・guard で判定し、動作が未実装の遷移は実装する工程名を付けて拒否、全要求を DecisionEvent 
+        に記録。 各遷移の動作（GLIM 起動、Nav2 goal、motion_hold）は 5-3／5-6／5-7 で実装し、IMPLEMENTED_TRANSITIONS に加える。
   - id: ND-04
     kind: ros_node
     name: gouda_recorder（ログとrosbagの独立記録）
@@ -35136,15 +35147,16 @@ entities:
       - RQ-I006
       - RQ-I078
       - RQ-I011
-    revision_ref: REV-011
+    revision_ref: REV-019
     state_owner:
       owner_ref: ND-02
       state_items:
-        - name: tf_config_store
-          description: センサ類の取付位置・姿勢と、LiDAR・IMU の座標方向の指定（DEC-007）。値は未決（RQ-I070）。タブ遷移で消えない
+        - name: sensor_config
+          description: センサ類の取付位置・姿勢と、LiDAR・IMU の座標方向の指定（DEC-007）。値は未決（RQ-I070）。タブ遷移で消えない。実装は 
+            <data_root>/config/sensor_config.json（各項目は UNKNOWN から始まり、保存ごとに config_revision を増やす）
           persistence: persisted
-          restore_scope: 起動時に読み込み ND-13 へ渡す（IFD-26）
-        - name: ui_selection
+          restore_scope: 起動時に読み込み ND-13 へ渡す（IFD-26。渡す実装は工程5-6）
+        - name: selection_inputs
           description: 地図とwaypointの組の選択、初期位置・向きの入力値（開始要求 IFD-02 の引数になる）
           persistence: volatile
           restore_scope: mission の正本ではない（正本は SO-01）
@@ -35152,6 +35164,12 @@ entities:
           description: waypoint・区間速度上限の編集中データと未保存フラグ
           persistence: volatile
           restore_scope: 保存ボタンで IFD-30 へ書き出す
+        - name: display_aggregate
+          description: 表示用の集約（最終受信の mode/state・record/status、DecisionEvent の件数と最終時刻、node 一覧、操作結果）。受信していない値は 
+            NOT_RECEIVED
+          persistence: volatile
+          restore_scope: 再起動・再接続で transient_local の mode/state・record/status から取り直す（DEC-014）。volatile の 
+            DecisionEvent は取り直せない
   - id: SO-04
     kind: state_owner
     name: gouda_map_creator の保持状態（地図データベース）
@@ -35402,11 +35420,12 @@ entities:
     requirement_refs:
       - RQ-I011
       - RQ-I025
-    revision_ref: REV-002
+    revision_ref: REV-019
     designed_interface:
       transport: service
       name: mode/start_autonomy
-      message_type: gouda_interfaces/srv/StartAutonomy（提案）
+      message_type: gouda_interfaces/srv/StartAutonomy（定義済み。REV-019。request_id・地図 ID／版／ハッシュ・waypoint セット 
+        ID／版／ハッシュ・initial_pose）
       standard_type: false
       custom_type_reason: 地図ID・版・ハッシュ、waypointセットID・版・ハッシュ、初期位置（PoseWithCovarianceStamped）、request_id 
         を1回の要求で渡す標準サービスがない。
@@ -40456,6 +40475,81 @@ entities:
       expected: 記録なし／手動走行 → 手動走行（TR-01）。自律走行／事前地図作成／一時停止 → 一時停止（TR-02）で自律走行指令は再許可されず 
         initial_pose_required=true（DEC-009）。人の一時停止・終了のフラグは再起動で消えない（RQ-I025）。不正な記録は記録なしとして扱う。state_revision 
         は減らない。
+  - id: PRM-26
+    kind: parameter
+    name: gouda_monitor のページの待受ポート（127.0.0.1）
+    source_refs:
+      - SRC-I064
+      - SRC-I045
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-ARCH
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I044
+      - RQ-I033
+    revision_ref: REV-019
+    parameter:
+      owner_ref: ND-02
+      value:
+      value_state: unresolved
+      unit:
+      stage: gouda_monitor
+      purpose: monitor ページを待ち受ける TCP ポート。0 のとき OS が空きポートを選び、URL を <data_root>/run/monitor.url に書く（gouda.sh 
+        が表示）。固定したい場合は GOUDA_MONITOR_PORT で与える
+      measurement: 不要（運用値）
+      decision_deadline: 固定ポートが必要になった時点で人が決める（未設定なら OS 選択のまま運用できる）
+      software_trial_value: 0
+      software_trial_basis: 0＝OS が選ぶ。旧実装の 8766 は流用しない（旧 Mission Control と衝突しないため）。実車採用値ではない
+      declaration: launch_argument
+      target: gouda_core.launch.py
+      param_key: monitor_port
+      value_type: int
+      apply_timing: launch
+  - id: TS-25
+    kind: test
+    name: gouda_monitor の単体・API 試験（表示規則、/config、サービス呼出し、再接続）
+    source_refs:
+      - SRC-I008
+      - SRC-I045
+      - SRC-I098
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-02
+      - SO-03
+      - IFD-01
+      - IFD-12
+      - IFD-26
+      - IFD-28
+      - TS-10
+      - TS-15
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I005
+      - RQ-I033
+      - RQ-I070
+    revision_ref: REV-019
+    test:
+      execution_status: 未実行
+      stage: gouda_monitor
+      procedure: 'gouda_core/test/test_monitor_core.py（未受信を OK にしない、しきい値未確定時の鮮度、STALE と RECEIVED、同一イベントの件数・最終時刻、/config
+        の永続化・検証・UNKNOWN）、 test_monitor_server.py（ページと静的ファイル、/api/state、コマンドの拒否が 409 と理由で返る、不正 JSON の拒否、/config の往復、SSE
+        が接続直後に現在の状態を送り変更で再送）、 test_mode_core.py HumanRequestTests（モード不一致・未実装・DEC-009 の guard）。ROS 上では Ubuntu で gouda.sh
+        start → /api/state、POST /api/command/*（拒否が DecisionEvent として events に現れる）、 /config の保存と再起動後の保持、SSE、停止（実行記録:
+        research/vehicle_pc/2026-10-09_stage5-2_ubuntu_test.txt）。'
+      observe: 各 assert、HTTP の状態コードと本文、/api/state の events・commands・record、再起動後の /api/config。
+      expected: 未受信は NOT_RECEIVED で OK と表示されない。モード操作は現在のモードと遷移表で判定され、拒否理由が記録・表示される。/config 
+        はタブ遷移・再読込・再起動で消えない。表示断は停止契機でなく、再接続で現在の状態を取得する（DEC-014）。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -49489,6 +49583,38 @@ decisions:
     note: '削除したもの: scripts/gouda.sh（旧 Mission Control の起動）、scripts/gouda_gui.sh（同 view の別名）、scripts/smoke.sh（旧 gouda.sh
       を直接呼ぶ煙試験）。 参照の更新: README.md（起動節を新 gouda.sh に差し替え、旧版移行節の参照を修正）、scripts/setup.sh（完了メッセージ）、scripts/configure_host.py（案内文）、docs/gouda_gui.md・gouda_recording_glim.md・autonomy_mvp.md・phone_field_runtime.md（先頭に削除の注記。本文は履歴として保持）。
       gouda_gui パッケージ本体・configure_host.py・setup.sh は削除していない（指示の範囲は gouda.sh 類）。gouda_gui の撤去は旧実装の置き換え（DEC-030 の方針）として別に判断する。'
+  - id: DEC-070
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 工程5-2（gouda_monitor）の実装着手の指示とデザインルールの参照
+    answer_verbatim: 
+      工程5-2の実装に着手。ただし、デザインルールは"/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/design/docs/gouda_gui_design_rules.md"を参考にして。
+    affected_refs:
+      - ND-02
+      - ND-03
+      - SO-03
+      - IFD-01
+      - IFD-02
+      - IFD-03
+      - IFD-04
+      - IFD-05
+      - IFD-06
+      - IFD-07
+      - IFD-12
+      - IFD-26
+      - IFD-28
+    resulting_refs:
+      - FILE-GUI-DESIGN-RULES
+      - PRM-26
+      - TS-25
+      - FILE-VEHICLE-PC-STAGE52
+    note: 'デザインルール（SHA-256 1a5a42e9…）は参考であり上位要求ではない。intent・正本と食い違う点は正本に従った: 右上の常設ボタンは設計の操作（地図作成開始／終了、自律走行開始／一時停止／再開／終了）とし、
+      ルールの「停止」は一時停止（TR-06）に対応させた。安全停止／DISARM ボタン、非常停止の説明文は置かない（ルール §4、RQ-I072）。外部表示領域（Navigation、LiDAR／localization）は確保のみで内部に描画しない（ルール
+      §6）。 未受信は NOT_RECEIVED、鮮度しきい値未確定のため STALE 判定はしない（ルール §7）。画面は 127.0.0.1 のみで配信（画面転送は使わない: RQ-I044）。'
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -50296,4 +50422,25 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-STAGE51
+    removed_entity_ids: []
+  - id: REV-019
+    date: '2026-10-09'
+    summary: '人の指示（工程5-2 の実装着手。デザインルールは gouda_gui_design_rules.md を参考にする）を記録（DEC-070）し、同文書をリポジトリの design/docs に複製して証拠ファイルとして登録。
+      実装: gouda_monitor（ND-02。127.0.0.1 の HTTP/SSE ページ、モード・記録の表示と操作、/config の永続化）、gouda_mode_manager のサービス受付（IFD-02〜07。未実装の遷移は工程名付きで拒否し
+      DecisionEvent に記録）、 StartAutonomy.srv（IFD-02）。PRM-26（monitor のポート、運用値）、TS-25（monitor の単体・API 試験）を追加。Ubuntu
+      上の試験記録を登録（FILE-VEHICLE-PC-STAGE52）。'
+    basis_refs:
+      - DEC-070
+    added_entity_ids:
+      - PRM-26
+      - TS-25
+    modified_entity_ids:
+      - ND-02
+      - ND-03
+      - SO-03
+      - IFD-02
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GUI-DESIGN-RULES
+      - FILE-VEHICLE-PC-STAGE52
     removed_entity_ids: []

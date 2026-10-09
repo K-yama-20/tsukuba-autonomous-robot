@@ -63,6 +63,6 @@ test_superseded_requirement_needs_intent_justification (test_validate_model.Migr
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 63 tests in 37.636s
+Ran 63 tests in 33.893s
 
 OK

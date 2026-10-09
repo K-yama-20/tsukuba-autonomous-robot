@@ -135,7 +135,7 @@ class MonitorNode(Node):
         return {'ok': ok, 'message': msg}
 
     def _call(self, client, request, extract):
-        if not client.wait_for_service(timeout_sec=1.0):
+        if not client.wait_for_service(timeout_sec=1):
             return False, f'service {client.srv_name} is not available (node not running?)'
         fut = client.call_async(request)
         done = threading.Event(); fut.add_done_callback(lambda f: done.set())

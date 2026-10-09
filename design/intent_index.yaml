@@ -93,6 +93,7 @@ lines:
       - ND-02
       - ND-04
       - TS-23
+      - TS-25
     issue_refs:
       - G-LOG
   - line: 9
@@ -603,9 +604,11 @@ lines:
       - ND-02
       - PRM-15
       - PRM-16
+      - PRM-26
       - TS-10
       - TS-12
       - TS-15
+      - TS-25
     issue_refs: []
   - line: 46
     requirement_id: RQ-I034
@@ -697,6 +700,7 @@ lines:
       - C-013
       - ND-02
       - ND-11
+      - PRM-26
     issue_refs: []
   - line: 68
     requirement_id: RQ-I045
@@ -1026,6 +1030,7 @@ lines:
       - ND-13
       - SO-03
       - SO-10
+      - TS-25
     issue_refs: []
   - line: 100
     requirement_id: RQ-I074
