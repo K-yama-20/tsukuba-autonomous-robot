@@ -53,7 +53,7 @@
 | 設計意図（人が所有） | `design/intent.md` | 第7版 103 行。旧版は `baselines/migration_v1/intent.md`（第1版）、`baselines/intent_history/`（第2〜7版の保存コピー） |
 | 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-020 |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`（工程・完了条件）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
-| 判断台帳 | `model.yaml: decisions`（原文。DEC-001〜068） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
+| 判断台帳 | `model.yaml: decisions`（原文。DEC-001〜074） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/`（条件付き承認時の凍結コピー＋README。最終承認はコミット f208066） | FILE-GATE3-MODEL として SHA-256 を検査 |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | ルール一覧と根拠は `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py` が全検査を実行し `reports/check_run.json` に記録。`render_views.py`・`generate_params.py`・`render_migration_review.py` で生成物を再生成 |
