@@ -112,3 +112,53 @@ def record_after_boot(decision: BootDecision) -> PreviousModeRecord:
     """The record to persist after the boot transition (human pause/end flag is preserved, never cleared by a restart)."""
     s = decision.state
     return PreviousModeRecord(mode=s.mode, human_pause_or_end=s.human_pause_or_end_recorded, run_id=s.run_id, state_revision=s.state_revision)
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Human mode operations (stage 5-2 scope: the service endpoints of ND-03 and their guards).
+# Each event maps to the design transition(s). A request is accepted only when the current mode matches the
+# transition's from-mode and the guard holds, and the transition's actions are implemented in the current build;
+# otherwise it is refused with a reason (never silently). Nothing here starts a recording or sends a goal.
+# ---------------------------------------------------------------------------------------------------------------------
+
+EVENT_TRANSITIONS = {
+    # event: list of (from_mode, to_mode, transition_id, stage_that_implements_it)
+    'start_mapping': [(MODE_MANUAL, MODE_MAPPING, 'TR-03', '5-3 地図作成と変換')],
+    'end_mapping': [(MODE_MAPPING, MODE_MANUAL, 'TR-04', '5-3 地図作成と変換')],
+    'start_autonomy': [(MODE_MANUAL, MODE_AUTONOMY, 'TR-05', '5-6 自律走行の為の最小構成')],
+    'pause': [(MODE_AUTONOMY, MODE_PAUSE, 'TR-06', '5-7 blocked・一時停止・復帰')],
+    'resume': [(MODE_PAUSE, MODE_AUTONOMY, 'TR-10', '5-7 blocked・一時停止・復帰')],
+    'end_autonomy': [(MODE_AUTONOMY, MODE_MANUAL, 'TR-11', '5-7 blocked・一時停止・復帰'),
+                     (MODE_PAUSE, MODE_MANUAL, 'TR-12', '5-7 blocked・一時停止・復帰')],
+}
+HUMAN_EVENTS = tuple(EVENT_TRANSITIONS)
+
+
+@dataclass
+class RequestResult:
+    accepted: bool
+    transition_id: str
+    reason: str
+    new_state: Optional[ModeState] = None
+
+
+def request_transition(event: str, state: ModeState, implemented: frozenset = frozenset()) -> RequestResult:
+    """Evaluate a human mode operation against the transition table and guards.
+
+    `implemented` names the transition ids whose actions exist in this build. A transition that is not implemented is
+    refused with its stage, so that pressing a button never pretends a mode change happened (RQ-I028).
+    """
+    if event not in EVENT_TRANSITIONS:
+        return RequestResult(False, '', f'unknown event {event!r}')
+    candidates = EVENT_TRANSITIONS[event]
+    match = next((c for c in candidates if c[0] == state.mode), None)
+    if match is None:
+        allowed = '／'.join(c[0] for c in candidates)
+        return RequestResult(False, candidates[0][2], f'refused: {event} is not accepted in mode {state.mode} (accepted in {allowed})')
+    from_mode, to_mode, tid, stage = match
+    if tid == 'TR-10' and state.initial_pose_required:
+        return RequestResult(False, tid, 'refused: resume after a PC restart requires a human initial pose request first (DEC-009)')
+    if tid not in implemented:
+        return RequestResult(False, tid, f'refused: {tid} ({from_mode} -> {to_mode}) is not implemented in this build; it belongs to stage {stage}')
+    new = ModeState(**{**state.as_dict(), 'mode': to_mode, 'previous_mode': from_mode, 'state_revision': state.state_revision + 1})
+    return RequestResult(True, tid, f'{tid}: {from_mode} -> {to_mode}', new)

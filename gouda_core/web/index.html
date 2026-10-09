@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOUDA MONITOR</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="screen" class="screen">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="brand"><span class="code">GOUDA</span><span class="ja">運行管制</span></div>
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="ops">運行</button>
+        <button class="tab" data-tab="prep">発進準備</button>
+        <button class="tab" data-tab="record">記録</button>
+        <button class="tab" data-tab="config">設定 /config</button>
+      </nav>
+    </div>
+    <div class="hdr-mid">
+      <div class="strip" id="mode-strip">
+        <span class="k">MODE</span><span class="v" id="mode-name">NOT_RECEIVED</span><span class="ja" id="mode-label">未受信</span>
+        <span class="k">PROC</span><span class="v" id="proc-state">—</span>
+        <span class="k">REV</span><span class="v" id="state-rev">—</span>
+        <span class="k">AGE</span><span class="v" id="mode-age">—</span>
+      </div>
+      <div class="strip sub" id="link-strip">
+        <span class="k">LINK</span><span class="v amber" id="link-state">CONNECTING</span>
+        <span class="k">NODES</span><span class="v" id="node-count">—</span>
+        <span class="k">REC</span><span class="v" id="rec-short">NOT_RECEIVED</span>
+      </div>
+    </div>
+    <div class="hdr-right ops" id="ops">
+      <div class="ops-row">
+        <button class="op" data-cmd="start_mapping" title="地図作成開始（IFD-06, TR-03）">地図作成<small>START MAP</small></button>
+        <button class="op" data-cmd="end_mapping" title="地図作成終了（IFD-07, TR-04）">地図作成終了<small>END MAP</small></button>
+        <button class="op" data-cmd="start_autonomy" title="自律走行開始（IFD-02, TR-05）">自律走行<small>START AUTO</small></button>
+      </div>
+      <div class="ops-row">
+        <button class="op stop" data-cmd="pause" title="一時停止（IFD-03, TR-06）">一時停止<small>PAUSE</small></button>
+        <button class="op" data-cmd="resume" title="再開（IFD-04, TR-10）">再開<small>RESUME</small></button>
+        <button class="op" data-cmd="end_autonomy" title="自律走行終了（IFD-05, TR-11/12）">自律走行終了<small>END AUTO</small></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="tabpane active" data-pane="ops">
+      <div class="grid-ops">
+        <div class="panel ext" id="ext-nav">
+          <div class="panel-title"><span class="code">NAV</span>Navigation <span class="status amber" id="ext-nav-status">UNAVAILABLE</span></div>
+          <div class="ext-area"><div class="ext-note" id="ext-nav-note"></div></div>
+          <div class="panel-foot" id="ext-nav-foot">pose — / path — / goal —</div>
+        </div>
+        <div class="panel ext" id="ext-lidar">
+          <div class="panel-title"><span class="code">LIDAR / LOC</span>LiDAR / localization <span class="status amber" id="ext-lidar-status">UNAVAILABLE</span></div>
+          <div class="ext-area"><div class="ext-note" id="ext-lidar-note"></div></div>
+          <div class="panel-foot" id="ext-lidar-foot">points — / pose — / odom —</div>
+        </div>
+        <div class="panel side" id="side-state">
+          <div class="panel-title"><span class="code">STATE</span>mode/state</div>
+          <table class="kv" id="mode-table"></table>
+        </div>
+        <div class="panel side" id="side-events">
+          <div class="panel-title"><span class="code">EVENTS</span>log/decision <span class="dim" id="events-count"></span></div>
+          <div class="events" id="events"></div>
+        </div>
+        <div class="panel bottom" id="esp32">
+          <div class="panel-title"><span class="code">ESP32</span>ESP32 CONTROLLER <span class="status amber" id="esp32-status">NOT_RECEIVED</span></div>
+          <table class="kv" id="esp32-table"></table>
+          <div class="note" id="esp32-note"></div>
+        </div>
+        <div class="panel bottom" id="pc">
+          <div class="panel-title"><span class="code">PC</span>CONTROL PC / ROS 2 <span class="status" id="pc-status">—</span></div>
+          <div class="nodes" id="nodes"></div>
+          <div class="note" id="pc-note"></div>
+        </div>
+        <div class="panel bottom" id="cmdlog">
+          <div class="panel-title"><span class="code">CMD</span>操作の結果</div>
+          <div class="events" id="commands"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="prep">
+      <div class="panel full">
+        <div class="panel-title"><span class="code">PREP</span>発進準備シーケンス</div>
+        <ol class="seq" id="seq">
+          <li data-step="map"><span class="code">1</span>地図とwaypointの組を選択 <span class="status amber">未実装（工程5-4／5-6）</span></li>
+          <li data-step="pose"><span class="code">2</span>初期位置・向きを指定（IFD-39） <span class="status amber">未実装（工程5-6）</span></li>
+          <li data-step="nodes"><span class="code">3</span>自律走行系 node の活性（ND-07・08・10） <span class="status amber">未実装（工程5-6）</span></li>
+          <li data-step="start"><span class="code">4</span>自律走行開始ボタンを 1 回押す（追加の承認は挟まない: RQ-I011） <span class="status" id="seq-start">右上の自律走行</span></li>
+        </ol>
+        <div class="note">この画面は工程5-2 の範囲（モード・記録の表示と操作、/config）。各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="record">
+      <div class="grid-rec">
+        <div class="panel">
+          <div class="panel-title"><span class="code">LOG</span>ログ記録 <span class="status" id="log-status">NOT_RECEIVED</span></div>
+          <div class="btnrow">
+            <button class="op" data-cmd="record_log_start">Record<small>LOG START</small></button>
+            <button class="op" data-cmd="record_log_stop">Stop Record<small>LOG STOP</small></button>
+          </div>
+          <table class="kv" id="record-table"></table>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span class="code">BAG</span>rosbag 記録 <span class="status" id="bag-status">NOT_RECEIVED</span></div>
+          <div class="btnrow">
+            <button class="op" data-cmd="record_rosbag_start">Rosbag record<small>BAG START</small></button>
+            <button class="op" data-cmd="record_rosbag_stop">Stop rosbag record<small>BAG STOP</small></button>
+          </div>
+          <div class="note">rosbag はログとは別の記録で、自動では開始しない（RQ-I016）。同じセッションディレクトリの rosbag/ に保存する。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="config">
+      <div class="panel full">
+        <div class="panel-title"><span class="code">CFG</span>/config センサ取付・座標方向（RQ-I070） <span class="dim" id="config-rev"></span></div>
+        <div class="note">値は実測で決める。未入力は UNKNOWN のまま保存される（推測で埋めない）。保存はサーバ側のファイルに永続化し、タブ遷移や再読込で消えない。座標方向の文字列は静的TF発行（工程5-6）が読む。</div>
+        <form id="config-form" class="cfg"></form>
+        <div class="btnrow">
+          <button class="op" id="config-save" type="button">保存<small>SAVE CONFIG</small></button>
+          <span class="dim" id="config-msg"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ftr">
+    <span class="dim">GOUDA MONITOR (gouda_core / ND-02, 工程5-2)</span>
+    <span class="dim" id="clock">—</span>
+    <span class="dim">表示断は停止契機ではない（DEC-014）。</span>
+  </footer>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

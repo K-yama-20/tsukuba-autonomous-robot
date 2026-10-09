@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # gouda.sh (ND-01, stage 5-1): start / stop / status of the common Gouda core nodes of the new implementation.
 #
-#   bash gouda.sh start     launch gouda_core (gouda_mode_manager + gouda_recorder) in the background
+#   bash gouda.sh start     launch gouda_core (gouda_mode_manager + gouda_recorder + gouda_monitor) in the background
 #   bash gouda.sh stop      stop the launch started by this script (only processes it owns)
 #   bash gouda.sh status    show whether the launch is running and where logs/data are
 #
@@ -14,6 +14,8 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 workspace="${GOUDA_WORKSPACE:-$(cd "$repo/../.." 2>/dev/null && pwd || echo "$HOME/gouda_ws")}"
 data_root="${GOUDA_DATA_ROOT:-$workspace/gouda_data}"        # PRM-25: <data_root>/records, <data_root>/state
 params_dir="${GOUDA_PARAMS_DIR:-$repo/design/generated/params}"
+monitor_port="${GOUDA_MONITOR_PORT:-0}"               # PRM-26: 0 = OS-chosen port; URL is written to $data_root/run/monitor.url
+url_file="$data_root/run/monitor.url"
 run_dir="$data_root/run"
 pid_file="$run_dir/gouda_core.pid"
 log_file="$run_dir/gouda_core.launch.log"
@@ -36,11 +38,14 @@ case "${1:-}" in
     # shellcheck disable=SC1090
     source "$ros_setup"; source "$workspace/install/setup.bash"
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
-    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" >"$log_file" 2>&1 &
+    rm -f "$url_file"
+    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" >"$log_file" 2>&1 &
     launch_pid=$!
     set +m
     echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid
     echo "started gouda_core (pgid $launch_pid); params=$params_dir data=$data_root log=$log_file"
+    for _ in $(seq 1 20); do [[ -s "$url_file" ]] && break; sleep 1; done
+    [[ -s "$url_file" ]] && echo "monitor: $(cat "$url_file") (open on this PC desktop; no screen forwarding)" || echo "monitor URL not written yet; see $url_file after start-up"
     ;;
   stop)
     if ! running; then echo "not running"; rm -f "$pid_file"; exit 0; fi
@@ -57,6 +62,7 @@ case "${1:-}" in
   status)
     if running; then echo "running (pgid $(pgid); processes: $(pgrep -g "$(pgid)" | wc -l | tr -d ' '))"; else echo "not running"; fi
     echo "data_root=$data_root"; echo "params_dir=$params_dir"; echo "log=$log_file"
+    [[ -s "$url_file" ]] && echo "monitor=$(cat "$url_file")"
     [[ -f "$data_root/state/previous_mode_record.json" ]] && { echo -n "previous_mode_record: "; cat "$data_root/state/previous_mode_record.json"; }
     ;;
   *) usage; exit 2 ;;

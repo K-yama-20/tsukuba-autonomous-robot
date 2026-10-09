@@ -1,13 +1,14 @@
-"""gouda_mode_manager node (ND-03) — stage 5-1 scope: boot transition and mode/state publication.
+"""gouda_mode_manager node (ND-03) — stages 5-1 / 5-2 scope.
 
-At start-up it reads the persisted previous-mode record (SO-01), applies TR-01 / TR-02 (mode_core.decide_boot), persists the
-new record, publishes mode/state (IFD-01, reliable, transient_local, depth 1) and a DecisionEvent (IFD-28). It never starts
-a recording and never sends a navigation goal (RQ-I015, RQ-I025). The mode services (IFD-02..07), motion_hold (IFD-40) and
-the other transitions are added in later stages (docs/implementation_stages.md).
+Stage 5-1: boot transition (TR-01 / TR-02, mode_core.decide_boot), persisted previous-mode record (SO-01), mode/state
+publication (IFD-01, reliable, transient_local, depth 1) and DecisionEvents (IFD-28).
+Stage 5-2: the human operation services are served (IFD-02 start_autonomy, IFD-03 pause, IFD-04 resume, IFD-05
+end_autonomy, IFD-06 start_mapping, IFD-07 end_mapping). Each request is evaluated against the transition table and
+guards (mode_core.request_transition). Transitions whose actions are not implemented yet are refused with the stage
+that implements them, and every request is recorded as a DecisionEvent. No request starts a recording or sends a goal.
 
-Settings: state_root is a launch argument (PRM-25 data root). state_publish_period_s (PRM-16) is read from the generated
-parameter file; while it is unresolved (tbd) the state is published only on change, which transient_local makes
-sufficient for late subscribers. No numeric value is hard-coded (RQ-I076).
+Settings: state_root is a launch argument (PRM-25). state_publish_period_s (PRM-16) comes from the generated parameter
+file; while unresolved the state is published only on change. No numeric value is hard-coded (RQ-I076).
 """
 from __future__ import annotations
 
@@ -18,12 +19,17 @@ from pathlib import Path
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
+from std_srvs.srv import Trigger
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
+from gouda_interfaces.srv import StartAutonomy
 
 from gouda_core import mode_core
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=50)
+# Transitions whose actions exist in this build. Empty in stage 5-2: the services are served, guards are applied and
+# every request is recorded, but no mode change is pretended before its stage implements the actions.
+IMPLEMENTED_TRANSITIONS = frozenset()
 
 
 class ModeManagerNode(Node):
@@ -44,6 +50,11 @@ class ModeManagerNode(Node):
         self._publish_state()
         self._publish_decision('boot', self.decision.transition_id, self.decision.reason,
                                dict(self.decision.details, record_path=str(self.record_path), record_found=self.decision.record_found))
+        # Human operation services (IFD-02..07). Trigger for all but start_autonomy (IFD-02 custom request).
+        for event, name in [('pause', 'mode/pause'), ('resume', 'mode/resume'), ('end_autonomy', 'mode/end_autonomy'),
+                            ('start_mapping', 'mode/start_mapping'), ('end_mapping', 'mode/end_mapping')]:
+            self.create_service(Trigger, name, self._trigger_handler(event))
+        self.create_service(StartAutonomy, 'mode/start_autonomy', self._start_autonomy)
         period = self.get_parameter('state_publish_period_s').get_parameter_value().double_value
         if period > 0:
             self.create_timer(period, self._publish_state)
@@ -51,6 +62,33 @@ class ModeManagerNode(Node):
             self.get_logger().info('state_publish_period_s (PRM-16) is unresolved: mode/state is published on change only (transient_local)')
         self.get_logger().info(f'boot transition {self.decision.transition_id}: mode={self.state.mode} ({self.decision.reason})')
 
+    # ---- services ----
+    def _trigger_handler(self, event):
+        def handle(request, response):
+            r = self._request(event, {})
+            response.success, response.message = r.accepted, r.reason
+            return response
+        return handle
+
+    def _start_autonomy(self, request, response):
+        details = {'request_id': request.request_id, 'map_id': request.map_id, 'map_revision': request.map_revision,
+                   'waypoint_set_id': request.waypoint_set_id, 'waypoint_set_revision': request.waypoint_set_revision}
+        r = self._request('start_autonomy', details)
+        response.accepted, response.message, response.run_id = r.accepted, r.reason, (r.new_state.run_id if r.accepted and r.new_state else '')
+        return response
+
+    def _request(self, event, details):
+        r = mode_core.request_transition(event, self.state, IMPLEMENTED_TRANSITIONS)
+        self._publish_decision('human_request', r.transition_id, r.reason, dict(details, event=event, accepted=r.accepted, mode=self.state.mode))
+        (self.get_logger().info if r.accepted else self.get_logger().warning)(f'{event}: {r.reason}')
+        if r.accepted and r.new_state is not None:
+            self.state = r.new_state
+            mode_core.PreviousModeRecord(mode=self.state.mode, human_pause_or_end=self.state.human_pause_or_end_recorded,
+                                         run_id=self.state.run_id, state_revision=self.state.state_revision).save(self.record_path)
+            self._publish_state()
+        return r
+
+    # ---- publication ----
     def _publish_state(self):
         s = self.state; m = SoftwareMode()
         m.header.stamp = self.get_clock().now().to_msg()

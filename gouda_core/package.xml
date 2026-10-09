@@ -3,7 +3,7 @@
 <package format="3">
   <name>gouda_core</name>
   <version>0.1.0</version>
-  <description>Gouda core nodes of the new implementation (design/model.yaml, 工程5): gouda_recorder (ND-04) and gouda_mode_manager (ND-03, boot transitions in stage 5-1). Settings are read from design/generated/params, never hard-coded (RQ-I076).</description>
+  <description>Gouda core nodes of the new implementation (design/model.yaml, 工程5): gouda_recorder (ND-04) and gouda_mode_manager (ND-03), gouda_monitor (ND-02, stage 5-2). Settings are read from design/generated/params, never hard-coded (RQ-I076).</description>
   <maintainer email="ryoya-1@g.ecc.u-tokyo.ac.jp">Gouda Development Team</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>python3-setuptools</buildtool_depend>
@@ -11,6 +11,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>lifecycle_msgs</exec_depend>
   <exec_depend>gouda_interfaces</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>

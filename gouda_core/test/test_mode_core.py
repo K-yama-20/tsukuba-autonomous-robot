@@ -62,4 +62,34 @@ class ModeCoreTests(unittest.TestCase):
             rec = mc.record_after_boot(d)
 
 
+class HumanRequestTests(unittest.TestCase):
+    """Stage 5-2: the mode operation services are evaluated against the transition table and guards."""
+    def test_wrong_mode_is_refused_with_reason(self):
+        s = mc.decide_boot(None).state
+        for ev in ('pause', 'resume', 'end_autonomy', 'end_mapping'):
+            r = mc.request_transition(ev, s); self.assertFalse(r.accepted, ev); self.assertIn('not accepted in mode manual', r.reason)
+
+    def test_unimplemented_transition_is_refused_with_stage(self):
+        s = mc.decide_boot(None).state
+        r = mc.request_transition('start_mapping', s); self.assertFalse(r.accepted); self.assertEqual(r.transition_id, 'TR-03'); self.assertIn('5-3', r.reason)
+        r = mc.request_transition('start_autonomy', s); self.assertFalse(r.accepted); self.assertEqual(r.transition_id, 'TR-05'); self.assertIn('5-6', r.reason)
+
+    def test_resume_requires_initial_pose_after_restart(self):
+        s = mc.decide_boot(mc.PreviousModeRecord(mode=mc.MODE_AUTONOMY)).state
+        self.assertEqual(s.mode, mc.MODE_PAUSE); self.assertTrue(s.initial_pose_required)
+        r = mc.request_transition('resume', s, frozenset({'TR-10'})); self.assertFalse(r.accepted); self.assertIn('DEC-009', r.reason)
+
+    def test_implemented_transition_changes_mode_and_revision(self):
+        s = mc.decide_boot(None).state
+        r = mc.request_transition('start_mapping', s, frozenset({'TR-03'}))
+        self.assertTrue(r.accepted); self.assertEqual(r.new_state.mode, mc.MODE_MAPPING); self.assertEqual(r.new_state.previous_mode, mc.MODE_MANUAL)
+        self.assertEqual(r.new_state.state_revision, s.state_revision + 1)
+        self.assertEqual(s.mode, mc.MODE_MANUAL)  # input state is not mutated
+
+    def test_end_autonomy_from_pause_maps_to_tr12(self):
+        s = mc.ModeState(mode=mc.MODE_PAUSE, state_revision=3)
+        r = mc.request_transition('end_autonomy', s); self.assertEqual(r.transition_id, 'TR-12')
+        r = mc.request_transition('end_autonomy', mc.ModeState(mode=mc.MODE_AUTONOMY)); self.assertEqual(r.transition_id, 'TR-11')
+
+
 if __name__ == '__main__': unittest.main()
