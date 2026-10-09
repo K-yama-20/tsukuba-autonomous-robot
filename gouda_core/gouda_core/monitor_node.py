@@ -95,7 +95,7 @@ class MonitorNode(Node):
 
     def _poll_nodes(self):
         try:
-            names = [f'{ns.rstrip("/")}/{n}' if ns != '/' else f'/{n}' for n, ns in self.get_node_names_and_namespaces()]
+            names = [f'{ns.rstrip("/")}/{n}' if ns != '/' else f'/{n}' for n, ns in self.get_node_names_and_namespaces() if not n.startswith('_ros2cli')]  # the ros2 CLI daemon is not part of the system
         except Exception:
             return
         with self._lock:
