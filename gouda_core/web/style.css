@@ -111,3 +111,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); f
 .popup-box { min-width: 420px; max-width: 60vw; background: var(--bg2); border: 1px solid var(--amber); padding: 12px 16px; }
 .popup-title { color: var(--amber); font-size: 14px; margin-bottom: 6px; }
 .popup-body { font-family: var(--mono); font-size: 12px; color: var(--fg); white-space: pre-wrap; }
+
+/* waypoint_manager */
+.grid-wp { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; height: 100%; }
+.wp-canvas-wrap { flex: 1; min-height: 0; overflow: auto; background: #03100f; border: 1px solid var(--line); }
+#wp-canvas { image-rendering: pixelated; cursor: crosshair; display: block; }
+input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px solid var(--line); padding: 3px 6px; font: inherit; font-family: var(--mono); }
+.kv input.sec { width: 80px; background: #03100f; color: var(--cyan); border: 1px solid var(--line); padding: 2px 4px; font-family: var(--mono); }

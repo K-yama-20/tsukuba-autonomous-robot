@@ -28,12 +28,15 @@ from urllib.parse import urlparse
 class MonitorServer:
     def __init__(self, web_dir: Path, state_provider: Callable[[], dict], config_provider: Callable[[], dict],
                  command_handler: Callable[[str, dict], dict], config_handler: Callable[[dict], dict],
-                 host: str = '127.0.0.1', port: int = 0, url_file: Optional[Path] = None, keepalive_s: float = None):
+                 host: str = '127.0.0.1', port: int = 0, url_file: Optional[Path] = None, keepalive_s: float = None,
+                 get_routes: Optional[dict] = None, post_routes: Optional[dict] = None):
         if keepalive_s is None:
             raise ValueError('keepalive_s must be given by the node from its ROS parameter (PRM-28); the server has no default')
         self.web_dir = Path(web_dir); self.state_provider = state_provider; self.config_provider = config_provider
         self.command_handler = command_handler; self.config_handler = config_handler
         self.host, self.port, self.url_file, self.keepalive_s = host, port, url_file, keepalive_s
+        # Extra routes: {'/api/prefix/': handler(path_rest, query) -> (status, content_type, bytes) | dict}
+        self.get_routes = get_routes or {}; self.post_routes = post_routes or {}
         self._cv = threading.Condition(); self._revision = -1
         self.httpd: Optional[ThreadingHTTPServer] = None; self._thread: Optional[threading.Thread] = None
 
@@ -113,7 +116,19 @@ class _Handler(BaseHTTPRequestHandler):
         if p == '/api/state': return self._json(s.state_provider())
         if p == '/api/config': return self._json(s.config_provider())
         if p == '/api/events': return self._sse()
+        for prefix, handler in s.get_routes.items():
+            if p.startswith(prefix): return self._extra(handler, p[len(prefix):], urlparse(self.path).query, None)
         return self._json({'error': 'not found'}, 404)
+
+    def _extra(self, handler, rest, query, body):
+        try:
+            out = handler(rest, query) if body is None else handler(rest, body)
+        except Exception as e:
+            return self._json({'ok': False, 'message': f'{e}'}, 500)
+        if isinstance(out, tuple):
+            status, ctype, data = out
+            self.send_response(status); self.send_header('Content-Type', ctype); self.send_header('Content-Length', str(len(data))); self.send_header('Cache-Control', 'no-store'); self.end_headers(); self.wfile.write(data); return
+        return self._json(out, 200 if out.get('ok', True) else 409)
 
     def do_POST(self):
         p = urlparse(self.path).path
@@ -130,6 +145,8 @@ class _Handler(BaseHTTPRequestHandler):
         if p == '/api/config':
             result = s.config_handler(body)
             return self._json(result, 200 if result.get('ok') else 400)
+        for prefix, handler in s.post_routes.items():
+            if p.startswith(prefix): return self._extra(handler, p[len(prefix):], None, body)
         return self._json({'error': 'not found'}, 404)
 
     def _sse(self):

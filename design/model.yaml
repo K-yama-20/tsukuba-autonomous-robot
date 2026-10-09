@@ -34191,7 +34191,7 @@ entities:
       - RQ-I033
       - RQ-I044
       - RQ-I070
-    revision_ref: REV-020
+    revision_ref: REV-024
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34250,8 +34250,9 @@ entities:
         - SO-03
       placement_rationale: 'HMI は停止・再起動しても mission を初期化しない（M-002 T3 の方針を維持）。waypoint 編集は GUI と同プロセスに置き、保存形式（IFD-30）だけを契約にする。
         実装（工程5-2）: gouda_core/gouda_core/monitor_core.py（表示規則・/config、rclpy 非依存）、monitor_server.py（127.0.0.1 の HTTP/SSE、標準ライブラリのみ）、monitor_node.py（購読・サービス呼出し）、web/（16:9
-        の運行画面。 デザインルール design/docs/gouda_gui_design_rules.md を参考。外部表示領域は確保のみ）。ポートは PRM-26（既定は OS 選択、URL は <data_root>/run/monitor.url）。waypoint_manager
-        GUI・初期位置指定・発進準備は 5-4／5-6 で追加。'
+        の運行画面。 デザインルール design/docs/gouda_gui_design_rules.md を参考。外部表示領域は確保のみ）。ポートは PRM-26（既定は OS 選択、URL は <data_root>/run/monitor.url）。
+        工程5-4: waypoint_manager タブ（変換後地図を PNG に変換して表示、クリックで waypoint、区間の上限を入力、保存で speed_mask.py が mask と filter_info
+        を生成し waypoints.py が route database に公開）。初期位置指定・発進準備は 5-6 で追加。'
   - id: ND-03
     kind: ros_node
     name: gouda_mode_manager（モード・mission文脈の正本、Nav2 action client）
@@ -36840,10 +36841,11 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I005
-    revision_ref: REV-011
+    revision_ref: REV-024
     designed_interface:
       transport: file
-      name: route_root/{waypoint_set_id}/{revision}.yaml
+      name: <data_root>/routes/{set_id}/{revision}/waypoints.yaml（＋ 
+        speed_mask.pgm／.yaml、filter_info.yaml、manifest.json）
       message_type: WaypointSet（YAML。参照する変換後地図のID・版・内容ハッシュ、自身の内容ハッシュ、waypoint列、区間 i→i+1 の速度上限 m/s）＋ 同じ由来 ID 
         の速度マスク（IFD-41）
       standard_type: false
@@ -36856,7 +36858,8 @@ entities:
         - ND-03
       unit: m, rad, m/s
       frame: map
-      time_semantics: 保存ボタンで atomic に公開。実行中の run では版を固定。旧 waypoint_radius_default_m=5.0（D-02）は流用しない
+      time_semantics: 保存ボタンで atomic に公開（一時領域→検証→改版）。実行中の run では版を固定。地図の由来 ID・版・内容ハッシュを参照し、保存時に stored 
+        の変換後地図のハッシュと照合する（RQ-I078）。旧 waypoint_radius_default_m=5.0（D-02）は流用しない
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -39486,10 +39489,12 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-013
+    revision_ref: REV-024
     designed_interface:
       transport: file
-      name: route_root/{waypoint_set_id}/{revision}/speed_mask.yaml ＋ speed_mask.pgm ＋ filter_info.yaml
+      name: <data_root>/routes/{set_id}/{revision}/speed_mask.pgm・speed_mask.yaml（map_server raw 
+        mode、pixel＝cell 値 0..100）・filter_info.yaml（costmap_filter_info_server の 
+        parameter、type=2、base=0、multiplier=PRM-20）
       message_type: Nav2 map YAML＋PGM（mask）、CostmapFilterInfo の設定（type=2 m/s、base、multiplier）
       standard_type: true
       custom_type_reason:
@@ -39502,8 +39507,10 @@ entities:
         - ND-03
       unit: m/s（cell 値 1..100 × multiplier + base）
       frame: map（変換後地図と同じ原点・解像度）
-      time_semantics: waypoint セット保存時に生成し、同じ由来 ID・内容ハッシュで保存。地図版が変われば再生成。区間の帯の幅は PRM-19（実機調整）、速度刻みは PRM-20。 重複 
-        cell は低い方の上限（DEC-045）。再訪・重複する区間には同じ上限を設定する運用で、値が異なれば ND-02 が保存時に警告する（DEC-059 案 A、TS-22）。
+      time_semantics: waypoint セット保存時に生成し、同じ set_id／revision に保存（manifest に生成設定と警告を記録）。地図版が変われば再生成。帯の半幅は 
+        PRM-19、速度刻みは PRM-20（いずれも未確定の間は保存要求で与えた値を実機調整値として記録）。 重複 cell 
+        は低い方の上限（DEC-045）。再訪・重複する区間には同じ上限を設定する運用で、値が異なれば ND-02 が保存時に警告する（DEC-059 案 A、TS-22）。帯外は 
+        0（無制限）。配信（IFD-42）は 5-6
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -41264,6 +41271,45 @@ entities:
         を書き終えてから原図が内容ハッシュ付きで登録される。変換は非同期で、失敗しても原図は保持され不完全な成果物は残らない（RQ-I009）。 変換中は 
         processing_state=map_converting で専用モードは現れない（DEC-010）。自動開始した記録だけが止まる（RQ-I017）。実データでの変換（submap 
         の点形式の確認）は実車で行う。
+  - id: TS-28
+    kind: test
+    name: waypoint セットの保存と速度マスクの生成（単体・API）
+    source_refs:
+      - SRC-I013-V6
+      - SRC-I027-V7
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-02
+      - IFD-30
+      - IFD-41
+      - PRM-19
+      - PRM-20
+      - TS-14
+      - TS-22
+      - DEC-045
+      - DEC-059
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I078
+      - RQ-I079
+    revision_ref: REV-024
+    test:
+      execution_status: 未実行
+      stage: waypoint
+      procedure: '単体（gouda_core/test/test_waypoints_core.py）: 検証（地図参照必須、2 点以上、区間数、正の上限）、内容ハッシュ（名前・注記に依存せず内容に依存）、route
+        database の公開と破棄、帯内の cell 値（上限÷刻み）と帯外 0、 重複 cell は低い方で値が異なれば警告（同じ値なら警告なし）、量子化の 1..100 への丸めと報告、raw mode の
+        PGM／YAML と filter_info.yaml、PNG 変換。 API（Ubuntu、合成の変換後地図を登録して）: POST /api/waypoints/save（地図のハッシュ不一致・設定未指定の拒否、重複区間の警告付き保存）、GET
+        /api/routes・/api/route・/api/map/…/map.png・mask.png。'
+      observe: 保存結果（set_id・revision・manifest・warnings）、speed_mask.pgm の cell 値、filter_info.yaml、index.json。
+      expected: 保存は atomic で、地図参照と自身のハッシュを持つ（RQ-I078）。重複 cell は低い方の上限、値が異なる区間は警告されるが保存は拒否しない（DEC-059 案 
+        A）。帯外は無制限。PRM-19／20 が未確定なら要求で与えた値を 実機調整値として manifest に残す。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -50423,6 +50469,27 @@ decisions:
     resulting_refs: []
     note: 新 IF と既存契約との差分は reports/worklog/2026-10-09_rev020_record_ifs.md §2 に示す。工程5-3 の着手を許可。
     disposition: answered
+  - id: DEC-075
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 変換後地図（map.yaml）のしきい値の扱い（第15便 判断事項 4）と工程5-4 への進行
+    answer_verbatim: "Nav2のmap.yaml の occupied_thresh／free_threshを宣言的に書く必要は無い。OSS等から持ってきたモジュールはなるべく改変しない形が望ましい。\n\
+      工程5-4に進め。\n"
+    affected_refs:
+      - ND-05
+      - IFD-29
+      - ND-02
+      - IFD-30
+      - IFD-41
+    resulting_refs:
+      - TS-28
+    note: map.yaml の occupied_thresh／free_thresh は Nav2 map_server の標準既定値をそのまま書き、parameter として宣言しない（3 
+      値地図のため結果に影響しない）。速度マスクの yaml も同様（raw mode）。 Nav2・GLIM など OSS は改変せず、設定ファイルと呼び出し方だけを Gouda 
+      側で持つ（RQ-I056・RQ-I057 と整合）。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -51355,4 +51422,24 @@ revisions:
     added_file_ids:
       - FILE-VEHICLE-PC-REV020
       - FILE-VEHICLE-PC-STAGE53
+    removed_entity_ids: []
+  - id: REV-024
+    date: '2026-10-09'
+    summary: '人の回答（Nav2 map.yaml の occupied_thresh／free_thresh は宣言的に書く必要がない。OSS 由来のモジュールは改変しない形が望ましい。工程5-4 に進む）を記録（DEC-075）。
+      工程5-4 を実装: waypoint セット（IFD-30。変換後地図の由来 ID・版・内容ハッシュを参照し自身の内容ハッシュを持つ YAML）、route database（一時領域→検証→公開）、速度マスク生成器（IFD-41。帯の半幅
+      PRM-19・速度刻み PRM-20 を引数、重複 cell は低い方、 値が異なる重複は警告、map_server raw mode の PGM／YAML と costmap_filter_info_server
+      の設定）、monitor の waypoint_manager タブ（変換後地図の上で編集・保存）、試験 TS-28。'
+    basis_refs:
+      - DEC-075
+      - DEC-045
+      - DEC-059
+      - DEC-055
+    added_entity_ids:
+      - TS-28
+    modified_entity_ids:
+      - ND-02
+      - IFD-30
+      - IFD-41
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

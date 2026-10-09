@@ -1,3 +1,4 @@
 ruamel.yaml==0.19.1
 jsonschema==4.26.0
 numpy  # map conversion tests (gouda_core/test)
+pyyaml  # waypoint set files (gouda_core/test)

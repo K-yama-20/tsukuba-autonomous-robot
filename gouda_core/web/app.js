@@ -90,6 +90,7 @@
     if (s.commands.length) {
       $('commands').innerHTML = s.commands.map((c) => `<div class="ev ${c.ok ? '' : 'refused'}"><span class="t">${fmtT(c.t)}</span><span class="m"><span class="code">${esc(c.command)}</span>${esc(c.message)}</span><span class="n">${c.ok ? 'OK' : 'NG'}</span></div>`).join('');
     }
+    wpFillMaps(s);
     // map database (IFD-29)
     if (s.maps) {
       const rows = {};
@@ -132,6 +133,71 @@
     const r = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const j = await r.json(); $('config-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('config-msg').className = j.ok ? 'cyan' : 'amber';
     if (j.config) renderConfig(j.config);
+  });
+
+  // ---- waypoint_manager (IFD-30 / IFD-41): edits on the converted map; save generates the speed mask ----
+  const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1 };
+  function wpFillMaps(s) {
+    const sel = $('wp-map-select'); const cur = sel.value; sel.innerHTML = '';
+    (s.maps && s.maps.origins || []).forEach((o) => (o.converted || []).forEach((c) => {
+      const opt = document.createElement('option'); opt.value = `${o.origin_id}/${c.revision}`; opt.textContent = `${o.origin_id} rev ${c.revision} (${String(c.content_hash).slice(0, 8)}…)`; sel.appendChild(opt);
+    }));
+    if (cur) sel.value = cur;
+    if (s.mask_params) {
+      if (s.mask_params.half_width_m != null && !$('wp-half-width').value) $('wp-half-width').value = s.mask_params.half_width_m;
+      if (s.mask_params.step_mps != null && !$('wp-step').value) $('wp-step').value = s.mask_params.step_mps;
+    }
+    if (s.routes) {
+      const rows = {};
+      (s.routes.sets || []).forEach((st) => st.revisions.forEach((r) => { rows[`${st.set_id}/${r.revision}`] = `${r.waypoints} pts, map ${r.map.origin_id}/${r.map.revision}, ${r.warnings} warning(s), ${String(r.content_hash).slice(0, 10)}…`; }));
+      kvTable($('wp-routes'), rows);
+    }
+  }
+  async function wpLoadMap() {
+    const v = $('wp-map-select').value; if (!v) { $('wp-map-status').textContent = '変換後地図がない'; return; }
+    const [origin, rev] = v.split('/');
+    const g = await (await fetch(`/api/map/${origin}/${rev}/geometry.json`)).json();
+    if (!g.ok) { $('wp-map-status').textContent = g.message; return; }
+    const img = new Image(); img.src = `/api/map/${origin}/${rev}/map.png?t=${Date.now()}`;
+    img.onload = () => { wpState.map = { origin, rev: parseInt(rev, 10), hash: g.content_hash }; wpState.geom = g; wpState.img = img; wpState.points = []; wpState.limits = []; wpDraw(); $('wp-map-status').textContent = `${g.width}x${g.height} @ ${g.resolution} m`; $('wp-map-status').className = 'status ok'; };
+    img.onerror = () => { $('wp-map-status').textContent = '地図画像を取得できない'; };
+  }
+  function wpDraw() {
+    const cv = $('wp-canvas'); const ctx = cv.getContext('2d'); const g = wpState.geom;
+    if (!g || !wpState.img) { ctx.clearRect(0, 0, cv.width, cv.height); return; }
+    const scale = Math.min(cv.width / g.width, cv.height / g.height); wpState.scale = scale;
+    ctx.fillStyle = '#03100f'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(wpState.img, 0, 0, g.width * scale, g.height * scale);
+    const toPx = (p) => [ (p.x - g.origin_x) / g.resolution * scale, (g.height - (p.y - g.origin_y) / g.resolution) * scale ];
+    ctx.lineWidth = 2; ctx.strokeStyle = '#39d5e0';
+    wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
+    wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f0b43c' : '#39d5e0'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a8e6ea'; ctx.font = '11px monospace'; ctx.fillText(String(i), px + 6, py - 6); });
+    wpTable();
+  }
+  function wpTable() {
+    const rows = wpState.points.slice(0, -1).map((p, i) => `<tr><td>区間 ${i}→${i + 1}</td><td><input class="sec" data-i="${i}" value="${wpState.limits[i] != null ? wpState.limits[i] : ''}" placeholder="m/s"></td></tr>`).join('');
+    $('wp-table').innerHTML = rows || '<tr><td colspan="2" class="dim">waypoint を 2 点以上置く</td></tr>';
+    $('wp-table').querySelectorAll('input.sec').forEach((inp) => inp.addEventListener('change', () => { wpState.limits[parseInt(inp.dataset.i, 10)] = parseFloat(inp.value); }));
+  }
+  $('wp-canvas').addEventListener('click', (ev) => {
+    const g = wpState.geom; if (!g) return;
+    const r = $('wp-canvas').getBoundingClientRect(); const px = (ev.clientX - r.left) * ($('wp-canvas').width / r.width); const py = (ev.clientY - r.top) * ($('wp-canvas').height / r.height);
+    const x = g.origin_x + px / wpState.scale * g.resolution; const y = g.origin_y + (g.height - py / wpState.scale) * g.resolution;
+    wpState.points.push({ x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, yaw: 0, kind: 'pass' });
+    if (wpState.points.length > 1) wpState.limits.push(wpState.limits.length ? wpState.limits[wpState.limits.length - 1] : null);
+    wpDraw();
+  });
+  $('wp-load-map').addEventListener('click', wpLoadMap);
+  $('wp-undo').addEventListener('click', () => { wpState.points.pop(); wpState.limits.pop(); wpDraw(); });
+  $('wp-clear').addEventListener('click', () => { wpState.points = []; wpState.limits = []; wpDraw(); });
+  $('wp-save').addEventListener('click', async () => {
+    if (!wpState.map) { $('wp-msg').textContent = 'NG: 地図を表示してから編集する'; return; }
+    const body = { set_id: $('wp-set-id').value || '', half_width_m: $('wp-half-width').value, step_mps: $('wp-step').value,
+      set: { map: { origin_id: wpState.map.origin, revision: wpState.map.rev, content_hash: wpState.map.hash }, waypoints: wpState.points, section_limits_mps: wpState.limits } };
+    const r = await fetch('/api/waypoints/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json(); $('wp-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('wp-msg').className = j.ok ? 'note cyan' : 'note amber';
+    $('wp-warnings').innerHTML = (j.warnings || []).map((w) => `<div class="ev refused"><span class="t">区間 ${w.sections.join('/')}</span><span class="m">${esc(w.message)}</span><span class="n">${w.cells} cell</span></div>`).join('') || '<div class="dim">なし</div>';
+    if (j.ok) { $('wp-set-id').value = j.set_id; }
   });
 
   // ---- link (SSE with reconnect; current latched state is fetched on every connect) ----

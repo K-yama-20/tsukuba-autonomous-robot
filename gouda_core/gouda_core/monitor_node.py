@@ -33,6 +33,10 @@ from ament_index_python.packages import get_package_share_directory
 
 from gouda_core.monitor_core import MonitorCore, SensorConfig
 from gouda_core.monitor_server import MonitorServer
+from gouda_core.map_database import MapDatabase
+from gouda_core import waypoints as wpmod
+from gouda_core import speed_mask
+from gouda_core import png as pngmod
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
@@ -59,6 +63,8 @@ class MonitorNode(Node):
         data_root = Path(os.path.expanduser(root))
         for key in UI_PARAMS:
             self.declare_parameter(key, Parameter.Type.DOUBLE)
+        self.declare_parameter('speed_mask_half_width_m', Parameter.Type.DOUBLE)   # PRM-19 (unresolved: 実機調整; a save request may carry an explicit value)
+        self.declare_parameter('speed_mask_step_mps', Parameter.Type.DOUBLE)       # PRM-20 (unresolved: depends on Q-06)
         self.ui = {}
         for key in UI_PARAMS:
             prm = self.get_parameter(key)
@@ -69,6 +75,8 @@ class MonitorNode(Node):
         self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
         self.maps_index_path = data_root / 'maps' / 'index.json'   # IFD-29 (read-only view of the map database)
+        self.map_db = MapDatabase(data_root / 'maps')
+        self.routes = wpmod.RouteDatabase(data_root / 'routes')    # IFD-30 / IFD-41 (waypoint_manager, stage 5-4)
         self._lock = threading.Lock()
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
         self.create_subscription(DiagnosticArray, 'record/status', self._on_record, LATCHED)
@@ -80,7 +88,9 @@ class MonitorNode(Node):
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
         self.server = MonitorServer(web_dir, self._state, self._config_snapshot, self._command, self._config_update,
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
-                                    url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'])   # PRM-28
+                                    url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
+                                    get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route},
+                                    post_routes={'/api/waypoints/save': self._save_waypoints})
         url = self.server.start()
         self._publish_settings('startup')
         self.get_logger().info(f'gouda_monitor page: {url} (127.0.0.1 only; open it on this PC desktop)')
@@ -129,11 +139,79 @@ class MonitorNode(Node):
             snap['maps'] = json.loads(self.maps_index_path.read_text(encoding='utf-8'))
         except (OSError, ValueError):
             snap['maps'] = {'origins': [], 'note': 'map database index not found (no mapping session yet)'}
+        try:
+            snap['routes'] = self.routes.index()
+        except Exception:
+            snap['routes'] = {'sets': []}
+        p_hw = self.get_parameter('speed_mask_half_width_m'); p_st = self.get_parameter('speed_mask_step_mps')
+        snap['mask_params'] = {'half_width_m': p_hw.value if p_hw.type_ == Parameter.Type.DOUBLE else None, 'step_mps': p_st.value if p_st.type_ == Parameter.Type.DOUBLE else None}
         return snap
 
     def _config_snapshot(self) -> dict:
         with self._lock:
             return self.config.snapshot()
+
+    # ---- waypoint_manager (IFD-30 / IFD-41, stage 5-4) ----
+    def _get_routes(self, rest, query):
+        return self.routes.index()
+
+    def _get_route(self, rest, query):
+        parts = [x for x in rest.split('/') if x]
+        if len(parts) < 2: return {'ok': False, 'message': 'route/<set_id>/<revision>'}
+        ws = self.routes.load(parts[0], int(parts[1])); man = self.routes.manifest(parts[0], int(parts[1]))
+        if ws is None: return {'ok': False, 'message': 'not found'}
+        return {'ok': True, 'set': ws.to_dict(), 'manifest': man}
+
+    def _get_map_png(self, rest, query):
+        """/api/map/<origin>/<revision>/map.png | mask.png?set=<id>&rev=<n>: PGM converted on the fly for the browser."""
+        parts = [x for x in rest.split('/') if x]
+        if len(parts) < 3: return {'ok': False, 'message': 'map/<origin>/<revision>/map.png'}
+        origin, rev, what = parts[0], int(parts[1]), parts[2]
+        if what == 'map.png':
+            d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
+            pgm = (d / 'map.pgm').read_bytes(); data, w, h = pngmod.pgm_to_png(pgm)
+            return 200, 'image/png', data
+        if what == 'geometry.json':
+            d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
+            g = speed_mask.MapGeometry.from_map_yaml(d / 'map.yaml'); man = self.map_db.converted_manifest(origin, rev) or {}
+            return {'ok': True, 'resolution': g.resolution, 'origin_x': g.origin_x, 'origin_y': g.origin_y, 'width': g.width, 'height': g.height, 'content_hash': man.get('content_hash', '')}
+        if what == 'mask.png':
+            q = dict(x.split('=', 1) for x in query.split('&') if '=' in x)
+            d = self.routes.root / q['set'] / f"{int(q['rev']):03d}"
+            pgm = (d / 'speed_mask.pgm').read_bytes(); data, w, h = pngmod.pgm_to_png(pgm)
+            return 200, 'image/png', data
+        return {'ok': False, 'message': 'unknown resource'}
+
+    def _save_waypoints(self, rest, body: dict) -> dict:
+        """Save a waypoint set with its speed mask (IFD-30 / IFD-41). Overlap with different limits warns; never refuses (DEC-059 A)."""
+        try:
+            ws = wpmod.WaypointSet.from_dict(body.get('set', {}))
+        except Exception as e:
+            return {'ok': False, 'message': f'invalid waypoint set: {e}'}
+        errors = ws.validate()
+        if errors: return {'ok': False, 'message': '; '.join(errors)}
+        man = self.map_db.converted_manifest(ws.map_origin_id, ws.map_revision)
+        if man is None: return {'ok': False, 'message': f'converted map {ws.map_origin_id}/{ws.map_revision} not found'}
+        if man['content_hash'] != ws.map_content_hash: return {'ok': False, 'message': 'map content hash does not match the stored converted map (RQ-I078)'}
+        hw = body.get('half_width_m'); st = body.get('step_mps')
+        p_hw = self.get_parameter('speed_mask_half_width_m'); p_st = self.get_parameter('speed_mask_step_mps')
+        hw = float(hw) if hw not in (None, '') else (p_hw.value if p_hw.type_ == Parameter.Type.DOUBLE else None)
+        st = float(st) if st not in (None, '') else (p_st.value if p_st.type_ == Parameter.Type.DOUBLE else None)
+        if hw is None or st is None:
+            return {'ok': False, 'message': 'speed mask settings missing: half_width_m (PRM-19) and step_mps (PRM-20) are unresolved; give them in the request (実機調整値として記録される)'}
+        geom = speed_mask.MapGeometry.from_map_yaml(self.map_db.root / ws.map_origin_id / 'converted' / f'{ws.map_revision:03d}' / 'map.yaml')
+        set_id, rev, tmp = self.routes.begin(body.get('set_id') or None)
+        try:
+            res = speed_mask.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, geom, hw, st)
+            files = speed_mask.write_mask(res, geom, tmp, 'speed_filter_mask', 'costmap_filter_info')
+        except Exception as e:
+            return {'ok': False, 'message': self.routes.abort(tmp, str(e))}
+        gen = {'half_width_m': hw, 'step_mps': st, 'source': 'request' if body.get('half_width_m') not in (None, '') else 'parameter', 'painted_cells': res.painted_cells, 'overlap_cells': res.overlap_cells, 'sections_clipped': res.sections_clipped}
+        ok, msg, manifest = self.routes.publish(set_id, rev, tmp, ws, files, res.warnings, gen)
+        with self._lock:
+            self.core.on_command_result('waypoints_save', ok, msg)
+        self.server.notify(self.core.connection_revision)
+        return {'ok': ok, 'message': msg, 'set_id': set_id, 'revision': rev, 'warnings': res.warnings, 'manifest': manifest}
 
     def _config_update(self, body: dict) -> dict:
         with self._lock:

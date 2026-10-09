@@ -7412,7 +7412,7 @@
   },
   "design_maturity": {
     "未設計": 403,
-    "案": 406,
+    "案": 407,
     "承認済み": 10
   },
   "revisions": [
@@ -7635,6 +7635,16 @@
       "added_source_ids": 0,
       "added_file_ids": 2,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-024",
+      "date": "2026-10-09",
+      "basis_refs": 4,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7758,10 +7768,10 @@
     }
   ],
   "decisions": {
-    "count": 72,
+    "count": 73,
     "by_status": {
       "answered": 38,
-      "recorded": 30,
+      "recorded": 31,
       "pending": 4
     },
     "pending": [
@@ -7776,7 +7786,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 819,
+    "entity_count": 820,
     "source_count": 497,
     "id_map_count": 202,
     "legacy_198_count": 198,

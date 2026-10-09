@@ -95,4 +95,25 @@ class MonitorServerTests(unittest.TestCase):
         s.close()
 
 
+class ExtraRouteTests(unittest.TestCase):
+    """Route hooks used by the waypoint_manager API (stage 5-4): a handler may return raw bytes or a JSON dict."""
+    def test_get_and_post_hooks(self):
+        core = MonitorCore()
+        srv = MonitorServer(WEB, core.snapshot, lambda: {}, lambda n, b: {'ok': True, 'message': ''}, lambda b: {'ok': True}, port=0, keepalive_s=0.5,
+                            get_routes={'/api/map/': lambda rest, q: (200, 'image/png', b'\x89PNG' + rest.encode()) if rest.endswith('map.png') else {'ok': False, 'message': 'no'}},
+                            post_routes={'/api/waypoints/save': lambda rest, body: {'ok': bool(body.get('set')), 'message': 'saved' if body.get('set') else 'invalid'}})
+        url = srv.start()
+        try:
+            with urllib.request.urlopen(url.rstrip('/') + '/api/map/o/1/map.png', timeout=5) as r:
+                self.assertEqual(r.headers.get('Content-Type'), 'image/png'); self.assertTrue(r.read().startswith(b'\x89PNG'))
+            try:
+                urllib.request.urlopen(url.rstrip('/') + '/api/map/o/1/x', timeout=5); self.fail('expected 409')
+            except urllib.error.HTTPError as e:
+                self.assertEqual(e.code, 409)
+            req = urllib.request.Request(url.rstrip('/') + '/api/waypoints/save', data=json.dumps({'set': {'a': 1}}).encode(), headers={'Content-Type': 'application/json'}, method='POST')
+            with urllib.request.urlopen(req, timeout=5) as r: self.assertEqual(json.loads(r.read())['message'], 'saved')
+        finally:
+            srv.stop()
+
+
 if __name__ == '__main__': unittest.main()

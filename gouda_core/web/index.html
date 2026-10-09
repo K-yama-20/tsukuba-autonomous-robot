@@ -15,6 +15,7 @@
       <nav class="tabs" id="tabs">
         <button class="tab active" data-tab="ops">運行</button>
         <button class="tab" data-tab="prep">発進準備</button>
+        <button class="tab" data-tab="waypoints">waypoint</button>
         <button class="tab" data-tab="record">記録</button>
         <button class="tab" data-tab="config">設定 /config</button>
       </nav>
@@ -96,6 +97,39 @@
         <div class="note">各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
         <div class="panel-title" style="margin-top:8px"><span class="code">MAPS</span>地図データベース（IFD-29、原図と変換後地図。内容ハッシュで識別） <span class="dim" id="maps-note"></span></div>
         <table class="kv" id="maps-table"></table>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="waypoints">
+      <div class="grid-wp">
+        <div class="panel" id="wp-map-panel">
+          <div class="panel-title"><span class="code">ROUTE</span>waypoint_manager（変換後地図の上で区間と速度上限を編集。保存で速度マスクを生成） <span class="status" id="wp-map-status">地図未選択</span></div>
+          <div class="btnrow">
+            <label class="dim">地図 <select id="wp-map-select"></select></label>
+            <button class="op" id="wp-load-map" type="button">地図を表示<small>LOAD MAP</small></button>
+            <button class="op" id="wp-undo" type="button">最後の点を削除<small>UNDO</small></button>
+            <button class="op" id="wp-clear" type="button">全消去<small>CLEAR</small></button>
+          </div>
+          <div class="wp-canvas-wrap"><canvas id="wp-canvas" width="800" height="600"></canvas></div>
+          <div class="note" id="wp-canvas-note">地図上をクリックすると waypoint を追加する（map frame、REP-103）。通過・到達の判定は Nav2 が行う（RQ-I011）。</div>
+        </div>
+        <div class="panel" id="wp-edit-panel">
+          <div class="panel-title"><span class="code">SECTIONS</span>区間 i→i+1 の速度上限（m/s）</div>
+          <table class="kv" id="wp-table"></table>
+          <div class="btnrow">
+            <label class="dim">帯の半幅 m <input id="wp-half-width" class="num" placeholder="PRM-19 未確定"></label>
+            <label class="dim">速度刻み m/s <input id="wp-step" class="num" placeholder="PRM-20 未確定"></label>
+          </div>
+          <div class="btnrow">
+            <label class="dim">set_id（空=新規） <input id="wp-set-id" class="num" placeholder="new"></label>
+            <button class="op" id="wp-save" type="button">保存<small>SAVE + MASK</small></button>
+          </div>
+          <div class="note" id="wp-msg"></div>
+          <div class="panel-title" style="margin-top:8px"><span class="code">WARN</span>重複する区間（低い方の上限が適用される）</div>
+          <div class="events" id="wp-warnings"></div>
+          <div class="panel-title" style="margin-top:8px"><span class="code">SAVED</span>保存済み waypoint セット</div>
+          <table class="kv" id="wp-routes"></table>
+        </div>
       </div>
     </section>
 
