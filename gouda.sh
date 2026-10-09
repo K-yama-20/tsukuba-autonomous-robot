@@ -14,6 +14,7 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 workspace="${GOUDA_WORKSPACE:-$(cd "$repo/../.." 2>/dev/null && pwd || echo "$HOME/gouda_ws")}"
 data_root="${GOUDA_DATA_ROOT:-$workspace/gouda_data}"        # PRM-25: <data_root>/records, <data_root>/state
 params_dir="${GOUDA_PARAMS_DIR:-$repo/design/generated/params}"
+trial_params="${GOUDA_TRIAL_PARAMS:-0}"               # 1 = load <node>.trial.yaml (software trial values; stub tests only, never on the vehicle)
 monitor_port="${GOUDA_MONITOR_PORT:-0}"               # PRM-26: 0 = OS-chosen port; URL is written to $data_root/run/monitor.url
 url_file="$data_root/run/monitor.url"
 run_dir="$data_root/run"
@@ -39,11 +40,12 @@ case "${1:-}" in
     source "$ros_setup"; source "$workspace/install/setup.bash"
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
     rm -f "$url_file"
-    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" >"$log_file" 2>&1 &
+    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" "trial:=$([[ "$trial_params" == 1 ]] && echo true || echo false)" >"$log_file" 2>&1 &
     launch_pid=$!
     set +m
     echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid
-    echo "started gouda_core (pgid $launch_pid); params=$params_dir data=$data_root log=$log_file"
+    echo "started gouda_core (pgid $launch_pid); params=$params_dir data=$data_root log=$log_file trial_params=$trial_params"
+    [[ "$trial_params" == 1 ]] && echo "WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle"
     for _ in $(seq 1 20); do [[ -s "$url_file" ]] && break; sleep 1; done
     [[ -s "$url_file" ]] && echo "monitor: $(cat "$url_file") (open on this PC desktop; no screen forwarding)" || echo "monitor URL not written yet; see $url_file after start-up"
     ;;

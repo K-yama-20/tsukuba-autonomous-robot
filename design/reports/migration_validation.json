@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5899,
+    "executed_checks": 5900,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -159,6 +159,7 @@
       "model file hash FILE-VEHICLE-PC-STAGE51",
       "model file hash FILE-GUI-DESIGN-RULES",
       "model file hash FILE-VEHICLE-PC-STAGE52",
+      "model file hash FILE-VEHICLE-PC-GLIM-RUN",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7409,7 +7410,7 @@
   },
   "design_maturity": {
     "未設計": 403,
-    "案": 399,
+    "案": 406,
     "承認済み": 10
   },
   "revisions": [
@@ -7602,6 +7603,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-021",
+      "date": "2026-10-09",
+      "basis_refs": 4,
+      "added_entity_ids": 7,
+      "modified_entity_ids": 9,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7743,7 +7754,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 812,
+    "entity_count": 819,
     "source_count": 497,
     "id_map_count": 202,
     "legacy_198_count": 198,

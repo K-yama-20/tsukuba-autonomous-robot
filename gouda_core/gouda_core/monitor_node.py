@@ -68,6 +68,7 @@ class MonitorNode(Node):
         self.core = MonitorCore(clock=self._now)
         self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
+        self.maps_index_path = data_root / 'maps' / 'index.json'   # IFD-29 (read-only view of the map database)
         self._lock = threading.Lock()
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
         self.create_subscription(DiagnosticArray, 'record/status', self._on_record, LATCHED)
@@ -123,7 +124,12 @@ class MonitorNode(Node):
     # ---- server callbacks (run on HTTP threads) ----
     def _state(self) -> dict:
         with self._lock:
-            return self.core.snapshot()
+            snap = self.core.snapshot()
+        try:
+            snap['maps'] = json.loads(self.maps_index_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            snap['maps'] = {'origins': [], 'note': 'map database index not found (no mapping session yet)'}
+        return snap
 
     def _config_snapshot(self) -> dict:
         with self._lock:

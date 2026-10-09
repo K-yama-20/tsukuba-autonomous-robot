@@ -1,0 +1,33 @@
+# GLIM 1.2.2（ros-jazzy-glim／glim-ros 1.2.2-0noble）の起動・停止と dump 形式の確認（2026-10-09、Ubuntu VM、SSH 経由、センサーなし。AI が実行）
+# 目的: 工程5-3 の GLIM 起動方式（実行設定・停止・保存）を実機のパッケージで確認する。出力は SSH の標準出力からの転記。
+
+## 1. 配布物
+ros2 pkg prefix glim_ros -> /opt/ros/jazzy
+/opt/ros/jazzy/share/glim_ros: launch ファイルなし（cmake, environment, package.xml のみ）
+/opt/ros/jazzy/share/glim/config: config.json, config_ros.json, config_sensors.json, config_preprocess.json, config_odometry_{cpu,gpu,ct}.json, config_sub_mapping_{cpu,gpu,passthrough}.json, config_global_mapping_{cpu,gpu,pose_graph}.json, config_viewer.json, config_logging.json
+/opt/ros/jazzy/lib/glim_ros: glim_rosnode, glim_rosbag, map_editor, offline_viewer, validator_node
+config.json（既定）は GPU モジュール（config_odometry_gpu.json 等）を指す。CPU の VM では
+  [glim] [critical] failed to load odometry estimation module（libodometry_estimation_gpu.so がない）
+のため、CPU 版を指す config.json が必要。
+config_ros.json の主な項目: enable_local_mapping, enable_global_mapping, imu_frame_id, lidar_frame_id, base_frame_id（空なら IMU frame）, odom_frame_id, map_frame_id, publish_imu2lidar, extension_modules（viewer 等）, imu_topic, points_topic, imu_qos/points_qos。
+ROS parameter: config_path（設定ディレクトリ）, dump_path（保存先。既定 /tmp/dump）。
+旧実装の session は .glim_runtime/config に CPU 版の設定一式と settings.json を置いていた（topics /gouda/synced/imu 等、frames hesai_lidar/imu_link、odom_lidar/glim_map）。
+
+## 2. 実行（CPU 設定、Gouda の topic・frame、viewer なし）
+/tmp/glim_cfg: 配布 config をコピーし、config.json を *_cpu.json に、config_ros.json の extension_modules を []、imu_topic を /sensors/imu/data、points_topic を /sensors/xt32/points に書き換え。
+timeout -s INT 10 glim_rosnode --ros-args -p config_path:=/tmp/glim_cfg -p dump_path:=/tmp/glim_dump_test
+  [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found / use default_value=5（配布設定の既定値の警告。CPU 設定に未記載の項目）
+  [rclcpp]: signal_handler(SIGINT/SIGTERM)
+  [glim] [info] waiting for odometry estimation / local mapping / global mapping
+  [global] [info] saving to /tmp/glim_dump_test... / serializing factor graph to /tmp/glim_dump_test/graph.bin / saving config / saved
+  exit=124（timeout による SIGINT。2 回目の実行では kill -INT で exit=0）
+実行中: ros2 node list -> /glim_ros。topic: /image, /sensors/imu/data, /sensors/xt32/points（購読のみ）。glim_ros 固有のサービスはなし（parameter サービスのみ）。保存は SIGINT 時のみ。
+
+## 3. dump の内容（センサーデータなし）
+/tmp/glim_dump_test/: graph.txt, graph.bin, values.bin, traj_imu.txt, traj_lidar.txt, odom_imu.txt, odom_lidar.txt, config/（使用した設定一式のコピー）
+submap ディレクトリ（%06d/）は作られない（データなし）。
+libglim の文字列から、submap は "%s/%06d" に data.txt（id, T_world_origin, T_origin_endpoint_L/R, frame_id LIDAR|IMU, num_frames, T_lidar_imu）と imu_rate.txt を持ち、点群は gtsam_points PointCloud::save_compact で保存される（静的リンク。ファイル名 points_compact.bin 等は本バイナリの文字列には現れず、実データで要確認）。
+
+## 4. 工程5-3 への反映
+- glim_runner.py: 配布テンプレートから CPU 設定・Gouda の topic／frame・viewer なしの実行設定を生成し、glim_rosnode を子プロセス（プロセスグループ）で起動、SIGINT→dump 待ち→検査（graph.txt・values.bin）。
+- 変換（map_convert.py）は submap の points_compact.bin を float32 xyz として読む前提で実装し、サイズ不一致など検証できない場合は拒否する。実データでの確認が必要（未検証）。

@@ -74,6 +74,7 @@ lines:
       - ND-06
       - ND-07
       - ND-08
+      - PRM-37
       - TR-01
       - TR-03
       - TR-05
@@ -111,6 +112,7 @@ lines:
       - ND-15
       - SO-03
       - TR-03
+      - TS-27
     issue_refs: []
   - line: 10
     requirement_id: RQ-I007
@@ -135,10 +137,12 @@ lines:
       - IFD-29
       - IFD-35
       - ND-05
+      - PRM-37
       - SO-04
       - TR-04
       - TR-08
       - TS-11
+      - TS-27
     issue_refs:
       - H-008
   - line: 12
@@ -155,9 +159,15 @@ lines:
       - IFD-35
       - IFD-37
       - ND-05
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-38
       - SO-04
       - TR-04
       - TS-11
+      - TS-27
     issue_refs: []
   - line: 13
     requirement_id: RQ-I078
@@ -1066,6 +1076,10 @@ lines:
       - PRM-05
       - PRM-06
       - PRM-07
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
     issue_refs: []
   - line: 101
     requirement_id: RQ-I072

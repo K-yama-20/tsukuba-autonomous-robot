@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "a0f617f9031198a8f28b35a8895546937bb2d6f389c73e42cd3d5e269fd4cec9",
+  "model_entities_sha256": "43315121bd1432883489bd6d6c49523e55706e2cfd85df79fa35db7cbe9aea23",
   "parameters": [
     {
       "id": "PRM-11",
@@ -98,6 +98,66 @@
       "unit": null
     },
     {
+      "id": "PRM-33",
+      "file": "gouda_map_creator.yaml",
+      "key": "map_resolution_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
+      "id": "PRM-34",
+      "file": "gouda_map_creator.yaml",
+      "key": "ground_band_max_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
+      "id": "PRM-35",
+      "file": "gouda_map_creator.yaml",
+      "key": "obstacle_band_min_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
+      "id": "PRM-36",
+      "file": "gouda_map_creator.yaml",
+      "key": "obstacle_band_max_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
+      "id": "PRM-38",
+      "file": "gouda_map_creator.yaml",
+      "key": "occupied_min_points",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "点"
+    },
+    {
       "id": "PRM-10",
       "file": "gouda_mode_manager.yaml",
       "key": "recovery_attempt_limit",
@@ -113,6 +173,18 @@
       "id": "PRM-16",
       "file": "gouda_mode_manager.yaml",
       "key": "state_publish_period_s",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-37",
+      "file": "gouda_mode_manager.yaml",
+      "key": "glim_stop_wait_s",
       "target": "gouda_mode_manager",
       "declaration": "ros_parameter",
       "apply_timing": "launch",

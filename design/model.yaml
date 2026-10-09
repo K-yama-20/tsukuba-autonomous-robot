@@ -100,6 +100,10 @@ files:
     path: design/research/vehicle_pc/2026-10-09_stage5-2_ubuntu_test.txt
     sha256: 41d1b39a9e46e1a73b150b7341e066e913051136fb61c6ac9cea36f86f8216d5
     role: evidence
+  - id: FILE-VEHICLE-PC-GLIM-RUN
+    path: design/research/vehicle_pc/2026-10-09_glim_dump_format.txt
+    sha256: e0313aea890e84e5b6d3db11f7ed92b82ed4ef6722dc4d50d2058df012244e83
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34292,7 +34296,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-020
+    revision_ref: REV-021
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34353,11 +34357,11 @@ entities:
         - IFD-46
       owned_state_refs:
         - SO-01
-      placement_rationale: 旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と 
-        feedback をそのまま使う薄い client にまとめる。モードの正本は一箇所。 工程5-1 の実装は gouda_core/gouda_core/mode_core.py（起動遷移 
-        TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent の発行）。 工程5-2 でサービス IFD-02〜07 
-        を受け付ける（mode_core.request_transition）。現在のモードと遷移表・guard で判定し、動作が未実装の遷移は実装する工程名を付けて拒否、全要求を DecisionEvent 
-        に記録。 各遷移の動作（GLIM 起動、Nav2 goal、motion_hold）は 5-3／5-6／5-7 で実装し、IMPLEMENTED_TRANSITIONS に加える。
+      placement_rationale: '旧 gouda_section_executor／progress_tracker（C-012）を独立主体として置かず、Nav2 の action と feedback
+        をそのまま使う薄い client にまとめる。モードの正本は一箇所。 工程5-1: mode_core.py（起動遷移 TR-01／TR-02、永続記録）と mode_manager_node.py（mode/state・DecisionEvent）。工程5-2:
+        サービス IFD-02〜07 の受付（未実装の遷移は工程名付きで拒否）。 工程5-3: TR-03（GLIM を子プロセスとして起動: glim_runner.py。IFD-45 を非同期で呼ぶ）と TR-04（GLIM
+        停止と dump 待ち PRM-37、原図の登録、IFD-37 の非同期起動と processing_state=map_converting、IFD-46）を実装。 GLIM の topic／frame は設計の
+        IF 名（IFD-19〜22）で、設定値ではない。ND-07／ND-08 が実装された後は TR-03 の guard で非活性を確認してから GLIM を起動する（RQ-I004）。'
   - id: ND-04
     kind: ros_node
     name: gouda_recorder（ログとrosbagの独立記録）
@@ -34452,7 +34456,7 @@ entities:
     requirement_refs:
       - RQ-I008
       - RQ-I009
-    revision_ref: REV-002
+    revision_ref: REV-021
     ros_node:
       node_name: gouda_map_creator
       responsibilities:
@@ -34465,7 +34469,7 @@ entities:
       active_in_mode_refs:
         - MODE-MAP
         - MODE-MANUAL
-      lifecycle: lifecycle_node
+      lifecycle: plain_node
       process_group: gouda_core
       publishes_refs:
         - IFD-29
@@ -34476,7 +34480,10 @@ entities:
       calls_refs: []
       owned_state_refs:
         - SO-04
-      placement_rationale: 変換は長時間で取消可能な処理のため Action（RQ-I054）。走行系とは別 lifecycle で、自律走行中は非活性。
+      placement_rationale: map_database は library（gouda_core/gouda_core/map_database.py）で常時稼働の DB node 
+        は置かない（M-006）。変換は gouda_map_creator（map_creator_node.py、map/convert action）が一時領域に書き検証後に公開（IFD-29）。 
+        変換の設定 PRM-33〜36・38 は未確定（実車の原図で決める）で、stub 試験では仮値ファイル（trial）を使う。lifecycle 化は 5-6 の有効化設計で判断（現状 plain 
+        node）。
   - id: ND-06
     kind: ros_node
     name: GLIM（地図作成時の自己位置推定・地図作成、外部）
@@ -34499,7 +34506,7 @@ entities:
       - RQ-I006
       - RQ-I007
       - RQ-I004
-    revision_ref: REV-012
+    revision_ref: REV-021
     ros_node:
       node_name: glim_rosnode
       responsibilities:
@@ -34522,7 +34529,8 @@ entities:
       calls_refs: []
       owned_state_refs: []
       placement_rationale: 第三者ソフト。交換は部品と launch の変更で済ませる（RQ-I036）。版は実車PC の 1.2.2-0noble 
-        で固定（DEC-062、IFD-35）。LTS 版へ変える場合は証拠を取り直す。
+        で固定（DEC-062、IFD-35）。実行設定は glim_runner が配布テンプレートから CPU モジュール・Gouda の topic／frame・viewer なしで生成し、dump は 
+        SIGINT で保存される（FILE-VEHICLE-PC-GLIM-RUN）。
   - id: ND-07
     kind: ros_node
     name: gouda_global_localization（map→odom、方式未確定）
@@ -35204,16 +35212,18 @@ entities:
     requirement_refs:
       - RQ-I008
       - RQ-I009
-    revision_ref: REV-004
+    revision_ref: REV-021
     state_owner:
       owner_ref: ND-05
       state_items:
         - name: map_database
-          description: 原図と変換後地図、由来ID、各成果物の内容ハッシュ、変換設定・変換器版（RQ-I009）
+          description: 原図と変換後地図、由来ID、各成果物の内容ハッシュ、変換設定・変換器版（RQ-I009）。実装は 
+            <data_root>/maps（source_manifest.json・manifest.json・index.json）
           persistence: persisted
           restore_scope: ファイルが正本。実行中状態はない
         - name: conversion_job
-          description: 実行中の変換ジョブ（原図ID・進捗・結果）。モードではなく処理状態（DEC-010）
+          description: 実行中の変換ジョブ（原図ID・進捗・結果）。モードではなく処理状態（DEC-010）。一時領域 .converting_* に書き、検証後に 
+            converted/{revision} へ公開
           persistence: volatile
           restore_scope: 再起動で中断。不完全な成果物は破棄し、人が再変換を起動できる
   - id: SO-05
@@ -36770,11 +36780,12 @@ entities:
       - RQ-I008
       - RQ-I009
       - RQ-I078
-    revision_ref: REV-011
+    revision_ref: REV-021
     designed_interface:
       transport: file
-      name: map_root/{lineage_id}/{artifact}/manifest.yaml ＋ 本体
-      message_type: MapManifest（YAML。由来ID・各成果物の内容ハッシュ・変換設定・変換器版・座標対応）
+      name: <data_root>/maps/{origin_id}/{source|converted/{revision}}/ ＋ manifest、index.json
+      message_type: source_manifest.json／manifest.json（JSON。由来 ID・内容ハッシュ・変換設定・変換器版・座標対応）、変換後地図は Nav2 
+        map_server 形式（map.yaml＋map.pgm）
       standard_type: false
       custom_type_reason: 標準の地図ファイル（Nav2 YAML+image）に由来ID・ハッシュ・変換器版を付ける manifest が必要（RQ-I009）
       purpose: data
@@ -37007,11 +37018,13 @@ entities:
     requirement_refs:
       - RQ-I008
       - RQ-I009
-    revision_ref: REV-012
+    revision_ref: REV-021
     designed_interface:
       transport: file
-      name: map_root/{session_id}/source/
-      message_type: GLIM 1.2.2 の成果物（形式は 1.2.2 で確認する）＋ manifest
+      name: <data_root>/maps/{origin_id}/source/
+      message_type: GLIM 1.2.2 の 
+        dump（graph.txt・graph.bin・values.bin・traj_imu.txt・traj_lidar.txt・odom_*.txt・config/、データがあれば %06d/ に 
+        data.txt と点群）＋ source_manifest.json（由来 ID・内容ハッシュ・版・設定）
       standard_type: false
       custom_type_reason: GLIM 固有形式。変換器（ND-05）の入力契約として manifest を付ける
       purpose: data
@@ -37022,7 +37035,8 @@ entities:
         - ND-05
       unit: m
       frame: mapping_frame
-      time_semantics: 地図作成終了時に保存。保存失敗時は完成版を公開しない
+      time_semantics: 地図作成終了（TR-04）で GLIM に SIGINT を送り dump の書き出しを待つ（PRM-37）。graph.txt・values.bin が揃った dump 
+        だけを登録・公開し、不完全な dump は作業領域に残す。submap の点形式（points_compact.bin）は実データで確認するまで未検証（FILE-VEHICLE-PC-GLIM-RUN）
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -37103,11 +37117,12 @@ entities:
     requirement_refs:
       - RQ-I009
       - RQ-I054
-    revision_ref: REV-002
+    revision_ref: REV-021
     designed_interface:
       transport: action
       name: map/convert
-      message_type: gouda_interfaces/action/ConvertMap（提案）
+      message_type: 
+        gouda_interfaces/action/ConvertMap（定義済み。REV-021。goal＝origin_id・settings_json、result＝ok・message・revision・content_hash・source_content_hash・map_yaml_path、feedback＝stage・progress）
       standard_type: false
       custom_type_reason: 長時間で取消可能な変換処理（RQ-I054）。入力の原図ID・変換設定、feedback の進捗、result の成果物ID・ハッシュを持つ標準 action がない
       purpose: command
@@ -37221,7 +37236,7 @@ entities:
       - RQ-I006
       - RQ-I004
       - RQ-I015
-    revision_ref: REV-020
+    revision_ref: REV-021
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-MAP
@@ -37229,13 +37244,14 @@ entities:
       trigger: 人が gouda_monitor の地図作成開始ボタンを押す（IFD-06）
       trigger_kind: human
       owner_ref: ND-03
-      guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）
+      guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）。GLIM が既に動いていない
       actions:
-        - GLIM（ND-06）を起動・有効化。失敗は monitor に表示
+        - GLIM（ND-06）を起動・有効化（glim_runner。実行設定は配布テンプレートから生成、dump 先は作業領域 mapping/{origin_id}/glim_dump）。失敗は 
+          DecisionEvent（mapping_start_failed）で monitor に表示し、遷移を拒否
         - 記録の自動開始を要求（IFD-45 
           record/log/start_pre_mapping。契機は人の地図作成開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも地図作成の開始を止めない。失敗は DecisionEvent と
           monitor のポップアップ
-        - 設定状況を記録（地図作成前：RQ-I015）
+        - 設定状況を記録（地図作成前：RQ-I015。GLIM の topic／frame・設定ディレクトリを DecisionEvent に残す）
   - id: TR-04
     kind: transition
     name: 事前地図作成 → 手動走行（地図作成終了ボタン。遷移先は H-008 の案）
@@ -37256,7 +37272,7 @@ entities:
       - RQ-I008
       - RQ-I009
       - RQ-I017
-    revision_ref: REV-020
+    revision_ref: REV-021
     transition:
       from_mode_ref: MODE-MAP
       to_mode_ref: MODE-MANUAL
@@ -37266,8 +37282,10 @@ entities:
       owner_ref: ND-03
       guard: なし（人の操作は常に受け付ける）
       actions:
-        - GLIM に保存を要求し、原図を map_database へ保管（RQ-I008）。GLIM の TF 発行を停止
-        - 自動変換を Action（IFD-37）で起動し、processing_state=変換中 を IFD-01 で表示（DEC-010）。失敗しても原図は保持（RQ-I009）。変換専用モードは作らない
+        - GLIM に保存を要求（SIGINT）し dump の完了を待つ（PRM-37）。完了した dump だけを原図として map_database へ登録（由来 
+          ID・内容ハッシュ・版・設定：RQ-I008・IFD-29）。不完全なら登録せず作業領域に残す。GLIM の TF 発行は停止する
+        - 自動変換を Action（IFD-37）で非同期に起動し、processing_state=map_converting を IFD-01 で表示（DEC-010）。結果（成功・失敗）を 
+          DecisionEvent に記録。失敗しても原図は保持（RQ-I009）。変換専用モードは作らない
         - 自動開始したログ記録を停止（IFD-46 record/log/stop_auto）。手動開始の記録は停止しない（RQ-I017）
         - 設定状況を記録（地図作成後：RQ-I015）
   - id: TR-05
@@ -40977,6 +40995,265 @@ entities:
       observe: サービス応答、record/status、events.jsonl の trigger、DecisionEvent、DR-16 の結果。
       expected: 自動開始は人の開始操作の受理時だけ。重複時は何もせず「記録中」。開始元・契機がログに残る。失敗・無応答でも走行開始は止まらず、ポップアップで警告される。stop_auto 
         は手動開始の記録を止めない。
+  - id: PRM-33
+    kind: parameter
+    name: 変換後地図の解像度
+    source_refs:
+      - SRC-I012
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I009
+      - RQ-I074
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-05
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 地図作成と変換
+      purpose: GLIM 原図から作る Nav2 2D 地図（occupancy grid）の 1 cell の大きさ。Nav2 の costmap 
+        解像度・footprint（PRM-01〜06）と整合させる
+      measurement: 実車の footprint と経路幅の実測後に人が決める（Q-06）
+      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      software_trial_value: 0.05
+      software_trial_basis: Nav2 上流（nav2_bringup の例の地図）の解像度と同じ値。合成データの単体試験と stub 試験用。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_map_creator
+      param_key: map_resolution_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-34
+    kind: parameter
+    name: 地面とみなす高さの上限（変換）
+    source_refs:
+      - SRC-I012
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I009
+      - RQ-I074
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-05
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 地図作成と変換
+      purpose: GLIM の地図座標系で z がこの値以下の点を地面（free）とみなす。地図座標系の z の基準（GLIM の world frame＝開始時の IMU／base の高さ）と車体の 
+        base_link 高さ（PRM-05）に依存する
+      measurement: 実車で作った原図の点群の z 分布（地面の高さ）を解析して人が決める
+      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      software_trial_value: 0.1
+      software_trial_basis: 合成データの単体試験用（地面 z=0 の点群）。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_map_creator
+      param_key: ground_band_max_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-35
+    kind: parameter
+    name: 障害物とみなす高さの下限（変換）
+    source_refs:
+      - SRC-I012
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I009
+      - RQ-I074
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-05
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 地図作成と変換
+      purpose: z がこの値以上（かつ PRM-36 以下）の点を障害物とみなす。段差・縁石をどう扱うかの運用判断を含む
+      measurement: 実車で作った原図の点群と車体の乗り越え可能高さから人が決める
+      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      software_trial_value: 0.3
+      software_trial_basis: 合成データの単体試験用。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_map_creator
+      param_key: obstacle_band_min_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-36
+    kind: parameter
+    name: 障害物とみなす高さの上限（変換）
+    source_refs:
+      - SRC-I012
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I009
+      - RQ-I074
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-05
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 地図作成と変換
+      purpose: 車体の全高（PRM-03）より上の点（樹木の枝など）を障害物に含めないための上限
+      measurement: 車体全高の実測（PRM-03）と原図の点群から人が決める
+      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      software_trial_value: 1.5
+      software_trial_basis: 合成データの単体試験用。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_map_creator
+      param_key: obstacle_band_max_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-37
+    kind: parameter
+    name: GLIM 停止後に dump 完了を待つ時間
+    source_refs:
+      - SRC-I011
+      - SRC-I007
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I008
+      - RQ-I004
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-03
+      value:
+      value_state: unresolved
+      unit: s
+      stage: 地図作成と変換
+      purpose: 地図作成終了（TR-04）で GLIM に SIGINT を送ってから、dump（graph.txt・values.bin・submap）の書き出し完了を待つ上限。超過時は SIGTERM 
+        し dump は不完全として扱う（原図を公開しない）
+      measurement: 実車の地図サイズでの GLIM の保存時間の実測
+      decision_deadline: 実車で最初の原図を作る前
+      software_trial_value: 90.0
+      software_trial_basis: 旧実装（docs/gouda_recording_glim.md「最大90秒待ちます」）の値。センサーなしの VM では数秒で完了。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_mode_manager
+      param_key: glim_stop_wait_s
+      value_type: double
+      apply_timing: launch
+  - id: PRM-38
+    kind: parameter
+    name: cell を占有とみなす障害物点数の下限（変換）
+    source_refs:
+      - SRC-I012
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I009
+    revision_ref: REV-021
+    parameter:
+      owner_ref: ND-05
+      value:
+      value_state: unresolved
+      unit: 点
+      stage: 地図作成と変換
+      purpose: 1 cell 内の障害物点がこの数以上なら占有。点群の密度（解像度・走行速度）に依存する
+      measurement: 実車で作った原図の点密度から人が決める
+      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      software_trial_value: 2
+      software_trial_basis: 合成データの単体試験用。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_map_creator
+      param_key: occupied_min_points
+      value_type: double
+      apply_timing: launch
+  - id: TS-27
+    kind: test
+    name: 地図作成の開始・終了、原図の登録、変換（stub・単体）
+    source_refs:
+      - SRC-I009
+      - SRC-I011
+      - SRC-I012
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-03
+      - ND-05
+      - ND-06
+      - IFD-29
+      - IFD-35
+      - IFD-37
+      - IFD-45
+      - IFD-46
+      - TR-03
+      - TR-04
+      - TS-11
+      - TS-26
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I006
+      - RQ-I008
+      - RQ-I009
+    revision_ref: REV-021
+    test:
+      execution_status: 未実行
+      stage: 地図作成と変換
+      procedure: '単体（gouda_core/test/test_mapping_core.py）: GLIM 実行設定の生成（CPU モジュール・Gouda の topic／frame・viewer なし）、dump
+        の検査、偽プロセスでの停止、地図データベースの登録（不完全な dump は登録しない）・変換の公開と破棄・内容ハッシュ、 合成 submap からの occupancy grid 生成（map.yaml・map.pgm）、submap
+        なし・設定なし・未検証の点形式の拒否。 ROS 上（Ubuntu、センサーなし、trial parameter）: 地図作成開始ボタン → GLIM 起動・IFD-45 で記録が自動開始（contrib auto:map_start）→
+        地図作成終了ボタン → GLIM が dump を書き手動走行へ戻る → 原図が maps/<origin>/source に登録される → 変換 action は「submap なし（センサーデータなし）」で失敗し原図は保持、processing_state
+        は map_converting→idle → 自動開始分の記録が停止（IFD-46）。全段の DecisionEvent と record/status を確認。'
+      observe: 
+        DecisionEvent（mapping_started／record_auto_start／mapping_stopped／source_map_registered／map_convert_failed／record_auto_stop）、mode/state
+        の mode と processing_state、maps/index.json、record/status。
+      expected: TR-03 で mode=2（事前地図作成）、GLIM が起動し記録が自動開始。TR-04 で mode=1、GLIM が dump 
+        を書き終えてから原図が内容ハッシュ付きで登録される。変換は非同期で、失敗しても原図は保持され不完全な成果物は残らない（RQ-I009）。 変換中は 
+        processing_state=map_converting で専用モードは現れない（DEC-010）。自動開始した記録だけが止まる（RQ-I017）。実データでの変換（submap 
+        の点形式の確認）は実車で行う。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -51006,4 +51283,39 @@ revisions:
       - TS-23
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-021
+    date: '2026-10-09'
+    summary: DEC-074 の許可により工程5-3 に着手。TR-03（GLIM 起動＋IFD-45 の非同期呼出し）と TR-04（GLIM 停止と dump 待ち、原図の登録 IFD-29、変換 
+      action IFD-37 の非同期起動、IFD-46）を gouda_mode_manager に実装。 gouda_map_creator（ND-05）を map/convert 
+      action（gouda_interfaces/action/ConvertMap）として実装し、地図データベース（原図・変換後地図を内容ハッシュと由来 ID で管理、一時領域→検証→公開）を library
+      化。 Ubuntu の GLIM 1.2.2 をセンサーなしで起動・停止し dump 形式（graph.txt・values.bin・traj・config、データがあれば %06d/ 
+      submap）を確認（FILE-VEHICLE-PC-GLIM-RUN）。 変換設定 PRM-33〜36・38（未確定。実車実測後に決める。合成データの単体試験用の仮値あり）、GLIM 停止待ち 
+      PRM-37（未確定。旧実装の 90 s を仮値）を宣言。生成器に仮値ファイル（<node>.trial.yaml、stub 試験専用）を追加。
+    basis_refs:
+      - DEC-074
+      - DEC-062
+      - DEC-010
+      - DEC-071
+    added_entity_ids:
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-37
+      - PRM-38
+      - TS-27
+    modified_entity_ids:
+      - ND-03
+      - ND-05
+      - ND-06
+      - SO-04
+      - IFD-29
+      - IFD-35
+      - IFD-37
+      - TR-03
+      - TR-04
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-GLIM-RUN
     removed_entity_ids: []

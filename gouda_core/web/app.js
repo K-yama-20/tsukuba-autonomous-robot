@@ -90,6 +90,14 @@
     if (s.commands.length) {
       $('commands').innerHTML = s.commands.map((c) => `<div class="ev ${c.ok ? '' : 'refused'}"><span class="t">${fmtT(c.t)}</span><span class="m"><span class="code">${esc(c.command)}</span>${esc(c.message)}</span><span class="n">${c.ok ? 'OK' : 'NG'}</span></div>`).join('');
     }
+    // map database (IFD-29)
+    if (s.maps) {
+      const rows = {};
+      (s.maps.origins || []).forEach((o) => {
+        rows[o.origin_id] = `source ${String(o.source_hash).slice(0, 12)}… submaps ${o.submaps}; converted: ` + ((o.converted || []).map((c) => `rev ${c.revision} ${String(c.content_hash).slice(0, 12)}…`).join(', ') || 'なし');
+      });
+      kvTable($('maps-table'), rows); $('maps-note').textContent = s.maps.note || `${(s.maps.origins || []).length} origin(s)`;
+    }
     // settings (UI parameters of the relay node)
     if (s.settings && s.settings.ui) kvTable($('settings-table'), Object.assign({}, s.settings.ui, { declared_by: s.settings.declared_by, source: s.settings.source, auto_retry: s.settings.auto_retry }));
     // pop-up for a failed automatic log start (DEC-071). Only events newer than the last seen one trigger it; a

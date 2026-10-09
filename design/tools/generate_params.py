@@ -9,6 +9,9 @@ Reads every parameter entity that declares where it is applied
   design/generated/params/firmware_config.yaml   firmware settings (same rule)
   design/generated/params/bt_params.yaml         values to substitute into BT XML
   design/generated/params/index.json             provenance: PRM id, key, state, target, timing, sha of model
+  design/generated/params/<target>.trial.yaml    SOFTWARE TRIAL VALUES of unresolved parameters (software_trial_value with
+                                           its basis) for stub/simulation tests only; never for the vehicle. Loaded by the
+                                           launch only when trial:=true (gouda.sh: GOUDA_TRIAL_PARAMS=1).
 
 Nothing here is a vehicle-approved value unless value_state is approved.
 Hand editing is forbidden; change the model through a revision instead.
@@ -55,6 +58,15 @@ def render(model):
                 p = e['parameter']
                 lines.append(f"{indent}#   {p['param_key']}  {e['id']} unit={p['unit']} issues={','.join(e['issue_refs'])}")
         files[fname] = '\n'.join(lines) + '\n'
+        trial = [e for e in tbd if e['parameter'].get('software_trial_value') is not None and fname not in ('firmware_config.yaml', 'bt_params.yaml')]
+        if trial:
+            tl = [HEADER, '# SOFTWARE TRIAL VALUES (ソフト試験用の仮値。実車採用値ではない。実車では読み込まない: parameters_by_stage.md)', f'# source model entities sha256: {msha[:16]}', '',
+                  f"{ents[0]['parameter']['target']}:", '  ros__parameters:']
+            for e in trial:
+                p = e['parameter']; v = p['software_trial_value']
+                vs = json.dumps(v, ensure_ascii=False) if not isinstance(v, bool) else str(v).lower()
+                tl.append(f"    {p['param_key']}: {vs}  # {e['id']} TRIAL unit={p['unit']} basis={(p.get('software_trial_basis') or '').replace(chr(10), ' ')}")
+            files[fname.replace('.yaml', '.trial.yaml')] = '\n'.join(tl) + '\n'
         for e in ents:
             p = e['parameter']
             index.append(dict(id=e['id'], file=fname, key=p['param_key'], target=p['target'], declaration=p['declaration'], apply_timing=p['apply_timing'], value_type=p.get('value_type'), value_state=p['value_state'], value=p['value'] if p['value_state'] != 'unresolved' else None, unit=p['unit']))

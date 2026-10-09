@@ -10,4 +10,5 @@ setup(name='gouda_core', version='0.1.0', packages=['gouda_core'],
       description='Gouda core nodes (recorder, mode manager) of the new implementation', license='Apache-2.0',
       entry_points={'console_scripts': ['gouda_recorder = gouda_core.recorder_node:main',
                                         'gouda_mode_manager = gouda_core.mode_manager_node:main',
-                                        'gouda_monitor = gouda_core.monitor_node:main']})
+                                        'gouda_monitor = gouda_core.monitor_node:main',
+                                        'gouda_map_creator = gouda_core.map_creator_node:main']})

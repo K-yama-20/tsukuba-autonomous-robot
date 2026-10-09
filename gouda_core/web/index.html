@@ -93,7 +93,9 @@
           <li data-step="nodes"><span class="code">3</span>自律走行系 node の活性（ND-07・08・10） <span class="status amber">未実装（工程5-6）</span></li>
           <li data-step="start"><span class="code">4</span>自律走行開始ボタンを 1 回押す（追加の承認は挟まない: RQ-I011） <span class="status" id="seq-start">右上の自律走行</span></li>
         </ol>
-        <div class="note">この画面は工程5-2 の範囲（モード・記録の表示と操作、/config）。各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
+        <div class="note">各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
+        <div class="panel-title" style="margin-top:8px"><span class="code">MAPS</span>地図データベース（IFD-29、原図と変換後地図。内容ハッシュで識別） <span class="dim" id="maps-note"></span></div>
+        <table class="kv" id="maps-table"></table>
       </div>
     </section>
 

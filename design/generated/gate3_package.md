@@ -2,17 +2,17 @@
 
 # ゲート3 承認資料
 
-状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 134 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
+状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 141 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
 
 ## 1. 承認対象
 
-### 1.1 下位設計案（adoption=designed_proposal、134 件）
+### 1.1 下位設計案（adoption=designed_proposal、141 件）
 
 - designed_interface（45）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`
-- parameter（19）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-19`, `PRM-20`, `PRM-25`, `PRM-26`
+- parameter（25）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-19`, `PRM-20`, `PRM-25`, `PRM-26`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-37`, `PRM-38`
 - ros_node（17）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`
 - state_owner（11）: `SO-01`, `SO-02`, `SO-03`, `SO-04`, `SO-05`, `SO-06`, `SO-07`, `SO-08`, `SO-09`, `SO-10`, `SO-11`
-- test（26）: `TS-01`, `TS-02`, `TS-03`, `TS-04`, `TS-05`, `TS-06`, `TS-07`, `TS-08`, `TS-09`, `TS-10`, `TS-11`, `TS-12`, `TS-13`, `TS-14`, `TS-15`, `TS-16`, `TS-17`, `TS-18`, `TS-19`, `TS-20`, `TS-21`, `TS-22`, `TS-23`, `TS-24`, `TS-25`, `TS-26`
+- test（27）: `TS-01`, `TS-02`, `TS-03`, `TS-04`, `TS-05`, `TS-06`, `TS-07`, `TS-08`, `TS-09`, `TS-10`, `TS-11`, `TS-12`, `TS-13`, `TS-14`, `TS-15`, `TS-16`, `TS-17`, `TS-18`, `TS-19`, `TS-20`, `TS-21`, `TS-22`, `TS-23`, `TS-24`, `TS-25`, `TS-26`, `TS-27`
 - transition（16）: `TR-01`, `TR-02`, `TR-03`, `TR-04`, `TR-05`, `TR-06`, `TR-07`, `TR-08`, `TR-09`, `TR-10`, `TR-11`, `TR-12`, `TR-13`, `TR-14`, `TR-15`, `TR-16`
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）

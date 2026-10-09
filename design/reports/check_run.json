@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-10-09T07:30:18.041065+00:00",
+  "run_time_utc": "2026-10-09T12:38:28.888169+00:00",
   "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
@@ -67,7 +67,7 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "bc4721f6b87fee550945b3b295b7b0d1d8e6bdc12bccaf81d99b3b1bccc07303",
+    "design/model.yaml": "576fa1dc7d3ac70f4a661bacff5b31d4d7a51f3adadf4b5032e42137fbffca4b",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062",
@@ -76,7 +76,7 @@
     "design/tools/check_design.py": "d45907be4e621a1f8c6e0f4faccdcc5b27a837c79d5b3ddf8ac3f1cecb78c7ec",
     "design/tools/check_intent_identity.py": "ad6992056327c2ffefbc68e4c14e0cb12f335be262f9a4ed86ab711ed9ee56a7",
     "design/tools/collect_official_specs.py": "3ccf109fe8476ea7277d915270eccb7c5068ec03c6c104e78f6c87247d46292a",
-    "design/tools/generate_params.py": "31bc653002aa8ea7edc1f961dbe2669217e0671c4345a3334446d1d6d9a7eab1",
+    "design/tools/generate_params.py": "fbe5ccd7db7944c60a62e9cb9c33e893bbdfb5f958bfe13c9720874cfe76930d",
     "design/tools/model_schema.py": "4009f05ba58170f7fe0000ab24652cbe627f28faee3243b8f74109f17e00eca3",
     "design/tools/render_migration_review.py": "8ea7c60509705357135a170c0d94777082308d47d077ec16dac838f67735b4fa",
     "design/tools/render_views.py": "39d2aa5b89b9a88b6599bfcd9a56b187d51fe1def43a304acb27254951bf6044",
@@ -107,7 +107,8 @@
     "design/revisions/REV-017.yaml": "a824daca3c623dd7ace8043a7a6d6cef5e81914ece9b0c22d02dee12f22d1c76",
     "design/revisions/REV-018.yaml": "f92afa1cdde562fbb116209b09fb6aa515c0b5b6608454a6ca32272fcc966443",
     "design/revisions/REV-019.yaml": "5274a0af7d33fb1fad8c74d021f8288172043eefb1667f075a49f6f0e709b96b",
-    "design/revisions/REV-020.yaml": "2ef1fbf487c1c7dc7a1510af824c597f49026efe74524b013c8bd1e740697679"
+    "design/revisions/REV-020.yaml": "2ef1fbf487c1c7dc7a1510af824c597f49026efe74524b013c8bd1e740697679",
+    "design/revisions/REV-021.yaml": "52a5a943378b1684a112d46d9721007ceb4b0c5e627169182efbb57d0591c38a"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }
