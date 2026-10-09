@@ -57,7 +57,7 @@ class MonitorNode(Node):
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
         self.create_subscription(DiagnosticArray, 'record/status', self._on_record, LATCHED)
         self.create_subscription(DecisionEvent, 'log/decision', self._on_decision, DECISION_QOS)
-        self._clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
+        self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
         self.create_timer(2.0, self._poll_nodes)  # graph poll for the node list (display only; not a stop condition)
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
@@ -125,8 +125,8 @@ class MonitorNode(Node):
             for k in ('map_id', 'map_revision', 'map_hash', 'waypoint_set_id', 'waypoint_set_revision', 'waypoint_set_hash'):
                 setattr(req, k, str(body.get(k, '')))
             ok, msg = self._call(self.start_client, req, lambda r: (bool(r.accepted), r.message))
-        elif name in self._clients:
-            ok, msg = self._call(self._clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message))
+        elif name in self.cmd_clients:
+            ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message))
         else:
             ok, msg = False, f'unknown command {name!r}'
         with self._lock:
