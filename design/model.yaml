@@ -41189,7 +41189,7 @@ entities:
       - safety
     requirement_refs:
       - RQ-I009
-    revision_ref: REV-021
+    revision_ref: REV-022
     parameter:
       owner_ref: ND-05
       value:
@@ -41199,8 +41199,8 @@ entities:
       purpose: 1 cell 内の障害物点がこの数以上なら占有。点群の密度（解像度・走行速度）に依存する
       measurement: 実車で作った原図の点密度から人が決める
       decision_deadline: 実車で最初の原図を作った後、5-6 の前
-      software_trial_value: 2
-      software_trial_basis: 合成データの単体試験用。実車採用値ではない
+      software_trial_value: 2.0
+      software_trial_basis: 合成データの単体試験用。実車採用値ではない。宣言型 double に合わせ 2.0 と書く（REV-022）
       declaration: ros_parameter
       target: gouda_map_creator
       param_key: occupied_min_points
@@ -51318,4 +51318,16 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-GLIM-RUN
+    removed_entity_ids: []
+  - id: REV-022
+    date: '2026-10-09'
+    summary: PRM-38（占有とみなす点数の下限）の仮値 2 が生成ファイルで INTEGER になり、宣言型 double の parameter に読み込めなかった（設定の不具合）。仮値を 2.0 
+      にして型を揃える。値の意味は不変。
+    basis_refs:
+      - DEC-074
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-38
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

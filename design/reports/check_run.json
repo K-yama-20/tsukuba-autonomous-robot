@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-10-09T12:38:28.888169+00:00",
+  "run_time_utc": "2026-10-09T12:41:13.142450+00:00",
   "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
@@ -67,7 +67,7 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "576fa1dc7d3ac70f4a661bacff5b31d4d7a51f3adadf4b5032e42137fbffca4b",
+    "design/model.yaml": "b466877e55ae51efac30b49c0535d51553ec18dc71d31733358bdc106dcf847a",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062",
@@ -108,7 +108,8 @@
     "design/revisions/REV-018.yaml": "f92afa1cdde562fbb116209b09fb6aa515c0b5b6608454a6ca32272fcc966443",
     "design/revisions/REV-019.yaml": "5274a0af7d33fb1fad8c74d021f8288172043eefb1667f075a49f6f0e709b96b",
     "design/revisions/REV-020.yaml": "2ef1fbf487c1c7dc7a1510af824c597f49026efe74524b013c8bd1e740697679",
-    "design/revisions/REV-021.yaml": "52a5a943378b1684a112d46d9721007ceb4b0c5e627169182efbb57d0591c38a"
+    "design/revisions/REV-021.yaml": "52a5a943378b1684a112d46d9721007ceb4b0c5e627169182efbb57d0591c38a",
+    "design/revisions/REV-022.yaml": "ba221eed3f16cd9fcb812e06b1a1f94c835a630f790323d2a43c25ba7e031374"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }
