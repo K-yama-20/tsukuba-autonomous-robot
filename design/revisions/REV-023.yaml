@@ -1,0 +1,35 @@
+# 変更セット REV-023（2026-10-09 第15便: REV-020 と工程5-3 の Ubuntu 上の試験記録の登録）
+# 適用: design/tools/apply_revision.py REV-023
+id: REV-023
+date: '2026-10-09'
+summary: >-
+  Ubuntu 上の試験記録を証拠ファイルとして登録: REV-020（記録の自動開始 IF・stop_auto・transient_local の履歴・UI parameter）と工程5-3（地図作成の開始・終了、GLIM の起動と保存、原図の登録、変換の失敗時の後始末）。
+  TS-26・TS-27 の手順に実行記録の場所を追記。試験の合否は正本の execution_status ではなく作業記録と証拠ファイルで管理する。
+basis_refs: [DEC-074]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+files:
+  - id: FILE-VEHICLE-PC-REV020
+    path: design/research/vehicle_pc/2026-10-09_rev020_ubuntu_test.txt
+    role: evidence
+  - id: FILE-VEHICLE-PC-STAGE53
+    path: design/research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt
+    role: evidence
+
+modifications:
+  - id: TS-26
+    set_nested:
+      test.procedure: >-
+        単体（gouda_core/test/test_recorder_core.py）: 入口別の契機、記録中の再要求は「記録中」で何もしない、手動開始を自動開始へ書き換えない、stop_auto は自動開始分だけ止め手動開始には何もしない。
+        ROS 上（Ubuntu）: record/log/start_pre_mapping → record/status の auto_started_by=auto:map_start → start_autodrive 再要求「記録中」→ stop_auto で停止 → 手動開始後の stop_auto は停止しない。
+        ND-03 の非同期呼出しは工程5-3 の TR-03／TR-04 で実行（record_auto_start／record_auto_stop の DecisionEvent）。失敗時のポップアップはブラウザ側で、API では record_auto_start_failed イベントの有無で確認。
+        発行条件は DR-16 で機械確認。実行記録: research/vehicle_pc/2026-10-09_rev020_ubuntu_test.txt（単体・ROS 上とも合格）、2026-10-09_stage5-3_ubuntu_test.txt（TR-03／TR-04 からの呼出し）。
+  - id: TS-27
+    set_nested:
+      test.procedure: >-
+        単体（gouda_core/test/test_mapping_core.py）: GLIM 実行設定の生成（CPU モジュール・Gouda の topic／frame・viewer なし）、dump の検査、偽プロセスでの停止、地図データベースの登録（不完全な dump は登録しない）・変換の公開と破棄・内容ハッシュ、
+        合成 submap からの occupancy grid 生成（map.yaml・map.pgm）、submap なし・設定なし・未検証の点形式の拒否。
+        ROS 上（Ubuntu、センサーなし、trial parameter）: 地図作成開始ボタン → GLIM 起動・IFD-45 で記録が自動開始 → 地図作成終了ボタン → GLIM が dump を書き手動走行へ戻る → 原図が maps/<origin>/source に登録される →
+        変換 action は「submap なし」で失敗し原図は保持・不完全な成果物は破棄 → 自動開始分の記録が停止（IFD-46）。
+        実行記録: research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt（単体 10 件・ROS 上の流れとも合格。初回は PRM-38 の仮値の型不一致で gouda_map_creator が起動せず REV-022 で修正）。
+        未確認: 実データでの submap の点形式と 2D 地図の妥当性、変換が長い場合の processing_state=map_converting の表示。
