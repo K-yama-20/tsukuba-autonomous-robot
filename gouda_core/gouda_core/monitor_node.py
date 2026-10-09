@@ -41,6 +41,14 @@ from gouda_core import png as pngmod
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 # UI periods and waits (PRM-27..32): declared here (the relay node), values come from the generated parameter file.
+def optional_double(node, name):
+    """Value of a declared-but-possibly-unset DOUBLE parameter, or None (rclpy raises on an uninitialised parameter)."""
+    try:
+        prm = node.get_parameter(name)
+    except Exception:
+        return None
+    return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
+
 UI_PARAMS = ['ui_node_list_poll_period_s', 'ui_sse_keepalive_s', 'ui_service_ready_wait_s', 'ui_service_response_wait_s', 'ui_pause_service_ready_wait_s', 'ui_pause_service_response_wait_s']
 
 # Button -> service. Mode operations go to gouda_mode_manager (ND-03), record operations to gouda_recorder (ND-04).
@@ -67,10 +75,10 @@ class MonitorNode(Node):
         self.declare_parameter('speed_mask_step_mps', Parameter.Type.DOUBLE)       # PRM-20 (unresolved: depends on Q-06)
         self.ui = {}
         for key in UI_PARAMS:
-            prm = self.get_parameter(key)
-            if prm.type_ != Parameter.Type.DOUBLE:
+            v = optional_double(self, key)
+            if v is None:
                 raise RuntimeError(f'{key} is not set: pass design/generated/params/gouda_monitor.yaml (PRM-27..32 are declared there)')
-            self.ui[key] = prm.value
+            self.ui[key] = v
         self.core = MonitorCore(clock=self._now)
         self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
@@ -143,8 +151,7 @@ class MonitorNode(Node):
             snap['routes'] = self.routes.index()
         except Exception:
             snap['routes'] = {'sets': []}
-        p_hw = self.get_parameter('speed_mask_half_width_m'); p_st = self.get_parameter('speed_mask_step_mps')
-        snap['mask_params'] = {'half_width_m': p_hw.value if p_hw.type_ == Parameter.Type.DOUBLE else None, 'step_mps': p_st.value if p_st.type_ == Parameter.Type.DOUBLE else None}
+        snap['mask_params'] = {'half_width_m': optional_double(self, 'speed_mask_half_width_m'), 'step_mps': optional_double(self, 'speed_mask_step_mps')}
         return snap
 
     def _config_snapshot(self) -> dict:
@@ -194,9 +201,8 @@ class MonitorNode(Node):
         if man is None: return {'ok': False, 'message': f'converted map {ws.map_origin_id}/{ws.map_revision} not found'}
         if man['content_hash'] != ws.map_content_hash: return {'ok': False, 'message': 'map content hash does not match the stored converted map (RQ-I078)'}
         hw = body.get('half_width_m'); st = body.get('step_mps')
-        p_hw = self.get_parameter('speed_mask_half_width_m'); p_st = self.get_parameter('speed_mask_step_mps')
-        hw = float(hw) if hw not in (None, '') else (p_hw.value if p_hw.type_ == Parameter.Type.DOUBLE else None)
-        st = float(st) if st not in (None, '') else (p_st.value if p_st.type_ == Parameter.Type.DOUBLE else None)
+        hw = float(hw) if hw not in (None, '') else optional_double(self, 'speed_mask_half_width_m')
+        st = float(st) if st not in (None, '') else optional_double(self, 'speed_mask_step_mps')
         if hw is None or st is None:
             return {'ok': False, 'message': 'speed mask settings missing: half_width_m (PRM-19) and step_mps (PRM-20) are unresolved; give them in the request (実機調整値として記録される)'}
         geom = speed_mask.MapGeometry.from_map_yaml(self.map_db.root / ws.map_origin_id / 'converted' / f'{ws.map_revision:03d}' / 'map.yaml')

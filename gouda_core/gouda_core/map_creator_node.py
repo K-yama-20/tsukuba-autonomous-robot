@@ -24,6 +24,14 @@ from gouda_interfaces.action import ConvertMap
 from gouda_core import map_convert
 from gouda_core.map_database import MapDatabase
 
+def optional_double(node, name):
+    """Value of a declared-but-possibly-unset DOUBLE parameter, or None (rclpy raises on an uninitialised parameter)."""
+    try:
+        prm = node.get_parameter(name)
+    except Exception:
+        return None
+    return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
+
 SETTING_PARAMS = ['map_resolution_m', 'ground_band_max_m', 'obstacle_band_min_m', 'obstacle_band_max_m', 'occupied_min_points']
 
 
@@ -44,8 +52,7 @@ class MapCreatorNode(Node):
     def _settings(self, require=True) -> dict:
         s = {}
         for key in SETTING_PARAMS:
-            prm = self.get_parameter(key)
-            s[key] = prm.value if prm.type_ == Parameter.Type.DOUBLE else None
+            s[key] = optional_double(self, key)
         if require and any(v is None for v in s.values()):
             missing = [k for k, v in s.items() if v is None]
             raise ValueError(f'conversion settings unresolved: {missing} (PRM-33..36; pass the generated parameter file, or the trial file for stub tests)')

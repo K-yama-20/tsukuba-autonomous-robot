@@ -39,6 +39,14 @@ from gouda_core.map_database import MapDatabase, new_origin_id
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072): 保持 50 件、全 publisher を揃える
 # Transitions whose actions exist in this build (stage 5-3: mapping start / end).
+def optional_double(node, name):
+    """Value of a declared-but-possibly-unset DOUBLE parameter, or None (rclpy raises on an uninitialised parameter)."""
+    try:
+        prm = node.get_parameter(name)
+    except Exception:
+        return None
+    return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
+
 IMPLEMENTED_TRANSITIONS = frozenset({'TR-03', 'TR-04'})
 # GLIM wiring from the design's interface names (not settings): IFD-21 points, IFD-22 IMU, IFD-20 frames, IFD-19 odom->base.
 GLIM_POINTS_TOPIC = 'sensors/xt32/points'
@@ -145,12 +153,12 @@ class ModeManagerNode(Node):
 
     def _tr04_end_mapping(self):
         """TR-04: stop GLIM and wait for its dump; register the source; start conversion (async); stop the auto log."""
-        wait = self.get_parameter('glim_stop_wait_s')
-        if wait.type_ != Parameter.Type.DOUBLE:
+        wait_s = optional_double(self, 'glim_stop_wait_s')
+        if wait_s is None:
             return False, 'glim_stop_wait_s (PRM-37) is unresolved: pass the generated parameter file (trial file in stub tests)'
         origin_id = self.mapping_origin_id or new_origin_id()
         try:
-            run = self.glim.stop(wait.value)
+            run = self.glim.stop(wait_s)
         except Exception as e:
             self._publish_decision('mapping_stop_failed', 'TR-04', f'GLIM stop failed: {e}', {'origin_id': origin_id})
             run = None
@@ -237,7 +245,7 @@ class ModeManagerNode(Node):
 
     def destroy_node(self):
         if self.glim.running:   # never leave GLIM orphaned; its dump on shutdown is kept in the mapping work dir
-            try: self.glim.stop(wait_s=self.get_parameter('glim_stop_wait_s').value if self.get_parameter('glim_stop_wait_s').type_ == Parameter.Type.DOUBLE else 0.0)
+            try: self.glim.stop(wait_s=optional_double(self, 'glim_stop_wait_s') or 0.0)
             except Exception: pass
         super().destroy_node()
 
