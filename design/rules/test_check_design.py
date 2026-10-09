@@ -133,3 +133,32 @@ class HardcodeScanTests(unittest.TestCase):
         r = self._scan('timeout = 1.0\nother = 0.7\n')
         self.assertTrue(any('PRM-13' in u for u in r['undetermined']), r['undetermined'])
         self.assertTrue(any('PRM-08' in u for u in r['undetermined']), r['undetermined'])
+
+
+class AutoRecordAndQosRuleTests(unittest.TestCase):
+    """DR-16: auto-record start IFs may be referenced only by the human start transitions and called only by ND-03.
+    DR-17: transient_local topics declare a depth; publishers in the implementation use transient_local."""
+    @classmethod
+    def setUpClass(cls):
+        cls.m = load_yaml(DESIGN / 'model.yaml'); cls.s = schema(); cls.man = json.loads((DESIGN / 'migration_manifest.json').read_text())
+    def res(self, m): return run(m, self.s, self.man)
+    def ent(self, m, i): return next(e for e in m['entities'] if e['id'] == i)
+
+    def test_real_model_passes_dr16(self):
+        self.assertEqual(self.res(self.m)['DR-16']['result'], '合格')
+
+    def test_recovery_transition_referencing_auto_start_is_flagged(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'TR-13')['transition']['actions'].append('復帰後に record/log/start_autodrive を呼ぶ')
+        self.assertEqual(self.res(m)['DR-16']['result'], '違反')
+
+    def test_resume_transition_referencing_auto_start_is_flagged(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'TR-10')['transition']['actions'].append('IFD-44 を呼ぶ')
+        self.assertEqual(self.res(m)['DR-16']['result'], '違反')
+
+    def test_monitor_calling_auto_start_is_flagged(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'ND-02')['ros_node']['calls_refs'].append('IFD-44')
+        self.assertEqual(self.res(m)['DR-16']['result'], '違反')
+
+    def test_transient_local_without_depth_is_flagged(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'IFD-28')['designed_interface']['qos']['history_depth'] = None
+        self.assertEqual(self.res(m)['DR-17']['result'], '違反')

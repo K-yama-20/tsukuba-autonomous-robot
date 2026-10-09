@@ -104,3 +104,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); f
   .grid-ops { grid-template-columns: 1fr 1fr; grid-template-rows: auto; grid-template-areas: "nav lidar" "state events" "esp pc"; }
   .screen { height: auto; overflow: auto; }
 }
+
+/* pop-up warning (record auto-start failure, DEC-071). Amber frame; no blinking. */
+.popup { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.popup[hidden] { display: none; }
+.popup-box { min-width: 420px; max-width: 60vw; background: var(--bg2); border: 1px solid var(--amber); padding: 12px 16px; }
+.popup-title { color: var(--amber); font-size: 14px; margin-bottom: 6px; }
+.popup-body { font-family: var(--mono); font-size: 12px; color: var(--fg); white-space: pre-wrap; }

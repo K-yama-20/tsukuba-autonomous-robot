@@ -309,6 +309,9 @@ lines:
       - IFD-09
       - IFD-28
       - IFD-40
+      - IFD-44
+      - IFD-45
+      - IFD-46
       - ND-03
       - ND-04
       - PRM-25
@@ -322,6 +325,7 @@ lines:
       - TR-12
       - TS-10
       - TS-23
+      - TS-26
     issue_refs:
       - G-LOG
   - line: 20
@@ -354,6 +358,7 @@ lines:
       - IFD-05
       - IFD-07
       - IFD-09
+      - IFD-46
       - ND-03
       - ND-04
       - SO-02
@@ -362,6 +367,7 @@ lines:
       - TR-11
       - TR-12
       - TS-05
+      - TS-26
     issue_refs:
       - G-LOG
   - line: 24
@@ -520,6 +526,8 @@ lines:
       - IFD-40
       - ND-03
       - PRM-16
+      - PRM-31
+      - PRM-32
       - TR-06
       - TS-04
       - TS-07
@@ -605,6 +613,10 @@ lines:
       - PRM-15
       - PRM-16
       - PRM-26
+      - PRM-27
+      - PRM-28
+      - PRM-29
+      - PRM-30
       - TS-10
       - TS-12
       - TS-15
@@ -1089,6 +1101,12 @@ lines:
       - ND-12
       - ND-13
       - ND-17
+      - PRM-27
+      - PRM-28
+      - PRM-29
+      - PRM-30
+      - PRM-31
+      - PRM-32
     issue_refs: []
   - line: 104
     requirement_id: RQ-I077

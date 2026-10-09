@@ -28,7 +28,9 @@ from urllib.parse import urlparse
 class MonitorServer:
     def __init__(self, web_dir: Path, state_provider: Callable[[], dict], config_provider: Callable[[], dict],
                  command_handler: Callable[[str, dict], dict], config_handler: Callable[[dict], dict],
-                 host: str = '127.0.0.1', port: int = 0, url_file: Optional[Path] = None, keepalive_s: float = 2.0):
+                 host: str = '127.0.0.1', port: int = 0, url_file: Optional[Path] = None, keepalive_s: float = None):
+        if keepalive_s is None:
+            raise ValueError('keepalive_s must be given by the node from its ROS parameter (PRM-28); the server has no default')
         self.web_dir = Path(web_dir); self.state_provider = state_provider; self.config_provider = config_provider
         self.command_handler = command_handler; self.config_handler = config_handler
         self.host, self.port, self.url_file, self.keepalive_s = host, port, url_file, keepalive_s

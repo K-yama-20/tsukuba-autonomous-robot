@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-10-09T00:35:13.887076+00:00",
+  "run_time_utc": "2026-10-09T07:30:18.041065+00:00",
   "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
@@ -67,13 +67,13 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "a7a26e268fa00d25b753568a5c43d24ffe67e3e65f50983eae0ad0e65c6d3e12",
+    "design/model.yaml": "bc4721f6b87fee550945b3b295b7b0d1d8e6bdc12bccaf81d99b3b1bccc07303",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062",
     "design/tools/apply_revision.py": "d49cdb67da8d3ef617005607634a741305f5f3d9c38e8b55b6bb4ff7a80780ce",
     "design/tools/build_migration.py": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
-    "design/tools/check_design.py": "194d16db172babd7fa2e5631ca5f264078cbaa95faf8b2dcf6396ef82546ea2d",
+    "design/tools/check_design.py": "d45907be4e621a1f8c6e0f4faccdcc5b27a837c79d5b3ddf8ac3f1cecb78c7ec",
     "design/tools/check_intent_identity.py": "ad6992056327c2ffefbc68e4c14e0cb12f335be262f9a4ed86ab711ed9ee56a7",
     "design/tools/collect_official_specs.py": "3ccf109fe8476ea7277d915270eccb7c5068ec03c6c104e78f6c87247d46292a",
     "design/tools/generate_params.py": "31bc653002aa8ea7edc1f961dbe2669217e0671c4345a3334446d1d6d9a7eab1",
@@ -84,7 +84,7 @@
     "design/tools/run_checks.py": "daf68e1650ad7cda27ae8d4b0395b6cee5d4e2e6b4bebec518e33facdd52e8f5",
     "design/tools/run_migration_checks.py": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
     "design/tools/validate_model.py": "f74f131e64db9b256aae6d18cd80c0b9d61c581957fbbd3d5b2dddd9a6187802",
-    "design/rules/test_check_design.py": "ffb53fac0940abb964119d22d2ee77e7853b6fa8eb40ebec21894c62bffbd4c8",
+    "design/rules/test_check_design.py": "fc994e7b09947b52cf3956d0bdd54164b6c9aca9826bc33eea1cea2b2715753a",
     "design/rules/test_check_intent_identity.py": "290311976b515c2669373b9a946635d6b206dec7ca25ecc81830118e504f705b",
     "design/rules/test_validate_model.py": "ab7e16cae95ad0b4ef8a7c5df88c543063ec7c6e895b53dfcf69a16c9e9954cb",
     "design/rules/fixtures/minimal.yaml": "259f5c2346efc19a3bb2b1898fc0deba1c43dbecc9ffcb5c9af733edd14fec58",
@@ -106,7 +106,8 @@
     "design/revisions/REV-016.yaml": "eedce5a672ac00c026d6773f43291737b604a46da8b4399711edf96f9850ef84",
     "design/revisions/REV-017.yaml": "a824daca3c623dd7ace8043a7a6d6cef5e81914ece9b0c22d02dee12f22d1c76",
     "design/revisions/REV-018.yaml": "f92afa1cdde562fbb116209b09fb6aa515c0b5b6608454a6ca32272fcc966443",
-    "design/revisions/REV-019.yaml": "5274a0af7d33fb1fad8c74d021f8288172043eefb1667f075a49f6f0e709b96b"
+    "design/revisions/REV-019.yaml": "5274a0af7d33fb1fad8c74d021f8288172043eefb1667f075a49f6f0e709b96b",
+    "design/revisions/REV-020.yaml": "2ef1fbf487c1c7dc7a1510af824c597f49026efe74524b013c8bd1e740697679"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }

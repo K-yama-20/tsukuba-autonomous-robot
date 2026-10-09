@@ -28,7 +28,7 @@ def main():
     cfg = {'values': {'lidar_mount_z_m': 'UNKNOWN', 'lidar_axis_mapping': 'UNKNOWN'}, 'kinds': {'lidar_mount_z_m': 'number', 'lidar_axis_mapping': 'text'}, 'config_revision': 0, 'updated_at': None, 'path': '(demo)', 'unknown_count': 2}
     server = MonitorServer(Path(__file__).resolve().parents[1] / 'web', core.snapshot, lambda: cfg,
                            lambda name, body: {'ok': False, 'message': f'DEMO: {name} is not connected to a robot'},
-                           lambda body: {'ok': False, 'message': 'DEMO: config is not saved', 'config': cfg}, port=port)
+                           lambda body: {'ok': False, 'message': 'DEMO: config is not saved', 'config': cfg}, port=port, keepalive_s=float(sys.argv[2]) if len(sys.argv) > 2 else 3.0)  # demo only
     print('DEMO monitor at', server.start(), flush=True)
     try:
         while True: time.sleep(3600)

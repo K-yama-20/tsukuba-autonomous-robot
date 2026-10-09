@@ -64,7 +64,7 @@
           <table class="kv" id="mode-table"></table>
         </div>
         <div class="panel side" id="side-events">
-          <div class="panel-title"><span class="code">EVENTS</span>log/decision <span class="dim" id="events-count"></span></div>
+          <div class="panel-title"><span class="code">HISTORY</span>判断の履歴（log/decision、時刻付き。現在の状態は STATE 欄） <span class="dim" id="events-count"></span></div>
           <div class="events" id="events"></div>
         </div>
         <div class="panel bottom" id="esp32">
@@ -123,6 +123,8 @@
         <div class="panel-title"><span class="code">CFG</span>/config センサ取付・座標方向（RQ-I070） <span class="dim" id="config-rev"></span></div>
         <div class="note">値は実測で決める。未入力は UNKNOWN のまま保存される（推測で埋めない）。保存はサーバ側のファイルに永続化し、タブ遷移や再読込で消えない。座標方向の文字列は静的TF発行（工程5-6）が読む。</div>
         <form id="config-form" class="cfg"></form>
+        <div class="panel-title" style="margin-top:8px"><span class="code">UI PARAMS</span>UI の周期・待ち時間（gouda_monitor の ROS parameter、PRM-27〜32。ソフトウェア既定値。車体の timeout ではない）</div>
+        <table class="kv" id="settings-table"></table>
         <div class="btnrow">
           <button class="op" id="config-save" type="button">保存<small>SAVE CONFIG</small></button>
           <span class="dim" id="config-msg"></span>
@@ -137,6 +139,7 @@
     <span class="dim">表示断は停止契機ではない（DEC-014）。</span>
   </footer>
 </div>
+<div id="popup" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">WARNING</span>記録の自動開始に失敗</div><div class="popup-body" id="popup-body"></div><div class="btnrow"><button class="op" id="popup-ack" type="button">確認<small>ACK</small></button></div></div></div>
 <script src="/static/app.js"></script>
 </body>
 </html>

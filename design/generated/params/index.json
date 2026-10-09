@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "39a6c4c193f77db48a1460e4d37f8a3de5a1aef06d58953e606102df5511ff21",
+  "model_entities_sha256": "a0f617f9031198a8f28b35a8895546937bb2d6f389c73e42cd3d5e269fd4cec9",
   "parameters": [
     {
       "id": "PRM-11",
@@ -156,6 +156,78 @@
       "value_state": "unresolved",
       "value": null,
       "unit": "m/s per cell step"
+    },
+    {
+      "id": "PRM-27",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_node_list_poll_period_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 2.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-28",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_sse_keepalive_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 2.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-29",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_service_ready_wait_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 1.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-30",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_service_response_wait_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 5.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-31",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_pause_service_ready_wait_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 1.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-32",
+      "file": "gouda_monitor.yaml",
+      "key": "ui_pause_service_response_wait_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 5.0,
+      "unit": "s"
     },
     {
       "id": "PRM-08",

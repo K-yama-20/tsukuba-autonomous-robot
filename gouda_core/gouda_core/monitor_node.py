@@ -9,7 +9,10 @@ The page is served on 127.0.0.1 by MonitorServer (no screen forwarding, RQ-I044)
 trigger; after a reconnect the page fetches the current latched state (DEC-014, TS-10).
 
 Settings: data_root (PRM-25) for the /config file and the URL file; monitor_port (PRM-26, 0 = OS-chosen) as launch
-arguments. No numeric value is hard-coded (RQ-I076).
+arguments. UI periods and waits are ROS parameters of this relay node (PRM-27..32, DEC-073) read from the generated file
+design/generated/params/gouda_monitor.yaml; they are software defaults, not vehicle values, and are never reused as a
+drive timeout. A timed-out call is shown as a failure; there is no automatic retry. The effective settings are recorded
+as a DecisionEvent (event=settings) at start-up and on every /config save. No numeric value is hard-coded (RQ-I076).
 """
 from __future__ import annotations
 
@@ -23,6 +26,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
+from rclpy.parameter import Parameter
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 from gouda_interfaces.srv import StartAutonomy
 from ament_index_python.packages import get_package_share_directory
@@ -31,7 +35,9 @@ from gouda_core.monitor_core import MonitorCore, SensorConfig
 from gouda_core.monitor_server import MonitorServer
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
-DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=50)
+DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
+# UI periods and waits (PRM-27..32): declared here (the relay node), values come from the generated parameter file.
+UI_PARAMS = ['ui_node_list_poll_period_s', 'ui_sse_keepalive_s', 'ui_service_ready_wait_s', 'ui_service_response_wait_s', 'ui_pause_service_ready_wait_s', 'ui_pause_service_response_wait_s']
 
 # Button -> service. Mode operations go to gouda_mode_manager (ND-03), record operations to gouda_recorder (ND-04).
 TRIGGER_COMMANDS = {
@@ -51,7 +57,16 @@ class MonitorNode(Node):
         if not root:
             raise RuntimeError('data_root is not set (PRM-25). Pass it from gouda.sh / the launch file.')
         data_root = Path(os.path.expanduser(root))
+        for key in UI_PARAMS:
+            self.declare_parameter(key, Parameter.Type.DOUBLE)
+        self.ui = {}
+        for key in UI_PARAMS:
+            prm = self.get_parameter(key)
+            if prm.type_ != Parameter.Type.DOUBLE:
+                raise RuntimeError(f'{key} is not set: pass design/generated/params/gouda_monitor.yaml (PRM-27..32 are declared there)')
+            self.ui[key] = prm.value
         self.core = MonitorCore(clock=self._now)
+        self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
         self._lock = threading.Lock()
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
@@ -59,12 +74,14 @@ class MonitorNode(Node):
         self.create_subscription(DecisionEvent, 'log/decision', self._on_decision, DECISION_QOS)
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
-        self.create_timer(2.0, self._poll_nodes)  # graph poll for the node list (display only; not a stop condition)
+        self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings only (DEC-073)
+        self.create_timer(self.ui['ui_node_list_poll_period_s'], self._poll_nodes)  # PRM-27; display only, not a stop condition
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
         self.server = MonitorServer(web_dir, self._state, self._config_snapshot, self._command, self._config_update,
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
-                                    url_file=data_root / 'run' / 'monitor.url')
+                                    url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'])   # PRM-28
         url = self.server.start()
+        self._publish_settings('startup')
         self.get_logger().info(f'gouda_monitor page: {url} (127.0.0.1 only; open it on this PC desktop)')
 
     def _now(self) -> float:
@@ -117,16 +134,28 @@ class MonitorNode(Node):
             ok, msg = self.config.update(body, self._now())
             self.core.on_command_result('config_update', ok, msg)
         self.server.notify(self.core.connection_revision)
+        if ok: self._publish_settings('config_saved')
         return {'ok': ok, 'message': msg, 'config': self._config_snapshot()}
+
+    def _publish_settings(self, reason: str):
+        """Record the effective settings (UI parameters and /config revision) as a DecisionEvent (RQ-I015, DEC-073)."""
+        d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
+        d.event = 'settings'; d.transition_id = ''; d.reason = f'settings recorded ({reason})'; d.run_id = ''; d.section_id = -1
+        with self._lock:
+            cfg = self.config.snapshot()
+        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'], 'reason': reason}, ensure_ascii=False)
+        self.decision_pub.publish(d)
 
     def _command(self, name: str, body: dict) -> dict:
         if name == 'start_autonomy':
             req = StartAutonomy.Request(); req.request_id = str(body.get('request_id', ''))
             for k in ('map_id', 'map_revision', 'map_hash', 'waypoint_set_id', 'waypoint_set_revision', 'waypoint_set_hash'):
                 setattr(req, k, str(body.get(k, '')))
-            ok, msg = self._call(self.start_client, req, lambda r: (bool(r.accepted), r.message))
+            ok, msg = self._call(self.start_client, req, lambda r: (bool(r.accepted), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
+        elif name == 'pause':   # the pause button has its own waits (PRM-31 / PRM-32, DEC-073)
+            ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_pause_service_ready_wait_s'], self.ui['ui_pause_service_response_wait_s'])
         elif name in self.cmd_clients:
-            ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message))
+            ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
         else:
             ok, msg = False, f'unknown command {name!r}'
         with self._lock:
@@ -134,13 +163,14 @@ class MonitorNode(Node):
         self.server.notify(self.core.connection_revision)
         return {'ok': ok, 'message': msg}
 
-    def _call(self, client, request, extract):
-        if not client.wait_for_service(timeout_sec=1):
-            return False, f'service {client.srv_name} is not available (node not running?)'
+    def _call(self, client, request, extract, ready_wait_s, response_wait_s):
+        # No automatic retry: a timed-out call is reported as a failure and the human decides whether to press again.
+        if not client.wait_for_service(timeout_sec=ready_wait_s):
+            return False, f'service {client.srv_name} is not available within {ready_wait_s} s (node not running?); no automatic retry'
         fut = client.call_async(request)
         done = threading.Event(); fut.add_done_callback(lambda f: done.set())
-        if not done.wait(timeout=5.0):
-            return False, f'service {client.srv_name} did not answer within 5 s'
+        if not done.wait(timeout=response_wait_s):
+            return False, f'service {client.srv_name} did not answer within {response_wait_s} s; no automatic retry'
         if fut.exception() is not None:
             return False, f'service {client.srv_name} failed: {fut.exception()}'
         return extract(fut.result())

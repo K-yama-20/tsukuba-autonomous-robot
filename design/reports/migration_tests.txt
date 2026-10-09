@@ -1,3 +1,8 @@
+test_monitor_calling_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_monitor_calling_auto_start_is_flagged) ... ok
+test_real_model_passes_dr16 (test_check_design.AutoRecordAndQosRuleTests.test_real_model_passes_dr16) ... ok
+test_recovery_transition_referencing_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_recovery_transition_referencing_auto_start_is_flagged) ... ok
+test_resume_transition_referencing_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_resume_transition_referencing_auto_start_is_flagged) ... ok
+test_transient_local_without_depth_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_transient_local_without_depth_is_flagged) ... ok
 test_autonomy_entered_automatically (test_check_design.DesignRuleTests.test_autonomy_entered_automatically) ... ok
 test_boot_into_wrong_mode (test_check_design.DesignRuleTests.test_boot_into_wrong_mode) ... ok
 test_contract_replaced (test_check_design.DesignRuleTests.test_contract_replaced) ... ok
@@ -63,6 +68,6 @@ test_superseded_requirement_needs_intent_justification (test_validate_model.Migr
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 63 tests in 33.893s
+Ran 68 tests in 66.731s
 
 OK

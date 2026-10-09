@@ -14,7 +14,7 @@
 | 実機照合待ち（人の承認待ちから外す） | DEC-024（pending） | `Q-09` | Q-09 Bluetooth 切断時の P 状態（既存実装の確認）<br>Q-09（Bluetooth 切断時の P 状態）は新 firmware の設計（G-FIRMWARE。BT 途絶 250 ms で手動入力無効＝PRM-21、DEC-048）で定義し、実機照合で確認する。人の承認待ちから外す。 |
 | 実機照合待ち（人の承認待ちから外す） | DEC-050（pending） | `ND-17`, `M-025`, `M-027` | 【実機照合】実際の配線、書き込まれた firmware、操作結果が設計前提（Bluetooth ゲームパッド→ESP32→DAC、手動操作優先、リレー不使用）と一致するか<br>事実確認であり承認ではない。新 firmware の実装・書き込み後に実機で確認する（人の協力）。 |
 
-disposition 未設定（回答済み・記録のみ）: DEC-001, DEC-002, DEC-003, DEC-012, DEC-020, DEC-036, DEC-035, DEC-038, DEC-039, DEC-040, DEC-041, DEC-043, DEC-049, DEC-068
+disposition 未設定（回答済み・記録のみ）: DEC-001, DEC-002, DEC-003, DEC-012, DEC-020, DEC-036, DEC-035, DEC-038, DEC-039, DEC-040, DEC-041, DEC-043, DEC-049, DEC-068, DEC-071, DEC-072, DEC-073
 
 ## H-001 の台帳上の経緯
 

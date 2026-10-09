@@ -1,7 +1,11 @@
 """gouda_recorder node (ND-04): ROS wrapper around RecorderCore.
 
-Services (std_srvs/Trigger): record/log/start (IFD-08), record/log/stop (IFD-09), record/rosbag/start (IFD-10),
-record/rosbag/stop (IFD-11). Subscribes mode/state (IFD-01) and log/decision (IFD-28) and writes them to the log.
+Services (std_srvs/Trigger): record/log/start (IFD-08, human Record), record/log/stop (IFD-09, human Stop Record),
+record/log/start_autodrive (IFD-44) and record/log/start_pre_mapping (IFD-45) called by gouda_mode_manager only when a
+human start operation was accepted (DR-16), record/log/stop_auto (IFD-46) stopping only an auto-started log,
+record/rosbag/start (IFD-10), record/rosbag/stop (IFD-11). All log entrances share one start procedure and state
+(RecorderCore.start_log); the origin and trigger are kept and written to the log (DEC-071).
+Subscribes mode/state (IFD-01) and log/decision (IFD-28, transient_local) and writes them to the log.
 Publishes record/status (IFD-12, diagnostic_msgs/DiagnosticArray, reliable, transient_local, depth 1) on every change.
 
 Settings come from the generated parameter file (design/generated/params/gouda_recorder.yaml). record_root is a launch
@@ -22,10 +26,10 @@ from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 
-from gouda_core.recorder_core import RecorderCore, TRIGGER_HUMAN
+from gouda_core.recorder_core import RecorderCore, TRIGGER_HUMAN, TRIGGER_AUTO_AUTONOMY_START, TRIGGER_AUTO_MAP_START
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
-DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=50)
+DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 
 
 class RecorderNode(Node):
@@ -40,6 +44,9 @@ class RecorderNode(Node):
         self.status_pub = self.create_publisher(DiagnosticArray, 'record/status', LATCHED)
         self.create_service(Trigger, 'record/log/start', lambda rq, rs: self._svc(rs, self.core.start_log, TRIGGER_HUMAN))
         self.create_service(Trigger, 'record/log/stop', lambda rq, rs: self._svc(rs, self.core.stop_log, TRIGGER_HUMAN))
+        self.create_service(Trigger, 'record/log/start_autodrive', lambda rq, rs: self._svc(rs, self.core.start_log, TRIGGER_AUTO_AUTONOMY_START))
+        self.create_service(Trigger, 'record/log/start_pre_mapping', lambda rq, rs: self._svc(rs, self.core.start_log, TRIGGER_AUTO_MAP_START))
+        self.create_service(Trigger, 'record/log/stop_auto', lambda rq, rs: self._svc(rs, lambda _t: self.core.stop_auto(), None))
         self.create_service(Trigger, 'record/rosbag/start', lambda rq, rs: self._svc(rs, self.core.start_rosbag, TRIGGER_HUMAN))
         self.create_service(Trigger, 'record/rosbag/stop', lambda rq, rs: self._svc(rs, self.core.stop_rosbag, TRIGGER_HUMAN))
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
@@ -57,9 +64,6 @@ class RecorderNode(Node):
         self.get_logger().info(msg) if ok else self.get_logger().warning(msg)
         self._publish_status()
         return rs
-
-    # Automatic start/stop requests from gouda_mode_manager arrive through the same services with the trigger carried in
-    # the request path; stage 5-3/5-6 add a dedicated request type (the design keeps the log trigger explicit).
 
     def _on_mode(self, msg: SoftwareMode):
         self.core.record('input', 'mode/state', self._now(), {

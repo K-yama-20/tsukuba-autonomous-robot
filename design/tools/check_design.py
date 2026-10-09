@@ -34,7 +34,11 @@ RULES = [
     ('DR-13', '旧値の5 mを流用していない', '依頼4「旧値の5 mを流用しない」'),
     ('DR-14', '人の判断・資料不足の問題はすべて判断台帳に項目がある', 'RQ-I073（intent.md:87 決定は全て判断台帳に記録せよ。旧Qで台帳項目がないものも記録対象）'),
     ('DR-15', '設定値は正本で一度だけ宣言され、生成物と一致し、コードにハードコードされていない', 'RQ-I076（intent.md:103 実測値はプログラムにハードコードせず、宣言的に書く）、RQ-I058（intent.md:83 設定はROS parameterで行う）'),
+    ('DR-16', 'ログの自動開始 IF は人の開始操作の受理時だけ呼ばれる（復帰・再開・PC再起動・起動・画面再接続の遷移と monitor から参照されない）', 'RQ-I015（intent.md:19 Record の自動開始の契機は人が押した地図作成開始ボタンと自律走行開始ボタンのみ。復帰や再開ボタンでは開始しない）、DEC-071'),
+    ('DR-17', 'transient_local の topic は保持件数を宣言し、実装では同じ topic の全 publisher が transient_local の QoS を使う', 'DEC-072（volatile の publisher が一つでもあると transient_local の購読者はそこから受信できない）、RQ-I058'),
 ]
+AUTO_RECORD_IF_PREFIX = 'record/log/start_'          # IFD-44 / IFD-45 (not the human Record IFD-08 'record/log/start')
+AUTO_RECORD_FORBIDDEN_EVENTS = ('fault_recovery', 'resume', 'pc_restart', 'boot', 'recovery_failed', 'nav_failure', 'goal_reached')
 
 
 def designed_entities(model):
@@ -271,8 +275,56 @@ def run(model, schema, manifest):
                 # Literal forms of the approved value as written in Python source: the float form (1.0, 0.7) and, for a
                 # float with an integral value, also "1." — but not the bare integer "1", which would flag every index.
                 forms = {repr(float(val)), '%g' % val} if isinstance(val, float) and not float(val).is_integer() else {repr(float(val)), f'{int(val)}.'}
-                if any(re.search(rf'(?<![\w.]){re.escape(f)}(?![\w.])', text) for f in forms) and key not in text: u.append(f'{pid}: 承認値 {val} に一致するリテラルが {src.relative_to(root.parent)} にある（param_key 不在。確認が必要）')
+                # License identifiers such as "Apache-2.0" are not values; the scan ignores them.
+                scan_text = re.sub(r'Apache-\d+\.\d+', '', text)
+                if any(re.search(rf'(?<![\w.]){re.escape(f)}(?![\w.])', scan_text) for f in forms) and key not in scan_text: u.append(f'{pid}: 承認値 {val} に一致するリテラルが {src.relative_to(root.parent)} にある（param_key 不在。確認が必要）')
     result('DR-15', v, u)
+    # DR-16 auto-record start IFs: callers and transitions
+    auto_ifs = {i: e for i, e in ifs.items() if e['designed_interface']['transport'] == 'service' and e['designed_interface']['name'].startswith(AUTO_RECORD_IF_PREFIX)}
+    auto_names = {i: e['designed_interface']['name'] for i, e in auto_ifs.items()}
+    v = []
+    for i, e in auto_ifs.items():
+        if set(e['designed_interface']['consumer_refs']) - {'ND-03'}: v.append(f'{i}: 呼び元が mode 管理（ND-03）以外 {e["designed_interface"]["consumer_refs"]}')
+    for n in nodes.values():
+        if n['id'] == 'ND-03' or n['id'] == auto_ifs and False: continue
+        if n['id'] != 'ND-04' and set(n['ros_node']['calls_refs']) & set(auto_ifs): v.append(f'{n["id"]}: 自動開始 IF {sorted(set(n["ros_node"]["calls_refs"]) & set(auto_ifs))} を呼んでいる（呼び元は ND-03 のみ）')
+    for t in trans:
+        tr = t['transition']; text = ' '.join(tr['actions']) + ' ' + tr['guard']
+        mentions = [i for i in auto_ifs if i in text or auto_names[i] in text]
+        if not mentions: continue
+        if tr['event_class'] in AUTO_RECORD_FORBIDDEN_EVENTS or tr['trigger_kind'] != 'human':
+            v.append(f'{t["id"]}: {tr["event_class"]}（{tr["trigger_kind"]}）の遷移が自動開始 IF {mentions} を参照（人の開始操作の受理時のみ許される）')
+        elif tr['event_class'] not in ('map_start', 'start'):
+            v.append(f'{t["id"]}: {tr["event_class"]} の遷移が自動開始 IF {mentions} を参照（地図作成開始・自律走行開始のみ）')
+    for n in nodes.values():
+        if n['id'] == 'ND-02':
+            text = ' '.join(n['ros_node']['responsibilities'])
+            if any(nm in text and ('呼' in text.split(nm)[0][-40:] or '呼' in text.split(nm)[1][:40]) for nm in auto_names.values()): v.append('ND-02: monitor が自動開始 IF を呼ぶ記述がある')
+    result('DR-16', v, [] if auto_ifs else ['自動開始 IF が未定義'])
+    # DR-17 transient_local declaration and publisher QoS in the implementation
+    v = []; u = []
+    tl_topics = {}
+    for i, e in ifs.items():
+        d = e['designed_interface']
+        if d['transport'] != 'topic': continue
+        if d['qos']['durability'] == 'transient_local':
+            if not d['qos']['history_depth']: v.append(f'{i}: transient_local なのに保持件数（history_depth）が未宣言')
+            tl_topics[d['name'].split('（')[0].strip()] = i
+    cfg = Path(__file__).resolve().parent / 'hardcode_scan_roots.json'
+    roots = [Path(__file__).resolve().parents[2] / r for r in json.loads(cfg.read_text())['roots']] if cfg.exists() else []
+    for root in roots:
+        if not root.exists(): continue
+        for src in root.rglob('*.py'):
+            try: text = src.read_text()
+            except Exception: continue
+            for m_ in re.finditer(r"create_publisher\(\s*([A-Za-z_][\w.]*)\s*,\s*['\"]([^'\"]+)['\"]\s*,\s*([A-Za-z_][\w.]*|\d+)", text):
+                topic = m_.group(2); qos_name = m_.group(3)
+                if topic not in tl_topics: continue
+                if qos_name.isdigit(): v.append(f'{tl_topics[topic]}: {src.relative_to(root.parent)} の publisher が深さだけ（volatile）で {topic} を発行'); continue
+                defn = re.search(rf'^{re.escape(qos_name)}\s*=\s*(.+)$', text, re.M)
+                if defn is None: u.append(f'{tl_topics[topic]}: {src.relative_to(root.parent)} の publisher QoS {qos_name} を解決できない')
+                elif 'TRANSIENT_LOCAL' not in defn.group(1): v.append(f'{tl_topics[topic]}: {src.relative_to(root.parent)} の publisher QoS {qos_name} が transient_local ではない')
+    result('DR-17', v, u)
     return results
 
 

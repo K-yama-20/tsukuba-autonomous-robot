@@ -90,8 +90,22 @@
     if (s.commands.length) {
       $('commands').innerHTML = s.commands.map((c) => `<div class="ev ${c.ok ? '' : 'refused'}"><span class="t">${fmtT(c.t)}</span><span class="m"><span class="code">${esc(c.command)}</span>${esc(c.message)}</span><span class="n">${c.ok ? 'OK' : 'NG'}</span></div>`).join('');
     }
+    // settings (UI parameters of the relay node)
+    if (s.settings && s.settings.ui) kvTable($('settings-table'), Object.assign({}, s.settings.ui, { declared_by: s.settings.declared_by, source: s.settings.source, auto_retry: s.settings.auto_retry }));
+    // pop-up for a failed automatic log start (DEC-071). Only events newer than the last seen one trigger it; a
+    // retained message received on (re)connect is not a trigger (DEC-072).
+    const failed = s.events.filter((ev) => ev.event === 'record_auto_start_failed' || ev.event === 'record_auto_stop_failed');
+    const newest = failed.reduce((m, ev) => Math.max(m, ev.last_at), 0);
+    if (seenEventsBaseline !== null && newest > seenEventsBaseline) {
+      const ev = failed.find((x) => x.last_at === newest);
+      $('popup-body').textContent = `${fmtT(ev.last_at)} ${ev.transition_id || ''} ${ev.reason}\n走行は止めない。記録が必要なら Record ボタンで手動開始する。`;
+      $('popup').hidden = false;
+    }
+    if (seenEventsBaseline === null || newest > seenEventsBaseline) seenEventsBaseline = newest;
     $('clock').textContent = 'server ' + fmtT(s.now);
   }
+  let seenEventsBaseline = null;   // set from the first snapshot after connect: retained history is not a trigger
+  $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
 
   // ---- /config ----
   async function loadConfig() {

@@ -59,9 +59,23 @@ class RecorderCoreTests(unittest.TestCase):
 
     def test_human_started_log_not_stopped_automatically(self):
         self.core.start_log(TRIGGER_HUMAN)
-        ok, msg = self.core.stop_log('auto:map_end'); self.assertFalse(ok, msg)
-        self.assertTrue(self.core.status()['log_active'])
+        ok, msg = self.core.stop_auto(); self.assertTrue(ok); self.assertIn('手動開始のため停止しない', msg)   # no-op is the intended outcome
+        self.assertTrue(self.core.status()['log_active']); self.assertEqual(self.core.status()['log_started_by'], TRIGGER_HUMAN)
         ok, _ = self.core.stop_log(TRIGGER_HUMAN); self.assertTrue(ok)
+
+    def test_duplicate_start_keeps_origin_and_answers_recording(self):
+        self.core.start_log(TRIGGER_HUMAN)
+        ok, msg = self.core.start_log(TRIGGER_AUTO_MAP_START); self.assertTrue(ok); self.assertIn('記録中', msg)
+        self.assertEqual(self.core.status()['log_started_by'], TRIGGER_HUMAN)      # not relabelled as auto-started
+        self.assertEqual(self.core.status()['auto_started_by'], '')
+        events = [json.loads(l)['kind'] for l in (self.root / 'S1' / 'log' / 'events.jsonl').read_text().splitlines()]
+        self.assertEqual(events.count('record_start'), 1)
+
+    def test_stop_auto_stops_only_auto_started_log(self):
+        self.core.start_log(TRIGGER_AUTO_MAP_START)
+        self.assertEqual(self.core.status()['auto_started_by'], TRIGGER_AUTO_MAP_START)
+        ok, _ = self.core.stop_auto(); self.assertTrue(ok); self.assertFalse(self.core.status()['log_active'])
+        ok, msg = self.core.stop_auto(); self.assertTrue(ok); self.assertIn('not active', msg)
 
     def test_auto_started_log_is_stopped_by_auto_stop_and_status_reports_trigger(self):
         self.core.start_log(TRIGGER_AUTO_AUTONOMY_START)

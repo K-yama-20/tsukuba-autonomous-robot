@@ -86,6 +86,7 @@ class MonitorCore:
         self.connection_revision = 0                     # bumps on every change; SSE clients use it
         self.stale_after_mode_s: Optional[float] = None  # PRM-16 (tbd)
         self.stale_after_esp32_s: Optional[float] = None # PRM-15 (tbd)
+        self.settings: dict = {}                           # effective UI parameters (PRM-27..32) for display
 
     # ---- inputs ----
     def on_mode(self, data: dict, received_at: Optional[float] = None):
@@ -143,6 +144,7 @@ class MonitorCore:
             'events': [{'node': a.key[0], 'event': a.key[1], 'transition_id': a.key[2], 'reason': a.key[3], 'count': a.count,
                         'first_at': a.first_at, 'last_at': a.last_at, 'details': a.sample.get('details', '')} for a in reversed(self.events.values())],
             'commands': list(reversed(self.command_log)),
+            'settings': self.settings,
         }
 
 

@@ -1,7 +1,7 @@
 {
   "scope": "下位設計案（REV-002）の設計整合性。移行忠実性は migration_validation.json。合格は設計承認・ROS動作確認・実車検証を意味しない。",
   "result_counts": {
-    "合格": 11,
+    "合格": 13,
     "違反": 0,
     "未判定": 4
   },
@@ -175,6 +175,22 @@
       "id": "DR-15",
       "description": "設定値は正本で一度だけ宣言され、生成物と一致し、コードにハードコードされていない",
       "basis": "RQ-I076（intent.md:103 実測値はプログラムにハードコードせず、宣言的に書く）、RQ-I058（intent.md:83 設定はROS parameterで行う）",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-16",
+      "description": "ログの自動開始 IF は人の開始操作の受理時だけ呼ばれる（復帰・再開・PC再起動・起動・画面再接続の遷移と monitor から参照されない）",
+      "basis": "RQ-I015（intent.md:19 Record の自動開始の契機は人が押した地図作成開始ボタンと自律走行開始ボタンのみ。復帰や再開ボタンでは開始しない）、DEC-071",
+      "result": "合格",
+      "violations": [],
+      "undetermined": []
+    },
+    {
+      "id": "DR-17",
+      "description": "transient_local の topic は保持件数を宣言し、実装では同じ topic の全 publisher が transient_local の QoS を使う",
+      "basis": "DEC-072（volatile の publisher が一つでもあると transient_local の購読者はそこから受信できない）、RQ-I058",
       "result": "合格",
       "violations": [],
       "undetermined": []

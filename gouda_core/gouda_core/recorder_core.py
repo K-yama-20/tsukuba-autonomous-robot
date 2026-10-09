@@ -96,7 +96,9 @@ class RecorderCore:
             return False, f'refused: {trigger!r} is not a permitted start trigger (RQ-I015)'
         s = self._ensure_session()
         if s.log_active:
-            return True, f'log already active (started by {s.log_started_by}); trigger {trigger} ignored'
+            # Already recording: nothing is changed and the origin is kept (a human-started log is never relabelled as
+            # auto-started). The answer says 記録中 so that the caller can show it (DEC-071).
+            return True, f'記録中 (already active; started by {s.log_started_by}; request {trigger} ignored, origin kept)'
         s.log_active = True; s.log_started_by = trigger
         self._close_gap()
         self.status_revision += 1
@@ -110,15 +112,20 @@ class RecorderCore:
         s = self.session
         if s is None or not s.log_active:
             return True, 'log recording is not active'
-        # Automatic stop (map end / autonomy end) stops only an automatically started recording (RQ-I017).
+        # Automatic stop (map end / autonomy end) stops only an automatically started recording (RQ-I017). Leaving a
+        # human-started log running is the intended outcome, not an error, so the answer is ok with an explanation.
         if trigger != TRIGGER_HUMAN and s.log_started_by == TRIGGER_HUMAN:
-            return False, 'refused: a recording started by a human is not stopped automatically (RQ-I017)'
+            return True, '手動開始のため停止しない (started by a human; not stopped automatically: RQ-I017)'
         self._append(s.directory / 'log' / 'events.jsonl', {'t': self.clock(), 'kind': 'record_stop', 'trigger': trigger})
         s.log_active = False; s.log_started_by = ''
         self._open_gap('stopped', f'stopped by {trigger}')
         self.status_revision += 1
         self._write_session_json()
         return True, 'log recording stopped'
+
+    def stop_auto(self) -> tuple[bool, str]:
+        """IFD-46 record/log/stop_auto: stop only an automatically started log; a human-started log is left running."""
+        return self.stop_log('auto:stop')
 
     def auto_start_allowed(self, event: str) -> bool:
         """True only for the two permitted automatic triggers; boot/recovery/resume never start a recording."""
