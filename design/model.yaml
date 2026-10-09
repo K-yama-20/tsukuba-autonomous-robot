@@ -112,6 +112,10 @@ files:
     path: design/research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt
     sha256: 005abe0264ca33f35289fb4c1ebad6577edf4ac8ab6789a40eae30b40b112421
     role: evidence
+  - id: FILE-VEHICLE-PC-STAGE54
+    path: design/research/vehicle_pc/2026-10-09_stage5-4_ubuntu_test.txt
+    sha256: 9d55602de27f533e357db79e7b1616a94ca7e46e24cc7f1dbbd0acff6df5aec2
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -41299,14 +41303,15 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I079
-    revision_ref: REV-024
+    revision_ref: REV-025
     test:
       execution_status: 未実行
       stage: waypoint
       procedure: '単体（gouda_core/test/test_waypoints_core.py）: 検証（地図参照必須、2 点以上、区間数、正の上限）、内容ハッシュ（名前・注記に依存せず内容に依存）、route
         database の公開と破棄、帯内の cell 値（上限÷刻み）と帯外 0、 重複 cell は低い方で値が異なれば警告（同じ値なら警告なし）、量子化の 1..100 への丸めと報告、raw mode の
-        PGM／YAML と filter_info.yaml、PNG 変換。 API（Ubuntu、合成の変換後地図を登録して）: POST /api/waypoints/save（地図のハッシュ不一致・設定未指定の拒否、重複区間の警告付き保存）、GET
-        /api/routes・/api/route・/api/map/…/map.png・mask.png。'
+        PGM／YAML と filter_info.yaml、PNG 変換。 API（Ubuntu、合成の変換後地図を登録して）: POST /api/waypoints/save（設定未指定・地図のハッシュ不一致の拒否、重複区間の警告付き保存、同値での改版）、GET
+        /api/routes・/api/map/…/geometry.json・map.png・mask.png。 実行記録: research/vehicle_pc/2026-10-09_stage5-4_ubuntu_test.txt（単体
+        59 件・API とも合格。初回は未初期化 parameter の読取例外を修正）。未確認: ブラウザ上のタブ操作、Nav2 への読込（5-6）。'
       observe: 保存結果（set_id・revision・manifest・warnings）、speed_mask.pgm の cell 値、filter_info.yaml、index.json。
       expected: 保存は atomic で、地図参照と自身のハッシュを持つ（RQ-I078）。重複 cell は低い方の上限、値が異なる区間は警告されるが保存は拒否しない（DEC-059 案 
         A）。帯外は無制限。PRM-19／20 が未確定なら要求で与えた値を 実機調整値として manifest に残す。
@@ -51442,4 +51447,17 @@ revisions:
       - IFD-41
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-025
+    date: '2026-10-09'
+    summary: 工程5-4（waypoint セットと速度マスク生成器）の Ubuntu 上の API 試験記録（合成の変換後地図を fixture に使用）を証拠ファイルとして登録し、TS-28 
+      に実行記録の場所を追記。
+    basis_refs:
+      - DEC-075
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-28
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-STAGE54
     removed_entity_ids: []

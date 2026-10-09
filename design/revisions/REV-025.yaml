@@ -1,0 +1,21 @@
+# 変更セット REV-025（2026-10-09 第16便: 工程5-4 の Ubuntu 上の試験記録の登録）
+# 適用: design/tools/apply_revision.py REV-025
+id: REV-025
+date: '2026-10-09'
+summary: 工程5-4（waypoint セットと速度マスク生成器）の Ubuntu 上の API 試験記録（合成の変換後地図を fixture に使用）を証拠ファイルとして登録し、TS-28 に実行記録の場所を追記。
+basis_refs: [DEC-075]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+files:
+  - id: FILE-VEHICLE-PC-STAGE54
+    path: design/research/vehicle_pc/2026-10-09_stage5-4_ubuntu_test.txt
+    role: evidence
+
+modifications:
+  - id: TS-28
+    set_nested:
+      test.procedure: >-
+        単体（gouda_core/test/test_waypoints_core.py）: 検証（地図参照必須、2 点以上、区間数、正の上限）、内容ハッシュ（名前・注記に依存せず内容に依存）、route database の公開と破棄、帯内の cell 値（上限÷刻み）と帯外 0、
+        重複 cell は低い方で値が異なれば警告（同じ値なら警告なし）、量子化の 1..100 への丸めと報告、raw mode の PGM／YAML と filter_info.yaml、PNG 変換。
+        API（Ubuntu、合成の変換後地図を登録して）: POST /api/waypoints/save（設定未指定・地図のハッシュ不一致の拒否、重複区間の警告付き保存、同値での改版）、GET /api/routes・/api/map/…/geometry.json・map.png・mask.png。
+        実行記録: research/vehicle_pc/2026-10-09_stage5-4_ubuntu_test.txt（単体 59 件・API とも合格。初回は未初期化 parameter の読取例外を修正）。未確認: ブラウザ上のタブ操作、Nav2 への読込（5-6）。

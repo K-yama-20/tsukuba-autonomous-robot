@@ -1,0 +1,39 @@
+# 工程5-4（waypoint と速度マスク生成器）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。合成の変換後地図を fixture として登録。センサー未接続）
+# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5, ROS 2 jazzy, Python 3.12.3, numpy 1.26.4, PyYAML 6.0.1
+# コミット: c74bb08（初回。未初期化 parameter の読取で例外）→ 4b508bd（修正後。以下の本試験）
+# 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
+
+## 1. ビルド・単体試験
+colcon build --packages-select gouda_core -> Summary: 1 package finished
+python3 -m unittest discover -s gouda_core/test -> OK（59 件）
+
+## 2. fixture: 合成 submap（地面 z=0 の格子と x=5 の壁）から変換後地図を作り地図データベースに登録（センサーデータではない）
+source map registered as synthetic_fixture (hash 2bb72d8b4327…, 1 submap(s))
+converted map published as synthetic_fixture/converted/001 (hash e7d44cae1e75…)
+GET /api/map/synthetic_fixture/1/geometry.json -> {"ok": true, "resolution": 0.25, "origin_x": -10.0, "origin_y": -10.0, "width": 81, "height": 81, "content_hash": "e7d44cae…"}
+GET /api/map/synthetic_fixture/1/map.png -> 200 image/png 107B
+
+## 3. 初回（c74bb08）の不具合
+POST /api/waypoints/save（設定なし）-> {"ok": false, "message": "The parameter 'speed_mask_half_width_m' is not initialized: …"}
+原因（実装）: 型だけ宣言した未初期化 parameter を get_parameter で読むと rclpy（jazzy）が例外を出す。optional_double() で None 扱いに修正（monitor・map_creator・mode_manager の同種の読取も修正）。
+
+## 4. 本試験（4b508bd）
+POST save（半幅・刻みなし）-> {"ok": false, "message": "speed mask settings missing: half_width_m (PRM-19) and step_mps (PRM-20) are unresolved; give them in the request (実機調整値として記録される)"}
+POST save（content_hash 不一致）-> {"ok": false, "message": "map content hash does not match the stored converted map (RQ-I078)"}（c74bb08 で確認）
+POST save（half_width_m 0.5, step_mps 0.02、5 点・4 区間、上限 [1.0, 1.0, 0.5, 0.5]。区間 0 と 2・3、区間 1 と 2 が交差）
+  -> True waypoint set saved as 20261009_220255_8d8890/001 (hash 08c038310b5f…; 3 warning(s))
+     warn [0, 2] 16 cell adopted 0.5 / warn [0, 3] 16 cell adopted 0.5 / warn [1, 2] 22 cell adopted 0.5
+     generator {'half_width_m': 0.5, 'step_mps': 0.02, 'source': 'request', 'painted_cells': 423, 'overlap_cells': 54, 'sections_clipped': []}
+POST save（同じ set_id、全区間 1.0）-> True … /002 (hash ca41f169d125…; 0 warning(s))
+GET /api/routes -> [('20261009_220255_8d8890', [(1, 5, 3), (2, 5, 0)])]
+routes/<set>/001/: filter_info.yaml manifest.json speed_mask.pgm speed_mask.yaml waypoints.yaml
+filter_info.yaml: costmap_filter_info_server: ros__parameters: type: 2, filter_info_topic: costmap_filter_info, mask_topic: speed_filter_mask, base: 0.0, multiplier: 0.02
+waypoints.yaml: schema 1, set_id, revision 1, map.origin_id synthetic_fixture …
+GET /api/map/synthetic_fixture/1/mask.png?set=…&rev=1 -> 200 image/png 191B
+speed_mask.pgm の cell 値: [0, 25, 50]（0=帯外・無制限、25=0.5 m/s、50=1.0 m/s）、塗った cell 423
+gouda.sh stop -> no process remains; orphans: 0
+
+## 5. 確認できたこと・できていないこと
+- 確認: 地図参照（ハッシュ照合）、設定未指定の拒否、重複 cell は低い方（25）が採用され値の異なる区間が警告される、同じ値なら警告なし、改版、raw mode の mask と filter_info、PNG 変換。
+- 未確認: ブラウザ上の waypoint_manager タブの操作（クリック編集・保存）。Nav2 への読込（IFD-42）は 5-6。PRM-19／20 の実値（未確定、実機調整）。
+- 本記録は「ソフト試験」の結果であり、実車検証ではない。
