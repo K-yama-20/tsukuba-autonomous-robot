@@ -1,0 +1,178 @@
+# 工程5-5 ソフト試験記録（Ubuntu 24.04 / ROS 2 Jazzy、Parallels VM aya@10.211.55.4、センサー・ESP32・車体なし。ESP32 は Python 模擬 esp32_sim を pty 上で実行）
+# 実行: gouda_core/test/ubuntu_stage5-5.sh（Part A: commit 3733a8d、Part B: commit c0c62b5）。日付: 2026-10-10T09:52:11+09:00。原文を加工せず連結。
+
+===== /tmp/stage55_A/probe.summary
+{
+ "settings": {
+  "cmd_vel_timeout_s(PRM-08)": 0.7,
+  "motion_hold_timeout_s(PRM-42)": 0.5,
+  "command_publish_period_s(PRM-41)": 0.05
+ },
+ "phase1_hold_true_joy_all_neutral": true,
+ "phase1_joy_count": 10,
+ "phase2_first_non_neutral_after_hold_false_s": 0.137,
+ "phase2_esp32_pc_source_seen": true,
+ "phase3_cmd_vel_stop_to_neutral_s": 0.724,
+ "phase3_within_PRM08_plus_period": true,
+ "phase3_joy_rate_hz": 20.3,
+ "phase3_esp32_status_rate_hz": 18.5,
+ "phase3_esp32_stayed_pc_source": true,
+ "phase4_hold_stop_to_neutral_s": 0.483,
+ "phase4_within_PRM42_plus_period": true,
+ "decisions": [
+  "gouda_motion_controller settings: configured from generated parameters",
+  "gouda_motion_controller activated: joystick_command publication started (period PRM-41)",
+  "gouda_motion_controller output_neutral: motion_hold not received",
+  "gouda_motion_controller output_neutral: motion_hold=true (probe)",
+  "vehicle_bridge settings: configured",
+  "vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)",
+  "vehicle_bridge hello_reply: boot_token=0x7c296599 config_valid=False generation=0 protocol=4",
+  "vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)",
+  "vehicle_bridge esp32_event: config_set",
+  "vehicle_bridge esp32_ack: request 0x03: accepted",
+  "vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)",
+  "vehicle_bridge command_output: joystick_command not received -> neutral",
+  "vehicle_bridge esp32_event: pc_enabled",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "vehicle_bridge command_output: joystick_command stale -> neutral",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: cmd_vel stale",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)"
+ ]
+}
+
+===== /tmp/stage55_A/probe.log
+   1.026 phase -> 1
+   1.272 decision gouda_monitor settings: settings recorded (startup)
+   2.330 joy (0.0, 0.0) phase=1
+   2.339 decision gouda_motion_controller settings: configured from generated parameters
+   2.339 decision gouda_motion_controller activated: joystick_command publication started (period PRM-41)
+   2.340 decision gouda_motion_controller output_neutral: motion_hold not received
+   2.347 decision gouda_motion_controller output_neutral: motion_hold=true (probe)
+   2.734 esp32 source=pc reason=pc_control target=(2500,2500) pc_enabled=true phase=1
+   2.745 decision vehicle_bridge settings: configured
+   2.745 decision vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)
+   2.745 decision vehicle_bridge hello_reply: boot_token=0x7c296599 config_valid=False generation=0 protocol=4
+   2.745 decision vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)
+   2.745 decision vehicle_bridge esp32_event: config_set
+   2.745 decision vehicle_bridge esp32_ack: request 0x03: accepted
+   2.745 decision vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)
+   2.745 decision vehicle_bridge command_output: joystick_command not received -> neutral
+   2.745 decision vehicle_bridge esp32_event: pc_enabled
+   2.746 decision vehicle_bridge command_output: joystick_command forwarded
+   2.746 decision vehicle_bridge command_output: joystick_command stale -> neutral
+   2.746 decision vehicle_bridge command_output: joystick_command forwarded
+   3.031 phase -> 2
+   3.168 joy (0.5, 0.0) phase=2
+   3.169 decision gouda_motion_controller output_drive: drive
+   3.282 esp32 source=pc reason=pc_control target=(2500,3600) pc_enabled=true phase=2
+   5.037 phase -> 3
+   5.761 joy (0.0, 0.0) phase=3
+   5.762 decision gouda_motion_controller output_neutral: cmd_vel stale
+   5.920 esp32 source=pc reason=pc_control target=(2500,2500) pc_enabled=true phase=3
+   7.099 joy (0.5, 0.0) phase=3
+   7.100 decision gouda_motion_controller output_drive: drive
+   7.149 esp32 source=pc reason=pc_control target=(2500,3600) pc_enabled=true phase=3
+   8.068 phase -> 4
+   8.551 joy (0.0, 0.0) phase=4
+   8.553 decision gouda_motion_controller output_neutral: motion_hold expired (probe)
+   8.721 esp32 source=pc reason=pc_control target=(2500,2500) pc_enabled=true phase=4
+{"settings": {"cmd_vel_timeout_s(PRM-08)": 0.7, "motion_hold_timeout_s(PRM-42)": 0.5, "command_publish_period_s(PRM-41)": 0.05}, "phase1_hold_true_joy_all_neutral": true, "phase1_joy_count": 10, "phase2_first_non_neutral_after_hold_false_s": 0.137, "phase2_esp32_pc_source_seen": true, "phase3_cmd_vel_stop_to_neutral_s": 0.724, "phase3_within_PRM08_plus_period": true, "phase3_joy_rate_hz": 20.3, "phase3_esp32_status_rate_hz": 18.5, "phase3_esp32_stayed_pc_source": true, "phase4_hold_stop_to_neutral_s": 0.483, "phase4_within_PRM42_plus_period": true, "decisions": ["gouda_motion_controller settings: configured from generated parameters", "gouda_motion_controller activated: joystick_command publication started (period PRM-41)", "gouda_motion_controller output_neutral: motion_hold not received", "gouda_motion_controller output_neutral: motion_hold=true (probe)", "vehicle_bridge settings: configured", "vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)", "vehicle_bridge hello_reply: boot_token=0x7c296599 config_valid=False generation=0 protocol=4", "vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)", "vehicle_bridge esp32_event: config_set", "vehicle_bridge esp32_ack: request 0x03: accepted", "vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)", "vehicle_bridge command_output: joystick_command not received -> neutral", "vehicle_bridge esp32_event: pc_enabled", "vehicle_bridge command_output: joystick_command forwarded", "vehicle_bridge command_output: joystick_command stale -> neutral", "vehicle_bridge command_output: joystick_command forwarded", "gouda_motion_controller output_drive: drive", "gouda_motion_controller output_neutral: cmd_vel stale", "gouda_motion_controller output_drive: drive", "gouda_motion_controller output_neutral: motion_hold expired (probe)"]}
+
+===== /tmp/stage55_A/sim.log
+8 ms applied source=0 reason=1 target_mv=None pc_enabled=False
+0 ms event boot arg=0
+5398 ms applied source=0 reason=2 target_mv=(2500, 2500) pc_enabled=False
+5398 ms event config_set arg=1
+8378 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+8378 ms event pc_enabled arg=0
+20676 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+23276 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+24579 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+26076 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+29879 ms applied source=0 reason=7 target_mv=(2500, 2500) pc_enabled=False
+29879 ms event pc_disabled_stale arg=0
+
+===== /tmp/stage55_A/sim.out
+esp32_sim pty=/dev/pts/1 boot_token=0x7c296599 config_valid=False
+8 ms applied source=0 reason=1 target_mv=None pc_enabled=False
+0 ms event boot arg=0
+5398 ms applied source=0 reason=2 target_mv=(2500, 2500) pc_enabled=False
+5398 ms event config_set arg=1
+8378 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+8378 ms event pc_enabled arg=0
+20676 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+23276 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+24579 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+26076 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+29879 ms applied source=0 reason=7 target_mv=(2500, 2500) pc_enabled=False
+29879 ms event pc_disabled_stale arg=0
+[ros2run]: Terminated
+
+===== /tmp/stage55_A/bridge.out (tail)
+Traceback (most recent call last):
+  File "/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/vehicle_bridge", line 33, in <module>
+    sys.exit(load_entry_point('gouda-core==0.1.0', 'console_scripts', 'vehicle_bridge')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aya/gouda_ws/install/gouda_core/lib/python3.12/site-packages/gouda_core/vehicle_bridge_node.py", line 246, in main
+    try: rclpy.spin(node)
+         ^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+===== /tmp/stage55_A/mc.out (tail)
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+===== /tmp/stage55_B/gouda_start.out
+started gouda_core (pgid 264049); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=1
+WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle
+monitor: http://127.0.0.1:38901/ (open on this PC desktop; no screen forwarding)
+
+===== /tmp/stage55_B/motion_hold.echo
+header:
+  stamp:
+    sec: 1791593401
+    nanosec: 657872298
+  frame_id: ''
+hold: true
+reason: mode=manual
+mode: 1
+---
+
+===== /tmp/stage55_B/esp32_state_1.json
+{"freshness": {"status": "RECEIVED", "age_s": 0.00023484230041503906, "verdict": "最終受信から 0.0 s"}, "fields": {"source": "none", "reason": "bt_disconnected", "target_x_mv": "2500", "pc_enabled": "false", "config_valid": "true"}}
+
+===== /tmp/stage55_B/esp32_state_2.json
+{"freshness": {"status": "STALE", "age_s": 1.791205644607544, "verdict": "最終受信から 1.8 s 経過（しきい値 0.25 s）"}, "mode": "MANUAL"}
+
+===== /tmp/stage55_B/sim2.log
+6 ms applied source=0 reason=1 target_mv=None pc_enabled=False
+0 ms event boot arg=0
+7963 ms applied source=0 reason=2 target_mv=(2500, 2500) pc_enabled=False
+7963 ms event config_set arg=1
+
+===== /tmp/stage55_B/gouda_stop.out
+stopped (no process of group 264049 remains: yes)
+
+===== ros2 pkg / versions
+ii  ros-jazzy-rclpy 7.1.12-1noble.20260902.143245 arm64        Package containing the Python client.
