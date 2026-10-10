@@ -7656,6 +7656,16 @@
       "added_source_ids": 0,
       "added_file_ids": 1,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-026",
+      "date": "2026-10-10",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7779,10 +7789,10 @@
     }
   ],
   "decisions": {
-    "count": 73,
+    "count": 74,
     "by_status": {
       "answered": 38,
-      "recorded": 31,
+      "recorded": 32,
       "pending": 4
     },
     "pending": [
