@@ -16,6 +16,8 @@ cd "$REPO" && echo "== unit tests" && python3 -m unittest discover -s gouda_core
 cleanup() { pkill -f stage55_probe 2>/dev/null; pkill -f "gouda_core/esp32_sim" 2>/dev/null; pkill -f "gouda_core.esp32_sim_pty" 2>/dev/null; pkill -f "vehicle_bridge" 2>/dev/null; pkill -f "gouda_motion_controller" 2>/dev/null; }
 trap cleanup EXIT
 
+bash gouda.sh stop >/dev/null 2>&1 || true   # a launch left over from an earlier session must not be mistaken for this run
+if [[ "${SKIP_A:-0}" != 1 ]]; then
 echo "== A) stub chain (sim pty, bridge, motion_controller, probe)"
 ros2 run gouda_core esp32_sim -- --path-file "$OUT/pty" --log "$OUT/sim.log" > "$OUT/sim.out" 2>&1 &
 for _ in $(seq 1 20); do [[ -s "$OUT/pty" ]] && break; sleep 0.5; done
@@ -30,6 +32,7 @@ echo "-- deactivate bridge: firmware PC source must expire (PRM-13) -> sim log s
 ros2 lifecycle set /vehicle_bridge deactivate; sleep 2.5
 echo "-- sim transitions:"; grep -v "^$" "$OUT/sim.log" | tail -30
 cleanup; sleep 1
+fi
 
 echo "== B) gouda.sh + bridge configured against the sim (TS-30, TS-12)"
 ros2 run gouda_core esp32_sim -- --path-file "$OUT/pty2" --log "$OUT/sim2.log" > "$OUT/sim2.out" 2>&1 &
