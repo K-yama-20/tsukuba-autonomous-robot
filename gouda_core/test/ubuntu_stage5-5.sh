@@ -4,7 +4,7 @@
 #       B) gouda.sh start with the bridge configured against the sim: TS-30 (motion_hold latched true in manual mode) and
 #       TS-12 (monitor /api/state shows the ESP32 fields, then 不明/STALE after the sim stops).
 # Output: everything to $OUT (default /tmp/stage55); copy the record to design/research/vehicle_pc/ afterwards.
-set -uo pipefail
+set -o pipefail   # no -u: /opt/ros/jazzy/setup.bash reads unset variables
 source /opt/ros/jazzy/setup.bash
 WS="${GOUDA_WORKSPACE:-$HOME/gouda_ws}"; REPO="$WS/src/tsukuba-autonomous-robot"; OUT="${OUT:-/tmp/stage55}"
 PARAMS="$REPO/design/generated/params"
