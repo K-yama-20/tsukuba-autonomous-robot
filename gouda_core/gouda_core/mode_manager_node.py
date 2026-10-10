@@ -28,7 +28,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from std_srvs.srv import Trigger
-from gouda_interfaces.msg import SoftwareMode, DecisionEvent
+from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionHold
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
 
@@ -68,6 +68,9 @@ class ModeManagerNode(Node):
         self.data_root = Path(os.path.expanduser(data_root))
         self.record_path = Path(os.path.expanduser(root)) / 'previous_mode_record.json'
         self.state_pub = self.create_publisher(SoftwareMode, 'mode/state', LATCHED)
+        # IFD-40 control/motion_hold (stage 5-5, DEC-004): hold=true in every mode except 自律走行; published with mode/state
+        # (on change and, when PRM-16 is set, periodically). transient_local so a restarted ND-11 gets the latest value.
+        self.hold_pub = self.create_publisher(MotionHold, 'control/motion_hold', LATCHED)
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)
         self._lock = threading.RLock()
         record = mode_core.PreviousModeRecord.load(self.record_path)
@@ -236,6 +239,15 @@ class ModeManagerNode(Node):
         m.previous_mode = mode_core.MODE_CODES.get(s.previous_mode, 0); m.human_pause_or_end_recorded = s.human_pause_or_end_recorded
         m.initial_pose_required = s.initial_pose_required; m.state_revision = s.state_revision
         self.state_pub.publish(m)
+        self._publish_motion_hold(m.header.stamp)
+
+    def _publish_motion_hold(self, stamp):
+        """IFD-40: neutral request to ND-11. Only 自律走行 releases the hold (DEC-004, RQ-I026)."""
+        s = self.state; h = MotionHold(); h.header.stamp = stamp
+        h.hold = s.mode != mode_core.MODE_AUTONOMY
+        h.mode = mode_core.MODE_CODES[s.mode]
+        h.reason = ('' if not h.hold else f'mode={s.mode}' + (f' stop_reason={s.stop_reason}' if s.stop_reason else ''))
+        self.hold_pub.publish(h)
 
     def _publish_decision(self, event: str, transition_id: str, reason: str, details: dict):
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_mode_manager'

@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 15
-pending_decision_count: 4
+pending_decision_count: 7
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -722,7 +722,9 @@ issues:
     state: open
     question: 参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 
       手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。
-    next_action: H-012（手動経路）と H-009（時間値）の回答後に、経路に依存しない部分から設計する。実装は工程5（ゲート3承認後）。
+    next_action: プロトコル v4 と firmware の振る舞いを docs/esp32_protocol_v4.md に設計（REV-027）。実装は 
+      firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 
+      DEC-050。firmware の版は本文書の版（v4）と build id で管理
     intent_lines:
       - 102
       - 34
@@ -765,4 +767,26 @@ pending_decisions:
     kind: question
     status: pending
     question: 【実機照合】実際の配線、書き込まれた firmware、操作結果が設計前提（Bluetooth ゲームパッド→ESP32→DAC、手動操作優先、リレー不使用）と一致するか
+    resulting_refs: []
+  - id: DEC-077
+    kind: question
+    status: pending
+    question: 【承認】新 firmware（ND-17）の DAC 出力電圧の初期登録値。旧 firmware に記載の要求値（中立 2500 mV、最小 230 mV、最大 4700 mV、DAC 
+      フルスケール 4700 mV。 
+      docs/gouda_protocol_v3.md・firmware/gouda_dualsense_usb/include/control.hpp。電圧測定値ではない）を、Q-03 
+      の実測が終わるまでの初期登録値（PRM-43〜46）として承認するか。 承認されない間、実車向け firmware ビルドには DAC 値が入らず、firmware は config_valid=0 で 
+      DAC へ書き込まない（卓上の stub 試験は仮値ビルドで進める）。
+    resulting_refs: []
+  - id: DEC-078
+    kind: question
+    status: pending
+    question: 【承認】車体出力（5-5）の完了条件に基本契約 5 件の stub 試験を含める案（docs/implementation_stages.md §5）の採否。TS-20 の stub 
+      版（ND-03 の一時停止遷移の代わりに motion_hold=true を与えて ND-11 が中立を出す）と、TS-21 の「hold=false かつ新鮮な cmd_vel 
+      のときだけ非中立」（TS-07）を 5-5 に前倒しし、本体は 5-7・5-6 で再確認する。
+    resulting_refs: []
+  - id: DEC-079
+    kind: question
+    status: pending
+    question: 【承認】新 firmware の手動仲裁の値を既存動作のまま維持するか。手動入力の deadzone（半径 8 %、旧 firmware kDeadzone。PRM-47）と、 
+      手動操作が中立に戻ってから PC 指令へ戻すまでの安定時間（200 ms、旧 firmware kNeutralResumeMs。PRM-48）。いずれも電圧・停止距離ではなく操作の仲裁条件。
     resulting_refs: []

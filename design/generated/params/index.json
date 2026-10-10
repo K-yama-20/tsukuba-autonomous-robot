@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "1b65fb8b1cb9b810da7635771eca6d01ef0749602b6593cb24b13212d3a4ac22",
+  "model_entities_sha256": "c58c61e5fac16f4ed94013a95fdd5326cd5268496dbe53233484f3aae33e02ab",
   "parameters": [
     {
       "id": "PRM-11",
@@ -72,6 +72,90 @@
       "value_state": "approved",
       "value": 0.25,
       "unit": "s"
+    },
+    {
+      "id": "PRM-43",
+      "file": "firmware_config.yaml",
+      "key": "dac_neutral_mv",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "mV"
+    },
+    {
+      "id": "PRM-44",
+      "file": "firmware_config.yaml",
+      "key": "dac_min_mv",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "mV"
+    },
+    {
+      "id": "PRM-45",
+      "file": "firmware_config.yaml",
+      "key": "dac_max_mv",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "mV"
+    },
+    {
+      "id": "PRM-46",
+      "file": "firmware_config.yaml",
+      "key": "dac_full_scale_mv",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "mV"
+    },
+    {
+      "id": "PRM-47",
+      "file": "firmware_config.yaml",
+      "key": "manual_deadzone_q10000",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "比（×10000）"
+    },
+    {
+      "id": "PRM-48",
+      "file": "firmware_config.yaml",
+      "key": "manual_release_neutral_ms",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "ms"
+    },
+    {
+      "id": "PRM-49",
+      "file": "firmware_config.yaml",
+      "key": "status_period_ms",
+      "target": "esp32_firmware",
+      "declaration": "firmware_config",
+      "apply_timing": "runtime_set",
+      "value_type": "int",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "ms"
     },
     {
       "id": "PRM-25",
@@ -311,6 +395,54 @@
       "value_type": "double",
       "value_state": "approved",
       "value": 0.7,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-39",
+      "file": "gouda_motion_controller.yaml",
+      "key": "max_linear_speed_mps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-40",
+      "file": "gouda_motion_controller.yaml",
+      "key": "max_angular_speed_radps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "rad/s"
+    },
+    {
+      "id": "PRM-41",
+      "file": "gouda_motion_controller.yaml",
+      "key": "command_publish_period_s",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-42",
+      "file": "gouda_motion_controller.yaml",
+      "key": "motion_hold_timeout_s",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
       "unit": "s"
     },
     {

@@ -475,6 +475,8 @@ lines:
       - ND-12
       - ND-17
       - PRM-21
+      - PRM-47
+      - PRM-48
       - SO-11
       - TS-17
     issue_refs: []
@@ -493,6 +495,7 @@ lines:
       - ND-12
       - ND-17
       - PRM-21
+      - PRM-47
       - SO-11
       - TS-18
     issue_refs: []
@@ -523,6 +526,7 @@ lines:
       - TS-20
       - TS-21
       - TS-24
+      - TS-30
     issue_refs:
       - G-RECOVERY
   - line: 37
@@ -540,10 +544,12 @@ lines:
       - PRM-16
       - PRM-31
       - PRM-32
+      - PRM-42
       - TR-06
       - TS-04
       - TS-07
       - TS-20
+      - TS-30
     issue_refs: []
   - line: 38
     requirement_id: RQ-I027
@@ -915,6 +921,10 @@ lines:
       - PRM-09
       - PRM-12
       - PRM-14
+      - PRM-39
+      - PRM-40
+      - PRM-41
+      - PRM-42
       - SO-08
       - SO-09
       - TR-06
@@ -1015,12 +1025,18 @@ lines:
       - ND-17
       - PRM-13
       - PRM-14
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
+      - PRM-48
       - SO-09
       - SO-11
       - TS-13
       - TS-17
       - TS-18
       - TS-19
+      - TS-29
     issue_refs: []
   - line: 98
     requirement_id: RQ-I069
@@ -1104,6 +1120,9 @@ lines:
       - ND-17
       - PRM-08
       - PRM-13
+      - PRM-39
+      - PRM-40
+      - PRM-41
     issue_refs:
       - H-009
   - line: 103
@@ -1123,6 +1142,12 @@ lines:
       - PRM-30
       - PRM-31
       - PRM-32
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
+      - PRM-49
+      - TS-29
     issue_refs: []
   - line: 104
     requirement_id: RQ-I077

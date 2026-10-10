@@ -7329,7 +7329,7 @@
         ],
         "resolution_refs": [],
         "question": "参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。",
-        "next_action": "H-012（手動経路）と H-009（時間値）の回答後に、経路に依存しない部分から設計する。実装は工程5（ゲート3承認後）。"
+        "next_action": "プロトコル v4 と firmware の振る舞いを docs/esp32_protocol_v4.md に設計（REV-027）。実装は firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 DEC-050。firmware の版は本文書の版（v4）と build id で管理"
       },
       {
         "id": "G-TUNING",
@@ -7413,7 +7413,7 @@
   },
   "design_maturity": {
     "未設計": 403,
-    "案": 407,
+    "案": 420,
     "承認済み": 10
   },
   "revisions": [
@@ -7666,6 +7666,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-027",
+      "date": "2026-10-10",
+      "basis_refs": 7,
+      "added_entity_ids": 13,
+      "modified_entity_ids": 12,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7789,17 +7799,20 @@
     }
   ],
   "decisions": {
-    "count": 74,
+    "count": 77,
     "by_status": {
       "answered": 38,
       "recorded": 32,
-      "pending": 4
+      "pending": 7
     },
     "pending": [
       "DEC-021",
       "DEC-022",
       "DEC-024",
-      "DEC-050"
+      "DEC-050",
+      "DEC-077",
+      "DEC-078",
+      "DEC-079"
     ]
   },
   "vehicle_verification": {
@@ -7807,7 +7820,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 820,
+    "entity_count": 833,
     "source_count": 497,
     "id_map_count": 202,
     "legacy_198_count": 198,

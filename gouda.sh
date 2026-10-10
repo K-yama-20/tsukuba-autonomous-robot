@@ -16,6 +16,7 @@ data_root="${GOUDA_DATA_ROOT:-$workspace/gouda_data}"        # PRM-25: <data_roo
 params_dir="${GOUDA_PARAMS_DIR:-$repo/design/generated/params}"
 trial_params="${GOUDA_TRIAL_PARAMS:-0}"               # 1 = load <node>.trial.yaml (software trial values; stub tests only, never on the vehicle)
 monitor_port="${GOUDA_MONITOR_PORT:-0}"               # PRM-26: 0 = OS-chosen port; URL is written to $data_root/run/monitor.url
+serial_port="${GOUDA_SERIAL_PORT:-}"                  # stage 5-5: ESP32 serial device for vehicle_bridge (operational value; a pty in stub tests). Empty = bridge stays unconfigured
 url_file="$data_root/run/monitor.url"
 run_dir="$data_root/run"
 pid_file="$run_dir/gouda_core.pid"
@@ -40,7 +41,7 @@ case "${1:-}" in
     source "$ros_setup"; source "$workspace/install/setup.bash"
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
     rm -f "$url_file"
-    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" "trial:=$([[ "$trial_params" == 1 ]] && echo true || echo false)" >"$log_file" 2>&1 &
+    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" "serial_port:=$serial_port" "trial:=$([[ "$trial_params" == 1 ]] && echo true || echo false)" >"$log_file" 2>&1 &
     launch_pid=$!
     set +m
     echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid

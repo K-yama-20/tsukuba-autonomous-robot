@@ -89,6 +89,11 @@ class MonitorNode(Node):
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
         self.create_subscription(DiagnosticArray, 'record/status', self._on_record, LATCHED)
         self.create_subscription(DecisionEvent, 'log/decision', self._on_decision, DECISION_QOS)
+        # IFD-38 /esp32/status (stage 5-5): display/diagnosis only, never a stop condition (DEC-006, TS-12). The stale
+        # threshold is PRM-15 (unresolved; trial file in stub tests). Without it, STALE is never shown (freshness verdict says so).
+        self.declare_parameter('esp32_status_stale_s', Parameter.Type.DOUBLE)
+        self.core.stale_after_esp32_s = optional_double(self, 'esp32_status_stale_s')
+        self.create_subscription(DiagnosticArray, '/esp32/status', self._on_esp32, QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10))
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings only (DEC-073)
@@ -121,6 +126,13 @@ class MonitorNode(Node):
             if st.name == 'gouda_recorder':
                 with self._lock:
                     self.core.on_record({kv.key: kv.value for kv in st.values} | {'level': int.from_bytes(st.level, 'big') if isinstance(st.level, bytes) else int(st.level), 'message': st.message})
+        self.server.notify(self.core.connection_revision)
+
+    def _on_esp32(self, arr: DiagnosticArray):
+        for st in arr.status:
+            if st.name == 'esp32':
+                with self._lock:
+                    self.core.on_esp32({kv.key: kv.value for kv in st.values} | {'message': st.message, 'hardware_id': st.hardware_id})
         self.server.notify(self.core.connection_revision)
 
     def _on_decision(self, d: DecisionEvent):

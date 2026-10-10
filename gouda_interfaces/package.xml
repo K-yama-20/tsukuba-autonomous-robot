@@ -3,7 +3,7 @@
 <package format="3">
   <name>gouda_interfaces</name>
   <version>0.1.0</version>
-  <description>Gouda custom interfaces defined by the lower design (design/model.yaml: IFD-01 SoftwareMode, IFD-28 DecisionEvent, IFD-02 StartAutonomy, IFD-37 ConvertMap). Custom types only where no standard type fits (RQ-I055).</description>
+  <description>Gouda custom interfaces defined by the lower design (design/model.yaml: IFD-01 SoftwareMode, IFD-28 DecisionEvent, IFD-40 MotionHold, IFD-02 StartAutonomy, IFD-37 ConvertMap). Custom types only where no standard type fits (RQ-I055).</description>
   <maintainer email="ryoya-1@g.ecc.u-tokyo.ac.jp">Gouda Development Team</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
