@@ -22,8 +22,11 @@ authority:
     role: authority_superseded
   FILE-INTENT-V7:
     sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
+    role: authority_superseded
+  FILE-INTENT-V8:
+    sha256: 09732d2f5997089781a3e602f9d4e6e3849f112404afb74b6ae21faa4e95a118
     role: authority
-line_count: 76
+line_count: 77
 lines:
   - line: 1
     requirement_id: RQ-I001
@@ -1171,4 +1174,15 @@ lines:
     referenced_by:
       - ND-17
       - PRM-21
+    issue_refs: []
+  - line: 105
+    requirement_id: RQ-I081
+    text: 
+      ・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+    source_id: SRC-I105-V8
+    authority_file: FILE-INTENT-V8
+    referenced_by:
+      - IFD-26
+      - ND-06
+      - TR-03
     issue_refs: []
