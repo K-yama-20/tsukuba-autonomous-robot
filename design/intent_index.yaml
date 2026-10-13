@@ -25,8 +25,11 @@ authority:
     role: authority_superseded
   FILE-INTENT-V8:
     sha256: 09732d2f5997089781a3e602f9d4e6e3849f112404afb74b6ae21faa4e95a118
+    role: authority_superseded
+  FILE-INTENT-V9:
+    sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
     role: authority
-line_count: 77
+line_count: 78
 lines:
   - line: 1
     requirement_id: RQ-I001
@@ -1202,4 +1205,20 @@ lines:
       - IFD-26
       - ND-06
       - TR-03
+    issue_refs: []
+  - line: 106
+    requirement_id: RQ-I082
+    text: 
+      ・map_creatorにおける、原図から各種の地図への変換時のパラメータはチューニング項目なので、あとで自由に設定できる方が望ましい。gouda_monitorに「地図」タブを設け、変換設定入力と再変換用ボタンを設け、「地図」タブで様々な設定を試せるようにする。暫定的措置として、既定値は推奨値を入れてほしい。（実機検証後に既定値を私が再指定します。）
+    source_id: SRC-I106-V9
+    authority_file: FILE-INTENT-V9
+    referenced_by:
+      - ND-02
+      - ND-05
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-38
+      - TS-33
     issue_refs: []

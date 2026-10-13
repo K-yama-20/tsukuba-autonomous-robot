@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5924,
+    "executed_checks": 5925,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -182,6 +182,7 @@
       "model file hash FILE-VEHICLE-PC-SENSOR-SUPERVISION",
       "model file hash FILE-VEHICLE-PC-SINGLE-START",
       "model file hash FILE-INTENT-V9",
+      "model file hash FILE-VEHICLE-PC-MAP-TAB",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7417,7 +7418,7 @@
           "ND-02"
         ],
         "resolution_refs": [],
-        "question": "hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。",
+        "question": "hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION は未設定）。",
         "next_action": "GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。"
       }
     ],
@@ -7829,6 +7830,16 @@
       "added_entity_ids": 2,
       "modified_entity_ids": 7,
       "added_source_ids": 1,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-040",
+      "date": "2026-10-14",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
       "added_file_ids": 1,
       "removed_entity_ids": 0
     }
