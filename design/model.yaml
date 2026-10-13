@@ -120,6 +120,10 @@ files:
     path: design/research/vehicle_pc/2026-10-10_stage5-5_ubuntu_test.txt
     sha256: 0dce60d5e66cfe2747de426b777e2f1434151cebf85a1df4e6ba916c7a6ff94d
     role: evidence
+  - id: FILE-PANDAR-CONSOLE-XT32
+    path: design/research/vehicle_pc/2026-10-13_pandar_console_xt32.pdf
+    sha256: 2184ef7edd1eb44ca4624455bf22be317b15893644af1528bf7098edf48f0aa6
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -41804,6 +41808,217 @@ entities:
         で後から購読する。
       observe: motion_hold の hold・reason・mode と発行時刻、後から購読したときに最新値を受け取れるか。
       expected: 起動直後と各遷移で即時発行され、hold は自律走行以外のモードで true。後から購読しても最新値を受け取る（ND-11 の再起動後も中立を維持できる）。
+  - id: PRM-50
+    kind: parameter
+    name: XT-32 の IP アドレス
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-14
+      value: 192.168.1.201
+      value_state: approved
+      unit:
+      stage: 地図作成と変換
+      purpose: hesai_ros_driver が点群・PTC を受ける LiDAR 本体のアドレス（XT-32 の Control IP）
+      measurement: 不要（人の回答 DEC-081 と Web 画面の保存 FILE-PANDAR-CONSOLE-XT32）
+      decision_deadline: 決定済み（DEC-081）
+      software_trial_value:
+      software_trial_basis:
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: device_ip_address
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-081
+  - id: PRM-51
+    kind: parameter
+    name: XT-32 の点群の宛先 IP（PC 側の LiDAR 用 NIC のアドレス）
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-14
+      value: 192.168.1.100
+      value_state: approved
+      unit:
+      stage: 地図作成と変換
+      purpose: XT-32 が点群を送る宛先（Destination IP）。PC の LiDAR 用 NIC にこのアドレスが必要
+      measurement: 不要（DEC-081）
+      decision_deadline: 決定済み（DEC-081）
+      software_trial_value:
+      software_trial_basis:
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: host_ip_address
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-081
+  - id: PRM-52
+    kind: parameter
+    name: XT-32 の点群の宛先ポート
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-14
+      value: 2368
+      value_state: approved
+      unit:
+      stage: 地図作成と変換
+      purpose: XT-32 の LiDAR Destination Port（UDP）。ドライバの受信ポート
+      measurement: 不要（DEC-081）
+      decision_deadline: 決定済み（DEC-081）
+      software_trial_value:
+      software_trial_basis:
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: udp_port
+      value_type: int
+      apply_timing: launch
+    approval_decision_ref: DEC-081
+  - id: PRM-53
+    kind: parameter
+    name: XT-32 の PTC ポート
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-14
+      value:
+      value_state: unresolved
+      unit:
+      stage: 地図作成と変換
+      purpose: ドライバが XT-32 から角度補正ファイル等を取得する TCP ポート（PTC）
+      measurement: 人の確認（DEC-083）
+      decision_deadline: XT-32 ドライバの実機起動前（DEC-083）
+      software_trial_value: 9347
+      software_trial_basis: 過去の観測（docs/gouda_runbook.md「PTC9347」）と Hesai の工場既定。今回の回答・Web 
+        画面の保存には記載なし。ソフト試験用で実車採用値ではない
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: ptc_port
+      value_type: int
+      apply_timing: launch
+  - id: PRM-54
+    kind: parameter
+    name: IMU（ADIS16607-2）のシリアルデバイス名
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-15
+      value: /dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00
+      value_state: approved
+      unit:
+      stage: 地図作成と変換
+      purpose: adi_imu_driver が開くデバイス。by-id のみを使い、ttyACM 等の番号は使わない（DEC-081）
+      measurement: 不要（DEC-081）。旧実装の値との差の事実確認は DEC-082
+      decision_deadline: 決定済み（DEC-081）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: adi_imu_driver
+      param_key: device
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-081
+  - id: PRM-55
+    kind: parameter
+    name: XT-32 の点群の時刻の種別（ドライバ設定）
+    source_refs:
+      - SRC-I010
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I007
+      - RQ-I076
+    revision_ref: REV-030
+    parameter:
+      owner_ref: ND-14
+      value:
+      value_state: unresolved
+      unit:
+      stage: 地図作成と変換
+      purpose: 0 = LiDAR 本体の時刻（PTP 同期が前提）、1 = PC の受信時刻。GLIM の LiDAR–IMU 時刻合わせの基準を決める
+      measurement: 人の判断（DEC-083）
+      decision_deadline: 地図作成の実機試験の前（DEC-083）
+      software_trial_value:
+      software_trial_basis: 仮値なし（時刻の基準は試験結果の意味を変えるため人が決める）
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: use_timestamp_type
+      value_type: int
+      apply_timing: launch
 migration:
   baseline_definition_count: 198
   id_map:
@@ -51092,6 +51307,73 @@ decisions:
       IP の調査は人が実施し、AI はコマンドと記録先（research/vehicle_pc/）を用意する。過去の観測（docs/gouda_runbook.md: LiDAR 192.168.1.201、PC 192.168.1.100、UDP
       2368、PTC 9347。IMU は USB シリアル）は記載値であり、今回の現物で再確認する。'
     disposition: answered
+  - id: DEC-081
+    kind: confirmation
+    status: answered
+    asked_on: '2026-10-13'
+    answered_on: '2026-10-13'
+    channel: chat
+    question: XT-32 の IP アドレス・宛先 IP・宛先ポートと、IMU のデバイス名（センサの IP 調査の結果）
+    answer_verbatim: "@\"/Users/AYARyoya/Downloads/Pandar Console.pdf\"\nhesai xt-32のipアドレスは、192.168.1.201、宛先ipは192.168.1.100。Lidar
+      destination portは2368．\nimuの名前は/dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00。ttyACM0等の名前は使わない\n"
+    affected_refs:
+      - ND-14
+      - ND-15
+      - IFD-21
+      - IFD-22
+    resulting_refs:
+      - PRM-50
+      - PRM-51
+      - PRM-52
+      - PRM-54
+      - FILE-PANDAR-CONSOLE-XT32
+    note: '添付 PDF（Pandar Console、XT-32 の Web 画面の保存）は design/research/vehicle_pc/2026-10-13_pandar_console_xt32.pdf
+      に複製（SHA-256 先頭 2184ef7edd1eb44c、原本と一致）。 PDF の記載: IPv4 Address 192.168.1.201、Mask 255.255.255.0、Gateway 192.168.1.1、Destination
+      IP 192.168.1.100、LiDAR Destination Port 2368、Spin Rate 600 rpm、 Return Mode Strongest Return、Trigger Method
+      Angle Based、Clock Source PTP、Profile 1588v2、PTP Network Transport UDP/IP、PTP Domain 0、Standby Mode In Operation。回答の値と一致。
+      PTC ポートは PDF・回答とも記載なし（PRM-53、DEC-083）。Clock Source が PTP のため点群の時刻の扱いを DEC-083 で問う。 IMU のデバイス名は旧実装 gouda_bringup/config/imu.yaml（commit
+      4dce4f0）の usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 と 2 か所（STM32 の後の「-」と「_」、シリアル番号の 3
+      桁目「2」と「3」）異なる。回答の値を採用し、一致の事実確認を DEC-082 で行う。'
+    disposition: answered
+  - id: DEC-082
+    kind: question
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on:
+    channel: chat
+    question: 【事実確認】IMU のデバイス名。回答は usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00、旧実装の 
+      imu.yaml は usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00。 実車PC で ls -l 
+      /dev/serial/by-id/ の出力（原文）を確認したい。
+    answer_verbatim: ''
+    affected_refs:
+      - PRM-54
+      - ND-15
+    resulting_refs: []
+    note: '推奨: ls の出力を貼ってもらい、出力の文字列をそのまま PRM-54 に使う（違えば新しい REV で差し替え、本項目に原文を記録）。 決まらない場合に止まる作業: IMU ドライバの起動（パスが違えばドライバが開けず、地図作成試験の
+      IMU 入力がない）。他の作業は止まらない。'
+    disposition: fact_check_pending
+  - id: DEC-083
+    kind: question
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on:
+    channel: chat
+    question: '【承認】地図作成の実機試験での XT-32 の点群の時刻の扱いと PTC ポート。XT-32 は Clock Source=PTP（1588v2、UDP/IP、domain 0）。PC が PTP
+      を配信しない場合、LiDAR の時刻は PC・IMU の時刻と一致しない。 案 1（推奨）: ドライバの時刻を PC 受信時刻（use_timestamp_type=1）にする。案 2: PC を PTP 配信元にして
+      LiDAR 時刻（use_timestamp_type=0）を使う（docs/time_synchronization.md の手順、scripts/time_sync_host.py）。 PTC ポートは Hesai
+      の工場既定で過去の観測（docs/gouda_runbook.md）とも同じ 9347 を使ってよいか。'
+    answer_verbatim: ''
+    affected_refs:
+      - PRM-53
+      - PRM-55
+      - ND-14
+      - IFD-21
+      - ND-06
+    resulting_refs: []
+    note: '推奨は案 1: IMU（USB）は PC 受信時刻で stamp されるため、同じ時計にそろえる最短の方法。受信遅延（ネットワーク・ドライバ処理）が点群全体に一律に乗り、GLIM の LiDAR–IMU
+      時刻合わせに誤差として残る（大きさは未計測）。 案 2 は時刻精度が上がるが、PTP の起動・ロック確認の手順が試験に加わる（人の操作）。振る舞いの違い: GLIM へ渡る点群の header.stamp の基準。
+      PTC ポートは補正ファイル（角度補正）を本体から取得するために使う。決まらない場合に止まる作業: XT-32 ドライバの設定生成と地図作成の実機試験。'
+    disposition: open_human
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -52142,4 +52424,25 @@ revisions:
     modified_entity_ids: []
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-030
+    date: '2026-10-13'
+    summary: 人の回答（DEC-081）と XT-32 の Web 画面の保存（FILE-PANDAR-CONSOLE-XT32）から、ND-14 hesai_ros_driver の設定（LiDAR の 
+      IP 192.168.1.201、宛先 IP 192.168.1.100、 宛先ポート 2368）と ND-15 adi_imu_driver の設定（デバイス名。by-id のみ、ttyACM 
+      番号は使わない）を宣言（PRM-50〜52・54、承認値）。 PTC ポート（PRM-53）と点群の時刻の種別（PRM-55）は回答・資料に値がないため未確定（DEC-082・DEC-083）。IMU 
+      のデバイス名は旧実装の imu.yaml と 2 文字異なるため事実確認（DEC-082）。
+    basis_refs:
+      - DEC-080
+      - DEC-081
+    added_entity_ids:
+      - PRM-50
+      - PRM-51
+      - PRM-52
+      - PRM-53
+      - PRM-54
+      - PRM-55
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-PANDAR-CONSOLE-XT32
     removed_entity_ids: []

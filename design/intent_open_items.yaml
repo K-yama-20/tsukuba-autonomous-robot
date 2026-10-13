@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 15
-pending_decision_count: 7
+pending_decision_count: 9
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -789,4 +789,19 @@ pending_decisions:
     status: pending
     question: 【承認】新 firmware の手動仲裁の値を既存動作のまま維持するか。手動入力の deadzone（半径 8 %、旧 firmware kDeadzone。PRM-47）と、 
       手動操作が中立に戻ってから PC 指令へ戻すまでの安定時間（200 ms、旧 firmware kNeutralResumeMs。PRM-48）。いずれも電圧・停止距離ではなく操作の仲裁条件。
+    resulting_refs: []
+  - id: DEC-082
+    kind: question
+    status: pending
+    question: 【事実確認】IMU のデバイス名。回答は usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00、旧実装の 
+      imu.yaml は usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00。 実車PC で ls -l 
+      /dev/serial/by-id/ の出力（原文）を確認したい。
+    resulting_refs: []
+  - id: DEC-083
+    kind: question
+    status: pending
+    question: '【承認】地図作成の実機試験での XT-32 の点群の時刻の扱いと PTC ポート。XT-32 は Clock Source=PTP（1588v2、UDP/IP、domain 0）。PC が PTP
+      を配信しない場合、LiDAR の時刻は PC・IMU の時刻と一致しない。 案 1（推奨）: ドライバの時刻を PC 受信時刻（use_timestamp_type=1）にする。案 2: PC を PTP 配信元にして
+      LiDAR 時刻（use_timestamp_type=0）を使う（docs/time_synchronization.md の手順、scripts/time_sync_host.py）。 PTC ポートは Hesai
+      の工場既定で過去の観測（docs/gouda_runbook.md）とも同じ 9347 を使ってよいか。'
     resulting_refs: []

@@ -124,6 +124,12 @@ lines:
       - ND-06
       - ND-09
       - ND-16
+      - PRM-50
+      - PRM-51
+      - PRM-52
+      - PRM-53
+      - PRM-54
+      - PRM-55
     issue_refs: []
   - line: 11
     requirement_id: RQ-I008
@@ -1147,6 +1153,12 @@ lines:
       - PRM-45
       - PRM-46
       - PRM-49
+      - PRM-50
+      - PRM-51
+      - PRM-52
+      - PRM-53
+      - PRM-54
+      - PRM-55
       - TS-29
     issue_refs: []
   - line: 104
