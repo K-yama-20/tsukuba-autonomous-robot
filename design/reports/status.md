@@ -1,6 +1,8 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-13（REV-035、第22便）。**センサーの受信表示と、デバイス再接続時のドライバ作り直しを実装**（DEC-088。設計 `docs/sensor_supervision.md`）。monitor が点群と IMU の受信状況を表示し、地図作成開始時にデータがなければ警告する（開始は止めない）。新しい gouda_sensor_supervisor（ND-18）が、IMU は by-id の名前の先の USB 列挙、XT-32 は LiDAR 用 I/F を見張り、再接続のときだけそのドライバを作り直す。VM で両ドライバの起動・受信表示・警告を確認（ソフト試験。抜き差しによる作り直しの実機確認は未実施）。新たな問題: 点群はドライバが 10 Hz で出すが別プロセスの購読者は 2〜3 Hz しか受け取れない（G-DDS、GLIM への影響は未測定）。回答待ち: DEC-084・085・089。作業記録 `reports/worklog/2026-10-13_rev034_035_sensor_supervision.md`。
+最終更新：2026-10-14（REV-038、第23便）。**起動経路を一つにした**（DEC-090・DEC-091）: 起動は `bash gouda.sh start` だけで環境変数なし。センサーは常に supervisor の下で起動し、無いデバイスは待つ。値はすべて正本から（monitor 8080、PTC 9347、IMU 100 Hz、LiDAR 600 rpm＝10 Hz をドライバが起動時に設定、しきい値 1.0 s、停止待ち 5.0 s）。ソフト試験の仮値は `gouda_core/test/stack.sh` だけが使う。VM で環境変数なしの起動を確認。いまは LiDAR の USB-LAN が VM から外れ、IMU は応答しない状態で、抜き差しによる作り直しの確認待ち。実車（仮値なし）では地図の変換の設定（PRM-33〜36・38）が未確定のため、原図は保存されるが 2D 変換は失敗する。作業記録 `reports/worklog/2026-10-14_rev036_038_single_start_path.md`。
+
+前便（第22便）: センサーの受信表示と再接続時のドライバ作り直し（REV-034・035）。
 
 前便（第21便）: GLIM の開始を VM で検証し、gouda.sh・mode_manager などの不具合を修正（REV-032・033）。
 
@@ -31,12 +33,12 @@
 | 設定の生成（generate_params → generated/params/。firmware_config.trial.yaml を追加） | 生成 | 0 | 0 |
 | 設計整合性（17 ルール） | 13 | 0 | 4（DR-04 5、DR-05 2、DR-10 1、DR-11 57） |
 | 検査器の試験 | 68 | 0 | 0 |
-| gouda_core 単体試験（Mac） | 112（第22便で 9 件追加。1 件は Mac で skip、VM で実行） | 0 | 0 |
+| gouda_core 単体試験（Mac） | 116（1 件は Mac で skip、VM で実行） | 0 | 0 |
 | firmware 中核ホスト試験（g++、仮値ヘッダ。TS-17・18・19・29 の卓上 stub） | 274 checks | 0 | 0（実機未実行） |
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜30） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 18（未実行） |
-| 判断台帳 | 87 件（answered 43、recorded 34、pending 10: DEC-021・022・024・050・077・078・079・084・085・089） | | |
+| 判断台帳 | 89 件（answered 47、recorded 35、pending 7: DEC-021・022・024・050・077・078・079） | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
@@ -67,7 +69,7 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第8版（SHA 09732d2f…、105 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-035。次は REV-036、DEC-090 |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-038。次は REV-039、DEC-092 |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
 | 判断台帳 | `model.yaml: decisions`（DEC-001〜079） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
@@ -76,6 +78,6 @@
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
 | 提案 | `proposals/` | 承認済み仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-13_rev034_035_sensor_supervision.md`。引き継ぎ `reports/handover_2026-10-10.md` |
-| ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor・map_creator・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（GOUDA_SERIAL_PORT） | 工程5-1〜5-5 |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-14_rev036_038_single_start_path.md`。引き継ぎ `reports/handover_2026-10-10.md` |
+| ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor・map_creator・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（start／stop／status のみ、環境変数なし）、試験用 `gouda_core/test/stack.sh` | 工程5-1〜5-5 |
 | firmware（新） | `firmware/gouda_esp32_v4/` | `include/gouda_v4/{protocol,config,control}.hpp`、`src/main.cpp`、`tools/gen_build_config.py`、`test/host/`。旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換え対象 |

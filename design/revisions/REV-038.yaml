@@ -1,0 +1,15 @@
+# 変更セット REV-038（2026-10-14 第23便: 起動経路を一つにした後の VM での確認の記録）
+# 適用: design/tools/apply_revision.py REV-038
+id: REV-038
+date: '2026-10-14'
+summary: >-
+  bash gouda.sh start（環境変数なし）で起動し、monitor が 8080 で開き、supervisor が IMU を by-id の名前から見つけてドライバを起動することを確認（FILE-VEHICLE-PC-SINGLE-START）。
+  LiDAR の USB-LAN は 01:56 に VM から外れており、supervisor は「XT-32 の I/F なし（現れたら起動）」を記録。IMU は以前のセッションで開いた列挙のままで応答せず、supervisor は再接続なしの再オープンを警告した。
+  stage 5-5 の試験を新しい試験スタック（stack.sh）で実行し、1 回目は試験手順の待ち不足（試験基盤を修正）と hold 期限切れの 32 ms 超過、修正後の 2 回は合格（超過は再現せず。条件は記録に残す）。
+basis_refs: [DEC-091, DEC-088]
+intent_version_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
+
+files:
+  - id: FILE-VEHICLE-PC-SINGLE-START
+    path: design/research/vehicle_pc/2026-10-14_single_start_path_vm_test.txt
+    role: evidence
