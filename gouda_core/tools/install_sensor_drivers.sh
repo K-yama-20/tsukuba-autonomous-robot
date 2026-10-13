@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Install the sensor drivers specified by the human (DEC-080) into the ROS 2 workspace and build them.
-#   ND-14 hesai_ros_driver        https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0      (verified commit e7e112f, SDK 9d5dc4f)
-#   ND-15 adi_imu_tr_driver_ros2  https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2       (verified commit 742b7ba)
+# Install the sensor drivers specified by the human (DEC-080) into the ROS 2 workspace and build them (a record tool;
+# a PC is set up with setup.sh at the repository root, which uses the same pins).
+#   ND-14 hesai_ros_driver, ND-15 adi_imu_tr_driver_ros2: url and verified commit from third_party/drivers.repos
 # The upstream sources are NOT modified (DEC-075: OSS is not changed; the legacy scripts/gouda_apply_*_patch.sh are not applied).
 # An existing checkout is never overwritten or reset: its commit and local changes are only reported.
 # Usage (on the vehicle PC / Ubuntu):  bash gouda_core/tools/install_sensor_drivers.sh 2>&1 | tee <record file>
 set -o pipefail   # no -u: /opt/ros/jazzy/setup.bash reads unset variables
 WS="${GOUDA_WORKSPACE:-$HOME/gouda_ws}"
-HESAI_URL=https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git; HESAI_COMMIT=e7e112f0809f0eed5e3c81c55a1a0376474db234
-ADI_URL=https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2.git;     ADI_COMMIT=742b7babec7e7a20937d4e8be0df77a771a1294a
+PINS="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/third_party/drivers.repos"
+pin() { python3 -c 'import sys, yaml; r = yaml.safe_load(open(sys.argv[1]))["repositories"][sys.argv[2]]; print(r[sys.argv[3]])' "$PINS" "$1" "$2"; }
+HESAI_URL="$(pin HesaiLidar_ROS_2.0 url)"; HESAI_COMMIT="$(pin HesaiLidar_ROS_2.0 version)"
+ADI_URL="$(pin ADI_IMU_TR_Driver_ROS2 url)"; ADI_COMMIT="$(pin ADI_IMU_TR_Driver_ROS2 version)"
 echo "== date: $(date -Is) host: $(hostname) ws: $WS"
 source /opt/ros/jazzy/setup.bash
 mkdir -p "$WS/src"; cd "$WS/src" || exit 1
