@@ -1,0 +1,183 @@
+# 起動経路を一つにした後（REV-037、DEC-091）の VM での確認。2026-10-14 02:5x〜03:1x（VM の時刻）。原文。
+
+===== stage 5-5 試験（isolated test stack、commit e06608b、1 回目）: probe.summary
+{
+ "settings": {
+  "cmd_vel_timeout_s(PRM-08)": 0.7,
+  "motion_hold_timeout_s(PRM-42)": 0.5,
+  "command_publish_period_s(PRM-41)": 0.05
+ },
+ "phase1_hold_true_joy_all_neutral": true,
+ "phase1_joy_count": 40,
+ "phase2_first_non_neutral_after_hold_false_s": 0.031,
+ "phase2_esp32_pc_source_seen": false,
+ "phase3_cmd_vel_stop_to_neutral_s": 0.756,
+ "phase3_within_PRM08_plus_period": true,
+ "phase3_joy_rate_hz": 16.7,
+ "phase3_esp32_status_rate_hz": null,
+ "phase3_esp32_stayed_pc_source": true,
+ "phase4_hold_stop_to_neutral_s": 0.632,
+ "phase4_within_PRM42_plus_period": false,
+ "decisions": [
+  "gouda_motion_controller settings: configured from generated parameters",
+  "gouda_motion_controller activated: joystick_command publication started (period PRM-41)",
+  "gouda_motion_controller output_neutral: motion_hold not received",
+  "gouda_motion_controller output_neutral: motion_hold=true (probe)",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: cmd_vel stale",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)"
+ ]
+}
+12:Node not found
+13:Unknown transition requested, available ones are:
+51:Unknown transition requested, available ones are:
+ 02:57:35 up  6:11,  5 users,  load average: 0.46, 0.47, 0.34
+（1 回目: 試験手順の待ちが足りず vehicle_bridge の configure が Node not found。phase4 0.632 s が判定 0.6 s を超過）
+
+===== stage 5-5 試験（commit 9649784、待ちを修正、1 回目）
+{
+ "settings": {
+  "cmd_vel_timeout_s(PRM-08)": 0.7,
+  "motion_hold_timeout_s(PRM-42)": 0.5,
+  "command_publish_period_s(PRM-41)": 0.05
+ },
+ "phase1_hold_true_joy_all_neutral": true,
+ "phase1_joy_count": 41,
+ "phase2_first_non_neutral_after_hold_false_s": 0.138,
+ "phase2_esp32_pc_source_seen": true,
+ "phase3_cmd_vel_stop_to_neutral_s": 0.746,
+ "phase3_within_PRM08_plus_period": true,
+ "phase3_joy_rate_hz": 20.4,
+ "phase3_esp32_status_rate_hz": 18.4,
+ "phase3_esp32_stayed_pc_source": true,
+ "phase4_hold_stop_to_neutral_s": 0.429,
+ "phase4_within_PRM42_plus_period": true,
+ "decisions": [
+  "gouda_motion_controller settings: configured from generated parameters",
+  "vehicle_bridge settings: configured",
+  "vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)",
+  "vehicle_bridge hello_reply: boot_token=0x2a8a5cf1 config_valid=False generation=0 protocol=4",
+  "vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)",
+  "vehicle_bridge esp32_event: config_set",
+  "vehicle_bridge esp32_ack: request 0x03: accepted",
+  "vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)",
+  "vehicle_bridge command_output: joystick_command not received -> neutral",
+  "vehicle_bridge esp32_event: pc_enabled",
+  "gouda_motion_controller activated: joystick_command publication started (period PRM-41)",
+  "gouda_motion_controller output_neutral: motion_hold not received",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "gouda_motion_controller output_neutral: motion_hold=true (probe)",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: cmd_vel stale",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)"
+ ]
+}
+23887 ms event pc_disabled_stale arg=0
+== B) test stack (stack.sh: isolated domain, trial values, no sensor drivers) + bridge against the sim (TS-30, TS-12)
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/stage55_v3_1/stack, monitor http://127.0.0.1:45713/)
+hold: true
+-- TS-12 /api/state esp32 after the sim stopped (expect STALE with PRM-15 trial, mode unchanged):
+{"freshness": {"status": "STALE", "age_s": 1.5718111991882324, "verdict": "最終受信から 1.6 s 経過（しきい値 0.25 s）"}, "mode": "MANUAL"}
+test stack stopped
+== done
+===== stage 5-5 試験（commit 9649784、待ちを修正、2 回目）
+{
+ "settings": {
+  "cmd_vel_timeout_s(PRM-08)": 0.7,
+  "motion_hold_timeout_s(PRM-42)": 0.5,
+  "command_publish_period_s(PRM-41)": 0.05
+ },
+ "phase1_hold_true_joy_all_neutral": true,
+ "phase1_joy_count": 28,
+ "phase2_first_non_neutral_after_hold_false_s": 0.137,
+ "phase2_esp32_pc_source_seen": true,
+ "phase3_cmd_vel_stop_to_neutral_s": 0.734,
+ "phase3_within_PRM08_plus_period": true,
+ "phase3_joy_rate_hz": 20.3,
+ "phase3_esp32_status_rate_hz": 19.2,
+ "phase3_esp32_stayed_pc_source": true,
+ "phase4_hold_stop_to_neutral_s": 0.517,
+ "phase4_within_PRM42_plus_period": true,
+ "decisions": [
+  "gouda_motion_controller settings: configured from generated parameters",
+  "vehicle_bridge settings: configured",
+  "vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)",
+  "vehicle_bridge hello_reply: boot_token=0xa07ce240 config_valid=False generation=0 protocol=4",
+  "vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)",
+  "vehicle_bridge esp32_event: config_set",
+  "vehicle_bridge esp32_ack: request 0x03: accepted",
+  "vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)",
+  "vehicle_bridge command_output: joystick_command not received -> neutral",
+  "vehicle_bridge esp32_event: pc_enabled",
+  "gouda_motion_controller activated: joystick_command publication started (period PRM-41)",
+  "gouda_motion_controller output_neutral: motion_hold not received",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "vehicle_bridge command_output: joystick_command stale -> neutral",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "gouda_motion_controller output_neutral: motion_hold=true (probe)",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: cmd_vel stale",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)"
+ ]
+}
+25029 ms event pc_disabled_stale arg=0
+== B) test stack (stack.sh: isolated domain, trial values, no sensor drivers) + bridge against the sim (TS-30, TS-12)
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/stage55_v3_2/stack, monitor http://127.0.0.1:35015/)
+hold: true
+-- TS-12 /api/state esp32 after the sim stopped (expect STALE with PRM-15 trial, mode unchanged):
+{"freshness": {"status": "STALE", "age_s": 1.5542635917663574, "verdict": "最終受信から 1.6 s 経過（しきい値 0.25 s）"}, "mode": "MANUAL"}
+test stack stopped
+== done
+
+===== bash gouda.sh start（環境変数なし、commit 81c7822）
+0
+running (pgid 56571; processes: 11)
+data_root=/home/aya/gouda_ws/gouda_data
+params_dir=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params
+log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log
+monitor=http://127.0.0.1:8080/
+previous_mode_record: {"human_pause_or_end": true, "mode": "manual", "run_id": "", "state_revision": 74}
+sensors: {"points": {"label": "XT-32 点群", "topic": "sensors/xt32/points", "status": "NOT_RECEIVED", "age_s": null, "verdict": "未受信（OK とは表示しない）", "rate_hz": null, "count": 0, "stamp_minus_receive_s": null, "stale_after_s": 1.0}, "imu": {"label": "IMU", "topic": "sensors/imu/data", "status": "NOT_RECEIVED", "age_s": null, "verdict": "未受信（OK とは表示しない）", "rate_hz": null, "count": 0, "stamp_minus_receive_s": null, "stale_after_s": 1.0}}
+driver_started | IMU (ND-15): started (pid 56709) for ttyACM0 usb 2-29 (device present) | {"driver": "imu", "identity": "ttyACM0 usb 2-29", "pid": 56709}
+device_reopened_without_reconnect | IMU (ND-15): same USB enumeration ttyACM0 usb 2-29 as the previous session; the IMU may not answer (known problem after a driver restart). Re-plug the IMU USB if no IMU data arrives | {"driver": "imu", "identity": "ttyACM0 usb 2-29"}
+device_present | IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 2-29 | {"driver": "imu", "identity": "ttyACM0 usb 2-29"}
+device_absent | XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears) | {"driver": "lidar", "identity": null}
+settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "interface holding 192.168.1.100 (PRM-51)", "command": ["/home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node", "--ros-args", "-r", "__node:=hesai_ros_driver", "-p", "config_path:=/home/aya/gouda_ws/gouda_data/run/hesai_ros_driver.config.yaml"], "not_started_reason": null}, "imu": {"device": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "command": ["/home/aya/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node", "--ros-args", "-r", "__node:=adi_imu_driver", "-r", "imu/data_raw:=sensors/imu/data", "-p", "device:=/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "-p", "rate:=100.0", "-p", "frame_id:=imu_link", "-p", "publish_tf:=false"], "not_started_reason": null}}, "driver_stop_wait_s": 5.0, "trial": false, "previous_identities": {"lidar": null, "imu": "ttyACM0 usb 2-29"}}
+[gouda_sensor_supervisor-1] [INFO] [1791914225.772499544] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[gouda_sensor_supervisor-1] [INFO] [1791914225.772602377] [adi_imu_driver]: frame_id: imu_link
+[gouda_sensor_supervisor-1] [WARN] [1791914225.772611294] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[gouda_sensor_supervisor-1] [INFO] [1791914225.772617544] [adi_imu_driver]: rate: 100.0
+[gouda_sensor_supervisor-1] [INFO] [1791914225.772653044] [adi_imu_driver]: publish_tf: false
+[gouda_sensor_supervisor-1] [WARN] [1791914238.219699508] [adi_imu_driver]: Failed to read settings, retry 1/3...
+[gouda_sensor_supervisor-1] [WARN] [1791914240.334214718] [adi_imu_driver]: Failed to read settings, retry 2/3...
+[gouda_sensor_supervisor-1] [WARN] [1791914242.423095468] [adi_imu_driver]: Failed to read settings, retry 3/3...
+[gouda_sensor_supervisor-1] [ERROR] [1791914242.423244760] [adi_imu_driver]: Could not read settings! Sensitivity values may be wrong.
+[gouda_sensor_supervisor-1] [ERROR] [1791914243.469817594] [adi_imu_driver]: Cannot read data from port
+[gouda_sensor_supervisor-1] [ERROR] [1791914244.556172428] [adi_imu_driver]: Cannot read data from port
+[gouda_sensor_supervisor-1] [ERROR] [1791914245.597608762] [adi_imu_driver]: Cannot read data from port
+--- devices
+total 0
+lrwxrwxrwx 1 root root 13 Oct 13 23:08 usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ../../ttyACM0
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s5           UP             10.211.55.4/24 
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 028: ID 203a:fffe PARALLELS Virtual USB1.1 HUB
+Bus 002 Device 029: ID 0483:5740 STMicroelectronics Virtual COM Port
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 025: ID 203a:fffc PARALLELS Virtual Mouse
+Bus 003 Device 026: ID 203a:fffb PARALLELS Virtual Keyboard
+Bus 003 Device 027: ID 203a:fff9 PARALLELS FaceTime HDカメラ
+2026-10-13T22:20:29+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 24
+2026-10-13T22:20:29+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 25
+2026-10-13T22:45:14+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+2026-10-13T23:08:40+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 26
+2026-10-13T23:08:40+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 27
+2026-10-13T23:08:42+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+2026-10-14T01:56:56+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: USB disconnect, device number 11
+2026-10-14T01:56:56+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: unregister 'cdc_ncm' usb-0000:00:03.0-7, CDC NCM (NO ZLP)
