@@ -138,5 +138,15 @@ class HeaderStampTests(unittest.TestCase):
         self.assertAlmostEqual(header_stamp(raw), 1791883738.5, places=6); self.assertIsNone(header_stamp(b'\x00\x01'))
 
 
+class SupervisorLabelTests(unittest.TestCase):
+    def test_every_sensor_setting_has_a_label(self):
+        """Every key the driver settings can report as missing has a PRM label (a KeyError crashed the supervisor once)."""
+        import re
+        src = (Path(__file__).resolve().parents[1] / 'gouda_core' / 'sensor_supervisor_node.py').read_text()
+        labels = set(re.findall(r"'(\w+)': 'PRM-\d+'", src))
+        from gouda_core import sensor_config as sc
+        self.assertTrue(set(sc.HESAI_KEYS) | set(sc.IMU_KEYS) <= labels, set(sc.HESAI_KEYS) | set(sc.IMU_KEYS) - labels)
+
+
 if __name__ == '__main__':
     unittest.main()
