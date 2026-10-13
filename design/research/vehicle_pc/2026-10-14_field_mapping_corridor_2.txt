@@ -1,0 +1,168 @@
+# 2026-10-14 実機の地図作成の試験 2 回目（人が実施: 1 回目と同じ廊下、二往復）の AI による解析（原文の出力）。原図 20261014_054556_fbd0a733。
+# 解析は原図の写し（scratch）に対して行い、実データは変えていない。分析用の 2D 変換は DEC-098 の推奨値（承認待ち）を使った分析専用のもので、地図データベースには登録していない。
+# 図: _top.png（上から）、_side.png（廊下の向き × 高さ）、_walls.png（廊下の座標で、床から 0.15〜1.2 m の点を submap ごとの色で。灰は床、白は軌跡。床は軌跡から求めた分析用の値）、_2d.png（分析用の 2D 変換。白 空き、黒 占有、灰 未知、赤 軌跡）。
+
+===== (1) 起動の状態（VM の ps）
+  18521   18521 Wed Oct 14 05:17:55 2026 /usr/bin/python3 /opt/ros/jazzy/bin/ros2 launch gouda_core gouda_core.launch.py params_dir:=/home/a
+  18548   18521 Wed Oct 14 05:17:55 2026 /usr/bin/python3 /home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_monitor --ros-args -r _
+/config:
+{
+ "values": {
+  "lidar_mount_x_m": -0.07,
+  "lidar_mount_y_m": 0.14,
+  "lidar_mount_z_m": 1.015,
+  "lidar_mount_roll_rad": 0.0,
+  "lidar_mount_pitch_rad": 0.0,
+  "lidar_mount_yaw_rad": 0.1745,
+  "lidar_axis_mapping": "+x left, -y forward, +z up",
+  "imu_mount_x_m": -0.07,
+  "imu_mount_y_m": 0.14,
+  "imu_mount_z_m": 0.935,
+  "imu_mount_roll_rad": 0.0,
+  "imu_mount_pitch_rad": 0.0,
+  "imu_mount_yaw_rad": 0.1745,
+  "imu_axis_mapping": "+x left, -y forward, +z up"
+ },
+ "config_revision": 15,
+ "updated_at": 1791924201.327143
+}
+
+records/20261014_054556/rosbag:
+total 8
+drwxrwxr-x 2 aya aya 4096 Oct 14 05:45 .
+drwxrwxr-x 4 aya aya 4096 Oct 14 05:45 ..
+
+session 145.1 s, submaps 3
+T_lidar_imu [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]
+
+===== (2) GLIM のログ（警告の種類と件数）
+  38 [glim] [warning] large time gap between consecutive LiDAR frames!!
+  38 [glim] [warning] current=N last=N diff=N
+  30 [glim] [warning] points=N imu=N diff=N
+  30 [glim] [warning] large time difference between points and imu!!
+   3 [glim] [warning] use default_value=N
+   1 [odom] [warning] num_validations=N
+   1 [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+   1 [odom] [warning] No-IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   1 [odom] [warning] IMU validation results:
+   1 [odom] [warning] IMU prediction is not good.
+   1 [odom] [warning] IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   1 [odom] [warning] IMU better ratios rot=N, trans=N, vel=N
+   1 [glim] [warning] use default_value=-N
+   1 [glim] [warning] param sub_mapping/submap_target_num_points not found
+
+===== (3) 処理周期・時刻の差・欠け
+GLIM processed frames 611 over 139.7 s = 4.37 Hz; gaps >0.15 s: 376, >0.5 s: 37, max 1.20 s
+points-imu diff [s]: n=30 min=1.004 median=1.149 max=1.294
+lidar frame gaps [s]: n=38 median=0.600 max=1.200; negative (rewinds): 0
+
+===== (4) 軌跡と区間（analyze.py）
+trajectory: frames 611, span 140 s
+extent along axis 33.50 m (u -16.76..16.74), lateral std 0.12 m (range -0.33..0.28), z range 0.04..2.47 m
+path length 130.4 m; start-end distance 2.37 m; max step 1.71 m (at t=108.5 s)
+legs (time s, along-axis u m): [(np.float64(0.0), np.float64(14.1)), (np.float64(31.2), np.float64(-16.73)), (np.float64(65.2), np.float64(15.61)), (np.float64(100.4), np.float64(-15.98)), (np.float64(133.5), np.float64(16.67)), (np.float64(139.7), np.float64(16.46))]
+  leg   0.0- 31.2 s: u  14.10 -> -16.73 (30.8 m), lateral mean -0.03 std 0.08, z mean 1.54
+  leg  31.2- 65.2 s: u -16.73 ->  15.61 (32.3 m), lateral mean -0.02 std 0.11, z mean 1.34
+  leg  65.2-100.4 s: u  15.61 -> -15.98 (31.6 m), lateral mean -0.03 std 0.12, z mean 1.17
+  leg 100.4-133.5 s: u -15.98 ->  16.67 (32.7 m), lateral mean 0.10 std 0.12, z mean 1.21
+  leg 133.5-139.7 s: u  16.67 ->  16.46 (0.2 m), lateral mean -0.12 std 0.05, z mean 0.05
+points 33805; along -53.8..59.4, lateral -9.6..13.4, z -6.14..13.56
+
+===== (5) 位置の推移・床の傾き（diag.py）、壁・高さの傾き（walls.py）
+t=  0.0 s  pos=(-0.11, -1.66, 0.22)
+t=  5.1 s  pos=(-0.28, -7.48, 0.65)
+t= 10.0 s  pos=(-0.51, -13.28, 1.08)
+t= 13.0 s  pos=(-0.48, -16.89, 1.33)
+t= 15.3 s  pos=(-0.38, -19.57, 1.52)
+t= 20.0 s  pos=(-0.64, -25.12, 1.92)
+t= 30.1 s  pos=(-0.88, -32.51, 2.46)
+t= 60.1 s  pos=(-0.26, -2.66, 0.30)
+t=120.1 s  pos=(-0.57, -11.83, 1.03)
+t=139.7 s  pos=(0.01, 0.70, 0.05)
+t=139.7 s  pos=(0.01, 0.70, 0.05)
+submap 0 origin z 2.33: floor-like plane tilt 5.5 deg (from 564 low points within 6 m); submap frame tilt 4.4 deg
+submap 1 origin z 1.11: floor-like plane tilt 2.6 deg (from 809 low points within 6 m); submap frame tilt 3.9 deg
+submap 2 origin z 0.43: floor-like plane tilt 3.0 deg (from 625 low points within 6 m); submap frame tilt 4.2 deg
+largest step 1.71 m between t=107.60 and 108.50 s (gap 0.90 s)
+trajectory height along the corridor: slope -0.073 (-4.15 deg), residual std 0.023 m, max |res| 0.079 m
+submap 0: walls at lateral -1.13 / 0.77 m (width 1.90 m); floor points near path 752, floor height above est. -0.169 +- 0.150 m
+submap 1: walls at lateral -1.13 / 0.62 m (width 1.75 m); floor points near path 732, floor height above est. -0.124 +- 0.149 m
+submap 2: walls at lateral -1.23 / 0.67 m (width 1.90 m); floor points near path 331, floor height above est. -0.084 +- 0.165 m
+
+===== (6) 廊下の中の点の高さ（センサーの高さの直線からの相対。floor.py）
+points inside the corridor section: 8883
+  rel -3.0..-2.9 m:    20 ##
+  rel -2.9..-2.8 m:    44 ####
+  rel -2.8..-2.7 m:    30 ###
+  rel -2.7..-2.6 m:    54 #####
+  rel -2.6..-2.5 m:    50 #####
+  rel -2.5..-2.4 m:    82 ########
+  rel -2.4..-2.3 m:    72 #######
+  rel -2.3..-2.2 m:   116 ###########
+  rel -2.2..-2.1 m:   112 ###########
+  rel -2.1..-2.0 m:   124 ############
+  rel -2.0..-1.9 m:   163 ################
+  rel -1.9..-1.8 m:   196 ###################
+  rel -1.8..-1.7 m:   224 ######################
+  rel -1.7..-1.6 m:   129 ############
+  rel -1.6..-1.5 m:    59 #####
+  rel -1.5..-1.4 m:    58 #####
+  rel -1.4..-1.3 m:    63 ######
+  rel -1.3..-1.2 m:   504 ##################################################
+  rel -1.2..-1.1 m:   458 #############################################
+  rel -1.1..-1.0 m:   124 ############
+  rel -1.0..-0.9 m:    71 #######
+  rel -0.9..-0.8 m:    64 ######
+  rel -0.8..-0.7 m:    61 ######
+  rel -0.7..-0.6 m:   248 ########################
+  rel -0.6..-0.5 m:   221 ######################
+  rel -0.5..-0.4 m:   221 ######################
+  rel -0.4..-0.3 m:   182 ##################
+  rel -0.3..-0.2 m:   161 ################
+  rel -0.2..-0.1 m:   146 ##############
+  rel -0.1..+0.0 m:   159 ###############
+  rel +0.0..+0.1 m:   142 ##############
+  rel +0.1..+0.2 m:   139 #############
+  rel +0.2..+0.3 m:   168 ################
+  rel +0.3..+0.4 m:   165 ################
+  rel +0.4..+0.5 m:   190 ###################
+  rel +0.5..+0.6 m:   199 ###################
+  rel +0.6..+0.7 m:   239 #######################
+  rel +0.7..+0.8 m:   159 ###############
+  rel +0.8..+0.9 m:    82 ########
+  rel +0.9..+1.0 m:    52 #####
+  rel +1.0..+1.1 m:    53 #####
+  rel +1.1..+1.2 m:   123 ############
+  rel +1.2..+1.3 m:   436 ###########################################
+  rel +1.3..+1.4 m:   393 #######################################
+  rel +1.4..+1.5 m:   103 ##########
+  rel +1.5..+1.6 m:    99 #########
+  rel +1.6..+1.7 m:    50 #####
+  rel +1.7..+1.8 m:    60 ######
+  rel +1.8..+1.9 m:    63 ######
+  rel +1.9..+2.0 m:   172 #################
+estimated ground inside the corridor relative to the sensor line: median -3.08 m, p10 -4.54, p90 -1.55
+
+===== (7) 床より下の点の位置
+points below the floor (rel < -1.45 m): 4109 of 33805
+by lateral position: -2.00:2 -1.75:5 -1.50:143 -1.25:830 -1.00:468 -0.75:370 -0.50:321 -0.25:326 +0.00:334 +0.25:391 +0.50:547 +0.75:336 +1.00:15 +1.25:9 +1.50:7
+
+===== (8) 分析用の 2D 変換（DEC-098 の推奨値。承認待ちの値で、分析専用）と map_inspect
+terrain {'ground_cells_observed': 1376, 'ground_cells_ground_like': 235, 'ground_cells_filled': 1487, 'slope_max_deg': 22.794067822435647, 'step_max_m': 0.1822156454298982}
+{"source": "source", "glim_frames": {"frames": 611, "duration_s": 139.70001411437988, "rate_hz": 4.366499200927499, "max_gap_s": 1.1996381282806396}, "path": {"length_m": 130.03826175329243, "max_distance_from_start_m": 30.864240922948504}, "cell_m": 0.5, "band_m": 0.1, "submaps": 3, "points_total": 33805, "near_path": [{"radius_m": 1.0, "cells": 381, "cells_with_points": 353, "cells_with_low_points": 126, "share_with_points": 0.926509186351706, "share_with_low_points": 0.33070866141732286, "points": 19640, "points_per_m2": 206.1942257217848}, {"radius_m": 2.0, "cells": 689, "cells_with_points": 476, "cells_with_low_points": 143, "share_with_points": 0.690856313497823, "share_with_low_points": 0.20754716981132076, "points": 22747, "points_per_m2": 132.0580551523948}, {"radius_m": 3.0, "cells": 1017, "cells_with_points": 567, "cells_with_low_points": 168, "share_with_points": 0.5575221238938053, "share_with_low_points": 0.16519174041297935, "points": 24340, "points_per_m2": 95.73254670599803}, {"radius_m": 5.0, "cells": 1741, "cells_with_points": 708, "cells_with_low_points": 241, "share_with_points": 0.4066628374497415, "share_with_low_points": 0.13842619184376795, "points": 26674, "points_per_m2": 61.284319356691555}]}
+
+===== (9) 廊下の中の物（bins.py）
+inner object cells: 1187, seen in >=2 submaps: 176
+  object u -19.0..-18.3 m (0.8 m long), lateral -0.9..0.4 m, 16 cells
+  object u -13.0..-10.3 m (2.8 m long), lateral -0.9..0.4 m, 17 cells
+  object u -8.3..-4.6 m (3.8 m long), lateral -0.9..0.4 m, 35 cells
+  object u -4.0..2.0 m (6.1 m long), lateral -0.9..0.4 m, 66 cells
+  object u 3.1..3.1 m (0.1 m long), lateral -0.8..0.1 m, 3 cells
+  object u 4.3..5.7 m (1.5 m long), lateral -0.6..0.4 m, 8 cells
+  object u 8.8..9.1 m (0.4 m long), lateral -0.6..-0.6 m, 4 cells
+  object u 10.6..10.6 m (0.1 m long), lateral -0.1..0.4 m, 3 cells
+  object u 12.1..13.4 m (1.4 m long), lateral -0.9..0.4 m, 10 cells
+  object u 14.1..14.6 m (0.6 m long), lateral -0.9..0.1 m, 2 cells
+  object u 15.2..15.3 m (0.2 m long), lateral -0.9..0.3 m, 2 cells
+  object u 16.3..17.1 m (0.9 m long), lateral -0.4..0.4 m, 8 cells
+image 1905 150

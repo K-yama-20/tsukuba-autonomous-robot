@@ -184,6 +184,26 @@ files:
     path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_side.png
     sha256: 5d7e322a3715f5511dbcd887eb63860280c6b8735969a48b83175cc0c5360422
     role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2.txt
+    sha256: 71f9427be63f291069f6769778584ca62d26bf6a21d0afb7eab5febe6ced01ed
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-TOP
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_top.png
+    sha256: 22c1c67417488012036d63677f15f2827b60090f7b77bf943f21d9a77d2f5ba0
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-SIDE
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_side.png
+    sha256: ac9960a2e891c23590415c9ad6f3087e62bd34eabbefeafae22efb4ce2a6a502
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-WALLS
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_walls.png
+    sha256: 55b90b3a48a8869ec41f255ca30e336e1f64c878a8bdee65fd3c66cced4321af
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-2D
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_2d.png
+    sha256: e44d4203f78dc04713ca93809830b4fce9440d0c43b2b0e2b398925f6951403b
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34579,6 +34599,7 @@ entities:
     related_refs: []
     issue_refs:
       - G-ARCH
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - operation
@@ -34586,7 +34607,7 @@ entities:
       - RQ-I008
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     ros_node:
       node_name: gouda_map_creator
       responsibilities:
@@ -41270,6 +41291,7 @@ entities:
     related_refs: []
     issue_refs:
       - Q-06
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - safety
@@ -41277,7 +41299,7 @@ entities:
       - RQ-I009
       - RQ-I074
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     parameter:
       owner_ref: ND-05
       value:
@@ -41308,6 +41330,7 @@ entities:
     related_refs: []
     issue_refs:
       - Q-06
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - safety
@@ -41315,7 +41338,7 @@ entities:
       - RQ-I009
       - RQ-I074
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     parameter:
       owner_ref: ND-05
       value:
@@ -42673,13 +42696,14 @@ entities:
       - PRM-64
     issue_refs:
       - Q-06
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     parameter:
       owner_ref: ND-05
       value:
@@ -42710,13 +42734,14 @@ entities:
       - PRM-64
     issue_refs:
       - Q-06
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     parameter:
       owner_ref: ND-05
       value:
@@ -42747,13 +42772,14 @@ entities:
       - PRM-63
     issue_refs:
       - Q-06
+      - G-FLOOR-REFLECTION
     interpretation: ''
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-046
     parameter:
       owner_ref: ND-05
       value:
@@ -42798,14 +42824,15 @@ entities:
       - operation
     requirement_refs:
       - RQ-I082
-    revision_ref: REV-045
+    revision_ref: REV-046
     test:
       execution_status: 未実行
       stage: 地図作成と変換
       procedure: 'docs/map_conversion.md §5。センサーの受信を確かめてから地図作成を開始し、車体を歩く速さで 50〜100 m 動かす（平らな所・坂・縁石・壁・木・駐車中の物を含め、できれば出発点に戻る）。
-        地図作成を終了し、地図タブで設定を変えて再変換する。原図を python3 -m gouda_core.map_inspect で解析する。 実行記録: 2026-10-14 の 1 回目（廊下、二往復）は
-        research/vehicle_pc/2026-10-14_field_mapping_corridor.txt。Gouda が 2 つ同時に動いていたため（G-DUP-START）試験の条件を満たさず、地図は不合格、計測には使えない。
-        再試験の前に、Gouda が 1 つだけ動いていること（ps で ros2 launch gouda_core が 1 つ）を確かめる。'
+        地図作成を終了し、地図タブで設定を変えて再変換する。原図を python3 -m gouda_core.map_inspect で解析する。 実行記録: 1 回目（廊下、二往復）は research/vehicle_pc/2026-10-14_field_mapping_corridor.txt。Gouda
+        が 2 つ同時に動いていたため（G-DUP-START）試験の条件を満たさず、地図は不合格、計測には使えない。 2 回目（同じ廊下、二往復）は 2026-10-14_field_mapping_corridor_2.txt。原図は往復で整合、ただし廊下の向きに
+        4.15 度の傾き（廊下の水平は人に確認）。2D 変換は G-FLOOR-REFLECTION で不合格。ゴミ箱は未判定。 再試験の前に、Gouda が 1 つだけ動いていること（ps で ros2 launch
+        gouda_core が 1 つ）を確かめ、記録タブの Record で rosbag も記録する。'
       observe: GLIM が処理した周期と最長の欠け、経路の長さ、submap と点の数、経路からの距離ごとの点の密度と地面の点がある割合、monitor の受信周期、 
         変換の統計（セルと点の分類、地面の格子）、地図タブの 2D 地図・高さ・傾き・段差の図、保存時間（save_duration_s）。
       expected: 計測値が条件とともに記録され、DEC-098 の値の見直し、DEC-099・DEC-100 の判断、GLIM 
@@ -42857,6 +42884,42 @@ entities:
       next_action: gouda.sh が、pid ファイルに頼らずに、同じ利用者の gouda_core の起動（ros2 launch 
         gouda_core）が動いていれば起動を拒む（実装。起動の方法は変えない）。 sensor supervisor 
         が、デバイスを別のプロセスが開いている場合にドライバを起動せず記録する（実装）。どちらも単体試験と VM での再現試験で確かめる。
+  - id: G-FLOOR-REFLECTION
+    kind: issue
+    name: 床より下の点（光沢のある床での反射と推定）で地面の推定が下がり、2D 変換で床が障害物や上限より上と判定される
+    source_refs:
+      - SRC-I011
+      - SRC-I012
+      - SRC-I106-V9
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs: []
+    revision_ref: REV-046
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-05
+        - PRM-34
+        - PRM-35
+        - PRM-62
+        - PRM-63
+        - PRM-64
+      resolution_refs: []
+      question: 2 回目の試験の原図で、廊下の中の点の高さは床（センサーの約 1.2 m 下）と天井（約 1.3 m 上）に山があるが、床より 0.2〜1.8 m 下にも 4109 点（全体の 12 
+        %）あり、廊下の幅の中に壁に沿って並ぶ。 地面の推定は格子ごとの最も低い点の下側の包絡なので、これらに引かれて実際の床より約 1.9 m 低くなった（中央値でセンサーの 3.08 m 下）。 分析用の 
+        2D 変換では、床より下の点が障害物の帯に入り廊下の中を埋め、床は上限より上と判定され、空きのセルは 325 しかなかった。FILE-VEHICLE-PC-FIELD-MAPPING-2。
+      next_action: '地面の推定を、床より下の外れた点に強くする（設計の修正。docs/map_conversion.md §2 と map_convert.py、単体試験に床の反射の合成データを加える）。
+        候補: (a) 地図作成の軌跡（センサーの高さ）から /config の取付高さを引いた床の近くだけを地面の候補にする（/config がなければ点だけで推定）、 (b) 格子ごとに最も低い点ではなく、点の多い低い面（高さの分布の山）を地面にする。2
+        回目の原図で再変換して確かめる。'
 migration:
   baseline_definition_count: 198
   id_map:
@@ -52635,8 +52698,10 @@ decisions:
       - TS-34
     resulting_refs: []
     note: '手順と解析: docs/map_conversion.md §5、gouda_core/gouda_core/map_inspect.py。AI は手順・解析スクリプト・設定への反映を担当。 人に依頼すること:
-      移動しての地図作成（経路と途中の物の記録）。これまでの原図は静止して作られていたため未計測（FILE-VEHICLE-PC-SOURCE-MAPS）。 2026-10-14 の移動しての試験（廊下、二往復）は、Gouda
-      が 2 つ同時に動いていて地図が壊れたため、計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1、G-DUP-START）。未計測のまま。'
+      移動しての地図作成（経路と途中の物の記録）。これまでの原図は静止して作られていたため未計測（FILE-VEHICLE-PC-SOURCE-MAPS）。 1 回目（2026-10-14、廊下）は Gouda が 2
+      つ同時に動いていて計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1、G-DUP-START）。 2 回目（廊下、XT-32 の取付高さ 1.015 m）: 床は写る（廊下の中の点の高さの山の一つ）。経路から
+      1・2・3・5 m 以内の 0.5 m の格子のうち、低い点（周りの最も低い点から 0.1 m 以内）のある割合は 0.33・0.21・0.17・0.14、 点のある割合は 0.93・0.69・0.56・0.41。床より下に反射と推定される点が全体の
+      12 %（G-FLOOR-REFLECTION）。屋外は未計測（FILE-VEHICLE-PC-FIELD-MAPPING-2）。'
     disposition: open_human
   - id: DEC-100
     kind: measurement
@@ -52658,8 +52723,10 @@ decisions:
       - TS-34
     resulting_refs: []
     note: 'これまでの静止した原図 3 件で GLIM が処理した周期は 8.09・7.97・4.41 Hz、最長の欠け 0.40・0.70・0.60 s（FILE-VEHICLE-PC-SOURCE-MAPS）。
-      monitor（Python）の受信 約 2 Hz より多いが 10 Hz に届かない。手順と解析: docs/map_conversion.md §5、map_inspect。 2026-10-14 の移動しての試験は、Gouda
-      が 2 つ同時に動いていた（ドライバと GLIM が 2 つずつ）ため計測に使えない（処理周期 3.76 Hz は条件の外の値。FILE-VEHICLE-PC-FIELD-MAPPING-1）。未計測のまま。'
+      monitor（Python）の受信 約 2 Hz より多いが 10 Hz に届かない。手順と解析: docs/map_conversion.md §5、map_inspect。 1 回目（2026-10-14）は
+      Gouda が 2 つ同時に動いていたため計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1）。 2 回目（廊下、二往復、140 s）: GLIM が処理した周期 4.37 Hz、0.5
+      s を超える欠け 37 回、最長 1.20 s。submap 3 個、点 33805、経路から 1・2・3・5 m 以内の点の密度 206・132・96・61 点/m²（FILE-VEHICLE-PC-FIELD-MAPPING-2）。
+      GLIM の CPU 負荷と保存時間は未計測。'
     disposition: open_human
   - id: DEC-101
     kind: approval
@@ -54084,4 +54151,32 @@ revisions:
       - FILE-VEHICLE-PC-FIELD-MAPPING-1
       - FILE-VEHICLE-PC-FIELD-MAPPING-1-TOP
       - FILE-VEHICLE-PC-FIELD-MAPPING-1-SIDE
+    removed_entity_ids: []
+  - id: REV-046
+    date: '2026-10-14'
+    summary: '2 回目の試験（Gouda は 1 つ、/config に取付位置あり）。AI の判定: 原図（GLIM の 3D 地図）は往復で整合している（四つの区間 30.8〜32.7 m、折り返し点の差
+      0.8〜1.1 m、軌跡の横の広がり 0.12 m、 submap ごとの壁の位置の差 0.15 m 以内、出発点から 2.4 m で終了）。ただし軌跡と床が廊下の向きに 4.15 度一様に傾いている（廊下が水平なら地図の傾き。人に確認）。
+      床より下に点が 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ（光沢のある床での反射と推定）。このため地面の推定（下側の包絡）が実際の床より約 1.9 m 低くなり、 分析用の 2D 変換は不合格（廊下の中が障害物で埋まり、空きのセルが少ない）。地面の推定の欠陥を問題
+      G-FLOOR-REFLECTION として登録。ゴミ箱の位置は判定できていない（人に位置を確認）。 GLIM が処理した周期は 4.37 Hz（0.5 s 超の欠け 37 回）。rosbag は記録されていない。'
+    basis_refs:
+      - DEC-099
+      - DEC-100
+      - DEC-093
+    added_entity_ids:
+      - G-FLOOR-REFLECTION
+    modified_entity_ids:
+      - ND-05
+      - PRM-34
+      - PRM-35
+      - PRM-62
+      - PRM-63
+      - PRM-64
+      - TS-34
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-FIELD-MAPPING-2
+      - FILE-VEHICLE-PC-FIELD-MAPPING-2-TOP
+      - FILE-VEHICLE-PC-FIELD-MAPPING-2-SIDE
+      - FILE-VEHICLE-PC-FIELD-MAPPING-2-WALLS
+      - FILE-VEHICLE-PC-FIELD-MAPPING-2-2D
     removed_entity_ids: []

@@ -145,8 +145,8 @@
         "PRM-23: 値未確定 ['G-TUNING']",
         "PRM-24: 値未確定 ['G-TUNING']",
         "PRM-33: 値未確定 ['Q-06']",
-        "PRM-34: 値未確定 ['Q-06']",
-        "PRM-35: 値未確定 ['Q-06']",
+        "PRM-34: 値未確定 ['Q-06', 'G-FLOOR-REFLECTION']",
+        "PRM-35: 値未確定 ['Q-06', 'G-FLOOR-REFLECTION']",
         "PRM-36: 値未確定 ['Q-06']",
         "PRM-37: 値未確定 ['Q-05']",
         "PRM-38: 値未確定 ['Q-06']",
@@ -162,9 +162,9 @@
         "PRM-48: 値未確定 ['G-FIRMWARE']",
         "PRM-49: 値未確定 ['G-FIRMWARE', 'Q-05']",
         "PRM-61: 値未確定 ['G-FIRMWARE']",
-        "PRM-62: 値未確定 ['Q-06']",
-        "PRM-63: 値未確定 ['Q-06']",
-        "PRM-64: 値未確定 ['Q-06']"
+        "PRM-62: 値未確定 ['Q-06', 'G-FLOOR-REFLECTION']",
+        "PRM-63: 値未確定 ['Q-06', 'G-FLOOR-REFLECTION']",
+        "PRM-64: 値未確定 ['Q-06', 'G-FLOOR-REFLECTION']"
       ]
     },
     {

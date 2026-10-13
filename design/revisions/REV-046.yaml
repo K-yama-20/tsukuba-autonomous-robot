@@ -1,0 +1,77 @@
+# 変更セット REV-046（2026-10-14 第26便: 実機の地図作成の試験 2 回目（同じ廊下、二往復）の AI による判定の記録）
+# 適用: design/tools/apply_revision.py REV-046
+id: REV-046
+date: '2026-10-14'
+summary: >-
+  2 回目の試験（Gouda は 1 つ、/config に取付位置あり）。AI の判定: 原図（GLIM の 3D 地図）は往復で整合している（四つの区間 30.8〜32.7 m、折り返し点の差 0.8〜1.1 m、軌跡の横の広がり 0.12 m、
+  submap ごとの壁の位置の差 0.15 m 以内、出発点から 2.4 m で終了）。ただし軌跡と床が廊下の向きに 4.15 度一様に傾いている（廊下が水平なら地図の傾き。人に確認）。
+  床より下に点が 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ（光沢のある床での反射と推定）。このため地面の推定（下側の包絡）が実際の床より約 1.9 m 低くなり、
+  分析用の 2D 変換は不合格（廊下の中が障害物で埋まり、空きのセルが少ない）。地面の推定の欠陥を問題 G-FLOOR-REFLECTION として登録。ゴミ箱の位置は判定できていない（人に位置を確認）。
+  GLIM が処理した周期は 4.37 Hz（0.5 s 超の欠け 37 回）。rosbag は記録されていない。
+basis_refs: [DEC-099, DEC-100, DEC-093]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2.txt
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-TOP
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_top.png
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-SIDE
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_side.png
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-WALLS
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_walls.png
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-2-2D
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_2_2d.png
+    role: evidence
+
+entities:
+  - id: G-FLOOR-REFLECTION
+    kind: issue
+    source_from_affected: true
+    name: 床より下の点（光沢のある床での反射と推定）で地面の推定が下がり、2D 変換で床が障害物や上限より上と判定される
+    sensitivity: [safety, operation]
+    issue:
+      category: technical
+      state: open
+      affected_refs: [ND-05, PRM-34, PRM-35, PRM-62, PRM-63, PRM-64]
+      resolution_refs: []
+      question: >-
+        2 回目の試験の原図で、廊下の中の点の高さは床（センサーの約 1.2 m 下）と天井（約 1.3 m 上）に山があるが、床より 0.2〜1.8 m 下にも 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ。
+        地面の推定は格子ごとの最も低い点の下側の包絡なので、これらに引かれて実際の床より約 1.9 m 低くなった（中央値でセンサーの 3.08 m 下）。
+        分析用の 2D 変換では、床より下の点が障害物の帯に入り廊下の中を埋め、床は上限より上と判定され、空きのセルは 325 しかなかった。FILE-VEHICLE-PC-FIELD-MAPPING-2。
+      next_action: >-
+        地面の推定を、床より下の外れた点に強くする（設計の修正。docs/map_conversion.md §2 と map_convert.py、単体試験に床の反射の合成データを加える）。
+        候補: (a) 地図作成の軌跡（センサーの高さ）から /config の取付高さを引いた床の近くだけを地面の候補にする（/config がなければ点だけで推定）、
+        (b) 格子ごとに最も低い点ではなく、点の多い低い面（高さの分布の山）を地面にする。2 回目の原図で再変換して確かめる。
+
+modifications:
+  - id: TS-34
+    set_nested:
+      test.procedure: >-
+        docs/map_conversion.md §5。センサーの受信を確かめてから地図作成を開始し、車体を歩く速さで 50〜100 m 動かす（平らな所・坂・縁石・壁・木・駐車中の物を含め、できれば出発点に戻る）。
+        地図作成を終了し、地図タブで設定を変えて再変換する。原図を python3 -m gouda_core.map_inspect で解析する。
+        実行記録: 1 回目（廊下、二往復）は research/vehicle_pc/2026-10-14_field_mapping_corridor.txt。Gouda が 2 つ同時に動いていたため（G-DUP-START）試験の条件を満たさず、地図は不合格、計測には使えない。
+        2 回目（同じ廊下、二往復）は 2026-10-14_field_mapping_corridor_2.txt。原図は往復で整合、ただし廊下の向きに 4.15 度の傾き（廊下の水平は人に確認）。2D 変換は G-FLOOR-REFLECTION で不合格。ゴミ箱は未判定。
+        再試験の前に、Gouda が 1 つだけ動いていること（ps で ros2 launch gouda_core が 1 つ）を確かめ、記録タブの Record で rosbag も記録する。
+
+decision_updates:
+  - id: DEC-099
+    set:
+      note: >-
+        手順と解析: docs/map_conversion.md §5、gouda_core/gouda_core/map_inspect.py。AI は手順・解析スクリプト・設定への反映を担当。
+        人に依頼すること: 移動しての地図作成（経路と途中の物の記録）。これまでの原図は静止して作られていたため未計測（FILE-VEHICLE-PC-SOURCE-MAPS）。
+        1 回目（2026-10-14、廊下）は Gouda が 2 つ同時に動いていて計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1、G-DUP-START）。
+        2 回目（廊下、XT-32 の取付高さ 1.015 m）: 床は写る（廊下の中の点の高さの山の一つ）。経路から 1・2・3・5 m 以内の 0.5 m の格子のうち、低い点（周りの最も低い点から 0.1 m 以内）のある割合は 0.33・0.21・0.17・0.14、
+        点のある割合は 0.93・0.69・0.56・0.41。床より下に反射と推定される点が全体の 12 %（G-FLOOR-REFLECTION）。屋外は未計測（FILE-VEHICLE-PC-FIELD-MAPPING-2）。
+  - id: DEC-100
+    set:
+      note: >-
+        これまでの静止した原図 3 件で GLIM が処理した周期は 8.09・7.97・4.41 Hz、最長の欠け 0.40・0.70・0.60 s（FILE-VEHICLE-PC-SOURCE-MAPS）。
+        monitor（Python）の受信 約 2 Hz より多いが 10 Hz に届かない。手順と解析: docs/map_conversion.md §5、map_inspect。
+        1 回目（2026-10-14）は Gouda が 2 つ同時に動いていたため計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1）。
+        2 回目（廊下、二往復、140 s）: GLIM が処理した周期 4.37 Hz、0.5 s を超える欠け 37 回、最長 1.20 s。submap 3 個、点 33805、経路から 1・2・3・5 m 以内の点の密度 206・132・96・61 点/m²（FILE-VEHICLE-PC-FIELD-MAPPING-2）。
+        GLIM の CPU 負荷と保存時間は未計測。

@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5931,
+    "executed_checks": 5936,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -189,6 +189,11 @@
       "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-1",
       "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-1-TOP",
       "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-1-SIDE",
+      "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-2",
+      "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-2-TOP",
+      "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-2-SIDE",
+      "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-2-WALLS",
+      "model file hash FILE-VEHICLE-PC-FIELD-MAPPING-2-2D",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -5940,9 +5945,9 @@
   "design_validity": {
     "result": "未判定",
     "reason": "移行検査は設計妥当性検証ではない。設計整合性は check_design.py の三値結果を参照。未設計・未確定・資料衝突を保持。",
-    "known_issue_count": 43,
+    "known_issue_count": 44,
     "known_issue_counts": {
-      "technical": 16,
+      "technical": 17,
       "source_missing": 7,
       "human": 20
     },
@@ -7442,6 +7447,22 @@
         "resolution_refs": [],
         "question": "2026-10-14 04:32 に起動した Gouda が、ワークスペースとデータの置き場をごみ箱へ移した後も動き続けた。pid ファイルもごみ箱へ移ったため、04:39 の bash gouda.sh start は起動中と判定できず、 2 つ目を起動した。2 つ目の monitor はポート 8080 が使用中で終了し、人は 1 つ目の monitor で地図作成を開始した。開始の要求は同じ ROS ドメインの 2 つの mode_manager に届き、GLIM が 2 つ起動した。 各起動の sensor supervisor がそれぞれドライバを起動し、同じ IMU のシリアルポートと同じ LiDAR を 2 つずつのドライバが読んだ（IMU の時刻の逆行、frame の欠け、GLIM の遅れ）。 ESP32 が接続されていれば vehicle_bridge も 2 つになる。FILE-VEHICLE-PC-FIELD-MAPPING-1。",
         "next_action": "gouda.sh が、pid ファイルに頼らずに、同じ利用者の gouda_core の起動（ros2 launch gouda_core）が動いていれば起動を拒む（実装。起動の方法は変えない）。 sensor supervisor が、デバイスを別のプロセスが開いている場合にドライバを起動せず記録する（実装）。どちらも単体試験と VM での再現試験で確かめる。"
+      },
+      {
+        "id": "G-FLOOR-REFLECTION",
+        "category": "technical",
+        "state": "open",
+        "affected_refs": [
+          "ND-05",
+          "PRM-34",
+          "PRM-35",
+          "PRM-62",
+          "PRM-63",
+          "PRM-64"
+        ],
+        "resolution_refs": [],
+        "question": "2 回目の試験の原図で、廊下の中の点の高さは床（センサーの約 1.2 m 下）と天井（約 1.3 m 上）に山があるが、床より 0.2〜1.8 m 下にも 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ。 地面の推定は格子ごとの最も低い点の下側の包絡なので、これらに引かれて実際の床より約 1.9 m 低くなった（中央値でセンサーの 3.08 m 下）。 分析用の 2D 変換では、床より下の点が障害物の帯に入り廊下の中を埋め、床は上限より上と判定され、空きのセルは 325 しかなかった。FILE-VEHICLE-PC-FIELD-MAPPING-2。",
+        "next_action": "地面の推定を、床より下の外れた点に強くする（設計の修正。docs/map_conversion.md §2 と map_convert.py、単体試験に床の反射の合成データを加える）。 候補: (a) 地図作成の軌跡（センサーの高さ）から /config の取付高さを引いた床の近くだけを地面の候補にする（/config がなければ点だけで推定）、 (b) 格子ごとに最も低い点ではなく、点の多い低い面（高さの分布の山）を地面にする。2 回目の原図で再変換して確かめる。"
       }
     ],
     "open_conflicts": [
@@ -7471,7 +7492,7 @@
   },
   "design_maturity": {
     "未設計": 405,
-    "案": 430,
+    "案": 431,
     "承認済み": 23
   },
   "revisions": [
@@ -7914,6 +7935,16 @@
       "added_source_ids": 0,
       "added_file_ids": 3,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-046",
+      "date": "2026-10-14",
+      "basis_refs": 3,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 7,
+      "added_source_ids": 0,
+      "added_file_ids": 5,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -8098,7 +8129,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 858,
+    "entity_count": 859,
     "source_count": 499,
     "id_map_count": 202,
     "legacy_198_count": 198,
