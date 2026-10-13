@@ -96,6 +96,7 @@ lines:
     authority_file: FILE-INTENT
     referenced_by:
       - C-009
+      - G-DDS
       - G-LOG
       - IFD-08
       - IFD-09
@@ -113,6 +114,7 @@ lines:
     source_id: SRC-I009
     authority_file: FILE-INTENT
     referenced_by:
+      - G-DDS
       - IFD-06
       - IFD-21
       - IFD-22
