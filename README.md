@@ -27,13 +27,14 @@ GitHubの「Download ZIP」でも利用できます。対象ブランチを展�
 起動の方法はこれ一つです（設計の判断台帳 DEC-090・DEC-091）。環境変数などの起動オプションはありません。旧 Mission Control 用の `scripts/gouda.sh`・`scripts/gouda_gui.sh` は 2026-10-09 に削除しました（DEC-068）。
 
 ```bash
-cd ~/gouda_ws && colcon build --packages-select gouda_interfaces gouda_core && source install/setup.bash
+cd ~/gouda_ws && colcon build --symlink-install --packages-select gouda_interfaces gouda_core && source install/setup.bash
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
 bash gouda.sh start      # 全部を起動（起動直後は手動走行。記録は開始しない。センサーのドライバも起動し、無いデバイスは接続を待つ）
 bash gouda.sh status     # 起動状態・データの置き場・ログの場所・monitor の URL
 bash gouda.sh stop       # この起動が所有するプロセスだけを止める
 ```
 
+- `--symlink-install` で build する（インストールされる Python が元のファイルを指す）。VM の時計が戻ると、通常の build では古いコピーが残って新しいコードが入らないことがあった（2026-10-14）。以前に通常の build をした場合は、一度 `rm -rf build/gouda_core install/gouda_core` してから build する。
 - 設定はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。monitor は http://127.0.0.1:8080/（PRM-26）。
 - ワークスペースは gouda.sh の 2 つ上のディレクトリ、データの置き場は `<workspace>/gouda_data`（PRM-25）。記録セッションは `<data_root>/records/<session>/` に `log/` と `rosbag/` を分けて保存し、直前モードの永続記録は `<data_root>/state/` に置きます。
 - センサーのドライバは gouda_sensor_supervisor が起動し、デバイスが繋ぎ直されたときだけ作り直します（`design/docs/sensor_supervision.md`）。gouda.sh を止めて起動し直すと IMU が応答しない場合があり、その場合は IMU の USB を抜き差しします。

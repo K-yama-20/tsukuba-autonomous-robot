@@ -128,5 +128,5 @@ input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px s
 .maps .rev { display: inline-block; margin: 2px 4px 0 0; padding: 1px 6px; border: 1px solid var(--line); cursor: pointer; color: var(--cyan); }
 .maps .rev.sel { background: var(--cyan); color: #03100f; }
 .map-preview { border: 1px dashed var(--fg-dim); background: #808080; min-height: 120px; max-height: 45vh; overflow: auto; margin: 4px 0; }
-.map-preview img { image-rendering: pixelated; display: block; }
+.map-preview img { image-rendering: pixelated; display: block; width: 100%; height: auto; }   /* 1 px per cell is too small: scale to the panel */
 @media (max-width: 760px) { .grid-maps { grid-template-columns: 1fr; } }
