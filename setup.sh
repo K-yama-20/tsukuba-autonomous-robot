@@ -141,16 +141,19 @@ lidar_ip="$(python3 -c 'import json,sys; print(next(p["value"] for p in json.loa
 default_if="$(ip -o route show default 2>/dev/null | awk '{print $5; exit}')"
 holder="$(ip -o -4 addr show | awk -v a="$host_ip/" 'index($4, a) == 1 {print $2; exit}')"
 # profiles holding the PC address on the interface with the default route break the internet and the LiDAR (seen on the VM)
-while IFS=: read -r cname cdev; do
-  [[ -n "$cname" ]] || continue
-  addr="$(nmcli -g ipv4.addresses connection show "$cname" 2>/dev/null || true)"; bound="$(nmcli -g connection.interface-name connection show "$cname" 2>/dev/null || true)"
-  if [[ "$addr" == *"$host_ip/"* && -n "$default_if" && "$bound" == "$default_if" ]]; then
-    echo "WARNING: profile '$cname' puts $host_ip on $default_if (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete '$cname'"
+profiles_with_host=()   # UUIDs (names can repeat)
+while IFS=: read -r uuid cname; do
+  [[ -n "$uuid" ]] || continue
+  addr="$(nmcli -g ipv4.addresses connection show uuid "$uuid" 2>/dev/null || true)"; bound="$(nmcli -g connection.interface-name connection show uuid "$uuid" 2>/dev/null || true)"
+  [[ "$addr" == *"$host_ip/"* ]] || continue
+  profiles_with_host+=("$uuid")
+  if [[ -n "$default_if" && "$bound" == "$default_if" ]]; then
+    echo "WARNING: profile '$cname' ($uuid) puts $host_ip on $default_if (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete uuid $uuid"
   fi
-done < <(nmcli -t -f NAME,DEVICE connection show 2>/dev/null || true)
+done < <(nmcli -t -f UUID,NAME connection show 2>/dev/null || true)
 if [[ -n "$holder" ]]; then
   echo "$host_ip (PRM-51) is on $holder. The XT-32 is expected at $lidar_ip (PRM-50)"
-elif nmcli -t -f NAME connection show 2>/dev/null | while read -r c; do nmcli -g ipv4.addresses connection show "$c" 2>/dev/null; done | grep -q "$host_ip/"; then
+elif (( ${#profiles_with_host[@]} )); then
   echo "a NetworkManager profile with $host_ip exists but is not active (is the LiDAR's USB-LAN connected?): nmcli connection show"
 else
   mapfile -t cands < <(nmcli -t -f DEVICE,TYPE device status 2>/dev/null | awk -F: -v d="$default_if" '$2 == "ethernet" && $1 != d {print $1}')
