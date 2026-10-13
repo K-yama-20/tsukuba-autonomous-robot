@@ -35,6 +35,8 @@ from gouda_interfaces.action import ConvertMap
 from gouda_core import mode_core
 from gouda_core.glim_runner import GlimRunner, GlimSettings
 from gouda_core.map_database import MapDatabase, new_origin_id
+from gouda_core.monitor_core import SensorConfig
+from gouda_core import sensor_extrinsics
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072): 保持 50 件、全 publisher を揃える
@@ -121,9 +123,17 @@ class ModeManagerNode(Node):
                 if not ok:
                     r = mode_core.RequestResult(False, r.transition_id, f'refused: {r.transition_id} actions failed: {why}')
             self._publish_decision('human_request', r.transition_id, r.reason, dict(details, event=event, accepted=r.accepted, mode=self.state.mode))
-            (self.get_logger().info if r.accepted else self.get_logger().warning)(f'{event}: {r.reason}')
+            # Separate call sites: rclpy refuses a logging call site whose severity changes between calls (it raised and
+            # killed this node when an accepted request was followed by a refused one: 2026-10-13 VM test).
+            if r.accepted:
+                self.get_logger().info(f'{event}: {r.reason}')
+            else:
+                self.get_logger().warning(f'{event}: {r.reason}')
             if r.accepted and r.new_state is not None:
                 self._set_state(r.new_state)
+                if getattr(self, '_after_transition', None):
+                    job, self._after_transition = self._after_transition, None
+                    threading.Thread(target=job, name=f'{r.transition_id}_after', daemon=True).start()
             return r
 
     def _set_state(self, new_state):
@@ -143,49 +153,74 @@ class ModeManagerNode(Node):
         if self.glim.running:
             return False, 'GLIM is already running'
         origin_id = new_origin_id(); work = self.data_root / 'mapping' / origin_id
+        # GLIM's LiDAR-IMU transform from the human's /config (intent.md:105). UNKNOWN fields never stop the start: they are
+        # replaced by the neutral element and listed in the record and on the monitor.
+        cfg = SensorConfig(self.data_root / 'config' / 'sensor_config.json')
+        ext = sensor_extrinsics.t_lidar_imu(dict(cfg.values))
+        self._publish_decision('glim_extrinsic', 'TR-03',
+                               'T_lidar_imu from /config' + ('' if ext['complete'] else f" (UNKNOWN in /config, neutral used: {', '.join(ext['defaulted_fields'])})")
+                               + (f" (problems: {'; '.join(ext['problems'])})" if ext['problems'] else ''),
+                               dict(ext, config_revision=cfg.config_revision, config_path=str(cfg.path)))
         try:
-            run = self.glim.start(work, work / 'glim_dump', work / 'glim.log')
+            run = self.glim.start(work, work / 'glim_dump', work / 'glim.log', t_lidar_imu=ext['T_lidar_imu'])
         except Exception as e:
             self._publish_decision('mapping_start_failed', 'TR-03', f'GLIM start failed: {e}', {'origin_id': origin_id})
             return False, f'GLIM start failed: {e}'
         self.mapping_origin_id = origin_id
         self._publish_decision('mapping_started', 'TR-03', f'GLIM started (pid {run.pid}); origin {origin_id}',
-                               {'origin_id': origin_id, 'config_dir': str(run.config_dir), 'dump_dir': str(run.dump_dir), 'points_topic': GLIM_POINTS_TOPIC, 'imu_topic': GLIM_IMU_TOPIC, 'frames': GLIM_FRAMES})
+                               {'origin_id': origin_id, 'config_dir': str(run.config_dir), 'dump_dir': str(run.dump_dir), 'points_topic': GLIM_POINTS_TOPIC, 'imu_topic': GLIM_IMU_TOPIC, 'frames': GLIM_FRAMES,
+                                'T_lidar_imu': ext['T_lidar_imu'], 'config_revision': cfg.config_revision})
         self.request_auto_record('map_start', 'TR-03')   # asynchronous; a failure never stops mapping (DEC-071)
         return True, 'mapping started'
 
     def _tr04_end_mapping(self):
-        """TR-04: stop GLIM and wait for its dump; register the source; start conversion (async); stop the auto log."""
+        """TR-04 (the guard accepts every human end): the mode returns to manual at once and the request is answered; saving
+        the GLIM dump, registering the source map (IFD-29), starting the conversion (IFD-37) and stopping the auto-started log
+        (IFD-46) continue after the transition with processing_state=map_saving -> map_converting (DEC-010).
+        The save wait is PRM-37; while it is unresolved there is no upper limit (no value is invented) and the save time is
+        recorded for its measurement."""
         wait_s = optional_double(self, 'glim_stop_wait_s')
-        if wait_s is None:
-            return False, 'glim_stop_wait_s (PRM-37) is unresolved: pass the generated parameter file (trial file in stub tests)'
         origin_id = self.mapping_origin_id or new_origin_id()
+        self.mapping_origin_id = None
+        self._after_transition = lambda: self._finish_mapping(origin_id, wait_s)
+        return True, 'mapping ended; the map is being saved (processing_state=map_saving)'
+
+    def _set_processing(self, processing_state):
+        with self._lock:
+            self.state = mode_core.ModeState(**{**self.state.as_dict(), 'processing_state': processing_state, 'state_revision': self.state.state_revision + 1})
+            self._publish_state()
+
+    def _finish_mapping(self, origin_id, wait_s):
+        self._set_processing('map_saving')
         try:
             run = self.glim.stop(wait_s)
         except Exception as e:
             self._publish_decision('mapping_stop_failed', 'TR-04', f'GLIM stop failed: {e}', {'origin_id': origin_id})
             run = None
-        self.mapping_origin_id = None
         self._publish_decision('mapping_stopped', 'TR-04', (run.note if run else 'GLIM was not running'),
-                               {'origin_id': origin_id, 'dump_ok': run.dump_ok if run else None, 'submaps': run.submaps if run else 0, 'exit_code': run.exit_code if run else None})
+                               {'origin_id': origin_id, 'dump_ok': run.dump_ok if run else None, 'submaps': run.submaps if run else 0, 'exit_code': run.exit_code if run else None,
+                                'save_duration_s': run.save_duration_s if run else None,
+                                'wait_limit_s': wait_s if wait_s is not None else 'none (PRM-37 unresolved)'})
+        converting = False
         if run and run.dump_ok:
             ok, msg, manifest = self.maps.register_source(run.dump_dir, origin_id, {'software': 'glim_ros', 'version': 'installed package (DEC-062)', 'config_dir': str(run.config_dir)},
                                                            {'started_at': run.started_at, 'stopped_at': run.stopped_at, 'glim_log': str(run.config_dir.parent / 'glim.log')})
             self._publish_decision('source_map_registered' if ok else 'source_map_not_registered', 'TR-04', msg, {'origin_id': origin_id, 'content_hash': manifest['content_hash'] if manifest else None})
             if ok:
-                self._start_conversion(origin_id)
+                converting = self._start_conversion(origin_id)
         else:
             self._publish_decision('source_map_not_registered', 'TR-04', 'dump incomplete or GLIM not running: the source is kept where it is and nothing is published (RQ-I009)', {'origin_id': origin_id})
+        if not converting:
+            self._set_processing('idle')
         self.request_auto_record('stop_auto', 'TR-04')
-        return True, 'mapping ended'
 
     def _start_conversion(self, origin_id):
         """IFD-37 map/convert, asynchronous. processing_state shows map_converting until the result (DEC-010)."""
         if not self.convert_client.server_is_ready():
             self._publish_decision('map_convert_not_started', 'TR-04', 'map/convert action server is not available (gouda_map_creator not running?); re-conversion can be requested later', {'origin_id': origin_id})
-            return
+            return False
         goal = ConvertMap.Goal(); goal.origin_id = origin_id; goal.settings_json = ''
-        self.state = mode_core.ModeState(**{**self.state.as_dict(), 'processing_state': 'map_converting', 'state_revision': self.state.state_revision + 1}); self._publish_state()
+        self._set_processing('map_converting')
         send = self.convert_client.send_goal_async(goal)
         def on_goal(f):
             gh = f.result()
@@ -193,6 +228,7 @@ class ModeManagerNode(Node):
                 self._finish_conversion(origin_id, False, 'conversion goal rejected'); return
             gh.get_result_async().add_done_callback(lambda rf: self._finish_conversion(origin_id, rf.result().result.ok, rf.result().result.message, rf.result().result))
         send.add_done_callback(on_goal)
+        return True
 
     def _finish_conversion(self, origin_id, ok, message, result=None):
         with self._lock:
@@ -257,7 +293,7 @@ class ModeManagerNode(Node):
 
     def destroy_node(self):
         if self.glim.running:   # never leave GLIM orphaned; its dump on shutdown is kept in the mapping work dir
-            try: self.glim.stop(wait_s=optional_double(self, 'glim_stop_wait_s') or 0.0)
+            try: self.glim.stop(wait_s=optional_double(self, 'glim_stop_wait_s'))   # PRM-37; None = until GLIM has saved
             except Exception: pass
         super().destroy_node()
 

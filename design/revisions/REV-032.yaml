@@ -1,0 +1,123 @@
+# 変更セット REV-032（2026-10-13 第21便: intent.md 第8版（センサー取付位置は人が gouda_monitor で設定、未知を理由に質問・停止しない）、
+# GLIM の T_lidar_imu を /config から生成、地図作成終了の非同期化、IMU デバイス名の実機照合）
+# 適用: design/tools/apply_revision.py REV-032
+id: REV-032
+date: '2026-10-13'
+summary: >-
+  人が intent.md の末尾に 1 行を追記（第8版、SHA 09732d2f…、AR-008、RQ-I081）。チャットの指示 2 件と合わせて DEC-087 に原文で記録し、取付変換の実測の問い DEC-086 を取り下げた。
+  設計への反映: GLIM の T_lidar_imu は /config（IFD-26）の取付値から TR-03 で生成し、UNKNOWN の項目は中立要素（並進 0・回転なし・base_link の軸）で置き換えて記録・表示する（質問も停止もしない）。
+  /config の軸の向き（axis_mapping）の書式を定義。VM での検証で見つかった実装の不具合（gouda.sh の空の serial_port 引数、mode_manager が拒否時のログで落ちる、PRM-37 未確定で地図作成を終了できない）を直し、
+  TR-04 を即時応答・保存は後続処理（processing_state=map_saving）に変更（DEC-010 の範囲）。PRM-37 未確定の間は上限なしで保存完了を待ち、保存時間を記録する。
+  IMU のデバイス名を実機の一覧（FILE-VEHICLE-PC-IMU-BYID）に合わせて修正（STM32 の後は「_」）。
+basis_refs: [DEC-087, DEC-082, DEC-010, DEC-007]
+intent_version_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
+
+authority_revision:
+  id: AR-008
+  file_id: FILE-INTENT-V8
+  previous_file_id: FILE-INTENT-V7
+  archived_previous_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+  current_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
+  instruction_expected_added_lines: 1
+  new_requirement_lines:
+    105: RQ-I081
+  decision_ref: DEC-087
+  note: >-
+    人の編集（リポジトリ側の design/intent.md）。チャットで「instent.mdの末尾に要求を追記した」と言及。機械比較で末尾 1 行（105 行）の追加のみ（104 行は末尾改行の付加だけで文は同一）。
+    内容は同日のチャットの指示（DEC-087）と同じ趣旨で、主語が「自分」から「人間」に、「私に」が「人間に」になっている。
+
+files:
+  - id: FILE-VEHICLE-PC-IMU-BYID
+    path: design/research/vehicle_pc/2026-10-13_imu_serial_by_id.txt
+    role: evidence
+  - id: FILE-VEHICLE-PC-MM-CRASH
+    path: design/research/vehicle_pc/2026-10-13_gouda_mode_manager_crash_launch_log.txt
+    role: evidence
+
+decisions:
+  - id: DEC-087
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-13'
+    channel: chat + intent.md
+    question: センサー取付位置（GLIM 用）の扱い、VM での GLIM 開始の検証、gouda.sh の問題、intent.md 第8版
+    answer_verbatim: |
+      GLIMのためのセンサーの取り付け位置はgouda_monitorで自分で設定する。取り付け位置が不明だからといって、私に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+
+      vmを立ち上げたので、glimの開始が出来るか検証しろ、gouda.shにも問題があるようだ。また、instent.mdの末尾に要求を追記した。
+
+      （intent.md 第8版 105 行）・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+    affected_refs: [DEC-086, ND-06, IFD-26, TR-03, TR-04, PRM-37, ND-01]
+    resulting_refs: [AR-008, RQ-I081, PRM-54]
+    note: >-
+      1 件目のチャットは作業の途中で受け、2 件目と intent.md の追記で上位要求になった。DEC-086（取付変換の実測の問い）は取り下げ（台帳上は本回答で answered）。
+      今後、取付位置・軸の向きの不明を理由に人へ質問しない。GLIM の T_lidar_imu は /config の値から作り、未設定の項目は中立要素で置き換えて DecisionEvent（glim_extrinsic）と monitor に示す。
+      gouda.sh の問題は VM の launch ログで特定（空の serial_port で launch 引数が不正。工程5-5 で AI が入れた不具合）。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-086
+    set:
+      status: answered
+      answered_on: '2026-10-13'
+      answer_verbatim: |
+        GLIMのためのセンサーの取り付け位置はgouda_monitorで自分で設定する。取り付け位置が不明だからといって、私に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+      resulting_refs: [DEC-087, RQ-I081]
+      note: >-
+        取り下げ。取付変換は人が gouda_monitor の /config で設定し（RQ-I081）、TR-03 が /config から GLIM の T_lidar_imu を生成する。未設定の項目は中立要素で置き換え、記録と表示だけを行う。
+      disposition: answered
+
+modifications:
+  - id: ND-06
+    append_intent_lines: [105]
+    set_nested:
+      ros_node.responsibilities:
+        - 事前地図作成モードでの連続的な自己運動推定と3D地図作成（RQ-I006・RQ-I007）
+        - 地図作成中の odom→base_link TF の発行（このモードでのみ。RQ-I004：競合する推定器・TF発行者は同時に有効化しない）
+        - 原図（3D地図）の保存出力（IFD-35）
+        - LiDAR–IMU の取付変換（config_sensors.json の T_lidar_imu）は、人が gouda_monitor の /config で設定した値から TR-03 で生成して渡す（RQ-I081）。配布テンプレートの値は別機種のもので使わない。未設定の項目は中立要素（並進 0・回転なし・base_link の軸）で置き換え、その一覧を記録・表示する。質問も停止もしない
+  - id: IFD-26
+    append_intent_lines: [105]
+    append:
+      requirement_refs: [RQ-I081]
+    set_nested:
+      designed_interface.consumer_refs: [ND-13, ND-03]
+      designed_interface.unit: >-
+        m, rad。軸の向き（lidar_axis_mapping・imu_axis_mapping）はセンサ自身の x・y・z 軸が base_link のどちらを向くかの文（例「+x forward, +y left, +z up」。
+        向きは forward／back／left／right／up／down または 前／後／左／右／上／下）。姿勢は R = R_rpy × A（A の列がセンサ軸、roll・pitch・yaw は base_link で軸の向きの後に適用）。
+        左手系の指定は回転として使えないため保存時に警告し、使用時は base_link の軸で置き換えて記録する
+      designed_interface.time_semantics: >-
+        設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新。
+        GLIM へは地図作成開始（TR-03）の時点の値と設定版を渡して記録し、地図作成中の変更はその地図作成には反映しない。
+        取付値は人が gouda_monitor で設定し、未設定（UNKNOWN）を理由に質問・停止しない（RQ-I081）。実測値はコードにハードコードしない（RQ-I076）
+  - id: TR-03
+    append_intent_lines: [105]
+    set_nested:
+      transition.actions:
+        - GLIM（ND-06）を起動・有効化（glim_runner。実行設定は配布テンプレートから生成、dump 先は作業領域 mapping/{origin_id}/glim_dump）。失敗は DecisionEvent（mapping_start_failed）で monitor に表示し、遷移を拒否
+        - GLIM の T_lidar_imu を /config（IFD-26）の取付値から生成して実行設定に書き込み、値・未設定で中立要素にした項目・設定版を DecisionEvent（glim_extrinsic）に残す。未設定は遷移を拒否する理由にしない（RQ-I081）
+        - 記録の自動開始を要求（IFD-45 record/log/start_pre_mapping。契機は人の地図作成開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも地図作成の開始を止めない。失敗は DecisionEvent と monitor のポップアップ
+        - 設定状況を記録（地図作成前：RQ-I015。GLIM の topic／frame・設定ディレクトリを DecisionEvent に残す）
+      transition.guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）。GLIM が既に動いていない（前回の地図の保存中を含む）
+  - id: TR-04
+    set_nested:
+      transition.actions:
+        - 人の終了操作を受けた時点で手動走行へ遷移して応答する（GLIM の保存を待たない）。以降の処理は processing_state で表示する（DEC-010）
+        - GLIM に保存を要求（SIGINT）し dump の完了を待つ（processing_state=map_saving。待つ上限は PRM-37、未確定の間は上限なし。保存時間を記録）。完了した dump だけを原図として map_database へ登録（由来 ID・内容ハッシュ・版・設定：RQ-I008・IFD-29）。不完全なら登録せず作業領域に残す。GLIM の TF 発行は停止する
+        - 自動変換を Action（IFD-37）で非同期に起動し、processing_state=map_converting を IFD-01 で表示（DEC-010）。結果（成功・失敗）を DecisionEvent に記録。失敗しても原図は保持（RQ-I009）。変換専用モードは作らない
+        - 自動開始したログ記録を停止（IFD-46 record/log/stop_auto）。保存・登録の結果を記録した後に行う。手動開始の記録は停止しない（RQ-I017）
+        - 設定状況を記録（地図作成後：RQ-I015）
+  - id: PRM-37
+    set_nested:
+      parameter.purpose: >-
+        地図作成終了（TR-04）で GLIM に SIGINT を送ってから、dump（graph.txt・values.bin・submap）の書き出し完了を待つ上限。超過時は SIGTERM し dump は不完全として扱う（原図を公開しない）。
+        未確定の間は上限を設けずに完了まで待ち（値を補わない）、保存時間を DecisionEvent（mapping_stopped の save_duration_s）に記録する。待つ間も手動走行で、終了操作の応答は待たせない
+      parameter.measurement: 実車の地図サイズでの GLIM の保存時間の実測（mapping_stopped の save_duration_s を使う）
+  - id: PRM-54
+    set_nested:
+      parameter.value: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+      parameter.measurement: >-
+        不要。実車PC の ls -l /dev/serial/by-id/ の出力（FILE-VEHICLE-PC-IMU-BYID、2026-10-13）に合わせた。DEC-082 の回答はシリアル番号を確定し、STM32 の後の記号は「-」だったが、実機の名前は「_」
+    interpretation_append: >-
+      REV-032: 値を実機の一覧に合わせて修正。DEC-082 で人が確認したのは「シリアル番号 007137944B34 の by-id の名前を使う」ことで、記号 1 文字の違いは実機の出力を正とした（ドライバは存在しない名前を開けない）。

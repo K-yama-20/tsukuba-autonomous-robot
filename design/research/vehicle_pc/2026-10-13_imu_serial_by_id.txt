@@ -1,0 +1,3 @@
+# 実車PC（Parallels VM aya@10.211.55.4）の IMU シリアルデバイス名。取得 2026-10-13T18:14:28+09:00。コマンド: ls -l /dev/serial/by-id/
+total 0
+lrwxrwxrwx 1 root root 13 Oct 13 18:04 usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ../../ttyACM0

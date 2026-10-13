@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "4b1c72e7f67e403dc0e194752fe303256da8d2042e38862fd7bf122d6bbae134",
+  "model_entities_sha256": "415f6f7e2ebe36f66f07b352070314107d0cde99b3023313f52564db5244a80b",
   "parameters": [
     {
       "id": "PRM-54",
@@ -10,7 +10,7 @@
       "apply_timing": "launch",
       "value_type": "string",
       "value_state": "approved",
-      "value": "/dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00",
+      "value": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00",
       "unit": null
     },
     {

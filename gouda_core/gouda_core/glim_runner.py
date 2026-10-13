@@ -46,7 +46,7 @@ def _strip_comments(text: str) -> str:
     return text
 
 
-def build_runtime_config(settings: GlimSettings, out_dir: Path) -> dict:
+def build_runtime_config(settings: GlimSettings, out_dir: Path, t_lidar_imu=None) -> dict:
     """Copy the template config into out_dir with CPU modules, Gouda topics/frames and no viewer modules.
 
     Returns the effective config_ros values (for the record). Raises FileNotFoundError when the template is missing.
@@ -67,6 +67,11 @@ def build_runtime_config(settings: GlimSettings, out_dir: Path) -> dict:
               'imu_frame_id': settings.imu_frame_id, 'base_frame_id': settings.base_frame_id, 'odom_frame_id': settings.odom_frame_id,
               'map_frame_id': settings.map_frame_id, 'extension_modules': list(settings.extension_modules)})
     (out_dir / 'config_ros.json').write_text(json.dumps(ros, indent=2) + '\n')
+    if t_lidar_imu is not None:   # from /config (sensor_extrinsics; intent.md:105). The template value is another sensor's.
+        sens = json.loads(_strip_comments((out_dir / 'config_sensors.json').read_text()))
+        sens['sensors']['T_lidar_imu'] = list(t_lidar_imu)
+        (out_dir / 'config_sensors.json').write_text(json.dumps(sens, indent=2) + '\n')
+        r = dict(r, T_lidar_imu=list(t_lidar_imu))
     return r
 
 
@@ -81,6 +86,12 @@ class GlimRun:
     dump_ok: Optional[bool] = None
     submaps: int = 0
     note: str = ''
+    stop_requested_at: Optional[float] = None
+
+    @property
+    def save_duration_s(self) -> Optional[float]:
+        """SIGINT to process exit: the GLIM save time, recorded for the PRM-37 measurement."""
+        return None if self.stop_requested_at is None or self.stopped_at is None else self.stopped_at - self.stop_requested_at
 
 
 class GlimRunner:
@@ -95,11 +106,11 @@ class GlimRunner:
     def running(self) -> bool:
         return self.proc is not None and self.proc.poll() is None
 
-    def start(self, work_dir: Path, dump_dir: Path, log_file: Path) -> GlimRun:
+    def start(self, work_dir: Path, dump_dir: Path, log_file: Path, t_lidar_imu=None) -> GlimRun:
         if self.running:
-            raise RuntimeError('GLIM is already running')
+            raise RuntimeError('GLIM is already running (a previous map may still be saving)')
         cfg = Path(work_dir) / 'glim_config'
-        build_runtime_config(self.settings, cfg)
+        build_runtime_config(self.settings, cfg, t_lidar_imu)
         Path(dump_dir).parent.mkdir(parents=True, exist_ok=True)
         Path(log_file).parent.mkdir(parents=True, exist_ok=True)
         cmd = [self.settings.executable, '--ros-args', '-p', f'config_path:={cfg}', '-p', f'dump_path:={dump_dir}']
@@ -108,17 +119,19 @@ class GlimRunner:
         self.run = GlimRun(config_dir=cfg, dump_dir=Path(dump_dir), pid=self.proc.pid, started_at=self.clock())
         return self.run
 
-    def stop(self, wait_s: float) -> GlimRun:
-        """SIGINT the process group and wait up to wait_s for exit and the dump files. Never raises for a failed save:
-        the outcome is in GlimRun.dump_ok / note (RQ-I009: the source map is only published when complete)."""
+    def stop(self, wait_s: Optional[float]) -> GlimRun:
+        """SIGINT the process group and wait for exit and the dump files: up to wait_s (PRM-37), or without an upper limit
+        when wait_s is None (PRM-37 unresolved: no limit is invented; the save time is recorded for the measurement).
+        Never raises for a failed save: the outcome is in GlimRun.dump_ok / note (RQ-I009: published only when complete)."""
         r = self.run
         if r is None:
             raise RuntimeError('GLIM was not started')
+        r.stop_requested_at = self.clock()
         if self.proc is not None and self.proc.poll() is None:
             try: os.killpg(os.getpgid(self.proc.pid), signal.SIGINT)
             except ProcessLookupError: pass
-            deadline = self.clock() + wait_s
-            while self.proc.poll() is None and self.clock() < deadline:
+            deadline = None if wait_s is None else self.clock() + wait_s
+            while self.proc.poll() is None and (deadline is None or self.clock() < deadline):
                 time.sleep(0.2)
             if self.proc.poll() is None:
                 try: os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)

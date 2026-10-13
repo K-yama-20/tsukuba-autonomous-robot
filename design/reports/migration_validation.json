@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5905,
+    "executed_checks": 5914,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -71,6 +71,11 @@
       "intent non-append edit recorded with decision AR-007",
       "intent added line AR-007:27 has requirement entity",
       "intent added line AR-007:95 has requirement entity",
+      "intent previous copy archived AR-008",
+      "intent reproduced from archived copy plus recorded lines AR-008",
+      "intent observed added line count recorded AR-008",
+      "intent instruction expectation compared AR-008",
+      "intent added line AR-008:105 has requirement entity",
       "unchanged design/docs/Gouda_architecture_detail.xlsx",
       "unchanged design/docs/SystemArchitecture.drawio",
       "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
@@ -155,7 +160,7 @@
       "model file hash FILE-CLAUDE-MD-ORIGINAL",
       "model file hash (archived) FILE-INTENT-V6",
       "model file hash FILE-VEHICLE-PC-GLIM",
-      "model file hash FILE-INTENT-V7",
+      "model file hash (archived) FILE-INTENT-V7",
       "model file hash FILE-VEHICLE-PC-STAGE51",
       "model file hash FILE-GUI-DESIGN-RULES",
       "model file hash FILE-VEHICLE-PC-STAGE52",
@@ -165,6 +170,9 @@
       "model file hash FILE-VEHICLE-PC-STAGE54",
       "model file hash FILE-VEHICLE-PC-STAGE55",
       "model file hash FILE-PANDAR-CONSOLE-XT32",
+      "model file hash FILE-INTENT-V8",
+      "model file hash FILE-VEHICLE-PC-IMU-BYID",
+      "model file hash FILE-VEHICLE-PC-MM-CRASH",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -2436,6 +2444,7 @@
       "intent verbatim (its version) SRC-I013-V6",
       "intent verbatim (its version) SRC-I027-V7",
       "intent verbatim (its version) SRC-I095-V7",
+      "intent verbatim (its version) SRC-I105-V8",
       "row disposition inventory",
       "row disposition ('モジュール定義', 1)",
       "row disposition ('モジュール定義', 2)",
@@ -7414,7 +7423,7 @@
     ]
   },
   "design_maturity": {
-    "未設計": 403,
+    "未設計": 404,
     "案": 422,
     "承認済み": 15
   },
@@ -7718,6 +7727,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-032",
+      "date": "2026-10-13",
+      "basis_refs": 4,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 6,
+      "added_source_ids": 1,
+      "added_file_ids": 3,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7838,14 +7857,32 @@
         27,
         95
       ]
+    },
+    {
+      "id": "AR-008",
+      "file_ref": "FILE-INTENT-V8",
+      "previous_file_ref": "FILE-INTENT-V7",
+      "sha256": "09732d2f5997089781a3e602f9d4e6e3849f112404afb74b6ae21faa4e95a118",
+      "previous_sha256": "f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062",
+      "archived_previous_copy": "design/baselines/intent_history/intent_v7_f69dd98b9529.md",
+      "instruction_expected_added_lines": 1,
+      "observed_added_lines": 1,
+      "decision_ref": "DEC-087",
+      "requirement_refs": [
+        "RQ-I081"
+      ],
+      "note": "人の編集（リポジトリ側の design/intent.md）。チャットで「instent.mdの末尾に要求を追記した」と言及。機械比較で末尾 1 行（105 行）の追加のみ（104 行は末尾改行の付加だけで文は同一）。 内容は同日のチャットの指示（DEC-087）と同じ趣旨で、主語が「自分」から「人間」に、「私に」が「人間に」になっている。",
+      "added_line_numbers": [
+        105
+      ]
     }
   ],
   "decisions": {
-    "count": 84,
+    "count": 85,
     "by_status": {
-      "answered": 41,
-      "recorded": 33,
-      "pending": 10
+      "answered": 42,
+      "recorded": 34,
+      "pending": 9
     },
     "pending": [
       "DEC-021",
@@ -7856,8 +7893,7 @@
       "DEC-078",
       "DEC-079",
       "DEC-084",
-      "DEC-085",
-      "DEC-086"
+      "DEC-085"
     ]
   },
   "vehicle_verification": {
@@ -7865,8 +7901,8 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 840,
-    "source_count": 497,
+    "entity_count": 841,
+    "source_count": 498,
     "id_map_count": 202,
     "legacy_198_count": 198,
     "unbound_edges": 1,
