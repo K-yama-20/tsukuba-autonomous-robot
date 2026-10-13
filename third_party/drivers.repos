@@ -1,0 +1,15 @@
+# Sensor drivers of the current implementation (vcstool format). The single place of the pinned commits:
+# read by setup.sh (and update.sh through it) and by gouda_core/tools/install_sensor_drivers.sh.
+#   ND-14 hesai_ros_driver        XT-32 (DEC-080). Submodule HesaiLidar_SDK_2.0 at 9d5dc4f comes with this commit.
+#   ND-15 adi_imu_tr_driver_ros2  ADIS16607-2 (DEC-080). Submodule lib comes with this commit.
+# The sources are used unmodified (DEC-075). Verified on the development VM (design/research/upstream_sensors/README.md).
+# third_party/external.repos is the list of the legacy implementation (Mission Control) and is not used by setup.sh.
+repositories:
+  HesaiLidar_ROS_2.0:
+    type: git
+    url: https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+    version: e7e112f0809f0eed5e3c81c55a1a0376474db234
+  ADI_IMU_TR_Driver_ROS2:
+    type: git
+    url: https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2.git
+    version: 742b7babec7e7a20937d4e8be0df77a771a1294a
