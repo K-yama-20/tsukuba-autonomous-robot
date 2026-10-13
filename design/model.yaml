@@ -34236,7 +34236,7 @@ entities:
       - RQ-I033
       - RQ-I044
       - RQ-I070
-    revision_ref: REV-024
+    revision_ref: REV-034
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34254,6 +34254,10 @@ entities:
           transient_local の状態を取得する（DEC-014）
         - 自身の設定状況（UI の周期・待ち時間 PRM-27〜32、/config の版）を起動時と /config 保存時に 
           DecisionEvent（event=settings）で記録する（DEC-073、RQ-I015）。中継ノードとして parameter を宣言する（ブラウザ側 UI は宣言しない）
+        - 点群（IFD-21）と IMU（IFD-22）の受信状況（状態・周期・経過・header.stamp 
+          と受信時刻の差）を表示する。中身は展開せず到着だけを数える。表示のみで停止条件にしない（DEC-088）。しきい値は PRM-57・PRM-58
+        - 地図作成開始ボタンの時点でどちらかのセンサーが未受信または途絶なら、ポップアップと 
+          DecisionEvent（mapping_start_sensor_warning）で警告する。開始は止めない（RQ-I011、DEC-088）
       absorbs_module_refs:
         - M-002
         - M-003
@@ -34279,6 +34283,8 @@ entities:
         - IFD-27
         - IFD-33
         - IFD-38
+        - IFD-21
+        - IFD-22
       serves_refs: []
       calls_refs:
         - IFD-02
@@ -34999,7 +35005,7 @@ entities:
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-031
+    revision_ref: REV-034
     ros_node:
       node_name: hesai_ros_driver
       responsibilities:
@@ -35021,7 +35027,8 @@ entities:
       serves_refs: []
       calls_refs: []
       owned_state_refs: []
-      placement_rationale: 第三者ドライバ。replay 時は同 topic の実 driver を停止（M-019 T21 の方針）。
+      placement_rationale: 第三者ドライバ（上流は改変しない）。gouda_sensor_supervisor（ND-18）が子プロセスとして起動し、LiDAR 用 I/F（PC 側アドレス 
+        PRM-51 を持つ I/F）が再登録されたときだけ作り直す（DEC-088）。 replay 時は同 topic の実 driver を停止（M-019 T21 の方針）。
   - id: ND-15
     kind: ros_node
     name: adi_imu_driver（ADIS16607-2、外部）
@@ -35039,7 +35046,7 @@ entities:
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-033
+    revision_ref: REV-034
     ros_node:
       node_name: adi_imu_driver
       responsibilities:
@@ -35047,8 +35054,8 @@ entities:
         - デバイスは by-id の名前だけを使う（PRM-54、DEC-081・DEC-082）。発行周期は PRM-56。frame は imu_link（IFD-22）、topic は 
           imu/data_raw を sensors/imu/data へ remap
         - TF を発行しない（publish_tf=false。ドライバの既定は true で、TF の発行者は ND-13 だけ：RQ-I004）
-        - ドライバの停止・再起動で IMU 本体が応答しなくなる既知の現象（docs/stage3_sensor_slam.md）があるため、モードの切替で停止・再起動せず、gouda.sh 
-          の起動から終了まで動かし続ける
+        - ドライバの停止・再起動で IMU 本体が応答しなくなる既知の現象があるため、モードの切替で停止・再起動しない。作り直すのは IMU の USB 
+          が再接続されたとき（新しい列挙）だけ（ND-18、DEC-088）
       absorbs_module_refs:
         - M-020
       active_in_mode_refs:
@@ -35063,7 +35070,8 @@ entities:
       serves_refs: []
       calls_refs: []
       owned_state_refs: []
-      placement_rationale: 第三者ドライバ。
+      placement_rationale: 第三者ドライバ（上流は改変しない）。gouda_sensor_supervisor（ND-18）が子プロセスとして起動し、by-id の名前の先の USB 
+        列挙が変わったときだけ作り直す（DEC-088）。
   - id: ND-16
     kind: ros_node
     name: RViz（可視化、外部）
@@ -36465,7 +36473,7 @@ entities:
       - RQ-I001
       - RQ-I006
       - RQ-I012
-    revision_ref: REV-031
+    revision_ref: REV-034
     designed_interface:
       transport: topic
       name: sensors/xt32/points
@@ -36482,6 +36490,7 @@ entities:
         - ND-08
         - ND-09
         - ND-16
+        - ND-02
       unit: m
       frame: xt32_link（LiDAR 固有の座標方向。base_link への変換は IFD-20 の静的TF）
       time_semantics: PRM-55=1（DEC-083）のとき、header.stamp はその frame の最初の packet の PC 受信時刻（Hesai SDK が 
@@ -36522,7 +36531,7 @@ entities:
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-031
+    revision_ref: REV-034
     designed_interface:
       transport: topic
       name: sensors/imu/data
@@ -36536,6 +36545,7 @@ entities:
       consumer_refs:
         - ND-06
         - ND-08
+        - ND-02
       unit: m/s², rad/s（SI）
       frame: imu_link
       time_semantics: header.stamp は adi_imu_driver が publish 時に付ける ROS 時刻（this->now()。use_sim_time なしでは PC 
@@ -36822,7 +36832,7 @@ entities:
       - RQ-I029
       - RQ-I030
       - RQ-I032
-    revision_ref: REV-020
+    revision_ref: REV-034
     designed_interface:
       transport: topic
       name: log/decision
@@ -36836,6 +36846,7 @@ entities:
         - ND-11
         - ND-12
         - ND-02
+        - ND-18
       consumer_refs:
         - ND-04
       unit:
@@ -42143,6 +42154,241 @@ entities:
     sensitivity:
       - intent
     revision_ref: REV-032
+  - id: ND-18
+    kind: ros_node
+    name: gouda_sensor_supervisor（センサードライバの起動と、デバイス再接続時の作り直し）
+    source_refs:
+      - SRC-I007
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+      - RQ-I076
+    revision_ref: REV-034
+    ros_node:
+      node_name: gouda_sensor_supervisor
+      responsibilities:
+        - センサードライバ ND-14（XT-32）・ND-15（IMU）を子プロセスとして起動する。設定は 
+          generated/params（PRM-50〜56）から作り、未確定・未導入なら起動せず理由を記録する
+        - デバイスを名前で見張る。IMU は by-id の名前（PRM-54）、XT-32 は PC 側アドレス PRM-51 を持つ I/F。同一性（USB 
+          の列挙番号・ifindex）が変わったとき（再接続）だけ、そのドライバを止めて起動し直す（DEC-088）
+        - 同一性が同じならドライバを再起動しない（ドライバが自分で終了しても再起動しない。IMU は再接続なしの再起動で応答しなくなるため）。デバイスが消えたらドライバを止め、再び現れたら起動する
+        - 見張りはイベント駆動（udevadm monitor、ip monitor）で周期の値を持たない。ドライバの停止の各段の待ちは PRM-59（未確定の間は上限なし）
+        - 判断（デバイスの出現・消失・再接続、ドライバの起動・作り直し・停止・終了、前回と同じ IMU の列挙を開き直すこと）を DecisionEvent（IFD-28）で記録する
+        - 上流のドライバは改変しない（DEC-075 と同じ方針）
+      absorbs_module_refs: []
+      active_in_mode_refs:
+        - MODE-MANUAL
+        - MODE-MAP
+        - MODE-AUTO
+        - MODE-PAUSE
+      lifecycle: plain_node
+      process_group: sensors
+      publishes_refs:
+        - IFD-28
+      subscribes_refs: []
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs:
+        - SO-12
+      placement_rationale: gouda.sh（GOUDA_SENSORS=1）の起動から終了まで動き、モードの切替ではドライバを止めない。ドライバを launch の Node 
+        ではなく子プロセスにしたのは、デバイスごとに 1 つだけを作り直すため（launch は個別の再作成をしない）。 設計は docs/sensor_supervision.md。
+  - id: SO-12
+    kind: state_owner
+    name: gouda_sensor_supervisor の保持状態
+    source_refs:
+      - SRC-I007
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+    revision_ref: REV-034
+    state_owner:
+      owner_ref: ND-18
+      state_items:
+        - name: device_identities
+          description: 各ドライバを起動したときのデバイスの同一性（IMU は tty 名と USB のバス・デバイス番号、XT-32 は I/F 名と ifindex）と、最後に観測した同一性
+          persistence: persisted
+          restore_scope: <data_root>/run/sensor_devices.json に保存し、次のセッションでは「前回と同じ IMU 
+            の列挙を開き直す」の判定にだけ使う（ドライバの起動の可否は変えない）
+        - name: driver_processes
+          description: 各ドライバの子プロセスと状態（起動中・停止・自分で終了）
+          persistence: volatile
+          restore_scope: 起動時はデバイスの有無から決める
+  - id: PRM-57
+    kind: parameter
+    name: monitor の点群受信の STALE しきい値
+    source_refs:
+      - SRC-I007
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+      - RQ-I076
+    revision_ref: REV-034
+    parameter:
+      owner_ref: ND-02
+      value:
+      value_state: unresolved
+      unit: s
+      stage: 地図作成と変換
+      purpose: 最後の点群の受信からこの時間を超えたら monitor が STALE と表示し、地図作成開始時に警告する（表示のみ。停止条件にしない）
+      measurement: 人の判断（DEC-089。ソフトウェア設定値で実測対象ではない）
+      decision_deadline: 地図作成の実機試験の前（未確定でも未受信の警告は動く）
+      software_trial_value: 1.0
+      software_trial_basis: XT-32 の 10 周期（Pandar Console の Spin Rate 600 rpm＝10 Hz）。VM で観測した最大の間隔 0.70 s 
+        より長い。ソフト試験用
+      declaration: ros_parameter
+      target: gouda_monitor
+      param_key: points_stale_s
+      value_type: double
+      apply_timing: launch
+  - id: PRM-58
+    kind: parameter
+    name: monitor の IMU 受信の STALE しきい値
+    source_refs:
+      - SRC-I007
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+      - RQ-I076
+    revision_ref: REV-034
+    parameter:
+      owner_ref: ND-02
+      value:
+      value_state: unresolved
+      unit: s
+      stage: 地図作成と変換
+      purpose: 最後の IMU の受信からこの時間を超えたら monitor が STALE と表示し、地図作成開始時に警告する（表示のみ。停止条件にしない）
+      measurement: 人の判断（DEC-089。ソフトウェア設定値で実測対象ではない）
+      decision_deadline: 地図作成の実機試験の前（未確定でも未受信の警告は動く）
+      software_trial_value: 1.0
+      software_trial_basis: IMU の 100 周期（PRM-56 の仮値 100 Hz）。VM で観測した最大の間隔 0.30 s より長い。ソフト試験用
+      declaration: ros_parameter
+      target: gouda_monitor
+      param_key: imu_stale_s
+      value_type: double
+      apply_timing: launch
+  - id: PRM-59
+    kind: parameter
+    name: センサードライバ停止の各段の待ち時間
+    source_refs:
+      - SRC-I007
+      - SRC-I103-V4
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - Q-05
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+      - RQ-I076
+    revision_ref: REV-034
+    parameter:
+      owner_ref: ND-18
+      value:
+      value_state: unresolved
+      unit: s
+      stage: 地図作成と変換
+      purpose: supervisor がドライバを止めるとき SIGINT・SIGTERM の後に待つ時間。超えたら次の信号を送る。未確定の間は上限なしで待つ
+      measurement: 人の判断（DEC-089。ソフトウェア設定値）
+      decision_deadline: 地図作成の実機試験の前
+      software_trial_value: 5.0
+      software_trial_basis: ROS 2 launch がノードの停止で SIGINT の後に待つ既定と同じ。ソフト試験用
+      declaration: ros_parameter
+      target: gouda_sensor_supervisor
+      param_key: driver_stop_wait_s
+      value_type: double
+      apply_timing: launch
+  - id: TS-31
+    kind: test
+    name: センサーの受信表示と地図作成開始時の警告
+    source_refs:
+      - SRC-I007
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-02
+      - IFD-21
+      - IFD-22
+      - TR-03
+      - PRM-57
+      - PRM-58
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+    revision_ref: REV-034
+    test:
+      execution_status: 未実行
+      stage: 地図作成と変換
+      procedure: monitor に点群と IMU を与える／止める。しきい値ありとなしの 2 条件。どちらかが届いていない状態で地図作成開始ボタンを押す。
+      observe: SENSORS 表の状態・周期・経過、ポップアップ、DecisionEvent（mapping_start_sensor_warning）、地図作成の開始の可否。
+      expected: 受信中は RECEIVED と周期を表示。未受信は常に、途絶はしきい値がある場合に警告する。警告しても地図作成は開始される（追加の承認を挟まない）。
+  - id: TS-32
+    kind: test
+    name: デバイス再接続時だけのドライバ作り直し
+    source_refs:
+      - SRC-I007
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-18
+      - ND-14
+      - ND-15
+      - SO-12
+      - PRM-54
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+    revision_ref: REV-034
+    test:
+      execution_status: 未実行
+      stage: 地図作成と変換
+      procedure: supervisor を起動し、IMU の USB を抜き差しする。USB-LAN を抜き差しする。デバイスはそのままでドライバを終了させる。デバイスなしで起動してから接続する。
+      observe: DecisionEvent（device_reconnected、driver_restarted、driver_exited、driver_started）と、点群・IMU の受信の再開。
+      expected: 再接続のときだけ、そのデバイスのドライバだけが作り直され受信が再開する。同じデバイスのままでは再起動しない。デバイスが現れたら起動する。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -51605,6 +51851,55 @@ decisions:
       DecisionEvent（glim_extrinsic）と monitor に示す。 gouda.sh の問題は VM の launch ログで特定（空の serial_port で launch 
       引数が不正。工程5-5 で AI が入れた不具合）。
     disposition: answered
+  - id: DEC-088
+    kind: approval
+    status: answered
+    asked_on: '2026-10-13'
+    answered_on: '2026-10-13'
+    channel: chat
+    question: 考察（VM での LiDAR・IMU の途絶）で示したソフトの改善案のうち、採用するもの
+    answer_verbatim: "次の二点の改良を入れて。\n\n* monitor に点群と IMU の受信状況を出し、地図作成の開始時にデータがなければ警告する。\n* デバイス名を見張り、再接続を検知したらそのドライバだけ作り直す。IMU
+      は再起動だけでは固まるので、作り直すのは再接続のときだけにします。\n\n\n各種文書に記録することも忘れずに。\n"
+    affected_refs:
+      - ND-02
+      - ND-14
+      - ND-15
+      - IFD-21
+      - IFD-22
+      - TR-03
+    resulting_refs:
+      - ND-18
+      - SO-12
+      - PRM-57
+      - PRM-58
+      - PRM-59
+      - TS-31
+      - TS-32
+    note: 'AI が示した 3 案のうち 2 案を採用（時計の飛びの検知は採用されていない）。直前の人の問い「usbはtty...ではなく、デバイス名（STMicro...が含まれているもの）でサーチするように指示したよね？
+      LiDARが止まってしまう原因がソフト側にあったりするかな？VMだからエラーが起きやすいのでしょうか。考察してください。」への AI の考察: IMU は by-id の名前で開いていたが、探すのは起動時だけで
+      再接続後に探し直さなかった。LiDAR の停止は Mac のスリープで VM が止まった時刻と一致し、ソフトが LiDAR を止めた形跡はない（同じドライバが 22:17 に自動で受信を再開）。 VM 固有の要因（スリープ、USB
+      の受け渡しの切断、時計の飛び、パケット欠落）を観測。構成の選択肢（専用 PC の Ubuntu を推奨）は人の判断に委ねた（回答なし）。'
+    disposition: answered
+  - id: DEC-089
+    kind: question
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on:
+    channel: chat
+    question: 【承認】センサー受信表示と supervisor のソフトウェア設定値（実車の測定値ではない。DEC-073 の UI の値と同じ扱い）。 PRM-57 点群の STALE しきい値 1.0 
+      s、PRM-58 IMU の STALE しきい値 1.0 s、PRM-59 ドライバ停止の各段の待ち 5.0 s でよいか。
+    answer_verbatim: ''
+    affected_refs:
+      - PRM-57
+      - PRM-58
+      - PRM-59
+      - ND-02
+      - ND-18
+    resulting_refs: []
+    note: '推奨値の根拠: PRM-57 は XT-32 の 10 周期（Pandar Console の Spin Rate 600 rpm）で、VM の起動直後に観測した最大の間隔 0.70 s より長い。PRM-58
+      は IMU 100 周期（PRM-56 の仮値 100 Hz）で、 観測した最大の間隔 0.30 s より長い。PRM-59 は ROS 2 launch がノードの停止で待つ既定と同じ。 決まらない場合: monitor
+      は未受信だけを警告し、途絶（STALE）は判定しない。supervisor はドライバの停止を上限なしで待つ。他の作業は止まらない。'
+    disposition: open_human
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -52748,4 +53043,33 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-GLIM-START
+    removed_entity_ids: []
+  - id: REV-034
+    date: '2026-10-13'
+    summary: 人の指示 DEC-088 を原文で記録し反映。(1) gouda_monitor（ND-02）が点群（IFD-21）と 
+      IMU（IFD-22）の受信状況を表示し、地図作成開始ボタンの時点でデータがなければ警告する （ポップアップと DecisionEvent。開始は止めない）。(2) 
+      gouda_sensor_supervisor（ND-18、新規）がセンサードライバ ND-14・ND-15 を子プロセスとして起動し、デバイスを名前で見張り、 再接続（新しい USB 列挙・I/F 
+      の再登録）を検知したときだけそのドライバを作り直す。同じデバイスのままでは再起動しない（IMU は再接続なしの再起動で応答しなくなるため）。 設計は 
+      docs/sensor_supervision.md。しきい値・停止待ち PRM-57〜59 は未確定（仮値あり、DEC-089）。試験 TS-31・TS-32。
+    basis_refs:
+      - DEC-088
+      - DEC-081
+      - DEC-075
+    added_entity_ids:
+      - ND-18
+      - SO-12
+      - PRM-57
+      - PRM-58
+      - PRM-59
+      - TS-31
+      - TS-32
+    modified_entity_ids:
+      - ND-02
+      - ND-14
+      - ND-15
+      - IFD-21
+      - IFD-22
+      - IFD-28
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

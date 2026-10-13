@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "e0e1ea9666b5913709feec46d0db1cf9dd2737562c96b13fa9d56f9ed7f29d90",
+  "model_entities_sha256": "152572f871f258c36bf87de8ef54cfc2d31be996e2890d72decf5d1d574a91ce",
   "parameters": [
     {
       "id": "PRM-54",
@@ -410,6 +410,30 @@
       "unit": "s"
     },
     {
+      "id": "PRM-57",
+      "file": "gouda_monitor.yaml",
+      "key": "points_stale_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-58",
+      "file": "gouda_monitor.yaml",
+      "key": "imu_stale_s",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
       "id": "PRM-08",
       "file": "gouda_motion_controller.yaml",
       "key": "cmd_vel_timeout_s",
@@ -462,6 +486,18 @@
       "file": "gouda_motion_controller.yaml",
       "key": "motion_hold_timeout_s",
       "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-59",
+      "file": "gouda_sensor_supervisor.yaml",
+      "key": "driver_stop_wait_s",
+      "target": "gouda_sensor_supervisor",
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",

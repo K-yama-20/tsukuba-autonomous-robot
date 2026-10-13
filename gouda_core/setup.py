@@ -14,4 +14,5 @@ setup(name='gouda_core', version='0.1.0', packages=['gouda_core'],
                                         'gouda_map_creator = gouda_core.map_creator_node:main',
                                         'gouda_motion_controller = gouda_core.motion_controller_node:main',
                                         'vehicle_bridge = gouda_core.vehicle_bridge_node:main',
-                                        'esp32_sim = gouda_core.esp32_sim_pty:main']})
+                                        'esp32_sim = gouda_core.esp32_sim_pty:main',
+                                        'gouda_sensor_supervisor = gouda_core.sensor_supervisor_node:main']})
