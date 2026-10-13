@@ -4,7 +4,7 @@ Design: design/model.yaml ND-14 / ND-15, IFD-21 / IFD-22, PRM-50..56 (REV-030, R
 - Hesai: the driver reads one YAML file (`config_path`). It is built from the UPSTREAM template (installed
   share/hesai_ros_driver/config/config.yaml) with only the Gouda keys replaced: device/host IP, UDP/PTC port, timestamp type
   (from design/generated/params/hesai_ros_driver.yaml, trial file only in stub tests), source_type = real-time, and the frame /
-  topic of IFD-21. Every other template value is kept as it is (no silent changes).
+  topic of IFD-21, and an empty multicast address (unicast only). Every other template value is kept as it is (no silent changes).
 - IMU: ROS parameters from design/generated/params/adi_imu_driver.yaml plus frame_id (IFD-22) and publish_tf=false (TF has a
   single owner, ND-13: RQ-I004). The driver's own default rate must not be used silently: without `rate` the IMU is not started.
 A missing value is reported, never filled in (RQ-I076, CLAUDE.md 1.5).
@@ -49,6 +49,9 @@ def hesai_config(template: dict, params: dict) -> tuple:
     drv['source_type'] = HESAI_SOURCE_REALTIME
     for k in ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port'):
         if params.get(k) is not None: udp[k] = params[k]
+    # The template's 255.255.255.255 makes the SDK log "Multicast IP error, set correct multicast ip address or keep it empty"
+    # (VM run 2026-10-13). Gouda receives unicast (PRM-51), so the SDK's own advice is followed: empty.
+    udp['multicast_ip_address'] = ''
     if params.get('use_timestamp_type') is not None: drv['use_timestamp_type'] = int(params['use_timestamp_type'])
     ros['ros_frame_id'] = LIDAR_FRAME
     ros['ros_send_point_cloud_topic'] = LIDAR_TOPIC
