@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 20
-pending_decision_count: 13
+pending_decision_count: 14
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -950,4 +950,11 @@ pending_decisions:
     status: pending
     question: 【実測】IMU と LiDAR の間の傾き（G-MAP-TILT）。水平な床で車体を 30 秒ほど止め、記録タブの Record で rosbag を記録する。 AI が、IMU 
       の加速度の平均（重力の向き、IMU の座標）と、LiDAR の点群の床の面の向き（LiDAR の座標）から、二つの座標の間の傾き（前後・左右）を求める。
+    resulting_refs: []
+  - id: DEC-107
+    kind: approval
+    status: pending
+    question: '【承認】地面の推定の修正（design/proposals/ground_estimation_plan.md）。推奨: 経路を手がかりにした、submap ごとの地面。 submap ごとに判定し、経路の真下の地面（センサーの高さから
+      H を引いた所。H は正本の値の周りの窓の中で点の山として求める）を種にして、 傾きの上限で外へ広げる。予想より大きく下の点（床の反射・別の通過の層）は地面の候補にしない。新しい設定 3 つ（暫定値の案: 3 m、0.4
+      m、0.3 m）。 代替: 格子ごとに点の多い低い面（屋外の 2 層には効かない）。PRM-05 が未確定の間の H の決め方も決めていただく。'
     resulting_refs: []

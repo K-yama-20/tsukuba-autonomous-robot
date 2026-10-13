@@ -182,3 +182,20 @@
 - 出発点に戻ったので、終点のずれ（水平 12.7 m、高さ 6.4 m）は誤差と確定。
 
 未回答: 地面の推定の修正の進め方（G-FLOOR-REFLECTION の候補 a・b）。
+
+## 11. スリープの抑止の計画と地面の推定の修正計画（REV-049。提案のみ、実装なし）
+
+人の指示（DEC-106 に原文）: 計画を述べよ。個別に許可を出すので、許可なしで実装してはならない。
+
+- `design/proposals/sleep_inhibit_plan.md`（DEC-104）。
+  - 推奨: gouda.sh start が systemd-inhibit（sleep・idle・handle-lid-switch、block）を取ったまま launch を動かす。取れなければ起動は続け、表示する。
+  - 事実（VM、FILE-GROUND-PLAN-CHECK の (3)）: 抑止は画面の前のセッションだけが取れ、SSH からは拒否。蓋の既定はサスペンド。電池では 900 s の操作なしで自動サスペンド。
+  - 抑止で防げないもの: 蓋の開閉での BIOS・ハードウェアの処理。リンク断との関係は journal の確認と蓋の試験で確かめる。
+- `design/proposals/ground_estimation_plan.md`（DEC-107）。
+  - 推奨: 経路を手がかりにした、submap ごとの地面（種は経路の真下、正本の H の周りの窓で求める。外へは予想の高さの帯の中だけで広げる）。
+  - 分析（FILE-GROUND-PLAN-CHECK の (1)(2)）:
+    - submap ごとの「最も多い高さ」をそのまま使う案は不安定（0.33〜1.18 m）。
+    - 想定の高さ 1.2 ±0.4 m の窓で探すと、屋外は鋭い山（47 %）で、下の外れた点は中央値 0.6 %。
+    - 廊下は地図の傾きでばらつく（0.82〜1.19 m）。経路から離れた所は局所の面が要る。
+- 分析のスクリプト: `research/vehicle_pc/2026-10-14_field_mapping_scripts/sensor_height.py`・`sensor_height2.py`。
+- 実装・設定の変更はしていない。

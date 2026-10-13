@@ -1,0 +1,21 @@
+# 2026-10-14 地面の推定の修正計画（design/proposals/ground_estimation_plan.md）の前に行った分析（AI。原文の出力）。原図は VM の 2 回目（20261014_054556_fbd0a733）と x86 の廊下・屋外。scratch から参照し、元のファイルは変えていない。
+# スリープの抑止の計画（design/proposals/sleep_inhibit_plan.md）の前に VM で確かめた、polkit の既定と SSH からの抑止の可否も付ける。
+
+===== (1) submap ごとに、frame の位置から 1.5〜6 m の点の、センサーの下 0.3〜3.0 m で最も多い高さ（窓なし）
+VM corridor (2nd): submaps used 3; sensor height above the dominant ground: median 0.98 m, p10 0.94, p90 1.06, min 0.93, max 1.08; share of points >0.3 m below that ground (1.5..6 m around the path): median 36.4 %, p90 40.8 %
+x86 corridor: submaps used 4; sensor height above the dominant ground: median 0.85 m, p10 0.55, p90 1.09, min 0.43, max 1.18; share of points >0.3 m below that ground (1.5..6 m around the path): median 33.4 %, p90 59.8 %
+x86 outdoor: submaps used 94; sensor height above the dominant ground: median 0.48 m, p10 0.33, p90 0.93, min 0.33, max 1.08; share of points >0.3 m below that ground (1.5..6 m around the path): median 4.3 %, p90 40.8 %
+
+===== (2) 想定の高さ 1.2 m の ±0.4 m の窓の中だけで探す（frame から 1〜8 m の点）
+VM corridor (2nd) (search 1.20 +- 0.40 m): submaps 3; ground below the sensor: median 1.07 m, p10 0.99, p90 1.19; points within +-0.075 m of the peak: median 25 % of the window; points >0.3 m below the ground (1..8 m from the path): median 12.1 %, p90 14.7 %
+x86 corridor (search 1.20 +- 0.40 m): submaps 4; ground below the sensor: median 0.97 m, p10 0.82, p90 1.19; points within +-0.075 m of the peak: median 24 % of the window; points >0.3 m below the ground (1..8 m from the path): median 9.8 %, p90 15.4 %
+x86 outdoor (search 1.20 +- 0.40 m): submaps 79; ground below the sensor: median 0.87 m, p10 0.82, p90 1.02; points within +-0.075 m of the peak: median 47 % of the window; points >0.3 m below the ground (1..8 m from the path): median 0.6 %, p90 7.2 %
+
+===== (3) スリープの抑止（VM、systemd 255、SSH のセッション）
+polkit inhibit-block-sleep {'allow_any': 'no', 'allow_inactive': 'yes', 'allow_active': 'yes'}
+polkit inhibit-block-idle {'allow_any': 'yes', 'allow_inactive': 'yes', 'allow_active': 'yes'}
+polkit inhibit-handle-lid-switch {'allow_any': 'no', 'allow_inactive': 'yes', 'allow_active': 'yes'}
+logind: HandleLid* not set (systemd defaults)
+Failed to inhibit: Access denied
+systemd-inhibit from SSH: exit=1
+GNOME sleep-inactive-ac-type 'nothing', battery-type 'suspend', battery-timeout 900

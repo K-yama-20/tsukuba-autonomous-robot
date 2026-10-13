@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5944,
+    "executed_checks": 5945,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -202,6 +202,7 @@
       "model file hash FILE-X86-OUTDOOR-HEIGHT",
       "model file hash FILE-X86-LIDAR-DROPOUT",
       "model file hash FILE-VEHICLE-PC-DUP-START-GUARD",
+      "model file hash FILE-GROUND-PLAN-CHECK",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -8001,6 +8002,16 @@
       "added_source_ids": 0,
       "added_file_ids": 2,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-049",
+      "date": "2026-10-14",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -8160,11 +8171,11 @@
     }
   ],
   "decisions": {
-    "count": 103,
+    "count": 105,
     "by_status": {
       "answered": 52,
-      "recorded": 38,
-      "pending": 13
+      "recorded": 39,
+      "pending": 14
     },
     "pending": [
       "DEC-021",
@@ -8179,7 +8190,8 @@
       "DEC-100",
       "DEC-101",
       "DEC-104",
-      "DEC-105"
+      "DEC-105",
+      "DEC-107"
     ]
   },
   "vehicle_verification": {

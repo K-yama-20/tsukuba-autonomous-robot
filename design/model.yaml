@@ -236,6 +236,10 @@ files:
     path: design/research/vehicle_pc/2026-10-14_dup_start_guard_vm_test.txt
     sha256: a6e60d24ac14b070860455ffff8b26a5ab319fdae687d2f55240698071f4e31b
     role: evidence
+  - id: FILE-GROUND-PLAN-CHECK
+    path: design/research/vehicle_pc/2026-10-14_ground_plan_check.txt
+    sha256: 96fbe70eca9471a698d72b8410b0ca007d2a14cd19ef231c96ee064f1aaa5328
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -52921,7 +52925,9 @@ decisions:
       - ND-01
       - G-LIDAR-DROPOUT
     resulting_refs: []
-    note: 決まらない場合に止まる作業：Gouda の起動中のスリープの抑止。地図作成・自律走行は今のままでもできるが、蓋を閉じたときやアイドル時の動作は PC の設定次第。
+    note: '決まらない場合に止まる作業：Gouda の起動中のスリープの抑止。地図作成・自律走行は今のままでもできるが、蓋を閉じたときやアイドル時の動作は PC の設定次第。 計画: design/proposals/sleep_inhibit_plan.md（DEC-106
+      により、許可まで実装しない）。VM では SSH からは抑止を取れない（Access denied）。 電池では 900 s の操作なしで自動サスペンドする設定（VM の既定。FILE-GROUND-PLAN-CHECK
+      の (3)）。'
     disposition: open_human
   - id: DEC-105
     kind: measurement
@@ -52940,6 +52946,44 @@ decisions:
     resulting_refs: []
     note: '求めた値は報告するだけで、取付位置の設定は人が monitor で行う（RQ-I081）。人に依頼すること: 水平な床での静止の記録（rosbag）。 決まらない場合に止まる作業: 地図の傾きの原因の切り分け。地図作成と変換は傾いたままでも動く（地面の推定は傾き
       10 度まで追従する設計）。'
+    disposition: open_human
+  - id: DEC-106
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-14'
+    channel: chat
+    question: スリープの抑止の計画と地面の修正案の提示、実装の許可の扱い
+    answer_verbatim: "goudaの動作中にスリープを抑止するための計画を述べよ。\n地面の修正案を述べよ。\n個別に許可を出すので、許可無しで実装してはならない\n"
+    affected_refs:
+      - DEC-104
+      - G-FLOOR-REFLECTION
+      - ND-01
+      - ND-05
+    resulting_refs:
+      - DEC-107
+    note: 計画は design/proposals/sleep_inhibit_plan.md（DEC-104）と 
+      design/proposals/ground_estimation_plan.md（DEC-107）。どちらも提案で、人の個別の許可があるまで実装しない。
+    disposition: answered
+  - id: DEC-107
+    kind: approval
+    status: pending
+    asked_on: '2026-10-14'
+    answered_on:
+    channel: chat
+    question: '【承認】地面の推定の修正（design/proposals/ground_estimation_plan.md）。推奨: 経路を手がかりにした、submap ごとの地面。 submap ごとに判定し、経路の真下の地面（センサーの高さから
+      H を引いた所。H は正本の値の周りの窓の中で点の山として求める）を種にして、 傾きの上限で外へ広げる。予想より大きく下の点（床の反射・別の通過の層）は地面の候補にしない。新しい設定 3 つ（暫定値の案: 3 m、0.4
+      m、0.3 m）。 代替: 格子ごとに点の多い低い面（屋外の 2 層には効かない）。PRM-05 が未確定の間の H の決め方も決めていただく。'
+    answer_verbatim: ''
+    affected_refs:
+      - ND-05
+      - G-FLOOR-REFLECTION
+      - PRM-62
+      - PRM-63
+      - PRM-64
+      - PRM-05
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：2D 地図への変換の修正（今は床の反射・2 層の地面で不合格）。地図作成そのもの（原図の保存）は止まらない。
     disposition: open_human
 revisions:
   - id: REV-002
@@ -54413,4 +54457,18 @@ revisions:
     added_file_ids:
       - FILE-X86-LIDAR-DROPOUT
       - FILE-VEHICLE-PC-DUP-START-GUARD
+    removed_entity_ids: []
+  - id: REV-049
+    date: '2026-10-14'
+    summary: 人の指示（計画を述べよ。個別に許可するので許可なしに実装しない）を原文で記録（DEC-106）。 
+      スリープの抑止の計画（design/proposals/sleep_inhibit_plan.md）と、地面の推定の修正計画（design/proposals/ground_estimation_plan.md）を提案として置いた。
+      計画の前の分析（polkit の既定・SSH からは抑止を取れないこと・電池での 900 s の自動サスペンド、submap 
+      ごとの地面の高さの山）を証拠として登録（FILE-GROUND-PLAN-CHECK）。 地面の推定の修正計画を承認事項 DEC-107 にした。実装は承認まで行わない。
+    basis_refs:
+      - DEC-106
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GROUND-PLAN-CHECK
     removed_entity_ids: []
