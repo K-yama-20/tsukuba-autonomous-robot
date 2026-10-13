@@ -52246,43 +52246,98 @@ decisions:
       - PRM-36
       - RQ-I082
     resulting_refs: []
-    note: 決まらない場合に止まる作業：地図タブの推奨の既定値（PRM-34〜36）の設定。地図タブの入力・再変換・プレビューは今の基準（案 C 相当）のまま使える。
+    note: 決まらない場合に止まる作業：地図タブの推奨の既定値（PRM-34〜36）の設定。地図タブの入力・再変換・プレビューは今の基準（案 C 相当）のまま使える。 2026-10-14 
+      の選択式の質問への人の回答は「Something else」で、内容の記載がなかった。内容を人に確認中（未決のまま）。段差・坂の地図（DEC-095、DEC-097）も地面の高さの決め方に依存する。
     disposition: open_human
   - id: DEC-094
     kind: question
-    status: pending
+    status: answered
     asked_on: '2026-10-14'
-    answered_on:
-    channel: chat
+    answered_on: '2026-10-14'
+    channel: chat（選択式の質問）
     question: '【相談】2D 地図の元にする点の密度。GLIM の原図の点は 0.3 m 間隔に間引かれている（GLIM の submap_downsample_resolution 0.3 m）ため、0.05
       m の格子では穴だらけになる （10/13 の原図の変換は未知 73084 セル・空き 508・占有 31）。案 A（推奨）: 変換で穴を埋める処理（近傍の補間）を加え、解像度の既定を 0.1 m 程度にする。
       案 B: 地図作成時だけ GLIM の間引きを細かくする（Gouda が作る GLIM の実行設定で変える。GLIM の計算負荷と保存量が増える）。案 C: 地図作成中の生の点群を記録し、GLIM の軌跡で並べ直して作る（記録量が大きい。点群の配送の欠落
       G-DDS の影響を受ける）。'
-    answer_verbatim: ''
+    answer_verbatim: "B GLIM の間引きを細かく\n"
     affected_refs:
       - ND-05
       - ND-06
       - PRM-33
       - PRM-38
       - RQ-I082
-    resulting_refs: []
-    note: 決まらない場合に止まる作業：解像度と占有点数の推奨の既定値（PRM-33・38）の設定。
-    disposition: open_human
+    resulting_refs:
+      - DEC-096
+    note: 選んだ選択肢の説明（AI が示した文）：地図作成のときだけ、Gouda が作る GLIM の設定で間引きを細かくする。GLIM の計算負荷と保存量が増える。 質問の根拠の訂正（回答の後に AI 
+      が確認）：これまでの原図 19 件のうち submap のある 3 件はすべてセンサーが静止したまま作られた（軌跡の移動 0.02 m 以下、submap 1 個、約 1250 点）。 質問に書いた「0.05
+      m の格子では穴だらけ」は静止した原図での観測で、移動して作った原図の点の密度は未測定。 GLIM 1.2.2（CPU の設定）で保存される submap の点は 3 段で間引かれる（上流 
+      src/glim/preprocess/cloud_preprocessor.cpp 105〜106 行、src/glim/mapping/sub_mapping.cpp 254・385・423・496 
+      行。値は ros-jazzy-glim 1.2.2 の config_*_cpu.json）。 (1) frame ごとに約 1 万点に間引く（config_preprocess の 
+      random_downsample_target 10000。XT-32 は 1 frame 64000 点）。(2) submap には keyframe（直前の keyframe との重なりが 0.6 
+      を下回ったときに作る。keyframe が 15 個たまると submap にする）の点だけが入る。 (3) keyframe を結合するときに 0.3 m 
+      の格子で間引く（submap_downsample_resolution）。どの段を細かくするかと値は DEC-096 で相談する。
+    disposition: answered
   - id: DEC-095
+    kind: question
+    status: answered
+    asked_on: '2026-10-14'
+    answered_on: '2026-10-14'
+    channel: chat（選択式の質問。複数選択）
+    question: '【確認】intent.md 106 行の「原図から各種の地図への変換」の「各種」に、Nav2 用の 2D 占有格子地図（と、waypoint 保存時に作る速度マスク）以外に要るものはあるか。 例:
+      自己位置推定用の 3D 点群地図（推定方式 Q-02 の選定次第）、段差・坂の地図。今は 2D 占有格子だけを作る。'
+    answer_verbatim: "自己位置推定用の 3D 点群地図,段差・坂の地図\n"
+    affected_refs:
+      - ND-05
+      - RQ-I082
+      - Q-02
+    resulting_refs:
+      - DEC-097
+    note: 2D 占有格子（Nav2 用）と速度マスクに加えて、自己位置推定用の 3D 点群地図と段差・坂の地図を作る。 3D 点群地図は、GLIM の dump（submap と最適化後の姿勢）から map 
+      座標の点群を作る案（AI の設計案。形式は自己位置推定の方式 Q-02 が決まったら合わせる。それまでは PCD を想定）。 段差・坂の地図の使い方は DEC-097 
+      で相談する。どちらも地図タブで変換設定を調整できるようにする（intent.md 106 行）。
+    disposition: answered
+  - id: DEC-096
     kind: question
     status: pending
     asked_on: '2026-10-14'
     answered_on:
     channel: chat
-    question: '【確認】intent.md 106 行の「原図から各種の地図への変換」の「各種」に、Nav2 用の 2D 占有格子地図（と、waypoint 保存時に作る速度マスク）以外に要るものはあるか。 例:
-      自己位置推定用の 3D 点群地図（推定方式 Q-02 の選定次第）、段差・坂の地図。今は 2D 占有格子だけを作る。'
+    question: 【相談】「GLIM の間引きを細かく」（DEC-094 B）の対象と暫定の値。保存される submap の点は 3 段で間引かれる。(1) frame ごとに約 1 万点（64000 
+      点から）、(2) keyframe（直前の keyframe との重なりが 0.6 を下回ったとき）の点だけ、(3) 結合時の 0.3 m の格子。 案 A（推奨）：(3) の格子を Gouda 
+      の設定にし、暫定値を 0.1 m にする。(1)・(2) は GLIM の値のまま。移動して作った原図で、点の密度・GLIM の CPU 負荷・保存時間を測ってから見直す（(3) 
+      は地図作成の処理の後段で、自己位置の計算への影響が小さいため）。 案 B：(1) の frame ごとの点数も増やす（odometry の計算が重くなり、実車 PC で実時間に間に合わない恐れ）。 案 
+      C：今は変えず、移動して作った原図の密度を測ってから決める。
+    answer_verbatim: ''
+    affected_refs:
+      - ND-06
+      - ND-05
+      - PRM-33
+      - PRM-38
+      - DEC-094
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：GLIM の実行設定への反映と、PRM-33・38 の推奨の既定値。地図タブの入力・再変換は使える。 どの案でも、点群の配送の欠落（G-DDS。GLIM 
+      が受け取る周期は未測定）が点の密度に効く。地図作成で使った GLIM の設定は原図の config に残る（既存）。
+    disposition: open_human
+  - id: DEC-097
+    kind: question
+    status: pending
+    asked_on: '2026-10-14'
+    answered_on:
+    channel: chat
+    question: 【相談】段差・坂の地図（DEC-095）の使い方。案 
+      A（推奨）：地図タブで見る確認用の地図として作る（場所ごとの地面の傾きと段差の高さを色で表示）。走行（Nav2）には使わず、走行に使うかは実機検証の後に決める。 案 B：Nav2 の costmap 
+      に入れ、越えられない段差・急な坂を通行不可にする（車体が越えられる段差の高さと坂の角度の実測が要る。走行の振る舞いが変わる）。 案 C：坂の区間の速度を下げる（waypoint 
+      の速度マスクに反映。走行の振る舞いが変わる）。
     answer_verbatim: ''
     affected_refs:
       - ND-05
+      - ND-02
       - RQ-I082
-      - Q-02
+      - DEC-095
+      - DEC-093
     resulting_refs: []
-    note: 決まらない場合に止まる作業：なし（2D 占有格子の地図タブは使える）。
+    note: 決まらない場合に止まる作業：段差・坂の地図の変換の実装。地面の高さの決め方（DEC-093）にも依存する。案 B・C 
+      は安全と走行の振る舞いに関わるため、選んだ場合は値（越えられる段差・坂）の実測と承認が要る。
     disposition: open_human
 revisions:
   - id: REV-002
@@ -53569,4 +53624,18 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-MAP-TAB
+    removed_entity_ids: []
+  - id: REV-041
+    date: '2026-10-14'
+    summary: 選択式の質問への人の回答を原文で記録。DEC-094（点の密度）は「B GLIM の間引きを細かく」、DEC-095（各種の地図）は「自己位置推定用の 3D 点群地図」と「段差・坂の地図」。 
+      DEC-093（高さの基準）は「Something else」で内容の記載がなく、内容を人に確認中（未決のまま）。 DEC-094 
+      の質問の根拠には訂正がある。これまでの原図はすべてセンサーが静止したまま作られていた（移動 0.02 m 以下、submap 1 個、約 1250 
+      点）。「穴だらけ」の観測は静止した原図のもので、移動して作った原図の点の密度は未測定。 GLIM 1.2.2 の上流のソースで、保存される submap の点が間引かれる 3 段（frame 
+      ごとの間引き、keyframe だけを使うこと、submap の結合時の格子）を確認し、 どれを細かくするかと暫定の値を DEC-096 で、段差・坂の地図の使い方を DEC-097 で相談する。
+    basis_refs:
+      - DEC-092
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []
