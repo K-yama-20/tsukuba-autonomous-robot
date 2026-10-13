@@ -161,6 +161,8 @@ def request_transition(event: str, state: ModeState, implemented: frozenset = fr
     if tid not in implemented:
         return RequestResult(False, tid, f'refused: {tid} ({from_mode} -> {to_mode}) is not implemented in this build; it belongs to stage {stage}')
     new = ModeState(**{**state.as_dict(), 'mode': to_mode, 'previous_mode': from_mode, 'state_revision': state.state_revision + 1})
+    if to_mode in (MODE_MAPPING, MODE_AUTONOMY):
+        new = ModeState(**{**new.as_dict(), 'stop_reason': ''})   # a new activity starts: the previous stop reason no longer applies
     if event == 'end_autonomy':
         # TR-11 / TR-12: a human end. The flag is persisted so that no restart resumes driving (RQ-I025); the mission ends and
         # the initial-pose requirement of a resumed pause no longer applies in manual.
