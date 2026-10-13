@@ -33,7 +33,11 @@ from gouda_core import device_watch as dw
 
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 PRM = {'device_ip_address': 'PRM-50', 'host_ip_address': 'PRM-51', 'udp_port': 'PRM-52', 'ptc_port': 'PRM-53', 'use_timestamp_type': 'PRM-55',
-       'device': 'PRM-54', 'rate': 'PRM-56'}
+       'spin_rate_rpm': 'PRM-60', 'device': 'PRM-54', 'rate': 'PRM-56'}
+
+
+def prm(key):
+    return PRM.get(key, 'PRM-?')   # a label only: an unknown key must never stop the supervisor
 
 
 def optional_double(node, name):
@@ -114,7 +118,7 @@ class SensorSupervisorNode(Node):
         else:
             missing = sc.write_hesai_config(template, hp, cfg_path)
             if missing:
-                reason = f'unresolved {[f"{k} ({PRM[k]})" for k in missing]} in hesai_ros_driver.yaml'
+                reason = f'unresolved {[f"{k} ({prm(k)})" for k in missing]} in hesai_ros_driver.yaml'
             else:
                 cmd = [exe, '--ros-args', '-r', '__node:=hesai_ros_driver', '-p', f'config_path:={cfg_path}']
         host_ip = hp.get('host_ip_address')
@@ -127,7 +131,7 @@ class SensorSupervisorNode(Node):
         if exe is None:
             reason = 'adi_imu_tr_driver_ros2 is not installed'
         elif missing:
-            reason = f'unresolved {[f"{k} ({PRM[k]})" for k in missing]} in adi_imu_driver.yaml'
+            reason = f'unresolved {[f"{k} ({prm(k)})" for k in missing]} in adi_imu_driver.yaml'
         else:
             cmd = [exe, '--ros-args', '-r', '__node:=adi_imu_driver', '-r', f'{sc.IMU_DRIVER_TOPIC}:={sc.IMU_TOPIC}']
             for k, v in ip_.items():
