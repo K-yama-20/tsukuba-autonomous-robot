@@ -21,6 +21,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+from gouda_core import sensor_extrinsics
+
 MODE_NAMES = {0: 'UNKNOWN', 1: 'MANUAL', 2: 'MAPPING', 3: 'AUTONOMY', 4: 'PAUSE'}
 MODE_LABELS_JA = {0: '不明', 1: '手動走行', 2: '事前地図作成', 3: '自律走行', 4: '一時停止'}
 NOT_RECEIVED = 'NOT_RECEIVED'
@@ -28,14 +30,16 @@ UNAVAILABLE = 'UNAVAILABLE'
 UNKNOWN = 'UNKNOWN'
 
 # /config fields (RQ-I070). Mount values are metres / radians in the body frame (REP-103, PRM-07); the axis mapping of a
-# sensor is the text used by the static TF publisher (ND-13, stage 5-6). All start as UNKNOWN; none has a default value.
+# sensor ('axes') is the text parsed by sensor_extrinsics (e.g. "+x forward, +y left, +z up"), used for GLIM's T_lidar_imu (TR-03)
+# and by the static TF publisher (ND-13, stage 5-6). All start as UNKNOWN; none has a default value. The human sets them
+# (intent.md:105); an UNKNOWN value is never asked about and never blocks anything.
 CONFIG_FIELDS = OrderedDict([
     ('lidar_mount_x_m', 'number'), ('lidar_mount_y_m', 'number'), ('lidar_mount_z_m', 'number'),
     ('lidar_mount_roll_rad', 'number'), ('lidar_mount_pitch_rad', 'number'), ('lidar_mount_yaw_rad', 'number'),
-    ('lidar_axis_mapping', 'text'),
+    ('lidar_axis_mapping', 'axes'),
     ('imu_mount_x_m', 'number'), ('imu_mount_y_m', 'number'), ('imu_mount_z_m', 'number'),
     ('imu_mount_roll_rad', 'number'), ('imu_mount_pitch_rad', 'number'), ('imu_mount_yaw_rad', 'number'),
-    ('imu_axis_mapping', 'text'),
+    ('imu_axis_mapping', 'axes'),
 ])
 
 
@@ -175,6 +179,7 @@ class SensorConfig:
         kind = CONFIG_FIELDS[key]
         if value == UNKNOWN: return True
         if kind == 'number': return isinstance(value, (int, float)) and not isinstance(value, bool)
+        if kind == 'axes': return isinstance(value, str) and sensor_extrinsics.validate_axis_mapping(value) is None
         return isinstance(value, str) and value != ''
 
     def update(self, changes: dict, now: float) -> tuple[bool, str]:
@@ -186,6 +191,8 @@ class SensorConfig:
                 try: v = float(v)
                 except ValueError: return False, f'{k}: not a number ({v!r})'
             if isinstance(v, str) and v.strip() in ('', UNKNOWN): v = UNKNOWN
+            if CONFIG_FIELDS[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.validate_axis_mapping(v):
+                return False, f'{k}: {sensor_extrinsics.validate_axis_mapping(v)}'
             if not self._valid(k, v): return False, f'{k}: invalid value {v!r}'
             parsed[k] = v
         if not parsed: return True, 'no change'
@@ -197,7 +204,9 @@ class SensorConfig:
             tmp.replace(self.path)
         except OSError as e:
             return False, f'saved in memory but writing {self.path} failed: {e}'
-        return True, f'config revision {self.config_revision} saved ({len(parsed)} field(s))'
+        notes = [f'{k} is left-handed (not a rotation; base_link axes are used for it)' for k, v in parsed.items()
+                 if CONFIG_FIELDS[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.determinant(sensor_extrinsics.parse_axis_mapping(v)) < 0]
+        return True, f'config revision {self.config_revision} saved ({len(parsed)} field(s))' + ('. WARNING: ' + '; '.join(notes) if notes else '')
 
     def snapshot(self) -> dict:
         return {'values': dict(self.values), 'kinds': dict(CONFIG_FIELDS), 'config_revision': self.config_revision, 'updated_at': self.updated_at,

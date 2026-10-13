@@ -1,12 +1,12 @@
 schema_version: '1.1'
 metadata:
-  authority_ref: FILE-INTENT-V7
+  authority_ref: FILE-INTENT-V8
   scope: スキーマ・既存資料移行・出典・矛盾整理・移行検査のみ。新規下位設計、ROS実装、完成図表は対象外。
   id_policy: 既存IDを保持。新IDは今回割当てたregistryを固定し、位置変更や名称変更で再採番しない。
   extraction_verification_ref: FILE-EXTRACT-VERIFY
   design_validity: 未判定
   vehicle_verification: 未実施
-  model_revision: REV-013
+  model_revision: REV-032
 files:
   - id: FILE-INTENT
     path: design/intent.md
@@ -87,7 +87,9 @@ files:
   - id: FILE-INTENT-V7
     path: design/intent.md
     sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
-    role: authority
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V8
+    archived_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
   - id: FILE-VEHICLE-PC-STAGE51
     path: design/research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt
     sha256: e17dbd0d28bebce16dcf02e6504bd58bc210b7b1247d13d33d7567137b476659
@@ -123,6 +125,18 @@ files:
   - id: FILE-PANDAR-CONSOLE-XT32
     path: design/research/vehicle_pc/2026-10-13_pandar_console_xt32.pdf
     sha256: 2184ef7edd1eb44ca4624455bf22be317b15893644af1528bf7098edf48f0aa6
+    role: evidence
+  - id: FILE-INTENT-V8
+    path: design/intent.md
+    sha256: 09732d2f5997089781a3e602f9d4e6e3849f112404afb74b6ae21faa4e95a118
+    role: authority
+  - id: FILE-VEHICLE-PC-IMU-BYID
+    path: design/research/vehicle_pc/2026-10-13_imu_serial_by_id.txt
+    sha256: 30a5ac54230e0a5161c50ee2cbbfd86478f3dca9e3f6dab5a8d9926131cc0d2a
+    role: evidence
+  - id: FILE-VEHICLE-PC-MM-CRASH
+    path: design/research/vehicle_pc/2026-10-13_gouda_mode_manager_crash_launch_log.txt
+    sha256: ba06bbcf9601fe27b1ad7e1ebe2366a197f364e3006b7928eeeb6cd9eca6ccbf
     role: evidence
 sources:
   - id: SRC-I001
@@ -12526,6 +12540,21 @@ sources:
       basis: intent.md 新版 AR-007（DEC-063 の回答）を上位要求とする
       locations:
         - intent.md:95
+  - id: SRC-I105-V8
+    file_ref: FILE-INTENT-V8
+    kind: intent_lines
+    locator:
+      line_start: 105
+      line_end: 105
+    raw_fields:
+      text: 
+        ・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-008（DEC-087 の回答）を上位要求とする
+      locations:
+        - intent.md:105
 entities:
   - id: RQ-I001
     kind: requirement
@@ -34513,6 +34542,7 @@ entities:
       - SRC-I009
       - SRC-I010
       - SRC-I007
+      - SRC-I105-V8
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -34527,13 +34557,17 @@ entities:
       - RQ-I006
       - RQ-I007
       - RQ-I004
-    revision_ref: REV-021
+      - RQ-I081
+    revision_ref: REV-032
     ros_node:
       node_name: glim_rosnode
       responsibilities:
         - 事前地図作成モードでの連続的な自己運動推定と3D地図作成（RQ-I006・RQ-I007）
         - 地図作成中の odom→base_link TF の発行（このモードでのみ。RQ-I004：競合する推定器・TF発行者は同時に有効化しない）
         - 原図（3D地図）の保存出力（IFD-35）
+        - LiDAR–IMU の取付変換（config_sensors.json の T_lidar_imu）は、人が gouda_monitor の /config で設定した値から TR-03 
+          で生成して渡す（RQ-I081）。配布テンプレートの値は別機種のもので使わない。未設定の項目は中立要素（並進 0・回転なし・base_link 
+          の軸）で置き換え、その一覧を記録・表示する。質問も停止もしない
       absorbs_module_refs:
         - M-004
       active_in_mode_refs:
@@ -36659,6 +36693,7 @@ entities:
       - SRC-I098
       - SRC-I083
       - SRC-I103-V4
+      - SRC-I105-V8
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -36673,7 +36708,8 @@ entities:
       - RQ-I070
       - RQ-I058
       - RQ-I076
-    revision_ref: REV-005
+      - RQ-I081
+    revision_ref: REV-032
     designed_interface:
       transport: parameter
       name: gouda_monitor /config → 永続化 YAML → ND-13 の ROS parameter
@@ -36686,10 +36722,14 @@ entities:
         - ND-02
       consumer_refs:
         - ND-13
-      unit: m, rad。LiDAR・IMU の座標方向（各軸の向き）の指定を含む
+        - ND-03
+      unit: m, rad。軸の向き（lidar_axis_mapping・imu_axis_mapping）はセンサ自身の x・y・z 軸が base_link のどちらを向くかの文（例「+x 
+        forward, +y left, +z up」。 向きは forward／back／left／right／up／down または 前／後／左／右／上／下）。姿勢は R = R_rpy × A（A 
+        の列がセンサ軸、roll・pitch・yaw は base_link で軸の向きの後に適用）。 左手系の指定は回転として使えないため保存時に警告し、使用時は base_link の軸で置き換えて記録する
       frame: base_link（REP-103）→ sensor frames。センサ座標方向の指定値は人が gouda_monitor で入力（DEC-007）
-      time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新。実測値は本設定と各 
-        node の ROS parameter ファイルで宣言し、コードにハードコードしない（RQ-I076）
+      time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新。 GLIM 
+        へは地図作成開始（TR-03）の時点の値と設定版を渡して記録し、地図作成中の変更はその地図作成には反映しない。 取付値は人が gouda_monitor 
+        で設定し、未設定（UNKNOWN）を理由に質問・停止しない（RQ-I081）。実測値はコードにハードコードしない（RQ-I076）
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -37277,6 +37317,7 @@ entities:
       - SRC-I009
       - SRC-I007
       - SRC-I019
+      - SRC-I105-V8
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -37289,7 +37330,8 @@ entities:
       - RQ-I006
       - RQ-I004
       - RQ-I015
-    revision_ref: REV-021
+      - RQ-I081
+    revision_ref: REV-032
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-MAP
@@ -37297,10 +37339,12 @@ entities:
       trigger: 人が gouda_monitor の地図作成開始ボタンを押す（IFD-06）
       trigger_kind: human
       owner_ref: ND-03
-      guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）。GLIM が既に動いていない
+      guard: 自律走行系の推定器（ND-07・ND-08）が非活性で、GLIM と競合する TF 発行者がいない（RQ-I004）。GLIM が既に動いていない（前回の地図の保存中を含む）
       actions:
         - GLIM（ND-06）を起動・有効化（glim_runner。実行設定は配布テンプレートから生成、dump 先は作業領域 mapping/{origin_id}/glim_dump）。失敗は 
           DecisionEvent（mapping_start_failed）で monitor に表示し、遷移を拒否
+        - GLIM の T_lidar_imu を /config（IFD-26）の取付値から生成して実行設定に書き込み、値・未設定で中立要素にした項目・設定版を 
+          DecisionEvent（glim_extrinsic）に残す。未設定は遷移を拒否する理由にしない（RQ-I081）
         - 記録の自動開始を要求（IFD-45 
           record/log/start_pre_mapping。契機は人の地図作成開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも地図作成の開始を止めない。失敗は DecisionEvent と
           monitor のポップアップ
@@ -37325,7 +37369,7 @@ entities:
       - RQ-I008
       - RQ-I009
       - RQ-I017
-    revision_ref: REV-021
+    revision_ref: REV-032
     transition:
       from_mode_ref: MODE-MAP
       to_mode_ref: MODE-MANUAL
@@ -37335,11 +37379,12 @@ entities:
       owner_ref: ND-03
       guard: なし（人の操作は常に受け付ける）
       actions:
-        - GLIM に保存を要求（SIGINT）し dump の完了を待つ（PRM-37）。完了した dump だけを原図として map_database へ登録（由来 
-          ID・内容ハッシュ・版・設定：RQ-I008・IFD-29）。不完全なら登録せず作業領域に残す。GLIM の TF 発行は停止する
+        - 人の終了操作を受けた時点で手動走行へ遷移して応答する（GLIM の保存を待たない）。以降の処理は processing_state で表示する（DEC-010）
+        - GLIM に保存を要求（SIGINT）し dump の完了を待つ（processing_state=map_saving。待つ上限は PRM-37、未確定の間は上限なし。保存時間を記録）。完了した 
+          dump だけを原図として map_database へ登録（由来 ID・内容ハッシュ・版・設定：RQ-I008・IFD-29）。不完全なら登録せず作業領域に残す。GLIM の TF 発行は停止する
         - 自動変換を Action（IFD-37）で非同期に起動し、processing_state=map_converting を IFD-01 で表示（DEC-010）。結果（成功・失敗）を 
           DecisionEvent に記録。失敗しても原図は保持（RQ-I009）。変換専用モードは作らない
-        - 自動開始したログ記録を停止（IFD-46 record/log/stop_auto）。手動開始の記録は停止しない（RQ-I017）
+        - 自動開始したログ記録を停止（IFD-46 record/log/stop_auto）。保存・登録の結果を記録した後に行う。手動開始の記録は停止しない（RQ-I017）
         - 設定状況を記録（地図作成後：RQ-I015）
   - id: TR-05
     kind: transition
@@ -41231,7 +41276,7 @@ entities:
     requirement_refs:
       - RQ-I008
       - RQ-I004
-    revision_ref: REV-021
+    revision_ref: REV-032
     parameter:
       owner_ref: ND-03
       value:
@@ -41239,8 +41284,9 @@ entities:
       unit: s
       stage: 地図作成と変換
       purpose: 地図作成終了（TR-04）で GLIM に SIGINT を送ってから、dump（graph.txt・values.bin・submap）の書き出し完了を待つ上限。超過時は SIGTERM 
-        し dump は不完全として扱う（原図を公開しない）
-      measurement: 実車の地図サイズでの GLIM の保存時間の実測
+        し dump は不完全として扱う（原図を公開しない）。 未確定の間は上限を設けずに完了まで待ち（値を補わない）、保存時間を DecisionEvent（mapping_stopped の 
+        save_duration_s）に記録する。待つ間も手動走行で、終了操作の応答は待たせない
+      measurement: 実車の地図サイズでの GLIM の保存時間の実測（mapping_stopped の save_duration_s を使う）
       decision_deadline: 実車で最初の原図を作る前
       software_trial_value: 90.0
       software_trial_basis: 旧実装（docs/gouda_recording_glim.md「最大90秒待ちます」）の値。センサーなしの VM では数秒で完了。実車採用値ではない
@@ -41977,21 +42023,22 @@ entities:
     field_bindings: {}
     related_refs: []
     issue_refs: []
-    interpretation: ''
+    interpretation: 'REV-032: 値を実機の一覧に合わせて修正。DEC-082 で人が確認したのは「シリアル番号 007137944B34 の by-id の名前を使う」ことで、記号 1 文字の違いは実機の出力を正とした（ドライバは存在しない名前を開けない）。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I007
       - RQ-I076
-    revision_ref: REV-031
+    revision_ref: REV-032
     parameter:
       owner_ref: ND-15
-      value: /dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00
+      value: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
       value_state: approved
       unit:
       stage: 地図作成と変換
       purpose: adi_imu_driver が開くデバイス。by-id のみを使い、ttyACM 等の番号は使わない（DEC-081）
-      measurement: 不要（実機の名前の確認 DEC-082。DEC-081 の値はシリアル番号が 1 桁違っていた）
+      measurement: 不要。実車PC の ls -l /dev/serial/by-id/ の出力（FILE-VEHICLE-PC-IMU-BYID、2026-10-13）に合わせた。DEC-082 
+        の回答はシリアル番号を確定し、STM32 の後の記号は「-」だったが、実機の名前は「_」
       decision_deadline: 決定済み（DEC-082）
       software_trial_value:
       software_trial_basis:
@@ -42073,6 +42120,23 @@ entities:
       param_key: rate
       value_type: double
       apply_timing: launch
+  - id: RQ-I081
+    kind: requirement
+    name: intent.md:105（FILE-INTENT-V8）
+    source_refs:
+      - SRC-I105-V8
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I105-V8
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-032
 migration:
   baseline_definition_count: 198
   id_map:
@@ -49763,6 +49827,25 @@ authority_revisions:
     note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-09 07:10）。チャットでの言及はなく機械比較で検出。27 
       行の置換（文末に位置ベース上限・重複時の運用と警告・帯外無制限・帯幅は実機調整の補足を追記）と 95 行の置換（「手動操縦モード」→「手動走行モード」）。削除・追加行なし。内容は DEC-059（H-013 
       案 A）と proposals/intent_edit_requests.md §2・§3 の提案と一致する。
+  - id: AR-008
+    file_ref: FILE-INTENT-V8
+    previous_file_ref: FILE-INTENT-V7
+    sha256: 09732d2f5997089781a3e602f9d4e6e3849f112404afb74b6ae21faa4e95a118
+    previous_sha256: f69dd98b9529e0409d376a276c53e2282a86a1ad6f0862fc442b44a475a02062
+    archived_previous_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+    added_lines:
+      - line: 105
+        text: 
+          ・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。
+    removed_lines: []
+    changed_lines: []
+    instruction_expected_added_lines: 1
+    observed_added_lines: 1
+    decision_ref: DEC-087
+    requirement_refs:
+      - RQ-I081
+    note: 人の編集（リポジトリ側の design/intent.md）。チャットで「instent.mdの末尾に要求を追記した」と言及。機械比較で末尾 1 行（105 行）の追加のみ（104 
+      行は末尾改行の付加だけで文は同一）。 内容は同日のチャットの指示（DEC-087）と同じ趣旨で、主語が「自分」から「人間」に、「私に」が「人間に」になっている。
 decisions:
   - id: DEC-001
     kind: approval
@@ -51470,26 +51553,52 @@ decisions:
     disposition: open_human
   - id: DEC-086
     kind: measurement
-    status: pending
+    status: answered
     asked_on: '2026-10-13'
-    answered_on:
+    answered_on: '2026-10-13'
     channel: chat
     question: 【実測】LiDAR（XT-32）と IMU の取付変換（GLIM の config_sensors.json の T_lidar_imu。IMU 座標の点を LiDAR 座標へ移す並進 
       x,y,z [m] と回転）。 GLIM 1.2.2 の設定テンプレートの既定値は Ouster OS0 の値（0.006, -0.012, 0.008、回転なし）で、Gouda 
       の機材の値ではない。現在の起動はテンプレートをそのまま使う。
-    answer_verbatim: ''
+    answer_verbatim: "GLIMのためのセンサーの取り付け位置はgouda_monitorで自分で設定する。取り付け位置が不明だからといって、私に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。\n"
     affected_refs:
       - ND-06
       - IFD-20
       - IFD-21
       - IFD-22
       - TS-27
-    resulting_refs: []
-    note: 'AI の担当: 計測手順と GLIM 設定への反映。推奨手順: (1) XT-32 の座標軸（Hesai 資料の軸定義）と IMU の軸（ADIS16607-2 の外形図の印字）を機体上で確認し写真を残す、
-      (2) 両者の原点間の並進を定規で測る（旧 docs/stage3_sensor_slam.md では IMU は LiDAR の真下と記載）、(3) 回転は軸の対応から 90° 単位で決める。値と写真・日付を
-      research/vehicle_pc/ に保存し、人が採用値を決める。 代替: 最初の GLIM 試験は回転なし・並進 0 で行い、推定が崩れるかを見る（崩れた場合の原因切り分けが難しくなる）。 決まらない場合に止まる作業:
-      地図作成の実機試験で GLIM に正しい取付変換を与えること（試験自体はテンプレートの値でも起動する）。'
-    disposition: open_human
+    resulting_refs:
+      - DEC-087
+      - RQ-I081
+    note: 取り下げ。取付変換は人が gouda_monitor の /config で設定し（RQ-I081）、TR-03 が /config から GLIM の T_lidar_imu 
+      を生成する。未設定の項目は中立要素で置き換え、記録と表示だけを行う。
+    disposition: answered
+  - id: DEC-087
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-13'
+    channel: chat + intent.md
+    question: センサー取付位置（GLIM 用）の扱い、VM での GLIM 開始の検証、gouda.sh の問題、intent.md 第8版
+    answer_verbatim: "GLIMのためのセンサーの取り付け位置はgouda_monitorで自分で設定する。取り付け位置が不明だからといって、私に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。\n\
+      \nvmを立ち上げたので、glimの開始が出来るか検証しろ、gouda.shにも問題があるようだ。また、instent.mdの末尾に要求を追記した。\n\n（intent.md 第8版 105 行）・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。\n"
+    affected_refs:
+      - DEC-086
+      - ND-06
+      - IFD-26
+      - TR-03
+      - TR-04
+      - PRM-37
+      - ND-01
+    resulting_refs:
+      - AR-008
+      - RQ-I081
+      - PRM-54
+    note: 1 件目のチャットは作業の途中で受け、2 件目と intent.md の追記で上位要求になった。DEC-086（取付変換の実測の問い）は取り下げ（台帳上は本回答で answered）。 
+      今後、取付位置・軸の向きの不明を理由に人へ質問しない。GLIM の T_lidar_imu は /config の値から作り、未設定の項目は中立要素で置き換えて 
+      DecisionEvent（glim_extrinsic）と monitor に示す。 gouda.sh の問題は VM の launch ログで特定（空の serial_port で launch 
+      引数が不正。工程5-5 で AI が入れた不具合）。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -52587,4 +52696,32 @@ revisions:
       - PRM-55
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-032
+    date: '2026-10-13'
+    summary: '人が intent.md の末尾に 1 行を追記（第8版、SHA 09732d2f…、AR-008、RQ-I081）。チャットの指示 2 件と合わせて DEC-087 に原文で記録し、取付変換の実測の問い
+      DEC-086 を取り下げた。 設計への反映: GLIM の T_lidar_imu は /config（IFD-26）の取付値から TR-03 で生成し、UNKNOWN の項目は中立要素（並進 0・回転なし・base_link
+      の軸）で置き換えて記録・表示する（質問も停止もしない）。 /config の軸の向き（axis_mapping）の書式を定義。VM での検証で見つかった実装の不具合（gouda.sh の空の serial_port
+      引数、mode_manager が拒否時のログで落ちる、PRM-37 未確定で地図作成を終了できない）を直し、 TR-04 を即時応答・保存は後続処理（processing_state=map_saving）に変更（DEC-010
+      の範囲）。PRM-37 未確定の間は上限なしで保存完了を待ち、保存時間を記録する。 IMU のデバイス名を実機の一覧（FILE-VEHICLE-PC-IMU-BYID）に合わせて修正（STM32 の後は「_」）。'
+    basis_refs:
+      - DEC-087
+      - DEC-082
+      - DEC-010
+      - DEC-007
+    added_entity_ids:
+      - RQ-I081
+    modified_entity_ids:
+      - ND-06
+      - IFD-26
+      - TR-03
+      - TR-04
+      - PRM-37
+      - PRM-54
+    added_source_ids:
+      - SRC-I105-V8
+    added_file_ids:
+      - FILE-INTENT-V8
+      - FILE-VEHICLE-PC-IMU-BYID
+      - FILE-VEHICLE-PC-MM-CRASH
     removed_entity_ids: []
