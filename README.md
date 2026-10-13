@@ -1,126 +1,206 @@
-# 剛田 Mission Control — Ubuntu 24.04 / ROS 2 Jazzy
+# Gouda — つくばチャレンジ自律走行ロボット（Ubuntu 24.04 / ROS 2 Jazzy）
 
-地図作成、保存、初期位置・ゴール設定をWeb GUIで扱い、KISS-ICP標準RViz2はUbuntuデスクトップの別ウィンドウで表示します。画面転送は行いません。
-対象は **Ubuntu 24.04を直接起動するx86-64 PC**。開発用ARM64 Ubuntuにも対応します。
+Gouda の車載 PC で動かすソフトウェアと、その設計の正本です。
 
-## 初回セットアップ
+- 地図作成（GLIM）と、原図から各種の地図（Nav2 用の 2D 地図、3D 点群地図、確認用の傾き・段差・高さの図）への変換
+- ブラウザの操作画面（gouda_monitor）：運行、発進準備、地図、waypoint、記録、設定のタブ
+- センサー（XT-32、ADIS16607-2）のドライバの起動と、USB の抜き差しの検知
+- 記録（log と rosbag）、モードの管理、車体への出力（ESP32 firmware v4。実車には未投入）
 
-インターネット接続とsudo権限が必要です。ソースからビルドするため初回は時間がかかります。
+現状と、人の判断を待っている事項は [design/reports/status.md](design/reports/status.md) にあります。実車での走行（自律走行）は、まだ人が「投入してよい」と判断していません。
+
+## コマンドの一覧
+
+| いつ | コマンド（リポジトリのフォルダで実行） |
+|---|---|
+| 初回（PC のセットアップ） | `bash setup.sh` |
+| 起動・停止・状態 | `bash gouda.sh start` ／ `bash gouda.sh stop` ／ `bash gouda.sh status` |
+| main が変わったとき | `bash gouda.sh stop` → `bash update.sh` → `bash gouda.sh start` |
+
+起動の方法は `gouda.sh` だけです。環境変数や起動オプションはありません（DEC-090・DEC-091）。
+
+## 1. PC のセットアップ（初回）
+
+対象は Ubuntu 24.04（amd64 または arm64）です。インターネット接続と sudo 権限が要ります。ワークスペースは `~/gouda_ws` とし、リポジトリはその `src/` の下に置きます（この配置は必須）。
 
 ```bash
 sudo apt update && sudo apt install -y git
-mkdir -p ~/gouda_ws/src
-cd ~/gouda_ws/src
-git clone --branch feature/aya-navsystem --single-branch https://github.com/K-yama-20/tsukuba-autonomous-robot.git
+mkdir -p ~/gouda_ws/src && cd ~/gouda_ws/src
+git clone https://github.com/K-yama-20/tsukuba-autonomous-robot.git
 cd tsukuba-autonomous-robot
-bash scripts/setup.sh
+bash setup.sh
 ```
 
-非公開リポジトリの場合は、アクセス権のあるGitHubアカウントで認証してください。
-GitHubの「Download ZIP」でも利用できます。対象ブランチを展開し、そのフォルダで `bash scripts/setup.sh` を実行してください。ソースは `~/gouda_ws/src/tsukuba-autonomous-robot/` に実フォルダとして配置します。以後はこのフォルダを使います。既存の異なるチェックアウトがある場合は上書きせず停止します。
+`setup.sh` は次を行います。足りないものがあるときだけ sudo のパスワードを聞きます。何度実行しても、すでにあるものはそのままです。
 
-依存ソフト、固定版の外部ドライバとサブモジュール、ドライバ修正、ビルドをセットアップが実施します。最後にLiDAR専用LANとIMUのUSB接続を選びます。機器がない場合はEnterで省略できます。
-既存の地図・設定は削除しません。既に別のソースがある場合は置換せず停止します。
+1. ROS 2 Jazzy（desktop）、ビルドの道具、Python のモジュール、GLIM 1.2.2（GLIM の PPA。設計はこの版で確認した：DEC-062）
+   - すでに別の版の GLIM が入っている場合は止まります。版を変えるのは設計の判断です。
+2. センサーのドライバ（`~/gouda_ws/src/HesaiLidar_ROS_2.0`、`~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2`）
+   - [third_party/drivers.repos](third_party/drivers.repos) に書いた commit を使い、改変しません（DEC-075）。
+   - ドライバにローカルの変更があると止まります。旧実装の `scripts/setup.sh` はドライバに patch を当てていました（[§7](#7-旧実装からの移行) を参照）。
+3. rosdep（gouda_core、gouda_interfaces、2 つのドライバの依存）
+4. シリアルポートを使うための dialout グループ（IMU、ESP32）。追加したときは、一度ログアウトしてログインし直します。
+5. ビルド：`colcon build --symlink-install`（gouda_interfaces、gouda_core、2 つのドライバ）
+6. LiDAR 用の LAN と時刻同期の確認
+   - PC 側のアドレス（PRM-51：192.168.1.100）を持つ LAN がなければ、有線 LAN の一覧から選んで NetworkManager の接続を追加できます（Enter で省略）。
+   - デフォルトルートのある LAN にこのアドレスを付ける古い接続があると、警告と削除のコマンドを表示します。
+   - 時刻同期（NTP）が切れていると、有効にするコマンドを表示します。
 
-## 起動（新実装）
-
-起動の方法はこれ一つです（設計の判断台帳 DEC-090・DEC-091）。環境変数などの起動オプションはありません。旧 Mission Control 用の `scripts/gouda.sh`・`scripts/gouda_gui.sh` は 2026-10-09 に削除しました（DEC-068）。
+LiDAR 用の接続を後から手で追加する場合（`<IF>` は USB-LAN などのインタフェース名。`ip link` で確認）：
 
 ```bash
-cd ~/gouda_ws && colcon build --symlink-install --packages-select gouda_interfaces gouda_core && source install/setup.bash
-cd ~/gouda_ws/src/tsukuba-autonomous-robot
-bash gouda.sh start      # 全部を起動（起動直後は手動走行。記録は開始しない。センサーのドライバも起動し、無いデバイスは接続を待つ）
-bash gouda.sh status     # 起動状態・データの置き場・ログの場所・monitor の URL
-bash gouda.sh stop       # この起動が所有するプロセスだけを止める
+sudo nmcli connection add type ethernet con-name gouda-lidar-<IF> ifname <IF> ipv4.method manual ipv4.addresses 192.168.1.100/24 ipv4.never-default yes ipv6.method disabled
 ```
 
-- `--symlink-install` で build する（インストールされる Python が元のファイルを指す）。VM の時計が戻ると、通常の build では古いコピーが残って新しいコードが入らないことがあった（2026-10-14）。以前に通常の build をした場合は、一度 `rm -rf build/gouda_core install/gouda_core` してから build する。
-- 設定はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。monitor は http://127.0.0.1:8080/（PRM-26）。
-- ワークスペースは gouda.sh の 2 つ上のディレクトリ、データの置き場は `<workspace>/gouda_data`（PRM-25）。記録セッションは `<data_root>/records/<session>/` に `log/` と `rosbag/` を分けて保存し、直前モードの永続記録は `<data_root>/state/` に置きます。
-- センサーのドライバは gouda_sensor_supervisor が起動し、デバイスが繋ぎ直されたときだけ作り直します（`design/docs/sensor_supervision.md`）。gouda.sh を止めて起動し直すと IMU が応答しない場合があり、その場合は IMU の USB を抜き差しします。
-- ソフト試験用の仮値は gouda.sh では使いません。試験は `gouda_core/test/stack.sh`（ROS ドメインとデータの置き場を分け、センサーのドライバを起動しない）で行います。
-- 工程の順序と完了条件は `design/docs/implementation_stages.md`。
+## 2. 起動・停止
 
-## 保存地図で経路を確認する
+```bash
+cd ~/gouda_ws/src/tsukuba-autonomous-robot
+bash gouda.sh start     # 全部を起動（起動直後は手動走行。記録は開始しない）
+bash gouda.sh status    # 起動状態・データの置き場・ログ・monitor の URL
+bash gouda.sh stop      # この起動が所有するプロセスだけを止める
+```
 
-「走行計画」で保存地図を読み込み、「計画開始位置」と「ゴール」をそれぞれ指定して設定ボタンで確定し、「経路を計算」を押します。入力途中の座標は計算に使いません。押せない場合は、ボタンの下に不足している条件を表示します。
+- monitor（操作画面）は `gouda.sh start` が表示する URL（http://127.0.0.1:8080/、PRM-26）を、この PC のブラウザで開きます。
+- センサーのドライバは gouda_sensor_supervisor が起動します。デバイスがなければ接続を待ち、USB が繋ぎ直されたときだけドライバを作り直します（[design/docs/sensor_supervision.md](design/docs/sensor_supervision.md)）。
+- **IMU の既知の問題**：`gouda.sh` を止めて起動し直すと、IMU が応答しないことがあります。運行タブの SENSORS 表で IMU が届いていなければ、IMU の USB を抜き差ししてください。
+- 設定値はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。未確定の値は空のままで、推測で埋めません。
 
-観測モードの経路計算には、ESP32、現在位置の受信、センサー接続は必要ありません。保存した2D地図だけを使い、計算時だけ専用のNav2プランナーを起動します。計算終了時には停止します。地図・開始位置・ゴールを変更すると前の経路を無効にします。障害物・未観測領域・地図外に位置を設定した場合や経路が見つからない場合は理由を表示します。
+## 3. 更新（main が変わったとき）
 
-「計画開始位置」は経路計算だけに使う位置です。「自己位置の初期設定」は保存したSLAMデータでLiDARの自己位置推定を始める別の操作です。地図を読み込むだけでは自己位置推定を開始しません。
+```bash
+cd ~/gouda_ws/src/tsukuba-autonomous-robot
+bash gouda.sh stop
+bash update.sh
+bash gouda.sh start      # IMU が届かなければ IMU の USB を抜き差し
+```
 
-表示する経路は地図上のプレビューです。車体寸法や取付座標を校正した通過可否の確認は含まず、走行開始も無効のままです。
+`update.sh` は次を行います。
 
-## 実機の接続
+1. Gouda が起動中のとき、またはこのリポジトリの管理下のファイルにローカルの変更があるときは、何も変えずに止まります。
+2. origin の main を取得し、main に切り替えて fast-forward します（merge や rebase はしません）。
+3. `setup.sh` を実行します。新しい版に必要なパッケージを入れ、ドライバの commit が変わっていれば合わせ、ビルドします。
 
-- LiDAR専用の有線LANを選びます。PC側 `192.168.1.100/24`、XT32側 `192.168.1.201`、UDP 2368、PTC 9347を使用します。インターネットの既定経路があるLANは変更しません。
-- NetworkManagerに専用接続を追加します。既存プロファイルは残し、変更前の情報を設定フォルダの `network-backups/` に保存します。戻す場合は記録された以前の接続を `sudo nmcli connection up uuid <UUID>` で有効にします。
-- 補正CSVはXT32本体から読み取り専用コマンドで取得します。取得できない場合は、その機器から取得済みのCSVを指定するか、後で設定します。補正値を推測したサンプルには置き換えません。
-- IMUは `/dev/serial/by-id/` の一覧から選択します。USB権限の追加が必要だった場合は、一度ログアウト・ログインしてください。
-- 未接続・設定不足なら `observe` は原因を表示します。LiDARに別の宛先IPが設定されている場合、本体側の設定は自動変更しません。
+## 4. 実機の接続
 
-## 保存先・表示
+| 機器 | 接続 | 設定（正本の値） |
+|---|---|---|
+| LiDAR（Hesai XT-32） | 専用の有線 LAN（USB-LAN） | XT-32 192.168.1.201（PRM-50）、PC 192.168.1.100/24（PRM-51）、UDP 2368（PRM-52）、PTC 9347（PRM-53）、600 rpm＝10 Hz（PRM-60。起動時にドライバが設定） |
+| IMU（ADIS16607-2） | USB | `/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00`（PRM-54）。ttyACM 番号は使いません。100 Hz（PRM-56） |
+| ESP32（車体） | USB シリアル | firmware v4。デバイス名（PRM-61）と DAC 電圧（DEC-077）は未確定で、書き込みは未実施 |
 
-x86とParallelsの双方で、ワークスペース内にソース・ビルド・地図・機器設定をまとめます。
+- 点群の時刻は PC の受信時刻です（XT-32 の内部時刻は年単位でずれているため。DEC-083）。
+- GLIM のためのセンサーの取付位置は、monitor の設定タブで人が入力します（RQ-I081）。
+
+**開発用の VM（Mac の Parallels）で動かす場合**
+
+- USB-LAN と IMU を VM に接続します（Parallels のデバイスメニュー）。
+- 動かしている間は Mac をスリープさせないでください。スリープすると VM が止まり、USB-LAN が外れ、VM の時計がずれます。
+
+## 5. 地図の作成と変換
+
+1. 運行タブの SENSORS 表で、点群と IMU が届いていることを確かめます。届いていなくても開始はできますが、警告が出ます。
+2. 「地図作成開始」で GLIM が起動し、記録も自動で始まります。車体を動かして、「地図作成終了」で終えます。
+3. 原図（GLIM の dump）が地図データベースに登録され、変換が自動で走ります。
+4. 「地図」タブで原図を選び、変換設定を入れて再変換できます。変換のたびに新しい rev ができ、原図は変わりません。rev ごとに、2D 地図・高さ・傾き・段差の図を切り替えて見られます。
+
+- 高さは、点群から推定した地面から測ります（DEC-093）。傾きと段差の図は確認用で、走行には使いません（DEC-097）。
+- 変換設定の暫定の既定値は承認待ちです（DEC-098）。それまでは、地図作成を終えたときの自動変換は失敗します（原図は残ります）。地図タブで値を入れれば変換できます。
+- 変換の方式、設定の意味、移動しての地図作成の実機試験の手順は [design/docs/map_conversion.md](design/docs/map_conversion.md) にあります。原図の解析は次のとおりです。
+
+```bash
+python3 -m gouda_core.map_inspect ~/gouda_ws/gouda_data/maps/<origin_id>/source --cell <m> --radii <m> <m> --band <m>
+```
+
+## 6. フォルダの構成
 
 ```text
 ~/gouda_ws/
 ├── src/
-│   ├── tsukuba-autonomous-robot/
-│   ├── ADI_IMU_TR_Driver_ROS2/
-│   ├── HesaiLidar_ROS_2.0/
-│   ├── kiss-icp/
-│   └── urg_node2/
-├── build/
-├── install/
-├── log/
-├── bags/
-│   ├── gouda/                  # host.json・機器設定・実行状態・ログ
-│   └── recordings/             # GUIで記録したrosbag
-├── maps/
-├── maps_sensor_slam/
-└── maps_glim/                  # GLIM 3D観測セッション
+│   ├── tsukuba-autonomous-robot/     このリポジトリ（main）
+│   ├── HesaiLidar_ROS_2.0/           XT-32 のドライバ（third_party/drivers.repos の commit）
+│   └── ADI_IMU_TR_Driver_ROS2/       IMU のドライバ（同）
+├── build/  install/  log/            colcon
+└── gouda_data/                       データ（PRM-25）
+    ├── maps/                         地図データベース（原図と変換後地図。内容ハッシュで識別）
+    ├── mapping/                      地図作成中の GLIM の作業領域
+    ├── routes/                       waypoint と速度マスク
+    ├── records/                      記録（セッションごとに log/ と rosbag/）
+    ├── config/                       monitor の設定タブの値（センサーの取付位置など）
+    ├── state/                        直前のモードの記録
+    └── run/                          起動中の情報（monitor の URL、launch のログ、センサーの状態）
 ```
 
-（以下は旧実装の説明。新実装の gouda.sh は環境変数を使わない。）既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。
+リポジトリの中：
 
-RVizはKISS-ICP付属の表示設定をそのまま使用します。Ubuntuの通常の描画環境を使い、ソフトウェア描画を強制しません。本番起動ではXvfb・Openbox・x11vnc・noVNCを起動せず、画像圧縮・画面転送も行いません。RViz自体の点群描画とSLAMの計算負荷は残ります。標準の局所点群と保存済みの走行用2D地図は別用途です。
+| 場所 | 内容 |
+|---|---|
+| `gouda.sh`、`setup.sh`、`update.sh` | 起動、セットアップ、更新 |
+| `gouda_core/` | ノード（mode_manager、recorder、map_creator、monitor、sensor_supervisor、motion_controller、vehicle_bridge）、操作画面（`web/`）、試験（`test/`） |
+| `gouda_interfaces/` | 独自のメッセージ・サービス・アクション |
+| `firmware/gouda_esp32_v4/` | ESP32 の firmware v4 |
+| `third_party/drivers.repos` | センサーのドライバの commit |
+| `design/` | 設計の正本と記録（[§8](#8-設計の文書と検査)） |
+| `docs/` | 設計の元資料（`docs/architecture/` の Excel・drawio）と、旧実装の調査記録 |
 
-MacからGUIを使用する場合、既存の認証付きSSHでAPIを中継できます。RVizはUbuntu側のデスクトップに表示され、Macへの画面転送はありません。
+## 7. 旧実装からの移行
+
+`scripts/`、`gouda_gui/`、`gouda_sensors/`、`gouda_navigation/`、`gouda_vehicle/`、`gouda_bringup/`、`gouda_sim/`、`third_party/external.repos`、`patches/` は旧実装（Mission Control）のものです。`gouda.sh`・`setup.sh`・`update.sh` はこれらを使いません。旧 `scripts/gouda.sh` などの起動スクリプトは削除済みです（DEC-068）。
+
+旧実装の `scripts/setup.sh` を実行した PC では、ドライバに patch が当たっているため、`setup.sh` が「ローカルの変更がある」と止まります。変更を退避してから（消さずに残ります）、もう一度実行してください。
 
 ```bash
-python3 gouda_gui/gouda_gui/gateway.py --ssh-runtime /path/to/existing/native_view/runtime
+git -C ~/gouda_ws/src/HesaiLidar_ROS_2.0 stash --include-untracked
+git -C ~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2 stash --include-untracked
+bash setup.sh
 ```
 
-指定フォルダには既存の `connection.json`、`id_ed25519`、検証済みの `known_hosts` が必要です。秘密鍵や接続設定は共有しません。
-
-## すでに旧版をビルドしたx86 PCの更新
-
-環境の削除やUbuntu・ROSの入れ直しは不要です。先に旧版が管理するプロセスを停止してから更新します。現在使っているリポジトリのフォルダで次を実行してください。
+リポジトリが main 以外のブランチにある PC は、`bash update.sh` が main に切り替えます。`update.sh` がまだない古いチェックアウトでは、初回だけ次を実行します。
 
 ```bash
-bash gouda.sh stop
-git pull --ff-only
-bash scripts/setup.sh --no-configure
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
-# 旧 `scripts/gouda.sh observe` は削除済み（DEC-068）。センサー観測の新実装は工程5-3 以降
+git fetch origin main:refs/remotes/origin/main && git switch main && git merge --ff-only origin/main
+bash setup.sh
 ```
 
-旧版の `~/.config/gouda/` と `~/.local/share/gouda/` は移行元として保持します。設定・地図の衝突がある場合は上書きしません。必要なビルドの退避と再構築はセットアップが行います。旧ソースフォルダを自分で削除する必要はありません。機器設定は `python3 scripts/configure_host.py --workspace ~/gouda_ws` で行う（旧 `scripts/gouda.sh configure` は削除済み）。
+## 8. 設計の文書と検査
 
-センサー停止を伴う更新後にIMUが応答しなくなった場合は、既知の再接続問題の可能性があります。GUI再接続やRVizだけの再起動ではセンサー受信を再起動しません。
+| 場所 | 内容 |
+|---|---|
+| [design/reports/status.md](design/reports/status.md) | 現状の要約。承認待ち・実測待ち・次の作業 |
+| `design/intent.md` | 設計意図（人が所有。AI は編集しない） |
+| `design/model.yaml` | 正本（YAML）。変更は `design/revisions/REV-xxx.yaml` を `design/tools/apply_revision.py` で適用 |
+| `design/docs/` | 正本（Markdown） |
+| `design/generated/` | 生成物（設定ファイル `params/`、一覧）。手で編集しない |
+| `design/reports/worklog/` | 作業記録 |
+| `design/research/` | 調査と実機の記録（証拠） |
 
-## 検証と現在の制限
+検査（Mac でも Ubuntu でも可）：
 
 ```bash
-bash scripts/test.sh
+python3 -m venv design/.venv && design/.venv/bin/pip install -r design/tools/requirements.lock.txt   # 初回
+design/.venv/bin/python design/tools/run_checks.py
 ```
 
-GitHub Actionsではx86-64／ARM64のクリーン環境でセットアップ、再実行、テスト、実機データ待ちの空のGUI、別ウィンドウのRViz起動、タブ切替・再接続を確認します。CIだけで使う仮想デスクトップは、本番起動には含めません。入力のないCIでは地図保存や位置推定の実機検証は行いません。CIログの成功は実機センサーや実走行の成功を示しません。
+## 9. 試験
 
-- `observe` は観測専用です。車両制御ブリッジや走行出力は起動しません。デモ起動、架空の地図・座標の生成機能は配布しません。
-- IMUドライバの再起動後に応答が停止する問題は未解決です。受信プロセスと表示を分離していますが、再発時にはIMUの電源入れ直しが必要な場合があります。
-- センサー取付座標・軸方向は未校正です。IMU融合とdeskewは有効にしていません。地図精度の実測保証はありません。
-- 過去の調査記録は `docs/` にあります。現在の導入・保存先はこのREADMEを優先してください。
+```bash
+cd ~/gouda_ws/src/tsukuba-autonomous-robot/gouda_core
+source /opt/ros/jazzy/setup.bash && source ~/gouda_ws/install/setup.bash
+python3 -m unittest discover -s test -p 'test_*.py'          # 単体試験
+bash test/stack.sh start /tmp/gouda_test                       # 試験用の起動（別の ROS ドメインとデータの置き場。センサーのドライバは起動しない。ソフト試験の仮値を使う）
+bash test/stack.sh stop /tmp/gouda_test
+python3 test/demo_monitor_server.py 8765                       # ROS なしで操作画面の見た目を確認（DEMO と明示された合成の値）
+```
 
-外部ソースは各プロジェクトのライセンスに従います。第三者ソースは `third_party/external.repos` の固定コミットから取得し、`patches/` の変更を適用します。
+ソフト試験の仮値（`*.trial.yaml`）は試験用の起動だけが使い、`gouda.sh` は使いません。
+
+## 10. 現在の制限
+
+- 実車での試験は未実施です。実車に投入してよいかは人の判断待ちです。
+- 変換設定の暫定値は承認待ち（DEC-098）です。地面の見え方と点の密度は、移動しての地図作成で測ります（DEC-099・DEC-100、TS-34）。
+- `gouda.sh` を起動し直すと、IMU が応答しないことがあります（USB の抜き差しで直ります）。
+- 点群の配送で欠落があります（ドライバは 10 Hz、monitor が受け取るのは約 2 Hz、GLIM が処理したのは約 8 Hz。G-DDS）。
+- ESP32 firmware v4 は実機に書き込んでいません（DEC-077）。
+
+外部のソースは、それぞれのプロジェクトのライセンスに従います。
