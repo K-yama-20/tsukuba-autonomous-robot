@@ -173,13 +173,13 @@ class SensorSupervisorNode(Node):
     def _evaluate(self, d):
         observed = self._observe(d)
         action = d.device.decide(observed)
-        if observed != d.device.seen:
-            self._decision('device_present' if observed else 'device_absent', f'{d.label}: {d.device.name} -> {observed or "absent"}', {'driver': d.key, 'identity': observed})
+        if d.device.presence_changed(observed):
+            self._decision('device_present' if observed else 'device_absent', f'{d.label}: {d.device.name} -> {observed or "absent (the driver is started when it appears)"}', {'driver': d.key, 'identity': observed})
         if d.command is None:   # settings incomplete or driver not installed: presence is recorded, nothing is started
-            d.device.seen = observed
+            d.device.seen = observed; d.device.evaluated = True
             return
         if action == dw.ACTION_START:
-            if d.key == 'imu' and self.previous.get('imu') == observed:
+            if d.key == 'imu' and self.previous.get('imu') == observed:   # opened before (this or an earlier session) without a re-plug
                 self._decision('device_reopened_without_reconnect', f'{d.label}: same USB enumeration {observed} as the previous session; '
                                'the IMU may not answer (known problem after a driver restart). Re-plug the IMU USB if no IMU data arrives', {'driver': d.key, 'identity': observed})
             self._start(d, observed, 'driver_started', 'device present')
@@ -228,7 +228,8 @@ class SensorSupervisorNode(Node):
             return {}
 
     def _save(self):
-        data = {'identities': {k: d.device.identity for k, d in self.drivers.items()}, 'saved_at': time.time()}
+        self.previous = dw.merge_opened(self.previous, {k: d.device.identity for k, d in self.drivers.items()})
+        data = {'identities': self.previous, 'saved_at': time.time()}
         tmp = self.state_path + '.tmp'
         try:
             with open(tmp, 'w', encoding='utf-8') as f: json.dump(data, f)
