@@ -81,7 +81,18 @@ def make_dump(root: Path, submaps):
 
 
 def grid_settings():
-    return {'map_resolution_m': 0.5, 'ground_band_max_m': 0.1, 'obstacle_band_min_m': 0.3, 'obstacle_band_max_m': 1.5, 'occupied_min_points': 2}
+    return {'map_resolution_m': 0.5, 'ground_band_max_m': 0.1, 'obstacle_band_min_m': 0.3, 'obstacle_band_max_m': 1.5, 'occupied_min_points': 2,
+            'ground_cell_m': 0.5, 'ground_max_slope_deg': 10.0, 'ground_fill_radius_m': 1.0}
+
+
+def read_pcd(path):
+    raw = Path(path).read_bytes(); head, _, body = raw.partition(b'DATA binary\n')
+    fields = dict(line.split(' ', 1) for line in head.decode('ascii').splitlines() if line and not line.startswith('#'))
+    return fields, np.frombuffer(body, dtype='<f4').reshape(-1, 3)
+
+
+def png_size(path):
+    b = Path(path).read_bytes(); assert b.startswith(b'\x89PNG'); return struct.unpack('>II', b[16:24])
 
 
 class MapConvertTests(unittest.TestCase):
@@ -97,6 +108,61 @@ class MapConvertTests(unittest.TestCase):
             yaml = (Path(d) / 'out' / 'map.yaml').read_text(); self.assertIn('resolution: 0.5', yaml); self.assertIn('image: map.pgm', yaml)
             pgm = (Path(d) / 'out' / 'map.pgm').read_bytes(); self.assertTrue(pgm.startswith(b'P5\n'))
             w, h = [int(x) for x in pgm.split(b'\n')[1].split()]; self.assertEqual(len(pgm.split(b'\n', 3)[3]), w * h)
+            # every product is written; the 3D point map holds all points in the map frame
+            self.assertEqual(stats['files'], mc.PRODUCT_FILES)
+            for f in mc.PRODUCT_FILES: self.assertGreater((Path(d) / 'out' / f).stat().st_size, 0, f)
+            fields, pcd = read_pcd(Path(d) / 'out' / 'pointmap.pcd')
+            self.assertEqual(fields['FIELDS'], 'x y z'); self.assertEqual(int(fields['POINTS']), len(ground) * 2 + len(wall)); self.assertEqual(pcd.shape[0], int(fields['POINTS']))
+            self.assertAlmostEqual(float(pcd[:, 0].max()), 3.5, places=5)   # the second submap's points are moved by its pose
+            self.assertEqual(png_size(Path(d) / 'out' / 'height.png'), (w, h))
+            terrain = json.loads((Path(d) / 'out' / 'terrain.json').read_text()); self.assertIn('display only', terrain['use'])
+            self.assertEqual(png_size(Path(d) / 'out' / 'slope.png'), (terrain['ground_grid']['width'], terrain['ground_grid']['height']))
+
+    def test_heights_are_measured_from_the_ground(self):
+        """DEC-093: the ground is not at z=0 in GLIM's frame and may slope; the bands are heights above the estimated ground."""
+        rng = np.random.default_rng(7); s = dict(grid_settings(), map_resolution_m=0.25, occupied_min_points=1)
+        x = rng.uniform(0, 20, 8000); y = rng.uniform(0, 6, 8000); slope = np.tan(np.radians(5)); offset = -1.2
+        ground = np.c_[x, y, offset + slope * x]
+        box = np.c_[rng.uniform(12, 13, 300), rng.uniform(2, 3, 300), np.zeros(300)]; box[:, 2] = offset + slope * box[:, 0] + rng.uniform(0.4, 0.9, 300)
+        canopy = np.c_[rng.uniform(4, 6, 200), rng.uniform(1, 3, 200), np.zeros(200)]; canopy[:, 2] = offset + slope * canopy[:, 0] + 3.0
+        pts = np.concatenate([ground, box, canopy])
+        g = mc.estimate_ground(pts, s['ground_cell_m'], s['ground_max_slope_deg'], s['ground_fill_radius_m'])
+        hag, gnd, obst = mc.classify(pts, g, s)
+        self.assertGreater(gnd[:8000].mean(), 0.95); self.assertEqual(int(obst[:8000].sum()), 0)    # the sloped, offset ground is ground
+        self.assertTrue(obst[8000:8300].all())                                                     # the box (0.4..0.9 m above) is an obstacle
+        self.assertFalse(obst[8300:].any())                                                        # the canopy (3 m above) is not
+        # the same scene with absolute z (the old rule) would call the whole far half of the slope an obstacle
+        self.assertGreater(((ground[:, 2] >= s['obstacle_band_min_m']) & (ground[:, 2] <= s['obstacle_band_max_m'])).mean(), 0.1)
+        ter = mc.terrain(g, s); self.assertAlmostEqual(float(np.nanmedian(ter['slope_deg'])), 5.0, delta=0.5)
+
+    def test_an_obstacle_seen_without_ground_below_does_not_lift_the_ground(self):
+        """A cell that only sees a car body or a wall: the slope limit keeps its ground near the neighbours' ground."""
+        s = grid_settings()
+        floor = [[x * 0.25, y * 0.25, 0.0] for x in range(40) for y in range(40) if not (4 <= x * 0.25 < 6 and 4 <= y * 0.25 < 6)]
+        body = [[4 + i * 0.1, 4 + j * 0.1, 0.5 + k * 0.1] for i in range(20) for j in range(20) for k in range(3)]   # no ground under it
+        pts = np.array(floor + body, dtype=np.float64)
+        g = mc.estimate_ground(pts, s['ground_cell_m'], s['ground_max_slope_deg'], s['ground_fill_radius_m'])
+        hag, gnd, obst = mc.classify(pts, g, s)
+        self.assertTrue(obst[len(floor):].all(), 'the body must stay an obstacle')
+        self.assertLessEqual(float(np.nanmax(g.height)), np.tan(np.radians(s['ground_max_slope_deg'])) * s['ground_cell_m'] * 3)
+
+    def test_ground_is_not_invented_far_from_points(self):
+        s = grid_settings()
+        near = [[x * 0.5, 0.0, 0.0] for x in range(10)]; far = [[x * 0.5, 20.0, 0.0] for x in range(10)]
+        g = mc.estimate_ground(np.array(near + far, dtype=np.float64), s['ground_cell_m'], s['ground_max_slope_deg'], s['ground_fill_radius_m'])
+        mid = g.height[int(10 / s['ground_cell_m']), :]
+        self.assertTrue(np.isnan(mid).all(), 'no ground 10 m from any point (fill radius 1 m)')
+        self.assertGreater(g.filled_cells, 0)
+        g0 = mc.estimate_ground(np.array(near + far, dtype=np.float64), s['ground_cell_m'], s['ground_max_slope_deg'], 0.0)
+        self.assertEqual(g0.filled_cells, 0)
+
+    def test_step_view_shows_a_curb(self):
+        s = grid_settings()
+        pts = np.array([[x * 0.1, y * 0.1, 0.15 if y * 0.1 >= 2.0 else 0.0] for x in range(40) for y in range(40)], dtype=np.float64)
+        g = mc.estimate_ground(pts, s['ground_cell_m'], s['ground_max_slope_deg'], s['ground_fill_radius_m'])
+        ter = mc.terrain(g, s)
+        self.assertAlmostEqual(float(np.nanmax(ter['step_m'])), 0.15, places=6)
+        self.assertAlmostEqual(float(np.nanmin(ter['step_m'])), 0.0, places=6)
 
     def test_refuses_without_submaps_or_settings(self):
         with tempfile.TemporaryDirectory() as d:
@@ -113,6 +179,27 @@ class MapConvertTests(unittest.TestCase):
             (Path(d) / 'dump' / '000000' / 'points_compact.bin').write_bytes(b'\x00' * 10)   # not a multiple of 12
             with self.assertRaises(ValueError) as cm: mc.convert(Path(d) / 'dump', Path(d) / 'out', grid_settings())
             self.assertIn('multiple of 12', str(cm.exception))
+
+
+
+class MapInspectTests(unittest.TestCase):
+    """TS-34 analysis (DEC-099, DEC-100): GLIM frame rate, path, density and ground visibility near the path."""
+    def test_report(self):
+        from gouda_core import map_inspect as mi
+        with tempfile.TemporaryDirectory() as d:
+            # ground seen only from 2 m away from the path (a blind ring around the sensor), a wall at y = 4
+            ground = [[x * 0.25, y * 0.25, 0.0] for x in range(41) for y in range(-16, 17) if abs(y * 0.25) >= 2.0]
+            wall = [[x * 0.25, 4.0, z * 0.25] for x in range(41) for z in range(1, 8)]
+            make_dump(Path(d) / 'src', [(np.eye(4), ground + wall)])
+            stamps = 1000 + np.arange(0, 101) * 0.125     # 8 Hz for 12.5 s
+            (Path(d) / 'src' / 'traj_lidar.txt').write_text('\n'.join(f'{t:.6f} {i * 0.1:.3f} 0 0 0 0 0 1' for i, t in enumerate(stamps)) + '\n')
+            r = mi.inspect(Path(d) / 'src', 0.5, [1.0, 3.0], 0.1)
+            self.assertAlmostEqual(r['glim_frames']['rate_hz'], 8.0, places=6); self.assertEqual(r['glim_frames']['frames'], 101)
+            self.assertAlmostEqual(r['path']['length_m'], 10.0, places=6); self.assertAlmostEqual(r['path']['max_distance_from_start_m'], 10.0, places=6)
+            near, far = r['near_path']
+            self.assertEqual(near['radius_m'], 1.0); self.assertLess(near['share_with_points'], 0.2)    # blind close to the path
+            self.assertGreater(far['share_with_points'], 0.4); self.assertGreater(far['points_per_m2'], 0)
+            with self.assertRaises(ValueError): mi.inspect(Path(d) / 'src', 0, [1.0], 0.1)
 
 
 class MapDatabaseTests(unittest.TestCase):

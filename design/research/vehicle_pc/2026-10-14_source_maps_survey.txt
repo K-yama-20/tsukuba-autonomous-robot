@@ -1,0 +1,39 @@
+# 2026-10-14 VM の地図データベース（~/gouda_ws/gouda_data/maps）の原図の調査（原文の出力）。DEC-094 の訂正（これまでの原図はすべて静止）と、GLIM が処理した frame の周期（G-DDS、DEC-100）の根拠。
+# 列: submaps=submap ディレクトリ数、points=points_compact.bin の大きさ/12、frames_in_submaps=data.txt の num_frames の合計、traj_lines=traj_lidar.txt の行数、max_dist_m=軌跡の最初の位置からの水平距離の最大
+# 実行日時（VM）: Wed Oct 14 02:55:39 AM JST 2026
+
+20261013_181935_d14f77ec/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_181951_4e7d776d/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_182100_aa0180a7/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_182126_31ba1cb5/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_182444_6baf5ded/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_182515_75141d70/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_182856_aa56aef3/ submaps=1 points=1248 frames_in_submaps=226 traj_lines=226 max_dist_m=0.00
+20261013_182931_6b65f4ba/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_183116_d5b7632d/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_183154_56033fa8/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_184230_6c7037f2/ submaps=1 points=1253 frames_in_submaps=1734 traj_lines=1734 max_dist_m=0.02
+20261013_184633_bd035e5f/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_184715_4f51cfd0/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_212640_3bc0b553/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_212654_59b11ad2/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261013_233351_1000472f/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261014_013620_e5abf01d/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261014_013856_b5891f51/ submaps=0 points=0 frames_in_submaps=0 traj_lines=0 max_dist_m=0.00
+20261014_014108_0c8d0a1e/ submaps=1 points=1253 frames_in_submaps=31 traj_lines=31 max_dist_m=0.00
+
+# GLIM が処理した frame の周期（traj_lidar.txt の 1 行 = GLIM の odometry が処理した 1 frame。行数-1 を最初と最後の時刻の差で割る。XT-32 は 10 Hz で出力）
+20261013_182856_aa56aef3 frames=226 span_s=27.8 rate_hz=8.09 max_gap_s=0.40
+20261013_184230_6c7037f2 frames=1734 span_s=217.5 rate_hz=7.97 max_gap_s=0.70
+20261014_014108_0c8d0a1e frames=31 span_s=6.8 rate_hz=4.41 max_gap_s=0.60
+
+# GLIM の設定（ros-jazzy-glim 1.2.2 の /opt/ros/jazzy/share/glim/config）
+config_preprocess.json:6:  // downsample_resolution       : Voxel grid resolution for downsampling
+config_preprocess.json:7:  // random_downsample_target    : Target number of points for voxel-based random sampling (Enabled when > 0)
+config_preprocess.json:23:    "downsample_resolution": 1.0,
+config_preprocess.json:24:    "random_downsample_target": 10000,
+config_sub_mapping_cpu.json:10:    "max_num_keyframes": 15,
+config_sub_mapping_cpu.json:11:    "keyframe_update_strategy": "OVERLAP",
+config_sub_mapping_cpu.json:15:    "max_keyframe_overlap": 0.6,
+config_sub_mapping_cpu.json:21:    "keyframe_randomsampling_rate": 1.0,
+config_sub_mapping_cpu.json:26:    "submap_downsample_resolution": 0.3,

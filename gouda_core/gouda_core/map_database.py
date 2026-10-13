@@ -4,7 +4,7 @@ Layout (<data_root>/maps):
   <origin_id>/                       one GLIM mapping session = one origin (由来 ID), RQ-I009
     source/                          the GLIM dump (原図, IFD-35) as written by GLIM
     source_manifest.json             origin_id, content hash of source/, GLIM version, config hash, created_at, session info
-    converted/<revision>/            one converted 2D map (map.yaml + map.pgm + manifest.json), RQ-I009
+    converted/<revision>/            one conversion: Nav2 2D map (map.yaml + map.pgm), 3D point map, terrain views, manifest.json
   index.json                         list of origins and their converted revisions (derived; rebuilt from manifests)
 
 Identity is by content hash, never by file name (IFD-29). Every artefact is written into a temporary directory and
@@ -90,9 +90,12 @@ class MapDatabase:
         return tmp
 
     def finish_conversion(self, origin_id: str, tmp_dir: Path, converter: dict, settings: dict, stats: dict) -> tuple[bool, str, Optional[dict]]:
-        """Verify map.yaml + map.pgm, write manifest.json, and publish as converted/<revision> (revision = next integer)."""
+        """Verify the products, write manifest.json, and publish as converted/<revision> (revision = next integer).
+
+        The products are the files the converter reports in stats['files'] (map.yaml + map.pgm at least: Nav2 needs them)."""
         tmp_dir = Path(tmp_dir)
-        for f in ('map.yaml', 'map.pgm'):
+        files = list(dict.fromkeys(['map.yaml', 'map.pgm'] + list((stats or {}).get('files', []))))
+        for f in files:
             if not (tmp_dir / f).is_file() or (tmp_dir / f).stat().st_size == 0:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
                 return False, f'conversion discarded: {f} missing or empty (source kept)', None
@@ -103,7 +106,7 @@ class MapDatabase:
         h = content_hash(tmp_dir, exclude=('manifest.json',))
         manifest = {'schema': MANIFEST_SCHEMA, 'kind': 'converted', 'origin_id': origin_id, 'revision': revision, 'content_hash': h,
                     'source_content_hash': src['content_hash'] if src else None, 'converter': converter, 'settings': settings, 'stats': stats,
-                    'created_at': time.time(), 'files': ['map.yaml', 'map.pgm'], 'frame': 'map'}
+                    'created_at': time.time(), 'files': files, 'frame': 'map'}
         (tmp_dir / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
         os.replace(tmp_dir, conv_dir / f'{revision:03d}')
         self._rebuild_index()

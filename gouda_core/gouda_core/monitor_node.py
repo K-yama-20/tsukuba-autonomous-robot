@@ -41,6 +41,7 @@ from gouda_core import waypoints as wpmod
 from gouda_core import speed_mask
 from gouda_core import png as pngmod
 from gouda_core import map_tab
+from gouda_core import map_convert
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
@@ -269,7 +270,7 @@ class MonitorNode(Node):
         return {'ok': True, 'set': ws.to_dict(), 'manifest': man}
 
     def _get_map_png(self, rest, query):
-        """/api/map/<origin>/<revision>/map.png | mask.png?set=<id>&rev=<n>: PGM converted on the fly for the browser."""
+        """/api/map/<origin>/<revision>/map.png | slope.png | step.png | height.png | terrain.json | manifest.json | mask.png?set=<id>&rev=<n>."""
         parts = [x for x in rest.split('/') if x]
         if len(parts) < 3: return {'ok': False, 'message': 'map/<origin>/<revision>/map.png'}
         origin, rev, what = parts[0], int(parts[1]), parts[2]
@@ -277,6 +278,12 @@ class MonitorNode(Node):
             d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
             pgm = (d / 'map.pgm').read_bytes(); data, w, h = pngmod.pgm_to_png(pgm)
             return 200, 'image/png', data
+        if what in map_convert.VIEW_FILES:   # terrain views and the top view of the 3D map, written by the converter (地図 tab)
+            f = self.map_db.root / origin / 'converted' / f'{rev:03d}' / what
+            return (200, 'image/png', f.read_bytes()) if f.is_file() else {'ok': False, 'message': f'{what} not in this revision (converted before the view existed)'}
+        if what == 'terrain.json':
+            f = self.map_db.root / origin / 'converted' / f'{rev:03d}' / 'terrain.json'
+            return {'ok': True, 'terrain': json.loads(f.read_text(encoding='utf-8'))} if f.is_file() else {'ok': False, 'message': 'no terrain views in this revision'}
         if what == 'manifest.json':   # settings, statistics and hashes of one converted revision (地図 tab)
             man = self.map_db.converted_manifest(origin, rev)
             return {'ok': man is not None, 'manifest': man} if man else {'ok': False, 'message': 'not found'}

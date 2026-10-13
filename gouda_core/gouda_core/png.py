@@ -21,6 +21,16 @@ def encode_gray(width: int, height: int, rows: bytes) -> bytes:
             + _chunk(b'IDAT', zlib.compress(raw, 6)) + _chunk(b'IEND', b''))
 
 
+def encode_rgb(width: int, height: int, rows: bytes) -> bytes:
+    """rows: height * width * 3 bytes (R, G, B), row 0 = top. Used for the terrain views of the 地図 tab."""
+    if len(rows) != width * height * 3:
+        raise ValueError('row data size does not match width*height*3')
+    stride = width * 3
+    raw = b''.join(b'\x00' + rows[y * stride:(y + 1) * stride] for y in range(height))
+    return (b'\x89PNG\r\n\x1a\n' + _chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0))
+            + _chunk(b'IDAT', zlib.compress(raw, 6)) + _chunk(b'IEND', b''))
+
+
 def pgm_to_png(pgm_bytes: bytes) -> tuple[bytes, int, int]:
     """Decode a binary PGM (P5, maxval 255) and return (png bytes, width, height)."""
     if not pgm_bytes.startswith(b'P5'):

@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "62d152f891d94bd780dbadb49441eee5683b7a2b19ddccc49cf8536a906b8530",
+  "model_entities_sha256": "53c7c06999f0414c0d01977271457ec04a3b65bff9a152ee8d4bfddcb1a09e31",
   "parameters": [
     {
       "id": "PRM-54",
@@ -252,6 +252,42 @@
       "value_state": "unresolved",
       "value": null,
       "unit": "点"
+    },
+    {
+      "id": "PRM-62",
+      "file": "gouda_map_creator.yaml",
+      "key": "ground_cell_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
+      "id": "PRM-63",
+      "file": "gouda_map_creator.yaml",
+      "key": "ground_max_slope_deg",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "度"
+    },
+    {
+      "id": "PRM-64",
+      "file": "gouda_map_creator.yaml",
+      "key": "ground_fill_radius_m",
+      "target": "gouda_map_creator",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
     },
     {
       "id": "PRM-10",

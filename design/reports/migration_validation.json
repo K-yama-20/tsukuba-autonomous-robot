@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5925,
+    "executed_checks": 5926,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -183,6 +183,7 @@
       "model file hash FILE-VEHICLE-PC-SINGLE-START",
       "model file hash FILE-INTENT-V9",
       "model file hash FILE-VEHICLE-PC-MAP-TAB",
+      "model file hash FILE-VEHICLE-PC-SOURCE-MAPS",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7419,7 +7420,7 @@
         ],
         "resolution_refs": [],
         "question": "hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION は未設定）。",
-        "next_action": "GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。"
+        "next_action": "GLIM が処理した周期は、静止して作った原図 3 件で 8.09・7.97・4.41 Hz（traj_lidar.txt の行数と時刻。FILE-VEHICLE-PC-SOURCE-MAPS）。monitor（Python）の約 2 Hz より多いが 10 Hz に届かない。 移動しての実機試験（TS-34、DEC-100）で map_inspect により測る。欠落が地図に効くなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。"
       }
     ],
     "open_conflicts": [
@@ -7449,7 +7450,7 @@
   },
   "design_maturity": {
     "未設計": 405,
-    "案": 425,
+    "案": 429,
     "承認済み": 23
   },
   "revisions": [
@@ -7852,6 +7853,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-042",
+      "date": "2026-10-14",
+      "basis_refs": 4,
+      "added_entity_ids": 4,
+      "modified_entity_ids": 10,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -8011,9 +8022,9 @@
     }
   ],
   "decisions": {
-    "count": 95,
+    "count": 98,
     "by_status": {
-      "answered": 49,
+      "answered": 52,
       "recorded": 36,
       "pending": 10
     },
@@ -8025,9 +8036,9 @@
       "DEC-077",
       "DEC-078",
       "DEC-079",
-      "DEC-093",
-      "DEC-096",
-      "DEC-097"
+      "DEC-098",
+      "DEC-099",
+      "DEC-100"
     ]
   },
   "vehicle_verification": {
@@ -8035,7 +8046,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 853,
+    "entity_count": 857,
     "source_count": 499,
     "id_map_count": 202,
     "legacy_198_count": 198,

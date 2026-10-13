@@ -128,7 +128,23 @@
   $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
 
   // ---- 地図 tab (intent.md:106): map list, conversion settings, re-conversion, preview ----
-  const mapSel = { origin: null, rev: null };
+  const mapSel = { origin: null, rev: null, view: 'map.png', terrain: null };
+  // what each preview shows (DEC-095 kinds; the terrain views are for checking only, DEC-097 A)
+  const VIEW_NOTE = {
+    'map.png': '2D 占有格子（Nav2 が使う地図）。白: 空き（地面を観測）、黒: 占有、灰: 未知。',
+    'height.png': '3D 点群地図を上から見た図。セルごとの地面からの最も高い点（障害物の上限まで）。濃い緑: 地面だけ。',
+    'slope.png': '地面の傾き（地面を推定する格子ごと）。表示のみで、走行には使わない。',
+    'step.png': '上下左右の格子との地面の高さの差（段差。坂では 1 格子分の上りを含む）。表示のみで、走行には使わない。' };
+  function showView() {
+    for (const b of document.querySelectorAll('#prev-views .view')) b.classList.toggle('sel', b.dataset.view === mapSel.view);
+    if (mapSel.rev == null) { $('prev-img').removeAttribute('src'); $('prev-legend').textContent = ''; return; }
+    $('prev-img').src = `/api/map/${encodeURIComponent(mapSel.origin)}/${mapSel.rev}/${mapSel.view}?t=${Date.now()}`;
+    const v = mapSel.terrain && mapSel.terrain.views ? mapSel.terrain.views[mapSel.view] : null;
+    const unit = v ? ({ deg: '度' }[v.unit] || v.unit) : '';
+    const scale = v ? ` 色: 緑 0 → 黄 → 赤 ${v.scale_max} ${unit}（${v.scale_from}）、紫: それを超える、灰: データなし。` : '';
+    $('prev-legend').textContent = (VIEW_NOTE[mapSel.view] || '') + scale + (mapSel.view !== 'map.png' && !mapSel.terrain ? '（この rev には無い。以前の変換器で作った rev）' : '');
+  }
+  $('prev-views').addEventListener('click', (e) => { const b = e.target.closest('.view'); if (b) { mapSel.view = b.dataset.view; showView(); } });
   let mapSettings = [];
   function renderMaps(s) {
     if (!s.maps) return;
@@ -157,15 +173,21 @@
     mapSel.origin = origin; mapSel.rev = rev;
     $('conv-target').textContent = `対象の原図: ${origin}`;
     if (lastState) renderMaps(lastState);
-    if (rev == null) { $('prev-title').textContent = '未選択'; $('prev-img').removeAttribute('src'); kvTable($('prev-table'), {}); return; }
+    mapSel.terrain = null;
+    if (rev == null) { $('prev-title').textContent = '未選択'; showView(); kvTable($('prev-table'), {}); return; }
     $('prev-title').textContent = `${origin} rev ${rev}`;
-    $('prev-img').src = `/api/map/${encodeURIComponent(origin)}/${rev}/map.png?t=${Date.now()}`;
+    try { const t = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/terrain.json`)).json(); mapSel.terrain = t.ok ? t.terrain : null; } catch (err) { mapSel.terrain = null; }
+    showView();
     try {
       const j = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/manifest.json`)).json();
       const m = j.manifest || {}; const st = m.stats || {}; const rows = {};
       for (const s of mapSettings.length ? mapSettings : Object.keys(m.settings || {}).map((k) => ({ key: k, label: k, unit: '' }))) rows[`${s.label} [${s.unit}]`] = (m.settings || {})[s.key];
       Object.assign(rows, { 'セル（占有／空き／未知）': `${st.occupied} / ${st.free} / ${st.unknown}`, '大きさ': `${st.width}×${st.height} cells, 解像度 ${st.resolution} m`,
-        '点（全体／障害物／地面）': `${st.points_total} / ${st.points_obstacle} / ${st.points_ground}`, 'submaps': st.submaps, '変換器': (m.converter || {}).version,
+        '点（全体／障害物／地面）': `${st.points_total} / ${st.points_obstacle} / ${st.points_ground}`,
+        '点（帯の間／上限より上／地面が不明）': st.points_between == null ? '—' : `${st.points_between} / ${st.points_above} / ${st.points_no_ground}`,
+        '地面の格子（点あり／地面／補った）': st.terrain ? `${st.terrain.ground_cells_observed} / ${st.terrain.ground_cells_ground_like} / ${st.terrain.ground_cells_filled}` : '—',
+        '傾きの最大／段差の最大': st.terrain ? `${st.terrain.slope_max_deg == null ? '—' : st.terrain.slope_max_deg.toFixed(1) + ' 度'} / ${st.terrain.step_max_m == null ? '—' : st.terrain.step_max_m.toFixed(2) + ' m'}` : '—',
+        'ファイル': (m.files || []).join(', '), 'submaps': st.submaps, '変換器': (m.converter || {}).version,
         '内容ハッシュ': String(m.content_hash || '').slice(0, 16) + '…', '作成': fmtT(m.created_at) });
       kvTable($('prev-table'), rows);
       // the settings of the selected revision become the starting point of the next try
