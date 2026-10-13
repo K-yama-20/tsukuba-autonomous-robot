@@ -130,6 +130,7 @@ lines:
       - PRM-53
       - PRM-54
       - PRM-55
+      - PRM-56
     issue_refs: []
   - line: 11
     requirement_id: RQ-I008
@@ -1159,6 +1160,7 @@ lines:
       - PRM-53
       - PRM-54
       - PRM-55
+      - PRM-56
       - TS-29
     issue_refs: []
   - line: 104

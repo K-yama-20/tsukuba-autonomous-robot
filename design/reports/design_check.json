@@ -95,6 +95,7 @@
       "result": "未判定",
       "violations": [],
       "undetermined": [
+        "IFD-21: 版・QoSの照合待ち",
         "IFD-38: 版・QoSの照合待ち"
       ]
     },
@@ -163,7 +164,7 @@
         "PRM-48: 値未確定 ['G-FIRMWARE']",
         "PRM-49: 値未確定 ['G-FIRMWARE', 'Q-05']",
         "PRM-53: 値未確定 ['Q-05']",
-        "PRM-55: 値未確定 ['Q-05']"
+        "PRM-56: 値未確定 ['Q-05']"
       ]
     },
     {

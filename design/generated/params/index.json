@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "6cb8438642907539fbd880a6ff73d6baaade1084b7d09fdd95bf8406447e85e4",
+  "model_entities_sha256": "4b1c72e7f67e403dc0e194752fe303256da8d2042e38862fd7bf122d6bbae134",
   "parameters": [
     {
       "id": "PRM-54",
@@ -10,8 +10,20 @@
       "apply_timing": "launch",
       "value_type": "string",
       "value_state": "approved",
-      "value": "/dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00",
+      "value": "/dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00",
       "unit": null
+    },
+    {
+      "id": "PRM-56",
+      "file": "adi_imu_driver.yaml",
+      "key": "rate",
+      "target": "adi_imu_driver",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "Hz"
     },
     {
       "id": "PRM-11",
@@ -525,8 +537,8 @@
       "declaration": "config_yaml",
       "apply_timing": "launch",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1,
       "unit": null
     },
     {
