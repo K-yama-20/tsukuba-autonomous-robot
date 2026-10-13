@@ -140,3 +140,45 @@
 - 処理周期: x86 機では GLIM が 10 Hz 近くを処理できる。VM の低さは VM に固有と見られる（G-DDS を更新）。
 
 記録: `research/vehicle_pc/2026-10-14_x86_mapping_maps.txt`（FILE-X86-MAPPING-MAPS）、`2026-10-14_x86_mapping_logs.txt`（FILE-X86-MAPPING-LOGS）、図 4 枚、`2026-10-14_field_mapping_scripts/render_outdoor.py`。
+
+## 10. 人の回答、二重起動の防止、LiDAR の途切れ、地図の傾き（REV-048）
+
+人の回答（DEC-103 に原文）:
+- 廊下は水平。
+- ゴミ箱は出発地点から左手側で、中間より手前。
+- 屋外は出発点にほぼ一致して戻った。
+- 使用環境は屋外で、廊下の性能は問わない。
+- 二重起動の防止の追加を許可。
+- 質問: LiDAR の途切れは蓋が閉じたことと関係があるか。地図作成中・自律走行中は自動でスリープしない設定か。
+
+**二重起動の防止（G-DUP-START。分類: 実装。許可 DEC-103）**
+- gouda.sh: pid ファイルに頼らずに、同じ利用者の `ros2 launch gouda_core gouda_core.launch.py`（試験スタック `trial:=true` を除く）を探す。
+  - 自分のものでなければ start を拒み（終了コード 1）、プロセスグループと止め方を表示する。status・stop でも表示する（stop の契約「この起動が所有するプロセスだけを止める」は変えない）。
+- sensor supervisor: ドライバを起動する前に、IMU のシリアルポートを開いているプロセス・LiDAR の UDP ポート（PRM-52）を持つプロセスを /proc から調べる。
+  - あれば起動せず、device_in_use（pid とコマンド）を記録し、次のイベントで調べ直す。
+- 試験:
+  - 単体（DeviceInUseTests 2 件。Mac で 129 件 OK・1 skip）。
+  - VM（別のワークスペース）: 残った起動の模擬で start を拒否、status・stop で表示、試験スタックは数えない、/proc からの検出（pty・UDP）。FILE-VEHICLE-PC-DUP-START-GUARD。
+  - 未実行: センサーありの 2 重起動。
+- 文書: `docs/sensor_supervision.md` §3、README §2。
+
+**LiDAR の途切れ（G-LIDAR-DROPOUT）**
+- カーネルのログで、3 回とも同じ秒に有線 LAN（enp2s0、内蔵 r8169）が Link is Down → 2〜3 s 後に Up。物理層のリンク断。
+- サスペンドはしていない。ACPI の処理の行が 3 回のうち 2 回と同じ頃にあるが、蓋の開閉は systemd-logind の journal に出るため未確認。
+- supervisor は反応していない（IP が残った）。
+- 質問への答え: 現在の Gouda はスリープ・蓋の動作を抑えない。抑止の案を承認事項 DEC-104 にした（推奨: gouda.sh が systemd-inhibit を取る）。
+- 記録: `research/vehicle_pc/2026-10-14_x86_lidar_dropout.txt`（FILE-X86-LIDAR-DROPOUT）。カーネルのログから Wi-Fi・IP の行は除いた。
+
+**地図の傾き（G-MAP-TILT）**
+- 廊下は水平なので、4.15 度・4.40 度の傾きは誤差。地図全体が一定の角度で回った形（往復で同じ直線）。
+- IMU と LiDAR の間の前後の傾き、または開始時の重力の推定のずれで、この形になる。
+- 静止の記録から傾きを測る案を実測の項目 DEC-105 にした（値は報告し、取付位置の設定は人が monitor で行う。RQ-I081）。
+
+**ゴミ箱**
+- 両方の廊下の地図で、出発点から約 3〜7 m の左側に物の高さの点が多い所がある。人の回答（左手側、中間より手前）と合う可能性がある。
+- ただし、廊下の左側の全長に物の高さの点があるため確定できない。廊下の性能は問わないとの回答により、これ以上は調べない。
+
+**屋外**
+- 出発点に戻ったので、終点のずれ（水平 12.7 m、高さ 6.4 m）は誤差と確定。
+
+未回答: 地面の推定の修正の進め方（G-FLOOR-REFLECTION の候補 a・b）。

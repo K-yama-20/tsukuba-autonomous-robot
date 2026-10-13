@@ -33,6 +33,11 @@
 | 同一性が同じ | 何もしない。ドライバが自分で終了しても再起動しない（IMU は繋ぎ直さずに再起動すると応答しなくなるため） |
 | デバイスが消えた | そのドライバを止める（再び現れたら起動） |
 
+- デバイスを別のプロセスが使っているときは、ドライバを起動しない（G-DUP-START、人の許可 DEC-103）。
+  - IMU はシリアルポートを開いているプロセス、XT-32 は受信の UDP ポート（PRM-52）を持つプロセスを /proc から調べる。
+  - 使われていれば DecisionEvent（device_in_use。相手の pid とコマンド）を記録し、次のデバイス・アドレスのイベントで調べ直す。
+  - 2026-10-14 に Gouda が 2 つ動き、同じ IMU と LiDAR を 2 つずつのドライバが読んで地図が壊れたため。
+- gouda.sh は、自分の pid ファイルにない gouda_core の起動（試験スタック trial:=true は除く）が動いていれば起動を拒み、止め方を表示する（status・stop でも表示する）。
 - ドライバの停止は SIGINT → SIGTERM → SIGKILL。各段で待つ時間は PRM-59（5.0 s で確定: DEC-091）。値が無い場合は上限なしで待つ（値を補わない）。
 - 前回のセッションで開いた IMU の列挙（同一性）を <data_root>/run/sensor_devices.json に残す。同じ列挙を開き直すときは「IMU が応答しない可能性がある（USB を抜き差しすると直る）」を DecisionEvent（device_reopened_without_reconnect）で記録する。gouda.sh を止めて起動し直すと、このケースになる。
 - 記録する DecisionEvent（node gouda_sensor_supervisor）: settings、driver_not_started（設定不足・未導入）、device_present／device_absent、device_reconnected、driver_started／driver_restarted／driver_stopped、driver_exited、device_reopened_without_reconnect、driver_stop_escalated、watch_failed。monitor の履歴欄に出る。
@@ -43,7 +48,7 @@
 | 試験 | 内容 | 実装 |
 |---|---|---|
 | TS-31 | 受信表示（周期・経過・時刻差）、しきい値の有無による STALE 判定、地図作成開始時の警告（未受信は常に、STALE はしきい値がある場合） | `gouda_core/test/test_sensor_supervision.py`（ReceptionAndWarningTests、HeaderStampTests）、VM で monitor の API |
-| TS-32 | 名前による同一性（by-id → USB 列挙、PC アドレス → I/F）、作り直しの規則（同一性が同じなら再起動しない） | 同（DeviceIdentityTests、RestartRuleTests）、VM で supervisor の起動と記録。実機の抜き差しは人の協力が要る |
+| TS-32 | 名前による同一性（by-id → USB 列挙、PC アドレス → I/F）、作り直しの規則（同一性が同じなら再起動しない）、別のプロセスが使っているデバイス | 同（DeviceIdentityTests、RestartRuleTests、DeviceInUseTests）、VM で supervisor の起動と記録。実機の抜き差しは人の協力が要る |
 
 ## 5. 残る制約
 

@@ -1,0 +1,134 @@
+# 変更セット REV-048（2026-10-14 第26便: 人の回答（廊下・ゴミ箱・屋外・使用環境・二重起動の防止の許可・蓋とスリープの質問）、二重起動の防止、LiDAR の途切れの原因、地図の傾き）
+# 適用: design/tools/apply_revision.py REV-048
+id: REV-048
+date: '2026-10-14'
+summary: >-
+  人の回答を原文で記録（DEC-103）。廊下は水平、ゴミ箱は出発地点から左手側で中間より手前、屋外は出発点にほぼ一致して戻った、使用環境は屋外で廊下の性能は問わない、二重起動の防止の追加を許可。
+  二重起動の防止を実装した。gouda.sh は把握していない gouda_core の起動があれば拒む。sensor supervisor は別のプロセスが使っている IMU のシリアルポート・LiDAR の UDP ポートではドライバを起動しない。
+  VM で試験した（FILE-VEHICLE-PC-DUP-START-GUARD）。
+  屋外の LiDAR の途切れ 3 回は、どれも同じ秒に有線 LAN（enp2s0）のリンクが切れていた。サスペンドはしていない（FILE-X86-LIDAR-DROPOUT）。
+  蓋の開閉との関係は journal で確かめる。地図作成中のスリープ・蓋の動作を Gouda が抑える案を承認事項 DEC-104 にした。
+  廊下が水平なので、廊下の地図の 4.15 度・4.40 度の傾きは誤差（G-MAP-TILT）。IMU と LiDAR の間の傾きを静止の記録から測る案を実測の項目 DEC-105 にした。
+basis_refs: [DEC-103]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-X86-LIDAR-DROPOUT
+    path: design/research/vehicle_pc/2026-10-14_x86_lidar_dropout.txt
+    role: evidence
+  - id: FILE-VEHICLE-PC-DUP-START-GUARD
+    path: design/research/vehicle_pc/2026-10-14_dup_start_guard_vm_test.txt
+    role: evidence
+
+decisions:
+  - id: DEC-103
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-14'
+    answered_on: '2026-10-14'
+    channel: chat
+    question: 廊下の水平・寸法・ゴミ箱の位置、屋外の経路、x86 機のログ、地面の推定の修正、二重起動の防止（AI の質問への回答）
+    answer_verbatim: |
+      廊下は水平である。ゴミ箱は出発地点から出発して左手側にある。中間より手前。屋外は出発点にほとんどぴったり一致しして帰った。実際の使用環境は屋外だから、廊下での性能が悪くても問題ない。
+      goudaの二重起動を防ぐ処理の追加を許可する。
+
+      lidarが途切れた原因は、パソコンの蓋が閉じてしまったことと関係はあるか？地図作製中や自律走行中はツエンにスリープしない設定になってたりするのかな？
+    affected_refs: [G-DUP-START, G-LIDAR-DROPOUT, G-FLOOR-REFLECTION, ND-01, ND-18]
+    resulting_refs: [G-MAP-TILT, DEC-104, DEC-105]
+    note: >-
+      二重起動の防止を許可（G-DUP-START の next_action を実装）。廊下は水平なので、廊下の地図の傾きは誤差（G-MAP-TILT）。屋外は出発点に戻ったので、屋外の地図の終点のずれ（水平 12.7 m、高さ 6.4 m）は誤差（G-LIDAR-DROPOUT）。
+      廊下の性能は問わない（G-FLOOR-REFLECTION の床の反射は優先しない。屋外の 2 層の地面への対策は残る）。ゴミ箱は、両方の廊下の地図で出発点から約 3〜7 m の左側に点が多い所があり、合っている可能性があるが、廊下の中の左側の全長に物の高さの点があるため確定できない。
+      地面の推定の修正の進め方（G-FLOOR-REFLECTION の候補 a・b）には回答がない。
+      質問（蓋・スリープ）への答え: 現在の Gouda はスリープや蓋の動作を抑えない。屋外のリンク断のときにサスペンドは起きていない（FILE-X86-LIDAR-DROPOUT）。
+    disposition: answered
+  - id: DEC-104
+    kind: approval
+    status: pending
+    asked_on: '2026-10-14'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】Gouda が動いている間、PC のスリープと蓋を閉じたときの動作を抑える。案 A（推奨）: gouda.sh start が、systemd の抑止（systemd-inhibit。対象は sleep・handle-lid-switch・idle）を取ったまま launch を動かす。
+      gouda.sh stop で外れる。デスクトップの画面の中で起動すれば利用者の権限で取れる。SSH から起動して取れないときは、記録して起動は続ける。
+      案 B: PC の設定だけで行う（/etc/systemd/logind.conf の HandleLidSwitch=ignore と自動サスペンドの無効化。setup.sh が確認して表示する）。案 C: 何もしない（運用で蓋を開けておく）。
+      A と B は併用できる。蓋を閉じた時にリンクが切れる原因が電源管理であれば、A・B どちらでも防げる見込み（未確認）。
+    answer_verbatim: ''
+    affected_refs: [ND-01, G-LIDAR-DROPOUT]
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：Gouda の起動中のスリープの抑止。地図作成・自律走行は今のままでもできるが、蓋を閉じたときやアイドル時の動作は PC の設定次第。
+    disposition: open_human
+  - id: DEC-105
+    kind: measurement
+    status: pending
+    asked_on: '2026-10-14'
+    answered_on: null
+    channel: chat
+    question: >-
+      【実測】IMU と LiDAR の間の傾き（G-MAP-TILT）。水平な床で車体を 30 秒ほど止め、記録タブの Record で rosbag を記録する。
+      AI が、IMU の加速度の平均（重力の向き、IMU の座標）と、LiDAR の点群の床の面の向き（LiDAR の座標）から、二つの座標の間の傾き（前後・左右）を求める。
+    answer_verbatim: ''
+    affected_refs: [ND-06, ND-15, ND-14, G-MAP-TILT]
+    resulting_refs: []
+    note: >-
+      求めた値は報告するだけで、取付位置の設定は人が monitor で行う（RQ-I081）。人に依頼すること: 水平な床での静止の記録（rosbag）。
+      決まらない場合に止まる作業: 地図の傾きの原因の切り分け。地図作成と変換は傾いたままでも動く（地面の推定は傾き 10 度まで追従する設計）。
+    disposition: open_human
+
+entities:
+  - id: G-MAP-TILT
+    kind: issue
+    source_from_affected: true
+    name: 地図全体が前後方向に約 4 度傾く（水平な廊下が坂に写る）
+    sensitivity: [operation]
+    issue:
+      category: technical
+      state: open
+      affected_refs: [ND-06, ND-05, ND-15, ND-14]
+      resolution_refs: []
+      question: >-
+        水平な廊下（人の回答 DEC-103）の地図で、軌跡が廊下の向きに一様に上る。VM の 2 回目で 4.15 度、x86 機で 4.40 度、往復で同じ直線に乗る（直線からの差 0.02 m）。
+        地図全体が一定の角度で傾いている形で、出発時の車体の前後の軸の周りの回転。IMU と LiDAR の間に、/config（両方とも傾き 0）にない前後の傾きがある場合や、
+        開始時の重力の向きの推定がずれた場合に、この形になる。GLIM の IMU の予測の回転の誤差は小さい（0.07 度）が、平面上の回転だけでは前後の傾きのずれは見えにくい。
+        FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS。
+      next_action: >-
+        水平な床での静止の記録から IMU と LiDAR の間の傾きを測る（DEC-105）。値は報告し、取付位置の設定は人が monitor で行う（RQ-I081）。設定を変えた後の地図作成で傾きが消えるかを確かめる。
+
+modifications:
+  - id: ND-01
+    set_nested:
+      ros_node.responsibilities:
+        - 起動経路はこれ一つ（bash gouda.sh start／stop／status）。環境変数などの起動オプションを持たない（DEC-090・DEC-091）
+        - 共通nodeの起動と、モードごとの launch／lifecycle 有効化（RQ-I004）。センサードライバは常に gouda_sensor_supervisor（ND-18）の下で起動する（デバイスが無ければ待つ）
+        - ワークスペース（gouda.sh の 2 つ上）、データの置き場（PRM-25）、設定（design/generated/params）、ROS 2 Jazzy（/opt/ros/jazzy）は固定または正本から決める。仮値（<node>.trial.yaml）は読まない（試験 script だけが使う）
+        - 起動・有効化の失敗を gouda_monitor に表示できる形（/diagnostics・lifecycle状態）で残す。起動中に launch が終了したら失敗として表示する
+        - Gouda は同時に一つ。pid ファイルにない gouda_core の起動（試験スタック trial:=true は除く）が同じ利用者で動いていれば起動を拒み、止め方を表示する。status・stop でも表示する（G-DUP-START、DEC-103）
+        - 走行開始要求は発行しない（M-001 K2 を維持）
+  - id: ND-18
+    set_nested:
+      ros_node.responsibilities:
+        - センサードライバ ND-14（XT-32）・ND-15（IMU）を子プロセスとして起動する。設定は generated/params（PRM-50〜56）から作り、未確定・未導入なら起動せず理由を記録する
+        - デバイスを名前で見張る。IMU は by-id の名前（PRM-54）、XT-32 は PC 側アドレス PRM-51 を持つ I/F。同一性（USB の列挙番号・ifindex）が変わったとき（再接続）だけ、そのドライバを止めて起動し直す（DEC-088）
+        - 同一性が同じならドライバを再起動しない（ドライバが自分で終了しても再起動しない。IMU は再接続なしの再起動で応答しなくなるため）。デバイスが消えたらドライバを止め、再び現れたら起動する
+        - 別のプロセスがデバイスを使っていれば（IMU のシリアルポート、XT-32 の UDP ポート PRM-52）ドライバを起動せず、device_in_use を記録して次のイベントで調べ直す（G-DUP-START、DEC-103）
+        - 見張りはイベント駆動（udevadm monitor、ip monitor）で周期の値を持たない。ドライバの停止の各段の待ちは PRM-59（未確定の間は上限なし）
+        - 判断（デバイスの出現・消失・再接続・使用中、ドライバの起動・作り直し・停止・終了、前回と同じ IMU の列挙を開き直すこと）を DecisionEvent（IFD-28）で記録する
+        - 上流のドライバは改変しない（DEC-075 と同じ方針）
+  - id: G-DUP-START
+    set_nested:
+      issue.next_action: >-
+        実装済み（人の許可 DEC-103）。gouda.sh は pid ファイルに頼らずに同じ利用者の gouda_core の起動（試験スタックを除く）を検出して拒む。sensor supervisor は別のプロセスが開いているデバイスにはドライバを起動しない（device_in_use）。
+        単体試験（DeviceInUseTests）と VM での試験（gouda.sh の拒否と表示、/proc からの検出。FILE-VEHICLE-PC-DUP-START-GUARD）は合格。
+        未実行: センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作（実機の協力が要る）。
+  - id: G-LIDAR-DROPOUT
+    set_nested:
+      issue.question: >-
+        x86 機の屋外の地図作成（2026-10-14 06:34〜06:45）で、GLIM が受け取る LiDAR の frame が 06:38:35 に 3.5 s、06:40:29 に 2.7 s、06:44:22 に 3.2 s 途切れた。
+        それぞれの後、約 1 分間、点と IMU の時刻の差の警告が続いた（1.0〜3.6 s）。3 回目では約 9 m ずれ、同じ場所を通った所で高さが中央値 1.8 m 違う。
+        人によると出発点にほぼ一致して戻ったので、地図の終点のずれ（水平 12.7 m、高さ 6.4 m）は誤差（DEC-103）。FILE-X86-MAPPING-MAPS。
+        カーネルのログでは、3 回とも同じ秒に LiDAR を繋いだ有線 LAN（enp2s0、本体内蔵の r8169）が Link is Down になり、2〜3 s 後に Link is Up になった（物理層でのリンク断）。
+        サスペンドの記録はなく、GLIM は動き続けた。ACPI の処理の行が 3 回のうち 2 回と同じ頃にある。蓋の開閉は systemd-logind の journal に出るため、まだ確かめていない。
+        supervisor は反応していない（IP アドレスが残り、ドライバは作り直されていない）。FILE-X86-LIDAR-DROPOUT。
+      issue.next_action: >-
+        蓋の開閉の時刻を journal で確かめ、リンク断の時刻と比べる（人に依頼。journalctl の systemd-logind の Lid closed / Lid opened）。
+        一致すれば、蓋を閉じたときの電源管理が有線 LAN を切ると見て、スリープ・蓋の動作の抑止（DEC-104）で防ぐ。
+        一致しなければ、LAN のケーブル・コネクタ（車体の振動。廊下では途切れなし）を疑う。どちらでも、屋外の地図作成では monitor の SENSORS 表で点群の途切れを見る。

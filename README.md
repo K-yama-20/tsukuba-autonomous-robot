@@ -63,6 +63,9 @@ bash gouda.sh stop      # この起動が所有するプロセスだけを止め
 
 - monitor（操作画面）は `gouda.sh start` が表示する URL（http://127.0.0.1:8080/、PRM-26）を、この PC のブラウザで開きます。
 - センサーのドライバは gouda_sensor_supervisor が起動します。デバイスがなければ接続を待ち、USB が繋ぎ直されたときだけドライバを作り直します（[design/docs/sensor_supervision.md](design/docs/sensor_supervision.md)）。
+- Gouda は同時に 1 つだけ動かせます。`gouda.sh` が把握していない Gouda が動いていると、`start` は起動を拒み、止め方（`kill -INT -- -<プロセスグループ>`）を表示します。
+  - 例: ワークスペースやデータの置き場を動かしたあとも、古い起動が残っている場合。
+  - センサーのドライバも、別のプロセスが IMU や LiDAR を使っている間は起動しません。
 - **IMU の既知の問題**：`gouda.sh` を止めて起動し直すと、IMU が応答しないことがあります。運行タブの SENSORS 表で IMU が届いていなければ、IMU の USB を抜き差ししてください。
 - 設定値はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。未確定の値は空のままで、推測で埋めません。
 

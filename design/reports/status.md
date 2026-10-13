@@ -1,6 +1,6 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-14（REV-047、第26便）。
+最終更新：2026-10-14（REV-048、第26便）。
 
 **実機の地図作成の試験（廊下、二往復）**（作業記録 `reports/worklog/2026-10-14_rev045_field_mapping_judgement.md`）。
 - 1 回目: 不合格。Gouda が 2 つ同時に動いていた（G-DUP-START）。
@@ -14,11 +14,13 @@
   - 廊下の不合格点: 4.40 度の傾きがあり、床の反射で 2D 変換は不合格。
   - 屋外: LiDAR の frame が 3 回、約 3 s 途切れ（G-LIDAR-DROPOUT）、約 9 m ずれた。同じ場所の高さが 1.8 m 違い、原図は不合格。
   - VM での処理周期の低さは VM に固有と見られる（G-DDS）。
-- 人の作業:
-  - 廊下の水平・寸法・ゴミ箱の位置の確認、屋外の経路（出発点に戻ったか）の確認。
-  - x86 機の launch のログ・記録のセッションのログ・カーネルのログの提供。
-  - 次の試験で Record を押す。
-- AI の次の作業: G-FLOOR-REFLECTION（地面の推定）と G-DUP-START（二重起動）の修正、G-LIDAR-DROPOUT の原因調査。
+- 人の回答（DEC-103）: 廊下は水平（傾きは誤差: G-MAP-TILT）、屋外は出発点に戻った（終点のずれは誤差）、使用環境は屋外、二重起動の防止を許可。
+- 二重起動の防止を実装（gouda.sh の拒否、supervisor の device_in_use）。VM で試験合格。センサーありの試験は未実行。
+- LiDAR の途切れ: 3 回とも有線 LAN（enp2s0）のリンク断と同じ秒。サスペンドはなし。蓋の開閉は journal で確認待ち。
+- 承認待ち: DEC-104（Gouda の起動中にスリープ・蓋の動作を抑える）。
+- 実測待ち: DEC-105（IMU と LiDAR の間の傾き。水平な床で静止して Record）。
+- 回答待ち: 地面の推定の修正の進め方（G-FLOOR-REFLECTION）。
+- 人の作業: 蓋の開閉の時刻の確認（journal）、次の試験で Record を押す。
 
 前便（第25便）: **設計のブランチを人が main に merge した**（PR #8）。README を現行の実装に合わせて書き換え、PC のセットアップと更新のスクリプトを用意した（ブランチ `docs/pc-setup-2026-10-14`。main への merge は人）。
 - 初回: `bash setup.sh`（何度実行してもよい。足りないときだけ sudo）。更新: `bash gouda.sh stop` → `bash update.sh`（main へ fast-forward してから setup.sh）→ `bash gouda.sh start`。
@@ -57,12 +59,12 @@
 
 ## 三つの状態（CLAUDE.md 1.4）＋報告用の三区分（DEC-057）
 
-- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜047 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
+- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜048 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
 - 設計検査に合格：**未判定**。設計整合性 17 ルール 違反 0・未判定 4（DR-04 5 件、DR-05 2 件: RQ-I027・RQ-I072 は問題／衝突のみで対応、DR-10 2 件: 版照合、DR-11: 未確定値 59）。検査違反 0 件は未判定の解消でも実車適合の証明でもない。
 - ソフト試験合格：**工程5-1〜5-5 が合格**（5-5: TS-07・TS-13・TS-19 PC 側・TS-12・TS-30 を Ubuntu で、TS-17・18・19・29 を firmware 中核のホスト試験と Python 模擬で。FILE-VEHICLE-PC-STAGE55）。5-3・5-4 はセンサーなし、5-5 は ESP32 実機・ゲームパッド・車体なしの範囲。TS-01〜06・08〜11・14〜16・20〜22 は未実行。
 - 実車検証済み／実車投入可能：**人の判断待ち**。実車試験は未実施。承認済みの実車値は PRM-07・08・13・21 の 4 件のみ。DAC 電圧（PRM-43〜46）は未確定で、実車向け firmware ビルドには入っていない（DEC-077）。DEC-050 の実機照合は未実施。
 
-## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-047 適用後）
+## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-048 適用後）
 
 | 検査 | 合格 | 違反 | 未判定 |
 |---|---|---|---|
@@ -72,12 +74,12 @@
 | 設定の生成（generate_params → generated/params/。firmware_config.trial.yaml を追加） | 生成 | 0 | 0 |
 | 設計整合性（17 ルール） | 13 | 0 | 4（DR-04 5、DR-05 2、DR-10 2、DR-11 59） |
 | 検査器の試験 | 68 | 0 | 0 |
-| gouda_core 単体試験（Mac・VM、f5f9be8） | 127（Mac では 1 件 skip、VM ではすべて実行） | 0 | 0 |
+| gouda_core 単体試験（Mac・VM、caf4ee8） | 129（Mac では 1 件 skip、VM ではすべて実行） | 0 | 0 |
 | firmware 中核ホスト試験（g++、仮値ヘッダ。TS-17・18・19・29 の卓上 stub） | 274 checks | 0 | 0（実機未実行） |
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜34） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 22（未実行または一部のみ。TS-31〜33 は一部を VM で実行: 作業記録。TS-34 は 1 回目が条件の外で不合格、2 回目は原図は整合・2D 変換は不合格（G-FLOOR-REFLECTION）） |
-| 判断台帳 | 100 件（answered 52、recorded 37、pending 11: DEC-021・022・024・050・077・078・079・098・099・100・101） | | |
+| 判断台帳 | 103 件（answered 52、recorded 38、pending 13: DEC-021・022・024・050・077・078・079・098・099・100・101・104・105） | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
@@ -117,9 +119,9 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第9版（SHA 183f8ee1…、106 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-047。次は REV-048、DEC-103 |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-048。次は REV-049、DEC-106 |
 | 正本（Markdown） | `design/docs/` | `map_conversion.md`（地図の変換と地図作成の実機試験の手順）、`sensor_supervision.md`、`implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜102） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜105） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`（trial ファイルも生成）、`apply_revision.py` |
