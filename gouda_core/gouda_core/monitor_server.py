@@ -89,8 +89,13 @@ class _Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _file(self, rel: str):
-        root = self.server_ref.web_dir.resolve(); path = (root / rel).resolve()
-        if root not in path.parents and path != root or not path.is_file():
+        # The requested name must stay inside web/: no absolute path and no '..' (checked on the name, not on the resolved
+        # file, because a --symlink-install build installs web/ files as links into the source tree).
+        parts = Path(rel).parts
+        if not rel or Path(rel).is_absolute() or '..' in parts:
+            return self._json({'error': 'not found'}, 404)
+        path = self.server_ref.web_dir / Path(*parts)
+        if not path.is_file():
             return self._json({'error': 'not found'}, 404)
         body = path.read_bytes(); ctype = mimetypes.guess_type(str(path))[0] or 'application/octet-stream'
         if ctype.startswith('text/') or ctype in ('application/javascript', 'application/json'): ctype += '; charset=utf-8'

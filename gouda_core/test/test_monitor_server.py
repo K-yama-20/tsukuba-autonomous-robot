@@ -116,4 +116,25 @@ class ExtraRouteTests(unittest.TestCase):
             srv.stop()
 
 
+class SymlinkWebDirTests(unittest.TestCase):
+    """A --symlink-install build installs web/ files as links into the source tree: they must be served, while a name that
+    leaves web/ ('..', absolute) is still refused."""
+    def test_symlinked_files_served_and_traversal_refused(self):
+        import http.client, os, tempfile
+        from gouda_core.monitor_server import MonitorServer
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / 'src'; src.mkdir(); (src / 'index.html').write_text('<html>linked</html>'); (Path(d) / 'secret.txt').write_text('secret')
+            web = Path(d) / 'share' / 'web'; web.mkdir(parents=True); os.symlink(src / 'index.html', web / 'index.html')
+            srv = MonitorServer(web, lambda: {}, lambda: {}, lambda n, b: {}, lambda b: {}, port=0, keepalive_s=0.5); url = srv.start()
+            try:
+                host, port = url.split('//')[1].strip('/').split(':')
+                def raw(path):
+                    c = http.client.HTTPConnection(host, int(port), timeout=5); c.request('GET', path); r = c.getresponse(); body = r.read(); c.close(); return r.status, body
+                self.assertEqual(raw('/'), (200, b'<html>linked</html>'))
+                self.assertEqual(raw('/static/../../secret.txt')[0], 404)
+                self.assertEqual(raw('/static//etc/hosts')[0], 404)
+            finally:
+                srv.stop()
+
+
 if __name__ == '__main__': unittest.main()
