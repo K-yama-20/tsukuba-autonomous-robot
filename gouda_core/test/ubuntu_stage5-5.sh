@@ -24,7 +24,8 @@ for _ in $(seq 1 20); do [[ -s "$OUT/pty" ]] && break; sleep 0.5; done
 PTY="$(cat "$OUT/pty")"; echo "sim pty: $PTY"; head -1 "$OUT/sim.out"
 ros2 run gouda_core vehicle_bridge --ros-args --params-file "$PARAMS/vehicle_bridge.trial.yaml" -p "serial_port:=$PTY" -p "params_dir:=$PARAMS" -p trial:=true > "$OUT/bridge.out" 2>&1 &
 ros2 run gouda_core gouda_motion_controller --ros-args --params-file "$PARAMS/gouda_motion_controller.yaml" --params-file "$PARAMS/gouda_motion_controller.trial.yaml" > "$OUT/mc.out" 2>&1 &
-sleep 3
+# wait until both nodes are discoverable (a fixed sleep was too short in a fresh ROS domain); the pass criteria are unchanged
+for n in vehicle_bridge gouda_motion_controller; do for _ in $(seq 1 30); do ros2 lifecycle get "/$n" >/dev/null 2>&1 && break; sleep 1; done; done
 for n in vehicle_bridge gouda_motion_controller; do ros2 lifecycle set "/$n" configure; ros2 lifecycle set "/$n" activate; done
 ros2 lifecycle get /vehicle_bridge; ros2 lifecycle get /gouda_motion_controller
 python3 "$REPO/gouda_core/test/stage55_probe.py" --params-dir "$PARAMS" --out "$OUT/probe.log" 2>&1 | tee "$OUT/probe.summary"
