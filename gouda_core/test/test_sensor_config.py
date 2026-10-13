@@ -74,7 +74,9 @@ class ImuParameterTests(unittest.TestCase):
     def test_vehicle_params_without_rate_are_refused(self):
         p, missing = sc.imu_parameters(sc.read_node_params(PARAMS, 'adi_imu_driver', trial=False))
         self.assertEqual(missing, ['rate'], 'PRM-56 is unresolved (DEC-085): the driver default must not be used silently')
-        self.assertEqual(p['device'], '/dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00')
+        import json   # expected value = the model's PRM-54 (generated index), not a copy typed into the test
+        prm54 = next(x for x in json.load(open(os.path.join(PARAMS, 'index.json')))['parameters'] if x['id'] == 'PRM-54')
+        self.assertEqual(p['device'], prm54['value']); self.assertTrue(p['device'].startswith('/dev/serial/by-id/'))
         self.assertNotIn('tty', p['device'].rsplit('/', 1)[-1].lower().replace('virtual', ''), 'by-id name only (DEC-081)')
 
     def test_trial_params(self):
