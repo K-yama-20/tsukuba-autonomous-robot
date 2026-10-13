@@ -132,7 +132,7 @@ for d in "$workspace"/install/gouda_core/lib/python3*/site-packages/gouda_core; 
   fi
 done
 export CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-2}" MAKEFLAGS="${MAKEFLAGS:--j2}"   # small PCs and the VM
-colcon build --symlink-install --packages-select "${packages[@]}" --executor sequential
+colcon build --symlink-install --base-paths "$src_dir" --packages-select "${packages[@]}" --executor sequential   # only src/ is searched (not gouda_data)
 
 # ---------------------------------------------------------------- 6. checks
 say "LiDAR LAN"
