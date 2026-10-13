@@ -42,13 +42,20 @@ case "${1:-}" in
     source "$ros_setup"; source "$workspace/install/setup.bash"
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
     rm -f "$url_file"
-    ros2 launch gouda_core gouda_core.launch.py "params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port" "serial_port:=$serial_port" "sensors:=$([[ "$sensors" == 1 ]] && echo true || echo false)" "trial:=$([[ "$trial_params" == 1 ]] && echo true || echo false)" >"$log_file" 2>&1 &
+    launch_args=("params_dir:=$params_dir" "data_root:=$data_root" "monitor_port:=$monitor_port"
+                 "sensors:=$([[ "$sensors" == 1 ]] && echo true || echo false)" "trial:=$([[ "$trial_params" == 1 ]] && echo true || echo false)")
+    # An empty value would be a malformed launch argument ("serial_port:="); omit it so the launch default (empty) applies.
+    [[ -n "$serial_port" ]] && launch_args+=("serial_port:=$serial_port")
+    ros2 launch gouda_core gouda_core.launch.py "${launch_args[@]}" >"$log_file" 2>&1 &
     launch_pid=$!
     set +m
     echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid
     echo "started gouda_core (pgid $launch_pid); params=$params_dir data=$data_root log=$log_file trial_params=$trial_params"
     [[ "$trial_params" == 1 ]] && echo "WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle"
-    for _ in $(seq 1 20); do [[ -s "$url_file" ]] && break; sleep 1; done
+    for _ in $(seq 1 20); do [[ -s "$url_file" ]] && break; running || break; sleep 1; done
+    if ! running; then   # the launch exited during start-up: report it instead of claiming success
+      echo "FAILED: the launch exited during start-up. Last lines of $log_file:"; tail -20 "$log_file"; rm -f "$pid_file"; exit 1
+    fi
     [[ -s "$url_file" ]] && echo "monitor: $(cat "$url_file") (open on this PC desktop; no screen forwarding)" || echo "monitor URL not written yet; see $url_file after start-up"
     ;;
   stop)
