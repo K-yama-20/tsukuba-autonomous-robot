@@ -1,10 +1,11 @@
 """gouda_map_creator node (ND-05): map/convert action (IFD-37) over the map database (IFD-29). Stage 5-3.
 
-Converts a registered source map (GLIM dump, 原図) into a Nav2 2D map and publishes it as converted/<revision> with a
+Converts a registered source map (GLIM dump, 原図) into the maps of one revision (Nav2 2D map, 3D point map, terrain
+views; map_convert) and publishes it as converted/<revision> with a
 manifest (origin id, content hashes, converter version, settings: RQ-I009). A failed conversion keeps the source and
 discards the incomplete output. Re-conversion can be requested any time (from gouda_monitor, stage 5-4+).
 
-Settings (PRM-33..36) are ROS parameters read from design/generated/params/gouda_map_creator.yaml (or the .trial.yaml
+Settings (PRM-33..36, PRM-38, PRM-62..64) are ROS parameters read from design/generated/params/gouda_map_creator.yaml (or the .trial.yaml
 software trial values in stub tests). They are unresolved until measured on the vehicle (Q-06); the node refuses to
 convert when a setting is missing rather than using a default. No numeric value is hard-coded (RQ-I076).
 """
@@ -32,7 +33,7 @@ def optional_double(node, name):
         return None
     return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
 
-SETTING_PARAMS = ['map_resolution_m', 'ground_band_max_m', 'obstacle_band_min_m', 'obstacle_band_max_m', 'occupied_min_points']
+SETTING_PARAMS = list(map_convert.SETTING_KEYS)
 
 
 class MapCreatorNode(Node):
@@ -55,7 +56,7 @@ class MapCreatorNode(Node):
             s[key] = optional_double(self, key)
         if require and any(v is None for v in s.values()):
             missing = [k for k, v in s.items() if v is None]
-            raise ValueError(f'conversion settings unresolved: {missing} (PRM-33..36; pass the generated parameter file, or the trial file for stub tests)')
+            raise ValueError(f'conversion settings unresolved: {missing} (PRM-33..36, PRM-38, PRM-62..64; pass the generated parameter file, or the trial file for stub tests)')
         return s
 
     def _goal(self, goal):

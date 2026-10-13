@@ -1,6 +1,6 @@
 """地図 tab of gouda_monitor (intent.md:106, RQ-I082): conversion settings, re-conversion, results. No ROS dependency.
 
-The conversion parameters of gouda_map_creator (PRM-33..36, PRM-38) are tuning items: the human edits them in the 地図 tab and
+The conversion parameters of gouda_map_creator (PRM-33..36, PRM-38, PRM-62..64) are tuning items: the human edits them in the 地図 tab and
 re-converts a source map (原図) as often as wanted. Every conversion is a new revision in the map database with its own
 settings, statistics and content hash (RQ-I008); the source is never changed (RQ-I009). The defaults shown in the tab are the
 values gouda_map_creator was started with (its ROS parameters, from the generated parameter file); nothing numeric is here.
@@ -14,18 +14,22 @@ from typing import Optional
 
 # key, design id, label, unit, integer?  (names and units only; values come from gouda_map_creator's parameters)
 CONVERSION_SETTINGS = [
-    {'key': 'map_resolution_m', 'prm': 'PRM-33', 'label': '変換後地図の解像度（1 セルの大きさ）', 'unit': 'm', 'integer': False},
-    {'key': 'ground_band_max_m', 'prm': 'PRM-34', 'label': '地面とみなす高さの上限', 'unit': 'm', 'integer': False},
-    {'key': 'obstacle_band_min_m', 'prm': 'PRM-35', 'label': '障害物とみなす高さの下限', 'unit': 'm', 'integer': False},
-    {'key': 'obstacle_band_max_m', 'prm': 'PRM-36', 'label': '障害物とみなす高さの上限', 'unit': 'm', 'integer': False},
+    {'key': 'map_resolution_m', 'prm': 'PRM-33', 'label': '2D 地図の解像度（1 セルの大きさ）', 'unit': 'm', 'integer': False},
+    {'key': 'ground_band_max_m', 'prm': 'PRM-34', 'label': '地面とみなす高さの上限（地面から）', 'unit': 'm', 'integer': False},
+    {'key': 'obstacle_band_min_m', 'prm': 'PRM-35', 'label': '障害物とみなす高さの下限（地面から）', 'unit': 'm', 'integer': False},
+    {'key': 'obstacle_band_max_m', 'prm': 'PRM-36', 'label': '障害物とみなす高さの上限（地面から）', 'unit': 'm', 'integer': False},
     {'key': 'occupied_min_points', 'prm': 'PRM-38', 'label': 'セルを占有とみなす障害物点数の下限', 'unit': '点', 'integer': True},
+    {'key': 'ground_cell_m', 'prm': 'PRM-62', 'label': '地面を推定する格子の大きさ', 'unit': 'm', 'integer': False},
+    {'key': 'ground_max_slope_deg', 'prm': 'PRM-63', 'label': '地面とみなす傾きの上限', 'unit': '度', 'integer': False},
+    {'key': 'ground_fill_radius_m', 'prm': 'PRM-64', 'label': '点のない所に地面を補う距離', 'unit': 'm', 'integer': False},
 ]
 KEYS = [s['key'] for s in CONVERSION_SETTINGS]
 
 
 def validate_settings(raw: dict) -> tuple:
-    """(settings, errors). Every key must be a finite number; the resolution and the point count must be positive and the
-    height bands ordered (ground upper < obstacle lower < obstacle upper). Unknown keys are refused."""
+    """(settings, errors). Every key must be a finite number; the resolution, the ground cell and the point count must be
+    positive, the slope between 0 and 90 degrees, the fill radius not negative, and the height bands (measured from the
+    ground, DEC-093) ordered: ground upper < obstacle lower < obstacle upper. Unknown keys are refused."""
     errors, out = [], {}
     unknown = sorted(set(raw) - set(KEYS))
     if unknown:
@@ -43,6 +47,9 @@ def validate_settings(raw: dict) -> tuple:
         out[s['key']] = v
     if not errors:
         if out['map_resolution_m'] <= 0: errors.append('解像度は正の値')
+        if out['ground_cell_m'] <= 0: errors.append('地面を推定する格子は正の値')
+        if not 0 < math.radians(out['ground_max_slope_deg']) < math.pi / 2: errors.append('地面とみなす傾きは 0 より大きく 90 度より小さい')
+        if out['ground_fill_radius_m'] < 0: errors.append('地面を補う距離は 0 以上')
         if out['occupied_min_points'] < 1: errors.append('占有とみなす点数は 1 以上')
         if not out['ground_band_max_m'] < out['obstacle_band_min_m'] < out['obstacle_band_max_m']:
             errors.append('高さの帯は「地面の上限 < 障害物の下限 < 障害物の上限」の順')

@@ -5,7 +5,9 @@
 Every value shown comes from this script, not from a robot; the mode run_id is "DEMO-NOT-REAL" so that a screenshot can
 never be mistaken for an operating record. Commands are answered with a refusal that says DEMO.
 """
+import json
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -17,23 +19,45 @@ from gouda_core import map_tab, png as pngmod  # noqa: E402
 DEMO_ORIGIN = 'DEMO-NOT-REAL_origin'
 
 
-def demo_pgm(w=60, h=40):
-    """A synthetic DEMO map: unknown border, free floor, an occupied wall (not a robot map)."""
-    px = bytearray([205] * (w * h))
-    for y in range(5, h - 5):
-        for x in range(5, w - 5): px[y * w + x] = 254
-    for x in range(5, w - 5): px[20 * w + x] = 0
-    return f'P5\n{w} {h}\n255\n'.encode() + bytes(px)
+# DEMO conversion: a synthetic scene converted by the real converter (not a robot map; the settings are DEMO values)
+DEMO_SETTINGS = {'map_resolution_m': 0.1, 'ground_band_max_m': 0.1, 'obstacle_band_min_m': 0.15, 'obstacle_band_max_m': 1.2, 'occupied_min_points': 1,
+                 'ground_cell_m': 0.5, 'ground_max_slope_deg': 10, 'ground_fill_radius_m': 1}
+
+
+def demo_conversion() -> tuple:
+    """Write a GLIM-like dump of a synthetic scene (ground 1.2 m below the origin rising 5 degrees, a curb, a box, a wall,
+    tree canopy) and convert it. Returns (out_dir, stats)."""
+    import numpy as np
+    from gouda_core import map_convert as mc
+    rng = np.random.default_rng(3); root = Path(tempfile.mkdtemp(prefix='gouda_demo_map_'))
+    x = rng.uniform(0, 12, 12000); y = rng.uniform(0, 6, 12000); slope = np.tan(np.radians(5))
+    z = -1.2 + slope * x + np.where(y > 4.5, 0.15, 0.0)
+    box = np.c_[rng.uniform(6, 7, 400), rng.uniform(2, 3, 400), np.zeros(400)]; box[:, 2] = -1.2 + slope * box[:, 0] + rng.uniform(0, 0.7, 400)
+    wall = np.c_[rng.uniform(0, 12, 1500), np.full(1500, 6.0), np.zeros(1500)]; wall[:, 2] = -1.2 + slope * wall[:, 0] + 0.15 + rng.uniform(0, 2, 1500)
+    tree = np.c_[rng.uniform(9, 11, 300), rng.uniform(0.5, 2.5, 300), np.zeros(300)]; tree[:, 2] = -1.2 + slope * tree[:, 0] + rng.uniform(2.5, 3.5, 300)
+    pts = np.concatenate([np.c_[x, y, z], box, wall, tree]).astype(np.float32)
+    sub = root / 'dump' / '000000'; sub.mkdir(parents=True)
+    (sub / 'data.txt').write_text('id: 0\nT_world_origin:\n1 0 0 0\n0 1 0 0\n0 0 1 0\n0 0 0 1\n'); (sub / 'points_compact.bin').write_bytes(pts.tobytes())
+    stats = mc.convert(root / 'dump', root / 'out', DEMO_SETTINGS)
+    return root / 'out', stats
+
+
+DEMO_OUT, DEMO_STATS = demo_conversion()
 
 
 def demo_map(rest, query):
+    from gouda_core import map_convert as mc
     parts = [x for x in rest.split('/') if x]
-    if len(parts) >= 3 and parts[2] == 'map.png':
-        data, _, _ = pngmod.pgm_to_png(demo_pgm()); return 200, 'image/png', data
-    if len(parts) >= 3 and parts[2] == 'manifest.json':
-        return {'ok': True, 'manifest': {'settings': {'map_resolution_m': 0.1, 'ground_band_max_m': 0.05, 'obstacle_band_min_m': 0.2, 'obstacle_band_max_m': 1.0, 'occupied_min_points': 1},
-                'stats': {'width': 60, 'height': 40, 'resolution': 0.1, 'occupied': 50, 'free': 1450, 'unknown': 900, 'points_total': 0, 'points_obstacle': 0, 'points_ground': 0, 'submaps': 0},
-                'converter': {'version': 'DEMO'}, 'content_hash': 'DEMO-NOT-REAL', 'created_at': time.time()}}
+    what = parts[2] if len(parts) >= 3 else ''
+    if what == 'map.png':
+        data, _, _ = pngmod.pgm_to_png((DEMO_OUT / 'map.pgm').read_bytes()); return 200, 'image/png', data
+    if what in mc.VIEW_FILES:
+        return 200, 'image/png', (DEMO_OUT / what).read_bytes()
+    if what == 'terrain.json':
+        return {'ok': True, 'terrain': json.loads((DEMO_OUT / 'terrain.json').read_text())}
+    if what == 'manifest.json':
+        return {'ok': True, 'manifest': {'settings': DEMO_SETTINGS, 'stats': DEMO_STATS, 'files': DEMO_STATS['files'],
+                'converter': {'version': DEMO_STATS['converter'] + ' (DEMO scene)'}, 'content_hash': 'DEMO-NOT-REAL', 'created_at': time.time()}}
     return {'ok': False, 'message': 'DEMO'}
 
 

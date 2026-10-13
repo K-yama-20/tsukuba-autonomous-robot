@@ -187,6 +187,9 @@ lines:
       - PRM-35
       - PRM-36
       - PRM-38
+      - PRM-62
+      - PRM-63
+      - PRM-64
       - SO-04
       - TR-04
       - TS-11
@@ -1220,5 +1223,9 @@ lines:
       - PRM-35
       - PRM-36
       - PRM-38
+      - PRM-62
+      - PRM-63
+      - PRM-64
       - TS-33
+      - TS-34
     issue_refs: []
