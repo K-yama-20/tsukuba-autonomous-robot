@@ -61,6 +61,11 @@ class WatchedDevice:
     name: str
     identity: Optional[str] = None      # identity the current driver was started for (None: no driver for it)
     seen: Optional[str] = None          # identity observed at the last evaluation
+    evaluated: bool = False             # False until the first evaluation (so that an absent device is reported at start too)
+
+    def presence_changed(self, observed: Optional[str]) -> bool:
+        """True at the first evaluation and whenever the observed identity differs from the last one."""
+        return (not self.evaluated) or observed != self.seen
 
     def decide(self, observed: Optional[str]) -> str:
         """The action for a newly observed identity. Does not change state (apply() does)."""
@@ -71,8 +76,18 @@ class WatchedDevice:
         return ACTION_RESTART if observed != self.identity else ACTION_NONE
 
     def apply(self, observed: Optional[str], action: str) -> None:
-        self.seen = observed
+        self.seen = observed; self.evaluated = True
         if action in (ACTION_START, ACTION_RESTART):
             self.identity = observed
         elif action == ACTION_STOP:
             self.identity = None
+
+
+def merge_opened(previous: dict, current: dict) -> dict:
+    """Identities of the devices whose driver was opened, kept across sessions: a device for which no driver was started in
+    this session keeps the identity opened earlier (so re-opening the same enumeration is still recognised)."""
+    out = dict(previous or {})
+    for k, v in current.items():
+        if v is not None:
+            out[k] = v
+    return out

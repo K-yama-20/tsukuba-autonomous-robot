@@ -83,6 +83,18 @@ class RestartRuleTests(unittest.TestCase):
         dev = dw.WatchedDevice('imu'); dev.apply('x', dev.decide('x'))
         self.assertEqual({dev.decide('x') for _ in range(100)}, {dw.ACTION_NONE})
 
+    def test_absence_is_reported_at_the_first_evaluation(self):
+        dev = dw.WatchedDevice('lidar')
+        self.assertTrue(dev.presence_changed(None))
+        dev.apply(None, dev.decide(None)); self.assertFalse(dev.presence_changed(None)); self.assertTrue(dev.presence_changed('enx #6'))
+
+    def test_opened_identity_survives_a_session_without_driver(self):
+        """A session in which the IMU driver was not started must not erase the enumeration opened earlier."""
+        prev = dw.merge_opened({}, {'imu': 'ttyACM0 usb 2-29', 'lidar': 'enx #6'})
+        prev = dw.merge_opened(prev, {'imu': None, 'lidar': None})
+        self.assertEqual(prev, {'imu': 'ttyACM0 usb 2-29', 'lidar': 'enx #6'})
+        self.assertEqual(dw.merge_opened(prev, {'imu': 'ttyACM0 usb 2-31'})['imu'], 'ttyACM0 usb 2-31')
+
 
 class ReceptionAndWarningTests(unittest.TestCase):
     def setUp(self):
