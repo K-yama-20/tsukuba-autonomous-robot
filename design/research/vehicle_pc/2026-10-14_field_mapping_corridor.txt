@@ -1,0 +1,82 @@
+# 2026-10-14 実機の地図作成の試験（人が実施: 長い廊下、途中にゴミ箱など、二往復）の AI による解析（原文の出力）。原図 20261014_044153_785dadfe（VM ~/gouda_ws/gouda_data/maps）。
+# 解析は原図の写し（scratch）に対して行い、実データは変えていない。図: 2026-10-14_field_mapping_corridor_top.png（上から）、_side.png（廊下の向き × 高さ）。色は submap 0〜4（青・橙・緑・赤・紫）、白は GLIM の軌跡、黄は開始点。
+
+===== (1) 試験の条件：同時に動いていた 2 つの Gouda（VM の ps。この記録を作った時点、04:52）
+   3761    3761 Wed Oct 14 04:32:00 2026 /usr/bin/python3 /opt/ros/jazzy/bin/ros2 launch gouda_core gouda_core.launch.py params_dir:=/home/aya/gouda_w
+   3786    3761 Wed Oct 14 04:32:01 2026 /usr/bin/python3 /home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_monitor --ros-args -r __node:=gou
+   9736    9736 Wed Oct 14 04:39:35 2026 /usr/bin/python3 /opt/ros/jazzy/bin/ros2 launch gouda_core gouda_core.launch.py params_dir:=/home/aya/gouda_w
+  11309    9736 Wed Oct 14 04:40:55 2026 /home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node --ros-args -r __node:=
+  11338    3761 Wed Oct 14 04:40:55 2026 /home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node --ros-args -r __node:=
+  11427    9736 Wed Oct 14 04:41:01 2026 /home/aya/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node --ros-args -r 
+  11429    3761 Wed Oct 14 04:41:01 2026 /home/aya/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node --ros-args -r 
+pid 3783 cwd=/home/aya/.local/share/Trash/files/gouda_ws.2/src/tsukuba-autonomous-robot
+pid 9757 cwd=/home/aya/gouda_ws/src/tsukuba-autonomous-robot
+44:[gouda_monitor-5] OSError: [Errno 98] Address already in use
+LISTEN 0      5          127.0.0.1:8080       0.0.0.0:*    users:(("gouda_monitor",pid=3786,fd=35))
+
+===== (2) GLIM のログ（mapping/*/glim.log の警告の種類と件数）
+-- mapping/20261014_044153_1374cc38/glim.log
+1582 [glim] [warning] points=N imu=N diff=N
+1582 [glim] [warning] large time difference between points and imu!!
+  88 [glim] [warning] large time gap between consecutive LiDAR frames!!
+  88 [glim] [warning] current=N last=N diff=N
+   6 [odom] [warning] num_validations=N
+   6 [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+   6 [odom] [warning] No-IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   6 [odom] [warning] IMU validation results:
+   6 [odom] [warning] IMU prediction is not good.
+   6 [odom] [warning] IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   6 [odom] [warning] IMU better ratios rot=N, trans=N, vel=N
+   4 [global] [warning] previous submap has only a small overlap with the current submap (N)
+-- mapping/20261014_044153_785dadfe/glim.log
+1741 [glim] [warning] points=N imu=N diff=N
+1741 [glim] [warning] large time difference between points and imu!!
+ 117 [glim] [warning] current=N last=N diff=N
+ 116 [glim] [warning] large time gap between consecutive LiDAR frames!!
+  14 [odom] [warning] num_validations=N
+  14 [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+  14 [odom] [warning] No-IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+  14 [odom] [warning] IMU validation results:
+  14 [odom] [warning] IMU prediction is not good.
+  14 [odom] [warning] IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+  14 [odom] [warning] IMU better ratios rot=N, trans=N, vel=N
+   5 [glim] [warning] skip an invalid IMU data (stamp=N)
+
+===== (3) 時刻の差と frame の欠け（785dadfe）
+points-imu diff [s]: n=1741 min=1.001 median=1.201 max=1.992
+lidar frame gaps [s]: n=117 median=0.700 max=1.900; imu timestamp rewinds [s]: [-0.000975, -0.000871, -0.000297, -0.000942, -0.000889]
+GLIM processed frames 897 over 238.0 s = 3.76 Hz; gaps >0.15 s: 508, >0.5 s: 115, max 1.90 s
+
+===== (4) 軌跡と点（analyze.py：軌跡の主成分を廊下の向きとする）
+trajectory: frames 897, span 238 s
+extent along axis 41.78 m (u -21.31..20.48), lateral std 1.13 m (range -5.48..1.66), z range -33.78..0.51 m
+path length 166.2 m; start-end distance 36.16 m; max step 4.94 m (at t=13.2 s)
+legs (time s, along-axis u m): [(np.float64(0.0), np.float64(10.04)), (np.float64(58.6), np.float64(-21.26)), (np.float64(121.0), np.float64(19.31)), (np.float64(180.9), np.float64(-13.35)), (np.float64(235.6), np.float64(20.47)), (np.float64(238.0), np.float64(20.47))]
+  leg   0.0- 58.6 s: u  10.04 -> -21.26 (31.3 m), lateral mean -0.87 std 2.04, z mean -16.13
+  leg  58.6-121.0 s: u -21.26 ->  19.31 (40.6 m), lateral mean -0.04 std 0.59, z mean -23.74
+  leg 121.0-180.9 s: u  19.31 -> -13.35 (32.7 m), lateral mean -0.01 std 0.20, z mean -29.71
+  leg 180.9-235.6 s: u -13.35 ->  20.47 (33.8 m), lateral mean 0.57 std 0.67, z mean -32.45
+  leg 235.6-238.0 s: u  20.47 ->  20.47 (0.0 m), lateral mean 1.51 std 0.00, z mean -33.71
+points 73600; along -61.0..63.3, lateral -14.7..23.9, z -39.69..3.82
+
+===== (5) 位置の推移と床の傾き（diag.py）
+t=  0.0 s  pos=(-0.07, -0.31, 0.13)
+t=  5.0 s  pos=(-0.80, -3.28, 0.36)
+t= 10.1 s  pos=(-1.50, -6.41, -4.26)
+t= 13.2 s  pos=(-3.39, -7.85, -16.37)
+t= 15.1 s  pos=(-4.44, -7.45, -21.39)
+t= 20.3 s  pos=(-4.88, -10.87, -21.03)
+t= 30.1 s  pos=(-5.53, -17.22, -20.39)
+t= 60.0 s  pos=(-7.05, -31.53, -18.89)
+t=120.0 s  pos=(-5.36, 9.01, -28.69)
+t=180.2 s  pos=(-5.71, -23.56, -31.25)
+t=237.1 s  pos=(-6.86, 10.20, -33.68)
+submap 0 origin z -21.39: floor-like plane tilt 6.6 deg (from 1591 low points within 6 m); submap frame tilt 3.3 deg
+submap 1 origin z -18.90: floor-like plane tilt 16.5 deg (from 706 low points within 6 m); submap frame tilt 7.9 deg
+submap 2 origin z -28.57: floor-like plane tilt 4.9 deg (from 953 low points within 6 m); submap frame tilt 6.7 deg
+submap 3 origin z -31.25: floor-like plane tilt 5.7 deg (from 759 low points within 6 m); submap frame tilt 2.3 deg
+submap 4 origin z -33.22: floor-like plane tilt 3.8 deg (from 598 low points within 6 m); submap frame tilt 6.6 deg
+
+===== (6) 記録
+自動開始は log の記録だけ（rosbag は記録されていない。records/20261014_044153/rosbag は空）。同じ事象が 2 回ずつ記録されている（2 つの recorder と mode_manager）。もう一方の GLIM（20261014_044153_1374cc38）は gtsam::IndeterminantLinearSystemException で終了し、dump がない（mapping_stopped: dump directory does not exist）。
+/config（data_root/config/sensor_config.json）がないため、T_lidar_imu は中立（[0, 0, 0, 0, 0, 0, 1]）が使われた（DecisionEvent glim_extrinsic）。
