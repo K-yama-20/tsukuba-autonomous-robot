@@ -5,7 +5,8 @@
 Reports, from the GLIM dump only (no ROS):
   - GLIM's processed frame rate: traj_lidar.txt has one line per frame GLIM's odometry processed (the XT-32 sends 10 Hz;
     fewer lines mean frames were lost on the way or skipped; G-DDS), the longest gap, the duration;
-  - the path: length and largest distance from the start (a map made standing still has none);
+  - the path: length (the sum of the steps between frames, so it includes the jitter of a sensor standing still) and the
+    largest distance from the start (a map made standing still has almost none: use this to tell whether it moved);
   - submaps, points, and the point density (points per square metre) within each radius of the path;
   - ground visibility (DEC-099): for each radius (measured on the grid, accurate to about one cell), the share of the cells of a horizontal grid (--cell) within that radius
     of the path that hold at least one point, and the share that hold a point within --band of the lowest point of the

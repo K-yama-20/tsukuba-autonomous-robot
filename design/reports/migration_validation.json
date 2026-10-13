@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5926,
+    "executed_checks": 5927,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -184,6 +184,7 @@
       "model file hash FILE-INTENT-V9",
       "model file hash FILE-VEHICLE-PC-MAP-TAB",
       "model file hash FILE-VEHICLE-PC-SOURCE-MAPS",
+      "model file hash FILE-VEHICLE-PC-MAP-CONVERSION",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7860,6 +7861,16 @@
       "basis_refs": 4,
       "added_entity_ids": 4,
       "modified_entity_ids": 10,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-043",
+      "date": "2026-10-14",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
       "added_source_ids": 0,
       "added_file_ids": 1,
       "removed_entity_ids": 0
