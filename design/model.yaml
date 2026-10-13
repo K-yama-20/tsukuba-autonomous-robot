@@ -156,6 +156,10 @@ files:
     path: design/intent.md
     sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
     role: authority
+  - id: FILE-VEHICLE-PC-MAP-TAB
+    path: design/research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt
+    sha256: cc72125008d3b660d2095ed544e7f7f9705d33a1bcc3b2e9f32331cf802b9581
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -42445,11 +42449,15 @@ entities:
       - operation
     requirement_refs:
       - RQ-I004
-    revision_ref: REV-034
+    revision_ref: REV-040
     test:
       execution_status: 未実行
       stage: 地図作成と変換
-      procedure: supervisor を起動し、IMU の USB を抜き差しする。USB-LAN を抜き差しする。デバイスはそのままでドライバを終了させる。デバイスなしで起動してから接続する。
+      procedure: 'supervisor を起動し、IMU の USB を抜き差しする。USB-LAN を抜き差しする。デバイスはそのままでドライバを終了させる。デバイスなしで起動してから接続する。 実行記録:
+        research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt（(2) と (4)）。IMU の抜き差しで、消えたときにドライバを止め、新しい列挙（usb
+        2-9）で起動し、 monitor が IMU を受信した。USB-LAN を接続し直すと、PC アドレスを持つ I/F（ifindex 4）を見つけてドライバを起動し、ドライバは 10 Hz でフレームを出した。
+        起動時の「LiDAR なし」と、前のセッションと同じ IMU の列挙を開くときの警告も記録された。 未確認: 消えたことを観測せずに同一性だけが変わる場合（device_reconnected・driver_restarted）、デバイスはそのままでドライバが終了した場合（driver_exited
+        の後に再起動しないこと）。'
       observe: DecisionEvent（device_reconnected、driver_restarted、driver_exited、driver_started）と、点群・IMU の受信の再開。
       expected: 再接続のときだけ、そのデバイスのドライバだけが作り直され受信が再開する。同じデバイスのままでは再起動しない。デバイスが現れたら起動する。
   - id: G-DDS
@@ -42469,7 +42477,7 @@ entities:
     requirement_refs:
       - RQ-I005
       - RQ-I006
-    revision_ref: REV-035
+    revision_ref: REV-040
     issue:
       category: technical
       state: open
@@ -42481,7 +42489,10 @@ entities:
       resolution_refs: []
       question: hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 
         Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 
-        2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。
+        2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 
+        にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった 
+        （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION 
+        は未設定）。
       next_action: GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の
         QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。
   - id: PRM-60
@@ -42597,11 +42608,13 @@ entities:
       - operation
     requirement_refs:
       - RQ-I082
-    revision_ref: REV-039
+    revision_ref: REV-040
     test:
       execution_status: 未実行
       stage: 地図作成と変換
-      procedure: 地図タブで原図を選び、既定値と、値を変えた設定で再変換する。不正な値（数値でない、帯の順序が逆）も送る。変換後地図の rev を選ぶ。
+      procedure: '地図タブで原図を選び、既定値と、値を変えた設定で再変換する。不正な値（数値でない、帯の順序が逆）も送る。変換後地図の rev を選ぶ。 実行記録: research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt
+        の (1)（試験スタック、10/13 の実機の原図の写し。API で確認）と、 単体試験 gouda_core/test/test_map_tab.py（数値でない値・有限でない値・整数でない点数・未知のキー・帯の順序）。
+        未確認: ブラウザでの操作（rev の選択とプレビューの表示）、実車の設定（仮値なし）での既定値の表示（PRM-33〜36・38 が未確定のため既定値は空）。'
       observe: 新しい rev の作成、プレビュー、その rev 
         の設定と結果、DecisionEvent（map_reconvert_requested・map_reconverted・map_reconvert_failed）、原図の内容ハッシュ。
       expected: 変換のたびに新しい rev が作られ、設定と結果が残り、原図は変わらない。不正な値は変換せずに理由を表示する。既定値は gouda_map_creator の parameter 
@@ -53538,4 +53551,22 @@ revisions:
       - SRC-I106-V9
     added_file_ids:
       - FILE-INTENT-V9
+    removed_entity_ids: []
+  - id: REV-040
+    date: '2026-10-14'
+    summary: 地図タブ（REV-039）を試験スタックで、10/13 の実機の原図の写しを使って試験した記録と、人が IMU を抜き差しし USB-LAN を VM に接続し直したときの 
+      gouda_sensor_supervisor の記録を証拠ファイルとして登録（FILE-VEHICLE-PC-MAP-TAB）。TS-32・TS-33 の手順に実行記録の場所と未確認の項目を追記。 
+      G-DDS に、接続し直した後も monitor の受信が約 2 Hz（ドライバは 10 Hz）だった観測を追記。試験の合否は正本の execution_status 
+      ではなく作業記録と証拠ファイルで管理する。
+    basis_refs:
+      - DEC-092
+      - DEC-088
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-32
+      - G-DDS
+      - TS-33
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-MAP-TAB
     removed_entity_ids: []

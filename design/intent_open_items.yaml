@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 16
-pending_decision_count: 7
+pending_decision_count: 10
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -752,7 +752,10 @@ issues:
     state: open
     question: hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 
       Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 
-      2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。
+      2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 
+      にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった 
+      （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION 
+      は未設定）。
     next_action: GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の 
       QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。
     intent_lines:
@@ -809,4 +812,25 @@ pending_decisions:
     status: pending
     question: 【承認】新 firmware の手動仲裁の値を既存動作のまま維持するか。手動入力の deadzone（半径 8 %、旧 firmware kDeadzone。PRM-47）と、 
       手動操作が中立に戻ってから PC 指令へ戻すまでの安定時間（200 ms、旧 firmware kNeutralResumeMs。PRM-48）。いずれも電圧・停止距離ではなく操作の仲裁条件。
+    resulting_refs: []
+  - id: DEC-093
+    kind: question
+    status: pending
+    question: '【相談】2D 地図への変換で「高さ」を何から測るか。今は GLIM の地図座標の z をそのまま使っており、GLIM の原点は開始時のセンサーの位置なので、地面は z=0 にない （10/13
+      の実機の原図では点の z が −1.16〜3.74 m）。案 A（推奨）: 点群から地面の高さを場所ごとに自動で推定し、「地面からの高さ」で帯を決める（坂道でも同じ設定で使え、地図タブでの調整も直感的）。 案 B:
+      地図作成の軌跡（センサーの高さ）から /config の取付高さを引いて地面とする（/config が未設定だと使えない）。案 C: GLIM の z のまま（設定値は取付高さと地図ごとの開始姿勢に依存し、毎回調整が要る）。'
+    resulting_refs: []
+  - id: DEC-094
+    kind: question
+    status: pending
+    question: '【相談】2D 地図の元にする点の密度。GLIM の原図の点は 0.3 m 間隔に間引かれている（GLIM の submap_downsample_resolution 0.3 m）ため、0.05
+      m の格子では穴だらけになる （10/13 の原図の変換は未知 73084 セル・空き 508・占有 31）。案 A（推奨）: 変換で穴を埋める処理（近傍の補間）を加え、解像度の既定を 0.1 m 程度にする。
+      案 B: 地図作成時だけ GLIM の間引きを細かくする（Gouda が作る GLIM の実行設定で変える。GLIM の計算負荷と保存量が増える）。案 C: 地図作成中の生の点群を記録し、GLIM の軌跡で並べ直して作る（記録量が大きい。点群の配送の欠落
+      G-DDS の影響を受ける）。'
+    resulting_refs: []
+  - id: DEC-095
+    kind: question
+    status: pending
+    question: '【確認】intent.md 106 行の「原図から各種の地図への変換」の「各種」に、Nav2 用の 2D 占有格子地図（と、waypoint 保存時に作る速度マスク）以外に要るものはあるか。 例:
+      自己位置推定用の 3D 点群地図（推定方式 Q-02 の選定次第）、段差・坂の地図。今は 2D 占有格子だけを作る。'
     resulting_refs: []

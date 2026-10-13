@@ -1,6 +1,8 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-14（REV-038、第23便）。**起動経路を一つにした**（DEC-090・DEC-091）: 起動は `bash gouda.sh start` だけで環境変数なし。センサーは常に supervisor の下で起動し、無いデバイスは待つ。値はすべて正本から（monitor 8080、PTC 9347、IMU 100 Hz、LiDAR 600 rpm＝10 Hz をドライバが起動時に設定、しきい値 1.0 s、停止待ち 5.0 s）。ソフト試験の仮値は `gouda_core/test/stack.sh` だけが使う。VM で環境変数なしの起動を確認。いまは LiDAR の USB-LAN が VM から外れ、IMU は応答しない状態で、抜き差しによる作り直しの確認待ち。実車（仮値なし）では地図の変換の設定（PRM-33〜36・38）が未確定のため、原図は保存されるが 2D 変換は失敗する。作業記録 `reports/worklog/2026-10-14_rev036_038_single_start_path.md`。
+最終更新：2026-10-14（REV-040、第24便）。**gouda_monitor に「地図」タブを新設**（intent.md 第9版 106 行目、DEC-092）: 地図データベースの表を発進準備タブから移し、原図を選んで変換設定（PRM-33〜36・38）を入力し再変換できる。変換のたびに新しい rev ができ、rev ごとにプレビュー・設定・結果を見られる。既定値は gouda_map_creator の parameter を表示する。VM の試験スタックで実機の原図の写しを使って確認し、実車の設定の gouda.sh でもタブを表示。推奨の既定値は、変換の高さの基準と点の密度の相談（DEC-093〜095）の回答後に設定する（実車の設定では既定値の欄は空で、値を入れれば再変換できる）。人の抜き差しで、supervisor が IMU（新しい列挙）と LiDAR（I/F）のドライバを起動し、受信の再開を確認（TS-32 の一部）。点群は monitor で約 2 Hz（ドライバは 10 Hz、G-DDS）。作業記録 `reports/worklog/2026-10-14_rev039_040_map_tab.md`。
+
+前便（第23便）: 起動経路を一つにした（`bash gouda.sh start` だけ、環境変数なし。DEC-090・DEC-091）。IMU 100 Hz、LiDAR 600 rpm を確定（REV-036〜038）。
 
 前便（第22便）: センサーの受信表示と再接続時のドライバ作り直し（REV-034・035）。
 
@@ -18,12 +20,12 @@
 
 ## 三つの状態（CLAUDE.md 1.4）＋報告用の三区分（DEC-057）
 
-- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜028 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
-- 設計検査に合格：**未判定**。設計整合性 17 ルール 違反 0・未判定 4（DR-04: PRM-10 の値、DR-05: RQ-I027・RQ-I072 は問題／衝突のみで対応、DR-10: IFD-38 の版照合、DR-11: 未確定値 57。REV-027 で 11 件増）。検査違反 0 件は未判定の解消でも実車適合の証明でもない。
+- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜040 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
+- 設計検査に合格：**未判定**。設計整合性 17 ルール 違反 0・未判定 4（DR-04 5 件、DR-05 2 件: RQ-I027・RQ-I072 は問題／衝突のみで対応、DR-10 2 件: 版照合、DR-11: 未確定値 56）。検査違反 0 件は未判定の解消でも実車適合の証明でもない。
 - ソフト試験合格：**工程5-1〜5-5 が合格**（5-5: TS-07・TS-13・TS-19 PC 側・TS-12・TS-30 を Ubuntu で、TS-17・18・19・29 を firmware 中核のホスト試験と Python 模擬で。FILE-VEHICLE-PC-STAGE55）。5-3・5-4 はセンサーなし、5-5 は ESP32 実機・ゲームパッド・車体なしの範囲。TS-01〜06・08〜11・14〜16・20〜22 は未実行。
 - 実車検証済み／実車投入可能：**人の判断待ち**。実車試験は未実施。承認済みの実車値は PRM-07・08・13・21 の 4 件のみ。DAC 電圧（PRM-43〜46）は未確定で、実車向け firmware ビルドには入っていない（DEC-077）。DEC-050 の実機照合は未実施。
 
-## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-028 適用後）
+## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-040 適用後）
 
 | 検査 | 合格 | 違反 | 未判定 |
 |---|---|---|---|
@@ -31,17 +33,21 @@
 | 形式・移行忠実性 | 全件 | 0 | 0 |
 | intent 版間の同一性 | 13（12 一致、1 記録済み置換） | 0 | 0 |
 | 設定の生成（generate_params → generated/params/。firmware_config.trial.yaml を追加） | 生成 | 0 | 0 |
-| 設計整合性（17 ルール） | 13 | 0 | 4（DR-04 5、DR-05 2、DR-10 1、DR-11 57） |
+| 設計整合性（17 ルール） | 13 | 0 | 4（DR-04 5、DR-05 2、DR-10 2、DR-11 56） |
 | 検査器の試験 | 68 | 0 | 0 |
-| gouda_core 単体試験（Mac） | 116（1 件は Mac で skip、VM で実行） | 0 | 0 |
+| gouda_core 単体試験（Mac・VM、960975d） | 121（Mac では 1 件 skip、VM ではすべて実行） | 0 | 0 |
 | firmware 中核ホスト試験（g++、仮値ヘッダ。TS-17・18・19・29 の卓上 stub） | 274 checks | 0 | 0（実機未実行） |
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
-| ソフト試験（TS-01〜30） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 18（未実行） |
-| 判断台帳 | 89 件（answered 47、recorded 35、pending 7: DEC-021・022・024・050・077・078・079） | | |
+| ソフト試験（TS-01〜33） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 21（未実行または一部のみ。TS-31〜33 は一部を VM で実行: 作業記録） |
+| 判断台帳 | 93 件（answered 47、recorded 36、pending 10: DEC-021・022・024・050・077・078・079・093・094・095） | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
+- **相談事項（第24便、REV-039 で登録。地図タブの推奨の既定値に必要）**:
+  - DEC-093 変換の高さの基準（GLIM の z は開始時のセンサー位置が原点で、地面は z=0 にない）。推奨: 案 A（地面の高さを場所ごとに推定し、地面からの高さで帯を決める）。止まる作業: PRM-34〜36 の既定値。
+  - DEC-094 点の密度（GLIM の原図の点は 0.3 m 間隔）。推奨: 案 A（変換で穴を埋め、解像度の既定を 0.1 m 程度）。止まる作業: PRM-33・38 の既定値。
+  - DEC-095 「各種の地図」に 2D 占有格子と速度マスク以外が要るか。止まる作業: なし。
 - **承認待ち（第18便、REV-027 で登録）**:
   - DEC-077 新 firmware の DAC 電圧の初期登録値（旧 firmware 記載の要求値 2500／230／4700／4700 mV を Q-03 実測までの初期値として承認するか）。推奨: 承認。止まる作業: 実車向け firmware の書き込み。
   - DEC-078 基本契約 5 件の stub 試験を 5-5 の完了条件に含める案（`docs/implementation_stages.md` §5）。推奨: 含める。
@@ -61,23 +67,25 @@
 ## 次の作業
 
 - DEC-076 の順序: (1) 工程5-3 の流れをセンサー有りで試験（実データで原図→変換。TS-27 の未確認項目）。センサー接続状況を人に確認してから。(2) 工程5-5 の実車試験（人の判断・協力。先に DEC-077・079 の回答→`esp32dev` ビルドに DAC 値→書き込み→卓上で TS-17〜19 の実機確認→DEC-050 の実機照合）。
+- 地図タブの推奨の既定値（PRM-33〜36・38）: DEC-093・094 の回答後に設定し、必要なら地面の推定・穴埋めを実装。
+- 点群の配送の欠落（G-DDS）の調査: GLIM が受け取る周期の測定、Fast DDS の共有メモリ転送の容量・受信バッファの比較（上流は改変しない）。
 - 並行して進められる基盤作業: PRM-16 の扱いの整理（承認事項）、Nav2 の cmd_vel 型（PRM-12）の決定に備えた ND-11 の TwistStamped 対応、5-6 の設計。
-- 止まっている: 実車向け firmware の書き込み（DEC-077）、実車試験、DEC-050。
+- 止まっている: 地図タブの推奨の既定値（DEC-093・094）、実車向け firmware の書き込み（DEC-077）、実車試験、DEC-050。
 
 ## 主要ファイルの場所（CLAUDE.md 1.9 の対応表。パスはリポジトリ `tsukuba-autonomous-robot/` 相対）
 
 | 役割 | 場所 | 備考 |
 |---|---|---|
-| 設計意図（人が所有） | `design/intent.md` | 第8版（SHA 09732d2f…、105 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-038。次は REV-039、DEC-092 |
+| 設計意図（人が所有） | `design/intent.md` | 第9版（SHA 183f8ee1…、106 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-040。次は REV-041、DEC-096 |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜079） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜095） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`（trial ファイルも生成）、`apply_revision.py` |
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
 | 提案 | `proposals/` | 承認済み仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-14_rev036_038_single_start_path.md`。引き継ぎ `reports/handover_2026-10-10.md` |
-| ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor・map_creator・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（start／stop／status のみ、環境変数なし）、試験用 `gouda_core/test/stack.sh` | 工程5-1〜5-5 |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-14_rev039_040_map_tab.md`。引き継ぎ `reports/handover_2026-10-10.md` |
+| ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor（地図タブの入力検査 map_tab.py）・map_creator・sensor_supervisor・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（start／stop／status のみ、環境変数なし）、試験用 `gouda_core/test/stack.sh` | 工程5-1〜5-5 |
 | firmware（新） | `firmware/gouda_esp32_v4/` | `include/gouda_v4/{protocol,config,control}.hpp`、`src/main.cpp`、`tools/gen_build_config.py`、`test/host/`。旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換え対象 |
