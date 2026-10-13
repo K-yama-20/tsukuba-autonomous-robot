@@ -122,6 +122,7 @@ lines:
       - ND-06
       - ND-14
       - ND-15
+      - PRM-60
       - SO-03
       - TR-03
       - TS-27
@@ -1049,6 +1050,7 @@ lines:
       - PRM-45
       - PRM-46
       - PRM-48
+      - PRM-61
       - SO-09
       - SO-11
       - TS-13
@@ -1177,6 +1179,8 @@ lines:
       - PRM-57
       - PRM-58
       - PRM-59
+      - PRM-60
+      - PRM-61
       - TS-29
     issue_refs: []
   - line: 104

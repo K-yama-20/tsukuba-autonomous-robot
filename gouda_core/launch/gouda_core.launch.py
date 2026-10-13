@@ -1,17 +1,15 @@
-"""Launch of the common Gouda core nodes (gouda_mode_manager, gouda_recorder, gouda_monitor, gouda_map_creator).
+"""Launch of everything gouda.sh starts (the one start path, DEC-090 / DEC-091): gouda_mode_manager, gouda_recorder,
+gouda_monitor, gouda_map_creator, the vehicle-output lifecycle nodes, and the sensor drivers under gouda_sensor_supervisor.
 
-Arguments:
-  params_dir  directory of the generated parameter files (design/generated/params). Values are declared once in
-              design/model.yaml and generated; nothing is hard-coded here (RQ-I076, DR-15). A node whose generated file
-              does not exist yet (no parameter declared for it) is started without a parameter file.
-  data_root   PRM-25: directory under which records/ (recorder sessions), state/ (persisted mode record), config/ (/config)
-              and run/ (monitor URL) are kept.
-  monitor_port PRM-26: TCP port of the gouda_monitor page on 127.0.0.1; 0 lets the OS choose (URL in <data_root>/run/monitor.url).
-  sensors     true starts the XT-32 / IMU drivers (gouda_sensors.launch.py); settings from params_dir (PRM-50..56).
-  serial_port stage 5-5: serial device of the ESP32 for vehicle_bridge (operational value; pty path in stub tests).
-  trial       true loads <node>.trial.yaml (software trial values of unresolved parameters) after <node>.yaml. For stub and
-              software tests only; never on the vehicle. Default false.
-Mode-dependent nodes (mapping, autonomy) are activated by later stages through lifecycle transitions (IFD-36), not here.
+Arguments (gouda.sh passes exactly params_dir and data_root):
+  params_dir  directory of the generated parameter files (design/generated/params). Every setting, including the monitor
+              port (PRM-26) and the ESP32 serial device (PRM-61), is declared once in design/model.yaml and generated;
+              nothing is hard-coded here (RQ-I076, DR-15).
+  data_root   PRM-25: records/ (recorder sessions), state/ (persisted mode record), config/ (/config), run/ (monitor URL,
+              generated driver config, sensor_devices.json).
+  trial       TEST SCRIPTS ONLY (gouda_core/test): also loads <node>.trial.yaml (software trial values of unresolved
+              parameters). gouda.sh never sets it; never on the vehicle. Default false.
+Mode-dependent nodes (mapping, autonomy) are activated through lifecycle transitions (IFD-36), not here.
 """
 import os
 from launch import LaunchDescription
@@ -42,11 +40,9 @@ def _nodes(context, *args, **kwargs):
             files += [f for f in [os.path.join(params_dir, f'{node_name}.trial.yaml')] if usable(f)]
         return files + [extra]
 
-    sensors = []
-    if LaunchConfiguration('sensors').perform(context).lower() in ('1', 'true', 'yes'):
-        # ND-14 / ND-15 run for the whole gouda.sh session (not restarted on mode changes: docs/stage3_sensor_slam.md)
-        sensors.append(IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gouda_sensors.launch.py')),
-                                                launch_arguments={'params_dir': params_dir, 'run_dir': os.path.join(data_root, 'run'), 'trial': 'true' if trial else 'false'}.items()))
+    # ND-14 / ND-15 under ND-18: always started; a missing device is waited for, not an error (DEC-088, DEC-090)
+    sensors = [IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gouda_sensors.launch.py')),
+                                        launch_arguments={'params_dir': params_dir, 'run_dir': os.path.join(data_root, 'run'), 'trial': 'true' if trial else 'false'}.items())]
     return sensors + [
         Node(package='gouda_core', executable='gouda_mode_manager', name='gouda_mode_manager', output='screen',
              parameters=params('gouda_mode_manager', {'state_root': os.path.join(data_root, 'state'), 'data_root': data_root})),
@@ -55,14 +51,14 @@ def _nodes(context, *args, **kwargs):
         Node(package='gouda_core', executable='gouda_map_creator', name='gouda_map_creator', output='screen',
              parameters=params('gouda_map_creator', {'data_root': data_root})),
         Node(package='gouda_core', executable='gouda_monitor', name='gouda_monitor', output='screen',
-             parameters=params('gouda_monitor', {'data_root': data_root, 'monitor_port': int(LaunchConfiguration('monitor_port').perform(context))})),
+             parameters=params('gouda_monitor', {'data_root': data_root})),   # monitor_port: PRM-26 in the generated file
         # Stage 5-5 vehicle output (ND-11, ND-12): lifecycle nodes, started UNCONFIGURED. They are configured/activated by
         # lifecycle transitions (IFD-36) — by the mode manager in stage 5-6/5-7, or with `ros2 lifecycle set` in stub tests.
         # Nothing drives the vehicle until both are active; the firmware stays neutral meanwhile (PRM-13).
         LifecycleNode(package='gouda_core', executable='gouda_motion_controller', name='gouda_motion_controller', namespace='', output='screen',
                       parameters=params('gouda_motion_controller', {})),
         LifecycleNode(package='gouda_core', executable='vehicle_bridge', name='vehicle_bridge', namespace='', output='screen',
-                      parameters=params('vehicle_bridge', {'serial_port': LaunchConfiguration('serial_port').perform(context), 'params_dir': params_dir, 'trial': trial})),
+                      parameters=params('vehicle_bridge', {'params_dir': params_dir, 'trial': trial})),   # serial_port: PRM-61 in the generated file
     ]
 
 
@@ -70,9 +66,6 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('params_dir', description='design/generated/params directory (generated from design/model.yaml)'),
         DeclareLaunchArgument('data_root', description='PRM-25 data root: <data_root>/records, state, config, run'),
-        DeclareLaunchArgument('monitor_port', default_value='0', description='PRM-26 monitor page port on 127.0.0.1; 0 = OS-chosen'),
-        DeclareLaunchArgument('trial', default_value='false', description='load <node>.trial.yaml software trial values (stub tests only, never on the vehicle)'),
-        DeclareLaunchArgument('sensors', default_value='false', description='true starts the sensor drivers ND-14 (XT-32) and ND-15 (IMU) from gouda_sensors.launch.py'),
-        DeclareLaunchArgument('serial_port', default_value='', description='vehicle_bridge serial port to the ESP32 (operational value; a pty path in stub tests). Empty: the bridge refuses to configure'),
+        DeclareLaunchArgument('trial', default_value='false', description='TEST SCRIPTS ONLY: also load <node>.trial.yaml software trial values (gouda.sh never sets it)'),
         OpaqueFunction(function=_nodes),
     ])

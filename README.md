@@ -22,19 +22,23 @@ GitHubの「Download ZIP」でも利用できます。対象ブランチを展�
 依存ソフト、固定版の外部ドライバとサブモジュール、ドライバ修正、ビルドをセットアップが実施します。最後にLiDAR専用LANとIMUのUSB接続を選びます。機器がない場合はEnterで省略できます。
 既存の地図・設定は削除しません。既に別のソースがある場合は置換せず停止します。
 
-## 起動（新実装、工程5-1）
+## 起動（新実装）
 
-旧 Mission Control 用の起動スクリプト `scripts/gouda.sh`・`scripts/gouda_gui.sh` は 2026-10-09 に削除した（設計の判断台帳 DEC-068）。新実装の起動はリポジトリ直下の `gouda.sh` で行う。設定は `design/generated/params`（正本 `design/model.yaml` から生成）から読み、値をスクリプトに書かない。
+起動の方法はこれ一つです（設計の判断台帳 DEC-090・DEC-091）。環境変数などの起動オプションはありません。旧 Mission Control 用の `scripts/gouda.sh`・`scripts/gouda_gui.sh` は 2026-10-09 に削除しました（DEC-068）。
 
 ```bash
 cd ~/gouda_ws && colcon build --packages-select gouda_interfaces gouda_core && source install/setup.bash
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
-bash gouda.sh start      # gouda_mode_manager と gouda_recorder を起動（起動直後は手動走行。記録は開始しない）
-bash gouda.sh status     # 起動状態・データルート・ログの場所
+bash gouda.sh start      # 全部を起動（起動直後は手動走行。記録は開始しない。センサーのドライバも起動し、無いデバイスは接続を待つ）
+bash gouda.sh status     # 起動状態・データの置き場・ログの場所・monitor の URL
 bash gouda.sh stop       # この起動が所有するプロセスだけを止める
 ```
 
-データルートは環境変数 `GOUDA_DATA_ROOT`（未設定時は `$GOUDA_WORKSPACE/gouda_data`）。記録セッションは `<data_root>/records/<session>/` に `log/` と `rosbag/` を分けて保存し、直前モードの永続記録は `<data_root>/state/` に置く。工程の順序と完了条件は `design/docs/implementation_stages.md`。
+- 設定はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。monitor は http://127.0.0.1:8080/（PRM-26）。
+- ワークスペースは gouda.sh の 2 つ上のディレクトリ、データの置き場は `<workspace>/gouda_data`（PRM-25）。記録セッションは `<data_root>/records/<session>/` に `log/` と `rosbag/` を分けて保存し、直前モードの永続記録は `<data_root>/state/` に置きます。
+- センサーのドライバは gouda_sensor_supervisor が起動し、デバイスが繋ぎ直されたときだけ作り直します（`design/docs/sensor_supervision.md`）。gouda.sh を止めて起動し直すと IMU が応答しない場合があり、その場合は IMU の USB を抜き差しします。
+- ソフト試験用の仮値は gouda.sh では使いません。試験は `gouda_core/test/stack.sh`（ROS ドメインとデータの置き場を分け、センサーのドライバを起動しない）で行います。
+- 工程の順序と完了条件は `design/docs/implementation_stages.md`。
 
 ## 保存地図で経路を確認する
 
@@ -77,7 +81,7 @@ x86とParallelsの双方で、ワークスペース内にソース・ビルド�
 └── maps_glim/                  # GLIM 3D観測セッション
 ```
 
-`GOUDA_WORKSPACE` でワークスペースを変更できます。既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。
+（以下は旧実装の説明。新実装の gouda.sh は環境変数を使わない。）既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。
 
 RVizはKISS-ICP付属の表示設定をそのまま使用します。Ubuntuの通常の描画環境を使い、ソフトウェア描画を強制しません。本番起動ではXvfb・Openbox・x11vnc・noVNCを起動せず、画像圧縮・画面転送も行いません。RViz自体の点群描画とSLAMの計算負荷は残ります。標準の局所点群と保存済みの走行用2D地図は別用途です。
 

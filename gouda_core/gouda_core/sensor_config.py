@@ -4,7 +4,7 @@ Design: design/model.yaml ND-14 / ND-15, IFD-21 / IFD-22, PRM-50..56 (REV-030, R
 - Hesai: the driver reads one YAML file (`config_path`). It is built from the UPSTREAM template (installed
   share/hesai_ros_driver/config/config.yaml) with only the Gouda keys replaced: device/host IP, UDP/PTC port, timestamp type
   (from design/generated/params/hesai_ros_driver.yaml, trial file only in stub tests), source_type = real-time, and the frame /
-  topic of IFD-21, and an empty multicast address (unicast only). Every other template value is kept as it is (no silent changes).
+  topic of IFD-21, the spin rate (PRM-60: `speed` and the matching default_frame_frequency), and an empty multicast address (unicast only). Every other template value is kept as it is (no silent changes).
 - IMU: ROS parameters from design/generated/params/adi_imu_driver.yaml plus frame_id (IFD-22) and publish_tf=false (TF has a
   single owner, ND-13: RQ-I004). The driver's own default rate must not be used silently: without `rate` the IMU is not started.
 A missing value is reported, never filled in (RQ-I076, CLAUDE.md 1.5).
@@ -24,7 +24,8 @@ IMU_TOPIC = 'sensors/imu/data'
 IMU_DRIVER_TOPIC = 'imu/data_raw'      # adi_imu_tr_driver_ros2 publishes here (remapped to IMU_TOPIC)
 HESAI_SOURCE_REALTIME = 1              # upstream config.yaml: "1: real-time lidar connection" (protocol constant, not a vehicle value)
 
-HESAI_KEYS = ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port', 'use_timestamp_type')   # PRM-50, 51, 52, 53, 55
+HESAI_KEYS = ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port', 'use_timestamp_type', 'spin_rate_rpm')   # PRM-50, 51, 52, 53, 55, 60
+SECONDS_PER_MINUTE = 60   # unit conversion rpm -> frames per second (one frame per revolution)
 IMU_KEYS = ('device', 'rate')                                                                      # PRM-54, 56
 
 
@@ -53,6 +54,9 @@ def hesai_config(template: dict, params: dict) -> tuple:
     # (VM run 2026-10-13). Gouda receives unicast (PRM-51), so the SDK's own advice is followed: empty.
     udp['multicast_ip_address'] = ''
     if params.get('use_timestamp_type') is not None: drv['use_timestamp_type'] = int(params['use_timestamp_type'])
+    if params.get('spin_rate_rpm') is not None:   # PRM-60: the driver sets the LiDAR spin rate through PTC at start (SDK lidar.h)
+        udp['speed'] = int(params['spin_rate_rpm'])
+        drv['default_frame_frequency'] = float(params['spin_rate_rpm']) / SECONDS_PER_MINUTE   # the frame rate the driver expects
     ros['ros_frame_id'] = LIDAR_FRAME
     ros['ros_send_point_cloud_topic'] = LIDAR_TOPIC
     return cfg, missing
