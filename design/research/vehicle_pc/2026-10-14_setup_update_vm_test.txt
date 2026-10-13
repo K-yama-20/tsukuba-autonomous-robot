@@ -1,0 +1,200 @@
+# 2026-10-14 VM（Ubuntu 24.04 arm64、パッケージ・GLIM 1.2.2 は導入済み）での setup.sh・update.sh の試験（原文の出力）。
+# 別のワークスペース /tmp/ws_setup_test（実行中の ~/gouda_ws のセッションとは別。sudo は不要だった＝足りないものがなかった）。ブランチ docs/pc-setup-2026-10-14。
+# update.sh の試験では origin を同じ VM の bare repository に向け、main に新しい commit を置いた。
+# setup1.log は commit e05a5b7（UUID での接続の照合の前）、setup2.log は e4c7628（UUID で照合。古い接続の警告が出た）。
+# update.log は試験の配置の誤りで失敗（一時の clone をワークスペースの中に置いたため colcon が重複パッケージを検出）。これを受けて setup.sh が src/ だけを探すように直し（dba12ab）、一時の clone を外へ移した後が update2.log。
+
+===== setup1.log
+workspace: /tmp/ws_setup_test
+
+== system packages
+all present (ROS 2 Jazzy, build tools, Python modules, GLIM 1.2.2-0noble)
+
+== sensor drivers (/tmp/ws_setup_test/src/tsukuba-autonomous-robot/third_party/drivers.repos)
+HesaiLidar_ROS_2.0: cloning https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+HesaiLidar_ROS_2.0: e7e112f (pinned); submodules: 9d5dc4f src/driver/HesaiLidar_SDK_2.0  
+ADI_IMU_TR_Driver_ROS2: cloning https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2.git
+ADI_IMU_TR_Driver_ROS2: 742b7ba (pinned); submodules: 324cb47 lib  
+
+== rosdep
+all system dependencies of gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2 are installed
+
+== serial ports (dialout)
+aya is in dialout
+
+== build (colcon build --symlink-install: gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2)
+Starting >>> adi_imu_tr_driver_ros2
+Finished <<< adi_imu_tr_driver_ros2 [14.4s]
+Starting >>> gouda_interfaces
+Finished <<< gouda_interfaces [7.93s]
+Starting >>> hesai_ros_driver
+--- stderr: hesai_ros_driver
+=============================================================
+-- ROS_VERSION is 2
+=============================================================
+=============================================================
+-- ROS2 Found. ROS2 Support is turned On.
+=============================================================
+---
+Finished <<< hesai_ros_driver [31.6s]
+Starting >>> gouda_core
+Finished <<< gouda_core [0.96s]
+
+Summary: 4 packages finished [55.0s]
+  1 package had stderr output: hesai_ros_driver
+
+== LiDAR LAN
+a NetworkManager profile with 192.168.1.100 exists but is not active (is the LiDAR's USB-LAN connected?): nmcli connection show
+
+== IMU
+/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 (PRM-54) is not connected now (the sensor supervisor waits for it)
+
+== time synchronisation
+NTP is off. The clock of the VM jumped on 2026-10-13/14. To turn it on: sudo timedatectl set-ntp true
+
+== done
+GLIM: 1.2.2-0noble   drivers: pinned   build: /tmp/ws_setup_test/install
+start: bash /tmp/ws_setup_test/src/tsukuba-autonomous-robot/gouda.sh start   (it prints the monitor URL)
+
+real	0m59.343s
+user	1m17.944s
+sys	0m11.101s
+
+===== setup2.log
+workspace: /tmp/ws_setup_test
+
+== system packages
+all present (ROS 2 Jazzy, build tools, Python modules, GLIM 1.2.2-0noble)
+
+== sensor drivers (/tmp/ws_setup_test/src/tsukuba-autonomous-robot/third_party/drivers.repos)
+HesaiLidar_ROS_2.0: e7e112f (pinned); submodules: 9d5dc4f src/driver/HesaiLidar_SDK_2.0  
+ADI_IMU_TR_Driver_ROS2: 742b7ba (pinned); submodules: 324cb47 lib  
+
+== rosdep
+all system dependencies of gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2 are installed
+
+== serial ports (dialout)
+aya is in dialout
+
+== build (colcon build --symlink-install: gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2)
+Starting >>> adi_imu_tr_driver_ros2
+Finished <<< adi_imu_tr_driver_ros2 [0.30s]
+Starting >>> gouda_interfaces
+Finished <<< gouda_interfaces [0.27s]
+Starting >>> hesai_ros_driver
+Finished <<< hesai_ros_driver [0.30s]
+Starting >>> gouda_core
+Finished <<< gouda_core [0.69s]
+
+Summary: 4 packages finished [1.67s]
+
+== LiDAR LAN
+WARNING: profile 'gouda-hesai' (b8267e47-b45a-4b42-83ac-f8b900839712) puts 192.168.1.100 on enp0s5 (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete uuid b8267e47-b45a-4b42-83ac-f8b900839712
+WARNING: profile 'gouda-hesai' (89b2c243-f62e-4231-8ada-d616f68b5d74) puts 192.168.1.100 on enp0s5 (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete uuid 89b2c243-f62e-4231-8ada-d616f68b5d74
+a NetworkManager profile with 192.168.1.100 exists but is not active (is the LiDAR's USB-LAN connected?): nmcli connection show
+
+== IMU
+/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 (PRM-54) is not connected now (the sensor supervisor waits for it)
+
+== time synchronisation
+NTP is off. The clock of the VM jumped on 2026-10-13/14. To turn it on: sudo timedatectl set-ntp true
+
+== done
+GLIM: 1.2.2-0noble   drivers: pinned   build: /tmp/ws_setup_test/install
+start: bash /tmp/ws_setup_test/src/tsukuba-autonomous-robot/gouda.sh start   (it prints the monitor URL)
+
+===== update.log
+== fetching main from /tmp/ws_setup_test/remote.git
+switched from docs/pc-setup-2026-10-14 to main
+e4c7628 -> 5fdf1ed
+5fdf1ed test: a newer main
+workspace: /tmp/ws_setup_test
+
+== system packages
+all present (ROS 2 Jazzy, build tools, Python modules, GLIM 1.2.2-0noble)
+
+== sensor drivers (/tmp/ws_setup_test/src/tsukuba-autonomous-robot/third_party/drivers.repos)
+HesaiLidar_ROS_2.0: e7e112f (pinned); submodules: 9d5dc4f src/driver/HesaiLidar_SDK_2.0  
+ADI_IMU_TR_Driver_ROS2: 742b7ba (pinned); submodules: 324cb47 lib  
+
+== rosdep
+all system dependencies of gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2 are installed
+
+== serial ports (dialout)
+aya is in dialout
+
+== build (colcon build --symlink-install: gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2)
+[0.182s] ERROR:colcon:colcon build: Duplicate package names not supported:
+- gouda_core:
+  - src/tsukuba-autonomous-robot/gouda_core
+  - tmpclone/gouda_core
+- gouda_interfaces:
+  - src/tsukuba-autonomous-robot/gouda_interfaces
+  - tmpclone/gouda_interfaces
+
+===== update2.log
+== fetching main from /tmp/ws_setup_test/remote.git
+5fdf1ed -> d07e5aa
+d07e5aa Merge branch 'docs/pc-setup-2026-10-14' of https://github.com/K-yama-20/tsukuba-autonomous-robot
+dba12ab setup.sh: colcon searches only src/ (not the data folders of the workspace)
+workspace: /tmp/ws_setup_test
+
+== system packages
+all present (ROS 2 Jazzy, build tools, Python modules, GLIM 1.2.2-0noble)
+
+== sensor drivers (/tmp/ws_setup_test/src/tsukuba-autonomous-robot/third_party/drivers.repos)
+HesaiLidar_ROS_2.0: e7e112f (pinned); submodules: 9d5dc4f src/driver/HesaiLidar_SDK_2.0  
+ADI_IMU_TR_Driver_ROS2: 742b7ba (pinned); submodules: 324cb47 lib  
+
+== rosdep
+all system dependencies of gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2 are installed
+
+== serial ports (dialout)
+aya is in dialout
+
+== build (colcon build --symlink-install: gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2)
+Starting >>> adi_imu_tr_driver_ros2
+Finished <<< adi_imu_tr_driver_ros2 [0.26s]
+Starting >>> gouda_interfaces
+Finished <<< gouda_interfaces [0.24s]
+Starting >>> hesai_ros_driver
+Finished <<< hesai_ros_driver [0.27s]
+Starting >>> gouda_core
+Finished <<< gouda_core [0.70s]
+
+Summary: 4 packages finished [1.58s]
+
+== LiDAR LAN
+WARNING: profile 'gouda-hesai' (b8267e47-b45a-4b42-83ac-f8b900839712) puts 192.168.1.100 on enp0s5 (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete uuid b8267e47-b45a-4b42-83ac-f8b900839712
+WARNING: profile 'gouda-hesai' (89b2c243-f62e-4231-8ada-d616f68b5d74) puts 192.168.1.100 on enp0s5 (the interface with the default route). Remove it if it is not needed: sudo nmcli connection delete uuid 89b2c243-f62e-4231-8ada-d616f68b5d74
+a NetworkManager profile with 192.168.1.100 exists but is not active (is the LiDAR's USB-LAN connected?): nmcli connection show
+
+== IMU
+/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 (PRM-54) is not connected now (the sensor supervisor waits for it)
+
+== time synchronisation
+NTP is off. The clock of the VM jumped on 2026-10-13/14. To turn it on: sudo timedatectl set-ntp true
+
+== done
+GLIM: 1.2.2-0noble   drivers: pinned   build: /tmp/ws_setup_test/install
+start: bash /tmp/ws_setup_test/src/tsukuba-autonomous-robot/gouda.sh start   (it prints the monitor URL)
+
+===== 拒否 1: 管理下のファイルにローカルの変更
+ M README.md
+
+STOPPED: tracked files have local changes; commit or set them aside (git stash) first. Nothing was changed
+
+===== 拒否 2: Gouda が起動中（pid ファイルに生きているプロセスグループ）
+STOPPED: Gouda is running. Stop it first: bash /tmp/ws_setup_test/src/tsukuba-autonomous-robot/gouda.sh stop
+STOPPED: Gouda is running. Stop it first: bash /tmp/ws_setup_test/src/tsukuba-autonomous-robot/gouda.sh stop
+
+===== もう一度（新しい commit なし）
+== fetching main from /tmp/ws_setup_test/remote.git
+already at d07e5aa
+workspace: /tmp/ws_setup_test
+branch: main d07e5aa upstream origin/main
+
+===== 試験スタック（このワークスペースの build で起動、ROS_DOMAIN_ID 77）
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/ws_setup_test/stackdata, monitor http://127.0.0.1:43511/)
+nodes: /gouda_map_creator /gouda_mode_manager /gouda_monitor /gouda_motion_controller /gouda_recorder /gouda_sensor_supervisor /vehicle_bridge（ドライバの設定ファイルを除いた写しなので supervisor は driver_not_started を 2 件記録）
+test stack stopped

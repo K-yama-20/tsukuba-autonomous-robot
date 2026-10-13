@@ -1,0 +1,51 @@
+# 変更セット REV-044（2026-10-14 第25便: main への merge 後の README の書き換え、PC のセットアップと更新のスクリプト、旧実装の扱いの承認事項）
+# 適用: design/tools/apply_revision.py REV-044
+id: REV-044
+date: '2026-10-14'
+summary: >-
+  人が設計のブランチを main に merge した（PR #8）。README を現行の実装（gouda.sh・setup.sh・update.sh）に合わせて書き換え、
+  PC のセットアップ（setup.sh）と、main が変わったときの更新（update.sh）を用意した。ドライバの commit は third_party/drivers.repos の 1 か所に置いた。
+  VM の別のワークスペースで setup.sh（2 回）・update.sh（拒否 2 種と fast-forward）・試験スタックの起動を確認した（FILE-VEHICLE-PC-SETUP-UPDATE）。
+  旧実装のフォルダと旧 scripts/setup.sh（実行するとドライバに patch を当てる）の扱いを承認事項 DEC-101 とした。
+basis_refs: [DEC-102]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-VEHICLE-PC-SETUP-UPDATE
+    path: design/research/vehicle_pc/2026-10-14_setup_update_vm_test.txt
+    role: evidence
+
+decisions:
+  - id: DEC-101
+    kind: approval
+    status: pending
+    asked_on: '2026-10-14'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】旧実装（Mission Control）のファイルの扱い。対象: scripts/（setup.sh・configure_host.py ほか）、gouda_gui/、gouda_sensors/、gouda_navigation/、gouda_vehicle/、gouda_bringup/、gouda_sim/、
+      third_party/external.repos、patches/。新実装（gouda.sh・setup.sh・update.sh）はこれらを使わない。旧 scripts/setup.sh を実行すると、センサーのドライバに patch を当て（新実装はドライバを改変しない：DEC-075）、
+      旧パッケージをビルドし、NetworkManager の接続を追加する（VM には、デフォルトルートのある enp0s5 に 192.168.1.100 を付ける古い接続 gouda-hesai が 2 つ残っている）。
+      案 A（推奨）: 旧 scripts/setup.sh を「旧実装用。使わない」と表示して止まるようにし、残りは 5-6（Nav2）の設計で再利用の有無を確かめてから legacy/ へ移すか削除する（履歴は git に残る）。
+      案 B: 今すぐ legacy/ へ移す。案 C: 今のまま（README の注意書きだけ）。
+    answer_verbatim: ''
+    affected_refs: [ND-01, ND-14, ND-15]
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：なし（README に「使わない」と書いた）。移動・改名・削除は承認事項（CLAUDE.md 1.9）。
+    disposition: open_human
+  - id: DEC-102
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-14'
+    channel: chat
+    question: main への merge と、README・PC のセットアップ・更新のコマンド
+    answer_verbatim: |
+      一旦mainにmergeしました。readmeを書き換えて。
+      pcセットアップ用のコマンドも頼む。あと、mainが変わった時のupdate用のコマンドも。
+    affected_refs: [ND-01]
+    resulting_refs: [DEC-101]
+    note: >-
+      README を書き換え、setup.sh（初回。何度実行してもよい）と update.sh（main への fast-forward の後に setup.sh）を追加した（ブランチ docs/pc-setup-2026-10-14）。
+      起動の方法は gouda.sh だけのまま（DEC-090）。setup.sh・update.sh は起動しない。
+    disposition: answered

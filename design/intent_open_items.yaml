@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 16
-pending_decision_count: 10
+pending_decision_count: 11
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -838,4 +838,13 @@ pending_decisions:
     question: 【実測】移動して作った原図の点の密度と GLIM が処理した周期（DEC-096 C）。経路からの距離ごとの点の密度（点/m²）、submap の数と点の数、 GLIM が処理した frame
       の周期と最長の欠け（traj_lidar.txt。XT-32 は 10 Hz）、GLIM の CPU 負荷と保存時間（mapping_stopped の save_duration_s、PRM-37）。 
       この結果で GLIM の間引きを変えるか（DEC-094 B）と、PRM-33・38 の値を見直す。
+    resulting_refs: []
+  - id: DEC-101
+    kind: approval
+    status: pending
+    question: '【承認】旧実装（Mission Control）のファイルの扱い。対象: scripts/（setup.sh・configure_host.py ほか）、gouda_gui/、gouda_sensors/、gouda_navigation/、gouda_vehicle/、gouda_bringup/、gouda_sim/、
+      third_party/external.repos、patches/。新実装（gouda.sh・setup.sh・update.sh）はこれらを使わない。旧 scripts/setup.sh を実行すると、センサーのドライバに
+      patch を当て（新実装はドライバを改変しない：DEC-075）、 旧パッケージをビルドし、NetworkManager の接続を追加する（VM には、デフォルトルートのある enp0s5 に 192.168.1.100
+      を付ける古い接続 gouda-hesai が 2 つ残っている）。 案 A（推奨）: 旧 scripts/setup.sh を「旧実装用。使わない」と表示して止まるようにし、残りは 5-6（Nav2）の設計で再利用の有無を確かめてから
+      legacy/ へ移すか削除する（履歴は git に残る）。 案 B: 今すぐ legacy/ へ移す。案 C: 今のまま（README の注意書きだけ）。'
     resulting_refs: []
