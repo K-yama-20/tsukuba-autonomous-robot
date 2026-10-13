@@ -9,6 +9,10 @@
   - 床より下の反射と推定される点（12 %）で地面の推定が下がり、2D 変換は不合格（G-FLOOR-REFLECTION。地面の推定の修正が次の作業）。
   - ゴミ箱は未判定（位置を人に確認）。
   - GLIM の処理周期 4.37 Hz。rosbag は未記録。
+- x86 機の地図作成 2 件（廊下・屋外）: ログと設定だけを受領。
+  - 廊下は時刻の差と frame の欠けの警告が 0（VM より良い）。
+  - 屋外は GLIM が最大 3.6 s 遅れ、つなぎの拘束を加えた submap が 72。
+  - 原図（maps/<id>/source）の受領待ちで、形は未判定（`research/vehicle_pc/2026-10-14_x86_mapping_logs.txt`）。
 - 人の作業: 廊下の水平・寸法・ゴミ箱の位置の確認、次の試験で Record を押す。
 - AI の次の作業: G-FLOOR-REFLECTION と G-DUP-START の修正。
 
