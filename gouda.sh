@@ -35,7 +35,7 @@ case "${1:-}" in
   start)
     if running; then echo "already running (pid $(cat "$pid_file")); see $log_file"; exit 0; fi
     [[ -f "$ros_setup" ]] || { echo "ROS 2 Jazzy not found: $ros_setup"; exit 1; }
-    [[ -f "$workspace/install/setup.bash" ]] || { echo "workspace not built: $workspace/install/setup.bash missing (colcon build gouda_interfaces gouda_core)"; exit 1; }
+    [[ -f "$workspace/install/setup.bash" ]] || { echo "workspace not built: $workspace/install/setup.bash missing (colcon build --symlink-install --packages-select gouda_interfaces gouda_core)"; exit 1; }
     [[ -d "$params_dir" ]] || { echo "generated parameter directory missing: $params_dir (run design/tools/generate_params.py)"; exit 1; }
     mkdir -p "$run_dir" "$data_root/records" "$data_root/state"
     # shellcheck disable=SC1090

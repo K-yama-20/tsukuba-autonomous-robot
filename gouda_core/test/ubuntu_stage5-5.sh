@@ -11,7 +11,7 @@ export ROS_DOMAIN_ID=77   # isolated from a running robot session (same node nam
 PARAMS="$REPO/design/generated/params"
 mkdir -p "$OUT"; rm -f "$OUT"/*
 echo "== commit: $(git -C "$REPO" rev-parse HEAD)  date: $(date -Is)"
-cd "$WS" && colcon build --packages-select gouda_interfaces gouda_core 2>&1 | tail -3
+cd "$WS" && colcon build --symlink-install --packages-select gouda_interfaces gouda_core 2>&1 | tail -3
 source "$WS/install/setup.bash"
 cd "$REPO" && echo "== unit tests" && python3 -m unittest discover -s gouda_core/test 2>&1 | tail -3
 cleanup() { pkill -f stage55_probe 2>/dev/null; pkill -f "gouda_core/esp32_sim" 2>/dev/null; pkill -f "gouda_core.esp32_sim_pty" 2>/dev/null; pkill -f "vehicle_bridge" 2>/dev/null; pkill -f "gouda_motion_controller" 2>/dev/null; }

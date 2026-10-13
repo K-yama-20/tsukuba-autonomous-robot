@@ -10,7 +10,7 @@ source /opt/ros/jazzy/setup.bash
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; WS="$(cd "$REPO/../.." && pwd)"; OUT="${OUT:-/tmp/glim_start}"; MAP_S="${MAP_S:-20}"
 mkdir -p "$OUT"; rm -f "$OUT"/*
 echo "== commit $(git -C "$REPO" rev-parse --short HEAD)  $(date -Is)  MAP_S=$MAP_S"
-cd "$WS" && colcon build --packages-select gouda_interfaces gouda_core 2>&1 | tail -1
+cd "$WS" && colcon build --symlink-install --packages-select gouda_interfaces gouda_core 2>&1 | tail -1
 source "$WS/install/setup.bash"; cd "$REPO"
 bash gouda.sh stop >/dev/null 2>&1
 state() { curl -s "$URL/api/state" | python3 -c "import json,sys;s=json.load(sys.stdin);print('mode', s['mode']['name'], 'processing', s['mode']['fields'].get('processing_state'))"; }
