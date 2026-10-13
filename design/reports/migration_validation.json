@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5914,
+    "executed_checks": 5915,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -173,6 +173,7 @@
       "model file hash FILE-INTENT-V8",
       "model file hash FILE-VEHICLE-PC-IMU-BYID",
       "model file hash FILE-VEHICLE-PC-MM-CRASH",
+      "model file hash FILE-VEHICLE-PC-GLIM-START",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7736,6 +7737,16 @@
       "modified_entity_ids": 6,
       "added_source_ids": 1,
       "added_file_ids": 3,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-033",
+      "date": "2026-10-13",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
       "removed_entity_ids": 0
     }
   ],

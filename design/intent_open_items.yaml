@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 15
-pending_decision_count: 10
+pending_decision_count: 9
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -801,11 +801,4 @@ pending_decisions:
     status: pending
     question: '【承認】IMU（ADIS16607-2）の発行周期（PRM-56、adi_imu_driver の rate）。旧実装の imu.yaml とドライバの既定はどちらも 100 Hz（旧 imu.yaml
       の注記: 内部サンプリング 1000 Hz、ROS 発行は 100 Hz に制限）。100 Hz でよいか。'
-    resulting_refs: []
-  - id: DEC-086
-    kind: measurement
-    status: pending
-    question: 【実測】LiDAR（XT-32）と IMU の取付変換（GLIM の config_sensors.json の T_lidar_imu。IMU 座標の点を LiDAR 座標へ移す並進 
-      x,y,z [m] と回転）。 GLIM 1.2.2 の設定テンプレートの既定値は Ouster OS0 の値（0.006, -0.012, 0.008、回転なし）で、Gouda 
-      の機材の値ではない。現在の起動はテンプレートをそのまま使う。
     resulting_refs: []

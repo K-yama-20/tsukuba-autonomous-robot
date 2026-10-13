@@ -138,6 +138,10 @@ files:
     path: design/research/vehicle_pc/2026-10-13_gouda_mode_manager_crash_launch_log.txt
     sha256: ba06bbcf9601fe27b1ad7e1ebe2366a197f364e3006b7928eeeb6cd9eca6ccbf
     role: evidence
+  - id: FILE-VEHICLE-PC-GLIM-START
+    path: design/research/vehicle_pc/2026-10-13_glim_start_vm_test.txt
+    sha256: f19ad39a48741d092f85d79992f1c1b80568ea8956bcbd3e0a0c22ef7fc5af2b
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -35029,12 +35033,13 @@ entities:
     field_bindings: {}
     related_refs: []
     issue_refs: []
-    interpretation: ''
+    interpretation: 'REV-033（2026-10-13 VM）: ドライバ 742b7ba でも、ドライバを正常終了して再起動すると IMU が設定の読み出しに失敗し（Failed to read settings）、データも来ない現象を再現。
+      ドライバ単体の再起動でも同じ。原因は未特定（物理特性またはドライバ・IMU 側の実装。上流は改変しない: DEC-075）。復旧は USB の抜き差し。gouda.sh の停止・起動もこの再起動にあたる。'
     sensitivity: []
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-031
+    revision_ref: REV-033
     ros_node:
       node_name: adi_imu_driver
       responsibilities:
@@ -37667,7 +37672,8 @@ entities:
     related_refs: []
     issue_refs:
       - H-002
-    interpretation: ''
+    interpretation: 'REV-033: 工程5-3 の運用に必要なため先に実装（PC 再起動で一時停止に入った後、手動走行へ戻す唯一の遷移）。このビルドには自律走行の部品（ND-07〜ND-12 の活性化、Nav2
+      action client）がないため、 Nav2 goal の取消と自律走行系の非活性化は「対象なし」の DecisionEvent として記録する。工程5-6・5-7 で本来の処理に置き換える。'
     sensitivity:
       - safety
       - operation
@@ -37675,7 +37681,7 @@ entities:
       - RQ-I015
       - RQ-I017
       - RQ-I025
-    revision_ref: REV-020
+    revision_ref: REV-033
     transition:
       from_mode_ref: MODE-PAUSE
       to_mode_ref: MODE-MANUAL
@@ -52724,4 +52730,22 @@ revisions:
       - FILE-INTENT-V8
       - FILE-VEHICLE-PC-IMU-BYID
       - FILE-VEHICLE-PC-MM-CRASH
+    removed_entity_ids: []
+  - id: REV-033
+    date: '2026-10-13'
+    summary: VM での GLIM 
+      開始・終了の検証記録を証拠として登録（FILE-VEHICLE-PC-GLIM-START）。実車の設定ファイルのみ・センサーなしで、地図作成の開始、即時の終了応答、保存、原図登録、変換開始、 2 
+      周目、拒否された要求での mode_manager の継続を確認。Ubuntu 再起動後（人が仮想 NIC の余分な 192.168.1.100 を除去）に XT-32（10 Hz、64000 点）と 
+      IMU（100 Hz）を受信し、 GLIM が submap 1 個を作り、保存 0.4 s、原図登録、2D 地図への変換まで成功。次の起動では IMU が応答しなかった（ドライバの停止・再起動で IMU 
+      が応答しなくなる既知の現象の再現。ドライバは正常終了していた）。 PC 再起動後の一時停止から手動走行へ戻る TR-12 をこのビルドで実装（自律走行の部品がないため Nav2 goal 
+      の取消と非活性化は「対象なし」として記録）。
+    basis_refs:
+      - DEC-087
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-15
+      - TR-12
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-GLIM-START
     removed_entity_ids: []

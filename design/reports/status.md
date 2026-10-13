@@ -1,6 +1,8 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-13（REV-031、第20便）。**地図作成（工程5-3）の実機試験の準備**: IMU のデバイス名を実機の名前に確定（DEC-082、PRM-54）、XT-32 の点群は PC 受信時刻（DEC-083、PRM-55=1。Hesai 本体の時刻は年単位で遅れている）。上流ソースで、点群の時刻・点ごとの時刻と GLIM 1.2.2 の扱いが PC の時計にそろうことを照合（`research/upstream_sensors/`）。センサドライバの起動（`gouda_sensors.launch.py`、`GOUDA_SENSORS=1`）と導入 script（`gouda_core/tools/install_sensor_drivers.sh`）を実装。待ち: DEC-084（PTC ポート 9347）、DEC-085（IMU 発行周期 100 Hz）、DEC-086（LiDAR–IMU の取付変換の実測。GLIM テンプレートの既定は Ouster の値）。VM は不達で、ドライバの導入・実機受信は未実施。作業記録 `reports/worklog/2026-10-13_rev031_sensor_drivers.md`。
+最終更新：2026-10-13（REV-033、第21便）。**GLIM の開始を VM で検証**: 両センサー（XT-32 10 Hz・IMU 100 Hz）で GLIM が submap を作り、地図作成終了→保存→原図登録→2D 地図への変換まで成功（ソフト試験。車体は静止、手動走行での地図作成は未実施）。途中で gouda.sh の起動失敗（空の serial_port 引数）、ログ呼び出しで mode_manager が落ちる不具合、PRM-37 未確定で終了できない不具合、一時停止から手動走行へ戻れない（TR-12 未実装）を直した。intent.md 第8版（105 行: 取付位置は人が gouda_monitor で設定し、不明を理由に質問・停止しない。RQ-I081）を記録し、GLIM の T_lidar_imu を /config から生成。未解決: IMU ドライバの再起動で IMU が応答しなくなる既知の現象（復旧は USB の抜き差し）。回答待ち: DEC-084（PTC ポート）、DEC-085（IMU 発行周期）。作業記録 `reports/worklog/2026-10-13_rev032_033_glim_start.md`。
+
+前便（第20便）: IMU デバイス名と XT-32 の時刻（PC 受信時刻）を確定、センサドライバの起動を実装（REV-031）。
 
 前便（第19便）: XT-32 の IP・宛先・ポートと IMU の名前を宣言（REV-030）。
 
@@ -27,12 +29,12 @@
 | 設定の生成（generate_params → generated/params/。firmware_config.trial.yaml を追加） | 生成 | 0 | 0 |
 | 設計整合性（17 ルール） | 13 | 0 | 4（DR-04 5、DR-05 2、DR-10 1、DR-11 57） |
 | 検査器の試験 | 68 | 0 | 0 |
-| gouda_core 単体試験（Mac。Ubuntu は 89 件まで） | 94（第20便で 5 件追加） | 0 | 0 |
+| gouda_core 単体試験（Mac） | 103（第21便で 9 件追加） | 0 | 0 |
 | firmware 中核ホスト試験（g++、仮値ヘッダ。TS-17・18・19・29 の卓上 stub） | 274 checks | 0 | 0（実機未実行） |
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜30） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 18（未実行） |
-| 判断台帳 | 84 件（answered 41、recorded 33、pending 10: DEC-021・022・024・050・077・078・079・084・085・086）。model.yaml SHA `1b673e55…` | | |
+| 判断台帳 | 85 件（answered 42、recorded 34、pending 9: DEC-021・022・024・050・077・078・079・084・085）。model.yaml SHA `36cbb611…` | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
@@ -62,8 +64,8 @@
 
 | 役割 | 場所 | 備考 |
 |---|---|---|
-| 設計意図（人が所有） | `design/intent.md` | 第7版 103 行。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-031。次は REV-032、DEC-087 |
+| 設計意図（人が所有） | `design/intent.md` | 第8版（SHA 09732d2f…、105 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-033。次は REV-034、DEC-088 |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
 | 判断台帳 | `model.yaml: decisions`（DEC-001〜079） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
@@ -72,6 +74,6 @@
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
 | 提案 | `proposals/` | 承認済み仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-13_rev031_sensor_drivers.md`。引き継ぎ `reports/handover_2026-10-10.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-13_rev032_033_glim_start.md`。引き継ぎ `reports/handover_2026-10-10.md` |
 | ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor・map_creator・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（GOUDA_SERIAL_PORT） | 工程5-1〜5-5 |
 | firmware（新） | `firmware/gouda_esp32_v4/` | `include/gouda_v4/{protocol,config,control}.hpp`、`src/main.cpp`、`tools/gen_build_config.py`、`test/host/`。旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換え対象 |

@@ -17,7 +17,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、41 件）を根拠にした要素
+### 1.2 人の決定（answered、42 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -62,6 +62,7 @@
 | DEC-081 | @"/Users/AYARyoya/Downloads/Pandar Console.pdf"<br>hesai xt-32のipアドレスは、192.168.1.201、宛先ipは192.168.1.100 | `PRM-50`, `PRM-51`, `PRM-52`, `PRM-54`, `FILE-PANDAR-CONSOLE-XT32` |
 | DEC-082 | usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00<br><br>でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。 | `PRM-54` |
 | DEC-083 | usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00<br><br>でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。 | `PRM-55`, `IFD-21`, `IFD-22`, `DEC-084` |
+| DEC-086 | GLIMのためのセンサーの取り付け位置はgouda_monitorで自分で設定する。取り付け位置が不明だからといって、私に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めては | `DEC-087`, `RQ-I081` |
 
 ### 1.3 承認済み（15 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-13`, `PRM-21`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-54`, `PRM-55`
 
