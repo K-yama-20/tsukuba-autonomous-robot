@@ -31,9 +31,32 @@ usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; }
 pgid() { [[ -f "$pid_file" ]] && cat "$pid_file"; }
 running() { local g; g="$(pgid)" && [[ -n "$g" ]] && pgrep -g "$g" >/dev/null 2>&1; }
 
+# Gouda launches of this user that this script does not track (G-DUP-START): e.g. one left running after its workspace or data
+# folder was moved away, so its pid file went with it. Test stacks (gouda_core/test/stack.sh, trial:=true) are not counted.
+# Prints "<launch pid> <pgid> <working folder>" per launch.
+untracked() {
+  local own p g
+  own="$(pgid 2>/dev/null || true)"
+  for p in $(pgrep -u "$(id -u)" -f 'ros2 launch gouda_core gouda_core[.]launch[.]py' 2>/dev/null || true); do
+    tr '\0' ' ' <"/proc/$p/cmdline" 2>/dev/null | grep -q 'trial:=true' && continue
+    g="$(ps -o pgid= -p "$p" 2>/dev/null | tr -d ' ')"
+    [[ -z "$g" || ( -n "$own" && "$g" == "$own" ) ]] && continue
+    echo "$p $g $(readlink "/proc/$p/cwd" 2>/dev/null || echo '?')"
+  done
+}
+report_untracked() {   # $1: the list from untracked
+  echo "another Gouda is running that this gouda.sh did not start (its pid file is not in $run_dir):"
+  while read -r p g cwd; do echo "  process group $g (launch pid $p, folder $cwd)"; done <<<"$1"
+  echo "stop it with: kill -INT -- -<process group>   (e.g. kill -INT -- -$(head -1 <<<"$1" | awk '{print $2}'))"
+}
+
 case "${1:-}" in
   start)
     if running; then echo "already running (pid $(cat "$pid_file")); see $log_file"; exit 0; fi
+    others="$(untracked)"
+    if [[ -n "$others" ]]; then   # two Gouda would share the IMU port, the LiDAR and the monitor port (G-DUP-START)
+      echo "REFUSED: not started."; report_untracked "$others"; exit 1
+    fi
     [[ -f "$ros_setup" ]] || { echo "ROS 2 Jazzy not found: $ros_setup"; exit 1; }
     [[ -f "$workspace/install/setup.bash" ]] || { echo "workspace not built: $workspace/install/setup.bash missing (colcon build --symlink-install --packages-select gouda_interfaces gouda_core)"; exit 1; }
     [[ -d "$params_dir" ]] || { echo "generated parameter directory missing: $params_dir (run design/tools/generate_params.py)"; exit 1; }
@@ -55,7 +78,11 @@ case "${1:-}" in
     [[ -s "$url_file" ]] && echo "monitor: $(cat "$url_file") (open on this PC desktop; no screen forwarding)" || echo "monitor URL not written yet; see $url_file after start-up"
     ;;
   stop)
-    if ! running; then echo "not running"; rm -f "$pid_file"; exit 0; fi
+    if ! running; then
+      echo "not running"; rm -f "$pid_file"
+      others="$(untracked)"; [[ -n "$others" ]] && report_untracked "$others"
+      exit 0
+    fi
     g="$(pgid)"
     kill -INT -- "-$g" 2>/dev/null || true          # launch and every node of the group shut down on SIGINT
     for _ in $(seq 1 30); do pgrep -g "$g" >/dev/null 2>&1 || break; sleep 1; done
@@ -68,6 +95,7 @@ case "${1:-}" in
     ;;
   status)
     if running; then echo "running (pgid $(pgid); processes: $(pgrep -g "$(pgid)" | wc -l | tr -d ' '))"; else echo "not running"; fi
+    others="$(untracked)"; [[ -n "$others" ]] && report_untracked "$others"
     echo "data_root=$data_root"; echo "params_dir=$params_dir"; echo "log=$log_file"
     [[ -s "$url_file" ]] && echo "monitor=$(cat "$url_file")"
     [[ -f "$data_root/state/previous_mode_record.json" ]] && { echo -n "previous_mode_record: "; cat "$data_root/state/previous_mode_record.json"; }

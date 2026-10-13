@@ -9,6 +9,9 @@ Design: docs/sensor_supervision.md, device_watch.py (identity and the restart ru
 - Same identity -> no restart, even when a driver exits (restarting the IMU driver without a re-plug freezes the IMU). A
   previous session's identity is kept in <run_dir>/sensor_devices.json; reopening the same IMU enumeration is recorded as a
   warning because that is the case where the IMU has stopped answering.
+- A driver is not started while another process already uses its device (the IMU serial port, or the LiDAR UDP port PRM-52):
+  a second Gouda left running would split the IMU bytes and the LiDAR packets (G-DUP-START). This is recorded
+  (device_in_use) and checked again at the next device / address event.
 - Every decision is a DecisionEvent (IFD-28, node gouda_sensor_supervisor) and appears in the monitor history.
 Settings: params_dir / trial (driver settings, as before), run_dir, driver_stop_wait_s (PRM-59; while unresolved a stopping
 driver is waited for without an upper limit). No number is written here (RQ-I076).
@@ -124,6 +127,7 @@ class SensorSupervisorNode(Node):
         host_ip = hp.get('host_ip_address')
         drivers['lidar'] = Driver('lidar', 'XT-32 (ND-14)', dw.WatchedDevice(f'interface holding {host_ip} (PRM-51)'), cmd, reason)
         drivers['lidar'].host_ip = host_ip
+        drivers['lidar'].udp_port = hp.get('udp_port')   # PRM-52: a second driver on this port would split the packets
         # ND-15 IMU: ROS parameters; device = by-id name (PRM-54)
         ip_, missing = sc.imu_parameters(sc.read_node_params(params_dir, 'adi_imu_driver', trial) if params_dir else {})
         exe = executable('adi_imu_tr_driver_ros2', 'adis_rcv_bin_node')
@@ -186,11 +190,16 @@ class SensorSupervisorNode(Node):
             if d.key == 'imu' and self.previous.get('imu') == observed:   # opened before (this or an earlier session) without a re-plug
                 self._decision('device_reopened_without_reconnect', f'{d.label}: same USB enumeration {observed} as the previous session; '
                                'the IMU may not answer (known problem after a driver restart). Re-plug the IMU USB if no IMU data arrives', {'driver': d.key, 'identity': observed})
-            self._start(d, observed, 'driver_started', 'device present')
+            if not self._start(d, observed, 'driver_started', 'device present'):
+                d.device.seen = observed; d.device.evaluated = True   # not started: tried again at the next event
+                return
         elif action == dw.ACTION_RESTART:
             self._decision('device_reconnected', f'{d.label}: new enumeration {d.device.identity} -> {observed}', {'driver': d.key, 'old': d.device.identity, 'new': observed})
             self._stop(d)
-            self._start(d, observed, 'driver_restarted', 'device re-connected')
+            if not self._start(d, observed, 'driver_restarted', 'device re-connected'):
+                d.device.apply(observed, dw.ACTION_STOP); d.device.seen = observed   # no driver now: started at the next event if free
+                self._save()
+                return
         elif action == dw.ACTION_STOP:
             self._stop(d)
             self._decision('driver_stopped', f'{d.label}: device absent; the driver is started again when the device re-appears', {'driver': d.key})
@@ -198,13 +207,35 @@ class SensorSupervisorNode(Node):
         self._save()
 
     # ---- processes ----
+    def _device_users(self, d):
+        """(what, pids) of other processes using the device of d: the IMU serial port, or the LiDAR UDP port (PRM-52)."""
+        own = (os.getpid(),)
+        if d.key == 'imu' and d.by_id and os.path.exists(d.by_id):
+            return f'serial port {os.path.realpath(d.by_id)}', dw.tty_users(d.by_id, exclude=own)
+        if d.key == 'lidar' and getattr(d, 'udp_port', None) is not None:
+            return f'UDP port {d.udp_port} ({prm("udp_port")})', dw.udp_port_users(int(d.udp_port), exclude=own)
+        return '', []
+
     def _start(self, d, identity, event, why):
+        """Start the driver; False when it was not started (device used by another process, or the start failed)."""
+        what, users = self._device_users(d)
+        if users:
+            cmds = {}
+            for pid in users:
+                try:
+                    with open(f'/proc/{pid}/cmdline', 'rb') as f: cmds[pid] = f.read().replace(b'\0', b' ').decode(errors='replace').strip()[:200]
+                except OSError:
+                    cmds[pid] = '?'
+            self._decision('device_in_use', f'{d.label}: {what} is already used by pid {users}; the driver is NOT started (another Gouda left running? '
+                           'stop it, then start Gouda again)', {'driver': d.key, 'identity': identity, 'pids': users, 'commands': cmds})
+            return False
         try:
             d.proc = subprocess.Popen(d.command)   # same process group: gouda.sh stop signals it too
         except OSError as e:
-            self._decision('driver_start_failed', f'{d.label}: {e}', {'driver': d.key}); d.proc = None; return
+            self._decision('driver_start_failed', f'{d.label}: {e}', {'driver': d.key}); d.proc = None; return False
         self._decision(event, f'{d.label}: started (pid {d.proc.pid}) for {identity} ({why})', {'driver': d.key, 'identity': identity, 'pid': d.proc.pid})
         threading.Thread(target=self._wait_exit, args=(d, d.proc), daemon=True).start()
+        return True
 
     def _wait_exit(self, d, proc):
         code = proc.wait()

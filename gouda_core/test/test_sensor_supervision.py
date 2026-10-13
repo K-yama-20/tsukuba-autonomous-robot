@@ -96,6 +96,38 @@ class RestartRuleTests(unittest.TestCase):
         self.assertEqual(dw.merge_opened(prev, {'imu': 'ttyACM0 usb 2-31'})['imu'], 'ttyACM0 usb 2-31')
 
 
+class DeviceInUseTests(unittest.TestCase):
+    """G-DUP-START: a driver is not started while another process already uses its device."""
+    def fake_proc(self, root, pid, links):
+        fd = Path(root) / str(pid) / 'fd'; fd.mkdir(parents=True)
+        for i, target in enumerate(links): os.symlink(target, fd / str(i))
+
+    def test_tty_users_finds_the_process_holding_the_port_by_its_by_id_name(self):
+        with tempfile.TemporaryDirectory() as d:
+            fs = FakeSys(d); fs.plug('ttyACM0', 1, 4)
+            proc = Path(d) / 'proc'; proc.mkdir()
+            self.fake_proc(proc, 11429, [str(Path(d) / 'dev' / 'ttyACM0'), '/dev/null'])
+            self.fake_proc(proc, 500, ['/dev/null', 'socket:[1]'])
+            (proc / 'self').mkdir()   # non-numeric entries are skipped
+            self.assertEqual(dw.tty_users(fs.by_id, str(proc)), [11429])
+            self.assertEqual(dw.tty_users(fs.by_id, str(proc), exclude=(11429,)), [])
+            self.assertEqual(dw.tty_users(str(Path(d) / 'dev' / 'ttyACM1'), str(proc)), [])
+
+    def test_udp_port_users_reads_the_socket_tables(self):
+        with tempfile.TemporaryDirectory() as d:
+            proc = Path(d) / 'proc'; (proc / 'net').mkdir(parents=True)
+            head = '   sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode ref pointer drops\n'
+            (proc / 'net' / 'udp').write_text(head +
+                '  1: 00000000:0940 00000000:0000 07 00000000:00000000 00:00000000 00000000  1000        0 77001 2 0 0\n'
+                '  2: 0100007F:14E9 00000000:0000 07 00000000:00000000 00:00000000 00000000  1000        0 77002 2 0 0\n')
+            (proc / 'net' / 'udp6').write_text(head)
+            self.fake_proc(proc, 11338, ['socket:[77001]'])
+            self.fake_proc(proc, 600, ['socket:[77002]'])
+            self.assertEqual(dw.udp_port_users(0x0940, str(proc)), [11338])     # the LiDAR data port held by another driver
+            self.assertEqual(dw.udp_port_users(0x0941, str(proc)), [])
+            self.assertEqual(dw.udp_port_users(0x0940, str(proc), exclude=(11338,)), [])
+
+
 class ReceptionAndWarningTests(unittest.TestCase):
     def setUp(self):
         self.t = [1000.0]; self.core = MonitorCore(clock=lambda: self.t[0])

@@ -83,6 +83,50 @@ class WatchedDevice:
             self.identity = None
 
 
+def _fd_targets(proc_root: str, exclude: tuple):
+    """(pid, link target) of every open file descriptor readable in proc_root, except the excluded pids."""
+    try:
+        names = os.listdir(proc_root)
+    except OSError:
+        return
+    for name in names:
+        if not name.isdigit() or int(name) in exclude:
+            continue
+        fd_dir = os.path.join(proc_root, name, 'fd')
+        try:
+            fds = os.listdir(fd_dir)
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                yield int(name), os.readlink(os.path.join(fd_dir, fd))
+            except OSError:
+                continue
+
+
+def tty_users(device_path: str, proc_root: str = '/proc', exclude: tuple = ()) -> list:
+    """PIDs that have the serial device open (by-id names are resolved), except the excluded ones (G-DUP-START: a second
+    driver on the same IMU port splits its bytes)."""
+    target = os.path.realpath(device_path)
+    return sorted({pid for pid, link in _fd_targets(proc_root, exclude) if link.startswith('/') and os.path.realpath(link) == target})
+
+
+def udp_port_users(port: int, proc_root: str = '/proc', exclude: tuple = ()) -> list:
+    """PIDs holding a UDP socket bound to the local port (from <proc_root>/net/udp and udp6), except the excluded ones
+    (G-DUP-START: a second LiDAR driver on the same port)."""
+    inodes = set()
+    for table in ('net/udp', 'net/udp6'):
+        text = _read(os.path.join(proc_root, table))
+        for line in (text or '').splitlines()[1:]:
+            f = line.split()
+            if len(f) > 9 and ':' in f[1] and int(f[1].rsplit(':', 1)[1], 16) == int(port):
+                inodes.add(f[9])
+    if not inodes:
+        return []
+    sockets = {f'socket:[{i}]' for i in inodes}
+    return sorted({pid for pid, link in _fd_targets(proc_root, exclude) if link in sockets})
+
+
 def merge_opened(previous: dict, current: dict) -> dict:
     """Identities of the devices whose driver was opened, kept across sessions: a device for which no driver was started in
     this session keeps the identity opened earlier (so re-opening the same enumeration is still recognised)."""
