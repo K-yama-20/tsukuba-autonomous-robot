@@ -7,6 +7,7 @@ Arguments:
   data_root   PRM-25: directory under which records/ (recorder sessions), state/ (persisted mode record), config/ (/config)
               and run/ (monitor URL) are kept.
   monitor_port PRM-26: TCP port of the gouda_monitor page on 127.0.0.1; 0 lets the OS choose (URL in <data_root>/run/monitor.url).
+  sensors     true starts the XT-32 / IMU drivers (gouda_sensors.launch.py); settings from params_dir (PRM-50..56).
   serial_port stage 5-5: serial device of the ESP32 for vehicle_bridge (operational value; pty path in stub tests).
   trial       true loads <node>.trial.yaml (software trial values of unresolved parameters) after <node>.yaml. For stub and
               software tests only; never on the vehicle. Default false.
@@ -14,7 +15,8 @@ Mode-dependent nodes (mapping, autonomy) are activated by later stages through l
 """
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, LifecycleNode
 
@@ -40,7 +42,12 @@ def _nodes(context, *args, **kwargs):
             files += [f for f in [os.path.join(params_dir, f'{node_name}.trial.yaml')] if usable(f)]
         return files + [extra]
 
-    return [
+    sensors = []
+    if LaunchConfiguration('sensors').perform(context).lower() in ('1', 'true', 'yes'):
+        # ND-14 / ND-15 run for the whole gouda.sh session (not restarted on mode changes: docs/stage3_sensor_slam.md)
+        sensors.append(IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gouda_sensors.launch.py')),
+                                                launch_arguments={'params_dir': params_dir, 'run_dir': os.path.join(data_root, 'run'), 'trial': 'true' if trial else 'false'}.items()))
+    return sensors + [
         Node(package='gouda_core', executable='gouda_mode_manager', name='gouda_mode_manager', output='screen',
              parameters=params('gouda_mode_manager', {'state_root': os.path.join(data_root, 'state'), 'data_root': data_root})),
         Node(package='gouda_core', executable='gouda_recorder', name='gouda_recorder', output='screen',
@@ -65,6 +72,7 @@ def generate_launch_description():
         DeclareLaunchArgument('data_root', description='PRM-25 data root: <data_root>/records, state, config, run'),
         DeclareLaunchArgument('monitor_port', default_value='0', description='PRM-26 monitor page port on 127.0.0.1; 0 = OS-chosen'),
         DeclareLaunchArgument('trial', default_value='false', description='load <node>.trial.yaml software trial values (stub tests only, never on the vehicle)'),
+        DeclareLaunchArgument('sensors', default_value='false', description='true starts the sensor drivers ND-14 (XT-32) and ND-15 (IMU) from gouda_sensors.launch.py'),
         DeclareLaunchArgument('serial_port', default_value='', description='vehicle_bridge serial port to the ESP32 (operational value; a pty path in stub tests). Empty: the bridge refuses to configure'),
         OpaqueFunction(function=_nodes),
     ])

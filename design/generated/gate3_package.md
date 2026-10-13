@@ -9,7 +9,7 @@
 ### 1.1 下位設計案（adoption=designed_proposal、157 件）
 
 - designed_interface（45）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`
-- parameter（38）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-19`, `PRM-20`, `PRM-25`, `PRM-26`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-37`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-53`, `PRM-55`
+- parameter（38）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-19`, `PRM-20`, `PRM-25`, `PRM-26`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-37`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-53`, `PRM-56`
 - ros_node（17）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`
 - state_owner（11）: `SO-01`, `SO-02`, `SO-03`, `SO-04`, `SO-05`, `SO-06`, `SO-07`, `SO-08`, `SO-09`, `SO-10`, `SO-11`
 - test（30）: `TS-01`, `TS-02`, `TS-03`, `TS-04`, `TS-05`, `TS-06`, `TS-07`, `TS-08`, `TS-09`, `TS-10`, `TS-11`, `TS-12`, `TS-13`, `TS-14`, `TS-15`, `TS-16`, `TS-17`, `TS-18`, `TS-19`, `TS-20`, `TS-21`, `TS-22`, `TS-23`, `TS-24`, `TS-25`, `TS-26`, `TS-27`, `TS-28`, `TS-29`, `TS-30`
@@ -17,7 +17,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、39 件）を根拠にした要素
+### 1.2 人の決定（answered、41 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -60,8 +60,10 @@
 | DEC-073 | . UIの更新周期・待ち時間：ROS parameterとして宣言せよ。<br>設計規約（宣言的設定・AR-004）に沿い、設定状況もログに残せ。<br>既定値の扱い：現在の値（2 s／1 s／5 s）を、用途と | `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32` |
 | DEC-074 | 設計変更と人間の承認は別物である。上記の通り、方針は君に指示したので、名前の細部・保持件数・周期などを逐一の承認事項に戻す必要は無い。新IFと既存契約との差分を示した上で、AIがモデル・生成物・関連試 | モデル外: 新 IF と既存契約との差分は reports/worklog/2026-10-09_rev020_record_ifs.md §2 に示す。工程5-3 の着手を許可。 |
 | DEC-081 | @"/Users/AYARyoya/Downloads/Pandar Console.pdf"<br>hesai xt-32のipアドレスは、192.168.1.201、宛先ipは192.168.1.100 | `PRM-50`, `PRM-51`, `PRM-52`, `PRM-54`, `FILE-PANDAR-CONSOLE-XT32` |
+| DEC-082 | usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00<br><br>でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。 | `PRM-54` |
+| DEC-083 | usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00<br><br>でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。 | `PRM-55`, `IFD-21`, `IFD-22`, `DEC-084` |
 
-### 1.3 承認済み（14 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-13`, `PRM-21`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-54`
+### 1.3 承認済み（15 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-13`, `PRM-21`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-54`, `PRM-55`
 
 ## 2. 承認によって着手する作業（工程と完了条件は docs/implementation_stages.md）
 
