@@ -1,0 +1,253 @@
+# 変更セット REV-011（2026-10-09 第7便: intent.md 第6版（RQ-I010 の境界文の削除）、ゲート3 条件付き承認（第2回）と未解消条件の登録、基本契約の試験、コミットの指示）
+# 適用: design/tools/apply_revision.py REV-011
+id: REV-011
+date: '2026-10-09'
+summary: >-
+  人が intent.md:13 から「区間境界では、進入する区間の値を適用する。」を削除した第6版を AR-006 として機械検証し、RQ-I010 を RQ-I078 で置換（C-022）。
+  ゲート3の第2回の条件付き承認（DEC-058。C-001〜C-013 の置換範囲の確認を承認、122 件は暫定ベースライン）と未解消の 4 条件を原文で記録。
+  条件 2 として、区間属性の上限（RQ-I078）と Speed Filter の位置ベース上限・重複時は低い方（DEC-045）の食い違いを衝突 C-023／H-013 に登録し選択肢と影響範囲を示した（DEC-059 pending）。
+  条件 3 として、基本契約の試験 TS-17〜TS-21 を追加し工程を割り当てた。条件 4 の C-012 に clarification を追加。CLAUDE.md 修復差分の確認、design/ のコミット指示（DEC-060）を記録。
+basis_refs: [DEC-055, DEC-058, DEC-059, DEC-060]
+intent_version_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+
+authority_revision:
+  id: AR-006
+  file_id: FILE-INTENT-V6
+  previous_file_id: FILE-INTENT-V5
+  archived_previous_copy: design/baselines/intent_history/intent_v5_81d71f07cc72.md
+  current_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    13: RQ-I078
+  decision_ref: DEC-055
+  note: >-
+    人の編集（DEC-055。「intent.mdから該当文言を削除した。」）。機械比較の結果は 13 行の置換のみ（「区間境界では、進入する区間の値を適用する。」の 1 文の削除。他の文は同一）。
+    人はワークスペース直下の design/intent.md を編集したため、AI がその内容をリポジトリの design/intent.md へ一字も変えずに複製した（差分は 13 行のみ、SHA-256 4f9f8606…）。旧版（第5版）は archived_previous_copy に保持。
+
+requirement_ref_replacements:
+  RQ-I010: RQ-I078
+
+decision_updates:
+  - id: DEC-052
+    set:
+      note: >-
+        第6便で再照合し置き換え済み（原本は FILE-CLAUDE-MD-ORIGINAL）。第7便で人が確認（原文）「claude.mdの修復差分に問題はなかった。」。先頭 1〜17 行の欠落は推測のまま。本文は補っていない。
+  - id: DEC-055
+    set:
+      resulting_refs: [C-003, TS-14, TS-16, PRM-22, PRM-23, PRM-24, G-TUNING, AR-006, RQ-I078, C-022]
+      note: >-
+        人が intent.md:13 の「区間境界では、進入する区間の値を適用する。」を削除した（第7便の回答「intent.mdから該当文言を削除した。」）。第6版を AR-006 で機械検証し RQ-I010 を RQ-I078 に置換（C-022）。
+        設計側の反映: C-003 の clarification、TS-14（境界セルの切替を評価しない）、TS-16（記録のみ）、PRM-22〜24（設計パラメータから外す）、G-TUNING。
+        位置ベース上限との食い違いは衝突 C-023／H-013 に登録（DEC-058 の条件 2、DEC-059）。
+
+decisions:
+  - id: DEC-058
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3の条件付き承認（第2回。承認範囲と未解消の条件）
+    answer_verbatim: |
+      また、ゲート3を条件付きで承認する。
+      承認範囲
+
+      * C-001〜C-013：置換範囲の確認（承認）
+      * 下位設計案122件：実装を進めるための暫定ベースライン。確定設計でも実車投入の承認でもない。
+
+      未解消の条件（承認記録に残せ。該当する実装段階の前に解消すること）
+
+      1. DEC-011 と DEC-031 の整合。IFD-14、SO-01、TS-01〜TS-05 に Gouda 側発行器の前提が残っていれば列挙し、Speed Filter 前提に更新すること。
+      2. RQ-I010 と Speed Filter の位置ベースの上限・DEC-045 の食い違いを衝突として登録し、選択肢と影響範囲を示すこと。intent.md は私が編集します。
+      3. 基本契約の試験（手動優先、gamepad 指令途絶で中立、PC 指令途絶で中立、一時停止、自律走行の開始は人の操作のみ）が入る実装段階を示すこと。車体出力段階の完了条件に含める案も出すこと。
+      4. IFD-31 の状態、DEC-015・032・044 の反映先が空欄の理由、C-003、C-012 は、該当段階の前に回答すること。
+
+      承認を、確認が完了した意味に扱うな。
+    affected_refs: [DEC-053, C-001, C-002, C-003, C-004, C-005, C-006, C-007, C-008, C-009, C-010, C-011, C-012, C-013]
+    resulting_refs: [C-023, H-013, TS-17, TS-18, TS-19, TS-20, TS-21, C-012, DEC-059]
+    note: |
+      DEC-053 を補う第2回の承認。承認は「確認が完了した」意味ではない。未解消の 4 条件の状態（いずれも AI の対応を提示した段階で、人の確認は未了）:
+      条件 1（DEC-011 と DEC-031 の整合。解消期限は工程 5-6 自律走行の為の最小構成の前）: 残存は 4 か所（IFD-14 の名称「発行元は H-001 承認待ち」、TR-05 の「先頭区間の速度上限を発行（IFD-14）」、TR-10 の「進入区間の速度上限を発行（IFD-14）」、TS-01 の「帯外は H-011 の回答に従う」）。REV-010 で Speed Filter 前提に更新済み。SO-01（区間番号は記録用）、TS-02〜TS-05 に残存なし。状態は「更新済み・人の確認待ち」。
+      条件 2（RQ-I010 と位置ベース上限・DEC-045 の食い違い。解消期限は工程 5-4 waypoint の前）: 衝突 C-023 と人の判断 H-013 に登録し、選択肢 3 件と影響範囲を示した（DEC-059 pending）。状態は「登録済み・人の選択待ち」。
+      条件 3（基本契約の試験が入る工程。解消期限は工程 5-5 車体出力の前）: TS-17（手動優先）・TS-18（gamepad 途絶で中立）・TS-19（PC 指令途絶で中立）は 5-5 車体出力、TS-20（一時停止）は 5-5 の hold 中立（TS-07）と 5-7 の遷移、TS-21（自律走行の開始は人の操作のみ）は 5-6。車体出力段階の完了条件に 5 契約すべての stub 試験を含める案は docs/implementation_stages.md §1 の 5-5 行と §5。状態は「案を提示・人の確認待ち」。
+      条件 4（IFD-31、DEC-015・032・044 の反映先、C-003、C-012。解消期限は工程 5-4〜5-6 の前）: IFD-31 は REV-002 で割り当てなかった欠番（削除ではない）。DEC-015 は Q-07 を後工程に回す指示で設計要素を生まない。DEC-032 の反映先は各 parameter の measurement 欄と生成物。DEC-044 の反映先は検査器と試験（モデル外）。C-003 は clarification（飽和は RQ-I020 に当たらない、境界付近の揺らぎは詳細設計しない）。C-012 は clarification（薄い adapter は ND-03 の action client、IFD-13 の標準 action。独立モジュールは置かない）。状態は「回答済み・人の確認待ち」。
+    disposition: answered
+  - id: DEC-059
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: 【人の判断】H-013 区間属性の上限（RQ-I078）と Speed Filter の位置ベース上限・重複時は低い方（DEC-045）の食い違いの解消方法（選択肢と影響範囲は H-013）
+    answer_verbatim: ''
+    affected_refs: [H-013, C-023, RQ-I078, IFD-14, IFD-41]
+    resulting_refs: []
+    note: ゲート3の未解消条件 2（DEC-058）。工程 5-4（waypoint・速度マスク生成器）の実装前に回答が必要。推奨は H-013 の案 A（位置ベースを採用し、再訪・重複区間には同じ値を設定する運用。intent.md への補足は人の編集）。
+    disposition: open_human
+  - id: DEC-060
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: design/ 一式の Git コミットの指示
+    answer_verbatim: |
+      design/一式のコミットをして良い。ブランチは適当に作って。コメントは"Added design sheets"で良い。
+    affected_refs: [FILE-GATE3-MODEL]
+    resulting_refs: []
+    note: ブランチ design/gate3-baseline-2026-10-09 を作成し design/ 配下のみをコミット（.venv・.DS_Store は .gitignore で除外）。コミット ID は作業記録と baselines/gate3_2026-10-09/README.md に記録。
+    disposition: answered
+
+entities:
+  - id: C-022
+    kind: reconciliation
+    name: RQ-I010 の境界文の削除（intent.md 第5版 13 行 → 第6版 13 行）
+    intent_lines: [13]
+    source_from_affected: true
+    related_refs: [C-003, AR-006, DEC-055]
+    sensitivity: [intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [RQ-I010]
+      adopted_requirement_refs: [RQ-I078]
+      scope: >-
+        第5版 13 行の「区間境界では、進入する区間の値を適用する。」を削除した第6版 13 行で置換（DEC-055）。他の文（区間 i→i+1 の属性、waypoint_database への保存、地図の ID・版・ハッシュの参照、独立ハッシュ、別保存）は同一。
+      retained_scope: 区間の速度上限が区間（waypoint i → i+1）の属性であること、保存・参照・ハッシュの規定は両版で同一。
+      rationale: 人が intent.md を編集（DEC-055）。境界付近の揺らぎは詳細設計しない方針と一致。
+      issue_refs: []
+  - id: C-023
+    kind: reconciliation
+    name: 区間属性の上限（RQ-I078）と Speed Filter の位置ベース上限・重複時は低い方（DEC-045）の食い違い
+    intent_lines: [13, 26]
+    related_refs: [DEC-031, DEC-045, DEC-058, DEC-059, H-013, C-002, C-022]
+    sensitivity: [safety, operation]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: open
+      affected_refs: [RQ-I078, IFD-14, IFD-41, IFD-42, TS-02, TS-03, TS-14]
+      adopted_requirement_refs: [RQ-I078, RQ-I020]
+      scope: >-
+        RQ-I078 は速度上限を「区間（waypoint i → i+1）の属性」＝進行順序に属する値と定める。Speed Filter（DEC-031）は costmap の mask cell（位置）で上限を決め、
+        同じ位置を複数の区間が通る（再訪・交差・重複）場合は区間を区別できず、重複 cell は低い方の上限を採用する（DEC-045）。
+        したがって、再訪・重複する区間に異なる上限を設定しても実行時には反映されない。食い違いは「区間ごとの値」を「位置ごとの値」に写像する点にある。
+      retained_scope: 単一発行元（RQ-I020）、境界時点の実速度保証なし（RQ-I062）、重複時は低い方（DEC-045）は争点ではない。
+      rationale: ゲート3の未解消条件 2（DEC-058）。解消方法は人の判断（H-013、DEC-059）。intent.md の補足は人が編集する。
+      issue_refs: [H-013]
+  - id: H-013
+    kind: issue
+    name: 区間属性の上限と位置ベース上限（Speed Filter）の食い違いの解消方法
+    intent_lines: [13, 26]
+    related_refs: [C-023, DEC-031, DEC-045, DEC-058, DEC-059]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I078, C-023, IFD-14, IFD-41, IFD-42, ND-02, ND-10, TS-02, TS-03, TS-14, PRM-19]
+      resolution_refs: []
+      question: >-
+        RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位置ベース上限（DEC-031）と重複時は低い方（DEC-045）でどう実現するか。
+        再訪・交差・重複する区間に異なる上限を設定した場合、実行時の上限は位置で決まり、区間順序には従わない。
+      next_action: ゲート3の未解消条件 2（DEC-058）。工程 5-4（waypoint・速度マスク生成器）の実装前に人が選択（DEC-059）。
+      options:
+        - label: 案 A（推奨）位置ベースを採用し、再訪・重複する区間には同じ上限を設定する運用。waypoint_manager は重複 cell で値が異なる区間を保存時に警告し、mask は低い方を採用する
+          effect: 現在の設計（DEC-031・DEC-045・IFD-41・TS-14）を維持。RQ-I078 の「区間の属性」は編集時の属性として成立し、実行時は位置に写像される。intent.md に「実行時は位置で適用し、重複区間は同じ値」を人が補足する。影響は ND-02（警告）、IFD-41 の生成規則のみ
+        - label: 案 B 区間順序に従う発行器を Gouda 側に置く（DEC-011 の方式に戻す）
+          effect: 区間ごとの値を厳密に実現できるが DEC-031 を覆す。Nav2 feedback に基づく区間判定・再開・復帰後の再適用の設計（H-001 で比較済み）を再度負う。影響は IFD-14 の発行元、ND-03、TS-01〜TS-06、TR-10・TR-13
+        - label: 案 C 再訪・重複する経路を waypoint 編集で禁止する（保存時に拒否）
+          effect: 食い違いは生じないが、同じ道を往復する経路（RQ-I001 の開始地点へ戻るルート）が作れない可能性がある。影響は ND-02・IFD-30 の検証規則
+      recommendation: 案 A（推奨）位置ベースを採用し、再訪・重複する区間には同じ上限を設定する運用。waypoint_manager は重複 cell で値が異なる区間を保存時に警告し、mask は低い方を採用する
+      recommendation_basis: DEC-045 の回答（再訪・重複ルートがあっても速度設定値は同じものを採用する）と DEC-031 を維持でき、変更が最小。安全側（低い方）に倒れる。
+  # ---- 基本契約の試験（DEC-058 の条件 3） ----
+  - id: TS-17
+    kind: test
+    name: 手動優先（Bluetooth ゲームパッドの操作が有効な間は PC 指令より手動を DAC に出す）
+    intent_lines: [34, 97]
+    issue_refs: [G-FIRMWARE]
+    related_refs: [ND-17, SO-11, IFD-17, DEC-042, DEC-050]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: 新 firmware を卓上（DAC 出力を計測器または stub で観測）で動かし、PC 指令（非中立）を送り続けながら Bluetooth ゲームパッドの操作を与える。次に操作を止めて中立安定を待つ。
+      observe: DAC 出力（または firmware の ownership_state）の切替時刻と値、STATUS／EVENT の理由コード。
+      expected: ゲームパッドの操作が有効な間は DAC が手動側の値を出し、PC 指令は反映されない（RQ-I023）。操作を止めて中立が安定した後に PC 指令へ戻る（戻る条件は G-FIRMWARE で設計）。実車の配線・書き込み firmware との一致は DEC-050 の実機照合で別に確認する。
+  - id: TS-18
+    kind: test
+    name: gamepad 指令途絶で中立（Bluetooth 報告の途絶 0.25 s）
+    intent_lines: [35, 97]
+    issue_refs: [G-FIRMWARE]
+    related_refs: [ND-17, SO-11, PRM-21]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: 卓上で手動操作中（非中立）に Bluetooth 報告を止める（stub または電源断）。PC 指令はなしと、PC 指令ありの 2 条件。
+      observe: DAC 出力が中立になるまでの時間、その後の指令源。
+      expected: 報告の途絶から PRM-21=0.25 s で手動入力が無効になり DAC は中立（RQ-I024）。PC 指令がある場合もすぐには PC 指令に切り替えず、G-FIRMWARE で設計した復帰条件に従う。既存動作の値を維持（DEC-048）。
+  - id: TS-19
+    kind: test
+    name: PC 指令途絶で中立（最後の有効 PC 指令の受信から 1.0 s）
+    intent_lines: [92, 97]
+    issue_refs: [G-FIRMWARE]
+    related_refs: [ND-17, SO-11, PRM-13, TS-13]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: 卓上で PC 指令（非中立）を周期送信し、送信を止める。次に、形式不正のフレームだけを送り続ける条件。
+      observe: 最後の有効フレームの受信から DAC が中立になるまでの時間。不正フレームが期限を延長しないこと。
+      expected: 最後の有効な PC 指令フレームの受信から PRM-13=1.0 s で DAC が中立（RQ-I068、DEC-048）。不正フレームは有効指令として扱われない。PC 側は TS-13 のとおり 0.7 s で先に中立化するため、PC 正常時には本期限は作動しない。
+  - id: TS-20
+    kind: test
+    name: 一時停止（人の一時停止ボタンで自律走行が停止し、中立が出る）
+    intent_lines: [37, 36]
+    issue_refs: []
+    related_refs: [TR-06, IFD-03, IFD-40, TS-04, TS-07]
+    sensitivity: [safety, operation]
+    test:
+      execution_status: 未実行
+      stage: blocked・一時停止・復帰
+      procedure: Nav2 stub で自律走行中に一時停止ボタン（IFD-03）を押す。Nav2 stub は取消に時間がかかる条件と、取消が即時の条件。
+      observe: motion_hold の発行時刻、joystick_command が中立になる時刻、Nav2 goal の取消結果、IFD-01 のモードと停止原因、記録の継続。
+      expected: ボタン押下の直後に motion_hold=true が発行され、Nav2 の取消完了を待たずに joystick_command が中立になる（TR-06）。モードは一時停止、停止原因は人の操作、記録は継続（RQ-I026・RQ-I015）。再開は人の再開ボタンのみ。車体出力段階では TS-07 が同じ中立化を単体で確認する。
+  - id: TS-21
+    kind: test
+    name: 自律走行の開始は人の操作のみ（起動・PC 再起動・復帰・再接続で goal を送らない）
+    intent_lines: [36, 93]
+    issue_refs: []
+    related_refs: [TR-01, TR-02, TR-05, TR-13, IFD-02, TS-08]
+    sensitivity: [safety, operation]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 起動（直前モード記録なし／手動走行／自律走行の 3 条件）、復帰（TR-13 の stub）、monitor の再接続、を自律走行開始ボタン（IFD-02）を押さずに行う。最後に IFD-02 を 1 回呼ぶ。
+      observe: NavigateThroughPoses goal の送信の有無と時刻、motion_hold の値、IFD-01 のモード。
+      expected: IFD-02 を呼ぶまで goal は送信されず motion_hold=true のまま。起動後は手動走行（TR-01）か一時停止（TR-02）。IFD-02 を 1 回呼ぶと追加の承認なしに goal が送信される（RQ-I025・RQ-I011、TR-05）。復帰（TR-13）での再 goal は自律走行中に限られる。
+
+modifications:
+  - id: RQ-I010
+    set: {adoption: superseded}
+    interpretation_append: 'REV-011: intent.md 第6版で境界文を削除した行に置換（C-022、DEC-055）。後継は RQ-I078。'
+  - id: C-012
+    set_nested:
+      reconciliation.clarification: >-
+        「薄い adapter の要否や標準 IF との対応は次段階」は REV-002 時点の記述。現在は ND-03 の action client（IFD-13 NavigateThroughPoses、標準 action）として設計済みで、独立した adapter モジュールは置かない。
+        通過・到達判定は Nav2 の feedback／result をそのまま使う（RQ-I011）。残る未設計はない（DEC-058 の条件 4）。
+  # 置換された RQ-I010 を adopted_requirement_refs に持つ衝突は後継 RQ-I078 を根拠にする（置換後の行に同じ文がある）
+  - id: C-003
+    append: {related_refs: [C-022, C-023]}
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I078, RQ-I020, RQ-I062]
+  - id: C-002
+    append: {related_refs: [C-023]}
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I078]
+  - id: C-011
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I008, RQ-I009, RQ-I078]

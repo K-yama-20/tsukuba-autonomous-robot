@@ -1,0 +1,91 @@
+# 2026-10-14 の VM での記録（原文）。(1) 地図タブの API 試験（試験スタック、10/13 の実機の原図の写し、commit 5140e8e を clean build 後）。(2) 人が 01:38 に起動したセッションで supervisor が記録した判断（デバイスの抜き差しへの対応）。(3) VM の時計の戻りと build の古いコピー。
+
+===== (1) 地図タブ（/tmp/maptab）
+GET /api/map_settings: 既定値（試験スタックは仮値を読む）map_resolution_m 0.05, ground_band_max_m 0.1, obstacle_band_min_m 0.3, obstacle_band_max_m 1.5, occupied_min_points 2.0
+POST /api/map_reconvert（帯の順序が逆）-> {"ok": false, "message": "高さの帯は「地面の上限 < 障害物の下限 < 障害物の上限」の順"}
+POST /api/map_reconvert（0.1 / -0.6 / -0.4 / 0.6 / 1）-> {"ok": true, ...}。結果: done rev 2、maps [(20261013_182856_aa56aef3, [1, 2])]、DecisionEvent map_reconvert_requested / map_reconverted
+rev 2 settings: {map_resolution_m 0.1, ground_band_max_m -0.6, obstacle_band_min_m -0.4, obstacle_band_max_m 0.6, occupied_min_points 1}; stats: width 112, height 143, occupied 402, free 94, unknown 15520; map.png 200 (867 bytes); source_manifest.json の SHA-256 は元と写しで同じ（7edb177f572fa1a3）
+（初回は VM の build に古い monitor のコピーが残り 404。clean build 後に上の結果）
+
+===== (2) supervisor の判断（gouda.sh を 01:38 に人が起動。時刻は VM の時計）
+（monitor の履歴欄から取得した一覧。02:09 時点。行頭は最初の時刻、xN は同じ内容の件数）
+01:35:50 x1 settings | sensor supervisor configured
+01:37:10 x1 device_present | IMU (ND-15): ... -> ttyACM0 usb 2-3
+01:37:10 x1 driver_started | IMU (ND-15): started (pid 5394) for ttyACM0 usb 2-3 (device present)
+01:37:43 x1 device_present | IMU (ND-15): ... -> ttyACM0 usb 2-5
+01:37:43 x1 driver_started | IMU (ND-15): started (pid 6538) for ttyACM0 usb 2-5 (device present)
+01:39:38 x3 device_absent | IMU (ND-15): ... -> absent (the driver is started when it appears)
+01:39:38 x2 driver_stopped | IMU (ND-15): device absent; the driver is started again when the device re-appears
+01:39:46 x1 device_present | IMU (ND-15): ... -> ttyACM0 usb 2-7
+01:39:46 x1 driver_started | IMU (ND-15): started (pid 7033) for ttyACM0 usb 2-7 (device present)
+01:40:47 x1 device_present | XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enx6c6e0754b24a #3
+01:40:47 x1 driver_started | XT-32 (ND-14): started (pid 7250) for enx6c6e0754b24a #3 (device present)
+01:45:12 x2 device_absent | XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears)
+01:45:12 x1 driver_stopped | XT-32 (ND-14): device absent; the driver is started again when the device re-appears
+sensors at 02:09: points STALE age 1465.8 s count 483; imu STALE age 1086.9 s count 40586
+kernel: 01:40:47 cdc_ncm enx6c6e0754b24a register; 01:51:26 usb 3-7 disconnect (USB-LAN); 01:54:35 systemd-resolved Clock change detected
+
+===== (3) 時計と build
+02:07:07（VM）: gouda_core/gouda_core/monitor_node.py の mtime 02:06:01、build/gouda_core/build/lib/gouda_core/monitor_node.py の mtime 02:50:21（VM の時計が先行していた時刻）。install の monitor_node.py に新しい関数がない（grep -c 0）。clean build 後は 2。Mac と VM の時刻は 02:07:17 で一致。
+
+===== (4) 人が IMU を抜き差しし USB-LAN を VM に接続し直した後（gouda.sh を 02:12 に commit 960975d で起動したセッション。launch log の supervisor の行、原文）
+[gouda_sensor_supervisor-1] [INFO] [1791911547.148841052] [gouda_sensor_supervisor]: settings: sensor supervisor configured
+[gouda_sensor_supervisor-1] [INFO] [1791911547.164302594] [gouda_sensor_supervisor]: device_absent: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears)
+[gouda_sensor_supervisor-1] [INFO] [1791911547.171649552] [gouda_sensor_supervisor]: device_present: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 2-7
+[gouda_sensor_supervisor-1] [INFO] [1791911547.172265927] [gouda_sensor_supervisor]: device_reopened_without_reconnect: IMU (ND-15): same USB enumeration ttyACM0 usb 2-7 as the previous session; the IMU may not answer (known problem after a driver restart). Re-plug the IMU USB if no IMU data arrives
+[gouda_sensor_supervisor-1] [INFO] [1791911547.178206677] [gouda_sensor_supervisor]: driver_started: IMU (ND-15): started (pid 15727) for ttyACM0 usb 2-7 (device present)
+[gouda_sensor_supervisor-1] [INFO] [1791911701.578328168] [gouda_sensor_supervisor]: device_absent: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> absent (the driver is started when it appears)
+[gouda_sensor_supervisor-1] [INFO] [1791911701.750563418] [gouda_sensor_supervisor]: driver_stopped: IMU (ND-15): device absent; the driver is started again when the device re-appears
+[gouda_sensor_supervisor-1] [INFO] [1791911705.716985128] [gouda_sensor_supervisor]: device_present: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 2-9
+[gouda_sensor_supervisor-1] [INFO] [1791911705.718818295] [gouda_sensor_supervisor]: driver_started: IMU (ND-15): started (pid 16326) for ttyACM0 usb 2-9 (device present)
+[gouda_sensor_supervisor-1] [INFO] [1791911730.210973765] [gouda_sensor_supervisor]: device_present: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enx6c6e0754b24a #4
+[gouda_sensor_supervisor-1] [INFO] [1791911730.213954223] [gouda_sensor_supervisor]: driver_started: XT-32 (ND-14): started (pid 16435) for enx6c6e0754b24a #4 (device present)
+--- sensor_devices.json
+{"identities": {"lidar": "enx6c6e0754b24a #4", "imu": "ttyACM0 usb 2-9"}, "saved_at": 1791911730.2169108}
+--- kernel
+Oct 14 02:15:01 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 6
+Oct 14 02:15:01 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 7
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: new full-speed USB device number 8 using xhci_hcd
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: New USB device found, idVendor=203a, idProduct=fffe, bcdDevice= 1.01
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: Product: Virtual USB1.1 HUB
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: Manufacturer: Parallels
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: SerialNumber: PW3.0
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: new full-speed USB device number 9 using xhci_hcd
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: New USB device found, idVendor=0483, idProduct=5740, bcdDevice= 2.00
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: Product: STM32 Virtual ComPort
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: Manufacturer: STMicroelectronics
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: SerialNumber: 007137944B34
+Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: new SuperSpeed USB device number 11 using xhci_hcd
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 1 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 2 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 3 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: New USB device found, idVendor=0b95, idProduct=1790, bcdDevice= 2.00
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Product: AX88179B
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Manufacturer: ASIX
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: SerialNumber: 006C6E0754B24A
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: MAC-Address: 6c:6e:07:54:b2:4a
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: setting rx_max = 16384
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: setting tx_max = 16384
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 eth0: register 'cdc_ncm' at usb-0000:00:03.0-7, CDC NCM (NO ZLP), 6c:6e:07:54:b2:4a
+Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: renamed from eth0
+--- monitor の受信状況（/api/state の sensors。3 s 間隔で 4 回）
+02:16:11
+  points RECEIVED rate_hz 1.76 age_s 0.28 count 68 stamp-recv -0.2636
+  imu RECEIVED rate_hz 58.37 age_s 0.0 count 4210 stamp-recv -0.0051
+02:16:14
+  points RECEIVED rate_hz 1.87 age_s 0.52 count 75 stamp-recv -0.1084
+  imu RECEIVED rate_hz 74.44 age_s 0.0 count 4455 stamp-recv -0.0456
+02:16:17
+  points RECEIVED rate_hz 2.09 age_s 0.05 count 83 stamp-recv -0.1091
+  imu RECEIVED rate_hz 100.39 age_s 0.05 count 4650 stamp-recv -0.0034
+02:16:20
+  points RECEIVED rate_hz 2.36 age_s 0.86 count 91 stamp-recv -0.1496
+  imu RECEIVED rate_hz 69.67 age_s 0.0 count 4857 stamp-recv -0.0493
+--- ドライバの出力（直近 3 行。0.1 s ごとのフレーム）
+[gouda_sensor_supervisor-1] raw frame:528 points:64000 packet:250 start time:1791911783.414557 end time:1791911783.515122
+[gouda_sensor_supervisor-1] raw frame:529 points:64000 packet:250 start time:1791911783.515127 end time:1791911783.615008
+[gouda_sensor_supervisor-1] raw frame:530 points:64000 packet:250 start time:1791911783.615013 end time:1791911783.714187

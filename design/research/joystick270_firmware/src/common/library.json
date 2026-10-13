@@ -1,0 +1,11 @@
+{
+  "name": "emc270_core",
+  "version": "0.1.0",
+  "description": "Platform-independent EMC-270 protocol, control, and calibration core",
+  "build": {
+    "includeDir": "include",
+    "srcDir": "src"
+  },
+  "frameworks": "*",
+  "platforms": "*"
+}

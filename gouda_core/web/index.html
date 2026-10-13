@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOUDA MONITOR</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="screen" class="screen">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="brand"><span class="code">GOUDA</span><span class="ja">運行管制</span></div>
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="ops">運行</button>
+        <button class="tab" data-tab="prep">発進準備</button>
+        <button class="tab" data-tab="maps">地図</button>
+        <button class="tab" data-tab="waypoints">waypoint</button>
+        <button class="tab" data-tab="record">記録</button>
+        <button class="tab" data-tab="config">設定 /config</button>
+      </nav>
+    </div>
+    <div class="hdr-mid">
+      <div class="strip" id="mode-strip">
+        <span class="k">MODE</span><span class="v" id="mode-name">NOT_RECEIVED</span><span class="ja" id="mode-label">未受信</span>
+        <span class="k">PROC</span><span class="v" id="proc-state">—</span>
+        <span class="k">REV</span><span class="v" id="state-rev">—</span>
+        <span class="k">AGE</span><span class="v" id="mode-age">—</span>
+      </div>
+      <div class="strip sub" id="link-strip">
+        <span class="k">LINK</span><span class="v amber" id="link-state">CONNECTING</span>
+        <span class="k">NODES</span><span class="v" id="node-count">—</span>
+        <span class="k">REC</span><span class="v" id="rec-short">NOT_RECEIVED</span>
+      </div>
+    </div>
+    <div class="hdr-right ops" id="ops">
+      <div class="ops-row">
+        <button class="op" data-cmd="start_mapping" title="地図作成開始（IFD-06, TR-03）">地図作成<small>START MAP</small></button>
+        <button class="op" data-cmd="end_mapping" title="地図作成終了（IFD-07, TR-04）">地図作成終了<small>END MAP</small></button>
+        <button class="op" data-cmd="start_autonomy" title="自律走行開始（IFD-02, TR-05）">自律走行<small>START AUTO</small></button>
+      </div>
+      <div class="ops-row">
+        <button class="op stop" data-cmd="pause" title="一時停止（IFD-03, TR-06）">一時停止<small>PAUSE</small></button>
+        <button class="op" data-cmd="resume" title="再開（IFD-04, TR-10）">再開<small>RESUME</small></button>
+        <button class="op" data-cmd="end_autonomy" title="自律走行終了（IFD-05, TR-11/12）">自律走行終了<small>END AUTO</small></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="tabpane active" data-pane="ops">
+      <div class="grid-ops">
+        <div class="panel ext" id="ext-nav">
+          <div class="panel-title"><span class="code">NAV</span>Navigation <span class="status amber" id="ext-nav-status">UNAVAILABLE</span></div>
+          <div class="ext-area"><div class="ext-note" id="ext-nav-note"></div></div>
+          <div class="panel-foot" id="ext-nav-foot">pose — / path — / goal —</div>
+        </div>
+        <div class="panel ext" id="ext-lidar">
+          <div class="panel-title"><span class="code">LIDAR / LOC</span>LiDAR / localization <span class="status amber" id="ext-lidar-status">UNAVAILABLE</span></div>
+          <div class="panel-title"><span class="code">SENSORS</span>センサーの受信（monitor が受け取った周期。表示のみ。停止条件ではない） <span class="status amber" id="sensors-status">NOT_RECEIVED</span></div>
+          <table class="kv" id="sensors-table"></table>
+          <div class="ext-area"><div class="ext-note" id="ext-lidar-note"></div></div>
+          <div class="panel-foot" id="ext-lidar-foot">points — / pose — / odom —</div>
+        </div>
+        <div class="panel side" id="side-state">
+          <div class="panel-title"><span class="code">STATE</span>mode/state</div>
+          <table class="kv" id="mode-table"></table>
+        </div>
+        <div class="panel side" id="side-events">
+          <div class="panel-title"><span class="code">HISTORY</span>判断の履歴（log/decision、時刻付き。現在の状態は STATE 欄） <span class="dim" id="events-count"></span></div>
+          <div class="events" id="events"></div>
+        </div>
+        <div class="panel bottom" id="esp32">
+          <div class="panel-title"><span class="code">ESP32</span>ESP32 CONTROLLER <span class="status amber" id="esp32-status">NOT_RECEIVED</span></div>
+          <table class="kv" id="esp32-table"></table>
+          <div class="note" id="esp32-note"></div>
+        </div>
+        <div class="panel bottom" id="pc">
+          <div class="panel-title"><span class="code">PC</span>CONTROL PC / ROS 2 <span class="status" id="pc-status">—</span></div>
+          <div class="nodes" id="nodes"></div>
+          <div class="note" id="pc-note"></div>
+        </div>
+        <div class="panel bottom" id="cmdlog">
+          <div class="panel-title"><span class="code">CMD</span>操作の結果</div>
+          <div class="events" id="commands"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="prep">
+      <div class="panel full">
+        <div class="panel-title"><span class="code">PREP</span>発進準備シーケンス</div>
+        <ol class="seq" id="seq">
+          <li data-step="map"><span class="code">1</span>地図とwaypointの組を選択 <span class="status amber">未実装（工程5-4／5-6）</span></li>
+          <li data-step="pose"><span class="code">2</span>初期位置・向きを指定（IFD-39） <span class="status amber">未実装（工程5-6）</span></li>
+          <li data-step="nodes"><span class="code">3</span>自律走行系 node の活性（ND-07・08・10） <span class="status amber">未実装（工程5-6）</span></li>
+          <li data-step="start"><span class="code">4</span>自律走行開始ボタンを 1 回押す（追加の承認は挟まない: RQ-I011） <span class="status" id="seq-start">右上の自律走行</span></li>
+        </ol>
+        <div class="note">各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
+        <div class="note">地図の一覧・変換設定・再変換は「地図」タブ。</div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="maps">
+      <div class="grid-maps">
+        <div class="panel" id="maps-list">
+          <div class="panel-title"><span class="code">MAPS</span>地図データベース（IFD-29。原図と変換後地図、内容ハッシュで識別） <span class="dim" id="maps-note"></span></div>
+          <div class="note">原図を選ぶと再変換の対象になる。変換後地図（rev）を選ぶとプレビューと、その変換に使った設定・結果を表示する。</div>
+          <div class="maps" id="maps-table"></div>
+        </div>
+        <div class="panel" id="maps-convert">
+          <div class="panel-title"><span class="code">CONVERT</span>変換設定と再変換（intent.md:106。調整用。変換のたびに新しい rev として保存し、原図は変えない） <span class="status" id="conv-status">—</span></div>
+          <div class="note" id="conv-target">対象の原図: 未選択</div>
+          <form id="conv-form" class="cfg"></form>
+          <div class="btnrow">
+            <button class="op" id="conv-defaults" type="button">既定値に戻す<small>DEFAULTS</small></button>
+            <button class="op" id="conv-run" type="button">再変換<small>CONVERT</small></button>
+          </div>
+          <div class="note" id="conv-msg"></div>
+          <div class="note" id="conv-note"></div>
+          <div class="panel-title" style="margin-top:6px"><span class="code">PREVIEW</span>変換後地図 <span class="dim" id="prev-title">未選択</span></div>
+          <div class="prev-views" id="prev-views">
+            <button class="view sel" type="button" data-view="map.png">2D 地図<small>NAV2</small></button>
+            <button class="view" type="button" data-view="height.png">高さ<small>3D 点群地図を上から</small></button>
+            <button class="view" type="button" data-view="slope.png">傾き<small>表示のみ</small></button>
+            <button class="view" type="button" data-view="step.png">段差<small>表示のみ</small></button>
+          </div>
+          <div class="note" id="prev-legend"></div>
+          <div class="map-preview"><img id="prev-img" alt=""></div>
+          <table class="kv" id="prev-table"></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="waypoints">
+      <div class="grid-wp">
+        <div class="panel" id="wp-map-panel">
+          <div class="panel-title"><span class="code">ROUTE</span>waypoint_manager（変換後地図の上で区間と速度上限を編集。保存で速度マスクを生成） <span class="status" id="wp-map-status">地図未選択</span></div>
+          <div class="btnrow">
+            <label class="dim">地図 <select id="wp-map-select"></select></label>
+            <button class="op" id="wp-load-map" type="button">地図を表示<small>LOAD MAP</small></button>
+            <button class="op" id="wp-undo" type="button">最後の点を削除<small>UNDO</small></button>
+            <button class="op" id="wp-clear" type="button">全消去<small>CLEAR</small></button>
+          </div>
+          <div class="wp-canvas-wrap"><canvas id="wp-canvas" width="800" height="600"></canvas></div>
+          <div class="note" id="wp-canvas-note">地図上をクリックすると waypoint を追加する（map frame、REP-103）。通過・到達の判定は Nav2 が行う（RQ-I011）。</div>
+        </div>
+        <div class="panel" id="wp-edit-panel">
+          <div class="panel-title"><span class="code">SECTIONS</span>区間 i→i+1 の速度上限（m/s）</div>
+          <table class="kv" id="wp-table"></table>
+          <div class="btnrow">
+            <label class="dim">帯の半幅 m <input id="wp-half-width" class="num" placeholder="PRM-19 未確定"></label>
+            <label class="dim">速度刻み m/s <input id="wp-step" class="num" placeholder="PRM-20 未確定"></label>
+          </div>
+          <div class="btnrow">
+            <label class="dim">set_id（空=新規） <input id="wp-set-id" class="num" placeholder="new"></label>
+            <button class="op" id="wp-save" type="button">保存<small>SAVE + MASK</small></button>
+          </div>
+          <div class="note" id="wp-msg"></div>
+          <div class="panel-title" style="margin-top:8px"><span class="code">WARN</span>重複する区間（低い方の上限が適用される）</div>
+          <div class="events" id="wp-warnings"></div>
+          <div class="panel-title" style="margin-top:8px"><span class="code">SAVED</span>保存済み waypoint セット</div>
+          <table class="kv" id="wp-routes"></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="record">
+      <div class="grid-rec">
+        <div class="panel">
+          <div class="panel-title"><span class="code">LOG</span>ログ記録 <span class="status" id="log-status">NOT_RECEIVED</span></div>
+          <div class="btnrow">
+            <button class="op" data-cmd="record_log_start">Record<small>LOG START</small></button>
+            <button class="op" data-cmd="record_log_stop">Stop Record<small>LOG STOP</small></button>
+          </div>
+          <table class="kv" id="record-table"></table>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span class="code">BAG</span>rosbag 記録 <span class="status" id="bag-status">NOT_RECEIVED</span></div>
+          <div class="btnrow">
+            <button class="op" data-cmd="record_rosbag_start">Rosbag record<small>BAG START</small></button>
+            <button class="op" data-cmd="record_rosbag_stop">Stop rosbag record<small>BAG STOP</small></button>
+          </div>
+          <div class="note">rosbag はログとは別の記録で、自動では開始しない（RQ-I016）。同じセッションディレクトリの rosbag/ に保存する。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="config">
+      <div class="panel full">
+        <div class="panel-title"><span class="code">CFG</span>/config センサ取付・座標方向（RQ-I070） <span class="dim" id="config-rev"></span></div>
+        <div class="note">値は実測で決める。未入力は UNKNOWN のまま保存される（推測で埋めない）。保存はサーバ側のファイルに永続化し、タブ遷移や再読込で消えない。座標方向の文字列は静的TF発行（工程5-6）が読む。</div>
+        <form id="config-form" class="cfg"></form>
+        <div class="panel-title" style="margin-top:8px"><span class="code">UI PARAMS</span>UI の周期・待ち時間（gouda_monitor の ROS parameter、PRM-27〜32。ソフトウェア既定値。車体の timeout ではない）</div>
+        <table class="kv" id="settings-table"></table>
+        <div class="btnrow">
+          <button class="op" id="config-save" type="button">保存<small>SAVE CONFIG</small></button>
+          <span class="dim" id="config-msg"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ftr">
+    <span class="dim">GOUDA MONITOR (gouda_core / ND-02, 工程5-2)</span>
+    <span class="dim" id="clock">—</span>
+    <span class="dim">表示断は停止契機ではない（DEC-014）。</span>
+  </footer>
+</div>
+<div id="popup" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">WARNING</span><span id="popup-title">記録の自動開始に失敗</span></div><div class="popup-body" id="popup-body"></div><div class="btnrow"><button class="op" id="popup-ack" type="button">確認<small>ACK</small></button></div></div></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

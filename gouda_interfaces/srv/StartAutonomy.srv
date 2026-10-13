@@ -1,0 +1,15 @@
+# IFD-02 mode/start_autonomy: one human request carries the selected map, waypoint set and initial pose (RQ-I011).
+# The response is the acceptance of the start processing; the actual start is reported on mode/state (IFD-01).
+# request_id de-duplicates repeated presses of the same request.
+string request_id
+string map_id
+string map_revision
+string map_hash
+string waypoint_set_id
+string waypoint_set_revision
+string waypoint_set_hash
+geometry_msgs/PoseWithCovarianceStamped initial_pose
+---
+bool accepted
+string message
+string run_id      # empty when not accepted

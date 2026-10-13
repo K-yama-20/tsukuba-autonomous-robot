@@ -1,0 +1,50 @@
+# 変更セット REV-017（2026-10-09 第11便: Ubuntu（Parallels）での試験環境の指示、旧起動スクリプトの削除）
+# 適用: design/tools/apply_revision.py REV-017
+id: REV-017
+date: '2026-10-09'
+summary: >-
+  人の指示を台帳に記録: (1) Mac から SSH（BatchMode）で Parallels 上の Ubuntu 24.04 に接続でき、開発対象は ~/gouda_ws、Ubuntu 上のコマンドは SSH 経由、ROS 2 Jazzy は setup.bash を先に読む、
+  この環境で試験する（センサー未接続）（DEC-067）。(2) 旧 scripts/gouda.sh 類の削除を許可（DEC-068）。scripts/gouda.sh・gouda_gui.sh・smoke.sh を削除し、README・setup.sh・configure_host.py・旧文書の参照を更新。ND-01 の記述を更新。
+basis_refs: [DEC-067, DEC-068]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decisions:
+  - id: DEC-067
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 試験環境（Parallels 上の Ubuntu 24.04）への接続方法と、以後のコマンド実行・試験の方針
+    answer_verbatim: |
+      Parallels上のUbuntu 24.04に、Macから ssh -o BatchMode=yes aya@10.211.55.4 でパスワードなしで接続できる。開発対象はUbuntu内の ~/gouda_ws。まずSSH経由でそのディレクトリとGitの状態を確認して。以後、Ubuntu上のコマンド実行はSSH経由で行って。ROS 2 Jazzyのコマンドを実行する際は、先に /opt/ros/jazzy/setup.bash を読み込む必要がある。
+
+      このubuntu環境を使って試験して。（センサー類はまだつながっていない）
+    affected_refs: [ND-01, ND-03, ND-04, TS-23, TS-24]
+    resulting_refs: []
+    note: >-
+      以前の記録（鍵認証不可、パスワードは使わない）を更新する指示。パスワードは引き続き使わない。センサー未接続のため、試験は ROS 上の node・サービス・記録（stub）までで、センサー・実車の確認は含まない。
+      第11便の接続試行では 10.211.55.4 が応答せず（ping 不達、ssh "Host is down"）。VM の起動後に再試行する。
+    disposition: answered
+  - id: DEC-068
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 旧起動スクリプト（scripts/gouda.sh 類）の削除
+    answer_verbatim: 旧scripts/gouda.sh類は一式削除して良い。
+    affected_refs: [ND-01, M-001]
+    resulting_refs: [ND-01]
+    note: >-
+      削除したもの: scripts/gouda.sh（旧 Mission Control の起動）、scripts/gouda_gui.sh（同 view の別名）、scripts/smoke.sh（旧 gouda.sh を直接呼ぶ煙試験）。
+      参照の更新: README.md（起動節を新 gouda.sh に差し替え、旧版移行節の参照を修正）、scripts/setup.sh（完了メッセージ）、scripts/configure_host.py（案内文）、docs/gouda_gui.md・gouda_recording_glim.md・autonomy_mvp.md・phone_field_runtime.md（先頭に削除の注記。本文は履歴として保持）。
+      gouda_gui パッケージ本体・configure_host.py・setup.sh は削除していない（指示の範囲は gouda.sh 類）。gouda_gui の撤去は旧実装の置き換え（DEC-030 の方針）として別に判断する。
+
+modifications:
+  - id: ND-01
+    set_nested:
+      ros_node.placement_rationale: >-
+        ROS node ではなく launch を起動するシェル。モード依存の有効化は lifecycle 遷移（IFD-36）で行い、1Node=1プロセスに固定しない（RQ-I052）。
+        実装はリポジトリ直下の gouda.sh（start／stop／status。gouda_core/launch/gouda_core.launch.py を起動し、設定は design/generated/params から読む）。
+        旧 scripts/gouda.sh・gouda_gui.sh・smoke.sh は削除した（DEC-068、2026-10-09）。旧 gouda_gui パッケージは残っており置き換え対象。

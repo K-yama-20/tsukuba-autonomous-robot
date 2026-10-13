@@ -1,0 +1,16 @@
+# IFD-37 map/convert: convert a registered source map (GLIM dump, 原図) into a Nav2 2D map (RQ-I009).
+# Started automatically by gouda_mode_manager at map end (TR-04) and manually from gouda_monitor (re-conversion).
+# The result carries the artefact ids and content hashes; a failed conversion keeps the source and discards output.
+string origin_id            # source map (由来 ID) in the map database
+string settings_json        # conversion settings as a JSON object; empty = the node's declared parameters
+---
+bool ok
+string message
+string origin_id
+int32 revision              # converted/<revision>
+string content_hash         # of the converted artefact
+string source_content_hash
+string map_yaml_path
+---
+string stage                # reading, converting, writing, publishing
+float32 progress            # 0..1

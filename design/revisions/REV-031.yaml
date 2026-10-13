@@ -1,0 +1,172 @@
+# 変更セット REV-031（2026-10-13 第20便: IMU デバイス名の事実確認と XT-32 の時刻の扱いの回答を記録。センサ起動に必要な設定と判断事項を追加）
+# 適用: design/tools/apply_revision.py REV-031
+id: REV-031
+date: '2026-10-13'
+summary: >-
+  人の回答を原文で記録（DEC-082・DEC-083）。IMU のデバイス名を実機の名前に差し替え（PRM-54。シリアル番号は旧 imu.yaml と同じ、STM32 の後は「-」）。
+  XT-32 の点群の時刻は PC 受信時刻（PRM-55=1、Hesai 本体の時刻は年単位で遅れている）。上流ソース（research/upstream_sensors/）で帰結を照合し、IFD-21・IFD-22 の時刻の意味を更新
+  （点群の header と点の timestamp は packet の PC 受信時刻、IMU は publish 時の ROS 時刻。GLIM 1.2.2 は点の絶対時刻を相対化し frame の時刻を最初の点の時刻で上書き）。
+  ND-14・ND-15 の責務にドライバ設定（frame・topic・TF 非発行）を追記。未回答の PTC ポートを DEC-084、IMU の発行周期を DEC-085（PRM-56）、LiDAR–IMU の取付変換（GLIM の T_lidar_imu）の実測を DEC-086 に登録。
+basis_refs: [DEC-080, DEC-081, DEC-082, DEC-083]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decision_updates:
+  - id: DEC-082
+    set:
+      status: answered
+      answered_on: '2026-10-13'
+      answer_verbatim: |
+        usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00
+
+        でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。hesaiの内部時刻は年単位で遅れている。
+      resulting_refs: [PRM-54]
+      note: >-
+        確認したい点だった 2 か所のうち、シリアル番号は旧 imu.yaml と同じ 007137944B34（DEC-081 の 007127944B34 は誤り）、STM32 の後は旧 imu.yaml と異なり「-」。
+        PRM-54 を /dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00 に差し替え（REV-031、承認根拠 DEC-082）。DEC-081 の原文は変えない。
+      disposition: answered
+  - id: DEC-083
+    set:
+      status: answered
+      answered_on: '2026-10-13'
+      answer_verbatim: |
+        usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00
+
+        でした。hesaiについては、pc受信時刻で一旦glimを試そうと思う。hesaiの内部時刻は年単位で遅れている。
+      resulting_refs: [PRM-55, IFD-21, IFD-22, DEC-084]
+      note: >-
+        案 1（PC 受信時刻、use_timestamp_type=1）を採用し、まず GLIM で試す。Hesai 本体の時刻は年単位で遅れている（人の観測）。
+        PTC ポートの問いには回答がなかったため DEC-084 に分けた。上流ソースでの照合結果は research/upstream_sensors/README.md と IFD-21 の time_semantics。
+      disposition: answered
+
+decisions:
+  - id: DEC-084
+    kind: question
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】XT-32 の PTC ポート（PRM-53）。Hesai の工場既定であり、過去の観測（docs/gouda_runbook.md）・上流ドライバの設定例とも同じ 9347 を使ってよいか。XT-32 の Web 画面の保存（FILE-PANDAR-CONSOLE-XT32）と回答には記載がない。
+    answer_verbatim: ''
+    affected_refs: [PRM-53, ND-14]
+    resulting_refs: []
+    note: >-
+      推奨: 9347 を承認する。ドライバは PTC で XT-32 本体から角度補正ファイルを取得する（use_ptc_connected=true）。値が違うと補正ファイルを取得できず、点群が出ないか誤った角度で出る。
+      決まらない場合に止まる作業: XT-32 ドライバの実機起動（ソフト試験は仮値で進む）。
+    disposition: open_human
+  - id: DEC-085
+    kind: question
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】IMU（ADIS16607-2）の発行周期（PRM-56、adi_imu_driver の rate）。旧実装の imu.yaml とドライバの既定はどちらも 100 Hz（旧 imu.yaml の注記: 内部サンプリング 1000 Hz、ROS 発行は 100 Hz に制限）。100 Hz でよいか。
+    answer_verbatim: ''
+    affected_refs: [PRM-56, ND-15, IFD-22, ND-06]
+    resulting_refs: []
+    note: >-
+      推奨: 100 Hz（旧実装で受信を確認した周期。docs/gouda_development_20260923.md に約 97.8 Hz の観測記録）。GLIM の IMU 予積分の入力周期になる。
+      値を宣言しないままドライバを起動すると、ドライバの既定 100 Hz が黙って使われるため、Gouda の起動は未宣言のとき IMU ドライバを起動しない（RQ-I076）。
+      決まらない場合に止まる作業: IMU ドライバの実機起動。
+    disposition: open_human
+  - id: DEC-086
+    kind: measurement
+    status: pending
+    asked_on: '2026-10-13'
+    answered_on: null
+    channel: chat
+    question: >-
+      【実測】LiDAR（XT-32）と IMU の取付変換（GLIM の config_sensors.json の T_lidar_imu。IMU 座標の点を LiDAR 座標へ移す並進 x,y,z [m] と回転）。
+      GLIM 1.2.2 の設定テンプレートの既定値は Ouster OS0 の値（0.006, -0.012, 0.008、回転なし）で、Gouda の機材の値ではない。現在の起動はテンプレートをそのまま使う。
+    answer_verbatim: ''
+    affected_refs: [ND-06, IFD-20, IFD-21, IFD-22, TS-27]
+    resulting_refs: []
+    note: >-
+      AI の担当: 計測手順と GLIM 設定への反映。推奨手順: (1) XT-32 の座標軸（Hesai 資料の軸定義）と IMU の軸（ADIS16607-2 の外形図の印字）を機体上で確認し写真を残す、
+      (2) 両者の原点間の並進を定規で測る（旧 docs/stage3_sensor_slam.md では IMU は LiDAR の真下と記載）、(3) 回転は軸の対応から 90° 単位で決める。値と写真・日付を research/vehicle_pc/ に保存し、人が採用値を決める。
+      代替: 最初の GLIM 試験は回転なし・並進 0 で行い、推定が崩れるかを見る（崩れた場合の原因切り分けが難しくなる）。
+      決まらない場合に止まる作業: 地図作成の実機試験で GLIM に正しい取付変換を与えること（試験自体はテンプレートの値でも起動する）。
+    disposition: open_human
+
+entities:
+  - id: PRM-56
+    kind: parameter
+    intent_lines: [10, 103]
+    name: IMU の発行周期（adi_imu_driver の rate）
+    issue_refs: [Q-05]
+    sensitivity: [operation]
+    parameter:
+      owner_ref: ND-15
+      value: null
+      value_state: unresolved
+      unit: Hz
+      stage: 地図作成と変換
+      purpose: ADIS16607-2 のデータを sensors/imu/data（IFD-22）へ発行する周期。GLIM の IMU 予積分の入力周期
+      measurement: 人の判断（DEC-085）
+      decision_deadline: IMU ドライバの実機起動前（DEC-085）
+      software_trial_value: 100.0
+      software_trial_basis: 旧実装 gouda_bringup/config/imu.yaml の rate 100.0 と、ドライバの既定値（adis_rcv_bin_node.hpp 160 行）。ソフト試験用で実車採用値ではない
+      declaration: ros_parameter
+      target: adi_imu_driver
+      param_key: rate
+      value_type: double
+      apply_timing: launch
+    interpretation: ''
+
+modifications:
+  - id: PRM-54
+    set:
+      approval_decision_ref: DEC-082
+    set_nested:
+      parameter.value: /dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007137944B34-if00
+      parameter.measurement: 不要（実機の名前の確認 DEC-082。DEC-081 の値はシリアル番号が 1 桁違っていた）
+      parameter.decision_deadline: 決定済み（DEC-082）
+  - id: PRM-55
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-083
+    set_nested:
+      parameter.value: 1
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の判断 DEC-083。Hesai 本体の時刻は年単位で遅れており、PTP 配信なしでは使えない）
+      parameter.decision_deadline: 決定済み（DEC-083）
+      parameter.software_trial_basis: null
+  - id: PRM-53
+    set_nested:
+      parameter.measurement: 人の確認（DEC-084）
+      parameter.decision_deadline: XT-32 ドライバの実機起動前（DEC-084）
+  - id: IFD-21
+    set_nested:
+      designed_interface.time_semantics: >-
+        PRM-55=1（DEC-083）のとき、header.stamp はその frame の最初の packet の PC 受信時刻（Hesai SDK が gettimeofday で取得。PC の壁時計で、計測時刻ではない）。
+        点ごとの field `timestamp`（FLOAT64、秒、絶対時刻）は各 packet の PC 受信時刻で、同じ packet の点は同じ値（firetime 補正は入らない）。
+        GLIM 1.2.2 は既定で点の時刻を絶対時刻とみなして相対化し、frame の時刻を最初の点の時刻で上書きする（research/upstream_sensors/README.md）。
+        受信遅延とそのばらつきは点群全体の時刻と点ごとの時刻に誤差として残る（大きさは未計測）。古い点群を新しい時刻で再発行しない
+      designed_interface.version_dependency:
+        status: confirmed_upstream
+        evidence:
+          - research/upstream_sensors/hesai_sdk_9d5dc4f/sdk_udp6_1_parser.h
+          - research/upstream_sensors/hesai_sdk_9d5dc4f/sdk_lidar.h
+          - research/upstream_sensors/hesai_ros2_e7e112f/source_driver_ros2.hpp
+          - research/upstream_sensors/glim_v1.2.2/glim_v1.2.2_time_keeper.cpp
+        note: 上流 HesaiLidar_ROS_2.0 e7e112f（SDK 9d5dc4f）と GLIM v1.2.2 のソースで照合。実車PC に導入された版との一致は導入時に確認する
+  - id: IFD-22
+    set_nested:
+      designed_interface.time_semantics: >-
+        header.stamp は adi_imu_driver が publish 時に付ける ROS 時刻（this->now()。use_sim_time なしでは PC の壁時計）で、IMU の計測時刻ではない。
+        点群（IFD-21、PC 受信時刻）と同じ時計にそろう。シリアルの受信遅延は誤差として残る（未計測）
+  - id: ND-14
+    set_nested:
+      ros_node.responsibilities:
+        - XT-32 の計測を PointCloud2 として提供（IFD-21）
+        - 設定は上流の config.yaml を雛形に、generated/params/hesai_ros_driver.yaml（PRM-50〜53・55）を差し込んで起動時に生成する。frame は xt32_link、topic は sensors/xt32/points（IFD-21 の定義から）。雛形のその他の値は変えない
+        - 点群の時刻は PC 受信時刻（PRM-55=1、DEC-083）。PTC で本体から角度補正ファイルを取得する（PRM-53）
+  - id: ND-15
+    set_nested:
+      ros_node.responsibilities:
+        - IMU の計測を sensor_msgs/Imu として提供（IFD-22）
+        - デバイスは by-id の名前だけを使う（PRM-54、DEC-081・DEC-082）。発行周期は PRM-56。frame は imu_link（IFD-22）、topic は imu/data_raw を sensors/imu/data へ remap
+        - TF を発行しない（publish_tf=false。ドライバの既定は true で、TF の発行者は ND-13 だけ：RQ-I004）
+        - ドライバの停止・再起動で IMU 本体が応答しなくなる既知の現象（docs/stage3_sensor_slam.md）があるため、モードの切替で停止・再起動せず、gouda.sh の起動から終了まで動かし続ける

@@ -1,0 +1,26 @@
+# 変更セット REV-026（2026-10-10 第17便: 次の工程の指示と次チャットへの引き継ぎの記録）
+# 適用: design/tools/apply_revision.py REV-026
+id: REV-026
+date: '2026-10-10'
+summary: 人の指示（工程5-5 に進み、5-5 が一旦完了したら工程5-3 の流れをセンサー有りで試験し、5-5 を実車試験する。次のチャットに引き継ぐ）を原文で記録（DEC-076）。工程5-5 は未着手。引き継ぎ文書 reports/handover_2026-10-10.md。
+basis_refs: [DEC-076]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decisions:
+  - id: DEC-076
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-10'
+    channel: chat
+    question: 次の工程の順序と、次のチャットへの引き継ぎ
+    answer_verbatim: |
+      工程5-5に進め。
+      5-5が一旦完了したら、工程5-3の流れをセンサー有りで試験し、工程5-5を実車試験する。
+      次のチャットに引き継ぐ。これまでの成果物をプロジェクトフォルダに格納した上で、次のチャットでAIに打つプロンプトを考えて。
+    affected_refs: [ND-11, ND-12, ND-17, TS-07, TS-12, TS-13, TS-17, TS-18, TS-19, TS-27]
+    resulting_refs: []
+    note: >-
+      工程5-5（車体出力）は本チャットでは未着手（指示の直後に引き継ぎへ切り替え）。順序は 5-5 の実装・ソフト試験 → 5-3 のセンサー有り試験（実データで原図→変換、TS-27 の未確認項目）→ 5-5 の実車試験（人の判断。実車投入可能は人が判断する）。
+      成果物はリポジトリ tsukuba-autonomous-robot（ブランチ design/gate3-baseline-2026-10-09、push 済み）に格納。引き継ぎは reports/handover_2026-10-10.md。
+    disposition: answered

@@ -1,0 +1,51 @@
+# DEC-088（REV-034）の VM での確認。commit 9e420b3、2026-10-13 22:3x〜22:47（Mac の時刻）。原文。
+# 主セッション: GOUDA_SENSORS=1 GOUDA_TRIAL_PARAMS=1 bash gouda.sh start（実センサー）。警告の確認: ROS_DOMAIN_ID=77、GOUDA_DATA_ROOT=/tmp/gouda_warn_test、GOUDA_SENSORS=0 の別スタック。
+
+===== supervisor の DecisionEvent（主セッション、新しい順）
+driver_started | IMU (ND-15): started (pid 30543) for ttyACM0 usb 2-27 (device present) | {"driver": "imu", "identity": "ttyACM0 usb 2-27", "pid": 30543}
+device_present | IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 2-27 | {"driver": "imu", "identity": "ttyACM0 usb 2-27"}
+driver_started | XT-32 (ND-14): started (pid 30430) for enx6c6e0754b24a #6 (device present) | {"driver": "lidar", "identity": "enx6c6e0754b24a #6", "pid": 30430}
+device_present | XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enx6c6e0754b24a #6 | {"driver": "lidar", "identity": "enx6c6e0754b24a #6"}
+settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "interface holding 192.168.1.100 (PRM-51)", "command": ["/home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node", "--ros-args", "-r", "__node:=hesai_ros_driver", "-p", "config_path:=/home/aya/gouda_ws/gouda_data/run/hesai_ros_driver.config.yaml"], "not_started_reason": null}, "imu": {"device": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "command": ["/home/aya/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node", "--ros-args", "-r", "__node:=adi_imu_driver", "-r", "imu/data_raw:=sensors/imu/data", "-p", "device:=/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "-p", "rate:=100.0", "-p", "frame_id:=imu_link", "-p", "publish_tf:=false"], "not_started_reason": null}}, "driver_stop_wait_s": 5.0, "trial": true, "previous_identities": {}}
+sensors: {"points": {"label": "XT-32 点群", "topic": "sensors/xt32/points", "status": "RECEIVED", "age_s": 0.07708954811096191, "verdict": "最終受信から 0.1 s", "rate_hz": 3.062916245999389, "count": 408, "stamp_minus_receive_s": -0.1184234619140625, "stale_after_s": 1.0}, "imu": {"label": "IMU", "topic": "sensors/imu/data", "status": "RECEIVED", "age_s": 0.004248380661010742, "verdict": "最終受信から 0.0 s", "rate_hz": 83.0436110398387, "count": 7375, "stamp_minus_receive_s": -0.0020842552185058594, "stale_after_s": 1.0}}
+
+===== supervisor の launch ログ
+[INFO] [gouda_sensor_supervisor-1]: process started with pid [30362]
+[gouda_sensor_supervisor-1] [INFO] [1791899112.733534296] [gouda_sensor_supervisor]: settings: sensor supervisor configured
+[gouda_sensor_supervisor-1] [INFO] [1791899112.757654212] [gouda_sensor_supervisor]: device_present: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enx6c6e0754b24a #6
+[gouda_sensor_supervisor-1] [INFO] [1791899112.760308296] [gouda_sensor_supervisor]: driver_started: XT-32 (ND-14): started (pid 30430) for enx6c6e0754b24a #6 (device present)
+[gouda_sensor_supervisor-1] -------- Hesai Lidar ROS V2.0.12 --------
+[gouda_sensor_supervisor-1] -------- Hesai Lidar SDK V2.0.12 --------
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]logger start to run
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]OS current udp socket recv buff size is: 8388608
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]SocketSource::Open succeed, sock:26
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][ERROR]channel fov file does not exist: Your channel fov filter file path
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][WARNING]The number of threads is too large, set to the maximum number of threads 2.
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]Use thread num 2 to parse packet
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]Lidar::ParserThread start to run
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]PtcClient::PtcClient() 192.168.1.201 9347
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]Lidar::Receive Udp Thread start to run
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]TryOpen succeed, IP 192.168.1.201 port 9347
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]u32RecvTimeoutMs 3000
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]u32SendTimeoutMs 3000
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:13][INFO]ptc connect success
+[gouda_sensor_supervisor-1] [2026-10-13 22:45:14][INFO]init 6_1 XTM1 parser
+
+===== 警告の確認（別スタック、センサーなし）
+POST /api/command/start_mapping -> {"ok": true, "message": "TR-03: manual -> mapping", "warning": "地図作成の開始時にセンサーのデータがない: XT-32 点群（sensors/xt32/points）を受信していない、IMU（sensors/imu/data）を受信していない。GLIM は動くが地図はできない。センサーの接続を確認する"}
+mode after: MAPPING。DecisionEvent: gouda_monitor TR-03 mapping_start_sensor_warning（同文）。end_mapping -> TR-04: mapping -> manual。gouda.sh stop: no process of group remains: yes
+
+===== 点群の配送の測定（主セッション）
+RMW=default
+driver frames in 10 s: 100
+average rate: 2.200
+average rate: 100.740
+Node name: hesai_ros_driver
+Node namespace: /
+  Reliability: RELIABLE
+Node name: gouda_monitor
+Node namespace: /
+  Reliability: BEST_EFFORT
+4
+ 22:47:55 up  2:02,  4 users,  load average: 2.86, 2.48, 2.18
+Tue Oct 13 10:47:55 PM JST 2026

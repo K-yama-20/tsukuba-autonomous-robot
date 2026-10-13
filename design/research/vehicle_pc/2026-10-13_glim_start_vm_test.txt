@@ -1,0 +1,652 @@
+# GLIM 開始の検証（VM aya@10.211.55.4、2026-10-13）。gouda_core/test/ubuntu_glim_start.sh の出力原文。
+# A: 実車の設定ファイルのみ（仮値なし）、センサーなし。commit 3b8dacd。B: GOUDA_SENSORS=1（PTC ポート・IMU 周期は未確定のため GOUDA_TRIAL_PARAMS=1、受信確認のみ）、commit bd0af7e、LiDAR の USB-LAN は Mac 側。C: USB-LAN を VM に接続後（仮想 NIC に余分な 192.168.1.100 が残り経路が誤り）。D: Ubuntu 再起動後（人が余分な設定を除去）、commit d326233。E: D の直後、commit 4d1730a（IMU が応答しない）。
+
+===== A
+== commit 3b8dacd  2026-10-13T18:19:27+09:00  SENSORS=0 MAP_S=10
+Summary: 2 packages finished [0.91s]
+started gouda_core (pgid 14827); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=0
+monitor: http://127.0.0.1:45245/ (open on this PC desktop; no screen forwarding)
+mode PAUSE processing idle
+-- mode_manager alive: 1  glim: 0
+== A0 boot entered PAUSE (TR-02); end from pause (TR-12) to return to manual
+-- end_autonomy: {"ok": true, "message": "TR-12: pause -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager human_request | TR-12: pause -> manual
+   gouda_mode_manager autonomy_nodes_inactive | ND-07..ND-12 are not activated by this build; nothing to deactivate
+   gouda_mode_manager navigation_goal_check | no Nav2 goal can exist: this build has no navigation client (stage 5-6 not implemented)
+   gouda_mode_manager boot | persisted previous mode is pause -> pause (RQ-I064); autonomy is not re-permitted; resume only by a human operation after an initial pose request (RQ-I025, DEC-009)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+== A1 start mapping
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+mode MAPPING processing idle
+   gouda_mode_manager record_auto_stop | log recording is not active
+   gouda_mode_manager human_request | TR-12: pause -> manual
+   gouda_mode_manager autonomy_nodes_inactive | ND-07..ND-12 are not activated by this build; nothing to deactivate
+   gouda_mode_manager navigation_goal_check | no Nav2 goal can exist: this build has no navigation client (stage 5-6 not implemented)
+   gouda_mode_manager boot | persisted previous mode is pause -> pause (RQ-I064); autonomy is not re-permitted; resume only by a human operation after an initial pose request (RQ-I025, DEC-009)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 1
+-- T_lidar_imu in GLIM config:
+[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+-- mapping for 10 s
+      1 [2026-10-13 18:19:35.601] [glim] [warning] use default_value=5
+      1 [2026-10-13 18:19:35.601] [glim] [warning] use default_value=20
+      1 [2026-10-13 18:19:35.601] [glim] [warning] use default_value=-1
+      1 [2026-10-13 18:19:35.601] [glim] [warning] use default_value=0.5
+      1 [2026-10-13 18:19:35.601] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+      1 [2026-10-13 18:19:35.601] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+      1 [2026-10-13 18:19:35.601] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+      1 [2026-10-13 18:19:35.600] [glim] [warning] param sub_mapping/submap_target_num_points not found
+== A2 end mapping (must answer at once)
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+-- answered in 0.07 s
+mode MANUAL processing map_saving
+mode MANUAL processing idle
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_181935
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 14988); origin 20261013_181935_d14f77ec
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager record_auto_stop | log recording is not active
+   gouda_mode_manager human_request | TR-12: pause -> manual
+   gouda_mode_manager autonomy_nodes_inactive | ND-07..ND-12 are not activated by this build; nothing to deactivate
+   gouda_mode_manager navigation_goal_check | no Nav2 goal can exist: this build has no navigation client (stage 5-6 not implemented)
+   gouda_mode_manager boot | persisted previous mode is pause -> pause (RQ-I064); autonomy is not re-permitted; resume only by a human operation after an initial pose request (RQ-I025, DEC-009)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+ls: cannot access '/home/aya/gouda_ws/gouda_data/mapping/20261013_181935_d14f77ec//glim_dump': No such file or directory
+/home/aya/gouda_ws/gouda_data/mapping/20261013_181935_d14f77ec/:
+glim_config
+glim.log
+== A3 refused request (end_mapping while manual) must not kill the mode manager
+-- end_mapping: {"ok": false, "message": "refused: end_mapping is not accepted in mode manual (accepted in mapping)"}
+-- mode_manager alive: 1  glim: 0
+== A4 second cycle
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager record_auto_stop | log recording is not active
+   gouda_mode_manager human_request | TR-12: pause -> manual
+   gouda_mode_manager autonomy_nodes_inactive | ND-07..ND-12 are not activated by this build; nothing to deactivate
+   gouda_mode_manager navigation_goal_check | no Nav2 goal can exist: this build has no navigation client (stage 5-6 not implemented)
+   gouda_mode_manager boot | persisted previous mode is pause -> pause (RQ-I064); autonomy is not re-permitted; resume only by a human operation after an initial pose request (RQ-I025, DEC-009)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+stopped (no process of group 14827 remains: yes)
+-- leftover: 0
+== done
+
+===== B
+== commit bd0af7e  2026-10-13T18:20:36+09:00  SENSORS=1 MAP_S=20
+Summary: 2 packages finished [0.87s]
+started gouda_core (pgid 15665); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=1
+WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle
+monitor: http://127.0.0.1:45875/ (open on this PC desktop; no screen forwarding)
+mode MANUAL processing idle
+-- mode_manager alive: 1  glim: 0
+== sensors
+[INFO] [hesai_ros_driver_node-1]: process started with pid [15685]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883238.269990931] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[adis_rcv_bin_node-2] [INFO] [1791883238.270422681] [adi_imu_driver]: frame_id: imu_link
+[adis_rcv_bin_node-2] [WARN] [1791883238.270428890] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[adis_rcv_bin_node-2] [INFO] [1791883238.270431890] [adi_imu_driver]: rate: 100.0
+[adis_rcv_bin_node-2] [INFO] [1791883238.270436848] [adi_imu_driver]: publish_tf: false
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883238.382598390] [adi_imu_driver]: Product: ADIS16607-2
+[adis_rcv_bin_node-2] [INFO] [1791883238.382645765] [adi_imu_driver]: Build date: 20260630
+[adis_rcv_bin_node-2] [INFO] [1791883238.382648223] [adi_imu_driver]: Sample rate: 1000 Hz
+[adis_rcv_bin_node-2] [INFO] [1791883238.382650098] [adi_imu_driver]: Filter: 2, Grav corr: 1
+[adis_rcv_bin_node-2] [INFO] [1791883238.382651973] [adi_imu_driver]: Accel sensitivity: 781250000, Gyro sensitivity: 62500000
+-- /sensors/xt32/points
+-- /sensors/imu/data
+average rate: 98.942
+	min: 0.004s max: 0.020s std dev: 0.00205s window: 102
+-- imu: frame=imu_link stamp-now=-0.001 s width=None fields=[]
+-- not received: ['points']
+== A1 start mapping
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+mode MAPPING processing idle
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182100
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 15972); origin 20261013_182100_aa0180a7
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 1
+-- T_lidar_imu in GLIM config:
+[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+-- mapping for 20 s
+      1 [2026-10-13 18:21:00.837] [glim] [warning] use default_value=5
+      1 [2026-10-13 18:21:00.837] [glim] [warning] use default_value=20
+      1 [2026-10-13 18:21:00.837] [glim] [warning] use default_value=-1
+      1 [2026-10-13 18:21:00.837] [glim] [warning] use default_value=0.5
+      1 [2026-10-13 18:21:00.837] [glim] [warning] param sub_mapping/submap_target_num_points not found
+      1 [2026-10-13 18:21:00.837] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+      1 [2026-10-13 18:21:00.837] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+      1 [2026-10-13 18:21:00.837] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+== A2 end mapping (must answer at once)
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+-- answered in 0.02 s
+mode MANUAL processing map_saving
+mode MANUAL processing idle
+   gouda_mode_manager record_auto_stop | log recording stopped
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182100_aa0180a7 (hash e1062ca233a3…, 0 submap(s))
+   gouda_mode_manager mapping_stopped | dump complete (0 submap(s)); no submap: no sensor data was received
+   gouda_mode_manager human_request | TR-04: mapping -> manual
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182100
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 15972); origin 20261013_182100_aa0180a7
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+ls: cannot access '/home/aya/gouda_ws/gouda_data/mapping/20261013_182100_aa0180a7//glim_dump': No such file or directory
+/home/aya/gouda_ws/gouda_data/mapping/20261013_182100_aa0180a7/:
+glim_config
+glim.log
+== A3 refused request (end_mapping while manual) must not kill the mode manager
+-- end_mapping: {"ok": false, "message": "refused: end_mapping is not accepted in mode manual (accepted in mapping)"}
+-- mode_manager alive: 1  glim: 0
+== A4 second cycle
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager human_request | refused: end_mapping is not accepted in mode manual (accepted in mapping)
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182100_aa0180a7 (hash e1062ca233a3…, 0 submap(s))
+   gouda_mode_manager mapping_started | GLIM started (pid 15972); origin 20261013_182100_aa0180a7
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+stopped (no process of group 15665 remains: yes)
+-- leftover: 0
+== done
+
+===== B: hesai_ros_driver の launch ログ（抜粋なし、該当行）
+[INFO] [hesai_ros_driver_node-1]: process started with pid [15685]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]logger start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]OS current udp socket recv buff size is: 8388608
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]SocketSource::Open succeed, sock:39
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][ERROR]Multicast IP error, set correct multicast ip address or keep it empty
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][ERROR]channel fov file does not exist: Your channel fov filter file path
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][WARNING]The number of threads is too large, set to the maximum number of threads 2.
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]Use thread num 2 to parse packet
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]Lidar::ParserThread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]PtcClient::PtcClient() 192.168.1.201 9347
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][INFO]Lidar::Receive Udp Thread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:20:38][WARNING]Packet with invaild delimiter, len 1180, 0x00 0x00 0x00 0x00
+[hesai_ros_driver_node-1] [INFO] [1791883290.456000873] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [hesai_ros_driver_node-1]: sending signal 'SIGINT' to process[hesai_ros_driver_node-1]
+[hesai_ros_driver_node-1] [INFO] [1791883291.315888832] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [hesai_ros_driver_node-1]: process[hesai_ros_driver_node-1] failed to terminate '5' seconds after receiving 'SIGINT', escalating to 'SIGTERM'
+[INFO] [hesai_ros_driver_node-1]: sending signal 'SIGTERM' to process[hesai_ros_driver_node-1]
+[hesai_ros_driver_node-1] [INFO] [1791883296.323650168] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [hesai_ros_driver_node-1]: process[hesai_ros_driver_node-1] failed to terminate '10.0' seconds after receiving 'SIGTERM', escalating to 'SIGKILL'
+[INFO] [hesai_ros_driver_node-1]: sending signal 'SIGKILL' to process[hesai_ros_driver_node-1]
+[ERROR] [hesai_ros_driver_node-1]: process has died [pid 15685, exit code -9, cmd '/home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node --ros-args -r __node:=hesai_ros_driver --params-file /tmp/launch_params_0o_40thd'].
+
+===== 記録されたログ（records/20261013_181935/log/events.jsonl の TR-04 関連）
+{"t": 1791883189.352427, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883189.3508568, "node": "gouda_mode_manager", "event": "mapping_stopped", "transition_id": "TR-04", "reason": "dump complete (0 submap(s)); no submap: no sensor data was received", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_181935_d14f77ec\", \"dump_ok\": true, \"submaps\": 0, \"exit_code\": 0, \"save_duration_s\": 0.478015661239624, \"wait_limit_s\": \"none (PRM-37 unresolved)\"}"}}
+{"t": 1791883189.3585825, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883189.3565373, "node": "gouda_mode_manager", "event": "source_map_registered", "transition_id": "TR-04", "reason": "source map registered as 20261013_181935_d14f77ec (hash 0568ede913c5…, 0 submap(s))", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_181935_d14f77ec\", \"content_hash\": \"0568ede913c5b504002bd8b1f4eee058f8b2ecd19af5e68c96cba4fda058faf6\"}"}}
+{"t": 1791883194.721627, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883194.7112408, "node": "gouda_mode_manager", "event": "mapping_stopped", "transition_id": "TR-04", "reason": "dump complete (0 submap(s)); no submap: no sensor data was received", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_181951_4e7d776d\", \"dump_ok\": true, \"submaps\": 0, \"exit_code\": 0, \"save_duration_s\": 0.427295446395874, \"wait_limit_s\": \"none (PRM-37 unresolved)\"}"}}
+{"t": 1791883194.7418964, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883194.7384853, "node": "gouda_mode_manager", "event": "source_map_registered", "transition_id": "TR-04", "reason": "source map registered as 20261013_181951_4e7d776d (hash 6d9eb4249a5b…, 0 submap(s))", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_181951_4e7d776d\", \"content_hash\": \"6d9eb4249a5b2cd549211dae7df26221e19d407823f05db72b2eb98b8ebe7a31\"}"}}
+
+===== ネットワーク（VM）
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s5           UP             10.211.55.4/24 192.168.1.100/24 
+default via 10.211.55.1 dev enp0s5 proto dhcp src 10.211.55.4 metric 100 
+10.211.55.0/24 dev enp0s5 proto kernel scope link src 10.211.55.4 metric 100 
+192.168.1.0/24 dev enp0s5 proto kernel scope link src 192.168.1.100 
+2 packets transmitted, 0 received, 100% packet loss, time 1098ms
+
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 002: ID 203a:fffe PARALLELS Virtual USB1.1 HUB
+Bus 002 Device 003: ID 0483:5740 STMicroelectronics Virtual COM Port
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 002: ID 203a:fffc PARALLELS Virtual Mouse
+Bus 003 Device 003: ID 203a:fffb PARALLELS Virtual Keyboard
+Bus 003 Device 004: ID 203a:fff9 PARALLELS FaceTime HDカメラ
+Bus 003 Device 005: ID 203a:fff9 PARALLELS 綾遼也のiPhone 16 Camera
+
+===== ネットワーク（Mac、同時刻）
+	ether 6c:6e:07:54:b2:4a
+	inet 192.168.1.100 netmask 0xffff0000 broadcast 192.168.255.255
+Hardware Port: AX88179B
+Device: en17
+Ethernet Address: 6c:6e:07:54:b2:4a
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.406/0.505/0.604/0.099 ms
+
+===== C（LiDAR の USB-LAN を VM に接続した後。commit d326233、SENSORS=1、受信確認のため GOUDA_TRIAL_PARAMS=1）
+== commit d326233  2026-10-13T18:24:19+09:00  SENSORS=1 MAP_S=25
+Summary: 2 packages finished [0.97s]
+started gouda_core (pgid 17512); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=1
+WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle
+monitor: http://127.0.0.1:33077/ (open on this PC desktop; no screen forwarding)
+mode MANUAL processing idle
+-- mode_manager alive: 1  glim: 0
+== sensors
+[INFO] [hesai_ros_driver_node-1]: process started with pid [17532]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883461.528649830] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[adis_rcv_bin_node-2] [INFO] [1791883461.528692413] [adi_imu_driver]: frame_id: imu_link
+[adis_rcv_bin_node-2] [WARN] [1791883461.528699788] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[adis_rcv_bin_node-2] [INFO] [1791883461.528702705] [adi_imu_driver]: rate: 100.0
+[adis_rcv_bin_node-2] [INFO] [1791883461.528708038] [adi_imu_driver]: publish_tf: false
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883461.644340330] [adi_imu_driver]: Product: ADIS16607-2
+[adis_rcv_bin_node-2] [INFO] [1791883461.644389038] [adi_imu_driver]: Build date: 20260630
+[adis_rcv_bin_node-2] [INFO] [1791883461.644395163] [adi_imu_driver]: Sample rate: 1000 Hz
+[adis_rcv_bin_node-2] [INFO] [1791883461.644397080] [adi_imu_driver]: Filter: 2, Grav corr: 1
+[adis_rcv_bin_node-2] [INFO] [1791883461.644399246] [adi_imu_driver]: Accel sensitivity: 781250000, Gyro sensitivity: 62500000
+-- /sensors/xt32/points
+-- /sensors/imu/data
+average rate: 100.089
+	min: 0.001s max: 0.019s std dev: 0.00134s window: 101
+-- imu: frame=imu_link stamp-now=-0.179 s width=None fields=[]
+-- not received: ['points']
+== A1 start mapping
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+mode MAPPING processing idle
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182444
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 17810); origin 20261013_182444_6baf5ded
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 1
+-- T_lidar_imu in GLIM config:
+[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+-- mapping for 25 s
+      1 [2026-10-13 18:24:44.840] [glim] [warning] use default_value=5
+      1 [2026-10-13 18:24:44.840] [glim] [warning] use default_value=20
+      1 [2026-10-13 18:24:44.840] [glim] [warning] use default_value=-1
+      1 [2026-10-13 18:24:44.840] [glim] [warning] use default_value=0.5
+      1 [2026-10-13 18:24:44.840] [glim] [warning] param sub_mapping/submap_target_num_points not found
+      1 [2026-10-13 18:24:44.840] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+      1 [2026-10-13 18:24:44.840] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+      1 [2026-10-13 18:24:44.840] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+== A2 end mapping (must answer at once)
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+-- answered in 0.02 s
+mode MANUAL processing map_saving
+mode MANUAL processing idle
+   gouda_mode_manager map_convert_failed | conversion aborted and incomplete output discarded: dump has no submap directory: no sensor data was received during mapping; nothing to convert
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182444_6baf5ded (hash a1dabf4538cb…, 0 submap(s))
+   gouda_mode_manager mapping_stopped | dump complete (0 submap(s)); no submap: no sensor data was received
+   gouda_mode_manager human_request | TR-04: mapping -> manual
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182444
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 17810); origin 20261013_182444_6baf5ded
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+ls: cannot access '/home/aya/gouda_ws/gouda_data/mapping/20261013_182444_6baf5ded//glim_dump': No such file or directory
+/home/aya/gouda_ws/gouda_data/mapping/20261013_182444_6baf5ded/:
+glim_config
+glim.log
+== A3 refused request (end_mapping while manual) must not kill the mode manager
+-- end_mapping: {"ok": false, "message": "refused: end_mapping is not accepted in mode manual (accepted in mapping)"}
+-- mode_manager alive: 1  glim: 0
+== A4 second cycle
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager human_request | refused: end_mapping is not accepted in mode manual (accepted in mapping)
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182444_6baf5ded (hash a1dabf4538cb…, 0 submap(s))
+   gouda_mode_manager mapping_started | GLIM started (pid 17810); origin 20261013_182444_6baf5ded
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+stopped (no process of group 17512 remains: yes)
+-- leftover: 1
+== done
+
+===== C: hesai_ros_driver の launch ログ（該当行）
+[INFO] [hesai_ros_driver_node-1]: process started with pid [17532]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]logger start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]OS current udp socket recv buff size is: 8388608
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]SocketSource::Open succeed, sock:43
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][ERROR]channel fov file does not exist: Your channel fov filter file path
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][WARNING]The number of threads is too large, set to the maximum number of threads 2.
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]Use thread num 2 to parse packet
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]Lidar::Receive Udp Thread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]PtcClient::PtcClient() 192.168.1.201 9347
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]Lidar::ParserThread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]init 6_1 XTM1 parser
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]finish 0: The basic initialisation is complete
+[hesai_ros_driver_node-1] [2026-10-13 18:24:21][INFO]--------begin to parse udp package--------
+[INFO] [hesai_ros_driver_node-1]: process has finished cleanly [pid 17532]
+[hesai_ros_driver_node-1] [INFO] [1791883519.459414607] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][ERROR]Client is not open, cannot send command.
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][WARNING]Read correction file from lidar fail
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][WARNING]LoadCorrectionForUdpParser get correction info fail
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][ERROR]---Failed to obtain correction file from lidar!---
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][ERROR]Open correction file failed
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][FATAL]load firetime error: Open firetime file failed
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]finish 2: The angle calibration file is finished loading
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][WARNING]cpu version, not support for gpu
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]Hesai Lidar SDK is stopping...
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]SocketSource::Close()
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]Source::Close()
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]release 6_1 parser
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][INFO]release general parser
+[hesai_ros_driver_node-1] [2026-10-13 18:25:19][WARNING]ptc connect exit 2
+
+===== C: VM のネットワーク（読み取りのみ）
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s5           UP             10.211.55.4/24 192.168.1.100/24 
+enx6c6e0754b24a  UP             192.168.1.100/24 
+default via 10.211.55.1 dev enp0s5 proto dhcp src 10.211.55.4 metric 100 
+10.211.55.0/24 dev enp0s5 proto kernel scope link src 10.211.55.4 metric 100 
+192.168.1.0/24 dev enp0s5 proto kernel scope link src 192.168.1.100 
+192.168.1.0/24 dev enx6c6e0754b24a proto kernel scope link src 192.168.1.100 metric 101 
+    inet 10.211.55.4/24 brd 10.211.55.255 scope global dynamic noprefixroute enp0s5
+    inet 192.168.1.100/24 scope global enp0s5
+192.168.1.201 dev enp0s5 src 192.168.1.100 uid 1000 
+    cache 
+Bus 003 Device 006: ID 0b95:1790 ASIX Electronics Corp. AX88179 Gigabit Ethernet
+gouda-native-shared:enp0s5
+gouda-lidar-enx6c6e0754b24a:enx6c6e0754b24a
+lo:lo
+2 packets transmitted, 0 received, 100% packet loss, time 1055ms
+
+
+===== C: UDP 2368 の受信（ドライバ停止中に python で 3 秒 bind。18:23 頃）
+udp2368 packets in 3 s: 7501 from {('192.168.1.201', 10000)} lengths [1080]
+
+===== D（Ubuntu 再起動後。commit d326233、SENSORS=1、GOUDA_TRIAL_PARAMS=1）
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s5           UP             10.211.55.4/24 
+enx6c6e0754b24a  UP             192.168.1.100/24 
+192.168.1.201 dev enx6c6e0754b24a src 192.168.1.100 uid 1000 
+    cache 
+== commit d326233  2026-10-13T18:28:40+09:00  SENSORS=1 MAP_S=30
+Summary: 2 packages finished [1.17s]
+started gouda_core (pgid 4207); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=1
+WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle
+monitor: http://127.0.0.1:37905/ (open on this PC desktop; no screen forwarding)
+mode MANUAL processing idle
+-- mode_manager alive: 1  glim: 0
+== sensors
+[INFO] [hesai_ros_driver_node-1]: process started with pid [4228]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883722.648118725] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[adis_rcv_bin_node-2] [INFO] [1791883722.648162933] [adi_imu_driver]: frame_id: imu_link
+[adis_rcv_bin_node-2] [WARN] [1791883722.648166225] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[adis_rcv_bin_node-2] [INFO] [1791883722.648169142] [adi_imu_driver]: rate: 100.0
+[adis_rcv_bin_node-2] [INFO] [1791883722.648173808] [adi_imu_driver]: publish_tf: false
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883722.781114308] [adi_imu_driver]: Product: ADIS16607-2
+[adis_rcv_bin_node-2] [INFO] [1791883722.781207433] [adi_imu_driver]: Build date: 20260630
+[adis_rcv_bin_node-2] [INFO] [1791883722.781213558] [adi_imu_driver]: Sample rate: 1000 Hz
+[adis_rcv_bin_node-2] [INFO] [1791883722.781215600] [adi_imu_driver]: Filter: 2, Grav corr: 1
+[adis_rcv_bin_node-2] [INFO] [1791883722.781217392] [adi_imu_driver]: Accel sensitivity: 781250000, Gyro sensitivity: 62500000
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][INFO]logger start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][INFO]OS current udp socket recv buff size is: 8388608
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][INFO]SocketSource::Open succeed, sock:39
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][ERROR]channel fov file does not exist: Your channel fov filter file path
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][WARNING]The number of threads is too large, set to the maximum number of threads 2.
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][INFO]Use thread num 2 to parse packet
+[hesai_ros_driver_node-1] [2026-10-13 18:28:42][INFO]Lidar::Receive Udp Thread start to run
+-- /sensors/xt32/points
+average rate: 3.336
+	min: 0.098s max: 0.701s std dev: 0.22431s window: 6
+-- /sensors/imu/data
+average rate: 75.389
+	min: 0.000s max: 0.298s std dev: 0.03278s window: 77
+-- imu: frame=imu_link stamp-now=-0.000 s width=None fields=[]
+-- points: frame=xt32_link stamp-now=-0.103 s width=64000 fields=['x', 'y', 'z', 'intensity', 'ring', 'timestamp']
+-- not received: []
+== A1 start mapping
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+mode MAPPING processing idle
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182856
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 4495); origin 20261013_182856_aa56aef3
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 1
+-- T_lidar_imu in GLIM config:
+[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+-- mapping for 30 s
+      1 Initial error: 186.896, values: 81
+      1 [2026-10-13 18:28:58.456] [glim] [warning] large point timestamp (min=1791883738.354940 max=1791883738.454449 > 1.0) found!!
+      1 [2026-10-13 18:28:58.456] [glim] [warning] frame timestamp will be overwritten by the first point timestamp!!
+      1 [2026-10-13 18:28:58.456] [glim] [warning] assume that point times are absolute and convert them to relative
+      1 [2026-10-13 18:28:56.566] [glim] [warning] use default_value=5
+      1 [2026-10-13 18:28:56.566] [glim] [warning] use default_value=20
+      1 [2026-10-13 18:28:56.566] [glim] [warning] use default_value=0.5
+      1 [2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+      1 [2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+      1 [2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+      1 [2026-10-13 18:28:56.565] [glim] [warning] use default_value=-1
+      1 [2026-10-13 18:28:56.565] [glim] [warning] param sub_mapping/submap_target_num_points not found
+== A2 end mapping (must answer at once)
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+-- answered in 0.1 s
+mode MANUAL processing map_saving
+mode MANUAL processing idle
+   gouda_mode_manager record_auto_stop | log recording stopped
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182856_aa56aef3 (hash f6943b9cebd7…, 1 submap(s))
+   gouda_mode_manager mapping_stopped | dump complete (1 submap(s))
+   gouda_mode_manager human_request | TR-04: mapping -> manual
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_182856
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 4495); origin 20261013_182856_aa56aef3
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+ls: cannot access '/home/aya/gouda_ws/gouda_data/mapping/20261013_182856_aa56aef3//glim_dump': No such file or directory
+/home/aya/gouda_ws/gouda_data/mapping/20261013_182856_aa56aef3/:
+glim_config
+glim.log
+== A3 refused request (end_mapping while manual) must not kill the mode manager
+-- end_mapping: {"ok": false, "message": "refused: end_mapping is not accepted in mode manual (accepted in mapping)"}
+-- mode_manager alive: 1  glim: 0
+== A4 second cycle
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager map_converted | converted map published as 20261013_182856_aa56aef3/converted/001 (hash cfee4f71c8d2…)
+   gouda_mode_manager source_map_registered | source map registered as 20261013_182856_aa56aef3 (hash f6943b9cebd7…, 1 submap(s))
+   gouda_mode_manager mapping_stopped | dump complete (1 submap(s))
+   gouda_mode_manager mapping_started | GLIM started (pid 4495); origin 20261013_182856_aa56aef3
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+580:[gouda_map_creator-5] Traceback (most recent call last):
+593:[gouda_map_creator-5]     raise ValueError('Logger severity cannot be changed between calls.')
+594:[gouda_map_creator-5] ValueError: Logger severity cannot be changed between calls.
+stopped (no process of group 4207 remains: yes)
+-- leftover: 1
+== done
+
+===== D: 地図作成の記録（records/20261013_182856/log/events.jsonl の TR-04 関連）
+{"t": 1791883769.8685536, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883769.8682945, "node": "gouda_mode_manager", "event": "mapping_stopped", "transition_id": "TR-04", "reason": "dump complete (1 submap(s))", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_182856_aa56aef3\", \"dump_ok\": true, \"submaps\": 1, \"exit_code\": 0, \"save_duration_s\": 0.40050435066223145, \"wait_limit_s\": 90.0}"}}
+{"t": 1791883769.8730493, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883769.872849, "node": "gouda_mode_manager", "event": "source_map_registered", "transition_id": "TR-04", "reason": "source map registered as 20261013_182856_aa56aef3 (hash f6943b9cebd7…, 1 submap(s))", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_182856_aa56aef3\", \"content_hash\": \"f6943b9cebd73a900a23a6c6012a4e56a4467447e032176f4c10e8fb75d3a65a\"}"}}
+{"t": 1791883769.8739302, "kind": "input", "topic": "mode/state", "data": {"stamp": 1791883769.8730197, "mode": 1, "processing_state": "map_converting", "run_id": "", "remaining_waypoints": 0, "current_section": -1, "stop_reason": "", "speed_limit_application_state": "unknown", "previous_mode": 2, "human_pause_or_end_recorded": true, "initial_pose_required": false, "state_revision": 33}}
+{"t": 1791883775.1044238, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883775.104098, "node": "gouda_mode_manager", "event": "mapping_stopped", "transition_id": "TR-04", "reason": "dump complete (0 submap(s)); no submap: no sensor data was received", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_182931_6b65f4ba\", \"dump_ok\": true, \"submaps\": 0, \"exit_code\": 0, \"save_duration_s\": 0.20034432411193848, \"wait_limit_s\": 90.0}"}}
+{"t": 1791883775.1056485, "kind": "decision", "topic": "log/decision", "data": {"stamp": 1791883775.105464, "node": "gouda_mode_manager", "event": "source_map_registered", "transition_id": "TR-04", "reason": "source map registered as 20261013_182931_6b65f4ba (hash 28679983a237…, 0 submap(s))", "run_id": "", "section_id": -1, "input_names": [], "input_stamps": [], "details": "{\"origin_id\": \"20261013_182931_6b65f4ba\", \"content_hash\": \"28679983a23752d3b65d873e481d9501e27f61c4e91f937864b85e627a0601da\"}"}}
+{"t": 1791883775.10583, "kind": "input", "topic": "mode/state", "data": {"stamp": 1791883775.1055768, "mode": 1, "processing_state": "map_converting", "run_id": "", "remaining_waypoints": 0, "current_section": -1, "stop_reason": "", "speed_limit_application_state": "unknown", "previous_mode": 2, "human_pause_or_end_recorded": true, "initial_pose_required": false, "state_revision": 38}}
+
+===== D: GLIM ログの警告（1 周目）
+[2026-10-13 18:28:56.565] [glim] [warning] param sub_mapping/submap_target_num_points not found
+[2026-10-13 18:28:56.565] [glim] [warning] use default_value=-1
+[2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+[2026-10-13 18:28:56.566] [glim] [warning] use default_value=0.5
+[2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+[2026-10-13 18:28:56.566] [glim] [warning] use default_value=5
+[2026-10-13 18:28:56.566] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+[2026-10-13 18:28:56.566] [glim] [warning] use default_value=20
+[2026-10-13 18:28:58.456] [glim] [warning] large point timestamp (min=1791883738.354940 max=1791883738.454449 > 1.0) found!!
+[2026-10-13 18:28:58.456] [glim] [warning] assume that point times are absolute and convert them to relative
+[2026-10-13 18:28:58.456] [glim] [warning] frame timestamp will be overwritten by the first point timestamp!!
+Initial error: 186.896, values: 81
+
+===== D: 地図データベース
+/home/aya/gouda_ws/gouda_data/maps/20261013_182856_aa56aef3:
+converted
+source
+source_manifest.json
+
+/home/aya/gouda_ws/gouda_data/maps/20261013_182856_aa56aef3/converted:
+001
+
+/home/aya/gouda_ws/gouda_data/maps/20261013_182856_aa56aef3/converted/001:
+manifest.json
+map.pgm
+map.yaml
+
+/home/aya/gouda_ws/gouda_data/maps/20261013_182856_aa56aef3/source:
+000000
+config
+graph.bin
+graph.txt
+odom_imu.txt
+odom_lidar.txt
+traj_imu.txt
+traj_lidar.txt
+values.bin
+
+/home/aya/gouda_ws/gouda_data/maps/20261013_182856_aa56aef3/source/000000:
+covs_compact.bin
+data.txt
+imu_rate.txt
+intensities_compact.bin
+normals_compact.bin
+
+===== E（D の直後、commit 4d1730a）
+== commit 4d1730a  2026-10-13T18:30:53+09:00  SENSORS=1 MAP_S=30
+Summary: 2 packages finished [0.89s]
+started gouda_core (pgid 5328); params=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params data=/home/aya/gouda_ws/gouda_data log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log trial_params=1
+WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle
+monitor: http://127.0.0.1:40429/ (open on this PC desktop; no screen forwarding)
+mode MANUAL processing idle
+-- mode_manager alive: 1  glim: 0
+== sensors
+[INFO] [hesai_ros_driver_node-1]: process started with pid [5348]
+[hesai_ros_driver_node-1] -------- Hesai Lidar ROS V2.0.12 --------
+[adis_rcv_bin_node-2] [INFO] [1791883854.725094996] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[adis_rcv_bin_node-2] [INFO] [1791883854.725135205] [adi_imu_driver]: frame_id: imu_link
+[adis_rcv_bin_node-2] [WARN] [1791883854.725138788] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[adis_rcv_bin_node-2] [INFO] [1791883854.725141538] [adi_imu_driver]: rate: 100.0
+[adis_rcv_bin_node-2] [INFO] [1791883854.725146330] [adi_imu_driver]: publish_tf: false
+[hesai_ros_driver_node-1] -------- Hesai Lidar SDK V2.0.12 --------
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]logger start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]OS current udp socket recv buff size is: 8388608
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]SocketSource::Open succeed, sock:39
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][ERROR]channel fov file does not exist: Your channel fov filter file path
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][WARNING]The number of threads is too large, set to the maximum number of threads 2.
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]Use thread num 2 to parse packet
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]Lidar::ParserThread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]Lidar::Receive Udp Thread start to run
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]PtcClient::PtcClient() 192.168.1.201 9347
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]TryOpen succeed, IP 192.168.1.201 port 9347
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]u32RecvTimeoutMs 3000
+[hesai_ros_driver_node-1] [2026-10-13 18:30:54][INFO]u32SendTimeoutMs 3000
+-- /sensors/xt32/points
+average rate: 7.257
+	min: 0.099s max: 0.400s std dev: 0.09919s window: 8
+-- /sensors/imu/data
+-- points: frame=xt32_link stamp-now=-0.102 s width=64000 fields=['x', 'y', 'z', 'intensity', 'ring', 'timestamp']
+-- not received: ['imu']
+== A1 start mapping
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+mode MAPPING processing idle
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_183116
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 5627); origin 20261013_183116_d5b7632d
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 1
+-- T_lidar_imu in GLIM config:
+[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+-- mapping for 30 s
+      1 [2026-10-13 18:31:49.555] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.545] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.534] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.524] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.514] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.504] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.493] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.483] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=233)
+      1 [2026-10-13 18:31:49.471] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=232)
+      1 [2026-10-13 18:31:49.461] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=232)
+      1 [2026-10-13 18:31:49.451] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=232)
+      1 [2026-10-13 18:31:49.441] [odom] [warning] waiting for IMU data (scan_end_time=1791883879.555027, last_imu_time=0.000000 |frames|=232)
+== A2 end mapping (must answer at once)
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+-- answered in 0.03 s
+mode MANUAL processing map_saving
+mode MANUAL processing idle
+   gouda_mode_manager map_convert_failed | conversion aborted and incomplete output discarded: dump has no submap directory: no sensor data was received during mapping; nothing to convert
+   gouda_mode_manager source_map_registered | source map registered as 20261013_183116_d5b7632d (hash 3e479c06c6a1…, 0 submap(s))
+   gouda_mode_manager mapping_stopped | dump complete (0 submap(s)); no submap: no sensor data was received
+   gouda_mode_manager human_request | TR-04: mapping -> manual
+   gouda_mode_manager record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_183116
+   gouda_mode_manager human_request | TR-03: manual -> mapping
+   gouda_mode_manager mapping_started | GLIM started (pid 5627); origin 20261013_183116_d5b7632d
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+ls: cannot access '/home/aya/gouda_ws/gouda_data/mapping/20261013_183116_d5b7632d//glim_dump': No such file or directory
+/home/aya/gouda_ws/gouda_data/mapping/20261013_183116_d5b7632d/:
+glim_config
+glim.log
+== A3 refused request (end_mapping while manual) must not kill the mode manager
+-- end_mapping: {"ok": false, "message": "refused: end_mapping is not accepted in mode manual (accepted in mapping)"}
+-- mode_manager alive: 1  glim: 0
+== A4 second cycle
+-- start_mapping: {"ok": true, "message": "TR-03: manual -> mapping"}
+-- end_mapping: {"ok": true, "message": "TR-04: mapping -> manual"}
+mode MANUAL processing idle
+   gouda_mode_manager glim_extrinsic | T_lidar_imu from /config (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_rad, lidar_mount_pitch_rad, lidar_mount_yaw_rad, lidar_axis_mapping, imu_mount_x_m, imu_mount_y_m, imu
+   gouda_mode_manager human_request | refused: end_mapping is not accepted in mode manual (accepted in mapping)
+   gouda_mode_manager source_map_registered | source map registered as 20261013_183116_d5b7632d (hash 3e479c06c6a1…, 0 submap(s))
+   gouda_mode_manager mapping_started | GLIM started (pid 5627); origin 20261013_183116_d5b7632d
+   gouda_mode_manager boot | persisted previous mode is manual -> manual (RQ-I080)
+   gouda_monitor settings | settings recorded (startup)
+-- mode_manager alive: 1  glim: 0
+stopped (no process of group 5328 remains: yes)
+-- leftover: 1
+== done
+
+===== E: IMU ドライバの launch ログ（先頭）とプロセスの終了
+[INFO] [adis_rcv_bin_node-2]: process started with pid [5349]
+[adis_rcv_bin_node-2] [INFO] [1791883854.725094996] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
+[adis_rcv_bin_node-2] [INFO] [1791883854.725135205] [adi_imu_driver]: frame_id: imu_link
+[adis_rcv_bin_node-2] [WARN] [1791883854.725138788] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
+[adis_rcv_bin_node-2] [INFO] [1791883854.725141538] [adi_imu_driver]: rate: 100.0
+[adis_rcv_bin_node-2] [INFO] [1791883854.725146330] [adi_imu_driver]: publish_tf: false
+[adis_rcv_bin_node-2] [WARN] [1791883856.880006914] [adi_imu_driver]: Failed to read settings, retry 1/3...
+[adis_rcv_bin_node-2] [WARN] [1791883858.927873957] [adi_imu_driver]: Failed to read settings, retry 2/3...
+[adis_rcv_bin_node-2] [WARN] [1791883860.975926583] [adi_imu_driver]: Failed to read settings, retry 3/3...
+[adis_rcv_bin_node-2] [ERROR] [1791883860.975984874] [adi_imu_driver]: Could not read settings! Sensitivity values may be wrong.
+[adis_rcv_bin_node-2] [ERROR] [1791883862.000352833] [adi_imu_driver]: Cannot read data from port
+[adis_rcv_bin_node-2] [ERROR] [1791883863.023853000] [adi_imu_driver]: Cannot read data from port
+[adis_rcv_bin_node-2] [ERROR] [1791883864.048766542] [adi_imu_driver]: Cannot read data from port
+[adis_rcv_bin_node-2] [ERROR] [1791883865.072222501] [adi_imu_driver]: Cannot read data from port
+750:[INFO] [adis_rcv_bin_node-2]: process has finished cleanly [pid 5349]
+751:[INFO] [gouda_motion_controller-7]: process has finished cleanly [pid 5356]
+752:[INFO] [gouda_recorder-4]: process has finished cleanly [pid 5351]
+753:[INFO] [gouda_map_creator-5]: process has finished cleanly [pid 5352]
+754:[INFO] [gouda_mode_manager-3]: process has finished cleanly [pid 5350]
+755:[INFO] [vehicle_bridge-8]: process has finished cleanly [pid 5357]
+756:[INFO] [hesai_ros_driver_node-1]: process has finished cleanly [pid 5348]
+787:[ERROR] [gouda_monitor-6]: process has died [pid 5353, exit code -2, cmd '/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_monitor --ros-args -r __node:=gouda_monitor --params-file /home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params/gouda_monitor.yaml --params-file /home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params/gouda_monitor.trial.yaml --params-file /tmp/launch_params_t9ahy2qt'].
+
+===== E の後: IMU ドライバ単体の起動（8 s、SIGINT で終了。18:32 頃）
+Failed to read settings, retry 1/3..3/3 → Could not read settings! → Cannot read data from port（上の E と同じ。IMU 本体が応答しない）

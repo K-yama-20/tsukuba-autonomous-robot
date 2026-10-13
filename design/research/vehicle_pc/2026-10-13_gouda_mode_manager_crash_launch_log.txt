@@ -1,0 +1,62 @@
+# gouda.sh start → 地図作成開始 → 地図作成終了（終了は PRM-37 未確定で拒否）→ gouda_mode_manager が rclpy の ValueError で終了したときの launch ログ（原文）。VM、commit 039fafa、2026-10-13。
+[INFO] [launch]: All log files can be found below /home/aya/.ros/log/2026-10-13-18-07-24-874688-aya-Parallels-ARM-Virtual-Machine-10357
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [gouda_mode_manager-1]: process started with pid [10377]
+[INFO] [gouda_recorder-2]: process started with pid [10378]
+[INFO] [gouda_map_creator-3]: process started with pid [10379]
+[INFO] [gouda_monitor-4]: process started with pid [10380]
+[INFO] [gouda_motion_controller-5]: process started with pid [10381]
+[INFO] [vehicle_bridge-6]: process started with pid [10382]
+[gouda_map_creator-3] [INFO] [1791882445.393155012] [gouda_map_creator]: gouda_map_creator ready; maps=/home/aya/gouda_ws/gouda_data/maps; settings={'map_resolution_m': None, 'ground_band_max_m': None, 'obstacle_band_min_m': None, 'obstacle_band_max_m': None, 'occupied_min_points': None}
+[gouda_monitor-4] [INFO] [1791882445.521081928] [gouda_monitor]: gouda_monitor page: http://127.0.0.1:39301/ (127.0.0.1 only; open it on this PC desktop)
+[gouda_mode_manager-1] [INFO] [1791882445.544434803] [gouda_mode_manager]: state_publish_period_s (PRM-16) is unresolved: mode/state is published on change only (transient_local)
+[gouda_mode_manager-1] [INFO] [1791882445.544725762] [gouda_mode_manager]: boot transition TR-01: mode=manual (no persisted previous mode record -> manual (RQ-I080))
+[gouda_motion_controller-5] [INFO] [1791882445.560958804] [gouda_motion_controller]: unconfigured; settings are read on configure from the generated parameter file
+[gouda_recorder-2] [INFO] [1791882445.580195387] [gouda_recorder]: gouda_recorder ready; record_root=/home/aya/gouda_ws/gouda_data/records (recording is NOT started at boot: RQ-I015)
+[gouda_mode_manager-1] [INFO] [1791882455.885758017] [gouda_mode_manager]: start_mapping: TR-03: manual -> mapping
+[gouda_recorder-2] [INFO] [1791882455.971594725] [gouda_recorder]: log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261013_180735
+[gouda_mode_manager-1] Traceback (most recent call last):
+[gouda_mode_manager-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_mode_manager", line 33, in <module>
+[gouda_mode_manager-1]     sys.exit(load_entry_point('gouda-core==0.1.0', 'console_scripts', 'gouda_mode_manager')())
+[gouda_mode_manager-1]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/python3.12/site-packages/gouda_core/mode_manager_node.py", line 270, in main
+[gouda_mode_manager-1]     try: executor.spin()
+[gouda_mode_manager-1]          ^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 359, in spin
+[gouda_mode_manager-1]     self._spin_once_impl()
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 1009, in _spin_once_impl
+[gouda_mode_manager-1]     future.result()  # raise any exceptions
+[gouda_mode_manager-1]     ^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/task.py", line 109, in result
+[gouda_mode_manager-1]     raise self.exception()
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/task.py", line 286, in _execute_coroutine_step
+[gouda_mode_manager-1]     result = coro.send(None)
+[gouda_mode_manager-1]              ^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 592, in handler
+[gouda_mode_manager-1]     await call_coroutine()
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 531, in _execute
+[gouda_mode_manager-1]     response = await await_or_execute(srv.callback, request, srv.srv_type.Response())
+[gouda_mode_manager-1]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 115, in await_or_execute
+[gouda_mode_manager-1]     return callback(*args)
+[gouda_mode_manager-1]            ^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/python3.12/site-packages/gouda_core/mode_manager_node.py", line 104, in handle
+[gouda_mode_manager-1]     r = self._request(event, {})
+[gouda_mode_manager-1]         ^^^^^^^^^^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/python3.12/site-packages/gouda_core/mode_manager_node.py", line 124, in _request
+[gouda_mode_manager-1]     (self.get_logger().info if r.accepted else self.get_logger().warning)(f'{event}: {r.reason}')
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/impl/rcutils_logger.py", line 347, in warning
+[gouda_mode_manager-1]     return self.log(message, LoggingSeverity.WARN, **kwargs)
+[gouda_mode_manager-1]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[gouda_mode_manager-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/impl/rcutils_logger.py", line 313, in log
+[gouda_mode_manager-1]     raise ValueError('Logger severity cannot be changed between calls.')
+[gouda_mode_manager-1] ValueError: Logger severity cannot be changed between calls.
+[gouda_mode_manager-1] The following exception was never retrieved: Logger severity cannot be changed between calls.
+[ERROR] [gouda_mode_manager-1]: process has died [pid 10377, exit code 1, cmd '/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_mode_manager --ros-args -r __node:=gouda_mode_manager --params-file /tmp/launch_params_b4v57kcq'].
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [vehicle_bridge-6]: sending signal 'SIGINT' to process[vehicle_bridge-6]
+[INFO] [vehicle_bridge-6]: process has finished cleanly [pid 10382]
+[INFO] [gouda_recorder-2]: process has finished cleanly [pid 10378]
+[INFO] [gouda_motion_controller-5]: process has finished cleanly [pid 10381]
+[INFO] [gouda_map_creator-3]: process has finished cleanly [pid 10379]
+[INFO] [gouda_monitor-4]: process has finished cleanly [pid 10380]

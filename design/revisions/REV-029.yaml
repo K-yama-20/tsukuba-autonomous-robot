@@ -1,0 +1,36 @@
+# 変更セット REV-029（2026-10-13 第19便: 地図作成（工程5-3）の実機試験の方針とセンサードライバの指定を原文で記録）
+# 適用: design/tools/apply_revision.py REV-029
+id: REV-029
+date: '2026-10-13'
+summary: >-
+  人の指示を原文で記録（DEC-080）。工程5-3（地図作成）の実機試験は旧 firmware（ESP32 に現在書き込まれているもの）のまま行う。
+  XT-32 のドライバは HesaiLidar_ROS_2.0、IMU（ADIS16607-2）のドライバは ADI_IMU_TR_Driver_ROS2 を使う。センサの IP アドレスの調査は人が行い、AI はコマンドを用意する。
+  モデル要素は変えない（ND-14・ND-15 の既存の記載と一致）。
+basis_refs: [DEC-076]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decisions:
+  - id: DEC-080
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-13'
+    channel: chat
+    question: 工程5-3（地図作成）の実機試験の方針（firmware の版）と、XT-32・IMU のドライバの指定
+    answer_verbatim: |
+      旧 firmware のまま地図作成の実機試験をする。
+
+      Hesai xt-32のドライバは以下のものを使うこと。
+      https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0
+
+      IMUの型番は、ADIS16607-2である。ドライバは以下のものを使うこと。
+      https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2
+
+      まずはセンサのIPアドレスを調べる必要がある。調べるのは私がやるから、コマンドも生成して。
+    affected_refs: [ND-14, ND-15, ND-17, TS-27, IFD-21, IFD-22]
+    resulting_refs: []
+    note: >-
+      AI の読み: 地図作成は手動走行（Bluetooth ゲームパッド→ESP32→DAC）で行うため、PC からの車体指令は不要であり、ESP32 の現在の firmware を書き換えずに進められる。
+      新 firmware（v4、工程5-5）の書き込みは本試験の後、DEC-077・079 の回答後に行う。ドライバはモデルの ND-14（hesai_ros_driver）・ND-15（adi_imu_driver）と一致。
+      IP の調査は人が実施し、AI はコマンドと記録先（research/vehicle_pc/）を用意する。過去の観測（docs/gouda_runbook.md: LiDAR 192.168.1.201、PC 192.168.1.100、UDP 2368、PTC 9347。IMU は USB シリアル）は記載値であり、今回の現物で再確認する。
+    disposition: answered

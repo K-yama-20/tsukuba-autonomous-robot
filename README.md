@@ -22,22 +22,24 @@ GitHubの「Download ZIP」でも利用できます。対象ブランチを展�
 依存ソフト、固定版の外部ドライバとサブモジュール、ドライバ修正、ビルドをセットアップが実施します。最後にLiDAR専用LANとIMUのUSB接続を選びます。機器がない場合はEnterで省略できます。
 既存の地図・設定は削除しません。既に別のソースがある場合は置換せず停止します。
 
-## 起動
+## 起動（新実装）
 
-Ubuntuにデスクトップログインした端末で、`~/gouda_ws/src/tsukuba-autonomous-robot/` に移動して実行します。RVizは自動で別ウィンドウに開きます。Web GUIはブラウザで **http://127.0.0.1:8766** を開きます。SSHだけの端末では表示先がないため、RVizは起動できません。
+起動の方法はこれ一つです（設計の判断台帳 DEC-090・DEC-091）。環境変数などの起動オプションはありません。旧 Mission Control 用の `scripts/gouda.sh`・`scripts/gouda_gui.sh` は 2026-10-09 に削除しました（DEC-068）。
 
 ```bash
-bash scripts/gouda.sh view       # GUI・処理・別ウィンドウのRVizを起動（センサー受信は追加しない）
-bash scripts/gouda.sh stop       # 終了時
-bash scripts/gouda.sh observe    # LiDAR・IMUを使った観測
-bash scripts/gouda.sh viewer     # RVizだけを起動し直す
-bash scripts/gouda.sh doctor     # 設定・プロセス・表示状態の診断
-bash scripts/gouda.sh configure  # 機器設定をやり直す
+cd ~/gouda_ws && colcon build --symlink-install --packages-select gouda_interfaces gouda_core && source install/setup.bash
+cd ~/gouda_ws/src/tsukuba-autonomous-robot
+bash gouda.sh start      # 全部を起動（起動直後は手動走行。記録は開始しない。センサーのドライバも起動し、無いデバイスは接続を待つ）
+bash gouda.sh status     # 起動状態・データの置き場・ログの場所・monitor の URL
+bash gouda.sh stop       # この起動が所有するプロセスだけを止める
 ```
 
-記録とGLIM/SLAMの設定、保存先、再生方法は[記録とSLAM設定](docs/gouda_recording_glim.md)を参照してください。
-
-起動コマンドはバックグラウンドで動作を維持します。再実行で生存中のセンサーを再起動しません。`view` から `observe` に切り替える場合もGUIとRVizを維持してセンサー受信を追加します。ブラウザの再読み込みやタブ切替もセンサー受信には影響しません。`stop` はこの起動処理が所有するプロセスだけを止めます。別の起動方法で同じAPIポートを使用している場合は、勝手に停止・流用せずエラーにします。
+- `--symlink-install` で build する（インストールされる Python が元のファイルを指す）。VM の時計が戻ると、通常の build では古いコピーが残って新しいコードが入らないことがあった（2026-10-14）。以前に通常の build をした場合は、一度 `rm -rf build/gouda_core install/gouda_core` してから build する。
+- 設定はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。monitor は http://127.0.0.1:8080/（PRM-26）。
+- ワークスペースは gouda.sh の 2 つ上のディレクトリ、データの置き場は `<workspace>/gouda_data`（PRM-25）。記録セッションは `<data_root>/records/<session>/` に `log/` と `rosbag/` を分けて保存し、直前モードの永続記録は `<data_root>/state/` に置きます。
+- センサーのドライバは gouda_sensor_supervisor が起動し、デバイスが繋ぎ直されたときだけ作り直します（`design/docs/sensor_supervision.md`）。gouda.sh を止めて起動し直すと IMU が応答しない場合があり、その場合は IMU の USB を抜き差しします。
+- ソフト試験用の仮値は gouda.sh では使いません。試験は `gouda_core/test/stack.sh`（ROS ドメインとデータの置き場を分け、センサーのドライバを起動しない）で行います。
+- 工程の順序と完了条件は `design/docs/implementation_stages.md`。
 
 ## 保存地図で経路を確認する
 
@@ -80,7 +82,7 @@ x86とParallelsの双方で、ワークスペース内にソース・ビルド�
 └── maps_glim/                  # GLIM 3D観測セッション
 ```
 
-`GOUDA_WORKSPACE` でワークスペースを変更できます。既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。
+（以下は旧実装の説明。新実装の gouda.sh は環境変数を使わない。）既存のParallelsの記録フォルダと補正データは保持します。新規設定の保存先は日付やユーザー名に依存しません。個人の設定、地図、点群、ログをGitへ追加しないでください。
 
 RVizはKISS-ICP付属の表示設定をそのまま使用します。Ubuntuの通常の描画環境を使い、ソフトウェア描画を強制しません。本番起動ではXvfb・Openbox・x11vnc・noVNCを起動せず、画像圧縮・画面転送も行いません。RViz自体の点群描画とSLAMの計算負荷は残ります。標準の局所点群と保存済みの走行用2D地図は別用途です。
 
@@ -97,14 +99,14 @@ python3 gouda_gui/gouda_gui/gateway.py --ssh-runtime /path/to/existing/native_vi
 環境の削除やUbuntu・ROSの入れ直しは不要です。先に旧版が管理するプロセスを停止してから更新します。現在使っているリポジトリのフォルダで次を実行してください。
 
 ```bash
-bash scripts/gouda.sh stop
+bash gouda.sh stop
 git pull --ff-only
 bash scripts/setup.sh --no-configure
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
-bash scripts/gouda.sh observe
+# 旧 `scripts/gouda.sh observe` は削除済み（DEC-068）。センサー観測の新実装は工程5-3 以降
 ```
 
-旧版の `~/.config/gouda/` と `~/.local/share/gouda/` は移行元として保持します。設定・地図の衝突がある場合は上書きしません。必要なビルドの退避と再構築はセットアップが行います。旧ソースフォルダを自分で削除する必要はありません。機器設定が未完了の場合は `bash scripts/gouda.sh configure` を実行してください。
+旧版の `~/.config/gouda/` と `~/.local/share/gouda/` は移行元として保持します。設定・地図の衝突がある場合は上書きしません。必要なビルドの退避と再構築はセットアップが行います。旧ソースフォルダを自分で削除する必要はありません。機器設定は `python3 scripts/configure_host.py --workspace ~/gouda_ws` で行う（旧 `scripts/gouda.sh configure` は削除済み）。
 
 センサー停止を伴う更新後にIMUが応答しなくなった場合は、既知の再接続問題の可能性があります。GUI再接続やRVizだけの再起動ではセンサー受信を再起動しません。
 

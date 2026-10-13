@@ -1,0 +1,16 @@
+# 変更セット REV-028（2026-10-10 第18便: 工程5-5 のソフト試験記録の登録）
+# 適用: design/tools/apply_revision.py REV-028
+id: REV-028
+date: '2026-10-10'
+summary: >-
+  工程5-5（車体出力）の Ubuntu 上の stub 試験記録（Part A: motion_controller＋vehicle_bridge＋Python 模擬 ESP32 で TS-07・TS-13・TS-19 の PC 側。
+  Part B: gouda.sh 起動で TS-30 の motion_hold 保持と TS-12 の /esp32/status 表示・途絶時の STALE）を証拠ファイルとして登録（FILE-VEHICLE-PC-STAGE55）。
+  firmware 中核の卓上 stub（TS-17・18・19・29 をホスト実行、274 checks）と firmware ビルド（esp32dev・esp32dev_trial）も合格。ESP32 実機・実車は未実施。
+  モデル要素は変えない。作業記録 reports/worklog/2026-10-10_rev027_stage5-5.md。
+basis_refs: [DEC-076]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+files:
+  - id: FILE-VEHICLE-PC-STAGE55
+    path: design/research/vehicle_pc/2026-10-10_stage5-5_ubuntu_test.txt
+    role: evidence

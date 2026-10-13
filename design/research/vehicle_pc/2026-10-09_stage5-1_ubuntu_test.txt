@@ -1,0 +1,73 @@
+# 工程5-1（起動と記録）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。センサー未接続）
+# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5 LTS, aarch64, ROS 2 jazzy, Python 3.12.3, colcon /usr/bin/colcon
+# リポジトリ: ~/gouda_ws/src/tsukuba-autonomous-robot, ブランチ design/gate3-baseline-2026-10-09
+# コミット: 2eb94c2（初回。gouda.sh stop に不具合）→ 0f02397（修正後。以下の run A〜C）
+# 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
+
+## 0. ワークスペースと環境の確認（2eb94c2 より前）
+host: aya-Parallels-ARM-Virtual-Machine aarch64
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+~/gouda_ws: bags build install log maps maps_glim maps_sensor_slam patch_backups src worktrees
+src: ADI_IMU_TR_Driver_ROS2 HesaiLidar_ROS_2.0 kiss-icp tsukuba-autonomous-robot tsukuba-autonomous-robot-phone-runtime urg_node2
+repo git（確認時）: branch main, HEAD b0a3a36 (Merge pull request #4), status clean
+ROS_DISTRO=jazzy; python3 -c "import yaml, rclpy" -> ok
+ros2 pkg list: diagnostic_msgs glim glim_ros ros2bag rosbag2 rosbag2_storage_mcap rosbag2_storage_sqlite3 rosidl_default_generators rosidl_default_runtime std_srvs
+df: /dev/sda2 62G 24G 36G 40%
+
+## 1. ビルド（2eb94c2）
+colcon build --packages-select gouda_interfaces gouda_core
+Finished <<< gouda_interfaces [3.62s]
+Finished <<< gouda_core [0.55s]
+Summary: 2 packages finished [4.38s]   build exit=0
+ros2 interface list | grep gouda_interfaces -> gouda_interfaces/msg/DecisionEvent, gouda_interfaces/msg/SoftwareMode
+
+## 2. 単体試験（Ubuntu、2eb94c2）
+python3 -m unittest discover -s gouda_core/test -p "test_*.py"
+Ran 17 tests in 0.004s
+OK
+
+## 3. 初回の起動試験（2eb94c2）— 不具合を 1 件検出
+bash gouda.sh start -> started gouda_core (pid 109881)
+ros2 node list -> /gouda_mode_manager /gouda_recorder
+mode/state: mode: 1, processing_state: idle, run_id: '', remaining_waypoints: 0, current_section: -1, stop_reason: '', speed_limit_application_state: unknown, previous_mode: 0, human_pause_or_end_recorded: false, initial_pose_required: false, state_revision: 1
+record/status at boot: log_active False, rosbag_active False, session_dir '', auto_started_by '', last_gap '', failures 0, status_revision 0
+/record/log/start -> log_active True; /record/log/stop -> stopped
+/record/rosbag/start ... /record/rosbag/stop -> records/20261009_085106/rosbag/bag/{bag_0.mcap, metadata.yaml}
+  metadata.yaml: storage_identifier: mcap, message_count: 18, /mode/state 1, /log/decision 0, /parameter_events 0
+events.jsonl: record_start(human), record_stop(human)
+session.json: log_active false, rosbag_active false, gaps [], failures []
+launch log: "boot transition TR-01: mode=manual (no persisted previous mode record -> manual (RQ-I080))", "gouda_recorder ready; ... (recording is NOT started at boot: RQ-I015)"
+bash gouda.sh stop -> "still running after SIGINT; sending SIGTERM" "stopped"（31 s）
+不具合: 停止後に node プロセスが残存（3 回の起動で gouda_mode_manager×3・gouda_recorder×3 が残り、ros2 node list に同名 node が重複）。
+原因（実装）: 非対話シェルの背景ジョブは SIGINT を無視する設定を継承し、ros2 launch も Python 側で無視のまま。SIGTERM は launch にだけ送り、子 node を待たなかった。
+TR-02 の確認はこの残存のため mode/state の読み取りが旧プロセスの値（mode 1）になった（launch log では "boot transition TR-02: mode=pause (persisted previous mode is autonomy -> pause (RQ-I064); autonomy is not re-permitted; ...)" と正しい）。
+残存プロセスは pkill（パターン ^/usr/bin/python3 .*gouda_(mode_manager|recorder)）で掃除した。
+
+## 4. 修正後（0f02397: gouda.sh はジョブ制御で launch をプロセスグループにし、グループに SIGINT→SIGTERM→SIGKILL。recorder は記録開始時に最後に受信した状態を snapshot として書く）
+colcon build --packages-select gouda_core -> Summary: 1 package finished [0.95s]
+
+=== run A: fresh boot (TR-01), log start -> snapshot, stop timing
+started gouda_core (pgid 111855)
+running (pgid 111855; processes: 3)
+ros2 node list -> /gouda_mode_manager /gouda_recorder
+mode/state: mode: 1, state_revision: 1
+events.jsonl:
+{"t": 1791503731.8102853, "kind": "record_start", "trigger": "human"}
+{"t": 1791503724.2260153, "kind": "snapshot", "of": "input", "topic": "mode/state", "data": {"stamp": 1791503724.0497472, "mode": 1, "processing_state": "idle", ...}
+{"t": 1791503733.8935113, "kind": "record_stop", "trigger": "human"}
+bash gouda.sh stop -> stopped (no process of group 111855 remains: yes); stop took 1 s; orphans: 0
+
+=== run B: TR-02 (previous_mode_record = {"mode": "autonomy", "human_pause_or_end": false, "run_id": "run-test", "state_revision": 5})
+mode/state: mode: 4, run_id: run-test, previous_mode: 3, initial_pose_required: true, state_revision: 6
+stop -> no process remains; orphans: 0
+previous_mode_record.json after boot: {"human_pause_or_end": false, "mode": "pause", "run_id": "run-test", "state_revision": 6}
+（2eb94c2 での同様の試験: previous {"mode":"pause","human_pause_or_end":true,...,"state_revision":6} -> mode: 4, human_pause_or_end_recorded: true, initial_pose_required: true, state_revision: 7。フラグは再起動で消えない）
+
+=== run C: log stop -> start で欠落範囲が閉じる
+record/status last_gap: stopped 1791503752.123..1791503754.866 stopped by human
+gaps.jsonl: {"start": 1791503752.123368, "end": 1791503754.8657663, "kind": "stopped", "detail": "stopped by human"}
+stop -> no process remains; orphans: 0
+
+## 5. 未確認のこと
+- 自動開始（地図作成開始・自律走行開始）の経路は未実装（5-3／5-6）。書込失敗の実機再現は未実施（単体試験のみ）。rosbag の対象 topic は -a（全 topic）。
+- センサー・実車は未接続。本記録は「ソフト試験」の結果であり、実車検証ではない。

@@ -1,0 +1,476 @@
+# 変更セット REV-010（2026-10-09 第6便: ゲート3 条件付き承認の記録、照合修正、CLAUDE.md 修復の承認、RQ-I010・C-003 の決定、停止・復帰条件の明示）
+# 適用: design/tools/apply_revision.py REV-010
+# 承認対象モデル（REV-009 適用後）の内容ハッシュは baselines/gate3_2026-10-09/README.md と FILE-GATE3-MODEL に記録
+id: REV-010
+date: '2026-10-09'
+summary: >-
+  ゲート3の条件付き承認（DEC-053。下位設計案 122 件を暫定ベースラインとして採用。個別最終承認・未確定値の確定・未実施試験の合格・実車投入は含まない）を
+  判断台帳に原文で記録し、承認対象モデルの凍結コピー（FILE-GATE3-MODEL、SHA-256 6510bbc2…）と結び付けた。DEC-019 の暫定状態を更新。
+  H-009 を根拠 ID 付きで閉じ、DEC-011（Gouda 側発行器）の残存記述（IFD-14 名称、TR-05・TR-10 の発行動作、TS-01）を Speed Filter 方針（DEC-031）に揃えた。
+  承認済み値（PRM-08・PRM-13）を実測待ち一覧から外した。DEC-015・032・044 の反映先を記録。C-001・C-002・C-010 の「未設計」は初回移行時点の記述で現在は設計済みと明記。
+  RQ-I010 の境界文の削除（人が intent.md を編集。DEC-055）と C-003 の飽和の扱いを記録し、境界付近の揺らぎを詳細設計しない（TS-14・TS-16 は記録・重複規則のみ、PRM-22〜24 は設計パラメータから外す）。
+  停止・復帰の成立条件（旧 goal の終了／破棄、人の一時停止・終了操作の保持、指令中立化の担当）を各遷移の動作に明示（TR-05〜TR-13）。TS-06 の合格条件を DEC-056 に合わせた。
+  試験と遷移の対応（related_refs）を追加し、故障モード表から遷移・試験を参照できるようにした。CLAUDE.md 修復差分の承認（DEC-052）を記録。
+basis_refs: [DEC-052, DEC-053, DEC-054, DEC-055, DEC-056, DEC-057]
+
+files:
+  - id: FILE-GATE3-MODEL
+    path: design/baselines/gate3_2026-10-09/model.yaml
+    role: evidence
+  - id: FILE-CLAUDE-MD-ORIGINAL
+    path: design/research/claude_md/CLAUDE.md.original_2c90ed21
+    role: evidence
+
+decision_updates:
+  - id: DEC-019
+    set:
+      disposition: answered
+      note: >-
+        レビュー資料は generated/review_r3.md。ゲート3は 2026-10-09 に条件付き・範囲限定で承認された（DEC-053）。
+        工程5 は暫定ベースライン（FILE-GATE3-MODEL）の上で、値に依存しない下位設計、実車出力を伴わないソフト実装と stub 試験まで着手できる。
+        122 件の個別最終承認・未確定値の確定・未実施試験の合格・実車投入は含まれない。進め方は docs/implementation_stages.md（DEC-056）。
+  - id: DEC-025
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      disposition: answered
+      answer_verbatim: |
+        承認範囲：gate3_package.mdの下位設計案122件は、以後の設計・実装の暫定ベースラインとして採用。値に依存しない下位設計、および実車出力を伴わないソフト実装とstub試験までを認める。
+        承認しないもの：122件の個別最終承認、未確定値の確定、未実施試験の合格、実車投入は含まない。
+      resulting_refs: [ND-13, IFD-01, IFD-02, IFD-28, IFD-37, IFD-40]
+      note: >-
+        Q-11（補助構成・独自型 4 件）はゲート3の一括承認対象として DEC-053 の範囲で暫定ベースラインになった。独自型 4 件の .msg/.srv/.action 定義は下位設計の継続で行う。個別の最終承認は含まれない。
+  - id: DEC-052
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      disposition: answered
+      answer_verbatim: |
+        CLAUDE.mdの修復（DEC-052）
+
+        AIはGit履歴・バックアップと照合し、貼り付け行番号と欠落の有無を確認したうえで、根拠付きの修復差分を考えよ。原文不明の箇所を推測で補ってはいけない。
+        それを再度レビューして、CLAUDE.mdを置き換えよ。
+      affected_refs: [FILE-CLAUDE-MD-ORIGINAL]
+      note: >-
+        第6便で再照合（Git 履歴に CLAUDE.md なし、.bkp は drawio のみ、mi3 DocumentData は設定のみ、Spotlight の他コピーは別プロジェクト、Time Machine なし）。
+        独立確認（sed による先頭整数の除去）の SHA-256 は修復版 4e071b7e… と一致。番号は 18〜202 で途切れなし、本文先頭が数字の行はなし。
+        置き換え前の原本は research/claude_md/CLAUDE.md.original_2c90ed21 に保存（FILE-CLAUDE-MD-ORIGINAL）。先頭 1〜17 行の欠落は推測のまま。本文は補っていない。
+  - id: DEC-015
+    set:
+      resulting_refs: [Q-07]
+      note: >-
+        反映先が設計要素でない理由: 回答は Q-07 を後工程へ回す指示であり、設計要素を生まない。反映先は Q-07 の状態（deferred）と、
+        標準 Nav2 で成立させる方針を根拠にする C-012（Navigation 実行主体）・DEC-016（旧 5 m 不採用）。
+  - id: DEC-032
+    set:
+      resulting_refs: [PRM-01, PRM-02, PRM-03, PRM-04, PRM-05, PRM-06, PRM-09, PRM-11, PRM-14, PRM-15, PRM-16, PRM-17, PRM-18, PRM-19]
+      note: >-
+        反映先は各 parameter の measurement・decision_deadline・software_trial_value 欄と、そこから生成する generated/measurement_plan.md・generated/parameters_by_stage.md。
+        原文末尾の「但し、測定値は測定無しで進められる部分は」は人の入力ミスとして削除する指示（DEC-040）。承認済みの値（PRM-07・08・13・21）は実測待ちに含めない（DEC-054）。
+  - id: DEC-044
+    set:
+      note: >-
+        反映先がモデル要素でない理由: 回答は検査器の受理条件（DR-15 の検出項目と試験の対応、正当な設定の非検出）であり、設計要素ではなく rules/README.md と
+        rules/test_check_design.py（test_legitimate_settings_not_flagged）に反映した。モデル内の反映先はない。
+  - id: DEC-029
+    set:
+      note: >-
+        H-009 は DEC-048（ESP32 watchdog 1 s は最後の有効指令受信から、cmd_vel 途絶 700 ms、Bluetooth 途絶 250 ms は別枠）で解消。
+        DEC-053 で値の割当・意味に関する判断は解消済みとして閉じた。根拠: DEC-048、PRM-08・PRM-13・PRM-21（承認値）、docs/vehicle_output_timing.md。
+
+decisions:
+  - id: DEC-053
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3（generated/gate3_package.md）の承認
+    answer_verbatim: |
+      ゲート3は、範囲を限定して条件付きで承認する。
+
+      承認範囲：gate3_package.mdの下位設計案122件は、以後の設計・実装の暫定ベースラインとして採用。値に依存しない下位設計、および実車出力を伴わないソフト実装とstub試験までを認める。
+      承認しないもの：122件の個別最終承認、未確定値の確定、未実施試験の合格、実車投入は含まない。
+      承認の記録：承認は判断台帳へ記録し、対象のdesign/model.yamlのGitコミットまたは内容ハッシュと結び付ける。あわせてDEC-019工程5の暫定状態を更新せよ。
+
+      DEC-031・DEC-045・DEC-046・DEC-047のSpeed Filter方針、DEC-042の手動経路（Bluetoothゲームパッド→ESP32→DAC、手動優先）、DEC-037のリレー不使用・DAC常時出力、という設計方針を維持。
+      DEC-048の値（cmd_vel途絶700 ms、ESP32の期限切れは最後の有効PC指令受信から1 s、Bluetooth途絶250 msは別枠）を維持。
+      H-009の値の割当・意味に関する判断は解消済みとし、根拠IDを付けて閉じよ。
+      一方、DEC-050の実機照合やQ-04〜Q-06の未確定値を、承認済み・実測済みとして扱ってはならない。
+    affected_refs: [DEC-019, DEC-025, H-009, DEC-050, Q-04, Q-05, Q-06]
+    resulting_refs: [FILE-GATE3-MODEL]
+    note: >-
+      承認対象は REV-009 適用後の design/model.yaml（SHA-256 6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f。凍結コピー
+      baselines/gate3_2026-10-09/model.yaml＝FILE-GATE3-MODEL。Git は未コミット）。122 件の design_status は「案」のまま（個別最終承認ではない。DR-12）。
+      維持する方針: DEC-031・045・046・047（Speed Filter）、DEC-042（手動経路）、DEC-037（リレー不使用・DAC 常時出力）、DEC-048（時間値）。
+      DEC-050（実機照合）と Q-04〜Q-06（未確定値）は承認済み・実測済みとして扱わない。
+    disposition: answered
+  - id: DEC-054
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: AI 側で自律的に照合・修正してよい事項の指示
+    answer_verbatim: |
+      AI側で自律的に照合・修正してよいこと：
+      ・照合の対象は以下。
+      DEC-011（Gouda側発行器）の記述が、IFD-14・SO-01・TS-01〜05に残っていないか
+      承認対象42件からIFD-31が抜けている理由:
+      DEC-015・DEC-032・DEC-044の反映先が空欄である理由
+      §5の「未設計」が初回移行時点の記述か、現在も未設計か（現在の未設計事項には対象工程と完了条件を付ける）
+      Q-05の実測待ち一覧に、承認済みの値が残っていないか
+      「手動操縦モード／手動走行」の用語の不統一
+      修正はモデルの変更セットとして記録し、図表・設定・試験仕様を再生成して検査します。生成物を直接編集してはいけない。
+      個別の再承認は不要。
+    affected_refs: [IFD-14, SO-01, TS-01, TS-02, TS-03, TS-04, TS-05, DEC-015, DEC-032, DEC-044, C-001, C-002, C-010, Q-05, MODE-MANUAL]
+    resulting_refs: [IFD-14, TR-05, TR-10, TS-01, PRM-08, PRM-13, C-001, C-002, C-010, MODE-MANUAL]
+    note: >-
+      照合結果: (1) DEC-011 の残存は IFD-14 の名称「発行元は H-001 承認待ち」、TR-05・TR-10 の「速度上限を発行（IFD-14）」、TS-01 の「帯外は H-011 の回答に従う」。SO-01 と TS-02〜05 は残存なし（SO-01 の区間番号は記録用）。
+      (2) IFD-31 は REV-002 で IFD-30 の次に IFD-32 を割り当てた欠番で、削除した要素ではない（revisions の removed_entity_ids は常に空。id_policy により再採番しない）。
+      (3) DEC-015 は Q-07 を後工程に回す指示で設計要素を生まない。DEC-032 の反映先は各 parameter の measurement 欄と生成物。DEC-044 の反映先は検査器と試験（モデル外）。
+      (4) C-001・C-002・C-010 の「未設計」は REV-002（初回移行）時点の記述。現在は SO-01（software_mode・processing_state）、TS-01（初回区間は位置で決まる）、TR-05 の guard で設計済み。
+      (5) Q-05 の実測待ちに承認済みの PRM-08・PRM-13 が残っていた（measurement 欄と issue_refs）。外した。
+      (6) 設計要素は「手動走行」（RQ-I065）で統一済み。「手動操縦」は intent.md:1・95 と旧資料（LEG-05-0004）の表記で、MODE-MANUAL の interpretation に別表記として明記。intent.md の統一は人の編集（proposals/intent_edit_requests.md）。
+    disposition: answered
+  - id: DEC-055
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: RQ-I010 の境界文の削除と、C-003 の飽和の扱い（境界付近の揺らぎを詳細設計しない）
+    answer_verbatim: |
+      RQ-I010の「区間境界では進入する区間の値を適用」を削除。
+      C-003の飽和：車体の物理上限による値の丸め（飽和）は、RQ-I020「cmd_velの後段で独自に速度を抑えない」に当たらない。境界付近の揺らぎ（帯幅・境界セル・減速タイミング）は詳細設計しない。
+    affected_refs: [RQ-I010, C-003, RQ-I020, TS-14, TS-16, PRM-19, PRM-22, PRM-23, PRM-24]
+    resulting_refs: [C-003, TS-14, TS-16, PRM-22, PRM-23, PRM-24, G-TUNING]
+    note: >-
+      intent.md は人が編集する（DEC-013。AI は編集しない）。削除の対象は intent.md:13 の一文「区間境界では、進入する区間の値を適用する。」。編集後に旧版を baselines/intent_history/ に保存し、
+      allow_non_append と decision_ref=DEC-055 を付けた authority_revision（AR-006）で記録する。編集前の正本では当該文は残っているため、本変更セットでは設計側の依存だけを外した。
+      設計側の反映: C-003 に clarification（飽和は RQ-I020 に当たらない。境界付近の揺らぎは詳細設計しない）。TS-14 は重複 cell の規則（DEC-045）と帯内の値の確認に限定し境界セルの切替時刻を評価しない。
+      TS-16 は記録のみ（許容値による合否判定なし）。PRM-22〜24（揺れ幅・継続時間・減速距離の許容値）は設計パラメータから外し参照記録にした（reference_only）。PRM-19（帯幅）は mask 生成器の入力として残すが値は実機調整で、設計規則を設けない。
+    disposition: answered
+  - id: DEC-056
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 実装前の確認（停止・復帰の成立条件）と実装の進め方
+    answer_verbatim: |
+      実装前の確認：
+      停止・復帰の成立条件をモデル上で確認せよ。具体的には、旧goalの終了または破棄、人の一時停止・終了操作の保持、指令中立化の担当を明示せよ。
+
+      実装の進め方：
+      修復後は工程5-1（起動・記録）から機能単位で進め、全Nodeを一括実装してはいけない。
+      手動優先、入力途絶時の中立化、一時停止中の中立出力は、「車体出力」工程の完了条件に含める。最後の「安全機能」工程まで先送りしない。
+      後段の「安全機能」には対象要求IDを明示せよ。非常停止検知・PC側非常停止を、別名や将来候補として再導入してはいけない。
+      TS-06はDEC-046の2経路を扱え。合格条件は「cleanup→configure→activate後、再走行前にcontrollerへ上限が適用されていること」とし、発行ログだけでは合格にしてはいけない。適用を保証できない復帰経路では自動的な再走行を許可しない。
+      故障モード表からは、対応する状態遷移・試験への参照を示し、未確認の機能を対策の根拠にしてはならない。
+      試験不合格時は、観測事実と根本原因を記録せよ。設計の欠陥ならモデル修正→再生成→検査を経て実装に反映せよ。根拠のないtimeout拡大・retry追加・例外の握りつぶし・期待結果の変更は禁止。
+    affected_refs: [TR-02, TR-05, TR-06, TR-07, TR-08, TR-09, TR-10, TR-11, TR-12, TR-13, TR-14, TR-15, TR-16, TS-06, SO-01, IFD-40]
+    resulting_refs: [TR-05, TR-06, TR-07, TR-08, TR-09, TR-10, TR-11, TR-12, TR-13, TR-14, TR-15, TR-16, TS-06]
+    note: >-
+      停止・復帰の成立条件は各遷移の actions に明示し、generated/stop_resume_conditions.md（モデルから生成）で三点（旧 goal の終了／破棄、人の操作の保持、中立化の担当）を遷移ごとに確認する。
+      工程と完了条件は docs/implementation_stages.md（正本 Markdown）。車体出力工程の完了条件に手動優先・入力途絶時の中立化・一時停止中の中立出力を含める。安全機能工程の対象要求 ID は同文書 §8。
+      故障モード表は generated/review_r3.md §3 と generated/failure_modes.md（遷移・試験への参照付き。未確認要素への依存なし）。
+    disposition: answered
+  - id: DEC-057
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 報告内容の指示
+    answer_verbatim: |
+      報告内容：
+      差分中心とし、次の項目を分けて示せ。
+      承認記録
+      整合性修正と再生成・検査結果（違反件数と終了コード）
+      intent.md・legacy/・抽出結果のSHA-256が不変であること
+      次に着手する機能と、その工程を止める未確定事項
+      人が確認すべき修復差分・実測・実機照合
+      判断事項（影響範囲が大きい順、最大10件）
+      状態は「設計検査合格／ソフト試験合格／実車検証済み」を区別せよ。検査違反0件を、未判定事項の解消や実車適合の証明に読み替えてはいけない。
+    affected_refs: []
+    resulting_refs: []
+    note: 報告の形式は reports/worklog/2026-10-09_rev010_gate3.md と status.md に反映。状態は「設計検査合格／ソフト試験合格／実車検証済み」の三つを分けて示す。
+    disposition: answered
+
+entities:
+  - id: G-TUNING
+    kind: issue
+    name: 実機調整で決める項目（設計規則・人の判断事項にしない）
+    intent_lines: [91, 13]
+    related_refs: [DEC-045, DEC-049, DEC-055]
+    sensitivity: []
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: technical
+      state: deferred
+      affected_refs: [PRM-19, PRM-22, PRM-23, PRM-24, TS-16]
+      resolution_refs: []
+      question: >-
+        境界付近の揺らぎ（帯幅 PRM-19、境界セル、減速タイミング）は詳細設計しない（DEC-055）。帯幅は mask 生成器の入力として実機調整で決め、
+        揺れ幅・継続時間・減速距離（PRM-22〜24）は TS-16 の記録項目で合否判定に使わない。これらは設計規則にも人の判断事項にもしない（DEC-045・DEC-049）。
+      next_action: 実車試験の段階で TS-16 の記録を材料に調整する。値は正本に書かず、調整記録を research/vehicle_pc/ 以下に残す。設計検査では「値未確定（実機調整）」として扱う。
+
+modifications:
+  - id: PRM-19
+    set:
+      issue_refs: [Q-06, G-TUNING]
+  - id: TS-16
+    set:
+      issue_refs: [Q-06, G-TUNING]
+  # ---- H-009 を根拠 ID 付きで閉じる（DEC-053） ----
+  - id: H-009
+    set_nested:
+      issue.resolution_refs: [DEC-048, DEC-053, PRM-08, PRM-13, PRM-21]
+      issue.next_action: >-
+        閉じた（DEC-053）。値の割当: cmd_vel 途絶=PRM-08 0.7 s（motion_controller）、ESP32 期限切れ=PRM-13 1.0 s（最後の有効 PC 指令受信から）、Bluetooth 途絶=PRM-21 0.25 s（別枠の既存動作）。
+        意味の整理は docs/vehicle_output_timing.md。PRM-09・PRM-14 は未確定のまま（Q-05・G-FIRMWARE）。
+  # ---- DEC-011 の残存記述を Speed Filter 方針（DEC-031）に揃える ----
+  - id: IFD-14
+    set:
+      name: speed_limit（区間速度上限。発行元は Nav2 costmap の SpeedFilter、DEC-031）
+  - id: TR-05
+    set_nested:
+      transition.actions:
+        - 初期位置を ND-07 へ送る（IFD-34）
+        - run_id を発行し、remaining_waypoints を全区間で初期化
+        - 選択した waypoint セットの速度マスクと filter info を Nav2 に読み込ませる（IFD-41・IFD-42）。speed_limit は Nav2 の SpeedFilter が位置から発行する（IFD-14、DEC-031）。Gouda は発行しない
+        - NavigateThroughPoses goal を送信し active_nav2_goal を記録（IFD-13）。speed_limit_application_state=適用中 を確認してから motion_hold=false を発行（IFD-40）。確認できない間は hold=true のまま（DEC-056）
+        - ログ記録が未開始なら自動開始（契機は人の自律走行開始ボタン：RQ-I015）。設定状況を記録
+        - 直前モード記録を MODE-AUTO に更新
+  - id: TR-10
+    set_nested:
+      transition.actions:
+        - 旧 goal（active_nav2_goal）が終了または破棄済みであることを確認（取消結果の受信、または Nav2 側に goal がないこと）。未確認なら再開を拒否し理由を応答
+        - remaining_waypoints（最終到達後は最終 waypoint のみ：RQ-I067）で新しい NavigateThroughPoses goal を送信し、goal_waypoint_offset を記録
+        - speed_limit は Nav2 の SpeedFilter が位置から発行する（IFD-14、DEC-031。同じ cell なら再発行なし）。speed_limit_application_state=適用中 を確認してから motion_hold=false を発行（IFD-40）
+        - 自動 Record は開始しない。記録が停止中なら人が Record で再開できる（RQ-I015）
+        - 直前モード記録を MODE-AUTO（人の再開操作あり）に更新
+  - id: TS-01
+    set_nested:
+      test.expected: >-
+        開始直後に区間 0 の上限（percentage=false, m/s、PRM-20 の刻みに量子化）が1回発行される。値 0.0（無制限）は帯内では発行されない。
+        帯外（cell=0）から開始した場合は Nav2 の挙動どおり無制限で、speed_limit_application_state に「帯外・無制限」が記録される（DEC-045・DEC-047）。
+  # ---- 停止・復帰の成立条件の明示（DEC-056）: 旧 goal の終了／破棄、人の操作の保持、中立化の担当 ----
+  - id: TR-06
+    set_nested:
+      transition.actions:
+        - motion_hold=true を発行（IFD-40、DEC-004）。中立化の担当は ND-11（hold=true で即時中立。cmd_vel 途絶 700 ms＝PRM-08 は保険：RQ-I063）、最終段は ESP32 の指令途絶中立（RQ-I068）
+        - Nav2 goal を取消（controller_server は取消時に零速度を発行）。取消結果（CANCELED）または result の受信で旧 goal の終了を確認し active_nav2_goal を消す
+        - 停止原因区分=人の操作を記録（RQ-I029）。ログ記録は継続（RQ-I015）
+        - 直前モード記録を「人の一時停止操作あり」で永続化（RQ-I025。PC 再起動後も人の操作なしに走行を再開しない）
+  - id: TR-07
+    set_nested:
+      transition.actions:
+        - motion_hold=true を発行（IFD-40）。中立化の担当は ND-11（RQ-I063）
+        - Nav2 の結果（error_code・error_msg）をログに記録（RQ-I012）。result の受信をもって旧 goal の終了を確認し active_nav2_goal を消す
+        - 停止原因区分を「計画の失敗／blocked」と「推定不能／通信途絶」で区別して記録（RQ-I012・RQ-I029）
+        - 残 waypoint は保持（再開で同じ目標へ：RQ-I014）。直前モード記録は MODE-PAUSE（人の操作なし）
+  - id: TR-08
+    set_nested:
+      transition.actions:
+        - motion_hold=true を発行（IFD-40）し一時停止モードへ（RQ-I017）。Nav2 は goal 完了で cmd_vel 発行を止め、ND-11 は hold=true で中立（担当は ND-11）
+        - result SUCCEEDED の受信をもって旧 goal の終了を確認し active_nav2_goal を消す
+        - remaining_waypoints を「最終 waypoint のみ」にする（再開時も最終 waypoint を目指す：RQ-I067）
+        - 自動開始した記録は停止しない（人の終了操作で停止：RQ-I017）
+  - id: TR-09
+    set_nested:
+      transition.actions:
+        - motion_hold=true を維持／発行（IFD-40）。中立化の担当は ND-11
+        - 理由（失敗した段階と原因区分）を記録（RQ-I013）
+        - 旧 Nav2 goal の終了または破棄を確認（確認できない場合は Nav2 の lifecycle 再起動で破棄）してから一時停止へ。自動再走行はしない
+        - 直前モード記録は MODE-PAUSE（人の操作なし。再開は人の再開操作 TR-10 のみ：RQ-I025）
+  - id: TR-14
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動
+        - 事前地図作成に必要な状態だけを復元（記録セッションは自動開始しない：RQ-I015）
+        - 旧 Nav2 goal は残っていない（事前地図作成では自律走行系 ND-07〜ND-12 が非活性）。自律走行指令の再許可は行わない（RQ-I069）
+        - 中立化の担当は ESP32。PC は指令を送らない（ND-11・ND-12 非活性）。手動操作は ESP32 で優先され、PC 指令の途絶時は ESP32 が中立（RQ-I023・RQ-I068）
+        - 直前モード記録は MODE-MAP のまま（人の操作なし）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限（PRM-10）のときは事前地図作成モードを維持し、理由と失敗段階を記録して monitor に表示（DEC-008）
+  - id: TR-15
+    set_nested:
+      transition.actions:
+        - motion_hold=true を維持（IFD-40）。中立化の担当は ND-11（ND-11 自身の再起動時は起動直後 hold 扱い：SO-08）、最終段は ESP32（RQ-I068）
+        - 必要な場合だけプロセス再起動
+        - 一時停止への復帰に必要な状態だけを復元（mission_context・remaining_waypoints・stop_reason・previous_mode_record）
+        - 旧 Nav2 goal が終了または破棄済みであることを再確認（残っていれば取消し、取消結果の受信で終了を確認）
+        - 直前モード記録（人の一時停止／終了操作の有無を含む）は保持したまま。自律走行指令の再許可は行わない（一時停止のまま：RQ-I069。再開は人の操作 TR-10 のみ：RQ-I025）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限のときは一時停止を維持し理由を記録（RQ-I013）
+  - id: TR-16
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動
+        - 手動走行に必要な状態だけを復元
+        - 旧 Nav2 goal は残っていない（手動走行では自律走行系 ND-07〜ND-12 が非活性）。自律走行指令の再許可は行わない（RQ-I069）
+        - 中立化の担当は ESP32。PC は指令を送らない（ND-11・ND-12 非活性）。手動操作は ESP32 で優先され、PC 指令の途絶時は ESP32 が中立（RQ-I023・RQ-I068）
+        - 直前モード記録は MODE-MANUAL のまま（人の操作なし）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限のときは手動走行モードを維持し、理由と失敗段階を記録して monitor に表示（DEC-008）
+  - id: TR-11
+    set_nested:
+      transition.actions:
+        - motion_hold=true を発行（IFD-40）。中立化の担当は ND-11、最終段は ESP32（RQ-I068）
+        - Nav2 goal を取消し、取消結果の受信で旧 goal の終了を確認。停止原因区分=人の操作を記録
+        - 自動開始したログ記録を停止。手動開始の記録は継続（RQ-I017）
+        - 直前モード記録を MODE-MANUAL（人の終了操作あり）で永続化（RQ-I025）
+        - 自律走行系（ND-07〜ND-12）を非活性化（ND-11・ND-12 は非活性化前に中立を送る）
+  - id: TR-12
+    set_nested:
+      transition.actions:
+        - motion_hold=true は一時停止中から継続（IFD-40）
+        - 残っている Nav2 goal があれば取消し、取消結果の受信で終了を確認
+        - 自動開始したログ記録を停止。手動開始の記録は継続（RQ-I017）
+        - 直前モード記録を MODE-MANUAL（人の終了操作あり）で永続化（RQ-I025）
+        - 自律走行系（ND-07〜ND-12）を非活性化（ND-11・ND-12 は非活性化前に中立を送る）
+  - id: TR-13
+    set_nested:
+      transition.guard: 人の一時停止／終了操作が先行していない（RQ-I025。previous_mode_record で判定）。試行回数が上限未満（PRM-10、値は Q-05）
+      transition.actions:
+        - motion_hold=true を発行して復帰手順を開始（IFD-40）。中立化の担当は ND-11
+        - 必要な場合だけプロセス再起動（RQ-I013 の依存順序の第1段。不要な故障では省く：RQ-I069）
+        - 自律走行への復帰に必要な状態だけを復元（mission_context・remaining_waypoints）
+        - 当該 mission に属する旧 Nav2 goal の終了または破棄を確認（取消結果の受信、または再起動した Nav2 に goal がないこと）。確認できなければ TR-09 へ
+        - controller_server／costmap の復帰は lifecycle cleanup→configure→activate の 1 手順で行う（DEC-046）。復帰後、速度マスクと filter info の latched 配信を確認し、activate 完了より後に受信した speed_limit が現在 cell の上限と一致（speed_limit_application_state=適用中）することを確認してから motion_hold を解除する
+        - 適用中を確認できない復帰経路では自動再走行を許可しない（motion_hold=true を維持し TR-09 へ。DEC-056）
+        - 自律走行指令の再許可（新 goal の送信）。自律走行へ復帰する場合に限る（RQ-I069）
+        - 各段階の成否を記録。人の追加承認は求めない（RQ-I013）
+  - id: TS-06
+    set_nested:
+      test.expected: >-
+        合格条件（DEC-046・DEC-056）: 採用手順 (B) cleanup→configure→activate の後、再走行前に controller が実際に保持している上限（直線 stub 経路での cmd_vel 最大 linear.x で観測）が現在 cell の上限と一致すること。
+        speed_limit の発行ログだけでは合格にしない。(A) deactivate→activate は採用しない復帰方式として同じ観測を記録し、不一致でも設計の不合格にはしないが、(A) で自動再走行が許可されないこと（motion_hold=true のまま TR-09 へ）を合格条件に含める。
+        予測: (B) は再生成後の最初の process() で再発行され一致。(A) は再発行されず、前の値と現在 cell の値が異なれば不一致。
+  # ---- C-003・TS-14・TS-16・PRM-22〜24（DEC-055: 境界付近の揺らぎを詳細設計しない） ----
+  - id: C-003
+    set_nested:
+      reconciliation.clarification: >-
+        DEC-055: 車体の物理上限による値の丸め（飽和）は RQ-I020「cmd_vel の後段で独自に速度を抑える処理」に当たらない（M-012 の飽和・変換特性は保持）。
+        境界付近の揺らぎ（帯幅・境界セル・減速タイミング）は詳細設計しない。RQ-I010 の「区間境界では、進入する区間の値を適用する。」は人が intent.md から削除する（編集待ち。削除後は AR-006 で記録）。
+  - id: TS-14
+    set:
+      name: 速度マスクの重複 cell と帯内の値（境界セルの切替は評価しない）
+    set_nested:
+      test.procedure: 2 区間（上限 v0 > v1）が重なる部分を含む waypoint セットから mask を生成し、各区間の帯内と重なり cell にロボット姿勢を置く（Nav2 stub または実 costmap）。
+      test.observe: 各姿勢での speed_limit の値、重なり cell の値。
+      test.expected: 各区間の帯内では当該区間の上限が発行される。重複 cell は低い方の上限（DEC-045）。境界セルの切替時刻・境界時点の実速度は評価しない（DEC-055、RQ-I062）。
+  - id: TS-16
+    set:
+      name: 低速帯への進入（上限指令と実速度の記録のみ）
+    set_nested:
+      test.observe: 上限指令の切替時刻、cmd_vel と推定速度の時系列。
+      test.expected: >-
+        記録が取れていること（入力→判断→出力をログでたどれる：RQ-I028）。揺れ幅・継続時間・減速距離に対する許容値の合否判定は行わない（DEC-055。境界付近の揺らぎは詳細設計しない）。
+        境界時点の実速度保証は要求しない（RQ-I062）。記録は実機調整の材料にする。
+  - id: PRM-22
+    set:
+      design_status: 未設計
+      adoption: reference_only
+      interpretation: DEC-055 により設計パラメータから外した（境界付近の揺らぎは詳細設計しない）。TS-16 の記録項目の参照として保持。値は定めない。
+      issue_refs: [G-TUNING]
+    set_nested:
+      parameter.purpose: （参照のみ）TS-16 で記録する実速度の揺れ幅。合否判定には使わない（DEC-055）
+      parameter.measurement: 不要（合否判定に使わない。TS-16 の記録のみ）
+      parameter.decision_deadline: なし（設計パラメータではない）
+      parameter.declaration: model_declared
+  - id: PRM-23
+    set:
+      design_status: 未設計
+      adoption: reference_only
+      interpretation: DEC-055 により設計パラメータから外した（境界付近の揺らぎは詳細設計しない）。TS-16 の記録項目の参照として保持。値は定めない。
+      issue_refs: [G-TUNING]
+    set_nested:
+      parameter.purpose: （参照のみ）TS-16 で記録する揺れの継続時間。合否判定には使わない（DEC-055）
+      parameter.measurement: 不要（合否判定に使わない。TS-16 の記録のみ）
+      parameter.decision_deadline: なし（設計パラメータではない）
+      parameter.declaration: model_declared
+  - id: PRM-24
+    set:
+      design_status: 未設計
+      adoption: reference_only
+      interpretation: DEC-055 により設計パラメータから外した（境界付近の揺らぎは詳細設計しない）。TS-16 の記録項目の参照として保持。値は定めない。
+      issue_refs: [G-TUNING]
+    set_nested:
+      parameter.purpose: （参照のみ）TS-16 で記録する減速距離。合否判定には使わない（DEC-055）
+      parameter.measurement: 不要（合否判定に使わない。TS-16 の記録のみ）
+      parameter.decision_deadline: なし（設計パラメータではない）
+      parameter.declaration: model_declared
+  - id: PRM-19
+    set_nested:
+      parameter.decision_deadline: mask 生成器の実装前に仮の幅を引数で与える。採用値は実機調整（DEC-055。設計規則は設けない。人の判断事項にしない：DEC-045）
+  # ---- Q-05 の実測待ちから承認済みの値を外す（DEC-054） ----
+  - id: PRM-08
+    set:
+      issue_refs: []
+    set_nested:
+      parameter.measurement: 不要（承認値 DEC-048。成立確認は TS-07・TS-13 と実車試験。値を変える場合は新しい判断事項）
+      parameter.software_trial_basis: intent.md:102「PC指令のtimeout=700ms」。DEC-048 で cmd_vel 途絶判定（PRM-08）の承認値と確定。H-009 は閉じた（DEC-053）
+  - id: PRM-13
+    set:
+      issue_refs: [G-FIRMWARE]
+      interpretation: intent.md:102「ESP32のwatchdog=1s周期」。DEC-048 で「最後の有効 PC 指令受信から 1 s」の承認値と確定。新 firmware（G-FIRMWARE）で設定値として実装する。
+    set_nested:
+      parameter.measurement: 不要（承認値 DEC-048。新 firmware での成立は車体出力工程の firmware 試験で確認。値を変える場合は新しい判断事項）
+  - id: IFD-17
+    set_nested:
+      designed_interface.time_semantics: 送信周期 PRM-14（未確定）。ESP32 は最後の有効 PC 指令フレームの受信から PRM-13=1.0 s（DEC-048）で中立（RQ-I068）。ARM 手順は参照抽出 §4 を入力に G-FIRMWARE で設計
+  - id: ND-12
+    set_nested:
+      ros_node.responsibilities:
+        - 正規化操作値を新 firmware（ND-17）の通信形式へ変換して送信（機器固有仕様をこの境界に閉じる。RQ-I036。形式は G-FIRMWARE）
+        - cmd_vel の有無に関係なく一定周期（PRM-14）で最新値または中立を送り、入力途絶時は中立を送信する。古い指令を再送しない
+        - ESP32 の STATUS／EVENT（IFD-43）を受信して /esp32/status に公開（IFD-38。表示・診断のみ、DEC-006）
+        - 現 bridge の停止条件（STATUS 鮮度 0.25 s・drive 鮮度 0.15 s での DISARM）は firmware 書き直し（DEC-030）に伴い再設計対象。時間値は PRM-13=1.0 s・PRM-21=0.25 s（DEC-048、H-009 は閉じた）。PRM-09・PRM-14 は未確定
+        - 手動優先（RQ-I023）と ESP32 側の中立化（RQ-I068）は ESP32 の責務で、本 node が代替しない
+  # ---- §5 の「未設計」は初回移行時点の記述（DEC-054） ----
+  - id: C-001
+    set_nested:
+      reconciliation.clarification: 「内部状態との対応は未設計」は REV-002（初回移行）時点の記述。現在は SO-01 の software_mode（4値）と processing_state（変換中・goal 送信中・取消待ち・復旧段階）で設計済み（REV-004・REV-008、DEC-010）。残る未設計はない。
+  - id: C-002
+    set_nested:
+      reconciliation.clarification: 「初回進入の詳細は未設計」は REV-002 時点の記述。現在は Speed Filter の位置ベース発行で設計済み（TS-01。開始地点が区間 0 の帯内なら区間 0 の上限、帯外なら無制限を記録）。残る未設計はない。
+  - id: C-010
+    set_nested:
+      reconciliation.clarification: 「必要条件の内部処理は未設計」は REV-002 時点の記述。現在は TR-05 の guard（ND-07・ND-08・ND-10 活性、ND-06 非活性、地図・waypoint の ID とハッシュ一致）と actions で設計済み（REV-004〜REV-010）。残る未設計はない。
+  # ---- 用語（DEC-054） ----
+  - id: MODE-MANUAL
+    set:
+      interpretation: 正式名は「手動走行」（RQ-I065。設計要素はこの表記で統一）。intent.md:1・95 の「手動操縦（モード）」と旧資料（LEG-05-0004）の「手動操縦」は同一モードの別表記として扱う（DEC-054）。
+  # ---- Q-11（ゲート3一括承認の対象） ----
+  - id: Q-11
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-025, DEC-053]
+      issue.next_action: 暫定ベースラインとして採用（DEC-053）。独自型 4 件（IFD-01・02・28・37・40）の .msg/.srv/.action 定義は下位設計の継続で行う。個別の最終承認は含まれない。
+  # ---- 試験と遷移の対応（故障モード表から遷移・試験を参照するため） ----
+  - id: TS-03
+    append: {related_refs: [TR-06, TR-10]}
+  - id: TS-04
+    append: {related_refs: [TR-06]}
+  - id: TS-05
+    append: {related_refs: [TR-07, TR-08]}
+  - id: TS-06
+    append: {related_refs: [TR-13]}
+  - id: TS-07
+    append: {related_refs: [TR-06, TR-11, TR-12, IFD-40]}
+  - id: TS-08
+    append: {related_refs: [TR-02, TR-10]}
+  - id: TS-09
+    append: {related_refs: [TR-16]}
+  - id: TS-10
+    append: {related_refs: [TR-16]}
+  - id: TS-11
+    append: {related_refs: [TR-04]}
+  - id: TS-13
+    append: {related_refs: [IFD-15, IFD-16]}
+  - id: TS-15
+    append: {related_refs: [TR-05, TR-13]}

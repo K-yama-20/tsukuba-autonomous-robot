@@ -1,0 +1,226 @@
+# 変更セット REV-006（2026-10-09 第3便: H-012 回答、H-011／Speed Filter 再比較の指示、DEC-032 の訂正、AR-004 の完了条件）
+# 適用: design/tools/apply_revision.py REV-006
+id: REV-006
+date: '2026-10-09'
+summary: >-
+  H-012（リレー不使用、DAC 常時出力）を記録して ND-17 を更新。H-011 の指示に従い Speed Filter 採用の決定 ID と根拠、区間上限と領域上限の違い、帯幅・重複・帯外・未読込の定義方法を整理し、
+  採用版・実行構成での復帰後の再適用を調査して (a)(b) を再比較（research/speed_filter_reapply_h011.md）。H-001 を人の最終判断待ちに戻し TS-06 に合格条件を追加。DEC-032 の入力ミスを削除。
+  AR-004 の完了条件として、同一性確認スクリプトと、設定の宣言（型・単位・宣言先・設定先・適用時期・確定状態）、正本からの生成、重複・ハードコード検査（DR-15）を追加。
+basis_refs: [DEC-037, DEC-038, DEC-039, DEC-040, DEC-041]
+
+decision_updates:
+  - id: DEC-032
+    set:
+      answer_verbatim: '実車値：AIが測定計画と採用根拠を整理し、人間は実測への協力と採用判断を行う。'
+      note: 原文末尾の「但し、測定値は測定無しで進められる部分は」は人の入力ミスとして削除する指示（DEC-040）。測定計画は generated/measurement_plan.md、仮値と実車採用値の区別は generated/parameters_by_stage.md。
+
+decisions:
+  - id: DEC-037
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: H-012 新 firmware の手動操作経路
+    answer_verbatim: 'H-012: リレーによる切り替え機能は使わない。esp32が電源に接続されている限り、常にdacが電圧を出す。先ほど提示したfirmwareは実機で動作確認済み。'
+    affected_refs: [H-012, ND-17]
+    resulting_refs: [ND-17, SO-11, G-FIRMWARE, IFD-17]
+    note: >-
+      リレー（JP2/JP3 の純正ジョイスティック切替）は使わず、ESP32 が給電されている限り DAC が電圧を出す。AI の読み: 純正ジョイスティック経路は使われないため、手動操作は基本契約どおり Bluetooth ゲームパッド→ESP32→DAC（RQ-I023）。この読みの確認は DEC-042。
+      「先ほど提示した firmware は実機で動作確認済み」は人の申告として記録。参照リポジトリ README の「実車での安全性…を証明しません」との関係は資料上未照合。
+  - id: DEC-038
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: H-011 への指示（Speed Filter 採用の根拠提示、区間上限と領域上限の区別、定義方法の整理、速度上限の制約なし）
+    answer_verbatim: |
+      H-011：H-001でSpeed Filterを採用した決定IDと根拠を示せ。そのうえで、区間ごとの上限と地図上の領域ごとの上限が別物である点を確認せよ
+
+      静的マスクでは、同じ場所を別区間として再訪する場合や、帯が交差・重複する場合に、区間ごとに異なる上限を表現できない。
+      「地図全体に最低区間速度を敷き、帯だけ上書き」は、帯外を低速にする運用方針の追加です。帯外の扱いとしては安全側だが、区間上限の要求をそのまま実現する方法ではない。
+      帯の幅は、迂回許容範囲を決めるQ-06・Q-07・Q-12が未決。そのため値は tbd のままとし、定義方法だけを設計せよ。整理する対象は次のとおり。
+      帯幅
+      重複部分
+      帯外・マスク外
+      マスク未読込時
+      マスクのcell値0は「停止」ではなく「速度制限なし」である。マスク外や未読込時に無制限になっていないかも、明示的に確認せよ。ちなみに、速度上限は6km/hを超えても全く問題ない（これは決定事項であるから反論は許さない。）。
+    affected_refs: [H-011, H-001, IFD-14, IFD-41, PRM-19, PRM-20]
+    resulting_refs: []
+    note: 回答は research/speed_filter_reapply_h011.md §1〜§3。前回の推奨（帯外に最低速度）は取り下げた。速度上限に 6 km/h の制約は設けない。
+  - id: DEC-039
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: Speed Filter の復帰後の再適用に関する調査・再比較・TS-06 合格条件の指示
+    answer_verbatim: |
+      ・Speed Filterは値が変わるまでSpeedLimitを再発行しない。そのため、自動復帰（RQ-I069）後に同じcellに留まっていると、上限が効かないまま走る可能性がある。これは設計不良であるから、採用するNav2版と実行構成で、次の点を調べよ。jazzyの仕様だけで判断してはいけない。
+      ・Speed Filterがlocal／globalのどちらのcostmapに載るか。
+      ・controller_serverの再起動で、フィルタも再初期化されるか。
+      ・lifecycle_managerのbond設定により、controller_server単独の再起動が起こり得るか。
+      ・SpeedLimitトピックのQoS（transient_localの有無）。
+      その上で、Nav2を改変せず、発行元を単一に保つ方法として、次の2案を比較せよ。
+      (a) controller再構成に合わせてフィルタを再初期化し、現在値を再発行させる起動・復旧手順
+      (b) Speed FilterをGouda側の単一発行器へ置き換える方式
+      既存の発行元に再送器を「追加」する案は、単一発行元（RQ-I020）に反するため、最終的には人間が判断する。比較結果は、H-001の比較表に「復帰後の再適用」の行を加えて提示させせよ。H-011の承認は、その再比較を見てから人間が行う。TS-06には、次の合格条件を追加する。"同じcellに留まったまま再起動しても、現在の上限がcontrollerへ再適用されること"
+    affected_refs: [H-001, H-011, IFD-14, TS-06, TR-13]
+    resulting_refs: []
+    note: 調査結果と比較は research/speed_filter_reapply_h011.md §4〜§5（実車PC 1.3.13＝上流 645abd95 のソースと nav2_bringup の既定、本案の実行構成で評価）。H-001 は人の最終判断待ちに戻した。
+  - id: DEC-040
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: DEC-032 の原文の訂正
+    answer_verbatim: 'DEC-032 の原文："測定値は測定無しで進められる部分は"の文言は人間の入力ミスであるから削除せよ。'
+    affected_refs: []
+    resulting_refs: []
+    note: DEC-032 の answer_verbatim から該当文言を削除した。
+  - id: DEC-041
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: AR-004（intent.md 第4版）の完了条件
+    answer_verbatim: |
+      AR-004（intent.md 第4版の参照追加）
+      参照の追加自体は妥当。ただし、次の2点を報告させるまでは完了するな。
+      ・第4版の同一性確認：基本契約・個別要求の行（RQ-I023〜I027、I062〜I069）が第3版と一致していることを、ハッシュと差分で示す。
+      ・実現方法の確認：
+      1. 各設定の型・単位・設定先・適用タイミング・確定状態を、モデルで定義する。
+      モデル・ROSパラメータ・BT XMLで宣言する部分と、コードの状態遷移で実行する部分を区別する。
+      2. 正本から設定を生成できることを示す。
+      3. 値の重複定義やハードコードを防ぐ検査を用意する。
+      intent.md自体はAIが編集してはいけない。
+    affected_refs: [RQ-I076]
+    resulting_refs: []
+    note: 同一性確認は tools/check_intent_identity.py → reports/intent_v4_identity.md。設定の宣言は parameter の declaration/target/param_key/value_type/apply_timing/value_state、生成は tools/generate_params.py → generated/params/、検査は DR-15。
+  - id: DEC-042
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: H-012 の読みの確認。リレーを使わず DAC が常時出力するとき、手動操作は基本契約どおり Bluetooth ゲームパッド→ESP32→DAC で確定か（純正ジョイスティック経路は使わない）
+    answer_verbatim: ''
+    affected_refs: [ND-17, M-027, RQ-I023]
+    resulting_refs: []
+    note: ''
+
+modifications:
+  - id: H-012
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-037]
+      issue.next_action: 回答済み（DEC-037）。リレー不使用、DAC 常時出力。手動経路の読み（Bluetooth ゲームパッド→ESP32→DAC）の確認は DEC-042。新 firmware の設計は G-FIRMWARE。
+  - id: ND-17
+    set_nested:
+      ros_node.responsibilities:
+        - PC からの正規化操作値を受け、DAC（MCP4922）で EMC-270 のジョイスティック相当電圧を出す（参照抽出 §1・§2。方向別端点は人が設定）。リレーによる純正ジョイスティック切替は使わず、給電中は常に DAC が電圧を出す（DEC-037）
+        - 現在採用している指令源の入力が途絶えたら DAC を中立にする（RQ-I068。watchdog は PRM-13、値は H-009）。リレー解除は行わない
+        - 手動操作の優先（RQ-I023）。経路は Bluetooth ゲームパッド→ESP32→DAC と読む（DEC-042 で確認）
+        - STATUS／EVENT を理由コード付きで PC へ送る（IFD-43。表示・診断のみ、DEC-006）
+        - 非常停止の検知・通知は行わない（RQ-I072）
+      ros_node.placement_rationale: ESP32 上の firmware（ROS node ではない）。既存 firmware は置き換える（DEC-030）。参照 Joystick270-Firmware のピン配置・DAC/ADC・プロトコル形式を入力にするが、リレー切替は採用しない（DEC-037）。参照 firmware は人の申告では実機で動作確認済み（資料上は未照合）。
+  - id: H-011
+    set_nested:
+      issue.question: >-
+        Speed Filter（DEC-031）は mask の cell 値（位置）で上限を決めるため、区間（進行順序）の属性である RQ-I010 の上限とは別物である。再訪・交差・重複では区間ごとの値を表現できない。
+        帯幅（PRM-19）・重複部分の規則・帯外（cell=0 は無制限）・マスク外（発行なし＝直前値が残る）・未読込時（発行なし＝上限なし）の定義方法は research/speed_filter_reapply_h011.md §3。値は Q-06・Q-07・Q-12 が未決のため tbd。
+        承認は、復帰後の再適用を含む (a)(b) の再比較（同 §5、H-001）を見てから人が行う。
+      issue.options:
+        - label: 重複は進行方向で後の区間を優先、帯外は無制限（Nav2 の挙動のまま）
+          effect: 要求どおりの区間上限は帯が重ならない範囲でのみ成立。帯外は controller の最大速度。
+        - label: 重複は低い方の上限を優先、帯外は無制限
+          effect: 安全側だが重複区間では要求値より低い上限になる。
+        - label: 重複を禁止し、生成時にエラーとして人が waypoint を直す
+          effect: 要求どおりの値を保てるが、往復・交差する経路を作れない。
+        - label: Speed Filter をやめ Gouda 側発行器（案 (b)）に戻す
+          effect: 区間上限の意味に一致し帯の定義が不要。H-001 の再判断（RQ-I021 の承認）が必要。
+      issue.recommendation: 推奨なし。前回の推奨（帯外に最低速度を敷く）は運用方針の追加のため取り下げた。定義方法のみ提示し、値は tbd。
+      issue.recommendation_basis: DEC-038（区間上限と領域上限は別物。帯外の低速化は運用方針の追加）。速度上限に 6 km/h の制約は設けない（DEC-038）。
+      issue.next_action: 人が research/speed_filter_reapply_h011.md §5 の再比較を見て H-001 の最終判断（(a) か (b)）を行い、その後 H-011 の重複規則・帯外の扱いを決める。帯幅は Q-06・Q-07・Q-12 の後。
+  - id: H-001
+    set_nested:
+      issue.state: partially_superseded
+      issue.resolution_refs: [DEC-031, DEC-039]
+      issue.question: >-
+        DEC-031 で Speed Filter（costmap filter）が発行することになった。DEC-039 の調査で、Speed Filter は値が変わるまで再発行せず、deactivate→activate だけの復帰では同じ cell で上限が再適用されないことを確認した
+        （cleanup→configure を伴う復帰、または bond による全体 reset では再適用される）。Nav2 を改変せず単一発行元を保つ (a)(b) の比較表（「復帰後の再適用」の行を含む）は research/speed_filter_reapply_h011.md §5。最終判断は人。
+      issue.options:
+        - label: (a) Speed Filter のまま、controller／costmap の復帰を lifecycle cleanup→configure→activate で行い現在値を再発行させる
+          effect: 発行元は Nav2 の SpeedFilter 1 箇所。復帰手順を Gouda 側で作り込む（TR-13）。区間上限は位置依存（帯の重なり・再訪は表現不可、H-011）。mask 未読込・マスク外では発行されない。
+        - label: (b) Speed Filter を Gouda 側の単一発行器に置き換える
+          effect: 発行元は gouda_mode_manager 1 箇所。controller の transition_event で再発行し transient_local で遅延購読にも届く。区間上限（進行順序）の意味に一致し帯の定義が不要。Gouda 独自コードが増える。
+      issue.recommendation: AI は推奨しない。単一発行元（RQ-I020）の最終判断は人（DEC-039）。
+      issue.recommendation_basis: DEC-039「既存の発行元に再送器を『追加』する案は、単一発行元（RQ-I020）に反するため、最終的には人間が判断する」。
+      issue.next_action: 人が (a)/(b) を決める。(a) なら TR-13 の復帰手順と TS-06 を確定、(b) なら docs/speed_limit_publisher.md を現行に戻し IFD-14/41/42 を改める。
+  - id: IFD-14
+    append: {issue_refs: [H-001]}
+    set_nested:
+      designed_interface.time_semantics: >-
+        costmap の SpeedFilter がロボット位置の mask cell 値から上限を計算し、値が変わったときだけ speed_limit を発行（上流 speed_filter.cpp 242-258 行）。percentage=false、m/s。cell=0 は無制限（停止ではない）。
+        mask 未受信・マスク外では発行されない（controller は上限なし／直前値）。復帰後の再適用: フィルタを持つ costmap が cleanup→configure される場合のみ再発行（deactivate→activate では不可）。(a)(b) の最終判断は H-001。
+        Gouda は SpeedLimit を発行しない（単一発行元：RQ-I020）。
+  - id: TR-13
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動（RQ-I013 の依存順序の第1段。不要な故障では省く：RQ-I069）
+        - 自律走行への復帰に必要な状態だけを復元（mission_context・remaining_waypoints）
+        - 当該 mission に属する旧 Nav2 goal の終了または破棄を確認
+        - controller_server／costmap の復帰は lifecycle cleanup→configure→activate で行い、速度マスクと filter info の latched 配信と speed_limit の再発行を確認してから motion_hold を解除する（案 (a)。H-001 の最終判断が (b) ならこの手順は不要）
+        - 自律走行指令の再許可（新 goal の送信）。自律走行へ復帰する場合に限る（RQ-I069）
+        - 各段階の成否を記録。人の追加承認は求めない（RQ-I013）
+  - id: TS-06
+    set_nested:
+      test.procedure: 自律走行中、ロボットを同じ mask cell に留めたまま、(1) controller_server のみ lifecycle deactivate→activate、(2) controller_server を cleanup→configure→activate、(3) controller_server プロセスを再起動（lifecycle_manager の bond 有効）、の3条件を別々に行う。
+      test.observe: 再購読後に speed_limit を受信するか、受信までの時間、SpeedFilter と lifecycle_manager のログ、controller に適用された上限。
+      test.expected: >-
+        合格条件（DEC-039）: 同じ cell に留まったまま再起動しても、現在の上限が controller へ再適用されること。
+        予測: (1) は再発行されず不合格（speed_limit_prev_ が保持される）、(2)(3) はフィルタ再生成後の最初の process() で再発行され合格（現在値が無制限の場合は発行なしが正しい）。(1) が実運用で起こり得る構成なら案 (a) は不合格となり、復帰手順を (2) に限定するか案 (b) を採る。
+  # ---- 設定の宣言（RQ-I076）: 型・宣言先・設定先・適用時期 ----
+  - id: PRM-01
+    set_nested: {parameter.declaration: model_declared, parameter.target: 車体モデル（footprint は生成時に導出）, parameter.param_key: vehicle.length_m, parameter.value_type: double, parameter.apply_timing: build_time}
+  - id: PRM-02
+    set_nested: {parameter.declaration: model_declared, parameter.target: 車体モデル（footprint は生成時に導出）, parameter.param_key: vehicle.width_m, parameter.value_type: double, parameter.apply_timing: build_time}
+  - id: PRM-03
+    set_nested: {parameter.declaration: model_declared, parameter.target: 車体モデル, parameter.param_key: vehicle.height_m, parameter.value_type: double, parameter.apply_timing: build_time}
+  - id: PRM-04
+    set_nested: {parameter.declaration: model_declared, parameter.target: 車体モデル, parameter.param_key: vehicle.rear_wheel_diameter_m, parameter.value_type: double, parameter.apply_timing: build_time}
+  - id: PRM-05
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_static_tf, parameter.param_key: base_link_z_m, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-06
+    set_nested: {parameter.declaration: model_declared, parameter.target: 車体モデル（footprint は生成時に導出）, parameter.param_key: vehicle.wheelbase_m, parameter.value_type: double, parameter.apply_timing: build_time}
+  - id: PRM-07
+    set_nested: {parameter.declaration: model_declared, parameter.target: TF frame 定義（base_link は REP-103）, parameter.param_key: vehicle.base_link_convention, parameter.value_type: string, parameter.apply_timing: build_time}
+  - id: PRM-08
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_motion_controller, parameter.param_key: cmd_vel_timeout_s, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-09
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: vehicle_bridge, parameter.param_key: joystick_timeout_s, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-10
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_mode_manager, parameter.param_key: recovery_attempt_limit, parameter.value_type: int, parameter.apply_timing: launch}
+  - id: PRM-11
+    set_nested: {parameter.declaration: bt_xml, parameter.target: navigate_through_poses BT（RemovePassedGoals radius）, parameter.param_key: remove_passed_goals_radius_m, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-12
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: controller_server, parameter.param_key: enable_stamped_cmd_vel, parameter.value_type: bool, parameter.apply_timing: launch}
+  - id: PRM-13
+    set_nested: {parameter.declaration: firmware_config, parameter.target: esp32_firmware, parameter.param_key: pc_command_watchdog_s, parameter.value_type: double, parameter.apply_timing: runtime_set}
+  - id: PRM-14
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: vehicle_bridge, parameter.param_key: send_period_s, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-15
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_monitor, parameter.param_key: esp32_status_stale_s, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-16
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_mode_manager, parameter.param_key: state_publish_period_s, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-17
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: controller_server, parameter.param_key: controller_frequency, parameter.value_type: double, parameter.apply_timing: launch}
+  - id: PRM-18
+    set_nested: {parameter.declaration: bt_xml, parameter.target: navigate_through_poses BT（RecoveryNode number_of_retries）, parameter.param_key: recovery_number_of_retries, parameter.value_type: int, parameter.apply_timing: launch}
+  - id: PRM-19
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_monitor, parameter.param_key: speed_mask_half_width_m, parameter.value_type: double, parameter.apply_timing: runtime_set}
+  - id: PRM-20
+    set_nested: {parameter.declaration: ros_parameter, parameter.target: gouda_monitor, parameter.param_key: speed_mask_step_mps, parameter.value_type: double, parameter.apply_timing: runtime_set}

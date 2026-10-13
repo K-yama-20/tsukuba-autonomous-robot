@@ -1,0 +1,39 @@
+# 変更セット REV-007（intent.md 第5版: 104 行に H-012 の決定文が追加）
+# 適用: design/tools/apply_revision.py REV-007
+id: REV-007
+date: '2026-10-09'
+summary: intent.md 第5版（104 行「リレーによる切り替え機能は使わない。esp32が電源に接続されている限り、常にdacが電圧を出す。」の追加）を AR-005 として記録し RQ-I077 を付与。DEC-037 の決定が上位要求になったため ND-17・H-012 に参照を追加。
+basis_refs: [DEC-043]
+
+authority_revision:
+  id: AR-005
+  file_id: FILE-INTENT-V5
+  previous_file_id: FILE-INTENT-V4
+  archived_previous_copy: design/baselines/intent_history/intent_v4_6b7ab4b145fb.md
+  allow_non_append: false
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    104: RQ-I077
+  decision_ref: DEC-043
+  note: 人の編集。104 行の追加（削除・変更なし）。内容は DEC-037（H-012 の回答）と同じ文。
+
+decisions:
+  - id: DEC-043
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: intent.md
+    question: intent.md 第5版（人の編集。104 行の追加）
+    answer_verbatim: '・リレーによる切り替え機能は使わない。esp32が電源に接続されている限り、常にdacが電圧を出す。'
+    affected_refs: [FILE-INTENT-V4, H-012]
+    resulting_refs: [AR-005, RQ-I077]
+    note: DEC-037 の決定が上位要求として intent.md に書かれた。ND-17 の責務（リレー不使用・DAC 常時出力）は RQ-I077 を根拠にする。
+
+modifications:
+  - id: ND-17
+    append_intent_lines: [104]
+  - id: H-012
+    append: {related_refs: [DEC-043]}
+    set_nested:
+      issue.resolution_refs: [DEC-037, DEC-043]

@@ -1,0 +1,13 @@
+# 変更セット REV-022（2026-10-09 第15便: PRM-38 の仮値の型を宣言型（double）に合わせる。Ubuntu の起動試験で gouda_map_creator が INTEGER/DOUBLE 不一致で起動できなかったため）
+# 適用: design/tools/apply_revision.py REV-022
+id: REV-022
+date: '2026-10-09'
+summary: PRM-38（占有とみなす点数の下限）の仮値 2 が生成ファイルで INTEGER になり、宣言型 double の parameter に読み込めなかった（設定の不具合）。仮値を 2.0 にして型を揃える。値の意味は不変。
+basis_refs: [DEC-074]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+modifications:
+  - id: PRM-38
+    set_nested:
+      parameter.software_trial_value: 2.0
+      parameter.software_trial_basis: 合成データの単体試験用。実車採用値ではない。宣言型 double に合わせ 2.0 と書く（REV-022）

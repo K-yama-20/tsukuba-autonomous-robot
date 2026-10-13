@@ -1,0 +1,46 @@
+schema_version: '1.1'
+metadata:
+  authority_ref: FILE-1
+  scope: 検査器用の最小人工データ。移行検査の合格を意味しない。
+  id_policy: 固定ID
+  extraction_verification_ref: FILE-1
+  design_validity: 未判定
+  vehicle_verification: 未実施
+files:
+  - id: FILE-1
+    path: synthetic.txt
+    sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+    role: authority
+sources:
+  - id: SRC-1
+    file_ref: FILE-1
+    kind: intent_lines
+    locator:
+      line_start: 1
+      line_end: 1
+    raw_fields:
+      text: 人工の要求
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: 試験用
+      locations: []
+entities:
+  - id: R-1
+    kind: requirement
+    name: 人工要求
+    source_refs: [SRC-1]
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-1
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity: [intent]
+migration:
+  baseline_definition_count: 198
+  id_map: []
+  row_dispositions: []
