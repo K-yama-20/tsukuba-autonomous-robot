@@ -91,7 +91,11 @@ class MapCreatorNode(Node):
                     result.map_yaml_path = str(self.db.root / goal.origin_id / 'converted' / f"{manifest['revision']:03d}" / 'map.yaml')
             except Exception as e:
                 result.ok, result.message = False, f'conversion not started: {e}'
-        (self.get_logger().info if result.ok else self.get_logger().warning)(result.message)
+        # One call site per severity: rclpy raises when a call site's severity changes between calls (VM run 2026-10-13).
+        if result.ok:
+            self.get_logger().info(result.message)
+        else:
+            self.get_logger().warning(result.message)
         handle.succeed() if result.ok else handle.abort()
         return result
 

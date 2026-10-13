@@ -61,7 +61,10 @@ class RecorderNode(Node):
     def _svc(self, rs, fn, trigger):
         ok, msg = fn(trigger)
         rs.success, rs.message = ok, msg
-        self.get_logger().info(msg) if ok else self.get_logger().warning(msg)
+        if ok:   # one call site per severity (rclpy raises when a call site's severity changes)
+            self.get_logger().info(msg)
+        else:
+            self.get_logger().warning(msg)
         self._publish_status()
         return rs
 
