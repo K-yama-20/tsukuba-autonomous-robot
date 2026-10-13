@@ -30,6 +30,8 @@ from rclpy.parameter import Parameter
 from sensor_msgs.msg import PointCloud2, Imu
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 from gouda_interfaces.srv import StartAutonomy
+from gouda_interfaces.action import ConvertMap
+from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
 from gouda_core.monitor_core import MonitorCore, SensorConfig
@@ -38,6 +40,7 @@ from gouda_core.map_database import MapDatabase
 from gouda_core import waypoints as wpmod
 from gouda_core import speed_mask
 from gouda_core import png as pngmod
+from gouda_core import map_tab
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
@@ -119,14 +122,21 @@ class MonitorNode(Node):
         self.create_subscription(Imu, 'sensors/imu/data', lambda b: self._on_sensor('imu', b), sensor_qos, raw=True)
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
+        # 地図 tab (intent.md:106): re-conversion through IFD-37 map/convert with the settings typed in the tab; the defaults
+        # shown are gouda_map_creator's own parameters (PRM-33..36, 38), read with the standard parameter service.
+        self.convert_client = ActionClient(self, ConvertMap, 'map/convert')
+        from rclpy.parameter_client import AsyncParameterClient
+        self.map_creator_params = AsyncParameterClient(self, 'gouda_map_creator')
+        self.conversion = map_tab.ConversionTracker()
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings (DEC-073) and mapping_start_sensor_warning (DEC-088)
         self.create_timer(self.ui['ui_node_list_poll_period_s'], self._poll_nodes)  # PRM-27; display only, not a stop condition
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
         self.server = MonitorServer(web_dir, self._state, self._config_snapshot, self._command, self._config_update,
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
-                                    get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route},
-                                    post_routes={'/api/waypoints/save': self._save_waypoints})
+                                    get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
+                                                '/api/map_settings': self._get_map_settings},
+                                    post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert})
         url = self.server.start()
         self._publish_settings('startup')
         self.get_logger().info(f'gouda_monitor page: {url} (127.0.0.1 only; open it on this PC desktop)')
@@ -191,7 +201,57 @@ class MonitorNode(Node):
         except Exception:
             snap['routes'] = {'sets': []}
         snap['mask_params'] = {'half_width_m': optional_double(self, 'speed_mask_half_width_m'), 'step_mps': optional_double(self, 'speed_mask_step_mps')}
+        with self._lock:
+            snap['map_conversion'] = self.conversion.snapshot()
         return snap
+
+    # ---- 地図 tab (intent.md:106, RQ-I082) ----
+    def _get_map_settings(self, rest, query):
+        """The conversion settings with gouda_map_creator's current values as defaults (None when it has no value)."""
+        values = {}
+        if self.map_creator_params.wait_for_services(timeout_sec=self.ui['ui_service_ready_wait_s']):
+            fut = self.map_creator_params.get_parameters(map_tab.KEYS)
+            done = threading.Event(); fut.add_done_callback(lambda f: done.set())
+            if done.wait(timeout=self.ui['ui_service_response_wait_s']) and fut.exception() is None:
+                for k, v in zip(map_tab.KEYS, fut.result().values):
+                    values[k] = v.double_value if v.type == 3 else (float(v.integer_value) if v.type == 2 else None)   # 3 DOUBLE, 2 INTEGER
+            note = '既定値は gouda_map_creator の parameter（generated params。intent.md:106 により暫定の推奨値。実機検証後に人が再指定）'
+        else:
+            note = f'gouda_map_creator is not available within {self.ui["ui_service_ready_wait_s"]} s: defaults unknown'
+        return {'ok': True, 'settings': [dict(s, default=values.get(s['key'])) for s in map_tab.CONVERSION_SETTINGS], 'note': note}
+
+    def _reconvert(self, rest, body: dict) -> dict:
+        origin = str(body.get('origin_id', ''))
+        if not origin or self.map_db.source_manifest(origin) is None:
+            return {'ok': False, 'message': f'source map {origin!r} is not registered'}
+        settings, errors = map_tab.validate_settings(body.get('settings') or {})
+        if errors:
+            return {'ok': False, 'message': '; '.join(errors)}
+        if not self.convert_client.wait_for_server(timeout_sec=self.ui['ui_service_ready_wait_s']):
+            return {'ok': False, 'message': 'map/convert (gouda_map_creator) is not available; no automatic retry'}
+        with self._lock:
+            ok, msg = self.conversion.start(origin, settings, self._now())
+        if not ok:
+            return {'ok': False, 'message': msg}
+        self._record_event('map_reconvert_requested', '', f're-conversion of {origin} requested from the 地図 tab', {'origin_id': origin, 'settings': settings})
+        goal = ConvertMap.Goal(); goal.origin_id = origin; goal.settings_json = json.dumps(settings)
+        def on_feedback(fb):
+            with self._lock: self.conversion.feedback(fb.feedback.stage, float(fb.feedback.progress))
+            self.server.notify(self.core.connection_revision)
+        send = self.convert_client.send_goal_async(goal, feedback_callback=on_feedback)
+        def on_goal(f):
+            gh = f.result()
+            if not gh.accepted:
+                self._finish_reconvert(origin, False, 'conversion goal rejected', None); return
+            gh.get_result_async().add_done_callback(lambda rf: self._finish_reconvert(origin, rf.result().result.ok, rf.result().result.message, int(rf.result().result.revision)))
+        send.add_done_callback(on_goal)
+        return {'ok': True, 'message': f'conversion of {origin} started; the result appears in the 地図 tab'}
+
+    def _finish_reconvert(self, origin, ok, message, revision):
+        with self._lock:
+            self.conversion.finish(ok, message, revision, self._now())
+        self._record_event('map_reconverted' if ok else 'map_reconvert_failed', '', message, {'origin_id': origin, 'revision': revision if ok else None})
+        self.server.notify(self.core.connection_revision)
 
     def _config_snapshot(self) -> dict:
         with self._lock:
@@ -217,6 +277,9 @@ class MonitorNode(Node):
             d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
             pgm = (d / 'map.pgm').read_bytes(); data, w, h = pngmod.pgm_to_png(pgm)
             return 200, 'image/png', data
+        if what == 'manifest.json':   # settings, statistics and hashes of one converted revision (地図 tab)
+            man = self.map_db.converted_manifest(origin, rev)
+            return {'ok': man is not None, 'manifest': man} if man else {'ok': False, 'message': 'not found'}
         if what == 'geometry.json':
             d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
             g = speed_mask.MapGeometry.from_map_yaml(d / 'map.yaml'); man = self.map_db.converted_manifest(origin, rev) or {}
@@ -290,7 +353,7 @@ class MonitorNode(Node):
                     warning = self.core.mapping_start_warning()
                     sensors = self.core.sensors_snapshot()
                 if warning:
-                    self._record_warning('mapping_start_sensor_warning', 'TR-03', warning, {'sensors': sensors})
+                    self._record_event('mapping_start_sensor_warning', 'TR-03', warning, {'sensors': sensors})
             ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
             if warning:
                 with self._lock:
@@ -304,7 +367,7 @@ class MonitorNode(Node):
         self.server.notify(self.core.connection_revision)
         return {'ok': ok, 'message': msg}
 
-    def _record_warning(self, event, transition_id, reason, details):
+    def _record_event(self, event, transition_id, reason, details):
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
         d.event = event; d.transition_id = transition_id; d.reason = reason; d.run_id = ''; d.section_id = -1
         d.details = json.dumps(details, ensure_ascii=False, default=str)
