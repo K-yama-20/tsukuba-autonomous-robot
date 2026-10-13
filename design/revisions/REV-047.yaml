@@ -1,0 +1,98 @@
+# 変更セット REV-047（2026-10-14 第26便: x86 機の地図作成 2 件（廊下・屋外）の AI による判定の記録）
+# 適用: design/tools/apply_revision.py REV-047
+id: REV-047
+date: '2026-10-14'
+summary: >-
+  x86 機で人が地図作成をした 2 件（1〜2 回目と同じ廊下、屋外）の原図とログを解析した。
+  廊下: GLIM が全 frame を処理（10.00 Hz、欠けなし）、出発点から 0.27 m で終了、frame の間の最大の移動 0.13 m、submap ごとの壁の位置が一致。原図は整合。
+  VM と同じく廊下の向きに 4.40 度の一様な傾きがあり（廊下の水平は人に確認中）、床より下の点（11.4 %）で 2D 変換は不合格（G-FLOOR-REFLECTION）。
+  屋外（10.5 分、580 m）: LiDAR の frame が 3 回、2.7〜3.5 s 途切れ、そのたびに約 1 分間、点と IMU の時刻の差が 1〜3.6 s になり、3 回目で約 9 m ずれた。
+  同じ場所を通った所で高さが中央値 1.8 m 違い、地面が 2 層に写る。原図は不合格（G-LIDAR-DROPOUT として登録）。2D 変換も不合格（地面の推定が下の層と外れた点に引かれる）。
+  x86 機では GLIM が 10 Hz 近くを処理できるため、VM での処理周期の低さは VM に固有と見られる（G-DDS）。
+basis_refs: [DEC-099, DEC-100]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-X86-MAPPING-LOGS
+    path: design/research/vehicle_pc/2026-10-14_x86_mapping_logs.txt
+    role: evidence
+  - id: FILE-X86-MAPPING-MAPS
+    path: design/research/vehicle_pc/2026-10-14_x86_mapping_maps.txt
+    role: evidence
+  - id: FILE-X86-CORRIDOR-SIDE
+    path: design/research/vehicle_pc/2026-10-14_x86_corridor_side.png
+    role: evidence
+  - id: FILE-X86-CORRIDOR-WALLS
+    path: design/research/vehicle_pc/2026-10-14_x86_corridor_walls.png
+    role: evidence
+  - id: FILE-X86-OUTDOOR-TOP
+    path: design/research/vehicle_pc/2026-10-14_x86_outdoor_top.png
+    role: evidence
+  - id: FILE-X86-OUTDOOR-HEIGHT
+    path: design/research/vehicle_pc/2026-10-14_x86_outdoor_height.png
+    role: evidence
+
+entities:
+  - id: G-LIDAR-DROPOUT
+    kind: issue
+    source_from_affected: true
+    name: 屋外の地図作成で LiDAR の frame が 2.7〜3.5 s 途切れ、その後 GLIM がずれる
+    sensitivity: [safety, operation]
+    issue:
+      category: technical
+      state: open
+      affected_refs: [ND-14, ND-06, ND-18, IFD-21]
+      resolution_refs: []
+      question: >-
+        x86 機の屋外の地図作成（2026-10-14 06:34〜06:45）で、GLIM が受け取る LiDAR の frame が 06:38:35 に 3.5 s、06:40:29 に 2.7 s、06:44:22 に 3.2 s 途切れた。
+        それぞれの後、約 1 分間、点と IMU の時刻の差の警告が続いた（270・180・240 回、1.0〜3.6 s）。3 回目では 3.2 s で 12.6 m 進んだことになり（歩く速さなら約 3 m）、約 9 m ずれた。
+        同じ場所を通った所で高さが中央値 1.8 m 違う。途切れの原因（USB-LAN・ケーブル・XT-32・ドライバ・supervisor の作り直し）は未特定。廊下（x86）では途切れはなかった。FILE-X86-MAPPING-MAPS。
+      next_action: >-
+        x86 機の同じ時間帯の記録で原因を調べる。対象は launch のログ（gouda_data/run/gouda_core.launch.log。supervisor の device_absent・driver_restarted、hesai_ros_driver の出力）と、
+        記録のセッションの log/events.jsonl、カーネルのログ（journalctl -k の USB・cdc_ncm）。人から受け取る。
+        原因が分かるまで、屋外の地図作成では monitor の SENSORS 表で点群の途切れを見る。
+
+modifications:
+  - id: G-FLOOR-REFLECTION
+    set_nested:
+      name: 床より下・地面より下の点（光沢のある床の反射、別の高さに写った地面）で地面の推定が下がり、2D 変換で床が障害物や上限より上と判定される
+      issue.question: >-
+        2 回目の試験の原図で、廊下の中の点の高さは床（センサーの約 1.2 m 下）と天井（約 1.3 m 上）に山があるが、床より 0.2〜1.8 m 下にも 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ。
+        地面の推定は格子ごとの最も低い点の下側の包絡なので、これらに引かれて実際の床より約 1.9 m 低くなった（中央値でセンサーの 3.08 m 下）。
+        分析用の 2D 変換では、床より下の点が障害物の帯に入り廊下の中を埋め、床は上限より上と判定され、空きのセルは 325 しかなかった。FILE-VEHICLE-PC-FIELD-MAPPING-2。
+        x86 機の同じ廊下でも床より下の点が 11.4 % あり、同じく不合格（機材ではなく場所の性質）。屋外（x86）では、地面より 0.5 m 以上下の点は最初の 120 s で 3.2 % だが、
+        同じ場所を通った後の区間では別の通過の地面が 1.8 m 違う高さに写り（G-LIDAR-DROPOUT）、地面と判定された点は全体の 0.1 % だった。FILE-X86-MAPPING-MAPS。
+      issue.next_action: >-
+        地面の推定を、地面より下の外れた点と、別の高さに写った地面に強くする（設計の修正。docs/map_conversion.md §2 と map_convert.py、単体試験に床の反射と 2 層の地面の合成データを加える）。
+        候補: (a) 地図作成の軌跡（センサーの高さ）から /config の取付高さを引いた床の近くだけを地面の候補にする（/config がなければ点だけで推定）。軌跡は通過ごとに使うので、通過ごとの高さのずれにも追従する。
+        (b) 格子ごとに最も低い点ではなく、点の多い低い面（高さの分布の山）を地面にする。VM の 2 回目と x86 の廊下・屋外の原図で再変換して確かめる。
+  - id: TS-34
+    set_nested:
+      test.procedure: >-
+        docs/map_conversion.md §5。センサーの受信を確かめてから地図作成を開始し、車体を歩く速さで 50〜100 m 動かす（平らな所・坂・縁石・壁・木・駐車中の物を含め、できれば出発点に戻る）。
+        地図作成を終了し、地図タブで設定を変えて再変換する。原図を python3 -m gouda_core.map_inspect で解析する。
+        実行記録: 1 回目（VM、廊下）は research/vehicle_pc/2026-10-14_field_mapping_corridor.txt（Gouda が 2 つ、不合格、計測に使えない）。
+        2 回目（VM、廊下）は 2026-10-14_field_mapping_corridor_2.txt（原図は整合、4.15 度の傾き、2D 変換は不合格）。
+        x86 の廊下と屋外は 2026-10-14_x86_mapping_maps.txt。廊下: 原図は整合、4.40 度の傾き、2D 変換は不合格。屋外: LiDAR の途切れで原図がずれ不合格（G-LIDAR-DROPOUT）。
+        再試験の前に、Gouda が 1 つだけ動いていること（ps で ros2 launch gouda_core が 1 つ）を確かめ、記録タブの Record で rosbag も記録する。
+  - id: G-DDS
+    set_nested:
+      issue.next_action: >-
+        GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。
+        処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。monitor（Python）の受信周期の低さ（約 2 Hz）は未調査。
+        地図作成は x86 機で行う。VM で行う場合は、RMW の設定（共有メモリ転送の容量、受信バッファ）・VM の CPU を候補として比べる。上流ソフトは改変しない。
+
+decision_updates:
+  - id: DEC-099
+    set:
+      note: >-
+        手順と解析: docs/map_conversion.md §5、gouda_core/gouda_core/map_inspect.py。AI は手順・解析スクリプト・設定への反映を担当。
+        1 回目（2026-10-14、VM、廊下）は Gouda が 2 つ同時に動いていて計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1、G-DUP-START）。
+        2 回目（VM、廊下、XT-32 の取付高さ 1.015 m）: 床は写る。経路から 1・2・3・5 m 以内の 0.5 m の格子のうち、低い点のある割合は 0.33・0.21・0.17・0.14。床より下の反射と推定される点が 12 %（FILE-VEHICLE-PC-FIELD-MAPPING-2）。
+        x86・屋外: 経路から 1・2・3・5 m 以内の格子のすべてに点があり、低い点のある割合は 0.40・0.38・0.37・0.34。最初の 120 s の地面は一つの山（地面より 0.5 m 以上下の点 3.2 %）（FILE-X86-MAPPING-MAPS）。
+  - id: DEC-100
+    set:
+      note: >-
+        GLIM が処理した周期: 静止した原図（VM）8.09・7.97・4.41 Hz、VM の 2 回目（廊下）4.37 Hz、x86 の廊下 10.00 Hz、x86 の屋外 9.84 Hz（LiDAR の途切れ 3 回: G-LIDAR-DROPOUT）。
+        点の密度（経路から 1・2・3・5 m 以内、点/m²）: VM の廊下 206・132・96・61、x86 の屋外 774・874・946・1012（submap 217 個、点 985 万）。
+        GLIM の CPU 負荷と保存時間は未計測。FILE-VEHICLE-PC-SOURCE-MAPS、FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS。
