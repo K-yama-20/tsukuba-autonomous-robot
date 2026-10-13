@@ -51940,6 +51940,23 @@ decisions:
       は IMU 100 周期（PRM-56 の仮値 100 Hz）で、 観測した最大の間隔 0.30 s より長い。PRM-59 は ROS 2 launch がノードの停止で待つ既定と同じ。 決まらない場合: monitor
       は未受信だけを警告し、途絶（STALE）は判定しない。supervisor はドライバの停止を上限なしで待つ。他の作業は止まらない。'
     disposition: open_human
+  - id: DEC-090
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-13'
+    channel: chat
+    question: 起動経路と起動オプション（人の指摘）
+    answer_verbatim: "センサーを使う起動モードと、センサーを使わない起動モードがあるのは何故だ？そんなこと指示したっけ？起動経路はなるべく一つにして、起動オプションでなるべく迷いが生じないようにって指示したと思うのだが。。\n"
+    affected_refs:
+      - ND-01
+      - ND-18
+    resulting_refs: []
+    note: '事実: GOUDA_SENSORS は AI が REV-031（2026-10-13）で、センサーのない環境で試験するために自分の判断で入れた。人の指示ではない。gouda.sh の環境変数は GOUDA_WORKSPACE・GOUDA_DATA_ROOT・GOUDA_PARAMS_DIR・
+      GOUDA_TRIAL_PARAMS・GOUDA_MONITOR_PORT・GOUDA_SENSORS・GOUDA_SERIAL_PORT・ROS_SETUP の 8 つ（ROS_SETUP を含む）。実車でも未確定値（DEC-084・085）のため
+      GOUDA_TRIAL_PARAMS=1 が要る状態だった。 判断台帳（answer_verbatim）と intent.md には「起動経路を一つに」「起動オプションで迷わない」と同じ文の指示は見つからない。チャットで受けていたなら記録していなかった（CLAUDE.md
+      1.1 に反する）。 以後この方針で設計する。変更案（起動は bash gouda.sh start の一つ、センサーは常に supervisor が扱う、機械ごとの値は正本の設定、仮値は試験 script だけ）は人の了承待ち。'
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -53130,4 +53147,16 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-SENSOR-SUPERVISION
+    removed_entity_ids: []
+  - id: REV-036
+    date: '2026-10-13'
+    summary: 人の指摘（DEC-090）を原文で記録。センサーを使う／使わない起動の切替（GOUDA_SENSORS）は人の指示ではなく AI が REV-031 で入れたもの。 gouda.sh 
+      は環境変数の選択肢を 7 つ持っている。台帳と intent.md に同じ文の指示は見つからなかったが、intent.md の体験 1・2（gouda.sh を実行し、共通の node 
+      を起動し、モードごとに必要な node を起動または有効化）と同じ方向。 起動経路を一つにする変更案は人の了承待ち（モデル要素は変えない）。
+    basis_refs:
+      - DEC-090
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []
