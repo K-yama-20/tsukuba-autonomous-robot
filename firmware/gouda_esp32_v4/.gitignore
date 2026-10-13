@@ -1,0 +1,3 @@
+.pio/
+__pycache__/
+include/gouda_v4/build_config.hpp

@@ -1,0 +1,1118 @@
+# 変更セット REV-004（2026-10-09 の人の回答一括反映、intent.md 第3版の記録）
+# 適用: design/tools/apply_revision.py REV-004
+id: REV-004
+date: '2026-10-09'
+summary: >-
+  intent.md 第3版（87行挿入・100行置換・102行追加）を AR-003 として記録。H-001〜H-004・H-006〜H-008・Q-07・Q-10・Q-12・P-001 の回答と
+  Q-04/05/06 の保留指示を判断台帳に原文で記録し、下位設計案へ反映（motion_hold の直接入力、初期位置の再指定、heartbeat は表示のみ、
+  collision_stop 不採用、復旧不能時の直前モード維持、SpeedLimit 発行器の暫定採用と5項目の設計、地図変換は処理状態）。
+  旧Qの判断台帳項目を補い（RQ-I073）、車体出力段階の値の不一致（intent と firmware）を H-009、実機の firmware 版を H-010 として提示。
+basis_refs: [DEC-020, DEC-004, DEC-005, DEC-006, DEC-008, DEC-009, DEC-010, DEC-011, DEC-013, DEC-014, DEC-015, DEC-016, DEC-017, DEC-019]
+
+authority_revision:
+  id: AR-003
+  file_id: FILE-INTENT-V3
+  previous_file_id: FILE-INTENT-V2
+  archived_previous_copy: design/baselines/intent_history/intent_v2_1e087b30ddb6.md
+  current_copy: design/baselines/intent_history/intent_v3_f0df295f9927.md  # 第3版の保存コピー（再適用時の比較先。2026-10-09 追記）
+  allow_non_append: true
+  instruction_expected_added_lines: 1
+  new_requirement_lines:
+    87: RQ-I073
+    100: RQ-I074
+    102: RQ-I075
+  decision_ref: DEC-020
+  note: >-
+    人の編集。機械比較の結果は 87 行の挿入（判断台帳の記録義務）、99→100 行の置換（座標系の文: LiDAR/driver 点群の座標系を Nav2 用に変換する）、
+    102 行の追加（車体出力段階の値）。指示文が言及した追記は 1 件（102 行）だが、置換と挿入も含めて新版とする。旧版（第2版）は archived_previous_copy に保持。
+
+requirement_ref_replacements:
+  RQ-I071: RQ-I074
+
+decision_updates:
+  - id: DEC-004
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'H-002: mode_managerからmotion_controllerへ「一時停止中は中立」を直接入力。'
+      resulting_refs: [H-002, IFD-40, TR-06, TR-11, TR-12, SO-08]
+      note: Safety_gate（M-014）と supervisor の permission 経路は採用しない。中立要求は mode_manager → motion_controller の直接入力（IFD-40）。
+  - id: DEC-005
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'H-003: 不採用'
+      resulting_refs: [H-003, C-020]
+      note: 図の collision_stop_request 線と「緊急停止信号」注記は不採用。障害物は Nav2 costmap のみ（RQ-I012）。
+  - id: DEC-006
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: |
+        H-004:heartbeatは、実際に取得できると確認できた情報に限り、表示・診断に使います。停止条件には採用しません。
+        ただし、既存の実装に停止条件が既にある場合は、AIの判断で外させません。
+        gouda_protocol_v3.md と実装を照合し、取得できない状態は「不明」と表示させます。
+      resulting_refs: [H-004, U-DRAW-003, C-015, IFD-38, ND-02, ND-12]
+      note: >-
+        照合結果（2026-10-09、実装 HEAD a091ed39）: PC bridge gouda_vehicle/hardware_bridge.py は protocol v3 の STATUS を受信し /esp32/status（std_msgs/String, JSON）へ公開。
+        取得できる項目は owner・reason・flags（connected/fresh/centered/auto_enabled）・スティック生値・manual/PC/applied 正規化値・DAC code・要求 mV・accepted seq・bt_age・pc_age。
+        取得できない項目は非常停止状態・電池・実出力電圧・実車運動（gouda_protocol_v3.md「firmware does not read or report an emergency-stop switch」）。
+        既存の停止条件（維持、AI は外さない）: firmware kLinkTimeoutMs=250 ms（BT と PC 指令の双方）、bridge は STATUS 鮮度 0.25 s 不足または drive 鮮度不足で DISARM 送信。
+  - id: DEC-008
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'H-006: 直前が手動走行または事前地図作成で、PC側の node 異常の復旧に失敗した場合は、直前モードを維持して理由を記録する。'
+      resulting_refs: [H-006, C-019, TR-14, TR-16]
+  - id: DEC-009
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'H007: 人が初期位置を再指定してから再開'
+      resulting_refs: [H-007, TR-02, TR-10, IFD-39, SO-01]
+  - id: DEC-010
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'H-008：地図作成の終了後は手動走行へ戻し、地図変換は別の処理状態として続ける。変換専用のモードは追加しない。'
+      resulting_refs: [H-008, TR-04, SO-04, IFD-01]
+  - id: DEC-011
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: |
+        H-001: Gouda側の発行器（Nav2の進捗をもとに標準の SpeedLimit を1か所から発行する）を第一候補とし、暫定採用とする。正式な承認は、実車PCのROS／Nav2の版を照合（V-001）した後にする。
+        あわせて次の点を設計・検証せよ。
+        ・初回区間の扱い
+        ・残りpose数が一度に複数減る場合
+        ・再goal・再開・再計画・取消の後の区間番号
+        ・最終到達をAction結果でどう扱うか
+        ・controllerの再起動・購読開始後に、現在の上限をどう再適用するか
+      resulting_refs: [H-001, IFD-14, SO-01, TS-01, TS-02, TS-03, TS-04, TS-05, TS-06]
+      note: 暫定採用。V-001 は DEC-012 で照合済み（Nav2 1.3.13）のため、正式承認の前提は満たされている。正式承認は人（H-001 を open のまま保持）。5項目の設計は docs/speed_limit_publisher.md と IFD-14・SO-01・TS-01〜06。
+  - id: DEC-013
+    set:
+      status: answered
+      answered_on: '2026-10-09'
+      answer_verbatim: 'P-001:原文・置換案・理由を提示させます。標準座標系に従う実装だけで足りるなら、intent.md の編集は禁止。intentの編集は人間が行う。'
+      resulting_refs: [P-001, AR-003, RQ-I074]
+      note: 人が intent.md:99 を自ら置換した（第3版 100 行「LiDARないしはdriverが出す点群の座標系は…これをNav2用に変換する」）。AI は編集していない。原文・置換案・理由は generated/human_decisions_r2.md と worklog に記載。
+
+decisions:
+  - id: DEC-014
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: Q-10 monitor 断時の走行継続方針
+    answer_verbatim: 'Q-10:monitorの表示が途切れただけでは停止のきっかけにしません。再接続後に現在の状態を取得します。'
+    affected_refs: [Q-10]
+    resulting_refs: [ND-02, IFD-01, TS-10]
+    note: ''
+  - id: DEC-015
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: Q-07 指定線への追従と迂回方式
+    answer_verbatim: 'Q-07:まず標準Nav2で自律走行を成立させる。指定線への厳密な追従や、旧資料の二方式の実装は後工程へ回す'
+    affected_refs: [Q-07]
+    resulting_refs: []
+    note: Q-07 は後工程（deferred）。
+  - id: DEC-016
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: Q-12 waypoint 半径 5 m の用途
+    answer_verbatim: 'Q-12:旧5 mは、当面採用しない。'
+    affected_refs: [Q-12]
+    resulting_refs: [PRM-11]
+    note: RemovePassedGoals の radius は別途決める（PRM-11 未確定）。
+  - id: DEC-017
+    kind: approval
+    status: answered
+    asked_on: '2026-10-08'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: Q-05・Q-04・Q-06 実車値の扱い
+    answer_verbatim: |
+      Q-05・Q-04・Q-06:実車の値は保留し、値に依存しない設計は先に進めよ。次の一覧は、実装段階の順に提出せよ。
+      必要なパラメータ・必要な実測・用途・決定期限
+      ソフト設計用の仮値と実車採用値の区別
+      車体出力段階の値（PC指令のtimeout、ESP32のwatchdog、周期）はintent.mdに追記した。
+      一般論で値を補うことは引き続き禁止。
+    affected_refs: [Q-04, Q-05, Q-06]
+    resulting_refs: [RQ-I075, PRM-08, PRM-13, H-009]
+    note: 一覧は generated/parameters_by_stage.md（parameter の stage/purpose/measurement/decision_deadline/software_trial_value から生成）。
+  - id: DEC-019
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: 工程5 への進み方
+    answer_verbatim: '修正したモデル・遷移表・IF・故障時の対応・試験の期待結果をまとめてレビューに出してから、工程5-1以降の実装に進む。ゲート3の承認が済むまで、行程5は暫定扱い。'
+    affected_refs: []
+    resulting_refs: []
+    note: レビュー資料は generated/review_r3.md。ゲート3承認まで工程5は暫定。
+  - id: DEC-020
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-09'
+    channel: chat
+    question: intent.md 第3版（人の編集）
+    answer_verbatim: '車体出力段階の値（PC指令のtimeout、ESP32のwatchdog、周期）はintent.mdに追記した。'
+    affected_refs: [FILE-INTENT-V2]
+    resulting_refs: [AR-003, RQ-I073, RQ-I074, RQ-I075]
+    note: 機械比較では 87 行の挿入と 99→100 行の置換も検出。いずれも人の編集として新版に含める。
+  - id: DEC-021
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-02 自己位置推定の方式・成立条件（走行時の local_odometry と Global localization のアルゴリズム・版）
+    answer_verbatim: ''
+    affected_refs: [Q-02]
+    resulting_refs: []
+    note: 技術事項だが RQ-I073 により台帳項目を設ける。AI が候補比較を提示したうえで人が確認する。
+  - id: DEC-022
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-03 既存車両通信と制御校正（ESP32 プロトコル・DAC 中立・符号・レンジ）。実装リポジトリ docs/gouda_protocol_v3.md と firmware を照合する承認
+    answer_verbatim: ''
+    affected_refs: [Q-03]
+    resulting_refs: [H-010]
+    note: 実機に書き込まれている firmware の版（H-010）が決まれば照合できる。
+  - id: DEC-023
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-08 P 介入で通った点の扱い（Nav2 の通過判定に任せるか）
+    answer_verbatim: ''
+    affected_refs: [Q-08]
+    resulting_refs: []
+    note: C-004 により通過判定は Nav2。介入中も Nav2 の判定に従う読みが自然だが、人の確認を求める。
+  - id: DEC-024
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-09 Bluetooth 切断時の P 状態（既存実装の確認）
+    answer_verbatim: ''
+    affected_refs: [Q-09]
+    resulting_refs: []
+    note: firmware（gouda_dualsense_usb）は BT 報告が 250 ms 以上途絶すると出力停止・autonomous enable 解除（docs/gouda_protocol_v3.md）。実機の版は H-010。
+  - id: DEC-025
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-11 補助構成と独自 IF の採用（robot_state_publisher、独自型 4 件）
+    answer_verbatim: ''
+    affected_refs: [Q-11]
+    resulting_refs: []
+    note: ''
+  - id: DEC-026
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: Q-13 後工程の保留（カメラ・信号・白線・他ロボット）
+    answer_verbatim: ''
+    affected_refs: [Q-13]
+    resulting_refs: []
+    note: ''
+  - id: DEC-027
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: U-DRAW-001 接続先 ID のない線（2TSgiu6-nVzXwyzMdGmE-18）の意図
+    answer_verbatim: ''
+    affected_refs: [U-DRAW-001]
+    resulting_refs: []
+    note: ''
+  - id: DEC-028
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: U-HISTORY 変更記録 CH-02 と現在図の時点差
+    answer_verbatim: ''
+    affected_refs: [U-HISTORY]
+    resulting_refs: []
+    note: ''
+  - id: DEC-029
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: H-009 車体出力段階の値（intent.md:102 の 700 ms / 1 s と、既存 firmware・bridge の 250 ms の不一致、700 ms の配分）
+    answer_verbatim: ''
+    affected_refs: [RQ-I075, PRM-08, PRM-09, PRM-13, PRM-14]
+    resulting_refs: [H-009]
+    note: ''
+  - id: DEC-030
+    kind: question
+    status: pending
+    asked_on: '2026-10-09'
+    answered_on: null
+    channel: chat
+    question: H-010 実機 ESP32 に書き込まれている firmware（gouda_dualsense_usb protocol v3 か gouda_esp32 旧版か）
+    answer_verbatim: ''
+    affected_refs: [Q-03, Q-09, IFD-17, IFD-38]
+    resulting_refs: [H-010]
+    note: ''
+
+entities:
+  - id: C-020
+    kind: reconciliation
+    name: collision_stop_request と「緊急停止信号」注記の不採用（人の決定）
+    intent_lines: [15, 24, 82, 101]
+    source_from_affected: true
+    related_refs: [H-003, C-015]
+    sensitivity: [safety]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_decision
+      decision_ref: DEC-005
+      affected_refs: [DG@x5bDQh8FaZrcMh8EckeY-163, DG@x5bDQh8FaZrcMh8EckeY-105]
+      adopted_requirement_refs: []
+      scope: >-
+        不採用（原文引用）：drawio 線 x5bDQh8FaZrcMh8EckeY-163「collision_stop_request」（障害物認識 → gouda_motion_controller）と注記 x5bDQh8FaZrcMh8EckeY-105
+        「原則として障害物情報はNavigationに渡して停止・回避動作を行わせるが、緊急時はmotion_controllerに緊急停止信号をいれる。」。
+      retained_scope: >-
+        M-012 J14「将来collision_stop_requestを追加」・V14、M-023 V25 は旧資料の記録として保持（行全体は破棄しない）。障害物の停止・回避は Nav2 costmap/BT（RQ-I012・RQ-I057）。
+      rationale: 人の回答 DEC-005「H-003：不採用」。RQ-I072（PC側非常停止機構を存在させない）と整合。
+      issue_refs: []
+
+  - id: C-021
+    kind: reconciliation
+    name: 車体座標系の文の置換（intent.md 第2版 99 行 → 第3版 100 行）
+    intent_lines: [100]
+    source_from_affected: true
+    related_refs: [C-018, P-001, AR-003]
+    sensitivity: [intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [RQ-I071]
+      adopted_requirement_refs: [RQ-I074]
+      scope: >-
+        第2版 99 行「EMC-270の車体座標系は…LiDARの座標系に合わせ、-y方向を車体前方、+x方向を車体右方、+z方向を上方とする」を、
+        第3版 100 行「LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する」で置換。
+      retained_scope: 寸法（1,010×598×950 mm）、原点（左右後輪駆動軸中央の地面投影点）、base_link 高さ（約 0.165 m）、ホイールベース（415 mm）、センサ取付は後から実測、は両版で同一。
+      rationale: 人が intent.md を編集（DEC-020）。DEC-007 の方針（base_link は Nav2 前提、センサ座標方向は変換）と一致。
+      issue_refs: []
+
+  - id: H-009
+    kind: issue
+    name: 車体出力段階の値の不一致（intent 700 ms / 1 s と firmware・bridge の 250 ms）と 700 ms の配分
+    intent_lines: [102, 92, 97, 35]
+    related_refs: [DEC-029, H-010]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [RQ-I075, PRM-08, PRM-09, PRM-13, PRM-14, ND-11, ND-12, IFD-17]
+      resolution_refs: []
+      question: >-
+        intent.md:102 は「PC指令のtimeout=700ms、ESP32のwatchdog=1s周期」とし、不適切なら適切な値を考えて報告せよとする。
+        実装リポジトリの firmware gouda_dualsense_usb は kLinkTimeoutMs=250 ms（PC 指令・BT 報告の双方。docs/gouda_protocol_v3.md「A PC COMMAND age of 250 ms or more clears autonomous enable」）、
+        PC bridge（gouda_vehicle/hardware_bridge.py）は STATUS 鮮度 0.25 s 不足で DISARM。旧 firmware gouda_esp32 も kReportTimeoutMs=250 ms。
+        また「PC指令のtimeout 700 ms」が cmd_vel→motion_controller の途絶判定（PRM-08）か、joystick→bridge の期限（PRM-09）か、両方の合計かは文面から一意でない。
+        AI の評価: (1) ESP32 側の 1 s は既存 firmware の 250 ms より長く、firmware を変更しない限り実効値は 250 ms。既存の停止条件は AI の判断で外さない（DEC-006）。
+        (2) bridge は cmd_vel の有無に関係なく一定周期（PRM-14、firmware の 250 ms に対し十分短い値。firmware の status 送信は 50 ms 周期）で最新値または中立を送る必要がある。
+        (3) PC 側 700 ms は Nav2 controller の制御周期（上流既定 20 Hz=50 ms、PRM-17）の 14 周期分で、cmd_vel 停止後も最大 0.7 s 最後の速度が続く。
+        途絶判定としては 3 周期程度（150 ms）でも成立し、停止までの惰走を短くできる。ただし一時停止の正規の停止経路は Nav2 取消＋motion_hold（IFD-40）であり、timeout は異常時の保険。
+      next_action: >-
+        人が (a) 700 ms の意味（PRM-08／PRM-09）、(b) ESP32 watchdog を 1 s にするため firmware を変更するか既存 250 ms を維持するか、(c) PC 側 timeout を 700 ms にするか短くするかを決める。
+        決定まで PRM-08・PRM-13 は intent の値を source_value として保持し、実車採用値ではないことを明記。
+      options:
+        - label: intent の値（PC 700 ms、ESP32 1 s）を採用し firmware/bridge を人が変更する
+          effect: 既存 firmware の 250 ms を 1 s へ変更する作業と実機確認が必要。PC 側は 700 ms で惰走最大 0.7 s。
+        - label: ESP32 は既存 250 ms を維持し、PC 側 timeout を controller 周期の数倍（例 150 ms。周期は PRM-17 の決定後）にする
+          effect: firmware 無変更。bridge の送信周期（PRM-14）を 250 ms に対し十分短く設計する必要がある。intent.md:102 の値の更新は人の作業。
+        - label: 保留
+          effect: PRM-08・PRM-13 は未確定のまま。車体出力段階（RQ-I044 の順序）の実装前に決定が必要。
+      recommendation: ESP32 は既存 250 ms を維持し、PC 側 timeout を controller 周期の数倍（例 150 ms。周期は PRM-17 の決定後）にする
+      recommendation_basis: >-
+        既存実装の停止条件を外さない（DEC-006）こと、PC 側で先に中立化してから ESP32 の watchdog が後詰めになる順序（PC timeout < ESP32 watchdog）を保つこと、
+        惰走を短くすること。例示した 150 ms は controller 周期 50 ms（上流既定）に基づく計算値で、実車採用値ではない。
+
+  - id: H-010
+    kind: issue
+    name: 実機 ESP32 に書き込まれている firmware と通信プロトコルの版
+    intent_lines: [34, 35, 97]
+    related_refs: [DEC-030, Q-03, Q-09]
+    sensitivity: [safety, operation]
+    adoption: unresolved
+    design_status: 未設計
+    issue:
+      category: human
+      state: open
+      affected_refs: [Q-03, Q-09, IFD-17, IFD-38, ND-12, M-025]
+      resolution_refs: []
+      question: >-
+        実装リポジトリには firmware/gouda_dualsense_usb（protocol v3、64 byte フレーム、ARM/DISARM、STATUS）と firmware/gouda_esp32（旧版、legacy_control）の 2 系統があり、
+        README はいずれも「実機への書き込み・実接続は未実施」とする。実機の ESP32 に書き込まれている版はどれか。gouda_protocol_v3.md との照合（DEC-006）はこの版が確定してから成立する。
+      next_action: 人が実機の firmware 版を確認する。確定後に Q-03・Q-09 の照合と IFD-17・IFD-38 の確定に進む。
+      options:
+        - label: gouda_dualsense_usb（protocol v3）が書き込まれている
+          effect: IFD-17 は v3 フレーム、IFD-38 の STATUS 項目が取得可能。watchdog は 250 ms（H-009）。
+        - label: gouda_esp32（旧版）が書き込まれている
+          effect: STATUS 相当の取得可否を旧版コードで再照合。ARM/DISARM の有無も確認が必要。
+        - label: 未書き込み・不明
+          effect: 実機確認（T-18 相当）まで IFD-17・IFD-38 は案。
+      recommendation: gouda_dualsense_usb（protocol v3）が書き込まれている
+      recommendation_basis: PC bridge の現行実装（hardware_bridge.py）が v3 のみを扱うため、整合する組合せはこれ。ただし実機確認が必要で推測は確定にしない。
+
+  # ---- 新しい主要IF ----
+  - id: IFD-38
+    kind: designed_interface
+    name: /esp32/status（ESP32 STATUS の表示・診断。既存実装）
+    intent_lines: [45, 41]
+    issue_refs: [H-010, H-009]
+    sensitivity: [operation]
+    designed_interface:
+      transport: topic
+      name: /esp32/status
+      message_type: std_msgs/msg/String（JSON。既存実装 gouda_vehicle/hardware_bridge.py の形式を維持）
+      standard_type: true
+      custom_type_reason: null
+      purpose: diagnostic
+      owner_ref: ND-12
+      publisher_refs: [ND-12]
+      consumer_refs: [ND-02, ND-04]
+      unit: ms（age）、正規化値 [-1000,1000]、DAC code、要求 mV（電圧測定値ではない）
+      frame: null
+      time_semantics: >-
+        STATUS フレーム受信ごと。表示・診断のみに使い、停止条件にしない（DEC-006）。取得できる項目: owner・reason・connected/fresh/centered/auto_enabled・スティック生値・manual/PC/applied 正規化値・DAC code・要求 mV・accepted seq・bt_age・pc_age。
+        取得できない項目（非常停止状態・電池・実出力電圧・実車運動）は monitor が「不明」と表示。STATUS が途絶したときも「不明」表示で、モードは変えない。
+      qos: {reliability: reliable, durability: volatile, history_depth: 10}
+      version_dependency: {status: unconfirmed, evidence: [], note: 実機 firmware の版は H-010。既存実装の既存停止条件（DISARM）は維持（DEC-006）}
+      legacy_refs: [IF-036]
+
+  - id: IFD-39
+    kind: designed_interface
+    name: mode/initial_pose_request（人の初期位置指定。開始時と PC 再起動後の再開前）
+    intent_lines: [14, 93, 17]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: mode/initial_pose_request
+      message_type: geometry_msgs/msg/PoseWithCovarianceStamped
+      standard_type: true
+      custom_type_reason: null
+      purpose: command
+      owner_ref: ND-02
+      publisher_refs: [ND-02]
+      consumer_refs: [ND-03]
+      unit: m, rad
+      frame: map
+      time_semantics: >-
+        人が gouda_monitor で初期位置・向きを指定したときに1回。ND-03 は受理後に IFD-34 で推定器へ転送し記録する。PC 再起動後の一時停止からの再開は、この要求の受理後に限る（DEC-009）。
+        同一プロセス内の一時停止からの再開では不要（RQ-I014）。
+      qos: {reliability: reliable, durability: volatile, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-009]
+
+  - id: IFD-40
+    kind: designed_interface
+    name: control/motion_hold（mode_manager → motion_controller の中立要求）
+    intent_lines: [37, 36, 92, 19]
+    issue_refs: [Q-05]
+    sensitivity: [safety, operation]
+    designed_interface:
+      transport: topic
+      name: control/motion_hold
+      message_type: gouda_interfaces/msg/MotionHold（提案。header, bool hold, string reason, string mode）
+      standard_type: false
+      custom_type_reason: 停止理由とモードを時刻付きで添える標準型がない（std_msgs/Bool は時刻を持たない）。
+      purpose: command
+      owner_ref: ND-03
+      publisher_refs: [ND-03]
+      consumer_refs: [ND-11, ND-04]
+      unit: null
+      frame: null
+      time_semantics: >-
+        モード遷移時に即時発行し、周期的に再発行（周期は PRM-16）。hold=true は自律走行以外のすべてのモードで発行。ND-11 は hold=true、hold の期限切れ、または cmd_vel の途絶（PRM-08）のいずれかで中立を出す。
+        transient_local により ND-11 の再起動後も最新の hold を受け取る。
+      qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      version_dependency: {status: none, evidence: [], note: ''}
+      legacy_refs: [IF-025]
+
+  # ---- 試験の期待結果（未実行） ----
+  - id: TS-01
+    kind: test
+    name: SpeedLimit 初回区間
+    intent_lines: [13, 26]
+    issue_refs: [H-001]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: Nav2 stub（controller_server 相当の購読者）を goal 送信の後に起動する。自律走行開始（IFD-02）を1回行う。
+      observe: speed_limit topic の受信内容と受信時刻、goal 送信時刻、IFD-01 の区間番号。
+      expected: 区間 0→1 の上限（percentage=false, m/s）が goal 送信前に1回発行され、後から購読した controller も transient_local で同じ値を受信する。値 0.0 は発行されない。
+  - id: TS-02
+    kind: test
+    name: SpeedLimit 残り pose 数が一度に複数減る
+    intent_lines: [13, 14, 91]
+    issue_refs: [H-001]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: Nav2 stub の feedback で number_of_poses_remaining を N→N-2 に1回で減らす。
+      observe: speed_limit の発行回数・値、DecisionEvent の記録。
+      expected: 進入区間（i+2）の上限が1回発行される。飛ばされた区間 i+1 は記録に残る。独自の通過判定は行われない。
+  - id: TS-03
+    kind: test
+    name: SpeedLimit 再開・再 goal 後の区間番号
+    intent_lines: [17, 13, 96]
+    issue_refs: [H-001]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: blocked・一時停止・復帰
+      procedure: 区間 3 で一時停止し、再開する。再開後の goal は残 waypoint 列から作る。
+      observe: SO-01 の goal_waypoint_offset と current_section_index、再開直後の speed_limit。
+      expected: 新 goal の feedback remaining=N' が offset により元の区間番号 3 に対応付けられ、区間 3 の上限が再発行される。最終到達後の再開では最終区間の上限が再発行される。
+  - id: TS-04
+    kind: test
+    name: 取消・一時停止時の SpeedLimit と中立
+    intent_lines: [37, 92, 26]
+    issue_refs: [H-001, Q-05]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: blocked・一時停止・復帰
+      procedure: 自律走行中に一時停止ボタン（IFD-03）を押す。Nav2 stub は取消で零速度を1回出して停止する。
+      observe: speed_limit の追加発行、motion_hold、joystick_command。
+      expected: speed_limit は追加発行されない（最後の値を保持。速度 0 を SpeedLimit で送らない）。motion_hold=true が発行され、joystick_command は中立になる。
+  - id: TS-05
+    kind: test
+    name: 最終到達と失敗の Action 結果
+    intent_lines: [21, 15, 96]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: Nav2 stub が result SUCCEEDED を返す場合と、error_code≠NONE で終了する場合を別々に与える。
+      observe: IFD-01 のモード・残 waypoint・停止原因区分、記録。
+      expected: SUCCEEDED → 一時停止、remaining=[最終 waypoint]。失敗 → 一時停止、停止原因区分に Nav2 の error_code/error_msg が記録され、残 waypoint は保持される。
+  - id: TS-06
+    kind: test
+    name: controller 再起動・購読開始後の上限再適用
+    intent_lines: [26, 13]
+    issue_refs: [H-001]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 自律走行中に controller_server 相当の購読者を停止・再起動（lifecycle の deactivate→activate）する。
+      observe: 再購読時に受信する speed_limit、transition_event 後の再発行。
+      expected: 再購読直後に現在区間の上限を transient_local で受信し、ND-03 は transition_event を見て同じ値を再発行する。上限なしの期間が記録に残る。
+  - id: TS-07
+    kind: test
+    name: motion_hold による中立
+    intent_lines: [37, 92]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: motion_controller 単体に cmd_vel と motion_hold を与える。hold=true、hold 途絶、cmd_vel 途絶（PRM-08）の3条件。
+      observe: joystick_command の値と切替時刻。
+      expected: 3条件のいずれでも中立。hold=false かつ新鮮な cmd_vel のときだけ非中立。
+  - id: TS-08
+    kind: test
+    name: PC 再起動後の復帰と再開
+    intent_lines: [93, 36, 17]
+    issue_refs: []
+    sensitivity: [safety, operation]
+    test:
+      execution_status: 未実行
+      stage: blocked・一時停止・復帰
+      procedure: 直前モード記録=自律走行で mode_manager を再起動する。初期位置要求（IFD-39）なしで再開（IFD-04）を押し、次に初期位置要求後に再開を押す。
+      observe: IFD-01、再開応答、goal 送信の有無。
+      expected: 起動後は一時停止。初期位置要求前の再開は拒否（理由付き応答）。要求後の再開で goal 送信。自動 Record は開始されない。
+  - id: TS-09
+    kind: test
+    name: 手動走行中の復旧不能
+    intent_lines: [16, 93]
+    issue_refs: [Q-05]
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: blocked・一時停止・復帰
+      procedure: 手動走行中に recorder を強制終了し、再起動が上限回数（PRM-10 の仮値）失敗するよう stub する。
+      observe: IFD-01 のモード、記録された理由。
+      expected: モードは手動走行のまま。復旧不能の理由と失敗した段階が記録される（DEC-008）。
+  - id: TS-10
+    kind: test
+    name: monitor 断と再接続
+    intent_lines: [45, 19]
+    issue_refs: []
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: gouda_monitor
+      procedure: 自律走行中（Nav2 stub）に gouda_monitor を停止し、再起動する。
+      observe: モード、goal、再起動後に monitor が受信する IFD-01・IFD-12。
+      expected: モードも goal も変わらない。再接続後に transient_local の最新状態を受信して表示が復元する（DEC-014）。
+  - id: TS-11
+    kind: test
+    name: 地図作成終了後のモードと変換の処理状態
+    intent_lines: [11, 12]
+    issue_refs: []
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: 地図作成と変換
+      procedure: 事前地図作成で地図作成終了ボタンを押す。変換 Action（IFD-37）を遅延 stub にする。
+      observe: IFD-01 のモードと processing_state、変換結果、記録の停止。
+      expected: モードは手動走行。processing_state=変換中が表示され、変換完了で消える。変換専用モードは現れない。自動開始した記録だけが停止する。
+  - id: TS-12
+    kind: test
+    name: ESP32 STATUS の表示と不明表示
+    intent_lines: [45]
+    issue_refs: [H-010]
+    sensitivity: [operation]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: /esp32/status を与える場合と途絶させる場合を切り替える。
+      observe: monitor の表示、モード、motion_hold。
+      expected: 取得できる項目は表示され、非常停止状態・電池・実電圧は常に「不明」。途絶時は全項目「不明」になり、モードや motion_hold は変わらない（停止条件にしない）。
+  - id: TS-13
+    kind: test
+    name: cmd_vel 途絶時の中立と送信継続
+    intent_lines: [92, 97]
+    issue_refs: [H-009, Q-05]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: motion_controller と bridge（transport stub）を起動し、cmd_vel を停止する。
+      observe: joystick_command が中立になる時刻、bridge の送信間隔。
+      expected: PRM-08 の期限で中立になり、bridge は cmd_vel の有無に関係なく PRM-14 の周期で送信を続ける（ESP32 側 watchdog を PC 側の正常動作で誤作動させない）。
+
+  # ---- 追加パラメータ ----
+  - id: PRM-13
+    kind: parameter
+    name: ESP32 の PC 指令 watchdog 時間
+    intent_lines: [102, 97]
+    issue_refs: [H-009, H-010]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-12
+      value: 1.0
+      value_state: source_value
+      unit: s
+      stage: 車体出力
+      purpose: PC 指令途絶で ESP32 が中立を出す時間（RQ-I068）
+      measurement: 実機 firmware の値の確認（gouda_dualsense_usb は 250 ms）と、PC 側送信周期との関係の実測
+      decision_deadline: 車体出力の実装前（H-009）
+      software_trial_value: 0.25
+      software_trial_basis: 既存 firmware kLinkTimeoutMs=250 ms（実装リポジトリ）。実車採用値ではない
+    interpretation: intent.md:102「ESP32のwatchdog=1s周期」の転記。既存 firmware は 250 ms で不一致（H-009）。
+  - id: PRM-14
+    kind: parameter
+    name: vehicle_bridge の送信周期
+    intent_lines: [97, 92]
+    issue_refs: [H-009, Q-03]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-12
+      value: null
+      value_state: unresolved
+      unit: s
+      stage: 車体出力
+      purpose: ESP32 watchdog（PRM-13）に対して十分短い周期で最新値または中立を送り続ける
+      measurement: シリアル送信時間と jitter の実測。firmware の status 送信は 50 ms 周期（docs/gouda_protocol_v3.md）
+      decision_deadline: 車体出力の実装前
+      software_trial_value: null
+      software_trial_basis: 仮値なし。stub 試験では PRM-13 の 1/5 以下を条件として記述する
+    interpretation: 制約は「送信間隔＋jitter < watchdog」（IF-028 K29 の方針）。値は未確定。
+  - id: PRM-15
+    kind: parameter
+    name: ESP32 STATUS の表示 stale 閾値
+    intent_lines: [45]
+    issue_refs: [Q-05, H-010]
+    sensitivity: [operation]
+    parameter:
+      owner_ref: ND-02
+      value: null
+      value_state: unresolved
+      unit: s
+      stage: 車体出力
+      purpose: /esp32/status が途絶したとき「不明」に切り替える時間（表示のみ。停止条件ではない）
+      measurement: STATUS 受信周期の実測
+      decision_deadline: 車体出力の実装前
+      software_trial_value: 0.25
+      software_trial_basis: 既存 bridge の _fresh_status 0.25 s（実装リポジトリ）。表示用の仮値で実車採用値ではない
+    interpretation: ''
+  - id: PRM-16
+    kind: parameter
+    name: mode/state・motion_hold の周期発行間隔
+    intent_lines: [37, 45]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-03
+      value: null
+      value_state: unresolved
+      unit: s
+      stage: 車体出力
+      purpose: motion_hold の期限切れ判定（ND-11）と monitor 表示の鮮度
+      measurement: mode_manager の処理周期の実測
+      decision_deadline: 車体出力の実装前
+      software_trial_value: null
+      software_trial_basis: 仮値なし。PRM-08 より短いことを条件として記述する
+    interpretation: ''
+  - id: PRM-17
+    kind: parameter
+    name: Nav2 controller_frequency
+    intent_lines: [24, 25]
+    issue_refs: [Q-05, Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-10
+      value: null
+      value_state: unresolved
+      unit: Hz
+      stage: 自律走行の為の最小構成
+      purpose: cmd_vel の発行周期。PRM-08（PC 指令 timeout）の根拠になる
+      measurement: 実車PC での制御ループ処理時間の実測
+      decision_deadline: Nav2 設定の作成前
+      software_trial_value: 20.0
+      software_trial_basis: 上流 jazzy controller_server の既定値。ソフト試験用で実車採用値ではない
+    interpretation: ''
+  - id: PRM-18
+    kind: parameter
+    name: Nav2 BT の recovery 回数（RecoveryNode number_of_retries）
+    intent_lines: [15, 24]
+    issue_refs: [Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-10
+      value: null
+      value_state: unresolved
+      unit: 回
+      stage: 自律走行の為の最小構成
+      purpose: BT が失敗を返すまでの後退・再計画の試行回数（RQ-I012）
+      measurement: 実車での閉塞試験
+      decision_deadline: Nav2 BT の作成前
+      software_trial_value: 6
+      software_trial_basis: 上流 jazzy 既定 BT の値。ソフト試験用で実車採用値ではない
+    interpretation: ''
+
+modifications:
+  # ---- H-003 不採用 ----
+  - id: DG@x5bDQh8FaZrcMh8EckeY-163
+    set: {adoption: superseded}
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-005、C-020）。図の原文は保持。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-105
+    set: {adoption: superseded}
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 注記「緊急停止信号」は不採用（DEC-005、C-020）。'
+  - id: M-012
+    interpretation_append: 'REV-004: collision_stop_request 入力は不採用（DEC-005）。'
+  - id: M-023
+    interpretation_append: 'REV-004: collision_stop_request は不採用（DEC-005）。'
+  - id: H-003
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-005, C-020]
+      issue.next_action: 回答済み（DEC-005「不採用」）。障害物は Nav2 costmap のみ。
+  # ---- H-004 heartbeat は表示・診断のみ ----
+  - id: H-004
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-006, IFD-38]
+      issue.next_action: >-
+        回答済み（DEC-006）。取得できると確認した項目だけを表示・診断に使う（IFD-38）。停止条件にしない。既存実装の停止条件（firmware 250 ms、bridge DISARM）は維持。取得できない状態は「不明」表示。
+        実機 firmware の版の確認は H-010。
+  - id: DG@x5bDQh8FaZrcMh8EckeY-40
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: heartbeat_and_status は表示・診断のみ（DEC-006、IFD-38）。停止条件にしない。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-162
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-146
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: node 間 heartbeat は lifecycle/diagnostics の表示に置き換え、停止条件にしない（DEC-006）。supervisor は不採用（DEC-004）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-137
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。後工程 node の線。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-160
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-157
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-161
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-159
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: DG@4S4QAY9o3vVNfXHAsMHo-7
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 表示・診断のみ（DEC-006）。'
+  - id: U-DRAW-003
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-005, DEC-006]
+      issue.next_action: 解消（REV-004）。heartbeat は表示・診断のみ（DEC-006）、collision_stop_request は不採用（DEC-005）。資料間の不一致は履歴として保持。
+  - id: C-015
+    set_nested:
+      reconciliation.state: resolved_by_decision
+      reconciliation.decision_ref: DEC-006
+      reconciliation.clarification: 'REV-004: heartbeat は表示・診断のみ（DEC-006）、collision_stop_request は不採用（DEC-005、C-020）。旧資料の記載は履歴として保持。'
+  # ---- H-002 Safety_gate 不採用、motion_hold 直接入力 ----
+  - id: H-002
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-004, IFD-40]
+      issue.next_action: 回答済み（DEC-004）。mode_manager → motion_controller の motion_hold（IFD-40）を直接入力。Safety_gate・supervisor の permission 経路は採用しない。
+  - id: M-014
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。最終指令の遮断は Nav2 取消＋motion_hold（IFD-40）＋cmd_vel 途絶中立で構成。行は旧資料の記録として保持。'
+  - id: M-013
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: safety/permission の経路は不採用（DEC-004）。node 状態は lifecycle と /diagnostics の表示のみ（DEC-006）。行は旧資料の記録として保持。'
+  - id: IF-024
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。ND-11 → ND-12 は IFD-16 で直結。'
+  - id: IF-025
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。中立要求は IFD-40 に置換。'
+  - id: IF-026
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。'
+  - id: IF-027
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。'
+  - id: IF-045
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 不採用（DEC-004）。'
+  - id: DG@x5bDQh8FaZrcMh8EckeY-28
+    delete_fields: [boundary]
+    interpretation_append: 'REV-004: 図の Safety_gate は不採用（DEC-004）。'
+  - id: ND-03
+    append: {issue_refs: [H-009]}
+    set_nested:
+      ros_node.publishes_refs: [IFD-01, IFD-14, IFD-28, IFD-34, IFD-40]
+      ros_node.subscribes_refs: [IFD-12, IFD-25, IFD-33, IFD-39]
+      ros_node.responsibilities:
+        - 4ソフトモード（RQ-I065）の正本と遷移（TR-01〜TR-16）。内部状態・処理段階（変換中・goal送信中・取消待ち・復旧段階）はモードと混同しない
+        - 自律走行の開始・一時停止・再開・終了の受付と、Nav2 NavigateThroughPoses への goal 送信／取消（薄い action client。計画・追従・後退・再計画・通過判定は Nav2）
+        - 一時停止・終了・故障・非自律モードでは motion_hold=true を motion_controller へ直接入力（IFD-40、DEC-004）。自律走行中だけ hold=false
+        - mission 文脈（地図・waypoint の ID／版／ハッシュ、run_id、残 waypoint、goal_waypoint_offset、停止理由）の保持と、PC再起動に必要な部分の永続化（RQ-I064・RQ-I069）
+        - PC 再起動後の再開は人の初期位置要求（IFD-39）の受理後に限る（DEC-009）
+        - 異常終了後の自動復帰の手順（RQ-I013 の依存順序、RQ-I069 の必要状態だけの復元）。復旧不能時は自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持し理由を記録（DEC-008）
+        - 記録の自動開始／停止の契機の発行（RQ-I015・RQ-I017）
+        - 区間速度上限の SpeedLimit 発行（暫定採用 DEC-011）。初回区間は goal 送信前に発行、残り pose 数の変化で進入区間の値を発行、再 goal 時は goal_waypoint_offset で区間番号を復元、controller の再活性化を見て再発行（docs/speed_limit_publisher.md）
+        - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030）
+  - id: ND-11
+    append: {issue_refs: [H-009]}
+    set_nested:
+      ros_node.subscribes_refs: [IFD-15, IFD-25, IFD-40]
+      ros_node.responsibilities:
+        - Nav2 の cmd_vel を EMC-270 のジョイスティック特性に合わせた正規化操作値へ変換（M-012）
+        - motion_hold=true、motion_hold の期限切れ、cmd_vel の途絶・期限切れ・非有限値のいずれかで中立を出す（DEC-004、RQ-I063。しきい値は PRM-08・PRM-16、H-009）
+        - cmd_vel の後段で独自に速度を抑える処理は加えない（RQ-I020）
+  - id: ND-12
+    append: {issue_refs: [H-009, H-010]}
+    set_nested:
+      ros_node.publishes_refs: [IFD-17, IFD-28, IFD-38]
+      ros_node.responsibilities:
+        - 正規化操作値を既存 ESP32 通信形式へ変換して送信（機器固有仕様をこの境界に閉じる。RQ-I036）
+        - cmd_vel の有無に関係なく一定周期（PRM-14）で最新値または中立を送り、入力途絶時は中立を送信する。古い指令を再送しない
+        - ESP32 STATUS を受信して /esp32/status に公開（IFD-38。表示・診断のみ、DEC-006）
+        - 既存実装の停止条件（STATUS 鮮度不足・drive 鮮度不足での DISARM、firmware の 250 ms watchdog）は AI の判断で外さない（DEC-006）
+        - 手動優先（RQ-I023）と ESP32 側の中立化（RQ-I068）は ESP32 の責務で、本 node が代替しない
+  - id: ND-02
+    set_nested:
+      ros_node.publishes_refs: [IFD-26, IFD-39]
+      ros_node.subscribes_refs: [IFD-01, IFD-12, IFD-24, IFD-25, IFD-27, IFD-33, IFD-38]
+      ros_node.responsibilities:
+        - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+        - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）
+        - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
+        - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I010）
+        - 地図とwaypointの組の選択とプレビュー（RQ-I011）
+        - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+        - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に transient_local の状態を取得する（DEC-014）
+  - id: SO-08
+    set_nested:
+      state_owner.state_items:
+        - name: last_cmd_vel_time
+          description: 最後に受信した cmd_vel の時刻（途絶判定の基準。しきい値は PRM-08、H-009）
+          persistence: volatile
+          restore_scope: 起動直後は中立
+        - name: motion_hold_state
+          description: 最後に受信した motion_hold（hold・reason・時刻）。期限切れ（PRM-16）は hold 扱い
+          persistence: volatile
+          restore_scope: 起動直後は hold 扱い（transient_local で最新値を受信するまで中立）
+  # ---- H-006 復旧不能時の遷移先 ----
+  - id: H-006
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-008]
+      issue.next_action: 回答済み（DEC-008）。自律走行・一時停止からは一時停止へ（TR-09・TR-15）、手動走行・事前地図作成では直前モードを維持し理由を記録（TR-14・TR-16）。
+  - id: C-019
+    set_nested:
+      reconciliation.state: resolved_by_decision
+      reconciliation.decision_ref: DEC-008
+      reconciliation.clarification: 'REV-004：DEC-008 により、RQ-I013 の「一時停止モードに入り」は直前が自律走行・一時停止の場合に適用。手動走行・事前地図作成では直前モードを維持し理由を記録。'
+  - id: TR-09
+    set_nested:
+      transition.guard: 直前モードが自律走行（一時停止からは TR-15 で一時停止を維持。手動走行・事前地図作成では直前モード維持：DEC-008）
+  - id: TR-14
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動
+        - 事前地図作成に必要な状態だけを復元（記録セッションは自動開始しない：RQ-I015）
+        - 自律走行指令の再許可は行わない（RQ-I069）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限（PRM-10）のときは事前地図作成モードを維持し、理由と失敗段階を記録して monitor に表示（DEC-008）
+  - id: TR-15
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動
+        - 一時停止への復帰に必要な状態だけを復元
+        - 自律走行指令の再許可は行わない（一時停止のまま：RQ-I069）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限のときは一時停止を維持し理由を記録（RQ-I013）
+  - id: TR-16
+    set_nested:
+      transition.actions:
+        - 必要な場合だけプロセス再起動
+        - 手動走行に必要な状態だけを復元
+        - 自律走行指令の再許可は行わない（RQ-I069）
+        - 各段階の成否を記録
+        - 復旧不能・試行上限のときは手動走行モードを維持し、理由と失敗段階を記録して monitor に表示（DEC-008）
+  # ---- H-007 初期位置の再指定 ----
+  - id: H-007
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-009, IFD-39]
+      issue.next_action: 回答済み（DEC-009）。PC 再起動後の再開は人の初期位置要求（IFD-39）の受理後に限る。保存した最終推定姿勢は初期化に使わない。
+  - id: TR-02
+    set_nested:
+      transition.actions:
+        - 一時停止モードへ復帰する場合に必要な状態（mission_context・remaining_waypoints・stop_reason）だけを復元（RQ-I069）
+        - 旧 Nav2 goal が残っていないことを確認（Nav2 は再起動で goal を持たない）
+        - 自律走行指令の再許可はしない。motion_hold=true を発行（IFD-40）
+        - 再開は人の初期位置要求（IFD-39）の受理後に限る（DEC-009）。保存した最終推定姿勢で自動初期化しない
+        - 自動 Record は開始しない（契機ではない：RQ-I015）
+  - id: TR-10
+    set_nested:
+      transition.guard: ND-07・ND-08・ND-10 が活性で推定が有効。旧 goal が終了済み。同一プロセス内の一時停止では再開地点の再設定を要求しない（RQ-I014）。PC 再起動後は初期位置要求（IFD-39）の受理が必要（DEC-009）
+      transition.actions:
+        - remaining_waypoints（最終到達後は最終 waypoint のみ：RQ-I067）で新しい NavigateThroughPoses goal を送信し、goal_waypoint_offset を記録
+        - 進入区間の速度上限を発行（IFD-14）。motion_hold=false を発行（IFD-40）
+        - 自動 Record は開始しない。記録が停止中なら人が Record で再開できる（RQ-I015）
+        - 直前モード記録を MODE-AUTO に更新
+  - id: SO-01
+    set_nested:
+      state_owner.state_items:
+        - name: software_mode
+          description: 現在のソフトモード（4値：RQ-I065）。内部の処理段階（goal送信中・取消待ち・変換中等）とは別の変数で持つ
+          persistence: persisted
+          restore_scope: PC再起動時に直前モードを読み、RQ-I064 の規則で復帰先を決める
+        - name: processing_state
+          description: モードとは別の処理状態（地図変換中・goal送信中・取消待ち・復旧段階）。IFD-01 で表示（DEC-010）
+          persistence: volatile
+          restore_scope: 再起動で初期化。変換ジョブの有無は SO-04 から再取得
+        - name: previous_mode_record
+          description: 人の一時停止／終了操作の有無を含む直前モードの記録（RQ-I025）
+          persistence: persisted
+          restore_scope: PC再起動後に人の操作なしで走行を再開しないための判定に使う
+        - name: mission_context
+          description: 選択した変換後地図の由来ID・版・内容ハッシュ、waypointセットのID・版・ハッシュ、run_id
+          persistence: persisted
+          restore_scope: 自律走行／一時停止へ復帰する場合だけ復元（RQ-I069）
+        - name: remaining_waypoints
+          description: 未到達の waypoint 列。Nav2 feedback の number_of_poses_remaining で更新（通過判定は Nav2：RQ-I011）
+          persistence: persisted
+          restore_scope: 再開時の新 goal の構成に使う。最終到達後は最終 waypoint のみ（RQ-I067）
+        - name: goal_waypoint_offset
+          description: 現在の Nav2 goal の先頭 pose が waypoint セット全体の何番目かを示す offset。区間番号 = offset + (goal の pose 数 - number_of_poses_remaining)
+          persistence: volatile
+          restore_scope: goal 送信ごとに更新。再開・再 goal 後の区間番号の復元に使う（DEC-011）
+        - name: current_section_index
+          description: 進入中の区間番号（waypoint i → i+1 の i）。変化時に SpeedLimit を発行
+          persistence: volatile
+          restore_scope: goal 送信時に offset から再計算
+        - name: active_nav2_goal
+          description: 送信中の NavigateThroughPoses goal の handle／UUID
+          persistence: volatile
+          restore_scope: 復帰時は旧 goal の終了または破棄を確認してから新 goal（RQ-I013・RQ-I069）
+        - name: stop_reason
+          description: 停止の原因区分（人の操作・計画の失敗・blocked・推定不能・通信途絶・nodeの異常：RQ-I029）
+          persistence: persisted
+          restore_scope: 記録と表示。復帰判定の入力
+        - name: recovery_attempt_count
+          description: 自動復帰の試行回数（上限値は PRM-10）
+          persistence: volatile
+          restore_scope: 上限到達で RQ-I013／DEC-008 の規則に従う
+        - name: initial_pose_received_after_restart
+          description: PC 再起動後に人の初期位置要求（IFD-39）を受理したか（DEC-009）
+          persistence: volatile
+          restore_scope: 再起動で false。再開（TR-10）の guard
+        - name: last_estimated_pose
+          description: 最終推定姿勢（記録用。初期化には使わない：DEC-009）
+          persistence: persisted
+          restore_scope: 復元に使わない
+  # ---- H-001 暫定採用 ----
+  - id: H-001
+    set_nested:
+      issue.state: partially_superseded
+      issue.resolution_refs: [DEC-011]
+      issue.next_action: >-
+        暫定採用（DEC-011: Gouda側発行器を第一候補）。V-001 は DEC-012 で照合済みのため、正式承認を人に求める。5項目の設計は docs/speed_limit_publisher.md、IFD-14、SO-01、試験 TS-01〜TS-06。
+  - id: IFD-14
+    set_nested:
+      designed_interface.qos: {reliability: reliable, durability: transient_local, history_depth: 1}
+      designed_interface.time_semantics: >-
+        (1) 初回区間: goal 送信前に区間 0→1 の上限を1回発行。(2) 区間境界: feedback の number_of_poses_remaining が減ったとき進入区間（複数減ったときは最新の進入区間）の上限を1回発行し、飛ばした区間を記録。
+        (3) 再 goal・再開: goal_waypoint_offset で区間番号を復元し、進入中の区間の上限を再発行。Nav2 内部の再計画では goal が変わらないため発行しない。取消では追加発行しない（停止は motion_hold）。
+        (4) 最終到達: result SUCCEEDED で発行を終える（最後の値を保持）。失敗 result では発行せず一時停止へ。(5) controller の再起動・購読開始: transient_local keep_last 1 により最新値を受信し、
+        さらに controller の transition_event（activate）を見て再発行する。percentage=false、m/s。speed_limit=0.0 は無制限であり停止用途に使わない。境界時点の実速度保証は要求しない（RQ-I062）。
+  # ---- H-008 ----
+  - id: H-008
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-010]
+      issue.next_action: 回答済み（DEC-010）。地図作成終了後は手動走行。地図変換は processing_state（SO-01／SO-04）として続け、変換専用モードは追加しない。
+  - id: TR-04
+    set_nested:
+      transition.actions:
+        - GLIM に保存を要求し、原図を map_database へ保管（RQ-I008）。GLIM の TF 発行を停止
+        - 自動変換を Action（IFD-37）で起動し、processing_state=変換中 を IFD-01 で表示（DEC-010）。失敗しても原図は保持（RQ-I009）。変換専用モードは作らない
+        - 自動開始したログ記録を停止。手動開始の記録は停止しない（RQ-I017）
+        - 設定状況を記録（地図作成後：RQ-I015）
+  - id: SO-04
+    set_nested:
+      state_owner.state_items:
+        - name: map_database
+          description: 原図と変換後地図、由来ID、各成果物の内容ハッシュ、変換設定・変換器版（RQ-I009）
+          persistence: persisted
+          restore_scope: ファイルが正本。実行中状態はない
+        - name: conversion_job
+          description: 実行中の変換ジョブ（原図ID・進捗・結果）。モードではなく処理状態（DEC-010）
+          persistence: volatile
+          restore_scope: 再起動で中断。不完全な成果物は破棄し、人が再変換を起動できる
+  - id: IFD-01
+    set_nested:
+      designed_interface.custom_type_reason: モード（4値列挙）・processing_state（変換中・goal送信中等）・run_id・残waypoint数・現在区間番号・停止原因区分・state_revision を一つの時刻付きメッセージで表す標準型がない。
+  # ---- Q-10, Q-07, Q-12, Q-04/05/06, P-001 ----
+  - id: Q-10
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-014]
+      issue.next_action: 回答済み（DEC-014）。monitor の表示断は停止契機にしない。再接続後に transient_local の mode/state・record/status を取得（ND-02、TS-10）。
+  - id: Q-07
+    set_nested:
+      issue.state: deferred
+      issue.resolution_refs: [DEC-015]
+      issue.next_action: 後工程（DEC-015）。まず標準 Nav2 で自律走行を成立させる。指定線追従・二方式は後工程。
+  - id: Q-12
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-016]
+      issue.next_action: 回答済み（DEC-016）。旧 5 m は当面採用しない。RemovePassedGoals の radius は PRM-11（未確定）。
+  - id: Q-05
+    append: {related_refs: [DEC-017]}
+    set_nested:
+      issue.next_action: 実車値は保留（DEC-017）。値に依存しない設計を先に進める。パラメータ一覧は generated/parameters_by_stage.md。車体出力段階の値は intent.md:102（RQ-I075）と H-009。
+  - id: Q-04
+    append: {related_refs: [DEC-017]}
+    set_nested:
+      issue.next_action: 実車値は保留（DEC-017）。評価条件の決定は障害物処理の実車評価前。
+  - id: Q-06
+    append: {related_refs: [DEC-017]}
+    set_nested:
+      issue.next_action: 実車値は保留（DEC-017）。Nav2 設定の値（PRM-11・PRM-17・PRM-18 等）は一覧で管理し、仮値は実車採用値と区別する。
+  - id: P-001
+    set_nested:
+      issue.state: resolved
+      issue.resolution_refs: [DEC-013, C-021]
+      issue.next_action: >-
+        解消（REV-004）。人が intent.md:99 を置換した（第3版 100 行、AR-003、C-021）。原文（第2版）「EMC-270の車体座標系は…LiDARの座標系に合わせ、-y方向を車体前方…」、
+        現文（第3版）「LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方…とするものであうが、これをNav2用に変換する」。AI の評価: 標準座標系（REP-103）の base_link と /config によるセンサ座標方向の変換で実装は足りる。
+  - id: C-018
+    set_nested:
+      reconciliation.clarification: >-
+        REV-003: 人の回答（DEC-007）により base_link/base_footprint は REP-103 とし、RQ-I071 の -y 前方はセンサ座標方向の指定値として /config に置き ND-13 の静的TFで変換する。
+        REV-004: 人が intent.md:99 を置換（第3版 100 行 RQ-I074「これをNav2用に変換する」。C-021）。上位要求の文言と採用方針が一致した。
+  - id: RQ-I071
+    set: {adoption: superseded}
+    interpretation_append: 'REV-004: intent.md 第3版で置換（C-021）。後継は RQ-I074。'
+  # ---- パラメータの段階・用途・実測・期限・仮値 ----
+  - id: PRM-01
+    set_nested: {parameter.stage: 自律走行の為の最小構成, parameter.purpose: Nav2 footprint・衝突判定の車体外形, parameter.measurement: 実車の外形寸法の実測（突起物を含む）, parameter.decision_deadline: Nav2 設定の作成前, parameter.software_trial_value: 1.010, parameter.software_trial_basis: intent.md:100 の記載値。実測値ではない}
+  - id: PRM-02
+    set_nested: {parameter.stage: 自律走行の為の最小構成, parameter.purpose: Nav2 footprint の幅, parameter.measurement: 実車の外形寸法の実測, parameter.decision_deadline: Nav2 設定の作成前, parameter.software_trial_value: 0.598, parameter.software_trial_basis: intent.md:100 の記載値}
+  - id: PRM-03
+    set_nested: {parameter.stage: 自律走行の為の最小構成, parameter.purpose: 障害物フィルタの高さ範囲・costmap の高さ条件, parameter.measurement: 実車の全高の実測, parameter.decision_deadline: 障害物フィルタ設定の前, parameter.software_trial_value: 0.950, parameter.software_trial_basis: intent.md:100 の記載値}
+  - id: PRM-04
+    set_nested: {parameter.stage: 車体出力, parameter.purpose: base_link 高さの導出, parameter.measurement: 後輪径の実測, parameter.decision_deadline: 静的TF の作成前, parameter.software_trial_value: 0.330, parameter.software_trial_basis: intent.md:100 の記載値}
+  - id: PRM-05
+    set_nested: {parameter.stage: 車体出力, parameter.purpose: base_footprint→base_link の静的TF, parameter.measurement: 後輪軸中心高さの実測, parameter.decision_deadline: 静的TF の作成前, parameter.software_trial_value: 0.165, parameter.software_trial_basis: intent.md:100「約 0.165 m」}
+  - id: PRM-06
+    set_nested: {parameter.stage: 自律走行の為の最小構成, parameter.purpose: footprint の前後配置・前キャスタ位置, parameter.measurement: ホイールベースの実測, parameter.decision_deadline: Nav2 設定の作成前, parameter.software_trial_value: 0.415, parameter.software_trial_basis: intent.md:100 の記載値}
+  - id: PRM-07
+    set_nested: {parameter.stage: 車体出力, parameter.purpose: base_link の軸定義（TF・cmd_vel・footprint の前提）, parameter.measurement: 不要（定義。センサ座標方向は /config で指定）, parameter.decision_deadline: 決定済み（DEC-007）, parameter.software_trial_value: null, parameter.software_trial_basis: 承認済みの定義のため仮値なし}
+  - id: PRM-08
+    set:
+      issue_refs: [Q-05, H-009]
+    append_intent_lines: [102]
+    set_nested:
+      parameter.value: 0.7
+      parameter.value_state: source_value
+      parameter.stage: 車体出力
+      parameter.purpose: cmd_vel 途絶で motion_controller が中立を出すまでの時間（RQ-I063）
+      parameter.measurement: Nav2 controller 周期（PRM-17）と PC 側処理時間の実測
+      parameter.decision_deadline: 車体出力の実装前（H-009）
+      parameter.software_trial_value: 0.7
+      parameter.software_trial_basis: intent.md:102「PC指令のtimeout=700ms」の転記。700 ms が PRM-08 か PRM-09 かは H-009 で確認
+    interpretation: intent.md:102 の値を source_value として保持。実車採用値ではない。既存 firmware の 250 ms との関係と推奨は H-009。
+  - id: PRM-09
+    set_nested: {parameter.stage: 車体出力, parameter.purpose: joystick_command の期限切れで bridge が中立を送るまでの時間, parameter.measurement: motion_controller→bridge の遅延の実測, parameter.decision_deadline: 車体出力の実装前（H-009）, parameter.software_trial_value: null, parameter.software_trial_basis: 仮値なし。PRM-08 との配分は H-009}
+  - id: PRM-10
+    set_nested: {parameter.stage: blocked・一時停止・復帰, parameter.purpose: 自動復帰の試行回数上限（RQ-I013）, parameter.measurement: 不要（運用値）。人が決める, parameter.decision_deadline: 復旧手順の実装前, parameter.software_trial_value: null, parameter.software_trial_basis: 仮値なし。stub 試験では試験ごとに明示する}
+  - id: PRM-11
+    set_nested: {parameter.stage: 自律走行の為の最小構成, parameter.purpose: Nav2 RemovePassedGoals の通過判定半径, parameter.measurement: 実車の到達精度（推定誤差・停止精度）の実測, parameter.decision_deadline: Nav2 BT の作成前, parameter.software_trial_value: 0.7, parameter.software_trial_basis: 上流 jazzy 既定 BT の値。旧 5 m は不採用（DEC-016）。実車採用値ではない}
+    interpretation: 旧資料の 5 m は当面採用しない（DEC-016）。上流 jazzy の既定 BT では radius=0.7。値は Q-06 の回答後に人が決める。
+  - id: PRM-12
+    set_nested: {parameter.stage: 車体出力, parameter.purpose: cmd_vel を TwistStamped にして期限切れ判定を可能にする, parameter.measurement: 不要（設定選択）, parameter.decision_deadline: motion_controller の実装前, parameter.software_trial_value: true, parameter.software_trial_basis: 案（TwistStamped）。実車採用値ではなく設定選択}

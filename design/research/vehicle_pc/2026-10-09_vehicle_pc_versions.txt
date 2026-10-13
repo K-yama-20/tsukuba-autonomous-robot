@@ -1,0 +1,21 @@
+aya@aya-Parallels-ARM-Virtual-Machine:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)"
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+jazzy
+ii  ros-jazzy-nav2-bringup                           1.3.13-1noble.20260907.050450                    arm64        Bringup scripts and configurations for the Nav2 stack
+ii  ros-jazzy-nav2-bt-navigator                      1.3.13-1noble.20260903.005322                    arm64        Nav2 BT Navigator Server
+ii  ros-jazzy-nav2-controller                        1.3.13-1noble.20260903.005511                    arm64        Controller action interface
+ii  ros-jazzy-nav2-msgs                              1.3.13-1noble.20260902.193503                    arm64        Messages and service files for the Nav2 stack
+ii  ros-jazzy-nav2-route                             1.3.13-1noble.20260903.010339                    arm64        A Route Graph planner to compliment the Planner Server
+ii  ros-jazzy-navigation2                            1.3.13-1noble.20260907.041002                    arm64        ROS2 Navigation Stack

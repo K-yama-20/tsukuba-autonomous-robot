@@ -1,0 +1,16 @@
+# Physical directions, not numeric min/max: negative X=left, positive X=right,
+# negative Y=reverse, positive Y=forward.
+uint16 x_negative_mv
+uint16 x_positive_mv
+uint16 y_negative_mv
+uint16 y_positive_mv
+uint16 x_seed_mv
+uint16 y_seed_mv
+uint16 dac_full_scale_mv
+uint16 watchdog_ms
+uint16 slew_full_scale_ms
+uint16 motion_threshold_mm_s
+uint16 output_warn_tolerance_mv
+---
+bool queued
+string reason

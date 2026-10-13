@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>emc270_joystick_driver</name>
+  <version>0.1.0</version>
+  <description>USB serial driver and calibration logger for the EMC-270 joystick controller.</description>
+  <maintainer email="noreply@example.invalid">Joystick270 maintainers</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>emc270_joystick_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>std_srvs</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

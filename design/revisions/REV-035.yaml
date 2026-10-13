@@ -1,0 +1,34 @@
+# 変更セット REV-035（2026-10-13 第22便: DEC-088 の VM 確認の記録と、点群の配送の欠落の問題登録）
+# 適用: design/tools/apply_revision.py REV-035
+id: REV-035
+date: '2026-10-13'
+summary: >-
+  DEC-088 の VM での確認を証拠として登録（FILE-VEHICLE-PC-SENSOR-SUPERVISION）。supervisor が XT-32 の I/F と IMU の by-id の名前から同一性を求めて両ドライバを起動し、
+  monitor が受信状況を表示した。センサーなしの別スタックで、地図作成開始時の警告（ポップアップ用の文、DecisionEvent）と、警告しても開始されることを確認。
+  新たに分かった問題: ドライバは点群を 10 Hz で出しているが、別プロセスの購読者は 2〜3 Hz しか受け取れない（約 2 MB の点群の配送で欠落）。G-DDS として登録（GLIM が受け取る周期は未測定）。
+basis_refs: [DEC-088]
+intent_version_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
+
+files:
+  - id: FILE-VEHICLE-PC-SENSOR-SUPERVISION
+    path: design/research/vehicle_pc/2026-10-13_sensor_supervision_vm_test.txt
+    role: evidence
+
+entities:
+  - id: G-DDS
+    kind: issue
+    intent_lines: [8, 9]
+    name: 点群（約 2 MB、10 Hz）の別プロセスへの配送で欠落する（購読側が 2〜3 Hz）
+    sensitivity: [operation]
+    issue:
+      category: technical
+      state: open
+      affected_refs: [IFD-21, ND-14, ND-06, ND-02]
+      resolution_refs: []
+      question: >-
+        hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。
+        RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。
+      next_action: >-
+        GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。
+        上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。
+    interpretation: ''

@@ -1,0 +1,40 @@
+# 工程5-3（地図作成と変換）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。センサー未接続、仮値ファイル（trial）使用）
+# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5, ROS 2 jazzy, Python 3.12.3, numpy 1.26.4, ros-jazzy-glim-ros 1.2.2-0noble
+# コミット: 5c2e2ae（初回。gouda_map_creator が parameter 型不一致で起動せず）→ 9a0481e（REV-022 で仮値を 2.0 に。以下の本試験）
+# 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
+
+## 1. ビルド・単体試験（5c2e2ae）
+colcon build --packages-select gouda_interfaces gouda_core -> Summary: 2 packages finished [5.03s]
+ros2 interface list | grep gouda_interfaces -> DecisionEvent, SoftwareMode, StartAutonomy, action/ConvertMap
+python3 -m unittest discover -s gouda_core/test -> OK（51 件）
+
+## 2. 初回の起動（5c2e2ae）— 不具合 1 件
+GOUDA_TRIAL_PARAMS=1 bash gouda.sh start -> "WARNING: software trial values (<node>.trial.yaml) are loaded; not for the vehicle"
+ros2 node list -> /gouda_mode_manager /gouda_monitor /gouda_recorder（gouda_map_creator がいない）
+launch log: rclpy.exceptions.InvalidParameterTypeException: Trying to set parameter 'occupied_min_points' to '2' of type 'INTEGER', expecting type 'DOUBLE'
+原因（設定）: PRM-38 の仮値 2 が生成ファイルで整数になり、宣言型 double と不一致。REV-022 で仮値を 2.0 に修正。
+その回の地図作成の流れ自体は成立: start_mapping -> {"ok": true, "message": "TR-03: manual -> mapping"}、/glim_ros が起動、record auto_started_by=auto:map_start、
+end_mapping -> {"ok": true, "message": "TR-04: mapping -> manual"}、GLIM が dump を保存（glim.log: serializing factor graph … saved）、
+source_map_registered 20261009_213913_4a938499（hash 08da31f1…、0 submap）、map_convert_not_started（map/convert action server is not available）、record_auto_stop。
+maps/<origin>/source に graph.bin, graph.txt, values.bin, traj_*.txt, odom_*.txt, config/、source_manifest.json、maps/index.json。
+
+## 3. 本試験（9a0481e、trial parameter）
+bash gouda.sh start -> monitor: http://127.0.0.1:33973/
+ros2 node list -> /gouda_map_creator /gouda_mode_manager /gouda_monitor /gouda_recorder
+POST /api/command/start_mapping -> {"ok": true, "message": "TR-03: manual -> mapping"}
+  （TR-03: GLIM 起動 pid 166455、origin 20261009_214125_ec686606、record/log/start_pre_mapping が成功）
+POST /api/command/end_mapping（約 6 s 後）-> {"ok": true, "message": "TR-04: mapping -> manual"}
+直後の mode/state: mode MANUAL, processing_state idle, state_revision 3（map_converting は変換が即時に終わったため観測前に idle へ戻った）
+DecisionEvent（履歴）:
+   mapping_started     TR-03 GLIM started (pid 166455); origin 20261009_214125_ec686606
+   mapping_stopped     TR-04 dump complete (0 submap(s)); no submap: no sensor data was received
+   source_map_registered TR-04 source map registered as 20261009_214125_ec686606 (hash 04c41c58b43a…, 0 submap(s))
+   map_convert_failed  TR-04 conversion aborted and incomplete output discarded: dump has no submap directory: no sensor data was received during mapping; nothing to convert
+maps index: [('20261009_214125_ec686606', 0, [])]（原図は保持、変換後地図なし）
+.converting_* の残骸: 0（不完全な成果物は破棄）
+bash gouda.sh stop -> stopped (no process of group 166360 remains: yes); orphans（gouda_* と glim_rosnode）: 0
+
+## 4. 確認できたこと・できていないこと
+- 確認: TR-03／TR-04 の動作、GLIM の起動と SIGINT 保存、原図の登録（内容ハッシュ・manifest・index）、変換 action の非同期起動と失敗時の後始末（原図保持・不完全成果物の破棄）、自動開始分だけの記録停止、GLIM の残存なし。
+- 未確認: センサーデータがある場合の submap の点形式（points_compact.bin）と 2D 地図の妥当性、processing_state=map_converting の表示（変換が長い場合）、実車での GLIM の TF 発行と排他（ND-07/08 は未実装）。
+- 本記録は「ソフト試験」の結果であり、実車検証ではない。仮値ファイルは実車に使わない。

@@ -1,0 +1,39 @@
+# 変更セット REV-014（2026-10-09 第9便: ゲート3の承認（最終）の記録）
+# 適用: design/tools/apply_revision.py REV-014
+id: REV-014
+date: '2026-10-09'
+summary: >-
+  人がゲート3を承認した（DEC-064、原文「ゲート3は承認する。」）。承認対象は push 済みコミット f208066（"Before gate 3 approved"）時点の design/ 一式（model.yaml SHA-256 af7f5bc2…、REV-013 適用後）。
+  工程5 の暫定扱い（DEC-019）を解除。下位設計案 122 件の design_status は「案」のまま（個別要素の最終承認・実車値の確定・実車投入の承認ではない。DR-12）。
+basis_refs: [DEC-064]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decision_updates:
+  - id: DEC-019
+    set:
+      note: >-
+        ゲート3は 2026-10-09 に承認された（条件付き DEC-053・DEC-058 → 条件確認 DEC-061 → 承認 DEC-064）。工程5 の暫定扱いは解除。
+        承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2a854cf7d4084e889bcd512f940b3c77a09e547b9ef585932c6a69b7a）。
+        進め方は docs/implementation_stages.md（DEC-056）。実車値の確定（Q-04〜Q-06）、未実施試験の合格、実車投入可能の判断は含まれない。
+  - id: DEC-058
+    set:
+      disposition: answered
+      affected_refs: [DEC-053, C-001, C-002, C-003, C-004, C-005, C-006, C-007, C-008, C-009, C-010, C-011, C-012, C-013, DEC-064]
+
+decisions:
+  - id: DEC-064
+    kind: approval
+    status: answered
+    asked_on: '2026-10-09'
+    answered_on: '2026-10-09'
+    channel: chat
+    question: ゲート3の承認（条件付き承認 DEC-053・DEC-058 と条件の確認 DEC-061 を経た最終承認）
+    answer_verbatim: ゲート3は承認する。
+    affected_refs: [DEC-053, DEC-058, DEC-061, DEC-019, FILE-GATE3-MODEL]
+    resulting_refs: []
+    note: >-
+      承認対象: ブランチ design/gate3-baseline-2026-10-09 の push 済みコミット f208066（"Before gate 3 approved"）時点の design/ 一式。model.yaml は REV-013 適用後（SHA-256 af7f5bc2a854cf7d4084e889bcd512f940b3c77a09e547b9ef585932c6a69b7a）、
+      intent.md は第7版（f69dd98b…）。条件付き承認時の凍結コピー FILE-GATE3-MODEL（REV-009 時点、6510bbc2…）からの差分は REV-010〜013（reports/model_diff_rev-013.md）。
+      意味: 下位設計案 122 件とその後の修正を実装のベースラインとして承認し、工程5 を暫定扱いから外す。各要素の design_status は「案」のまま（AI が 承認済み に変える規則はなく、DR-12 は node を案に保つ。値の承認は PRM-07・08・13・21 の 4 件のみ）。
+      含まれないもの: 実車値の確定（Q-04〜Q-06）、未実施試験（TS-01〜22）の合格、DEC-050 の実機照合、実車投入可能の判断（人の判断）。
+    disposition: answered

@@ -414,7 +414,7 @@ def main():
         return
     if not os.isatty(0):
         raise SystemExit('機器設定には対話端末が必要です。CIでは --no-configure を指定してください。')
-    print('機器が未接続ならEnterで省略できます。あとから bash scripts/gouda.sh configure で設定できます。')
+    print('機器が未接続ならEnterで省略できます。あとから python3 scripts/configure_host.py --workspace <ws> で設定し直せます')
     nics=[p.name for p in Path('/sys/class/net').iterdir() if p.name!='lo' and not (p/'wireless').exists()]
     nic=choose('LiDAR専用LAN（既定経路のLANは変更しません）',sorted(nics))
     if nic:

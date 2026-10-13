@@ -1,0 +1,460 @@
+# 変更セット REV-027（2026-10-10 第18便: 工程5-5（車体出力）の設計前提の整理と着手。IFD-40 MotionHold 型の確定、PC–ESP32 プロトコル v4（G-FIRMWARE）、
+# ND-11・ND-12・ND-17 の設定項目 PRM-39〜49、未確定値の仮値（stub 試験専用）、人の判断事項 DEC-077〜079、試験 TS-29・TS-30）
+# 適用: design/tools/apply_revision.py REV-027
+id: REV-027
+date: '2026-10-10'
+summary: >-
+  DEC-076 により工程5-5 に着手。設計前提を整理し、(1) IFD-40 の独自型 gouda_interfaces/msg/MotionHold（header, hold, reason, mode）を確定、
+  (2) PC–ESP32 シリアルプロトコル v4 を docs/esp32_protocol_v4.md に設計（参照 firmware の可変長フレームと CRC、旧 v3 の boot token・seq・手動優先の仲裁・centered ラッチを統合。
+  リレー・ADC 監視・エンコーダ較正は採用しない）、(3) 実装に必要な設定を宣言（ND-11 の最大速度 PRM-39・40、発行周期 PRM-41、motion_hold 期限 PRM-42。ND-17 の DAC 電圧 PRM-43〜46、
+  手動仲裁 PRM-47・48、STATUS 周期 PRM-49。すべて未確定で、仮値は stub 試験専用）、(4) PRM-09・14・16 に stub 試験用の仮値を根拠付きで追加、
+  (5) 人の判断事項を登録（DEC-077 DAC 電圧の初期値、DEC-078 基本契約 5 件の stub 試験を 5-5 の完了条件に含める案、DEC-079 手動仲裁の既存値の維持）、
+  (6) 試験 TS-29（コーデック共通試験）・TS-30（motion_hold の発行）を追加。firmware のビルド環境は Mac の PlatformIO（espressif32 6.12.0、Bluepad32 4.1.0 パッケージ）で成立を確認（旧 firmware のビルド exit 0）。
+basis_refs: [DEC-076, DEC-030, DEC-037, DEC-042, DEC-048, DEC-004, DEC-056]
+intent_version_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
+
+decisions:
+  - id: DEC-077
+    kind: question
+    status: pending
+    asked_on: '2026-10-10'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】新 firmware（ND-17）の DAC 出力電圧の初期登録値。旧 firmware に記載の要求値（中立 2500 mV、最小 230 mV、最大 4700 mV、DAC フルスケール 4700 mV。
+      docs/gouda_protocol_v3.md・firmware/gouda_dualsense_usb/include/control.hpp。電圧測定値ではない）を、Q-03 の実測が終わるまでの初期登録値（PRM-43〜46）として承認するか。
+      承認されない間、実車向け firmware ビルドには DAC 値が入らず、firmware は config_valid=0 で DAC へ書き込まない（卓上の stub 試験は仮値ビルドで進める）。
+    answer_verbatim: ''
+    affected_refs: [ND-17, SO-11, PRM-43, PRM-44, PRM-45, PRM-46, IFD-17]
+    resulting_refs: []
+    note: >-
+      推奨: 旧 firmware の記載値を初期登録値として承認し、Q-03 の実測後に差し替える（人は旧 firmware を実機で動作確認済みと申告: DEC-037）。
+      代替: 実測（Q-03）まで登録しない（実車試験の前に計測が必要。計測手順は generated/measurement_plan.md）。
+      決まらない場合に止まる作業: 実車向け firmware の書き込み（卓上 stub 試験・PC 側ソフト試験は止まらない）。
+    disposition: open_human
+  - id: DEC-078
+    kind: question
+    status: pending
+    asked_on: '2026-10-10'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】車体出力（5-5）の完了条件に基本契約 5 件の stub 試験を含める案（docs/implementation_stages.md §5）の採否。TS-20 の stub 版（ND-03 の一時停止遷移の代わりに
+      motion_hold=true を与えて ND-11 が中立を出す）と、TS-21 の「hold=false かつ新鮮な cmd_vel のときだけ非中立」（TS-07）を 5-5 に前倒しし、本体は 5-7・5-6 で再確認する。
+    answer_verbatim: ''
+    affected_refs: [TS-07, TS-20, TS-21, ND-11]
+    resulting_refs: []
+    note: >-
+      推奨: 含める（車体に指令を出す経路が最初に動く時点で基本契約が満たされていることを示せる）。代替: 含めず本来の工程で行う。
+      決まらない場合に止まる作業: なし（stub 試験自体は TS-07 の範囲で実行し、採否は完了条件の扱いだけに影響する）。
+    disposition: open_human
+  - id: DEC-079
+    kind: question
+    status: pending
+    asked_on: '2026-10-10'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】新 firmware の手動仲裁の値を既存動作のまま維持するか。手動入力の deadzone（半径 8 %、旧 firmware kDeadzone。PRM-47）と、
+      手動操作が中立に戻ってから PC 指令へ戻すまでの安定時間（200 ms、旧 firmware kNeutralResumeMs。PRM-48）。いずれも電圧・停止距離ではなく操作の仲裁条件。
+    answer_verbatim: ''
+    affected_refs: [ND-17, SO-11, PRM-47, PRM-48, TS-17, TS-18]
+    resulting_refs: []
+    note: >-
+      推奨: 既存値を維持する（DEC-048 の「既存動作を firmware 書き直しを理由に撤去しない」と同じ考え方。実車で不都合があれば新しい判断事項にする）。
+      代替: 実車試験で調整する（G-TUNING）。決まらない場合に止まる作業: 実車向け firmware の設定登録（卓上 stub 試験は仮値で進める）。
+    disposition: open_human
+
+entities:
+  - id: PRM-39
+    kind: parameter
+    name: cmd_vel の正規化に用いる最大並進速度
+    intent_lines: [92, 102]
+    issue_refs: [Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-11
+      value: null
+      value_state: unresolved
+      unit: m/s
+      stage: 車体出力
+      purpose: cmd_vel の linear.x をこの値で割って正規化操作値（前後）にする。Nav2 controller の最大速度（Q-06）と同じ値にして、ジョイスティック全開がこの速度に対応するようにする
+      measurement: 実車の最大速度（Q-06）の決定と、ジョイスティック電圧と車速の対応の実測（Q-03）
+      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      software_trial_value: 0.26
+      software_trial_basis: Nav2 上流（nav2_bringup の例の nav2_params）の max_vel_x と同じ値。stub 試験で非零の正規化値を得るための仮値。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_motion_controller
+      param_key: max_linear_speed_mps
+      value_type: double
+      apply_timing: launch
+    interpretation: ''
+  - id: PRM-40
+    kind: parameter
+    name: cmd_vel の正規化に用いる最大角速度
+    intent_lines: [92, 102]
+    issue_refs: [Q-06]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-11
+      value: null
+      value_state: unresolved
+      unit: rad/s
+      stage: 車体出力
+      purpose: cmd_vel の angular.z をこの値で割って正規化操作値（旋回）にする
+      measurement: 実車の最大旋回速度（Q-06）の決定と、ジョイスティック電圧と旋回の対応の実測（Q-03）
+      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      software_trial_value: 1.0
+      software_trial_basis: Nav2 上流（nav2_bringup の例の nav2_params）の max_vel_theta と同じ値。stub 試験用の仮値。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_motion_controller
+      param_key: max_angular_speed_radps
+      value_type: double
+      apply_timing: launch
+    interpretation: ''
+  - id: PRM-41
+    kind: parameter
+    name: gouda_motion_controller の操作値の発行周期
+    intent_lines: [92, 102]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-11
+      value: null
+      value_state: unresolved
+      unit: s
+      stage: 車体出力
+      purpose: 中立を含む操作値（IFD-16）を一定周期で発行し続ける周期。bridge の joystick_command 期限（PRM-09）より十分短いこと
+      measurement: motion_controller の処理周期と cmd_vel の受信周期（PRM-17）の実測
+      decision_deadline: 車体出力の実車試験前
+      software_trial_value: 0.05
+      software_trial_basis: Nav2 controller_frequency の上流既定 20 Hz（PRM-17 の仮値）と同じ周期。PRM-09 の仮値 0.35 s より短い。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_motion_controller
+      param_key: command_publish_period_s
+      value_type: double
+      apply_timing: launch
+    interpretation: ''
+  - id: PRM-42
+    kind: parameter
+    name: motion_hold の期限切れ判定（gouda_motion_controller）
+    intent_lines: [37, 92]
+    issue_refs: [Q-05]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-11
+      value: null
+      value_state: unresolved
+      unit: s
+      stage: 車体出力
+      purpose: 最後に受信した motion_hold（IFD-40）からこの時間を超えたら hold 扱い（中立）にする。周期発行間隔 PRM-16 より長く、cmd_vel 途絶 PRM-08 より短いこと
+      measurement: mode_manager の周期発行間隔（PRM-16）の実測後に人が決める
+      decision_deadline: 車体出力の実車試験前
+      software_trial_value: 0.5
+      software_trial_basis: PRM-16 の仮値 0.2 s の 2.5 倍で、PRM-08=0.7 s より短い（関係条件を満たす stub 試験用の仮値）。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_motion_controller
+      param_key: motion_hold_timeout_s
+      value_type: double
+      apply_timing: launch
+    interpretation: ''
+  - id: PRM-43
+    kind: parameter
+    name: DAC 中立電圧（firmware 設定）
+    intent_lines: [97, 103]
+    issue_refs: [Q-03, G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: mV
+      stage: 車体出力
+      purpose: 中立（停止）のときに DAC へ要求する電圧。両軸共通。電圧測定値ではなく要求値
+      measurement: 実車で中立となる電圧の実測（Q-03、generated/measurement_plan.md）。実測までの初期登録値は DEC-077
+      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      software_trial_value: 2500
+      software_trial_basis: 旧 firmware の kNeutralMv=2500（firmware/gouda_dualsense_usb/include/control.hpp、docs/gouda_protocol_v3.md「停止 2.5 V」の要求値）。卓上 stub 試験専用で実車採用値ではない
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: dac_neutral_mv
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-44
+    kind: parameter
+    name: DAC 最小電圧（firmware 設定）
+    intent_lines: [97, 103]
+    issue_refs: [Q-03, G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: mV
+      stage: 車体出力
+      purpose: 円形制限写像の最小端（左・後）の要求電圧
+      measurement: 実車の端点の実測（Q-03）。初期登録値は DEC-077
+      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      software_trial_value: 230
+      software_trial_basis: 旧 firmware の kMinimumMv=230。卓上 stub 試験専用で実車採用値ではない
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: dac_min_mv
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-45
+    kind: parameter
+    name: DAC 最大電圧（firmware 設定）
+    intent_lines: [97, 103]
+    issue_refs: [Q-03, G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: mV
+      stage: 車体出力
+      purpose: 円形制限写像の最大端（右・前）の要求電圧
+      measurement: 実車の端点の実測（Q-03）。初期登録値は DEC-077
+      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      software_trial_value: 4700
+      software_trial_basis: 旧 firmware の kMaximumMv=4700。卓上 stub 試験専用で実車採用値ではない
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: dac_max_mv
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-46
+    kind: parameter
+    name: DAC フルスケール電圧（firmware 設定）
+    intent_lines: [97, 103]
+    issue_refs: [Q-03, G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: mV
+      stage: 車体出力
+      purpose: 12 bit コード 4095 に対応する電圧（mV→コード変換）。MCP4922 の VREF とゲインで決まる
+      measurement: 基板の VREF の実測（Q-03）。初期登録値は DEC-077
+      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      software_trial_value: 4700
+      software_trial_basis: 旧 firmware の kDacFullScaleMv=4700（参照 firmware は 4990 を初期候補とする。どちらも測定値ではない）。卓上 stub 試験専用
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: dac_full_scale_mv
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-47
+    kind: parameter
+    name: 手動入力の deadzone（firmware 設定）
+    intent_lines: [34, 35]
+    issue_refs: [G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: 比（×10000）
+      stage: 車体出力
+      purpose: ゲームパッドの左スティックの半径がこの比以下なら無操作（中立）とみなす。手動優先の「操作が有効」の判定に使う
+      measurement: 不要（既存動作の値の維持を人が判断する。DEC-079）
+      decision_deadline: 実車向け firmware の設定登録前（DEC-079）
+      software_trial_value: 800
+      software_trial_basis: 旧 firmware の kDeadzone=0.08（8 %）を ×10000 にした値。卓上 stub 試験専用
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: manual_deadzone_q10000
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-48
+    kind: parameter
+    name: 手動操作から PC 指令へ戻す中立安定時間（firmware 設定）
+    intent_lines: [34, 97]
+    issue_refs: [G-FIRMWARE]
+    sensitivity: [safety]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: ms
+      stage: 車体出力
+      purpose: 手動操作が中立に戻ってからこの時間安定した後に PC 指令が出力を所有できる（TS-17 の「戻る条件」）
+      measurement: 不要（既存動作の値の維持を人が判断する。DEC-079）
+      decision_deadline: 実車向け firmware の設定登録前（DEC-079）
+      software_trial_value: 200
+      software_trial_basis: 旧 firmware の kNeutralResumeMs=200。卓上 stub 試験専用
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: manual_release_neutral_ms
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: PRM-49
+    kind: parameter
+    name: ESP32 STATUS の送信周期（firmware 設定）
+    intent_lines: [103]
+    issue_refs: [G-FIRMWARE, Q-05]
+    sensitivity: [operation]
+    parameter:
+      owner_ref: ND-17
+      value: null
+      value_state: unresolved
+      unit: ms
+      stage: 車体出力
+      purpose: STATUS（IFD-43）の周期送信間隔。monitor の stale 閾値（PRM-15）はこれより長くする
+      measurement: シリアルの帯域と PC 側の受信周期の実測（PRM-15 と合わせる）
+      decision_deadline: 車体出力の実車試験前
+      software_trial_value: 50
+      software_trial_basis: 旧 firmware の STATUS 送信 50 ms（docs/gouda_protocol_v3.md）。参照 firmware は 100 ms。卓上 stub 試験専用
+      declaration: firmware_config
+      target: esp32_firmware
+      param_key: status_period_ms
+      value_type: int
+      apply_timing: runtime_set
+    interpretation: ''
+  - id: TS-29
+    kind: test
+    name: PC–ESP32 プロトコル v4 のコーデック共通試験（Python と C++ で同じゴールデンベクタ）
+    intent_lines: [97, 103]
+    related_refs: [IFD-17, IFD-43]
+    issue_refs: [G-FIRMWARE]
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: 同じ COMMAND／STATUS のゴールデンベクタ（docs/esp32_protocol_v4.md）を bridge 側 Python コーデックと firmware 側 C++ コーデックで符号化・復号する。CRC 不正・版不正・長さ不正・seq 逆行のフレームを与える。
+      observe: 符号化したバイト列、復号した値、不正フレームの扱い。
+      expected: 両実装のバイト列が一致し、復号値が元の値に戻る。不正フレームは無視され、後続の正しいフレームから再同期する。
+  - id: TS-30
+    kind: test
+    name: motion_hold の発行（mode_manager は自律走行以外のすべてのモードで hold=true を出し、遷移時に即時発行する）
+    intent_lines: [36, 37]
+    related_refs: [IFD-40, TR-01, TR-02, TS-07]
+    issue_refs: []
+    sensitivity: [safety]
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: mode_manager を起動（直前モード記録なし／自律走行の 2 条件）し、地図作成の開始・終了を行う。control/motion_hold を transient_local で後から購読する。
+      observe: motion_hold の hold・reason・mode と発行時刻、後から購読したときに最新値を受け取れるか。
+      expected: 起動直後と各遷移で即時発行され、hold は自律走行以外のモードで true。後から購読しても最新値を受け取る（ND-11 の再起動後も中立を維持できる）。
+
+modifications:
+  - id: IFD-40
+    set_nested:
+      designed_interface.message_type: gouda_interfaces/msg/MotionHold（header, bool hold, string reason, uint8 mode。mode は SoftwareMode と同じ値）
+      designed_interface.time_semantics: >-
+        モード遷移時に即時発行し、mode/state と同じ契機で再発行（周期は PRM-16）。hold=true は自律走行以外のすべてのモードで発行。
+        ND-11 は hold=true、hold の期限切れ（最後の受信から PRM-42）、または cmd_vel の途絶（PRM-08）のいずれかで中立を出す。
+        transient_local により ND-11 の再起動後も最新の hold を受け取る。起動直後に未受信なら hold 扱い（中立）。
+    interpretation_append: 型は REV-027 で確定（工程5-5）。mode を string ではなく uint8 にしたのは SoftwareMode.mode と同じ値で記録・照合するため（意味の変更なし）。
+  - id: IFD-17
+    set_nested:
+      designed_interface.name: ESP32 serial link（プロトコル v4。docs/esp32_protocol_v4.md）
+      designed_interface.message_type: v4 フレーム（A5 5A、版 4、種別、長さ、seq、送信側 ms、payload、CRC-16/CCITT-FALSE）。PC→ESP32 は HELLO 0x01／COMMAND 0x02（boot_token, x_q10000, y_q10000, flags bit0=pc_enable_request）／SET_CONFIG 0x03／GET_STATUS 0x08／GET_CONFIG 0x09
+      designed_interface.unit: 正規化値 q10000（x=右 +、y=前 +）。設定は mV・ms（docs/esp32_protocol_v4.md §5）。DAC 端点 mV は人が登録（Q-03、DEC-077）
+      designed_interface.time_semantics: >-
+        送信周期 PRM-14（未確定。仮値 0.1 s）。ESP32 は最後の有効 PC 指令フレーム（CRC・版・boot_token・seq が正しいもの）の受信から PRM-13=1.0 s（DEC-048）で PC 指令源を無効にし中立（RQ-I068）。
+        不正フレームは期限を延長しない。PC 指令源の有効化は flags bit0 かつ中立の COMMAND で行い、期限切れ後の再有効化も同じ（人の承認操作ではなく bridge が活性化時に自動で行う）。
+    interpretation_append: プロトコル v4 は REV-027 で設計（G-FIRMWARE）。版の照合は実機への書き込みと DEC-050 の実機照合で行う。
+  - id: IFD-43
+    set_nested:
+      designed_interface.name: ESP32 serial link（プロトコル v4。docs/esp32_protocol_v4.md）
+      designed_interface.message_type: v4 フレーム。ESP32→PC は HELLO_REPLY 0x80（boot_token, config_valid, config_generation）／STATUS 0x81（source, reason, flags, 手動・PC・適用の正規化値, 要求 mV, DAC コード, pc_age_ms, bt_age_ms, last_pc_seq, uptime_ms）／EVENT 0x82（code, arg, esp_ms）／CONFIG 0x84／ACK 0x85
+      designed_interface.unit: 正規化値 q10000、mV（要求値。電圧測定値ではない）、DAC コード 0〜4095、ms
+      designed_interface.time_semantics: STATUS は PRM-49 の周期（未確定。仮値 50 ms）で送信し、GET_STATUS でも 1 回送る。EVENT は状態変化時のみ。PC 側は表示・診断のみに使い停止条件にしない（DEC-006）。取得できない項目（非常停止状態・電池・実車運動・実電圧）は「不明」
+  - id: IFD-38
+    set_nested:
+      designed_interface.message_type: diagnostic_msgs/msg/DiagnosticArray（status 1 件、name=esp32、values に v4 STATUS の各項目を key/value で載せる。取得できない項目は載せず monitor が「不明」と表示）
+      designed_interface.time_semantics: IFD-43 の STATUS 受信ごとに発行。表示・診断のみに使い、停止条件にしない（DEC-006）。monitor は PRM-15 を超えて受信がなければ全項目を「不明」にし、モードや motion_hold は変えない（TS-12）
+  - id: ND-11
+    set_nested:
+      ros_node.responsibilities:
+        - >-
+          Nav2 の cmd_vel を EMC-270 のジョイスティック特性に合わせた正規化操作値へ変換（M-012）
+        - >-
+          motion_hold=true、motion_hold の期限切れ、または cmd_vel の途絶 700 ms（PRM-08、DEC-048）・非有限値で中立を出す（DEC-004、RQ-I063）
+        - >-
+          中立を含む操作値を一定周期で発行し続ける（bridge の送信継続の入力）
+        - >-
+          cmd_vel の後段で独自に速度を抑える処理は加えない（RQ-I020）
+        - >-
+          lifecycle node。活性（active）の間だけ IFD-16 を PRM-41 の周期で発行し、非活性では発行しない（手動走行・事前地図作成では非中立を送らない）
+        - >-
+          cmd_vel の正規化は linear.x／PRM-39、angular.z／PRM-40 を [-1, 1] に飽和したもの。cmd_vel の後段で速度を抑えない（RQ-I020）。motion_hold の期限切れは最後の受信から PRM-42
+        - >-
+          設定はすべて generated/params/gouda_motion_controller.yaml（未確定値は trial ファイル）から読み、数値をハードコードしない（RQ-I076、DR-15）
+  - id: ND-12
+    set_nested:
+      ros_node.responsibilities:
+        - >-
+          正規化操作値を新 firmware（ND-17）の通信形式へ変換して送信（機器固有仕様をこの境界に閉じる。RQ-I036。形式は G-FIRMWARE）
+        - >-
+          cmd_vel の有無に関係なく一定周期（PRM-14）で最新値または中立を送り、入力途絶時は中立を送信する。古い指令を再送しない
+        - >-
+          ESP32 の STATUS／EVENT（IFD-43）を受信して /esp32/status に公開（IFD-38。表示・診断のみ、DEC-006）
+        - >-
+          現 bridge の停止条件（STATUS 鮮度 0.25 s・drive 鮮度 0.15 s での DISARM）は firmware 書き直し（DEC-030）に伴い再設計対象。時間値は PRM-13=1.0 s・PRM-21=0.25 s（DEC-048、H-009 は閉じた）。PRM-09・PRM-14 は未確定
+        - >-
+          手動優先（RQ-I023）と ESP32 側の中立化（RQ-I068）は ESP32 の責務で、本 node が代替しない
+        - >-
+          lifecycle node。シリアルポートは運用値（launch 引数 serial_port）。接続時に HELLO で boot_token を得て generated/params/firmware_config.yaml の設定を SET_CONFIG で登録する（apply_timing=runtime_set）。登録失敗は記録し、走行系の停止条件にはしない
+        - >-
+          活性の間だけ PRM-14 の周期で COMMAND（flags bit0=1）を送る。値は IFD-16 が PRM-09 以内に受信されていればその値、そうでなければ中立。非活性では COMMAND を送らず、STATUS の受信と IFD-38 の発行は続ける
+        - >-
+          IFD-38 は diagnostic_msgs/DiagnosticArray。プロトコルは docs/esp32_protocol_v4.md（REV-027）
+  - id: ND-17
+    set_nested:
+      ros_node.responsibilities:
+        - >-
+          PC からの正規化操作値を受け、DAC（MCP4922）で EMC-270 のジョイスティック相当電圧を出す。リレーによる純正ジョイスティック切替は使わず、給電中は常に DAC が電圧を出す（RQ-I077、DEC-037）
+        - >-
+          最後の有効な PC 指令フレームの受信から 1 s（PRM-13）で期限切れとし DAC を中立にする（RQ-I068、DEC-048）
+        - >-
+          手動操作の優先（RQ-I023）。Bluetooth ゲームパッドの操作が有効な間は PC 指令より優先する（経路の確認は DEC-042）
+        - >-
+          Bluetooth 報告の途絶 250 ms（PRM-21）で手動入力を無効にし中立にする既存動作を維持する（RQ-I024、DEC-048）
+        - >-
+          STATUS／EVENT を理由コード付きで PC へ送る（IFD-43。表示・診断のみ、DEC-006）
+        - >-
+          非常停止の検知・通知は行わない（RQ-I072）
+        - >-
+          プロトコル v4（docs/esp32_protocol_v4.md）。PC 指令源の有効化は COMMAND flags bit0 かつ中立の COMMAND。手動操作が中立に戻って PRM-48 安定した後に PC 指令へ戻る。手動入力の有効判定は deadzone PRM-47
+        - >-
+          設定（PRM-13・21・43〜49）は SET_CONFIG で登録して NVS に世代番号付きで保存し、無ければビルド時設定（generated/params/firmware_config.yaml から生成）を使う。DAC 値（PRM-43〜46）が未登録のときは config_valid=0 とし DAC へ書き込まない（DEC-077 の回答待ち）
+        - >-
+          採用しないもの（DEC-037・基板構成）：リレー制御、ADS1015 の出力監視、エンコーダ UART による中央探索、較正ログ
+  - id: SO-11
+    set_nested:
+      state_owner.state_items:
+        - name: axis_config
+          description: DAC 電圧（PRM-43〜46）、PC 指令 watchdog（PRM-13）、BT 途絶（PRM-21）、手動仲裁（PRM-47・48）、STATUS 周期（PRM-49）の設定。PC から SET_CONFIG で登録し NVS に世代番号＋CRC で保存。無ければビルド時設定（生成ファイル由来）
+          persistence: persisted
+          restore_scope: 起動時に NVS の有効な最新世代を読む。DAC 値が無ければ config_valid=0 で DAC へ書き込まない（DEC-077）
+        - name: ownership_state
+          description: 現在の指令源（none／manual／pc）、PC 指令源の有効状態、最後の有効 PC 指令の受信時刻と seq、BT の接続・最終報告時刻・centered ラッチ、手動中立の安定開始時刻
+          persistence: volatile
+          restore_scope: 起動直後は中立・PC 指令源無効・centered 未観測
+  - id: PRM-09
+    set_nested:
+      parameter.software_trial_value: 0.35
+      parameter.software_trial_basis: PRM-08=0.7 s の 1/2 で、PRM-14 の仮値 0.1 s より長い（モデルの関係条件「PRM-08 より短く PRM-14 より長い」を満たす stub 試験用の仮値）。実車採用値ではない
+  - id: PRM-14
+    set_nested:
+      parameter.software_trial_value: 0.1
+      parameter.software_trial_basis: PRM-13=1.0 s の 1/10（モデルの条件「PRM-13 の 1/5 以下」を満たす）。旧 bridge の送信 timer 0.05 s（gouda_vehicle/gouda_vehicle/bridge.py）の 2 倍。stub 試験用の仮値で実車採用値ではない
+  - id: PRM-16
+    set_nested:
+      parameter.software_trial_value: 0.2
+      parameter.software_trial_basis: PRM-08=0.7 s より短い（モデルの条件）。PRM-42 の仮値 0.5 s の 2/5。stub 試験用の仮値で実車採用値ではない
+  - id: G-FIRMWARE
+    set_nested:
+      issue.next_action: プロトコル v4 と firmware の振る舞いを docs/esp32_protocol_v4.md に設計（REV-027）。実装は firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 DEC-050。firmware の版は本文書の版（v4）と build id で管理
+    interpretation_append: 設計は REV-027（2026-10-10）。H-012 は DEC-037・DEC-042 で確定済み、H-009 は DEC-048 で閉じた。

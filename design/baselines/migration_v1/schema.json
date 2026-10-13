@@ -1,0 +1,1206 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "authority_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Global ID; existence and target kind checked by validator."
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id_policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extraction_verification_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Global ID; existence and target kind checked by validator."
+        },
+        "design_validity": {
+          "const": "未判定"
+        },
+        "vehicle_verification": {
+          "const": "未実施"
+        }
+      },
+      "required": [
+        "authority_ref",
+        "scope",
+        "id_policy",
+        "extraction_verification_ref",
+        "design_validity",
+        "vehicle_verification"
+      ],
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Global ID; existence and target kind checked by validator."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "role": {
+            "enum": [
+              "authority",
+              "source",
+              "extraction",
+              "verification"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "sha256",
+          "role"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Global ID; existence and target kind checked by validator."
+          },
+          "file_ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Global ID; existence and target kind checked by validator."
+          },
+          "kind": {
+            "enum": [
+              "excel_row",
+              "intent_lines",
+              "drawio_object"
+            ]
+          },
+          "locator": {
+            "type": "object",
+            "properties": {
+              "sheet": {
+                "type": "string",
+                "minLength": 1
+              },
+              "range": {
+                "type": "string",
+                "minLength": 1
+              },
+              "row": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "page": {
+                "type": "string",
+                "minLength": 1
+              },
+              "element_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line_start": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "line_end": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "raw_fields": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "original_status": {
+            "type": "object",
+            "properties": {
+              "classification": {
+                "enum": [
+                  "確定",
+                  "未決",
+                  "上位要求"
+                ]
+              },
+              "raw": {
+                "type": "string"
+              },
+              "basis": {
+                "type": "string"
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "classification",
+              "raw",
+              "basis",
+              "locations"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "file_ref",
+          "kind",
+          "locator",
+          "raw_fields",
+          "original_status"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "excel_row"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "locator": {
+                  "required": [
+                    "sheet",
+                    "range",
+                    "row"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "intent_lines"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "locator": {
+                  "required": [
+                    "line_start",
+                    "line_end"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "drawio_object"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "locator": {
+                  "required": [
+                    "page",
+                    "element_id"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Global ID; existence and target kind checked by validator."
+          },
+          "kind": {
+            "enum": [
+              "requirement",
+              "module",
+              "state_owner",
+              "execution",
+              "mode",
+              "transition",
+              "interface",
+              "data_contract",
+              "parameter",
+              "failure_mode",
+              "test",
+              "issue",
+              "reference",
+              "diagram_element",
+              "diagram_connection",
+              "reconciliation"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Global ID; existence and target kind checked by validator."
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "design_status": {
+            "enum": [
+              "未設計",
+              "案",
+              "承認済み"
+            ]
+          },
+          "adoption": {
+            "enum": [
+              "upper_requirement",
+              "legacy_candidate",
+              "partially_superseded",
+              "superseded",
+              "unresolved",
+              "reference_only"
+            ]
+          },
+          "field_bindings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "source_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "source_ref",
+                "field"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "related_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Global ID; existence and target kind checked by validator."
+            },
+            "uniqueItems": true
+          },
+          "issue_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Global ID; existence and target kind checked by validator."
+            },
+            "uniqueItems": true
+          },
+          "interpretation": {
+            "type": "string"
+          },
+          "approval_source_ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Global ID; existence and target kind checked by validator."
+          },
+          "sensitivity": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "safety",
+                "operation",
+                "intent"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "element_class": {
+                "enum": [
+                  "module",
+                  "internal_component",
+                  "ros_node",
+                  "process",
+                  "hardware",
+                  "unclassified"
+                ]
+              },
+              "state_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "parameter_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "failure_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "execution_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              }
+            },
+            "required": [
+              "element_class",
+              "state_refs",
+              "parameter_refs",
+              "failure_refs",
+              "execution_ref"
+            ],
+            "additionalProperties": false
+          },
+          "interface": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "enum": [
+                  "command",
+                  "data",
+                  "diagnostic",
+                  "configuration",
+                  "unclassified"
+                ]
+              },
+              "endpoints": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "enum": [
+                        "from",
+                        "to"
+                      ]
+                    },
+                    "source_ref": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Global ID; existence and target kind checked by validator."
+                    },
+                    "field": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "resolved_refs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Global ID; existence and target kind checked by validator."
+                      },
+                      "uniqueItems": true
+                    },
+                    "unresolved_tokens": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "required": [
+                    "role",
+                    "source_ref",
+                    "field",
+                    "resolved_refs",
+                    "unresolved_tokens"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "data_owner_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "purpose",
+              "endpoints",
+              "data_owner_ref"
+            ],
+            "additionalProperties": false
+          },
+          "diagram": {
+            "type": "object",
+            "properties": {
+              "object_kind": {
+                "enum": [
+                  "vertex",
+                  "edge",
+                  "structural"
+                ]
+              },
+              "parent_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "from_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "to_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "label_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "module_match_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "endpoint_status": {
+                "enum": [
+                  "bound",
+                  "unidentified",
+                  "not_applicable"
+                ]
+              }
+            },
+            "required": [
+              "object_kind",
+              "parent_ref",
+              "from_ref",
+              "to_ref",
+              "label_refs",
+              "module_match_refs",
+              "endpoint_status"
+            ],
+            "additionalProperties": false
+          },
+          "issue": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "enum": [
+                  "technical",
+                  "human",
+                  "source_missing"
+                ]
+              },
+              "state": {
+                "enum": [
+                  "open",
+                  "deferred",
+                  "partially_superseded"
+                ]
+              },
+              "affected_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "resolution_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "next_action": {
+                "type": "string",
+                "minLength": 1
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "effect": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "effect"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "recommendation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "recommendation_basis": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "category",
+              "state",
+              "affected_refs",
+              "resolution_refs",
+              "question",
+              "next_action"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "category": {
+                      "const": "human"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "options",
+                    "recommendation",
+                    "recommendation_basis"
+                  ],
+                  "properties": {
+                    "options": {
+                      "minItems": 2
+                    }
+                  }
+                },
+                "else": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "options"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "recommendation"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "reconciliation": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "enum": [
+                  "resolved_by_intent",
+                  "open"
+                ]
+              },
+              "affected_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "adopted_requirement_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "issue_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Global ID; existence and target kind checked by validator."
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "state",
+              "affected_refs",
+              "adopted_requirement_refs",
+              "scope",
+              "rationale",
+              "issue_refs"
+            ],
+            "additionalProperties": false
+          },
+          "mode": {
+            "type": "object",
+            "properties": {
+              "runtime": {
+                "type": "boolean"
+              },
+              "current_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "runtime",
+              "current_name"
+            ],
+            "additionalProperties": false
+          },
+          "state_owner": {
+            "type": "object",
+            "properties": {
+              "owner_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "state_definition": {
+                "type": "object",
+                "properties": {
+                  "source_ref": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Global ID; existence and target kind checked by validator."
+                  },
+                  "field": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "source_ref",
+                  "field"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "owner_ref",
+              "state_definition"
+            ],
+            "additionalProperties": false
+          },
+          "execution": {
+            "type": "object",
+            "properties": {
+              "module_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "ros_node_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "process_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "placement_status": {
+                "const": "未設計"
+              }
+            },
+            "required": [
+              "module_ref",
+              "ros_node_ref",
+              "process_ref",
+              "placement_status"
+            ],
+            "additionalProperties": false
+          },
+          "parameter": {
+            "type": "object",
+            "properties": {
+              "owner_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "value_state": {
+                "enum": [
+                  "unresolved",
+                  "source_value",
+                  "approved"
+                ]
+              },
+              "unit": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "owner_ref",
+              "value",
+              "value_state",
+              "unit"
+            ],
+            "additionalProperties": false
+          },
+          "failure_mode": {
+            "type": "object",
+            "properties": {
+              "owner_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "response_status": {
+                "enum": [
+                  "source_candidate",
+                  "未設計"
+                ]
+              }
+            },
+            "required": [
+              "owner_ref",
+              "response_status"
+            ],
+            "additionalProperties": false
+          },
+          "test": {
+            "type": "object",
+            "properties": {
+              "execution_status": {
+                "const": "未実行"
+              }
+            },
+            "required": [
+              "execution_status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "source_refs",
+          "design_status",
+          "adoption",
+          "field_bindings",
+          "related_refs",
+          "issue_refs",
+          "interpretation",
+          "sensitivity"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "module"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "module"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "interface"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "interface"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "diagram_element"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "diagram"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "diagram_connection"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "diagram"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "issue"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "issue"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "reconciliation"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "reconciliation"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "mode"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "mode"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "state_owner"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "state_owner"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "execution"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "execution"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "parameter"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "parameter"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "failure_mode"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "failure_mode"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "test"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "test"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "parameter": {
+                  "properties": {
+                    "value_state": {
+                      "const": "unresolved"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "parameter"
+              ]
+            },
+            "then": {
+              "properties": {
+                "parameter": {
+                  "properties": {
+                    "value": {
+                      "type": "null"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "migration": {
+      "type": "object",
+      "properties": {
+        "baseline_definition_count": {
+          "const": 198
+        },
+        "id_map": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "legacy_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "target_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Global ID; existence and target kind checked by validator."
+              },
+              "baseline": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "legacy_id",
+              "target_ref",
+              "source_ref",
+              "baseline"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "row_dispositions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sheet": {
+                "type": "string",
+                "minLength": 1
+              },
+              "row": {
+                "type": "integer"
+              },
+              "disposition": {
+                "enum": [
+                  "migrated",
+                  "header",
+                  "vocabulary",
+                  "empty"
+                ]
+              },
+              "target_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "sheet",
+              "row",
+              "disposition",
+              "target_ref"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "baseline_definition_count",
+        "id_map",
+        "row_dispositions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "metadata",
+    "files",
+    "sources",
+    "entities",
+    "migration"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gouda:design-model:1.0",
+  "title": "Gouda staged lower-design model",
+  "description": "Schema validates form only. IDs, evidence, source preservation, coverage and known issues require validate_model.py. Passing is not design approval."
+}

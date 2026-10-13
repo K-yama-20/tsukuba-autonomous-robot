@@ -1,0 +1,8 @@
+emc270_joystick_driver:
+  ros__parameters:
+    # Replace REQUIRED with the stable path shown by:
+    #   ls -l /dev/serial/by-id/
+    device: /dev/serial/by-id/REQUIRED
+    baud: 460800
+    command_input_timeout_ms: 300
+    log_directory: /tmp/emc270_calibration_logs

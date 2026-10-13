@@ -1,0 +1,61 @@
+# 工程5-2（gouda_monitor）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。センサー未接続、ブラウザ表示は Mac 側の DEMO 状態で確認）
+# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5, ROS 2 jazzy, Python 3.12.3
+# コミット: 2db9bbc（初回。gouda_monitor が起動時に落ちる不具合 2 件）→ dbf94ce（1 件目修正、2 件目露見）→ b6fbd45（修正後。以下の試験）→ 209b442（node 一覧から ros2 CLI デーモンを除外）
+# 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
+
+## 1. ビルド（2db9bbc）
+colcon build --packages-select gouda_interfaces gouda_core -> Summary: 2 packages finished [4.98s]
+ros2 interface list | grep gouda_interfaces -> gouda_interfaces/msg/DecisionEvent, gouda_interfaces/msg/SoftwareMode, gouda_interfaces/srv/StartAutonomy
+python3 -m unittest discover -s gouda_core/test -> OK（38 件）
+install/gouda_core/share/gouda_core/web/ -> app.js index.html style.css
+
+## 2. 不具合（起動時に gouda_monitor が落ちる）
+2db9bbc: AttributeError: property 'clients' of 'MonitorNode' object has no setter（rclpy Node の読み取り専用プロパティ clients を上書きしていた）
+dbf94ce: AttributeError: 'dict' object has no attribute 'append'（改名先 _clients も rclpy Node の内部属性だった）
+b6fbd45: サービスクライアントの辞書を cmd_clients に改名して解消。
+分類: 実装（node の属性名の衝突）。ローカルの単体試験は rclpy 非依存のため検出できず、ROS 上の起動試験で検出。
+
+## 3. 起動試験（b6fbd45、GOUDA_DATA_ROOT 既定、ポートは OS 選択）
+bash gouda.sh start -> monitor: http://127.0.0.1:37005/ (open on this PC desktop; no screen forwarding)
+ros2 node list -> /gouda_mode_manager /gouda_monitor /gouda_recorder
+GET /api/state: mode MANUAL RECEIVED rev 1; record RECEIVED log_active False; nodes ['/_ros2cli_daemon_0_…', '/gouda_mode_manager', '/gouda_monitor', '/gouda_recorder']; esp32 NOT_RECEIVED; events []
+  （_ros2cli_daemon は ros2 CLI のデーモン。209b442 で一覧から除外。起動時の DecisionEvent（TR-01）は monitor の購読開始前に発行されたため events に含まれない: IFD-28 は volatile）
+GET / -> 200 text/html; GET /static/app.js -> 200
+
+## 4. 操作ボタン（POST /api/command/<name>）
+pause          -> {"ok": false, "message": "refused: pause is not accepted in mode manual (accepted in autonomy)"}
+resume         -> {"ok": false, "message": "refused: resume is not accepted in mode manual (accepted in pause)"}
+end_autonomy   -> {"ok": false, "message": "refused: end_autonomy is not accepted in mode manual (accepted in autonomy／pause)"}
+start_mapping  -> {"ok": false, "message": "refused: TR-03 (manual -> mapping) is not implemented in this build; it belongs to stage 5-3 地図作成と変換"}
+start_autonomy -> {"ok": false, "message": "refused: TR-05 (manual -> autonomy) is not implemented in this build; it belongs to stage 5-6 自律走行の為の最小構成"}
+record_log_start -> {"ok": true, "message": "log recording started (human) in /home/aya/gouda_ws/gouda_data/records/20261009_093051"}
+record_log_stop  -> {"ok": true, "message": "log recording stopped"}
+GET /api/state の events（DecisionEvent の集約。件数と最終時刻を保持）:
+  TR-05 x1 refused: TR-05 (manual -> autonomy) is not implemented …
+  TR-03 x1 refused: TR-03 (manual -> mapping) is not implemented …
+  TR-11 x1 refused: end_autonomy is not accepted in mode manual …
+  TR-10 x1 refused: resume is not accepted in mode manual …
+  TR-06 x1 refused: pause is not accepted in mode manual …
+record log_active False, session_dir /home/aya/gouda_ws/gouda_data/records/20261009_093051
+commands [('record_log_stop', True), ('record_log_start', True), ('start_autonomy', False), ('start_mapping', False), ('end_autonomy', False), ('resume', False), ('pause', False)]
+
+## 5. /config（RQ-I070）
+POST {"lidar_mount_z_m": "0.95", "imu_mount_x_m": "abc"} -> {"ok": false, "message": "imu_mount_x_m: not a number ('abc')", …}（不正値を含む要求は全体を拒否）
+POST {"lidar_mount_z_m": "0.95", "lidar_axis_mapping": "-y forward, +x right, +z up"} -> {"ok": true, "message": "config revision 1 saved (2 field(s))", …}
+gouda.sh stop → start（URL は http://127.0.0.1:43515/ に変わる）→ GET /api/config -> config_revision 1, lidar_mount_z_m 0.95, imu_mount_x_m UNKNOWN（再起動後も保持）
+
+## 6. SSE（GET /api/events）
+event: state / data: {"now": 1791505853.79, "revision": 19, "mode": {"freshness": {"status": "RECEIVED", "age_s": 5.897, "verdict": "受信あ…（接続直後に現在の状態を送る）
+
+## 7. 停止
+bash gouda.sh stop -> stopped (no process of group … remains: yes)（2 回とも）; orphans: 0
+
+## 8. 画面の確認（Mac、gouda_core/test/demo_monitor_server.py の DEMO 状態。run_id=DEMO-NOT-REAL）
+1920×1080 で縦スクロールなし。上段: タブ・MODE/LINK ストリップ・右上のモード操作 6 ボタン。中央: Navigation／LiDAR-localization の外部表示領域（UNAVAILABLE 表示、内部に描画なし）。右: mode/state 表。下段: ESP32 CONTROLLER（NOT_RECEIVED）、CONTROL PC / ROS 2（node 一覧）、EVENTS（拒否はアンバー）。
+配色は深緑背景・シアン・アンバー、赤は未使用（停止・重大異常のみに予約）。装飾アニメーションなし。
+未確認: 実機 Ubuntu のブラウザでの表示（DISPLAY なしのため未実施）。
+
+## 9. 未確認のこと
+- 外部可視化（RViz2 等）の埋込は未確定のまま（UNAVAILABLE 表示）。ESP32 ブロックは 5-5 まで NOT_RECEIVED。
+- 鮮度のしきい値（PRM-15／PRM-16）は未確定のため STALE 判定はせず age のみ表示。
+- 本記録は「ソフト試験」の結果であり、実車検証ではない。

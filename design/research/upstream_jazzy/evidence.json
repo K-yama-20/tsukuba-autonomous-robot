@@ -1,0 +1,163 @@
+{
+  "repository": "ros-navigation/navigation2",
+  "branch": "jazzy",
+  "commit": "645abd95f2be02a13ca539b29c2ddc065db34f89",
+  "vehicle_installation_verified": false,
+  "records": [
+    {
+      "path": "research/upstream_jazzy/nav2_msgs/action/NavigateThroughPoses.action",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_msgs/action/NavigateThroughPoses.action",
+      "sha256": "a39ff53f44082609a8a7864131a9a16086e3af6dd080b6f769a09d8b529adf01"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_msgs/action/NavigateToPose.action",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_msgs/action/NavigateToPose.action",
+      "sha256": "656fdf8f14c825b0fe6419d8a647793ea78564442c9ca2a026238bbf7f7e8f91"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_msgs/msg/SpeedLimit.msg",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_msgs/msg/SpeedLimit.msg",
+      "sha256": "d5e16f9b93293d100135d2ce83e6a20b819e8243666aac84eae95f6bd1516e96"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_controller/src/controller_server.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_controller/src/controller_server.cpp",
+      "sha256": "444eb721b8a90de346061897e3a1f28aa6972b376697c8929e31d8412661c1a0"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_util/include/nav2_util/twist_publisher.hpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_util/include/nav2_util/twist_publisher.hpp",
+      "sha256": "97e99f8304b3fea9c3e0fc85c57b8e7683b1a46430e1f84896367a790f629386"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_route/package.xml",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_route/package.xml",
+      "sha256": "172bfdeaf5b2ac49b6d10ca5dfe110910f337e7c25b732e5cecd76c603b55293"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_route/src/plugins/route_operations/adjust_speed_limit.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_route/src/plugins/route_operations/adjust_speed_limit.cpp",
+      "sha256": "ec46b07304de37de260bf2dfc4d54936d156f789e7daaa30c164b85285f905f5"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/plugins/costmap_filters/speed_filter.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/plugins/costmap_filters/speed_filter.cpp",
+      "sha256": "1cffec0ff691f044d06fbfd1d7833938bcfba578b9fe5d357d96ddcf684b9e02"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bt_navigator/package.xml",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bt_navigator/package.xml",
+      "sha256": "6708092f679cb51cce829bda84d102c103474682e62300b49afcc0aa33585b2e"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_behavior_tree/plugins/action/remove_passed_goals_action.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_behavior_tree/plugins/action/remove_passed_goals_action.cpp",
+      "sha256": "7c371b7197dff9aa87e090f900a50fa6cf4d399c25e3a15cf93cb822b9331aff"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml",
+      "sha256": "bccb78a1f06cea2a88dd86b028c0e2c7c167ac1ab3b0b799f87099b5181a2876"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_msgs/msg/CostmapFilterInfo.msg",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_msgs/msg/CostmapFilterInfo.msg",
+      "sha256": "5f12568bc1694203b3fd9cbe5ef4dc9429183a8fcaa8aaa1b1855162d6198e79"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/include/nav2_costmap_2d/costmap_filters/speed_filter.hpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/include/nav2_costmap_2d/costmap_filters/speed_filter.hpp",
+      "sha256": "23adff46ad171ebac9d56f4b13cdde0187ac68a855e70db37626572723b15e32"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_msgs/package.xml",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_msgs/package.xml",
+      "sha256": "7dea5a715b85795868f2fa490ec79ac11107bb245e64a3e8934ba1767019c045"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bt_navigator/src/navigators/navigate_through_poses.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bt_navigator/src/navigators/navigate_through_poses.cpp",
+      "sha256": "00cd2b437d3d9fbe2585b9f7b516aad29694b144fe3558154a6b7e7fc2093126"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_map_server/src/map_server/map_server.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_map_server/src/map_server/map_server.cpp",
+      "sha256": "13192df8c3ab5788a09a4b160ca6ba8ecfbba97501ead06a3ba463427d809f69"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/src/costmap_2d_publisher.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/src/costmap_2d_publisher.cpp",
+      "sha256": "b5cc627ab7f33ef54ab003471b6dbb43bb26f59cf0aa76e0ed950cb6dd0d7122"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_planner/src/planner_server.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_planner/src/planner_server.cpp",
+      "sha256": "82d49ac45f478ff8c12faef8f86a5c3ee5f86244a967762bf413b02c28a90b12"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/src/costmap_2d_ros.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/src/costmap_2d_ros.cpp",
+      "sha256": "ab441ba1ca791e906c62f0b0642d1a103c823a844b94bfcf3eee4c2eb12afc0f"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/plugins/costmap_filters/costmap_filter.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/plugins/costmap_filters/costmap_filter.cpp",
+      "sha256": "29a8995404e8d91f818510dc72ac3e824b9b8c1ea7c9ce973dbcb328124cc22b"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_costmap_2d/include/nav2_costmap_2d/costmap_filters/costmap_filter.hpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_costmap_2d/include/nav2_costmap_2d/costmap_filters/costmap_filter.hpp",
+      "sha256": "2ac2169b2d2c46dd933ee862bc4768cd4187d5b04b0cdc6f10fb9cf7e94c206b"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_lifecycle_manager/src/lifecycle_manager.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_lifecycle_manager/src/lifecycle_manager.cpp",
+      "sha256": "7d56021ac5c47315eda2a5a1003ecbcbb63355364696835d4300084de8b00f81"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_lifecycle_manager/include/nav2_lifecycle_manager/lifecycle_manager.hpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_lifecycle_manager/include/nav2_lifecycle_manager/lifecycle_manager.hpp",
+      "sha256": "66540074adc21a10e06ef4af64bec6494330891d41469a8a5707bc880c0aab32"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bringup/params/nav2_params.yaml",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bringup/params/nav2_params.yaml",
+      "sha256": "299f9002d6dcfbf661e532c99f32dda1766eab3afa3ab71a52378d80e7ef956f"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_mppi_controller/src/controller.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_mppi_controller/src/controller.cpp",
+      "sha256": "4a666ff612d085b6be1558ef3a99520dc282169f4d206584131c39e287e58869"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_dwb_controller/dwb_core/src/dwb_local_planner.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_dwb_controller/dwb_core/src/dwb_local_planner.cpp",
+      "sha256": "872071624baaaa657b2b800848984c6821e171c90bf4bd25d66e2f27acd8aebd"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_regulated_pure_pursuit_controller/src/regulated_pure_pursuit_controller.cpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_regulated_pure_pursuit_controller/src/regulated_pure_pursuit_controller.cpp",
+      "sha256": "9f5f23dc174e2bfae10c502fdebecc37b65d5397039d0c2c4504404557101d85"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_controller/include/nav2_controller/controller_server.hpp",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_controller/include/nav2_controller/controller_server.hpp",
+      "sha256": "5de1b7a76ab4deeaa1c36ec844768d179c73ba6f28a378699f52cdf4e87f6992"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bringup/launch/navigation_launch.py",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bringup/launch/navigation_launch.py",
+      "sha256": "0eb701c5f309134b030bc59ea5bb64b87d9e5d30f5a3cda238dda4abdb2a31c7"
+    },
+    {
+      "path": "research/upstream_jazzy/nav2_bringup/launch/bringup_launch.py",
+      "url": "https://raw.githubusercontent.com/ros-navigation/navigation2/645abd95f2be02a13ca539b29c2ddc065db34f89/nav2_bringup/launch/bringup_launch.py",
+      "sha256": "96d1376a837cece6e08075c989361ceb9efc0723fcd4555fc73b002ca489d05b"
+    },
+    {
+      "path": "research/upstream_jazzy/rep-0103.rst",
+      "url": "https://raw.githubusercontent.com/ros-infrastructure/rep/master/rep-0103.rst",
+      "sha256": "bf397ddcab96cc1d10d8f5893960cb1d5e50154dd96462433a5ac342237a0c20"
+    }
+  ]
+}
