@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5915,
+    "executed_checks": 5916,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -174,6 +174,7 @@
       "model file hash FILE-VEHICLE-PC-IMU-BYID",
       "model file hash FILE-VEHICLE-PC-MM-CRASH",
       "model file hash FILE-VEHICLE-PC-GLIM-START",
+      "model file hash FILE-VEHICLE-PC-SENSOR-SUPERVISION",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -5924,9 +5925,9 @@
   "design_validity": {
     "result": "未判定",
     "reason": "移行検査は設計妥当性検証ではない。設計整合性は check_design.py の三値結果を参照。未設計・未確定・資料衝突を保持。",
-    "known_issue_count": 41,
+    "known_issue_count": 42,
     "known_issue_counts": {
-      "technical": 14,
+      "technical": 15,
       "source_missing": 7,
       "human": 20
     },
@@ -7396,6 +7397,20 @@
         ],
         "recommendation": "案 A（推奨）位置ベースを採用し、再訪・重複する区間には同じ上限を設定する運用。waypoint_manager は重複 cell で値が異なる区間を保存時に警告し、mask は低い方を採用する",
         "recommendation_basis": "DEC-045 の回答（再訪・重複ルートがあっても速度設定値は同じものを採用する）と DEC-031 を維持でき、変更が最小。安全側（低い方）に倒れる。"
+      },
+      {
+        "id": "G-DDS",
+        "category": "technical",
+        "state": "open",
+        "affected_refs": [
+          "IFD-21",
+          "ND-14",
+          "ND-06",
+          "ND-02"
+        ],
+        "resolution_refs": [],
+        "question": "hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。",
+        "next_action": "GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。"
       }
     ],
     "open_conflicts": [
@@ -7425,7 +7440,7 @@
   },
   "design_maturity": {
     "未設計": 404,
-    "案": 429,
+    "案": 430,
     "承認済み": 15
   },
   "revisions": [
@@ -7758,6 +7773,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-035",
+      "date": "2026-10-13",
+      "basis_refs": 1,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 4,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7923,7 +7948,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 848,
+    "entity_count": 849,
     "source_count": 498,
     "id_map_count": 202,
     "legacy_198_count": 198,
