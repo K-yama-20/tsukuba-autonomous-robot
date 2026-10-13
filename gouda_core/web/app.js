@@ -24,6 +24,10 @@
       const r = await fetch('/api/command/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json();
       flashCommand(name, j.ok, j.message);
+      if (j.warning) {   // DEC-088: a sensor had no data when 地図作成開始 was pressed (the start itself is not refused)
+        $('popup-title').textContent = '地図作成の開始時にセンサーのデータがない';
+        $('popup-body').textContent = j.warning; $('popup').hidden = false;
+      }
     } catch (e) {
       flashCommand(name, false, 'request failed: ' + e);
     } finally { b.classList.remove('busy'); b.disabled = false; }
@@ -67,6 +71,17 @@
     $('esp32-status').textContent = e.freshness.status; $('esp32-status').className = 'status ' + statusClass(e.freshness);
     kvTable($('esp32-table'), Object.keys(e.fields).length ? e.fields : {});
     $('esp32-note').textContent = e.note || e.freshness.verdict;
+    // sensors (IFD-21 / IFD-22 reception, DEC-088). Display only; the thresholds are PRM-57 / PRM-58.
+    if (s.sensors) {
+      const rows = {}; let allOk = true;
+      for (const st of Object.values(s.sensors)) {
+        if (st.status !== 'RECEIVED') allOk = false;
+        rows[`${st.label} (${st.topic})`] = `${st.status}  ${st.rate_hz == null ? '— Hz' : st.rate_hz.toFixed(1) + ' Hz'}  age ${st.age_s == null ? '—' : st.age_s.toFixed(2) + ' s'}` +
+          (st.stamp_minus_receive_s == null ? '' : `  stamp-受信 ${st.stamp_minus_receive_s.toFixed(3)} s`) + (st.stale_after_s == null ? '  (しきい値未確定: STALE 判定なし)' : '');
+      }
+      kvTable($('sensors-table'), rows);
+      $('sensors-status').textContent = allOk ? 'RECEIVED' : 'CHECK'; $('sensors-status').className = 'status ' + (allOk ? 'ok' : 'amber');
+    }
     // pc / nodes
     const n = s.nodes;
     $('node-count').textContent = n.names.length ? String(n.names.length) : '—';
@@ -107,6 +122,7 @@
     const newest = failed.reduce((m, ev) => Math.max(m, ev.last_at), 0);
     if (seenEventsBaseline !== null && newest > seenEventsBaseline) {
       const ev = failed.find((x) => x.last_at === newest);
+      $('popup-title').textContent = '記録の自動開始に失敗';
       $('popup-body').textContent = `${fmtT(ev.last_at)} ${ev.transition_id || ''} ${ev.reason}\n走行は止めない。記録が必要なら Record ボタンで手動開始する。`;
       $('popup').hidden = false;
     }

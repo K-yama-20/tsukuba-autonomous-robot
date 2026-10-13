@@ -27,6 +27,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.parameter import Parameter
+from sensor_msgs.msg import PointCloud2, Imu
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 from gouda_interfaces.srv import StartAutonomy
 from ament_index_python.packages import get_package_share_directory
@@ -48,6 +49,19 @@ def optional_double(node, name):
     except Exception:
         return None
     return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
+
+def header_stamp(raw: bytes):
+    """header.stamp (s) read from a serialized message whose first field is std_msgs/Header (CDR: 4-byte encapsulation, then
+    int32 sec, uint32 nanosec). None when it cannot be read; nothing is guessed."""
+    import struct
+    try:
+        if len(raw) < 12: return None
+        endian = '<' if raw[1] == 1 else '>'
+        sec, nsec = struct.unpack_from(endian + 'iI', raw, 4)
+        return sec + nsec * 1e-9
+    except Exception:
+        return None
+
 
 UI_PARAMS = ['ui_node_list_poll_period_s', 'ui_sse_keepalive_s', 'ui_service_ready_wait_s', 'ui_service_response_wait_s', 'ui_pause_service_ready_wait_s', 'ui_pause_service_response_wait_s']
 
@@ -94,9 +108,18 @@ class MonitorNode(Node):
         self.declare_parameter('esp32_status_stale_s', Parameter.Type.DOUBLE)
         self.core.stale_after_esp32_s = optional_double(self, 'esp32_status_stale_s')
         self.create_subscription(DiagnosticArray, '/esp32/status', self._on_esp32, QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10))
+        # IFD-21 / IFD-22 reception (DEC-088): display and the mapping-start warning only, never a stop condition. Raw (serialized)
+        # messages: the monitor only counts arrivals and reads header.stamp, so the 64000-point clouds are not deserialized.
+        # Thresholds PRM-57 / PRM-58 (unresolved: STALE is not judged; "never received" is still warned).
+        self.declare_parameter('points_stale_s', Parameter.Type.DOUBLE)
+        self.declare_parameter('imu_stale_s', Parameter.Type.DOUBLE)
+        self.core.stale_after_sensor_s = {'points': optional_double(self, 'points_stale_s'), 'imu': optional_double(self, 'imu_stale_s')}
+        sensor_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=5)
+        self.create_subscription(PointCloud2, 'sensors/xt32/points', lambda b: self._on_sensor('points', b), sensor_qos, raw=True)
+        self.create_subscription(Imu, 'sensors/imu/data', lambda b: self._on_sensor('imu', b), sensor_qos, raw=True)
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
-        self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings only (DEC-073)
+        self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings (DEC-073) and mapping_start_sensor_warning (DEC-088)
         self.create_timer(self.ui['ui_node_list_poll_period_s'], self._poll_nodes)  # PRM-27; display only, not a stop condition
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
         self.server = MonitorServer(web_dir, self._state, self._config_snapshot, self._command, self._config_update,
@@ -127,6 +150,10 @@ class MonitorNode(Node):
                 with self._lock:
                     self.core.on_record({kv.key: kv.value for kv in st.values} | {'level': int.from_bytes(st.level, 'big') if isinstance(st.level, bytes) else int(st.level), 'message': st.message})
         self.server.notify(self.core.connection_revision)
+
+    def _on_sensor(self, key: str, raw: bytes):
+        with self._lock:
+            self.core.on_sensor(key, self._now(), header_stamp(raw))
 
     def _on_esp32(self, arr: DiagnosticArray):
         for st in arr.status:
@@ -257,13 +284,31 @@ class MonitorNode(Node):
         elif name == 'pause':   # the pause button has its own waits (PRM-31 / PRM-32, DEC-073)
             ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_pause_service_ready_wait_s'], self.ui['ui_pause_service_response_wait_s'])
         elif name in self.cmd_clients:
+            warning = None
+            if name == 'start_mapping':   # DEC-088: warn, at the moment of the button, when a sensor has no data; the start is not refused
+                with self._lock:
+                    warning = self.core.mapping_start_warning()
+                    sensors = self.core.sensors_snapshot()
+                if warning:
+                    self._record_warning('mapping_start_sensor_warning', 'TR-03', warning, {'sensors': sensors})
             ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
+            if warning:
+                with self._lock:
+                    self.core.on_command_result(name, ok, msg)
+                self.server.notify(self.core.connection_revision)
+                return {'ok': ok, 'message': msg, 'warning': warning}
         else:
             ok, msg = False, f'unknown command {name!r}'
         with self._lock:
             self.core.on_command_result(name, ok, msg)
         self.server.notify(self.core.connection_revision)
         return {'ok': ok, 'message': msg}
+
+    def _record_warning(self, event, transition_id, reason, details):
+        d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
+        d.event = event; d.transition_id = transition_id; d.reason = reason; d.run_id = ''; d.section_id = -1
+        d.details = json.dumps(details, ensure_ascii=False, default=str)
+        self.decision_pub.publish(d)
 
     def _call(self, client, request, extract, ready_wait_s, response_wait_s):
         # No automatic retry: a timed-out call is reported as a failure and the human decides whether to press again.

@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 15
-pending_decision_count: 9
+pending_decision_count: 10
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -801,4 +801,10 @@ pending_decisions:
     status: pending
     question: '【承認】IMU（ADIS16607-2）の発行周期（PRM-56、adi_imu_driver の rate）。旧実装の imu.yaml とドライバの既定はどちらも 100 Hz（旧 imu.yaml
       の注記: 内部サンプリング 1000 Hz、ROS 発行は 100 Hz に制限）。100 Hz でよいか。'
+    resulting_refs: []
+  - id: DEC-089
+    kind: question
+    status: pending
+    question: 【承認】センサー受信表示と supervisor のソフトウェア設定値（実車の測定値ではない。DEC-073 の UI の値と同じ扱い）。 PRM-57 点群の STALE しきい値 1.0 
+      s、PRM-58 IMU の STALE しきい値 1.0 s、PRM-59 ドライバ停止の各段の待ち 5.0 s でよいか。
     resulting_refs: []

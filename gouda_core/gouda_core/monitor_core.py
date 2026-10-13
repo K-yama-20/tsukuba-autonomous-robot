@@ -76,6 +76,31 @@ def freshness(rec: Optional[Received], now: float, stale_after_s: Optional[float
     return Freshness('RECEIVED', age, f'最終受信から {age:.1f} s')
 
 
+class SensorReception:
+    """Reception of one sensor topic as seen by the monitor (IFD-21 points, IFD-22 IMU; DEC-088). Display and the mapping-start
+    warning only: never a stop condition (DEC-006 style). The monitor counts arrivals; it does not interpret the data."""
+
+    def __init__(self, label: str, topic: str, history: int = 50):
+        from collections import deque
+        self.label, self.topic = label, topic
+        self.arrivals = deque(maxlen=history)      # receive times; the rate is computed over these
+        self.count = 0
+        self.last_stamp: Optional[float] = None    # header.stamp of the last message (s), when it could be read
+        self.last_at: Optional[float] = None
+
+    def on_message(self, received_at: float, stamp: Optional[float] = None):
+        self.arrivals.append(received_at); self.count += 1; self.last_at = received_at
+        if stamp is not None: self.last_stamp = stamp
+
+    def status(self, now: float, stale_after_s: Optional[float]) -> dict:
+        f = freshness(Received({}, self.last_at) if self.last_at is not None else None, now, stale_after_s)
+        a = list(self.arrivals)
+        rate = (len(a) - 1) / (a[-1] - a[0]) if len(a) >= 2 and a[-1] > a[0] else None
+        return {'label': self.label, 'topic': self.topic, 'status': f.status, 'age_s': f.age_s, 'verdict': f.verdict, 'rate_hz': rate,
+                'count': self.count, 'stamp_minus_receive_s': (self.last_stamp - self.last_at) if self.last_stamp is not None and self.last_at is not None else None,
+                'stale_after_s': stale_after_s}
+
+
 class MonitorCore:
     def __init__(self, clock: Callable[[], float] = time.time, max_events: int = 200):
         self.clock = clock
@@ -90,6 +115,8 @@ class MonitorCore:
         self.connection_revision = 0                     # bumps on every change; SSE clients use it
         self.stale_after_mode_s: Optional[float] = None  # PRM-16 (tbd)
         self.stale_after_esp32_s: Optional[float] = None # PRM-15 (tbd)
+        self.sensors = {'points': SensorReception('XT-32 点群', 'sensors/xt32/points'), 'imu': SensorReception('IMU', 'sensors/imu/data')}  # IFD-21 / IFD-22
+        self.stale_after_sensor_s: dict = {'points': None, 'imu': None}   # PRM-57 / PRM-58
         self.settings: dict = {}                           # effective UI parameters (PRM-27..32) for display
 
     # ---- inputs ----
@@ -101,6 +128,26 @@ class MonitorCore:
 
     def on_esp32(self, data: dict, received_at: Optional[float] = None):
         self.esp32 = Received(data, received_at if received_at is not None else self.clock()); self.connection_revision += 1
+
+    def on_sensor(self, key: str, received_at: Optional[float] = None, stamp: Optional[float] = None):
+        self.sensors[key].on_message(received_at if received_at is not None else self.clock(), stamp)
+
+    def sensors_snapshot(self, now: Optional[float] = None) -> dict:
+        now = self.clock() if now is None else now
+        return {k: s.status(now, self.stale_after_sensor_s.get(k)) for k, s in self.sensors.items()}
+
+    def mapping_start_warning(self, now: Optional[float] = None) -> Optional[str]:
+        """Text of the warning shown when 地図作成開始 is pressed while a sensor has no data (DEC-088); None when both are
+        receiving. The start itself is not refused (no additional approval step: RQ-I011)."""
+        problems = []
+        for k, st in self.sensors_snapshot(now).items():
+            if st['status'] == 'NOT_RECEIVED':
+                problems.append(f"{st['label']}（{st['topic']}）を受信していない")
+            elif st['status'] == 'STALE':
+                problems.append(f"{st['label']}（{st['topic']}）が {st['age_s']:.1f} s 届いていない（しきい値 {st['stale_after_s']} s）")
+        if not problems:
+            return None
+        return '地図作成の開始時にセンサーのデータがない: ' + '、'.join(problems) + '。GLIM は動くが地図はできない。センサーの接続を確認する'
 
     def on_nodes(self, names: list):
         self.nodes = sorted(names); self.nodes_at = self.clock(); self.connection_revision += 1
@@ -141,9 +188,10 @@ class MonitorCore:
             'esp32': {'freshness': fe.__dict__, 'fields': self.esp32.data if self.esp32 else {},
                       'note': 'ESP32 STATUS は工程5-5（車体出力）で受信する。取得できる項目は新 firmware の STATUS 定義に従い、取得できない項目は常に不明（DEC-006）' if not self.esp32 else ''},
             'nodes': {'names': self.nodes, 'at': self.nodes_at, 'age_s': (now - self.nodes_at) if self.nodes_at else None},
+            'sensors': self.sensors_snapshot(now),
             'external_displays': {
                 'navigation': {'status': UNAVAILABLE, 'note': '外部可視化（RViz2 等）の埋込方式は未確定。描画はこの画面で再実装しない（デザインルール §6）'},
-                'lidar_localization': {'status': UNAVAILABLE, 'note': '外部可視化（RViz2 等）の埋込方式は未確定。センサーは未接続'},
+                'lidar_localization': {'status': UNAVAILABLE, 'note': '外部可視化（RViz2 等）の埋込方式は未確定。センサーの受信状況はこの欄の上の表'},
             },
             'events': [{'node': a.key[0], 'event': a.key[1], 'transition_id': a.key[2], 'reason': a.key[3], 'count': a.count,
                         'first_at': a.first_at, 'last_at': a.last_at, 'details': a.sample.get('details', '')} for a in reversed(self.events.values())],
