@@ -142,6 +142,10 @@ files:
     path: design/research/vehicle_pc/2026-10-13_glim_start_vm_test.txt
     sha256: f19ad39a48741d092f85d79992f1c1b80568ea8956bcbd3e0a0c22ef7fc5af2b
     role: evidence
+  - id: FILE-VEHICLE-PC-SENSOR-SUPERVISION
+    path: design/research/vehicle_pc/2026-10-13_sensor_supervision_vm_test.txt
+    sha256: 1ceb099bc3dbb8f65e12dc8188bc71532789ef46f73a6e00980a3e8142cae97e
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34224,6 +34228,7 @@ entities:
       - H-004
       - H-011
       - H-013
+      - G-DDS
     interpretation: ''
     sensitivity:
       - operation
@@ -34236,7 +34241,7 @@ entities:
       - RQ-I033
       - RQ-I044
       - RQ-I070
-    revision_ref: REV-034
+    revision_ref: REV-035
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34559,6 +34564,7 @@ entities:
     related_refs: []
     issue_refs:
       - Q-02
+      - G-DDS
     interpretation: ''
     sensitivity:
       - operation
@@ -34568,7 +34574,7 @@ entities:
       - RQ-I007
       - RQ-I004
       - RQ-I081
-    revision_ref: REV-032
+    revision_ref: REV-035
     ros_node:
       node_name: glim_rosnode
       responsibilities:
@@ -35000,12 +35006,13 @@ entities:
     related_refs: []
     issue_refs:
       - Q-04
+      - G-DDS
     interpretation: ''
     sensitivity: []
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-034
+    revision_ref: REV-035
     ros_node:
       node_name: hesai_ros_driver
       responsibilities:
@@ -36466,6 +36473,7 @@ entities:
       - Q-04
       - Q-05
       - H-005
+      - G-DDS
     interpretation: ''
     sensitivity:
       - safety
@@ -36473,7 +36481,7 @@ entities:
       - RQ-I001
       - RQ-I006
       - RQ-I012
-    revision_ref: REV-034
+    revision_ref: REV-035
     designed_interface:
       transport: topic
       name: sensors/xt32/points
@@ -42389,6 +42397,38 @@ entities:
       procedure: supervisor を起動し、IMU の USB を抜き差しする。USB-LAN を抜き差しする。デバイスはそのままでドライバを終了させる。デバイスなしで起動してから接続する。
       observe: DecisionEvent（device_reconnected、driver_restarted、driver_exited、driver_started）と、点群・IMU の受信の再開。
       expected: 再接続のときだけ、そのデバイスのドライバだけが作り直され受信が再開する。同じデバイスのままでは再起動しない。デバイスが現れたら起動する。
+  - id: G-DDS
+    kind: issue
+    name: 点群（約 2 MB、10 Hz）の別プロセスへの配送で欠落する（購読側が 2〜3 Hz）
+    source_refs:
+      - SRC-I008
+      - SRC-I009
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I005
+      - RQ-I006
+    revision_ref: REV-035
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - IFD-21
+        - ND-14
+        - ND-06
+        - ND-02
+      resolution_refs: []
+      question: hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 
+        Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 
+        2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。
+      next_action: GLIM が実際に受け取る点群の周期を測る（C++ の購読者、または GLIM のログ）。欠落が GLIM にも及ぶなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の
+        QoS・RMW の種類を候補として比較する。 上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -53072,4 +53112,22 @@ revisions:
       - IFD-28
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-035
+    date: '2026-10-13'
+    summary: 'DEC-088 の VM での確認を証拠として登録（FILE-VEHICLE-PC-SENSOR-SUPERVISION）。supervisor が XT-32 の I/F と IMU の by-id
+      の名前から同一性を求めて両ドライバを起動し、 monitor が受信状況を表示した。センサーなしの別スタックで、地図作成開始時の警告（ポップアップ用の文、DecisionEvent）と、警告しても開始されることを確認。
+      新たに分かった問題: ドライバは点群を 10 Hz で出しているが、別プロセスの購読者は 2〜3 Hz しか受け取れない（約 2 MB の点群の配送で欠落）。G-DDS として登録（GLIM が受け取る周期は未測定）。'
+    basis_refs:
+      - DEC-088
+    added_entity_ids:
+      - G-DDS
+    modified_entity_ids:
+      - ND-02
+      - ND-06
+      - ND-14
+      - IFD-21
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-SENSOR-SUPERVISION
     removed_entity_ids: []
