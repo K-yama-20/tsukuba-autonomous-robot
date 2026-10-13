@@ -14,6 +14,7 @@
     document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === b));
     document.querySelectorAll('.tabpane').forEach((p) => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
     if (b.dataset.tab === 'config') loadConfig();
+    if (b.dataset.tab === 'maps') loadMapSettings();
   }));
 
   // ---- commands ----
@@ -106,14 +107,8 @@
       $('commands').innerHTML = s.commands.map((c) => `<div class="ev ${c.ok ? '' : 'refused'}"><span class="t">${fmtT(c.t)}</span><span class="m"><span class="code">${esc(c.command)}</span>${esc(c.message)}</span><span class="n">${c.ok ? 'OK' : 'NG'}</span></div>`).join('');
     }
     wpFillMaps(s);
-    // map database (IFD-29)
-    if (s.maps) {
-      const rows = {};
-      (s.maps.origins || []).forEach((o) => {
-        rows[o.origin_id] = `source ${String(o.source_hash).slice(0, 12)}… submaps ${o.submaps}; converted: ` + ((o.converted || []).map((c) => `rev ${c.revision} ${String(c.content_hash).slice(0, 12)}…`).join(', ') || 'なし');
-      });
-      kvTable($('maps-table'), rows); $('maps-note').textContent = s.maps.note || `${(s.maps.origins || []).length} origin(s)`;
-    }
+    // map database (IFD-29) and the 地図 tab
+    renderMaps(s);
     // settings (UI parameters of the relay node)
     if (s.settings && s.settings.ui) kvTable($('settings-table'), Object.assign({}, s.settings.ui, { declared_by: s.settings.declared_by, source: s.settings.source, auto_retry: s.settings.auto_retry }));
     // pop-up for a failed automatic log start (DEC-071). Only events newer than the last seen one trigger it; a
@@ -131,6 +126,74 @@
   }
   let seenEventsBaseline = null;   // set from the first snapshot after connect: retained history is not a trigger
   $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
+
+  // ---- 地図 tab (intent.md:106): map list, conversion settings, re-conversion, preview ----
+  const mapSel = { origin: null, rev: null };
+  let mapSettings = [];
+  function renderMaps(s) {
+    if (!s.maps) return;
+    const origins = (s.maps.origins || []).slice().reverse();   // newest first
+    $('maps-note').textContent = s.maps.note || `${origins.length} 原図`;
+    $('maps-table').innerHTML = origins.map((o) => {
+      const revs = (o.converted || []).map((c) => `<span class="rev ${mapSel.origin === o.origin_id && mapSel.rev === c.revision ? 'sel' : ''}" data-origin="${esc(o.origin_id)}" data-rev="${c.revision}">rev ${c.revision}</span>`).join('') || '<span class="dim">変換後地図なし</span>';
+      return `<div class="origin ${mapSel.origin === o.origin_id ? 'sel' : ''}" data-origin="${esc(o.origin_id)}"><div>${esc(o.origin_id)} <span class="dim">submaps ${o.submaps} / ${fmtT(o.created_at)} / ${String(o.source_hash).slice(0, 12)}…</span></div><div>${revs}</div></div>`;
+    }).join('') || '<div class="dim">原図なし（地図作成を終了すると登録される）</div>';
+    const c = s.map_conversion || {};
+    const st = c.state || 'idle';
+    $('conv-status').textContent = st === 'running' ? `変換中 ${c.stage || ''} ${c.progress != null ? Math.round(c.progress * 100) + '%' : ''}` : st === 'done' ? `完了 rev ${c.revision}` : st === 'failed' ? '失敗' : '—';
+    $('conv-status').className = 'status ' + (st === 'failed' ? 'amber' : st === 'done' ? 'ok' : '');
+    $('conv-run').disabled = st === 'running';
+    if (c.message) $('conv-msg').textContent = `${c.origin_id}: ${c.message}`;
+    if (st === 'done' && c.origin_id && lastShownConversion !== c.finished_at) {   // show the new revision right away
+      lastShownConversion = c.finished_at; selectMap(c.origin_id, c.revision);
+    }
+  }
+  let lastShownConversion = null;
+  $('maps-table').addEventListener('click', (e) => {
+    const r = e.target.closest('.rev'); const o = e.target.closest('.origin');
+    if (r) selectMap(r.dataset.origin, Number(r.dataset.rev)); else if (o) selectMap(o.dataset.origin, null);
+  });
+  async function selectMap(origin, rev) {
+    mapSel.origin = origin; mapSel.rev = rev;
+    $('conv-target').textContent = `対象の原図: ${origin}`;
+    if (lastState) renderMaps(lastState);
+    if (rev == null) { $('prev-title').textContent = '未選択'; $('prev-img').removeAttribute('src'); kvTable($('prev-table'), {}); return; }
+    $('prev-title').textContent = `${origin} rev ${rev}`;
+    $('prev-img').src = `/api/map/${encodeURIComponent(origin)}/${rev}/map.png?t=${Date.now()}`;
+    try {
+      const j = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/manifest.json`)).json();
+      const m = j.manifest || {}; const st = m.stats || {}; const rows = {};
+      for (const s of mapSettings.length ? mapSettings : Object.keys(m.settings || {}).map((k) => ({ key: k, label: k, unit: '' }))) rows[`${s.label} [${s.unit}]`] = (m.settings || {})[s.key];
+      Object.assign(rows, { 'セル（占有／空き／未知）': `${st.occupied} / ${st.free} / ${st.unknown}`, '大きさ': `${st.width}×${st.height} cells, 解像度 ${st.resolution} m`,
+        '点（全体／障害物／地面）': `${st.points_total} / ${st.points_obstacle} / ${st.points_ground}`, 'submaps': st.submaps, '変換器': (m.converter || {}).version,
+        '内容ハッシュ': String(m.content_hash || '').slice(0, 16) + '…', '作成': fmtT(m.created_at) });
+      kvTable($('prev-table'), rows);
+      // the settings of the selected revision become the starting point of the next try
+      for (const [k, v] of Object.entries(m.settings || {})) { const el = $('conv-form').elements[k]; if (el) el.value = v; }
+    } catch (err) { kvTable($('prev-table'), { error: String(err) }); }
+  }
+  async function loadMapSettings() {
+    try {
+      const j = await (await fetch('/api/map_settings')).json();
+      mapSettings = j.settings || [];
+      const form = $('conv-form'); const keep = {};
+      for (const el of form.elements) keep[el.name] = el.value;
+      form.innerHTML = mapSettings.map((s) => `<label>${esc(s.label)} <span class="dim">[${esc(s.unit)}] ${esc(s.prm)}</span><input name="${esc(s.key)}" value="${esc(keep[s.key] != null && keep[s.key] !== '' ? keep[s.key] : (s.default == null ? '' : s.default))}" placeholder="未設定"></label>`).join('');
+      $('conv-note').textContent = j.note || '';
+    } catch (err) { $('conv-note').textContent = 'settings: ' + err; }
+  }
+  $('conv-defaults').addEventListener('click', () => {
+    for (const s of mapSettings) { const el = $('conv-form').elements[s.key]; if (el) el.value = s.default == null ? '' : s.default; }
+  });
+  $('conv-run').addEventListener('click', async () => {
+    if (!mapSel.origin) { $('conv-msg').textContent = '原図を選んでから再変換する'; return; }
+    const settings = {}; for (const el of $('conv-form').elements) settings[el.name] = el.value;
+    $('conv-run').disabled = true;
+    try {
+      const j = await (await fetch('/api/map_reconvert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ origin_id: mapSel.origin, settings }) })).json();
+      $('conv-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message;
+    } catch (err) { $('conv-msg').textContent = 'request failed: ' + err; } finally { if (lastState) renderMaps(lastState); }
+  });
 
   // ---- /config ----
   async function loadConfig() {

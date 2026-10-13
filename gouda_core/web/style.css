@@ -118,3 +118,15 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); f
 #wp-canvas { image-rendering: pixelated; cursor: crosshair; display: block; }
 input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px solid var(--line); padding: 3px 6px; font: inherit; font-family: var(--mono); }
 .kv input.sec { width: 80px; background: #03100f; color: var(--cyan); border: 1px solid var(--line); padding: 2px 4px; font-family: var(--mono); }
+
+/* 地図 tab */
+.grid-maps { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; height: 100%; min-height: 0; }
+.grid-maps .panel { overflow: auto; }
+.maps { font-family: var(--mono); font-size: 11px; }
+.maps .origin { border-bottom: 1px solid rgba(47,143,150,.3); padding: 4px 2px; cursor: pointer; }
+.maps .origin.sel { background: rgba(47,143,150,.18); }
+.maps .rev { display: inline-block; margin: 2px 4px 0 0; padding: 1px 6px; border: 1px solid var(--line); cursor: pointer; color: var(--cyan); }
+.maps .rev.sel { background: var(--cyan); color: #03100f; }
+.map-preview { border: 1px dashed var(--fg-dim); background: #808080; min-height: 120px; max-height: 45vh; overflow: auto; margin: 4px 0; }
+.map-preview img { image-rendering: pixelated; display: block; }
+@media (max-width: 760px) { .grid-maps { grid-template-columns: 1fr; } }
