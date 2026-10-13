@@ -1,0 +1,209 @@
+# 変更セット REV-037（2026-10-14 第23便: 起動経路を一つにする、センサー・monitor・supervisor の値の確定、LiDAR 回転数 600 rpm）
+# 適用: design/tools/apply_revision.py REV-037
+id: REV-037
+date: '2026-10-14'
+summary: >-
+  人の回答 DEC-091 を原文で記録。AI の変更案（起動は bash gouda.sh start の一つ、センサーの切替をなくし常に supervisor が扱う、機械ごとの値は正本の設定、仮値は試験 script だけ、
+  ワークスペース等は gouda.sh の位置から決める）と推奨値を了承。確定値: PTC ポート 9347（PRM-53）、IMU 周期 100 Hz（PRM-56）、点群・IMU の STALE しきい値 1.0 s（PRM-57・58）、
+  ドライバ停止の待ち 5.0 s（PRM-59）、monitor のポート 8080（PRM-26）、データの置き場 <workspace>/gouda_data（PRM-25）、LiDAR の回転数 600 rpm＝10 Hz（PRM-60、新規。ドライバが起動時に設定）。
+  LiDAR は 1200 rpm にも設定でき、いずれ 1200 rpm にする可能性がある。IMU は約 1000 Hz まで出せる。ESP32 のシリアルデバイス（PRM-61、新規）は未確定（新 firmware の書き込み時に実機の名前で決める）。
+  DEC-084・085・089 は本回答で回答済み。
+basis_refs: [DEC-091, DEC-090]
+intent_version_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
+
+decisions:
+  - id: DEC-091
+    kind: approval
+    status: answered
+    asked_on: '2026-10-13'
+    answered_on: '2026-10-14'
+    channel: chat
+    question: >-
+      起動経路を一つにする変更案（bash gouda.sh start の一つ、センサーの切替をなくす、機械ごとの値は正本の設定、仮値は試験 script だけ、ワークスペース等は gouda.sh の位置から）と、
+      未回答の値の推奨（PTC ポート 9347、IMU 周期 100 Hz、受信の途絶のしきい値 点群・IMU とも 1.0 s、ドライバ停止の待ち 5.0 s、monitor のポート 8080）でよいか
+    answer_verbatim: |
+      それで問題ない。imu_ros_driverの周波数は100Hz, lidarの周波数は10hz（600rpm）で設定しろ。これは確定値（lidarは1200rpmにも設定可能で、imuは1000hzくらいまで出せるので、いずれlidarを1200rpmにする可能性もあることを併記）
+    affected_refs: [ND-01, ND-18, PRM-25, PRM-26, PRM-53, PRM-56, PRM-57, PRM-58, PRM-59, DEC-084, DEC-085, DEC-089]
+    resulting_refs: [PRM-60, PRM-61]
+    note: >-
+      「それで問題ない」は直前の AI の案と表の推奨値の全体への回答として扱う。LiDAR の周波数 10 Hz（600 rpm）は PRM-60 として宣言し、ドライバの設定 speed で起動時に LiDAR へ設定する
+      （上流 SDK の lidar.h 374〜378 行、SetSpinSpeed）。併記の指示（LiDAR は 1200 rpm 可、IMU は約 1000 Hz 可、いずれ 1200 rpm の可能性）は PRM-56・PRM-60 の interpretation に記載。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-084
+    set:
+      status: answered
+      answered_on: '2026-10-14'
+      answer_verbatim: |
+        それで問題ない。imu_ros_driverの周波数は100Hz, lidarの周波数は10hz（600rpm）で設定しろ。これは確定値（lidarは1200rpmにも設定可能で、imuは1000hzくらいまで出せるので、いずれlidarを1200rpmにする可能性もあることを併記）
+      resulting_refs: [PRM-53, DEC-091]
+      note: 推奨 9347 を了承（DEC-091 の「それで問題ない」。直前の AI の表に PTC ポート 9347 を推奨値として示した）。
+      disposition: answered
+  - id: DEC-085
+    set:
+      status: answered
+      answered_on: '2026-10-14'
+      answer_verbatim: |
+        それで問題ない。imu_ros_driverの周波数は100Hz, lidarの周波数は10hz（600rpm）で設定しろ。これは確定値（lidarは1200rpmにも設定可能で、imuは1000hzくらいまで出せるので、いずれlidarを1200rpmにする可能性もあることを併記）
+      resulting_refs: [PRM-56, DEC-091]
+      note: IMU の周波数 100 Hz を確定値として指示（DEC-091）。IMU は約 1000 Hz まで出せる。
+      disposition: answered
+  - id: DEC-089
+    set:
+      status: answered
+      answered_on: '2026-10-14'
+      answer_verbatim: |
+        それで問題ない。imu_ros_driverの周波数は100Hz, lidarの周波数は10hz（600rpm）で設定しろ。これは確定値（lidarは1200rpmにも設定可能で、imuは1000hzくらいまで出せるので、いずれlidarを1200rpmにする可能性もあることを併記）
+      resulting_refs: [PRM-57, PRM-58, PRM-59, DEC-091]
+      note: 推奨（点群・IMU の STALE しきい値 1.0 s、ドライバ停止の待ち 5.0 s）を了承（DEC-091）。
+      disposition: answered
+  - id: DEC-090
+    set:
+      note: >-
+        事実: GOUDA_SENSORS は AI が REV-031（2026-10-13）で、センサーのない環境で試験するために自分の判断で入れた。人の指示ではない。gouda.sh の環境変数は GOUDA_WORKSPACE・GOUDA_DATA_ROOT・GOUDA_PARAMS_DIR・
+        GOUDA_TRIAL_PARAMS・GOUDA_MONITOR_PORT・GOUDA_SENSORS・GOUDA_SERIAL_PORT・ROS_SETUP の 8 つだった。判断台帳と intent.md には同じ文の指示は見つからない（チャットで受けていたなら記録していなかった）。
+        変更案は DEC-091 で了承され、REV-037 で反映（gouda.sh は start／stop／status だけで環境変数の選択肢なし）。
+
+entities:
+  - id: PRM-60
+    kind: parameter
+    intent_lines: [9, 103]
+    name: XT-32 の回転数（点群の周波数）
+    design_status: 承認済み
+    adoption: approved
+    issue_refs: []
+    sensitivity: [operation]
+    approval_decision_ref: DEC-091
+    parameter:
+      owner_ref: ND-14
+      value: 600
+      value_state: approved
+      unit: rpm
+      stage: 地図作成と変換
+      purpose: XT-32 の回転数。1 回転で 1 フレームなので 600 rpm＝10 Hz。ドライバの設定 speed で起動時に LiDAR へ設定し（PTC）、default_frame_frequency も同じ周波数（rpm/60）にする
+      measurement: 不要（人の確定値 DEC-091。Pandar Console の Spin Rate 600 rpm と一致：FILE-PANDAR-CONSOLE-XT32）
+      decision_deadline: 決定済み（DEC-091）
+      software_trial_value: null
+      software_trial_basis: null
+      declaration: config_yaml
+      target: hesai_ros_driver
+      param_key: spin_rate_rpm
+      value_type: int
+      apply_timing: launch
+    interpretation: >-
+      人の併記（DEC-091）: LiDAR は 1200 rpm（20 Hz）にも設定でき、いずれ 1200 rpm にする可能性がある。変えるときは本値を新しい判断で変更し、点群の STALE しきい値（PRM-57）と GLIM の点群の扱いを見直す。
+  - id: PRM-61
+    kind: parameter
+    intent_lines: [97, 103]
+    name: ESP32 のシリアルデバイス（by-id の名前）
+    issue_refs: [G-FIRMWARE]
+    sensitivity: [operation]
+    parameter:
+      owner_ref: ND-12
+      value: null
+      value_state: unresolved
+      unit: null
+      stage: 車体出力
+      purpose: vehicle_bridge が開く ESP32 のシリアルデバイス。IMU と同じく /dev/serial/by-id の名前だけを使い、ttyACM 等の番号は使わない（DEC-081 の方針）。未確定の間、vehicle_bridge は configure を拒否する
+      measurement: 新 firmware の書き込み時に、実車PC の ls -l /dev/serial/by-id/ の出力で決める
+      decision_deadline: 新 firmware の実機試験の前
+      software_trial_value: null
+      software_trial_basis: 仮値なし（試験 script は pty のパスを ros2 param set で与える）
+      declaration: ros_parameter
+      target: vehicle_bridge
+      param_key: serial_port
+      value_type: string
+      apply_timing: lifecycle_configure
+    interpretation: ''
+
+modifications:
+  - id: PRM-25
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: <workspace>/gouda_data
+      parameter.value_state: approved
+      parameter.purpose: >-
+        gouda.sh が自身の位置から決めて launch 引数 data_root として渡す（<workspace> は gouda.sh の 2 つ上のディレクトリ）。環境変数で変えない（DEC-091）。
+        <data_root>/records に記録セッション（log/ と rosbag/ を同じセッション直下に分ける：RQ-I016）、<data_root>/state に直前モードの永続記録（SO-01）、config/ に /config、run/ に monitor の URL・launch のログ・生成したドライバ設定・sensor_devices.json
+      parameter.measurement: 不要（人の了承 DEC-091）
+  - id: PRM-26
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 8080
+      parameter.value_state: approved
+      parameter.declaration: ros_parameter
+      parameter.target: gouda_monitor
+      parameter.param_key: monitor_port
+      parameter.purpose: monitor ページを 127.0.0.1 で待ち受ける TCP ポート。URL は <data_root>/run/monitor.url にも書く（gouda.sh が表示）。環境変数で変えない（DEC-091）
+      parameter.measurement: 不要（人の了承 DEC-091）
+  - id: PRM-53
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 9347
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の了承 DEC-084・DEC-091）
+      parameter.decision_deadline: 決定済み（DEC-091）
+  - id: PRM-56
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 100.0
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の確定値 DEC-091）
+      parameter.decision_deadline: 決定済み（DEC-091）
+    interpretation_append: 人の併記（DEC-091）：ADIS16607-2 は約 1000 Hz まで出せる（内部サンプリング 1000 Hz）。変えるときは本値を新しい判断で変更し、IMU の STALE しきい値（PRM-58）を見直す。
+  - id: PRM-57
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 1.0
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の了承 DEC-089・DEC-091。ソフトウェア設定値）
+      parameter.decision_deadline: 決定済み（DEC-091）
+  - id: PRM-58
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 1.0
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の了承 DEC-089・DEC-091。ソフトウェア設定値）
+      parameter.decision_deadline: 決定済み（DEC-091）
+  - id: PRM-59
+    set:
+      design_status: 承認済み
+      adoption: approved
+      approval_decision_ref: DEC-091
+    set_nested:
+      parameter.value: 5.0
+      parameter.value_state: approved
+      parameter.measurement: 不要（人の了承 DEC-089・DEC-091。ソフトウェア設定値）
+      parameter.decision_deadline: 決定済み（DEC-091）
+  - id: ND-01
+    set_nested:
+      ros_node.responsibilities:
+        - 起動経路はこれ一つ（bash gouda.sh start／stop／status）。環境変数などの起動オプションを持たない（DEC-090・DEC-091）
+        - 共通nodeの起動と、モードごとの launch／lifecycle 有効化（RQ-I004）。センサードライバは常に gouda_sensor_supervisor（ND-18）の下で起動する（デバイスが無ければ待つ）
+        - ワークスペース（gouda.sh の 2 つ上）、データの置き場（PRM-25）、設定（design/generated/params）、ROS 2 Jazzy（/opt/ros/jazzy）は固定または正本から決める。仮値（<node>.trial.yaml）は読まない（試験 script だけが使う）
+        - 起動・有効化の失敗を gouda_monitor に表示できる形（/diagnostics・lifecycle状態）で残す。起動中に launch が終了したら失敗として表示する
+        - 走行開始要求は発行しない（M-001 K2 を維持）
+  - id: ND-18
+    set_nested:
+      ros_node.placement_rationale: >-
+        gouda.sh の起動から終了まで常に動き（起動の切替はない: DEC-090・DEC-091）、モードの切替ではドライバを止めない。ドライバを launch の Node ではなく子プロセスにしたのは、デバイスごとに 1 つだけを作り直すため。
+        設計は docs/sensor_supervision.md。

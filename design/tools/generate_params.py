@@ -11,7 +11,7 @@ Reads every parameter entity that declares where it is applied
   design/generated/params/index.json             provenance: PRM id, key, state, target, timing, sha of model
   design/generated/params/<target>.trial.yaml    SOFTWARE TRIAL VALUES of unresolved parameters (software_trial_value with
                                            its basis) for stub/simulation tests only; never for the vehicle. Loaded by the
-                                           launch only when trial:=true (gouda.sh: GOUDA_TRIAL_PARAMS=1).
+                                           launch only when trial:=true, which only the test scripts set (gouda_core/test/stack.sh); gouda.sh never does.
 
 Nothing here is a vehicle-approved value unless value_state is approved.
 Hand editing is forbidden; change the model through a revision instead.

@@ -1,6 +1,6 @@
 """Sensor drivers ND-14 (hesai_ros_driver, XT-32) and ND-15 (adi_imu_driver, ADIS16607-2) under gouda_sensor_supervisor (ND-18).
 
-Started by gouda.sh (GOUDA_SENSORS=1). The supervisor starts each driver when its device is present and re-creates a driver
+Always started by gouda_core.launch.py (the one start path gouda.sh; DEC-090). The supervisor starts each driver when its device is present and re-creates a driver
 ONLY when its device is re-connected (new USB enumeration / re-registered network interface). It never restarts a driver for
 the same device, because restarting the IMU driver without a re-plug leaves the IMU unresponsive (DEC-088,
 docs/sensor_supervision.md). Mode changes do not stop or restart the drivers.

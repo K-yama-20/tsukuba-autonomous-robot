@@ -94,7 +94,7 @@ class SerialTransport:
 class VehicleBridgeNode(LifecycleNode):
     def __init__(self):
         super().__init__('vehicle_bridge')
-        self.declare_parameter('serial_port', '')     # operational value (launch argument)
+        self.declare_parameter('serial_port', '')     # PRM-61 (ESP32 by-id name) from the generated file; empty: refuse to configure
         self.declare_parameter('params_dir', '')      # where firmware_config.yaml is read from
         self.declare_parameter('trial', False)        # also read firmware_config.trial.yaml (stub tests only)
         for key in ('joystick_timeout_s', 'send_period_s'):

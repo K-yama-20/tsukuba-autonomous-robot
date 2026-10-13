@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
-# GLIM start/end through gouda.sh on the Ubuntu / vehicle PC (stage 5-3 with or without sensors). Read-only for the robot:
-# nothing drives the vehicle (vehicle_bridge stays unconfigured).
-#   A) vehicle parameter files only (no trial): start mapping, check the T_lidar_imu record, end mapping (answered at once,
-#      saving continues), a refused request (end while manual) must not kill the mode manager, a second start/end cycle.
-#   B) SENSORS=1: XT-32 / IMU drivers (GOUDA_SENSORS=1). Their unresolved PTC port / IMU rate (DEC-084/085) come from the trial
-#      files, so B runs with GOUDA_TRIAL_PARAMS=1 (reception check only). Topic rates, stamps vs. wall clock, GLIM log.
+# GLIM start/end through the ONE start path (bash gouda.sh start) on the vehicle PC, with whatever sensors are connected.
+# Nothing drives the vehicle (vehicle_bridge stays unconfigured). Checks: sensor reception (monitor), start mapping (warning if
+# a sensor has no data), the T_lidar_imu record, end mapping (answered at once, saving afterwards), a refused request must not
+# kill the mode manager, a second start/end cycle. NOTE: stopping/starting gouda.sh restarts the IMU driver; if the IMU then
+# does not answer, re-plug its USB (docs/sensor_supervision.md).
 # Output: $OUT (default /tmp/glim_start). Copy the record into design/research/vehicle_pc/.
 set -o pipefail   # no -u: ROS setup.bash reads unset variables
 source /opt/ros/jazzy/setup.bash
-WS="${GOUDA_WORKSPACE:-$HOME/gouda_ws}"; REPO="$WS/src/tsukuba-autonomous-robot"; OUT="${OUT:-/tmp/glim_start}"; MAP_S="${MAP_S:-20}"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; WS="$(cd "$REPO/../.." && pwd)"; OUT="${OUT:-/tmp/glim_start}"; MAP_S="${MAP_S:-20}"
 mkdir -p "$OUT"; rm -f "$OUT"/*
-echo "== commit $(git -C "$REPO" rev-parse --short HEAD)  $(date -Is)  SENSORS=${SENSORS:-0} MAP_S=$MAP_S"
+echo "== commit $(git -C "$REPO" rev-parse --short HEAD)  $(date -Is)  MAP_S=$MAP_S"
 cd "$WS" && colcon build --packages-select gouda_interfaces gouda_core 2>&1 | tail -1
 source "$WS/install/setup.bash"; cd "$REPO"
-export GOUDA_WORKSPACE="$WS"
 bash gouda.sh stop >/dev/null 2>&1
 state() { curl -s "$URL/api/state" | python3 -c "import json,sys;s=json.load(sys.stdin);print('mode', s['mode']['name'], 'processing', s['mode']['fields'].get('processing_state'))"; }
 events() { curl -s "$URL/api/state" | python3 -c "
@@ -22,11 +20,14 @@ for e in s['events'][-${1:-8}:]: print('  ', e['node'], e['event'], '|', e['reas
 cmd() { echo "-- $1: $(curl -s -m 10 -X POST "$URL/api/command/$1")"; }
 alive() { echo "-- mode_manager alive: $(pgrep -fc 'lib/gouda_core/gouda_mode_manager')  glim: $(pgrep -fc '^/opt/ros/jazzy/lib/glim_ros/glim_rosnode')"; }
 
-if [[ "${SENSORS:-0}" == 1 ]]; then export GOUDA_SENSORS=1 GOUDA_TRIAL_PARAMS=1; else export GOUDA_SENSORS=0 GOUDA_TRIAL_PARAMS=0; fi
 bash gouda.sh start | tee "$OUT/start.out" || { echo "gouda.sh start FAILED"; exit 1; }
 URL="$(cat "$WS/gouda_data/run/monitor.url")"; sleep 3; state; alive
-if [[ "${SENSORS:-0}" == 1 ]]; then
-  echo "== sensors"; grep -h "gouda_sensors\|hesai\|adi_imu" "$WS/gouda_data/run/gouda_core.launch.log" | grep -iv "debug" | head -20
+if true; then   # sensors are always started (DEC-090)
+  echo "== sensors (supervisor records and monitor table)"; curl -s "$URL/api/state" | python3 -c "
+import json,sys;s=json.load(sys.stdin)
+for e in s['events']:
+    if e['node']=='gouda_sensor_supervisor': print('  ', e['event'], '|', e['reason'][:160])
+for k,v in s['sensors'].items(): print('  ', k, v['status'], v['rate_hz'])"
   for t in /sensors/xt32/points /sensors/imu/data; do echo "-- $t"; timeout 8 ros2 topic hz "$t" 2>&1 | grep -m2 "average\|min"; done
   python3 - <<'EOF'
 import time, rclpy

@@ -18,6 +18,13 @@ from gouda_core import sensor_config as sc  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 PARAMS = str(REPO / 'design' / 'generated' / 'params')
+def model_values():
+    """PRM id -> value from the generated index (the model), so the tests never copy a value by hand."""
+    import json
+    with open(os.path.join(PARAMS, 'index.json'), encoding='utf-8') as f:
+        return {x['id']: x['value'] for x in json.load(f)['parameters']}
+
+
 TEMPLATE = REPO / 'design' / 'research' / 'upstream_sensors' / 'hesai_ros2_e7e112f' / 'hesai_config.yaml'
 
 
@@ -36,12 +43,21 @@ class HesaiConfigTests(unittest.TestCase):
     def setUp(self):
         self.template = yaml.safe_load(TEMPLATE.read_text(encoding='utf-8'))
 
-    def test_vehicle_params_without_ptc_port_are_refused(self):
+    def test_vehicle_params_are_complete(self):
+        """Without trial values the driver config is complete (DEC-091) and equals the model (generated index)."""
         params = sc.read_node_params(PARAMS, 'hesai_ros_driver', trial=False)
-        self.assertEqual(params['device_ip_address'], '192.168.1.201'); self.assertEqual(params['host_ip_address'], '192.168.1.100')
-        self.assertEqual(params['udp_port'], 2368); self.assertEqual(params['use_timestamp_type'], 1)
+        idx = model_values()
+        for k, prm in (('device_ip_address', 'PRM-50'), ('host_ip_address', 'PRM-51'), ('udp_port', 'PRM-52'), ('ptc_port', 'PRM-53'), ('use_timestamp_type', 'PRM-55'), ('spin_rate_rpm', 'PRM-60')):
+            self.assertEqual(params[k], idx[prm], k)
+        cfg, missing = sc.hesai_config(self.template, params)
+        self.assertEqual(missing, [])
+        drv = cfg['lidar'][0]['driver']
+        self.assertEqual(drv['lidar_udp_type']['speed'], idx['PRM-60']); self.assertEqual(drv['default_frame_frequency'], idx['PRM-60'] / 60)
+
+    def test_missing_value_is_refused(self):
+        params = sc.read_node_params(PARAMS, 'hesai_ros_driver', trial=False); params.pop('ptc_port')
         _, missing = sc.hesai_config(self.template, params)
-        self.assertEqual(missing, ['ptc_port'], 'PRM-53 is unresolved (DEC-084): never filled in')
+        self.assertEqual(missing, ['ptc_port'], 'a missing value is never filled in')
         with tempfile.TemporaryDirectory() as d:
             out = os.path.join(d, 'cfg.yaml')
             self.assertEqual(sc.write_hesai_config(str(TEMPLATE), params, out), ['ptc_port']); self.assertFalse(os.path.exists(out))
@@ -53,8 +69,8 @@ class HesaiConfigTests(unittest.TestCase):
         self.assertEqual(missing, []); self.assertEqual(self.template, before, 'template not modified')
         a, b = flatten(before), flatten(cfg)
         changed = {k for k in a if a[k] != b.get(k)}
-        allowed = {'lidar[0].driver.source_type', 'lidar[0].driver.use_timestamp_type', 'lidar[0].ros.ros_frame_id', 'lidar[0].ros.ros_send_point_cloud_topic'} | \
-                  {f'lidar[0].driver.lidar_udp_type.{k}' for k in ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port', 'multicast_ip_address')}
+        allowed = {'lidar[0].driver.source_type', 'lidar[0].driver.use_timestamp_type', 'lidar[0].driver.default_frame_frequency', 'lidar[0].ros.ros_frame_id', 'lidar[0].ros.ros_send_point_cloud_topic'} | \
+                  {f'lidar[0].driver.lidar_udp_type.{k}' for k in ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port', 'multicast_ip_address', 'speed')}
         self.assertTrue(changed <= allowed, changed - allowed); self.assertEqual(set(a), set(b), 'no key added or removed')
         drv = cfg['lidar'][0]['driver']; udp = drv['lidar_udp_type']; ros = cfg['lidar'][0]['ros']
         self.assertEqual(drv['source_type'], sc.HESAI_SOURCE_REALTIME); self.assertEqual(drv['use_timestamp_type'], 1)
@@ -72,13 +88,16 @@ class HesaiConfigTests(unittest.TestCase):
 
 
 class ImuParameterTests(unittest.TestCase):
-    def test_vehicle_params_without_rate_are_refused(self):
+    def test_vehicle_params_are_complete(self):
         p, missing = sc.imu_parameters(sc.read_node_params(PARAMS, 'adi_imu_driver', trial=False))
-        self.assertEqual(missing, ['rate'], 'PRM-56 is unresolved (DEC-085): the driver default must not be used silently')
-        import json   # expected value = the model's PRM-54 (generated index), not a copy typed into the test
-        prm54 = next(x for x in json.load(open(os.path.join(PARAMS, 'index.json')))['parameters'] if x['id'] == 'PRM-54')
-        self.assertEqual(p['device'], prm54['value']); self.assertTrue(p['device'].startswith('/dev/serial/by-id/'))
-        self.assertNotIn('tty', p['device'].rsplit('/', 1)[-1].lower().replace('virtual', ''), 'by-id name only (DEC-081)')
+        idx = model_values()
+        self.assertEqual(missing, []); self.assertEqual(p['device'], idx['PRM-54']); self.assertEqual(p['rate'], idx['PRM-56'])
+        self.assertTrue(p['device'].startswith('/dev/serial/by-id/'), 'by-id name only (DEC-081)')
+
+    def test_missing_rate_is_refused(self):
+        params = sc.read_node_params(PARAMS, 'adi_imu_driver', trial=False); params.pop('rate')
+        p, missing = sc.imu_parameters(params)
+        self.assertEqual(missing, ['rate'], 'the driver default must not be used silently'); self.assertNotIn('rate', p)
 
     def test_trial_params(self):
         p, missing = sc.imu_parameters(sc.read_node_params(PARAMS, 'adi_imu_driver', trial=True))

@@ -8,7 +8,7 @@ and the record services of gouda_recorder (IFD-08..11) when a button is pressed;
 The page is served on 127.0.0.1 by MonitorServer (no screen forwarding, RQ-I044). A display interruption is not a stop
 trigger; after a reconnect the page fetches the current latched state (DEC-014, TS-10).
 
-Settings: data_root (PRM-25) for the /config file and the URL file; monitor_port (PRM-26, 0 = OS-chosen) as launch
+Settings: data_root (PRM-25) for the /config file and the URL file; monitor_port (PRM-26, from the generated file) as
 arguments. UI periods and waits are ROS parameters of this relay node (PRM-27..32, DEC-073) read from the generated file
 design/generated/params/gouda_monitor.yaml; they are software defaults, not vehicle values, and are never reused as a
 drive timeout. A timed-out call is shown as a failure; there is no automatic retry. The effective settings are recorded
