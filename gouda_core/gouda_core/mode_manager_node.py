@@ -49,7 +49,9 @@ def optional_double(node, name):
         return None
     return prm.value if prm.type_ == Parameter.Type.DOUBLE else None
 
-IMPLEMENTED_TRANSITIONS = frozenset({'TR-03', 'TR-04'})
+# TR-12 (一時停止 -> 手動走行, 自律走行終了ボタン) is needed already for mapping: a PC restart after mapping enters 一時停止 (TR-02,
+# RQ-I064) and only TR-12 leads back to 手動走行. Its navigation actions are void in this build (no navigation client exists).
+IMPLEMENTED_TRANSITIONS = frozenset({'TR-03', 'TR-04', 'TR-12'})
 # GLIM wiring from the design's interface names (not settings): IFD-21 points, IFD-22 IMU, IFD-20 frames, IFD-19 odom->base.
 GLIM_POINTS_TOPIC = 'sensors/xt32/points'
 GLIM_IMU_TOPIC = 'sensors/imu/data'
@@ -146,6 +148,7 @@ class ModeManagerNode(Node):
     def _perform(self, transition_id):
         if transition_id == 'TR-03': return self._tr03_start_mapping()
         if transition_id == 'TR-04': return self._tr04_end_mapping()
+        if transition_id == 'TR-12': return self._tr12_end_from_pause()
         return False, 'no actions implemented'
 
     def _tr03_start_mapping(self):
@@ -184,6 +187,15 @@ class ModeManagerNode(Node):
         self.mapping_origin_id = None
         self._after_transition = lambda: self._finish_mapping(origin_id, wait_s)
         return True, 'mapping ended; the map is being saved (processing_state=map_saving)'
+
+    def _tr12_end_from_pause(self):
+        """TR-12 in this build: motion_hold stays true (manual), the human end is persisted (RQ-I025, by mode_core), the
+        auto-started log is stopped (IFD-46). The Nav2 goal cancel and the deactivation of ND-07..ND-12 are recorded as void:
+        this build has no navigation client (stage 5-6) and never activates ND-11 / ND-12, so no goal and no drive output exist."""
+        self._publish_decision('navigation_goal_check', 'TR-12', 'no Nav2 goal can exist: this build has no navigation client (stage 5-6 not implemented)', {})
+        self._publish_decision('autonomy_nodes_inactive', 'TR-12', 'ND-07..ND-12 are not activated by this build; nothing to deactivate', {})
+        self._after_transition = lambda: self.request_auto_record('stop_auto', 'TR-12')
+        return True, 'autonomy ended from pause'
 
     def _set_processing(self, processing_state):
         with self._lock:

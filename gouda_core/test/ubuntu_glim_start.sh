@@ -46,9 +46,10 @@ for k, (st, now, fr, w, fields) in got.items(): print(f'-- {k}: frame={fr} stamp
 print('-- not received:', [k for k in ('points', 'imu') if k not in got])
 EOF
 fi
+if [[ "$(state)" == *"mode PAUSE"* ]]; then echo "== A0 boot entered PAUSE (TR-02); end from pause (TR-12) to return to manual"; cmd end_autonomy; sleep 2; state; events 5; alive; fi
 echo "== A1 start mapping"; cmd start_mapping; sleep 3; state; events 6; alive
 d=$(ls -td "$WS"/gouda_data/mapping/*/ | head -1); echo "-- T_lidar_imu in GLIM config:"; python3 -c "
-import json,re,sys;t=open('$d/glim_config/config_sensors.json').read();t=re.sub(r'(?m)^\s*//.*$','',t);print(json.loads(t)['sensors']['T_lidar_imu'])"
+import json;print(json.load(open('$d/glim_config/config_sensors.json'))['sensors']['T_lidar_imu'])"
 echo "-- mapping for $MAP_S s"; sleep "$MAP_S"; grep -i "warn\|error" "$d/glim.log" | sort | uniq -c | sort -rn | head -12
 echo "== A2 end mapping (must answer at once)"; t0=$(date +%s.%N); cmd end_mapping; echo "-- answered in $(python3 -c "print(round($(date +%s.%N)-$t0,2))") s"; state
 for _ in $(seq 1 120); do s=$(state); [[ "$s" == *"processing idle"* ]] && break; sleep 1; done; state; events 10; alive

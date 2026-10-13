@@ -91,5 +91,15 @@ class HumanRequestTests(unittest.TestCase):
         r = mc.request_transition('end_autonomy', s); self.assertEqual(r.transition_id, 'TR-12')
         r = mc.request_transition('end_autonomy', mc.ModeState(mode=mc.MODE_AUTONOMY)); self.assertEqual(r.transition_id, 'TR-11')
 
+    def test_tr12_after_restart_from_mapping_returns_to_manual_with_human_end(self):
+        """A PC restart after mapping enters pause (TR-02); TR-12 (end) must lead back to manual so mapping can start again."""
+        s = mc.decide_boot(mc.PreviousModeRecord(mode=mc.MODE_MAPPING, run_id='', state_revision=5)).state
+        self.assertEqual(s.mode, mc.MODE_PAUSE)
+        self.assertFalse(mc.request_transition('start_mapping', s, frozenset({'TR-03', 'TR-04', 'TR-12'})).accepted)
+        r = mc.request_transition('end_autonomy', s, frozenset({'TR-03', 'TR-04', 'TR-12'}))
+        self.assertTrue(r.accepted); self.assertEqual(r.transition_id, 'TR-12'); self.assertEqual(r.new_state.mode, mc.MODE_MANUAL)
+        self.assertTrue(r.new_state.human_pause_or_end_recorded); self.assertFalse(r.new_state.initial_pose_required)
+        self.assertTrue(mc.request_transition('start_mapping', r.new_state, frozenset({'TR-03'})).accepted)
+
 
 if __name__ == '__main__': unittest.main()
