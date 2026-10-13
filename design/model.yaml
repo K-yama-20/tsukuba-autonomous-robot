@@ -164,6 +164,10 @@ files:
     path: design/research/vehicle_pc/2026-10-14_source_maps_survey.txt
     sha256: 12f630bcdf2225d044085da7309fe6a497e19cbe08fb6c1401165782261e3fb3
     role: evidence
+  - id: FILE-VEHICLE-PC-MAP-CONVERSION
+    path: design/research/vehicle_pc/2026-10-14_map_conversion_vm_test.txt
+    sha256: 69a8b9b5351b9529e2d7382fcce3b203b81bf131101479b60f67420cc38cf079
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -42620,13 +42624,14 @@ entities:
       - operation
     requirement_refs:
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-043
     test:
       execution_status: 未実行
       stage: 地図作成と変換
-      procedure: '地図タブで原図を選び、既定値と、値を変えた設定で再変換する。不正な値（数値でない、帯の順序が逆）も送る。変換後地図の rev を選ぶ。 実行記録: research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt
-        の (1)（試験スタック、10/13 の実機の原図の写し。API で確認）と、 単体試験 gouda_core/test/test_map_tab.py（数値でない値・有限でない値・整数でない点数・未知のキー・帯の順序）。
-        未確認: ブラウザでの操作（rev の選択とプレビューの表示）、実車の設定（仮値なし）での既定値の表示（PRM-33〜36・38 が未確定のため既定値は空）。'
+      procedure: '地図タブで原図を選び、既定値と、値を変えた設定で再変換する。不正な値（数値でない、帯の順序が逆、傾きが 90 度など）も送る。変換後地図の rev を選び、2D 地図・高さ・傾き・段差の図を切り替える。
+        実行記録: research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt の (1)（REV-039 の変換器）、2026-10-14_map_conversion_vm_test.txt（REV-042
+        の変換器。試験スタック、実機の原図の写し、API で確認）、 単体試験 gouda_core/test/test_map_tab.py・test_mapping_core.py、DEMO サーバ（合成の場面）での図の切り替えの表示。
+        未確認: 実車の設定（gouda.sh）での既定値の表示（DEC-098 の承認待ちで空欄）、移動して作った原図での変換（TS-34）。'
       observe: 新しい rev の作成、プレビュー、その rev 
         の設定と結果、DecisionEvent（map_reconvert_requested・map_reconverted・map_reconvert_failed）、原図の内容ハッシュ。
       expected: 変換のたびに新しい rev が作られ、設定と結果が残り、原図は変わらない。不正な値は変換せずに理由を表示する。既定値は gouda_map_creator の parameter 
@@ -53914,4 +53919,19 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-PC-SOURCE-MAPS
+    removed_entity_ids: []
+  - id: REV-043
+    date: '2026-10-14'
+    summary: REV-042 の変換を VM の試験スタックで、10/13 の実機の原図の写しを使って試験した記録と、静止して作った原図 2 件の map_inspect 
+      の出力を証拠として登録（FILE-VEHICLE-PC-MAP-CONVERSION）。 TS-33 の手順に実行記録の場所を追記。静止・屋内の原図では、センサーから 1 m 
+      以内に低い点のある格子がなかった（地面の見え方の計測 DEC-099 の代わりにはならない）。
+    basis_refs:
+      - DEC-093
+      - DEC-097
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-33
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-PC-MAP-CONVERSION
     removed_entity_ids: []

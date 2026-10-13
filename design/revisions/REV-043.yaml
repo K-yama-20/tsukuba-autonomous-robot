@@ -1,0 +1,23 @@
+# 変更セット REV-043（2026-10-14 第24便: 地面を基準にした変換の VM での試験記録）
+# 適用: design/tools/apply_revision.py REV-043
+id: REV-043
+date: '2026-10-14'
+summary: >-
+  REV-042 の変換を VM の試験スタックで、10/13 の実機の原図の写しを使って試験した記録と、静止して作った原図 2 件の map_inspect の出力を証拠として登録（FILE-VEHICLE-PC-MAP-CONVERSION）。
+  TS-33 の手順に実行記録の場所を追記。静止・屋内の原図では、センサーから 1 m 以内に低い点のある格子がなかった（地面の見え方の計測 DEC-099 の代わりにはならない）。
+basis_refs: [DEC-093, DEC-097]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-VEHICLE-PC-MAP-CONVERSION
+    path: design/research/vehicle_pc/2026-10-14_map_conversion_vm_test.txt
+    role: evidence
+
+modifications:
+  - id: TS-33
+    set_nested:
+      test.procedure: >-
+        地図タブで原図を選び、既定値と、値を変えた設定で再変換する。不正な値（数値でない、帯の順序が逆、傾きが 90 度など）も送る。変換後地図の rev を選び、2D 地図・高さ・傾き・段差の図を切り替える。
+        実行記録: research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt の (1)（REV-039 の変換器）、2026-10-14_map_conversion_vm_test.txt（REV-042 の変換器。試験スタック、実機の原図の写し、API で確認）、
+        単体試験 gouda_core/test/test_map_tab.py・test_mapping_core.py、DEMO サーバ（合成の場面）での図の切り替えの表示。
+        未確認: 実車の設定（gouda.sh）での既定値の表示（DEC-098 の承認待ちで空欄）、移動して作った原図での変換（TS-34）。
