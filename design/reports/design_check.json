@@ -161,7 +161,9 @@
         "PRM-46: 値未確定 ['Q-03', 'G-FIRMWARE']",
         "PRM-47: 値未確定 ['G-FIRMWARE']",
         "PRM-48: 値未確定 ['G-FIRMWARE']",
-        "PRM-49: 値未確定 ['G-FIRMWARE', 'Q-05']"
+        "PRM-49: 値未確定 ['G-FIRMWARE', 'Q-05']",
+        "PRM-53: 値未確定 ['Q-05']",
+        "PRM-55: 値未確定 ['Q-05']"
       ]
     },
     {

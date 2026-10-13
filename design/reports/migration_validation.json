@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "合格",
-    "executed_checks": 5904,
+    "executed_checks": 5905,
     "violations": [],
     "check_names": [
       "JSON Schema Draft 2020-12",
@@ -164,6 +164,7 @@
       "model file hash FILE-VEHICLE-PC-STAGE53",
       "model file hash FILE-VEHICLE-PC-STAGE54",
       "model file hash FILE-VEHICLE-PC-STAGE55",
+      "model file hash FILE-PANDAR-CONSOLE-XT32",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7414,8 +7415,8 @@
   },
   "design_maturity": {
     "未設計": 403,
-    "案": 420,
-    "承認済み": 10
+    "案": 422,
+    "承認済み": 14
   },
   "revisions": [
     {
@@ -7697,6 +7698,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-030",
+      "date": "2026-10-13",
+      "basis_refs": 2,
+      "added_entity_ids": 6,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -7820,11 +7831,11 @@
     }
   ],
   "decisions": {
-    "count": 78,
+    "count": 81,
     "by_status": {
-      "answered": 38,
+      "answered": 39,
       "recorded": 33,
-      "pending": 7
+      "pending": 9
     },
     "pending": [
       "DEC-021",
@@ -7833,7 +7844,9 @@
       "DEC-050",
       "DEC-077",
       "DEC-078",
-      "DEC-079"
+      "DEC-079",
+      "DEC-082",
+      "DEC-083"
     ]
   },
   "vehicle_verification": {
@@ -7841,7 +7854,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 833,
+    "entity_count": 839,
     "source_count": 497,
     "id_map_count": 202,
     "legacy_198_count": 198,

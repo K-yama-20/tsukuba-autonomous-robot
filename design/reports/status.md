@@ -1,6 +1,8 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-10（REV-028、第18便）。**工程5-5（車体出力）を実装し、Ubuntu の ROS 2 Jazzy 上で stub 試験合格（PC 側と firmware 中核の卓上 stub。ESP32 実機・車体なし）**。作業記録 `reports/worklog/2026-10-10_rev027_stage5-5.md`。次は DEC-076 の順序どおり、5-3 のセンサー有り試験 → 5-5 の実車試験（いずれも人のハード接続・判断が必要。着手前にセンサー・車体・ESP32 の接続状況を人に確認する）。実車向け firmware の書き込みは DEC-077（DAC 電圧の初期値）の回答待ち。
+最終更新：2026-10-13（REV-030、第19便）。**地図作成（工程5-3）の実機試験の準備**: 人の指示 DEC-080（旧 firmware のまま実機試験、XT-32 は HesaiLidar_ROS_2.0、IMU ADIS16607-2 は ADI_IMU_TR_Driver_ROS2）と回答 DEC-081（XT-32 192.168.1.201、宛先 192.168.1.100:2368、IMU は by-id のデバイス名）を記録し、PRM-50〜55 を宣言（`generated/params/hesai_ros_driver.yaml`・`adi_imu_driver.yaml`）。待ち: DEC-082（IMU デバイス名が旧 imu.yaml と 2 か所異なる事実確認）、DEC-083（点群の時刻の種別と PTC ポート）。作業記録 `reports/worklog/2026-10-13_rev029_030_sensor_settings.md`。VM は不達（2026-10-13）。
+
+前便（第18便）: **工程5-5（車体出力）を実装し、Ubuntu の ROS 2 Jazzy 上で stub 試験合格（PC 側と firmware 中核の卓上 stub。ESP32 実機・車体なし）**。作業記録 `reports/worklog/2026-10-10_rev027_stage5-5.md`。次は DEC-076 の順序どおり、5-3 のセンサー有り試験 → 5-5 の実車試験（いずれも人のハード接続・判断が必要。着手前にセンサー・車体・ESP32 の接続状況を人に確認する）。実車向け firmware の書き込みは DEC-077（DAC 電圧の初期値）の回答待ち。
 
 工程5-5 の内容: IFD-40 の独自型 `gouda_interfaces/msg/MotionHold` を確定、PC–ESP32 プロトコル v4 を設計（`docs/esp32_protocol_v4.md`、G-FIRMWARE）、ND-11 `gouda_motion_controller`・ND-12 `vehicle_bridge`（lifecycle node）、ND-17 新 firmware `firmware/gouda_esp32_v4`（PlatformIO、Bluepad32、MCP4922、NVS 設定）、mode_manager の `control/motion_hold` 発行、monitor の `/esp32/status` 表示。設定は generated/params から読み、未確定値は trial ファイル（stub 専用）。完了条件 (a) 手動優先 (b) 入力途絶時の中立化 (c) 一時停止中の中立出力 は、firmware 中核のホスト試験と PC 側の stub 試験で確認（実機・実車では未確認）。
 
@@ -28,7 +30,7 @@
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜30） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 18（未実行） |
-| 判断台帳 | 77 件（answered 38、recorded 32、pending 7: DEC-021・022・024・050・077・078・079）。model.yaml SHA `b512ec9a…` | | |
+| 判断台帳 | 77 件（answered 38、recorded 32、pending 9: DEC-021・022・024・050・077・078・079・082・083）。model.yaml SHA `b512ec9a…` | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
@@ -59,7 +61,7 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第7版 103 行。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-028。次は REV-029、DEC-080 |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-030。次は REV-031、DEC-084 |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
 | 判断台帳 | `model.yaml: decisions`（DEC-001〜079） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
@@ -68,6 +70,6 @@
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
 | 提案 | `proposals/` | 承認済み仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-10_rev027_stage5-5.md`。引き継ぎ `reports/handover_2026-10-10.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-13_rev029_030_sensor_settings.md`。引き継ぎ `reports/handover_2026-10-10.md` |
 | ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor・map_creator・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（GOUDA_SERIAL_PORT） | 工程5-1〜5-5 |
 | firmware（新） | `firmware/gouda_esp32_v4/` | `include/gouda_v4/{protocol,config,control}.hpp`、`src/main.cpp`、`tools/gen_build_config.py`、`test/host/`。旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換え対象 |

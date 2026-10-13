@@ -197,6 +197,12 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-47 | 手動入力の deadzone（firmware 設定） | ND-17 | 未確定 | unresolved | 比（×10000） |  | `G-FIRMWARE` |
 | PRM-48 | 手動操作から PC 指令へ戻す中立安定時間（firmware 設定） | ND-17 | 未確定 | unresolved | ms |  | `G-FIRMWARE` |
 | PRM-49 | ESP32 STATUS の送信周期（firmware 設定） | ND-17 | 未確定 | unresolved | ms |  | `G-FIRMWARE`, `Q-05` |
+| PRM-50 | XT-32 の IP アドレス | ND-14 | 192.168.1.201 | approved | - |  |  |
+| PRM-51 | XT-32 の点群の宛先 IP（PC 側の LiDAR 用 NIC のアドレス） | ND-14 | 192.168.1.100 | approved | - |  |  |
+| PRM-52 | XT-32 の点群の宛先ポート | ND-14 | 2368 | approved | - |  |  |
+| PRM-53 | XT-32 の PTC ポート | ND-14 | 未確定 | unresolved | - |  | `Q-05` |
+| PRM-54 | IMU（ADIS16607-2）のシリアルデバイス名 | ND-15 | /dev/serial/by-id/usb-STMicroelectronics_STM32-Virtual_ComPort_007127944B34-if00 | approved | - |  |  |
+| PRM-55 | XT-32 の点群の時刻の種別（ドライバ設定） | ND-14 | 未確定 | unresolved | - |  | `Q-05` |
 
 ## 6. H-001 SpeedLimit 発行方式の比較（承認は人: DEC-011）
 
