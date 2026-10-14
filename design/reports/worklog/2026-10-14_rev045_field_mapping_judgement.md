@@ -199,3 +199,14 @@
     - 廊下は地図の傾きでばらつく（0.82〜1.19 m）。経路から離れた所は局所の面が要る。
 - 分析のスクリプト: `research/vehicle_pc/2026-10-14_field_mapping_scripts/sensor_height.py`・`sensor_height2.py`。
 - 実装・設定の変更はしていない。
+
+## 12. 人の地面の推定の方針と、それに基づく設計（REV-050。提案のみ、実装なし）
+
+- 人が方針と必須の設計要件（A〜F）と出力してほしいもの 6 点を貼り付けた（DEC-108 に原文）。
+- 設計: `design/proposals/ground_estimation_design.md`（REV-049 の計画を置き換える）。方針の評価、処理フロー（M0〜M8）、疑似コード、パラメータ表、失敗モード、検証計画。
+- 設計の前に確かめたこと（FILE-GROUND-DESIGN-CHECK）:
+  - submap の data.txt の frame の姿勢は odometry のまま（odom_lidar.txt と一致）。屋外では補正後の traj_lidar.txt と中央値 1.66 m、最大 6.7 m 違う。
+  - traj_lidar.txt は GLIM が補正後の T_world_origin から作る（global_mapping.cpp 618〜628 行）。点も同じ T_world_origin で移るので、軌跡は traj_lidar.txt を stamp で対応付けて使う。
+  - submap は連続した時間の窓（廊下 55 s、屋外の中央値 2.2 s、重なりなし）。
+- 方針の修正点: 軌跡の取り方、H の設計値の構成、submap 内の再通過の分割、候補の上下の整合、R_max の基準、押す人の後方の除外。
+- 承認待ち: DEC-107（4 点を個別に）。実装・設定の変更はしていない。

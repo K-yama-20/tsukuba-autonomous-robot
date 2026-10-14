@@ -1,6 +1,6 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-14（REV-049、第26便）。
+最終更新：2026-10-14（REV-050、第26便）。
 
 **実機の地図作成の試験（廊下、二往復）**（作業記録 `reports/worklog/2026-10-14_rev045_field_mapping_judgement.md`）。
 - 1 回目: 不合格。Gouda が 2 つ同時に動いていた（G-DUP-START）。
@@ -17,7 +17,7 @@
 - 人の回答（DEC-103）: 廊下は水平（傾きは誤差: G-MAP-TILT）、屋外は出発点に戻った（終点のずれは誤差）、使用環境は屋外、二重起動の防止を許可。
 - 二重起動の防止を実装（gouda.sh の拒否、supervisor の device_in_use）。VM で試験合格。センサーありの試験は未実行。
 - LiDAR の途切れ: 3 回とも有線 LAN（enp2s0）のリンク断と同じ秒。サスペンドはなし。蓋の開閉は journal で確認待ち。
-- 承認待ち: DEC-104（スリープの抑止。計画 `design/proposals/sleep_inhibit_plan.md`）、DEC-107（地面の推定の修正。計画 `design/proposals/ground_estimation_plan.md`）。人の指示（DEC-106）により、個別の許可まで実装しない。
+- 承認待ち: DEC-104（スリープの抑止。計画 `design/proposals/sleep_inhibit_plan.md`）、DEC-107（地面の推定の修正。人の方針 DEC-108 に基づく設計 `design/proposals/ground_estimation_design.md`。承認は 4 点を個別に）。人の指示（DEC-106）により、個別の許可まで実装しない。
 - 実測待ち: DEC-105（IMU と LiDAR の間の傾き。水平な床で静止して Record）。
 - 人の作業: 蓋の開閉の時刻の確認（journal）、次の試験で Record を押す。
 
@@ -58,12 +58,12 @@
 
 ## 三つの状態（CLAUDE.md 1.4）＋報告用の三区分（DEC-057）
 
-- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜049 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
+- 移行が正確：合格。初回移行 baseline（`baselines/migration_v1/`、凍結）を保持したまま REV-002〜050 を適用。違反 0。原資料・抽出結果・baseline の SHA-256 は一致（`reports/input_integrity.json`。作業ツリーの `docs/architecture/*.xlsx|drawio` に未コミットの変更があるが、検査対象の抽出コピーは不変）。
 - 設計検査に合格：**未判定**。設計整合性 17 ルール 違反 0・未判定 4（DR-04 5 件、DR-05 2 件: RQ-I027・RQ-I072 は問題／衝突のみで対応、DR-10 2 件: 版照合、DR-11: 未確定値 59）。検査違反 0 件は未判定の解消でも実車適合の証明でもない。
 - ソフト試験合格：**工程5-1〜5-5 が合格**（5-5: TS-07・TS-13・TS-19 PC 側・TS-12・TS-30 を Ubuntu で、TS-17・18・19・29 を firmware 中核のホスト試験と Python 模擬で。FILE-VEHICLE-PC-STAGE55）。5-3・5-4 はセンサーなし、5-5 は ESP32 実機・ゲームパッド・車体なしの範囲。TS-01〜06・08〜11・14〜16・20〜22 は未実行。
 - 実車検証済み／実車投入可能：**人の判断待ち**。実車試験は未実施。承認済みの実車値は PRM-07・08・13・21 の 4 件のみ。DAC 電圧（PRM-43〜46）は未確定で、実車向け firmware ビルドには入っていない（DEC-077）。DEC-050 の実機照合は未実施。
 
-## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-049 適用後）
+## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、終了コード 0、REV-050 適用後）
 
 | 検査 | 合格 | 違反 | 未判定 |
 |---|---|---|---|
@@ -78,7 +78,7 @@
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜34） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 22（未実行または一部のみ。TS-31〜33 は一部を VM で実行: 作業記録。TS-34 は 1 回目が条件の外で不合格、2 回目は原図は整合・2D 変換は不合格（G-FLOOR-REFLECTION）） |
-| 判断台帳 | 105 件（answered 52、recorded 39、pending 14: DEC-021・022・024・050・077・078・079・098・099・100・101・104・105・107） | | |
+| 判断台帳 | 106 件（answered 52、recorded 40、pending 14: DEC-021・022・024・050・077・078・079・098・099・100・101・104・105・107） | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
 
@@ -118,14 +118,14 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第9版（SHA 183f8ee1…、106 行目まで）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-049。次は REV-050、DEC-108 |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-050。次は REV-051、DEC-109 |
 | 正本（Markdown） | `design/docs/` | `map_conversion.md`（地図の変換と地図作成の実機試験の手順）、`sensor_supervision.md`、`implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜107） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜108） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`（trial ファイルも生成）、`apply_revision.py` |
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
-| 提案 | `proposals/` | 承認済み仕様として使わない。最新: `sleep_inhibit_plan.md`（DEC-104）、`ground_estimation_plan.md`（DEC-107） |
+| 提案 | `proposals/` | 承認済み仕様として使わない。最新: `sleep_inhibit_plan.md`（DEC-104）、`ground_estimation_design.md`（DEC-107。`ground_estimation_plan.md` を置き換え） |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録）、`joystick270_firmware/`、`upstream_jazzy/` |
 | 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-14_rev045_field_mapping_judgement.md`。引き継ぎ `reports/handover_2026-10-10.md` |
 | ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor（地図タブの入力検査 map_tab.py）・map_creator（変換 map_convert.py、解析 map_inspect.py）・sensor_supervisor・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（start／stop／status のみ、環境変数なし）、`setup.sh`（PC のセットアップ）、`update.sh`（main への更新）、`third_party/drivers.repos`（ドライバの commit）、試験用 `gouda_core/test/stack.sh` | 工程5-1〜5-5 |
