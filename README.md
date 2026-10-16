@@ -13,9 +13,10 @@ Gouda の車載 PC で動かすソフトウェアと、その設計の正本で�
 
 | いつ | コマンド（リポジトリのフォルダで実行） |
 |---|---|
-| 初回（PC のセットアップ） | `bash setup.sh` |
+| 初回（何も入っていない PC） | `bash setup.sh`（[§1](#1-pc-のセットアップ初回)） |
 | 起動・停止・状態 | `bash gouda.sh start` ／ `bash gouda.sh stop` ／ `bash gouda.sh status` |
-| main が変わったとき | `bash gouda.sh stop` → `bash update.sh` → `bash gouda.sh start` |
+| 2 回目以降（更新） | `bash gouda.sh stop` → `bash update.sh` → `bash gouda.sh start`（[§3.1](#31-通常の更新)） |
+| `update.sh` がない古い版が入っている PC | 1 回だけ [§3.2](#32-古い版からの更新1-回だけ)。次回から 2 回目以降と同じ |
 
 起動の方法は `gouda.sh` だけです。環境変数や起動オプションはありません（DEC-090・DEC-091）。
 
@@ -37,7 +38,7 @@ bash setup.sh
    - すでに別の版の GLIM が入っている場合は止まります。版を変えるのは設計の判断です。
 2. センサーのドライバ（`~/gouda_ws/src/HesaiLidar_ROS_2.0`、`~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2`）
    - [third_party/drivers.repos](third_party/drivers.repos) に書いた commit を使い、改変しません（DEC-075）。
-   - ドライバにローカルの変更があると止まります。旧実装の `scripts/setup.sh` はドライバに patch を当てていました（[§7](#7-旧実装からの移行) を参照）。
+   - ドライバにローカルの変更があると止まります。旧実装の `scripts/setup.sh` はドライバに patch を当てていました（[§3.2](#32-古い版からの更新1-回だけ) を参照）。
 3. rosdep（gouda_core、gouda_interfaces、2 つのドライバの依存）
 4. シリアルポートを使うための dialout グループ（IMU、ESP32）。追加したときは、一度ログアウトしてログインし直します。
 5. ビルド：`colcon build --symlink-install`（gouda_interfaces、gouda_core、2 つのドライバ）
@@ -66,7 +67,20 @@ bash gouda.sh stop      # この起動が所有するプロセスだけを止め
 - **IMU の既知の問題**：`gouda.sh` を止めて起動し直すと、IMU が応答しないことがあります。運行タブの SENSORS 表で IMU が届いていなければ、IMU の USB を抜き差ししてください。
 - 設定値はすべて `design/generated/params`（正本 `design/model.yaml` から生成）から読みます。未確定の値は空のままで、推測で埋めません。
 
-## 3. 更新（main が変わったとき）
+## 3. 更新（2 回目以降）
+
+すでに Gouda が入っている PC を最新の main にします。リポジトリのフォルダに `update.sh` があるかで手順が分かれます。
+
+```bash
+ls ~/gouda_ws/src/tsukuba-autonomous-robot/update.sh
+```
+
+| `update.sh` | 手順 |
+|---|---|
+| ある | [§3.1](#31-通常の更新) |
+| ない（古い版） | [§3.2](#32-古い版からの更新1-回だけ) を 1 回だけ。次回からは §3.1 |
+
+### 3.1 通常の更新
 
 ```bash
 cd ~/gouda_ws/src/tsukuba-autonomous-robot
@@ -80,6 +94,31 @@ bash gouda.sh start      # IMU が届かなければ IMU の USB を抜き差し
 1. Gouda が起動中のとき、またはこのリポジトリの管理下のファイルにローカルの変更があるときは、何も変えずに止まります。
 2. origin の main を取得し、main に切り替えて fast-forward します（merge や rebase はしません）。
 3. `setup.sh` を実行します。新しい版に必要なパッケージを入れ、ドライバの commit が変わっていれば合わせ、ビルドします。
+
+### 3.2 古い版からの更新（1 回だけ）
+
+`update.sh` がない版（`gouda.sh` または旧実装の `scripts/gouda.sh` で起動していた版）が入っている PC で行います。
+
+旧実装の版（`scripts/gouda.sh` がある版）では、先に次を行います。
+
+```bash
+# 旧 scripts/setup.sh がドライバに当てた patch を退避する（消さずに残る。これがあると setup.sh が止まる）
+git -C ~/gouda_ws/src/HesaiLidar_ROS_2.0 stash --include-untracked
+git -C ~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2 stash --include-untracked
+# 旧実装のスマホ用サービスを入れていた場合は止める（ログイン時に自動で起動するため）
+systemctl --user disable --now gouda-phone-gateway.service
+```
+
+そのあと、どの古い版でも次を行います。
+
+```bash
+cd ~/gouda_ws/src/tsukuba-autonomous-robot
+bash gouda.sh stop                 # 旧実装の版では: bash scripts/gouda.sh stop
+git fetch origin
+git switch -C main origin/main     # 手元の main を origin の main に合わせる
+bash setup.sh
+bash gouda.sh start
+```
 
 ## 4. 実機の接続
 
@@ -143,25 +182,9 @@ python3 -m gouda_core.map_inspect ~/gouda_ws/gouda_data/maps/<origin_id>/source 
 | `design/` | 設計の正本と記録（[§8](#8-設計の文書と検査)） |
 | `docs/` | 設計の元資料（`docs/architecture/` の Excel・drawio）と、旧実装の調査記録 |
 
-## 7. 旧実装からの移行
+## 7. 旧実装のファイル
 
-`scripts/`、`gouda_gui/`、`gouda_sensors/`、`gouda_navigation/`、`gouda_vehicle/`、`gouda_bringup/`、`gouda_sim/`、`third_party/external.repos`、`patches/` は旧実装（Mission Control）のものです。`gouda.sh`・`setup.sh`・`update.sh` はこれらを使いません。旧 `scripts/gouda.sh` などの起動スクリプトは削除済みです（DEC-068）。
-
-旧実装の `scripts/setup.sh` を実行した PC では、ドライバに patch が当たっているため、`setup.sh` が「ローカルの変更がある」と止まります。変更を退避してから（消さずに残ります）、もう一度実行してください。
-
-```bash
-git -C ~/gouda_ws/src/HesaiLidar_ROS_2.0 stash --include-untracked
-git -C ~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2 stash --include-untracked
-bash setup.sh
-```
-
-リポジトリが main 以外のブランチにある PC は、`bash update.sh` が main に切り替えます。`update.sh` がまだない古いチェックアウトでは、初回だけ次を実行します。
-
-```bash
-cd ~/gouda_ws/src/tsukuba-autonomous-robot
-git fetch origin main:refs/remotes/origin/main && git switch main && git merge --ff-only origin/main
-bash setup.sh
-```
+`scripts/`、`gouda_gui/`、`gouda_sensors/`、`gouda_navigation/`、`gouda_vehicle/`、`gouda_bringup/`、`gouda_sim/`、`third_party/external.repos`、`patches/` は旧実装（Mission Control）のものです。`gouda.sh`・`setup.sh`・`update.sh` はこれらを使いません。旧 `scripts/gouda.sh` などの起動スクリプトは削除済みです（DEC-068）。旧実装が入っている PC の更新は [§3.2](#32-古い版からの更新1-回だけ) です。
 
 ## 8. 設計の文書と検査
 
