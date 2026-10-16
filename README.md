@@ -116,6 +116,7 @@ cd ~/gouda_ws/src/tsukuba-autonomous-robot
 bash gouda.sh stop                 # 旧実装の版では: bash scripts/gouda.sh stop
 git fetch origin
 git switch -C main origin/main     # 手元の main を origin の main に合わせる
+rm -rf ~/gouda_ws/build ~/gouda_ws/install   # 古い版のビルド結果を消す（残っていると setup.sh のビルドが失敗する。setup.sh が作り直す）
 bash setup.sh
 bash gouda.sh start
 ```
