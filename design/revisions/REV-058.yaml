@@ -1,0 +1,182 @@
+# 変更セット REV-058（2026-10-17 第30便: 人の指示 DEC-117 の記録、recorder の rosbag の再開の不具合と GLIM の異常終了の検出・表示の修正（実装）、スリープの抑止の計画 第2版）
+# 適用: design/tools/apply_revision.py REV-058
+id: REV-058
+date: '2026-10-17'
+summary: '人が、Septentrio mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）の搭載を伝え、自己位置推定の方式の選定（DEC-115）を保留し、recorder の rosbag の再開の不具合と GLIM の異常終了の検出・表示の修正を指示し、スリープの抑止（DEC-104）の検討を求め、x86 機への最新版の反映と二重起動の防止の正常な動作を報告した（DEC-117、原文。修正
+  2 件の個別の許可として扱う: DEC-106）。recorder は開始ごとに別のフォルダへ書き、子プロセスの終了を見張って失敗を記録・表示する。mode_manager は地図作成中の GLIM の終了を見張り、glim_exited（TR-14 の検出と表示だけ）を記録する。monitor は両方をポップアップで示す。単体試験（Mac、134 件 OK・1 件 skip）と VM の試験スタックでの試験は合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。x86
+  機への反映と実機での確認は未実行。スリープの抑止の計画を第2版にした（提案。実装なし）。'
+basis_refs:
+- DEC-117
+- DEC-106
+- DEC-104
+intent_version_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+files:
+- id: FILE-RECORDER-GLIM-FIX-VM-TEST
+  path: design/research/vehicle_pc/2026-10-17_recorder_glim_fix_vm_test.txt
+  role: evidence
+- id: FILE-RECORDER-GLIM-FIX-VM-TEST-SCRIPT
+  path: design/research/vehicle_pc/2026-10-17_recorder_glim_fix_vm_test.sh
+  role: evidence
+decisions:
+- id: DEC-117
+  kind: confirmation
+  status: recorded
+  asked_on: null
+  answered_on: '2026-10-17'
+  channel: chat
+  question: 自己位置推定の方式の検証の報告（REV-057）への人の応答（GNSS の搭載、DEC-115 の保留、不具合 2 件の修正、スリープの抑止の検討、x86 機の状態）
+  answer_verbatim: '車両にはSeptentrio mosaic-go G5 P6 dualantennaを新規搭載しました。ネットワークRTKを使います。
+
+
+    自己位置推定の推定方式の選定（DEC-115）は一旦保留とし、次の不具合を修正したい。
+
+
+    * recorder の不具合: 同じ記録のセッションで rosbag を止めて再開すると、黙って失敗します。10/14 には 181044 の rosbag がこれで失われました。次の試験は rosbag を 2 本取るので、最も優先度が高いと考えます。
+
+    * GLIM の異常終了の検出と表示: 175310 では、GLIM が落ちたことに 2 分間気づけませんでした。
+
+
+    また、次の課題について検討せよ。
+
+
+    * 蓋が閉じた際のスリープの抑止（DEC-104）
+
+
+    最新版プログラムは実機x86に反映済みで、二重起動防止機能は正常に動いている。
+
+    '
+  affected_refs:
+  - DEC-115
+  - DEC-104
+  - DEC-106
+  - G-DUP-START
+  - ND-04
+  - ND-03
+  - ND-02
+  resulting_refs:
+  - G-REC-ROSBAG-RESTART
+  - G-GLIM-EXIT
+  note: 「修正したい」を、recorder の rosbag の再開の不具合と GLIM の異常終了の検出・表示の 2 件の個別の許可（DEC-106）として扱った。スリープの抑止は検討だけ（計画 design/proposals/sleep_inhibit_plan.md 第2版、承認は DEC-104）。DEC-115（自己位置推定の方式）は保留。GNSS 受信機（Septentrio mosaic-go
+    G5 P6、デュアルアンテナ、ネットワーク RTK）の搭載は、自己位置推定（初期位置、NDT の拘束など）と取付位置（/config。RQ-I081）に関わる。設計への反映は今後の作業で、今回は記録だけ。二重起動の防止は実機で正常との報告（G-DUP-START）。
+  disposition: answered
+entities:
+- id: G-REC-ROSBAG-RESTART
+  kind: issue
+  source_from_affected: true
+  name: 同じ記録のセッションで rosbag を止めて再開すると黙って失敗する（同じ出力先、子プロセスの終了を見ない）
+  sensitivity:
+  - operation
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-04
+    - ND-02
+    - IFD-10
+    - IFD-12
+    - SO-02
+    resolution_refs: []
+    question: '2026-10-14 18:10:35 に rosbag を止め 18:10:37 に開始し直したとき、recorder は同じ出力先 rosbag/bag に ros2 bag record を起動し、「Output folder ... already exists.」で終了コード 1 になった（VM で再現）。子プロセスの出力は捨てられ終了も見ていなかったため、recorder
+      は記録中と応答し続け、地図作成 181044 の rosbag が失われた。分類: 実装（ND-04 の「記録失敗を表示する」に反していた）。'
+    next_action: '実装済み（人の許可 DEC-117）: 開始ごとに rosbag/bag_NN へ書き、出力を bag_NN.log に残し、停止の要求なしの終了を失敗として記録・表示する。単体試験と VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り: x86 機への反映と、次の実機試験（rosbag を 2 本）での確認。'
+- id: G-GLIM-EXIT
+  kind: issue
+  source_from_affected: true
+  name: 地図作成中に GLIM が異常終了しても気づけない（GLIM の終了を見ていない）
+  sensitivity:
+  - operation
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-03
+    - ND-06
+    - ND-02
+    - TR-14
+    resolution_refs: []
+    question: '2026-10-14 の地図作成 175310 で、GLIM が gtsam の例外（IndeterminantLinearSystemException）で 17:55 頃に終了したが、mode_manager は終了を見ておらず、人が 17:57:50 に地図作成終了を押すまで約 2 分間気づけなかった（FILE-EVENING-MAPS-ROSBAG の 6）。分類:
+      実装（TR-14 の検出・表示が未実装）。'
+    next_action: '実装済み（人の許可 DEC-117）: 地図作成の開始時に GLIM の終了を見張り、停止の要求なしの終了を DecisionEvent glim_exited（TR-14）で記録し、monitor がポップアップで示す。モードは維持し、自動での再起動はしない。単体試験と VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り:
+      x86 機への反映。GLIM が止まらずに処理しなくなる（固まる）場合は検出しない（別の課題）。'
+modifications:
+- id: ND-04
+  set_nested:
+    ros_node.responsibilities:
+    - ログ（PCが受信した入力、判断と理由・状態遷移・各段の指令・通信結果・設定状況）の記録と欠落範囲の記録（RQ-I015）
+    - ログの開始入口は 3 つ（人の Record IFD-08、自律走行開始 IFD-44、地図作成開始 IFD-45）で、開始処理と状態管理は共通。開始元（手動／自動）と契機（auto:autonomy_start／auto:map_start）を保持し、record_start としてログと record/status に残す（DEC-071）
+    - すでに記録中の開始要求には何もせず「記録中」と応答し、手動開始の記録を自動開始へ書き換えない。停止は人の Stop Record（IFD-09。開始元を問わない）と自動開始分だけの stop_auto（IFD-46）
+    - rosbag record の開始・停止（ログとは別ボタン、自動開始しない：RQ-I016）
+    - ログと rosbag を同じディレクトリの別フォルダに保存（RQ-I016）
+    - 記録失敗を表示するが走行を止めない（RQ-I015）
+    - rosbag の開始ごとに別のフォルダ（<session>/rosbag/bag_NN）に書き、ros2 bag record の出力を bag_NN.log に残す。停止の要求なしに子プロセスが終わった場合は失敗として record/status（failures・last_failure）・session.json（failures・rosbag_outputs）・ログ（record_failure）に残し、記録中を解除する。人は
+      Rosbag record で新しいフォルダに記録し直せる（G-REC-ROSBAG-RESTART）
+- id: ND-03
+  set_nested:
+    ros_node.responsibilities:
+    - 4ソフトモード（RQ-I065）の正本と遷移（TR-01〜TR-16）。内部状態・処理段階（変換中・goal送信中・取消待ち・復旧段階）はモードと混同しない
+    - 自律走行の開始・一時停止・再開・終了の受付と、Nav2 NavigateThroughPoses への goal 送信／取消（薄い action client。計画・追従・後退・再計画・通過判定は Nav2）
+    - 自律走行開始時に、選択した waypoint セットの速度マスク（IFD-41）を Nav2 の filter info server と mask 用 map_server に読み込ませる（IFD-42）。SpeedLimit 自体は Nav2 の SpeedFilter が発行（DEC-031）
+    - 速度上限の適用状態の観測と記録（DEC-047）：mask・filter info の latched 配信、speed_limit の最終受信値・時刻、ロボット位置が mask 範囲内かを観測し、speed_limit_application_state（適用中／帯外・無制限／マスク外・直前値保持／未読込・上限なし／不明）を IFD-01 と DecisionEvent に出す。発行はしない
+    - 一時停止・終了・故障・非自律モードでは motion_hold=true を motion_controller へ直接入力（IFD-40、DEC-004）。自律走行中だけ hold=false
+    - mission 文脈（地図・waypoint の ID／版／ハッシュ、run_id、残 waypoint、停止理由）の保持と、PC再起動に必要な部分の永続化（RQ-I064・RQ-I069）。区間番号は記録用に feedback から求める（RQ-I030）
+    - PC 再起動後の再開は人の初期位置要求（IFD-39）の受理後に限る（DEC-009）
+    - 異常終了後の自動復帰の手順（RQ-I013 の依存順序、RQ-I069 の必要状態だけの復元）。復旧不能時は自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持し理由を記録（DEC-008）
+    - 記録の自動開始・停止の呼出し。人の地図作成開始（TR-03）の受理で IFD-45、人の自律走行開始（TR-05）の受理で IFD-44 を非同期で呼び、応答を待ち合わせず走行開始を止めない。失敗・無応答は DecisionEvent（record_auto_start_failed）に記録し monitor がポップアップ表示。地図作成終了（TR-04）・自律走行終了（TR-11・TR-12）で
+      IFD-46 を呼ぶ。復帰・再開・PC 再起動では呼ばない（DEC-071、DR-16）
+    - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030。transient_local 保持 50 件、DEC-072）
+    - 地図作成中に GLIM が停止の要求なしに終わったら、DecisionEvent（event=glim_exited、transition_id=TR-14。終了コード・開始からの時間・glim.log の末尾）で記録する。事前地図作成モードは維持し、GLIM は再起動しない（TR-14 の自動復帰は未実装。復旧不能のときの「モードを維持し理由を記録して表示」の部分だけ）。地図作成終了（TR-04）の記録
+      mapping_stopped に、GLIM が先に終わっていた時刻を残す（G-GLIM-EXIT）
+- id: ND-02
+  set_nested:
+    ros_node.responsibilities:
+    - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+    - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）。待ち時間は ROS parameter（PRM-29〜32。一時停止は別枠）で、超過は失敗を表示し自動再試行はしない
+    - 判断（log/decision）は時刻付きの「履歴」欄に表示し、「現在の状態」欄（mode/state）とは分ける。保持されたメッセージの受信を契機にしない（DEC-072）。記録の自動開始の失敗（record_auto_start_failed）はポップアップで警告（DEC-071）
+    - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
+    - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I078）。保存時に Speed Filter 用の速度マスクと filter info を生成して同じ由来 ID・ハッシュで保存（IFD-41、DEC-031。幅は PRM-19、刻みは PRM-20）
+    - 保存時に、重複する cell で上限が異なる区間を検出して警告する（対象区間と採用される低い方の値を示す。保存は拒否しない。DEC-059 案 A、TS-22）
+    - 地図とwaypointの組の選択とプレビュー（RQ-I011）
+    - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+    - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に transient_local の状態を取得する（DEC-014）
+    - 自身の設定状況（UI の周期・待ち時間 PRM-27〜32、/config の版）を起動時と /config 保存時に DecisionEvent（event=settings）で記録する（DEC-073、RQ-I015）。中継ノードとして parameter を宣言する（ブラウザ側 UI は宣言しない）
+    - 点群（IFD-21）と IMU（IFD-22）の受信状況（状態・周期・経過・header.stamp と受信時刻の差）を表示する。中身は展開せず到着だけを数える。表示のみで停止条件にしない（DEC-088）。しきい値は PRM-57・PRM-58
+    - 地図作成開始ボタンの時点でどちらかのセンサーが未受信または途絶なら、ポップアップと DecisionEvent（mapping_start_sensor_warning）で警告する。開始は止めない（RQ-I011、DEC-088）
+    - 「地図」タブ（RQ-I082）。地図データベースの原図と変換後地図（rev）の一覧、変換設定（PRM-33〜36・38・62〜64）の入力と再変換（IFD-37 に設定を添えて送る。一度に一つ）、rev ごとのプレビュー（2D 地図、3D 点群地図を上から見た高さの図、表示用の傾き・段差の図。DEC-095・DEC-097 A）・設定・結果の表示。既定値は gouda_map_creator
+      の parameter を表示する。再変換の要求と結果を DecisionEvent で記録する
+    - DecisionEvent の glim_exited（GLIM の異常終了）と、record/status の failures の増加（記録の失敗。last_failure を示す）をポップアップで示す。接続時に受け取った保持分はきっかけにしない（DEC-072 と同じ規則。G-GLIM-EXIT、G-REC-ROSBAG-RESTART）
+- id: IFD-12
+  set_nested:
+    designed_interface.time_semantics: header.stamp は状態判定時刻。key/value に log_active・rosbag_active・session_dir・auto_started_by・last_gap・failures（失敗の件数）・last_failure（最後の失敗の内容）・rosbag_output（記録中の rosbag のフォルダ）
+- id: TS-23
+  set_nested:
+    test.procedure: 'gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest で実行）。起動直後の状態、boot・復帰・再開・monitor 再接続での自動開始の拒否、ログと rosbag の独立、rosbag の人のみ開始、 人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、記録開始時の
+      snapshot、書込失敗と rosbag 起動失敗の扱い。ROS 上では Ubuntu で record/log・record/rosbag のサービス、record/status、セッションディレクトリ、欠落範囲を確認 （実行記録: research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt。単体 18 件 OK、ROS 上の run
+      A〜C OK）。 2026-10-17 追加（G-REC-ROSBAG-RESTART）: 同じセッションで rosbag を止めて再開すると新しいフォルダ（bag_01→bag_02）に書く、既にあるフォルダは飛ばす、停止の要求なしの終了を失敗として記録・状態・ログに残す、停止後の終了は失敗にしない（単体）。 VM の試験スタックで開始・停止・開始・停止と記録中の ros2 bag record
+      の強制終了（FILE-RECORDER-GLIM-FIX-VM-TEST）。'
+    test.expected: 起動時に何も記録しない。自動開始は地図作成開始（IFD-45）・自律走行開始（IFD-44）の入口からのみで、契機（auto:map_start／auto:autonomy_start）を保持する。rosbag は人のみ。 記録中の開始要求は何もせず「記録中」。手動開始の記録は自動開始へ書き換えず、stop_auto で止まらない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。
+      同じセッションの rosbag の再開は新しいフォルダに記録される。ros2 bag record が停止の要求なしに終わったら、record/status の failures が増え last_failure に内容が出て、rosbag_active が false になる（monitor はポップアップ）。
+- id: TS-27
+  set_nested:
+    test.procedure: '単体（gouda_core/test/test_mapping_core.py）: GLIM 実行設定の生成（CPU モジュール・Gouda の topic／frame・viewer なし）、dump の検査、偽プロセスでの停止、地図データベースの登録（不完全な dump は登録しない）・変換の公開と破棄・内容ハッシュ、 合成 submap からの occupancy
+      grid 生成（map.yaml・map.pgm）、submap なし・設定なし・未検証の点形式の拒否。 ROS 上（Ubuntu、センサーなし、trial parameter）: 地図作成開始ボタン → GLIM 起動・IFD-45 で記録が自動開始 → 地図作成終了ボタン → GLIM が dump を書き手動走行へ戻る → 原図が maps/<origin>/source に登録される
+      → 変換 action は「submap なし」で失敗し原図は保持・不完全な成果物は破棄 → 自動開始分の記録が停止（IFD-46）。 実行記録: research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt（単体 10 件・ROS 上の流れとも合格。初回は PRM-38 の仮値の型不一致で gouda_map_creator が起動せず
+      REV-022 で修正）。 未確認: 実データでの submap の点形式と 2D 地図の妥当性、変換が長い場合の processing_state=map_converting の表示。 2026-10-17 追加（G-GLIM-EXIT）: GLIM の停止の要求なしの終了の内容（終了コード・経過時間・glim.log の末尾）の組み立て、停止の要求の後の終了は報告しない（単体）。VM
+      の試験スタックで地図作成中に GLIM を SIGABRT し glim_exited の記録とモードの維持、その後の地図作成終了の記録を確かめる（FILE-RECORDER-GLIM-FIX-VM-TEST）。'
+    test.expected: TR-03 で mode=2（事前地図作成）、GLIM が起動し記録が自動開始。TR-04 で mode=1、GLIM が dump を書き終えてから原図が内容ハッシュ付きで登録される。変換は非同期で、失敗しても原図は保持され不完全な成果物は残らない（RQ-I009）。 変換中は processing_state=map_converting で専用モードは現れない（DEC-010）。自動開始した記録だけが止まる（RQ-I017）。実データでの変換（submap
+      の点形式の確認）は実車で行う。 地図作成中に GLIM が停止の要求なしに終わると、数秒以内に DecisionEvent glim_exited（TR-14）が出て monitor がポップアップを示し、モードは事前地図作成のまま。通常の終了では glim_exited は出ない。
+- id: G-DUP-START
+  set_nested:
+    issue.next_action: '実装済み（人の許可 DEC-103）。gouda.sh は pid ファイルに頼らずに同じ利用者の gouda_core の起動（試験スタックを除く）を検出して拒む。sensor supervisor は別のプロセスが開いているデバイスにはドライバを起動しない（device_in_use）。 単体試験（DeviceInUseTests）と VM での試験（gouda.sh
+      の拒否と表示、/proc からの検出。FILE-VEHICLE-PC-DUP-START-GUARD）は合格。 未実行: センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作（実機の協力が要る）。 2026-10-17 人の報告（DEC-117）: 最新版を実機 x86 に反映し、二重起動の防止は正常に動いている。センサーを繋いで Gouda を 2 つ起動したときの
+      supervisor の動作の記録は受け取っていない。'
+- id: TR-14
+  interpretation_append: 'REV-058: 地図作成中の GLIM の異常終了の検出と表示（DecisionEvent glim_exited と monitor のポップアップ）だけを実装。プロセスの再起動・試行回数（PRM-10）・状態の復元は未実装（G-GLIM-EXIT）。'
+decision_updates:
+- id: DEC-115
+  set:
+    note: '根拠: FILE-LOCALIZATION-EVAL、FILE-LOCALIZATION-EVAL-FIG、提案 design/proposals/localization_selection.md §6.1・§7。推奨は承認。 振る舞いの違い: A3 は初期姿勢のずれが大きいとき姿勢を出さないか探索で戻る。A は誤った姿勢を正常として出し続けうる。 決まらない場合に止まる作業：自己位置推定の実装の設計（ND-07・ND-08
+      の構成、中継の node、地図の変換の 20 m 格子）。地図作成と記録は止まらない。 2026-10-17、人の指示（DEC-117）により保留。GNSS 受信機（Septentrio mosaic-go G5 P6、ネットワーク RTK）の搭載を踏まえて見直す。'
+- id: DEC-104
+  set:
+    note: '決まらない場合に止まる作業：Gouda の起動中のスリープの抑止。地図作成・自律走行は今のままでもできるが、蓋を閉じたときやアイドル時の動作は PC の設定次第。 計画: design/proposals/sleep_inhibit_plan.md（DEC-106 により、許可まで実装しない）。VM では SSH からは抑止を取れない（Access denied）。 電池では 900
+      s の操作なしで自動サスペンドする設定（VM の既定。FILE-GROUND-PLAN-CHECK の (3)）。 2026-10-17、人の指示（DEC-117）で検討し、計画を第2版にした（電池での自動サスペンドの危険、抑止の効く範囲、x86 機での確かめ方を追加。推奨は変えず案 A）。'

@@ -66,7 +66,18 @@
     $('bag-status').textContent = rf.status === 'NOT_RECEIVED' ? 'NOT_RECEIVED' : bagActive ? 'ACTIVE' : 'STOPPED';
     $('bag-status').className = 'status ' + (rf.status === 'NOT_RECEIVED' ? 'amber' : bagActive ? 'ok' : '');
     kvTable($('record-table'), Object.assign({}, r.fields, { freshness: rf.status, age_s: rf.age_s == null ? '—' : rf.age_s.toFixed(1) }),
-      ['freshness', 'age_s', 'log_active', 'log_started_by', 'auto_started_by', 'rosbag_active', 'rosbag_started_by', 'session_dir', 'last_gap', 'failures', 'status_revision', 'message']);
+      ['freshness', 'age_s', 'log_active', 'log_started_by', 'auto_started_by', 'rosbag_active', 'rosbag_started_by', 'rosbag_output', 'session_dir', 'last_gap', 'failures', 'last_failure', 'status_revision', 'message']);
+    // pop-up for a new recording failure (G-REC-ROSBAG-RESTART: a rosbag that ended without a stop request was silent).
+    // The count received on (re)connect is the baseline and does not trigger it.
+    const nFail = Number(r.fields.failures || 0);
+    if (rf.status !== 'NOT_RECEIVED') {
+      if (seenRecordFailures !== null && nFail > seenRecordFailures) {
+        $('popup-title').textContent = '記録に失敗';
+        $('popup-body').textContent = `${r.fields.last_failure || ''}\n走行は止めない。rosbag が必要なら Rosbag record ボタンで記録し直す（新しいフォルダに書く）。`;
+        $('popup').hidden = false;
+      }
+      seenRecordFailures = nFail;
+    }
     // esp32 (nothing until stage 5-5)
     const e = s.esp32;
     $('esp32-status').textContent = e.freshness.status; $('esp32-status').className = 'status ' + statusClass(e.freshness);
@@ -111,20 +122,27 @@
     renderMaps(s);
     // settings (UI parameters of the relay node)
     if (s.settings && s.settings.ui) kvTable($('settings-table'), Object.assign({}, s.settings.ui, { declared_by: s.settings.declared_by, source: s.settings.source, auto_retry: s.settings.auto_retry }));
-    // pop-up for a failed automatic log start (DEC-071). Only events newer than the last seen one trigger it; a
-    // retained message received on (re)connect is not a trigger (DEC-072).
-    const failed = s.events.filter((ev) => ev.event === 'record_auto_start_failed' || ev.event === 'record_auto_stop_failed');
+    // pop-ups for events that need the human's attention: a failed automatic log start (DEC-071) and GLIM ending during
+    // mapping (G-GLIM-EXIT, TR-14 detection only). Only events newer than the last seen one trigger them; a retained
+    // message received on (re)connect is not a trigger (DEC-072).
+    const POPUP_EVENTS = {
+      record_auto_start_failed: ['記録の自動開始に失敗', '走行は止めない。記録が必要なら Record ボタンで手動開始する。'],
+      record_auto_stop_failed: ['記録の自動開始に失敗', '走行は止めない。記録が必要なら Record ボタンで手動開始する。'],   // text as before this change
+      glim_exited: ['GLIM が停止した（地図作成中）', '地図は作られていない。地図作成終了ボタンを押して終える（自動での再起動はしない）。glim.log を確認する。'] };
+    const failed = s.events.filter((ev) => ev.event in POPUP_EVENTS);
     const newest = failed.reduce((m, ev) => Math.max(m, ev.last_at), 0);
     if (seenEventsBaseline !== null && newest > seenEventsBaseline) {
       const ev = failed.find((x) => x.last_at === newest);
-      $('popup-title').textContent = '記録の自動開始に失敗';
-      $('popup-body').textContent = `${fmtT(ev.last_at)} ${ev.transition_id || ''} ${ev.reason}\n走行は止めない。記録が必要なら Record ボタンで手動開始する。`;
+      const [title, advice] = POPUP_EVENTS[ev.event];
+      $('popup-title').textContent = title;
+      $('popup-body').textContent = `${fmtT(ev.last_at)} ${ev.transition_id || ''} ${ev.reason}\n${advice}`;
       $('popup').hidden = false;
     }
     if (seenEventsBaseline === null || newest > seenEventsBaseline) seenEventsBaseline = newest;
     $('clock').textContent = 'server ' + fmtT(s.now);
   }
   let seenEventsBaseline = null;   // set from the first snapshot after connect: retained history is not a trigger
+  let seenRecordFailures = null;   // recorder failure count at the first snapshot after connect (baseline)
   $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
 
   // ---- 地図 tab (intent.md:106): map list, conversion settings, re-conversion, preview ----

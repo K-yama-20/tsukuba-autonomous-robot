@@ -1,0 +1,93 @@
+# 変更セット REV-055（2026-10-17 第28便の続き: intent.md 第10版（人の編集。82 行の置換）を記録。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-055
+id: REV-055
+date: '2026-10-17'
+summary: >-
+  人が intent.md を編集した（2026-10-17 03:51、リポジトリ側の design/intent.md。チャットでの言及なし、機械比較で検出）。差分は 82 行の置換だけで、
+  Navigation の設計規約の文の末尾に「OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。」が加わった。
+  第10版（SHA-256 4bc97d43…）として記録し、82 行の要求を RQ-I057 から RQ-I083 に置き換える（照合 C-026、RQ-I057 は superseded）。自己位置推定の方式の選定の提案の承認事項 2（「Nav2 に機能を持たせ」の読み）に関わる。
+basis_refs: [DEC-113, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+
+authority_revision:
+  id: AR-010
+  file_id: FILE-INTENT-V10
+  previous_file_id: FILE-INTENT-V9
+  archived_previous_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+  current_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    82: RQ-I083
+  decision_ref: DEC-113
+  note: >-
+    人の編集（リポジトリ側の design/intent.md、更新 2026-10-17 03:51）。チャットでの言及はなく機械比較で検出。82 行の置換だけ（文末に 1 文を追記）。削除・追加の行なし（106 行のまま）。
+    ワークスペース直下の design/intent.md は第6版のままで、正本はリポジトリ側。AI は intent.md を編集していない（current_copy はリポジトリの design/intent.md の一字も変えない写し）。
+
+requirement_ref_replacements:
+  RQ-I057: RQ-I083
+
+decisions:
+  - id: DEC-113
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: intent.md
+    question: intent.md 第10版（人の編集。82 行の置換。チャットでの言及なし、機械比較で検出）
+    answer_verbatim: |
+      ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。
+    affected_refs: [FILE-INTENT-V9, RQ-I057, DEC-021, Q-02, ND-07]
+    resulting_refs: [AR-010, RQ-I083, C-026]
+    note: >-
+      自己位置推定の方式の選定の提案（design/proposals/localization_selection.md §9 の 2）で尋ねていた「Nav2 に機能を持たせ」の読みに関わる。
+      AI の読み: 公開された OSS で使用実績の豊富なものは、Nav2 に追加して使ってよい。案 A（lidar_localization_ros2）・案 A3（Autoware Core の NDT と EKF）の外部の推定器は、
+      この条件に当てはまるかで判断される。「使用実績の豊富」の判断は人が行う（AI は判断の材料を示す）。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。
+        人の回答（DEC-112）で検討の範囲は案 A（GLIM の odometry ＋ lidar_localization_ros2）、案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）、案 B（GLIM の odometry ＋ Nav2 AMCL）。
+        intent.md 第10版（DEC-113）で、公開された OSS で使用実績の豊富なものは Nav2 に追加してよいと明記された。提案は design/proposals/localization_selection.md。
+        rosbag は VM に移さない。外から見た振る舞いに関わるため、方式の採用は人の承認を得てから行う。
+
+entities:
+  - id: C-026
+    kind: reconciliation
+    name: Navigation の設計規約への OSS の追加の許可（intent.md 第9版 82 行 → 第10版 82 行）
+    intent_lines: [82]
+    source_from_affected: true
+    related_refs: [DEC-113, AR-010, DEC-021, Q-02, ND-07]
+    sensitivity: [intent]
+    adoption: reference_only
+    design_status: 未設計
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs: [RQ-I057]
+      adopted_requirement_refs: [RQ-I083]
+      scope: >-
+        第9版 82 行「Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。」の文末に
+        「OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。」を追記した第10版 82 行で置換（人の編集）。
+      retained_scope: なるべく Nav2 に機能を持たせ、Nav2 に含まれる機能を独自プログラムで実装しない、という前段は同一。
+      rationale: >-
+        人が intent.md を編集（DEC-113）。自己位置推定の方式の選定（DEC-021、design/proposals/localization_selection.md §9 の 2）で、
+        外部の推定器を使う案 A・A3 が規約の範囲内かを尋ねていた。追記により、公開された OSS で使用実績の豊富なものは Nav2 に追加してよいことが上位要求になった。
+      issue_refs: []
+
+modifications:
+  - id: RQ-I057
+    set: {adoption: superseded}
+    interpretation_append: 'REV-055: intent.md 第10版で OSS の追加の許可を追記した行に置換（C-026、DEC-113）。後継は RQ-I083。'
+  # 置換された RQ-I057 を adopted_requirement_refs に持つ照合は後継 RQ-I083 を根拠にする（置換後の行に前段の同じ文がある。C-026 の retained_scope）
+  - id: C-004
+    append: {related_refs: [C-026]}
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I011, RQ-I019, RQ-I083]
+  - id: C-012
+    append: {related_refs: [C-026]}
+    set_nested:
+      reconciliation.adopted_requirement_refs: [RQ-I011, RQ-I018, RQ-I019, RQ-I055, RQ-I083]

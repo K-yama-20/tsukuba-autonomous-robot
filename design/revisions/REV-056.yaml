@@ -1,0 +1,44 @@
+# 変更セット REV-056（2026-10-17 第28便の続き: 人の回答（外付けの接続、VM の使用の許可、案 A・A3 の重点的な検証、monitor での切り替えの案、合格基準の承認、次の実機試験で同じ場所を 2 回）を原文で記録。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-056
+id: REV-056
+date: '2026-10-17'
+summary: >-
+  人が、外付け（/Volumes/Crucial_4TB/Gouda）を接続し、VM の使用を許可した。案 A と案 A3 を重点的に検証するよう指示し、両方の node を用意して gouda_monitor で切り替える案も示した。
+  合格基準は AI の案（位置の誤差の 95 % 点 0.3 m 以内、発散なし、誤差 0.5 m 超で不良を出す）で承認された。次の実機試験では同じ場所を 2 回走る（DEC-114、原文）。
+  VM では外付けを Parallels の共有（/media/psf/Crucial_4TB）で読み、rosbag は VM に写さない。検証用のパッケージは Gouda のワークスペースと別のワークスペースに build する。
+  monitor での切り替えの案は提案として評価する（実装は人の個別の許可 DEC-106 の後）。
+basis_refs: [DEC-114, DEC-112, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+
+decisions:
+  - id: DEC-114
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（第2版）の承認事項への人の回答
+    answer_verbatim: |
+      外部ドライブを接続した。参照先は"/Volumes/Crucial_4TB/Gouda"。VMを起動したので、使用して良い。
+      案Aと案A3を重点的に検証せよ。また、両方のnodeを用意しておき、gouda_monitorで切り替えることが出来るようにするという案もある。合格基準値は君の案で良い。次の実機試験でも、同じ場所を二回走ろうと思う。
+    affected_refs: [DEC-021, Q-02, ND-02, ND-07, ND-08, DEC-112]
+    resulting_refs: []
+    note: >-
+      提案 design/proposals/localization_selection.md §9 への回答として読む。
+      1（進め方）: 案 A と A3 を重点的に検証する（案 B は比べる相手として残すが重点ではない）。
+      3（評価の場所）: VM を使ってよい。DEC-112 の「rosbag を VM に移さない」は守り、外付けを Parallels の共有で読む。
+      4（合格基準）: 自己位置推定の位置の誤差の 95 % 点 0.3 m 以内、発散なし、誤差 0.5 m 超で不良を出す（AI の案を人が承認）。
+      5（同じ経路を 2 回）: 次の実機試験で同じ場所を 2 回走る。
+      2（OSS の使用実績の判断）と 6（独自の小さな node の扱い）は未回答。
+      monitor での切り替えの案は提案 §10 で評価する。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。
+        人の回答（DEC-112）で検討の範囲は案 A（GLIM の odometry ＋ lidar_localization_ros2）、案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）、案 B（GLIM の odometry ＋ Nav2 AMCL）。
+        intent.md 第10版（DEC-113）で、公開された OSS で使用実績の豊富なものは Nav2 に追加してよいと明記された。人の回答（DEC-114）で案 A・A3 を重点的に検証する。
+        合格基準は位置の誤差の 95 % 点 0.3 m 以内、発散なし、誤差 0.5 m 超で不良。提案は design/proposals/localization_selection.md。方式の採用は人の承認を得てから行う。

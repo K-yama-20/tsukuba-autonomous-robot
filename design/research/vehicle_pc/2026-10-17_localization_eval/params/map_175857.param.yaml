@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    enable_whole_load: false
+    enable_downsampled_whole_load: false
+    enable_partial_load: true
+    enable_selected_load: false
+    leaf_size: 3.0
+    pcd_paths_or_directory: ["/home/aya/loc_eval_ws/maps/tiles_175857/"]
+    pcd_metadata_path: "/home/aya/loc_eval_ws/maps/tiles_175857/metadata.yaml"

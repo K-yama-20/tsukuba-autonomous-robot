@@ -2,7 +2,7 @@
   "old_file": "design/baselines/intent_history/intent_v3_f0df295f9927.md",
   "old_sha256": "f0df295f9927c0867705359693ff536a21bc913dc014b677628a4982352763e4",
   "new_file": "design/intent.md",
-  "new_sha256": "183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed",
+  "new_sha256": "7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646",
   "all_identical": true,
   "rows": [
     {
@@ -146,12 +146,17 @@
   "unified_diff": [
     "--- design/baselines/intent_history/intent_v3_f0df295f9927.md",
     "+++ design/intent.md",
-    "@@ -13 +13 @@",
+    "@@ -13,2 +13,2 @@",
     "-8. waypoint_managerにより、人間がwaypointと次のwaypointに向かうまでの区間の速度上限を設定して保存ボタンを押す。区間の速度上限は、区間（waypoint i → i+1）の属性とする。区間境界では、進入する区間の値を適用する。するとwaypoint_databaseに保存される。waypointデータは、参照する変換後地図のID・版・内容ハッシュを記録し、waypointデータ自身も独立した内容ハッシュを持つ。地図とは別々に保存する。",
+    "-9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次に初期位置と向きを人間がある程度指定し、自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。",
     "+8. waypoint_managerにより、人間がwaypointと次のwaypointに向かうまでの区間の速度上限を設定して保存ボタンを押す。区間の速度上限は、区間（waypoint i → i+1）の属性とする。するとwaypoint_databaseに保存される。waypointデータは、参照する変換後地図のID・版・内容ハッシュを記録し、waypointデータ自身も独立した内容ハッシュを持つ。地図とは別々に保存する。",
+    "+9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。",
     "@@ -27 +27 @@",
     "-SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する",
     "+SpeedLimitの発行手段（Speed Filter／Route Server／Gouda側の発行器）は、採用するNav2の版に合わせてAIが提案し、人が承認する。実行時は位置ベースで速度上限を決める。同じ位置を複数の区間が通る場合（再訪・交差・重複）、それらの区間には同じ上限を設定する運用とし、異なる値が設定されていれば waypoint_manager は保存時に警告し、実行時は低い方の上限を適用する。区間の帯の外では上限を適用しない（Nav2 の挙動どおり無制限）。帯の幅は実機調整で決める。",
+    "@@ -82 +82 @@",
+    "-・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。",
+    "+・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。",
     "@@ -95 +95 @@",
     "-・起動直後は手動操縦モードに入る。手動操縦モードがデフォルトのモード。",
     "+・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。",

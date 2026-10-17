@@ -1,12 +1,12 @@
 schema_version: '1.1'
 metadata:
-  authority_ref: FILE-INTENT-V9
+  authority_ref: FILE-INTENT-V11
   scope: スキーマ・既存資料移行・出典・矛盾整理・移行検査のみ。新規下位設計、ROS実装、完成図表は対象外。
   id_policy: 既存IDを保持。新IDは今回割当てたregistryを固定し、位置変更や名称変更で再採番しない。
   extraction_verification_ref: FILE-EXTRACT-VERIFY
   design_validity: 未判定
   vehicle_verification: 未実施
-  model_revision: REV-039
+  model_revision: REV-059
 files:
   - id: FILE-INTENT
     path: design/intent.md
@@ -155,7 +155,9 @@ files:
   - id: FILE-INTENT-V9
     path: design/intent.md
     sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
-    role: authority
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V10
+    archived_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
   - id: FILE-VEHICLE-PC-MAP-TAB
     path: design/research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt
     sha256: cc72125008d3b660d2095ed544e7f7f9705d33a1bcc3b2e9f32331cf802b9581
@@ -244,6 +246,36 @@ files:
     path: design/research/vehicle_pc/2026-10-14_ground_design_check.txt
     sha256: fa559d8805c41e26c5340587ffac13f58a591846a1d6acbd7d9c0e41d7a3666b
     role: evidence
+  - id: FILE-EVENING-MAPS-ROSBAG
+    path: design/research/vehicle_pc/2026-10-14_evening_maps_rosbag.txt
+    sha256: c35254a242798df37ca2396ba30955bb7237e28546c9e29556fddb14281ba817
+    role: evidence
+  - id: FILE-INTENT-V10
+    path: design/intent.md
+    sha256: 4bc97d43f7571d73fdeb41846564019c0302115c535d140a4fd83690caa698d5
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V11
+    archived_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+  - id: FILE-LOCALIZATION-EVAL
+    path: design/research/vehicle_pc/2026-10-17_localization_eval/2026-10-17_localization_eval_results.txt
+    sha256: b4ba0614280d086555be3b8a1e7d76febc3b76b12745ab8c49c9c9d2beb033aa
+    role: evidence
+  - id: FILE-LOCALIZATION-EVAL-FIG
+    path: design/research/vehicle_pc/2026-10-17_localization_eval/2026-10-17_localization_full_runs_error.png
+    sha256: 54dcb350480a4f8b31a594d36c9c3ee543341082047c3a11db3a35bfed4025b0
+    role: evidence
+  - id: FILE-RECORDER-GLIM-FIX-VM-TEST
+    path: design/research/vehicle_pc/2026-10-17_recorder_glim_fix_vm_test.txt
+    sha256: 7cb999b5a92f7cb204d576487ceb41165f4e362118829bc19571f65ee1f946bb
+    role: evidence
+  - id: FILE-RECORDER-GLIM-FIX-VM-TEST-SCRIPT
+    path: design/research/vehicle_pc/2026-10-17_recorder_glim_fix_vm_test.sh
+    sha256: c12c6e436b96e0e74653bb0260422b874228e68f57206392f123b9df60bc3f2d
+    role: evidence
+  - id: FILE-INTENT-V11
+    path: design/intent.md
+    sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
+    role: authority
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -12676,6 +12708,36 @@ sources:
       basis: intent.md 新版 AR-009（DEC-092 の回答）を上位要求とする
       locations:
         - intent.md:106
+  - id: SRC-I082-V10
+    file_ref: FILE-INTENT-V10
+    kind: intent_lines
+    locator:
+      line_start: 82
+      line_end: 82
+    raw_fields:
+      text: 
+        ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-010（DEC-113 の回答）を上位要求とする
+      locations:
+        - intent.md:82
+  - id: SRC-I014-V11
+    file_ref: FILE-INTENT-V11
+    kind: intent_lines
+    locator:
+      line_start: 14
+      line_end: 14
+    raw_fields:
+      text: 9. 
+        ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-011（DEC-118 の回答）を上位要求とする
+      locations:
+        - intent.md:14
 entities:
   - id: RQ-I001
     kind: requirement
@@ -12850,16 +12912,18 @@ entities:
     source_refs:
       - SRC-I014
     design_status: 未設計
-    adoption: upper_requirement
+    adoption: superseded
     field_bindings:
       statement:
         source_ref: SRC-I014
         field: text
-    related_refs: []
+    related_refs:
+      - C-027
     issue_refs: []
-    interpretation: ''
+    interpretation: 'REV-059: intent.md 第11版で初期位置を GNSS で取得し人が確認する文に置換（C-027、DEC-118）。後継は RQ-I084。'
     sensitivity:
       - intent
+    revision_ref: REV-059
   - id: RQ-I012
     kind: requirement
     name: intent.md:15
@@ -13600,16 +13664,18 @@ entities:
     source_refs:
       - SRC-I082
     design_status: 未設計
-    adoption: upper_requirement
+    adoption: superseded
     field_bindings:
       statement:
         source_ref: SRC-I082
         field: text
-    related_refs: []
+    related_refs:
+      - C-026
     issue_refs: []
-    interpretation: ''
+    interpretation: 'REV-055: intent.md 第10版で OSS の追加の許可を追記した行に置換（C-026、DEC-113）。後継は RQ-I083。'
     sensitivity:
       - intent
+    revision_ref: REV-055
   - id: RQ-I058
     kind: requirement
     name: intent.md:83
@@ -31915,6 +31981,8 @@ entities:
     field_bindings: {}
     related_refs:
       - Q-08
+      - C-026
+      - C-027
     issue_refs: []
     interpretation: ''
     sensitivity: []
@@ -31930,9 +31998,9 @@ entities:
         - M-037
         - M-039
       adopted_requirement_refs:
-        - RQ-I011
+        - RQ-I084
         - RQ-I019
-        - RQ-I057
+        - RQ-I083
       scope: 通過・到達判定はNav2。Gouda独自の幾何判定・通過証拠による再判定を現在契約として採用しない。進捗保持やイベント順序は別途設計。
       rationale: 最新intent.mdを上位要求とする。旧原文は出典に保持し、記載の影響範囲だけを置換。
       issue_refs: []
@@ -31940,7 +32008,7 @@ entities:
         の問い、M-037 の進行管理、M-039 の原文は保持。 置換したのは「Gouda が幾何条件で通過成立を判定する」「通過証拠による再判定」の所有者のみ（Nav2 へ）。
       scope_within_intent: 
         収まる。RQ-I011「waypointの通過や到達の判定はNav2が行う」、RQ-I019「Gouda側で二重に実行しない」。進捗保持・イベント順序は置換対象にしていない。
-    revision_ref: REV-009
+    revision_ref: REV-059
   - id: C-005
     kind: reconciliation
     name: Nav2の後退と再計画
@@ -32179,8 +32247,11 @@ entities:
     design_status: 未設計
     adoption: reference_only
     field_bindings: {}
-    related_refs: []
-    issue_refs: []
+    related_refs:
+      - C-027
+      - G-INIT-POSE-GNSS
+    issue_refs:
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity: []
     reconciliation:
@@ -32192,16 +32263,17 @@ entities:
         - M-002
         - M-007
       adopted_requirement_refs:
-        - RQ-I011
+        - RQ-I084
       scope: 初期姿勢指定後に開始を一度押し、推定しながらNav2開始。開始後の追加承認を挟まない。必要条件の内部処理は未設計。
       rationale: 最新intent.mdを上位要求とする。旧原文は出典に保持し、記載の影響範囲だけを置換。
       issue_refs: []
       retained_scope: S-06 の「地図・経路版を選択」「人間が地図上で初期位置と向きを指定」「地図を選ぶだけで発進しない」、ST-02/ST-03 の準備確認・run_id 
         発行、M-002/M-007 の責務は保持。 置換したのは「開始後に追加の承認を挟む」読みと「準備条件の成立を人が確認してから開始」の手順のみ。
       scope_within_intent: 収まる。RQ-I011「自律走行開始ボタンを一回押すと…追加の承認を挟まない」。準備条件の内部処理は置換対象外。
-      clarification: 「必要条件の内部処理は未設計」は REV-002 時点の記述。現在は TR-05 の guard（ND-07・ND-08・ND-10 活性、ND-06 
-        非活性、地図・waypoint の ID とハッシュ一致）と actions で設計済み（REV-004〜REV-010）。残る未設計はない。
-    revision_ref: REV-010
+      clarification: '「必要条件の内部処理は未設計」は REV-002 時点の記述。現在は TR-05 の guard（ND-07・ND-08・ND-10 活性、ND-06 非活性、地図・waypoint
+        の ID とハッシュ一致）と actions で設計済み（REV-004〜REV-010）。残る未設計はない。 2026-10-17（REV-059）: intent 第11版で初期位置と向きは GNSS で取得し人が確認する文になった。retained_scope
+        の「人間が地図上で初期位置と向きを指定」は第11版と食い違う（G-INIT-POSE-GNSS で未解決）。開始を一度押す・開始後の追加承認なし、は第11版と同一。'
+    revision_ref: REV-059
   - id: C-011
     kind: reconciliation
     name: 地図変換と成果物同一性
@@ -32271,6 +32343,8 @@ entities:
     field_bindings: {}
     related_refs:
       - Q-05
+      - C-026
+      - C-027
     issue_refs: []
     interpretation: ''
     sensitivity: []
@@ -32284,11 +32358,11 @@ entities:
         - DG-09708a83-295b-5f99-b694-07f63194e199
         - DG-59fe0346-99a1-5627-9b51-df2e5a79f1b0
       adopted_requirement_refs:
-        - RQ-I011
+        - RQ-I084
         - RQ-I018
         - RQ-I019
         - RQ-I055
-        - RQ-I057
+        - RQ-I083
       scope: Gouda section executor/progress trackerを独立した二重実行/判定主体として採用しない。薄いadapterの要否や標準IFとの対応は次段階。
       rationale: 最新intent.mdを上位要求とする。旧原文は出典に保持し、記載の影響範囲だけを置換。
       issue_refs: []
@@ -32300,7 +32374,7 @@ entities:
       clarification: 「薄い adapter の要否や標準 IF との対応は次段階」は REV-002 時点の記述。現在は ND-03 の action client（IFD-13 
         NavigateThroughPoses、標準 action）として設計済みで、独立した adapter モジュールは置かない。 通過・到達判定は Nav2 の feedback／result 
         をそのまま使う（RQ-I011）。残る未設計はない（DEC-058 の条件 4）。
-    revision_ref: REV-011
+    revision_ref: REV-059
   - id: C-013
     kind: reconciliation
     name: waypoint UIの配置
@@ -33748,9 +33822,9 @@ entities:
       - RQ-I074
       - RQ-I055
       - RQ-I056
-      - RQ-I057
+      - RQ-I083
       - RQ-I053
-    revision_ref: REV-004
+    revision_ref: REV-055
     reconciliation:
       state: resolved_by_decision
       affected_refs:
@@ -33926,8 +34000,8 @@ entities:
       - RQ-I072
       - RQ-I012
       - RQ-I018
-      - RQ-I057
-    revision_ref: REV-004
+      - RQ-I083
+    revision_ref: REV-055
     issue:
       category: human
       state: resolved
@@ -34057,9 +34131,9 @@ entities:
       - RQ-I074
       - RQ-I055
       - RQ-I056
-      - RQ-I057
+      - RQ-I083
       - RQ-I053
-    revision_ref: REV-004
+    revision_ref: REV-055
     issue:
       category: human
       state: resolved
@@ -34162,7 +34236,8 @@ entities:
     field_bindings: {}
     related_refs:
       - DEC-009
-    issue_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
@@ -34171,8 +34246,8 @@ entities:
       - RQ-I064
       - RQ-I014
       - RQ-I069
-      - RQ-I011
-    revision_ref: REV-004
+      - RQ-I084
+    revision_ref: REV-059
     issue:
       category: human
       state: resolved
@@ -34350,6 +34425,9 @@ entities:
       - H-011
       - H-013
       - G-DDS
+      - G-REC-ROSBAG-RESTART
+      - G-GLIM-EXIT
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - operation
@@ -34357,13 +34435,13 @@ entities:
       - RQ-I005
       - RQ-I006
       - RQ-I078
-      - RQ-I011
+      - RQ-I084
       - RQ-I014
       - RQ-I033
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-059
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34388,6 +34466,8 @@ entities:
         - 「地図」タブ（RQ-I082）。地図データベースの原図と変換後地図（rev）の一覧、変換設定（PRM-33〜36・38・62〜64）の入力と再変換（IFD-37 
           に設定を添えて送る。一度に一つ）、rev ごとのプレビュー（2D 地図、3D 点群地図を上から見た高さの図、表示用の傾き・段差の図。DEC-095・DEC-097 A）・設定・結果の表示。既定値は 
           gouda_map_creator の parameter を表示する。再変換の要求と結果を DecisionEvent で記録する
+        - DecisionEvent の glim_exited（GLIM の異常終了）と、record/status の failures の増加（記録の失敗。last_failure 
+          を示す）をポップアップで示す。接続時に受け取った保持分はきっかけにしない（DEC-072 と同じ規則。G-GLIM-EXIT、G-REC-ROSBAG-RESTART）
       absorbs_module_refs:
         - M-002
         - M-003
@@ -34465,13 +34545,15 @@ entities:
       - H-006
       - H-007
       - H-009
+      - G-GLIM-EXIT
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I004
-      - RQ-I011
+      - RQ-I084
       - RQ-I012
       - RQ-I013
       - RQ-I014
@@ -34486,7 +34568,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-021
+    revision_ref: REV-059
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34508,6 +34590,11 @@ entities:
           を非同期で呼び、応答を待ち合わせず走行開始を止めない。失敗・無応答は DecisionEvent（record_auto_start_failed）に記録し monitor 
           がポップアップ表示。地図作成終了（TR-04）・自律走行終了（TR-11・TR-12）で IFD-46 を呼ぶ。復帰・再開・PC 再起動では呼ばない（DEC-071、DR-16）
         - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030。transient_local 保持 50 件、DEC-072）
+        - 地図作成中に GLIM 
+          が停止の要求なしに終わったら、DecisionEvent（event=glim_exited、transition_id=TR-14。終了コード・開始からの時間・glim.log 
+          の末尾）で記録する。事前地図作成モードは維持し、GLIM は再起動しない（TR-14 
+          の自動復帰は未実装。復旧不能のときの「モードを維持し理由を記録して表示」の部分だけ）。地図作成終了（TR-04）の記録 mapping_stopped に、GLIM 
+          が先に終わっていた時刻を残す（G-GLIM-EXIT）
       absorbs_module_refs:
         - M-037
       active_in_mode_refs:
@@ -34569,6 +34656,7 @@ entities:
     related_refs: []
     issue_refs:
       - G-LOG
+      - G-REC-ROSBAG-RESTART
     interpretation: ''
     sensitivity:
       - operation
@@ -34580,7 +34668,7 @@ entities:
       - RQ-I028
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-020
+    revision_ref: REV-058
     ros_node:
       node_name: gouda_recorder
       responsibilities:
@@ -34593,6 +34681,10 @@ entities:
         - rosbag record の開始・停止（ログとは別ボタン、自動開始しない：RQ-I016）
         - ログと rosbag を同じディレクトリの別フォルダに保存（RQ-I016）
         - 記録失敗を表示するが走行を止めない（RQ-I015）
+        - rosbag の開始ごとに別のフォルダ（<session>/rosbag/bag_NN）に書き、ros2 bag record の出力を bag_NN.log 
+          に残す。停止の要求なしに子プロセスが終わった場合は失敗として 
+          record/status（failures・last_failure）・session.json（failures・rosbag_outputs）・ログ（record_failure）に残し、記録中を解除する。人は
+          Rosbag record で新しいフォルダに記録し直せる（G-REC-ROSBAG-RESTART）
       absorbs_module_refs:
         - M-016
         - M-017
@@ -34701,6 +34793,7 @@ entities:
       - G-DUP-START
       - G-LIDAR-DROPOUT
       - G-MAP-TILT
+      - G-GLIM-EXIT
     interpretation: ''
     sensitivity:
       - operation
@@ -34710,7 +34803,7 @@ entities:
       - RQ-I007
       - RQ-I004
       - RQ-I081
-    revision_ref: REV-048
+    revision_ref: REV-058
     ros_node:
       node_name: glim_rosnode
       responsibilities:
@@ -34753,15 +34846,16 @@ entities:
       - Q-02
       - G-ARCH
       - H-007
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-002
+    revision_ref: REV-059
     ros_node:
       node_name: gouda_global_localization
       responsibilities:
@@ -34806,10 +34900,10 @@ entities:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-002
+    revision_ref: REV-059
     ros_node:
       node_name: gouda_local_odometry
       responsibilities:
@@ -34904,14 +34998,14 @@ entities:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I012
       - RQ-I018
       - RQ-I019
       - RQ-I020
       - RQ-I056
-      - RQ-I057
-    revision_ref: REV-011
+      - RQ-I083
+    revision_ref: REV-059
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35236,8 +35330,8 @@ entities:
     sensitivity: []
     requirement_refs:
       - RQ-I007
-      - RQ-I011
-    revision_ref: REV-002
+      - RQ-I084
+    revision_ref: REV-059
     ros_node:
       node_name: rviz2
       responsibilities:
@@ -35362,6 +35456,7 @@ entities:
     related_refs: []
     issue_refs:
       - G-LOG
+      - G-REC-ROSBAG-RESTART
     interpretation: ''
     sensitivity:
       - operation
@@ -35371,7 +35466,7 @@ entities:
       - RQ-I017
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-002
+    revision_ref: REV-058
     state_owner:
       owner_ref: ND-04
       state_items:
@@ -35408,8 +35503,8 @@ entities:
       - RQ-I070
       - RQ-I006
       - RQ-I078
-      - RQ-I011
-    revision_ref: REV-019
+      - RQ-I084
+    revision_ref: REV-059
     state_owner:
       owner_ref: ND-02
       state_items:
@@ -35477,9 +35572,9 @@ entities:
     interpretation: ''
     sensitivity: []
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I014
-    revision_ref: REV-002
+    revision_ref: REV-059
     state_owner:
       owner_ref: ND-07
       state_items:
@@ -35501,8 +35596,8 @@ entities:
     interpretation: ''
     sensitivity: []
     requirement_refs:
-      - RQ-I011
-    revision_ref: REV-002
+      - RQ-I084
+    revision_ref: REV-059
     state_owner:
       owner_ref: ND-08
       state_items:
@@ -35677,14 +35772,15 @@ entities:
     related_refs: []
     issue_refs:
       - G-ARCH
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I025
-    revision_ref: REV-019
+    revision_ref: REV-059
     designed_interface:
       transport: service
       name: mode/start_autonomy
@@ -36038,12 +36134,13 @@ entities:
     related_refs: []
     issue_refs:
       - G-LOG
+      - G-REC-ROSBAG-RESTART
     interpretation: ''
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I016
-    revision_ref: REV-002
+    revision_ref: REV-058
     designed_interface:
       transport: service
       name: record/rosbag/start
@@ -36124,6 +36221,7 @@ entities:
     related_refs: []
     issue_refs:
       - G-LOG
+      - G-REC-ROSBAG-RESTART
     interpretation: ''
     sensitivity:
       - operation
@@ -36131,7 +36229,7 @@ entities:
       - RQ-I005
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-002
+    revision_ref: REV-058
     designed_interface:
       transport: topic
       name: record/status
@@ -36148,7 +36246,8 @@ entities:
       unit:
       frame:
       time_semantics: header.stamp は状態判定時刻。key/value に 
-        log_active・rosbag_active・session_dir・auto_started_by・last_gap
+        log_active・rosbag_active・session_dir・auto_started_by・last_gap・failures（失敗の件数）・last_failure（最後の失敗の内容）・rosbag_output（記録中の
+        rosbag のフォルダ）
       qos:
         reliability: reliable
         durability: transient_local
@@ -36179,11 +36278,11 @@ entities:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I018
       - RQ-I019
       - RQ-I079
-    revision_ref: REV-013
+    revision_ref: REV-059
     designed_interface:
       transport: action
       name: navigate_through_poses
@@ -36463,8 +36562,8 @@ entities:
     requirement_refs:
       - RQ-I004
       - RQ-I058
-      - RQ-I011
-    revision_ref: REV-003
+      - RQ-I084
+    revision_ref: REV-059
     designed_interface:
       transport: tf
       name: /tf (map→odom)
@@ -36772,8 +36871,8 @@ entities:
     sensitivity: []
     requirement_refs:
       - RQ-I009
-      - RQ-I011
-    revision_ref: REV-003
+      - RQ-I084
+    revision_ref: REV-059
     designed_interface:
       transport: topic
       name: map
@@ -36820,9 +36919,9 @@ entities:
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I029
-    revision_ref: REV-002
+    revision_ref: REV-059
     designed_interface:
       transport: topic
       name: localization/odometry
@@ -37189,9 +37288,9 @@ entities:
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I064
-    revision_ref: REV-002
+    revision_ref: REV-059
     designed_interface:
       transport: topic
       name: localization/pose
@@ -37230,13 +37329,14 @@ entities:
     related_refs: []
     issue_refs:
       - H-007
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
-    revision_ref: REV-002
+      - RQ-I084
+    revision_ref: REV-059
     designed_interface:
       transport: topic
       name: localization/initial_pose
@@ -37570,17 +37670,18 @@ entities:
     issue_refs:
       - H-001
       - H-005
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I025
       - RQ-I015
       - RQ-I004
       - RQ-I078
-    revision_ref: REV-020
+    revision_ref: REV-059
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-AUTO
@@ -37921,14 +38022,15 @@ entities:
       - Q-05
       - H-006
       - G-RECOVERY
-    interpretation: ''
+      - G-GLIM-EXIT
+    interpretation: 'REV-058: 地図作成中の GLIM の異常終了の検出と表示（DecisionEvent glim_exited と monitor のポップアップ）だけを実装。プロセスの再起動・試行回数（PRM-10）・状態の復元は未実装（G-GLIM-EXIT）。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I013
       - RQ-I064
       - RQ-I069
-    revision_ref: REV-010
+    revision_ref: REV-058
     transition:
       from_mode_ref: MODE-MAP
       to_mode_ref: MODE-MAP
@@ -38396,8 +38498,8 @@ entities:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
-    revision_ref: REV-006
+      - RQ-I084
+    revision_ref: REV-059
     parameter:
       owner_ref: ND-10
       value:
@@ -38569,9 +38671,9 @@ entities:
     requirement_refs:
       - RQ-I012
       - RQ-I018
-      - RQ-I057
+      - RQ-I083
       - RQ-I072
-    revision_ref: REV-004
+    revision_ref: REV-055
     reconciliation:
       state: resolved_by_decision
       decision_ref: DEC-005
@@ -38792,16 +38894,17 @@ entities:
     adoption: designed_proposal
     field_bindings: {}
     related_refs: []
-    issue_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I011
+      - RQ-I084
       - RQ-I064
       - RQ-I014
-    revision_ref: REV-004
+    revision_ref: REV-059
     designed_interface:
       transport: topic
       name: mode/initial_pose_request
@@ -38929,9 +39032,9 @@ entities:
       - safety
     requirement_refs:
       - RQ-I078
-      - RQ-I011
+      - RQ-I084
       - RQ-I062
-    revision_ref: REV-011
+    revision_ref: REV-059
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
@@ -40766,19 +40869,22 @@ entities:
       - RQ-I015
       - RQ-I016
       - RQ-I034
-    revision_ref: REV-020
+    revision_ref: REV-058
     test:
       execution_status: 未実行
       stage: 起動と記録
       procedure: 'gouda_core/test/test_recorder_core.py（rclpy 非依存。design/.venv または実車PC の python3 -m unittest で実行）。起動直後の状態、boot・復帰・再開・monitor
         再接続での自動開始の拒否、ログと rosbag の独立、rosbag の人のみ開始、 人が開始したログの自動停止拒否、欠落範囲、受信値のみの記録、記録開始時の snapshot、書込失敗と rosbag 起動失敗の扱い。ROS
         上では Ubuntu で record/log・record/rosbag のサービス、record/status、セッションディレクトリ、欠落範囲を確認 （実行記録: research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt。単体
-        18 件 OK、ROS 上の run A〜C OK）。'
+        18 件 OK、ROS 上の run A〜C OK）。 2026-10-17 追加（G-REC-ROSBAG-RESTART）: 同じセッションで rosbag を止めて再開すると新しいフォルダ（bag_01→bag_02）に書く、既にあるフォルダは飛ばす、停止の要求なしの終了を失敗として記録・状態・ログに残す、停止後の終了は失敗にしない（単体）。
+        VM の試験スタックで開始・停止・開始・停止と記録中の ros2 bag record の強制終了（FILE-RECORDER-GLIM-FIX-VM-TEST）。'
       observe: 各 assert の結果、生成されるセッションディレクトリ（log/・rosbag/・session.json・gaps.jsonl）。
       expected: 
         起動時に何も記録しない。自動開始は地図作成開始（IFD-45）・自律走行開始（IFD-44）の入口からのみで、契機（auto:map_start／auto:autonomy_start）を保持する。rosbag
         は人のみ。 記録中の開始要求は何もせず「記録中」。手動開始の記録は自動開始へ書き換えず、stop_auto 
-        で止まらない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。
+        で止まらない。停止中・障害中の期間が欠落範囲として残る。失敗は報告され例外にならず記録状態を変えない。 同じセッションの rosbag の再開は新しいフォルダに記録される。ros2 bag record 
+        が停止の要求なしに終わったら、record/status の failures が増え last_failure に内容が出て、rosbag_active が false になる（monitor 
+        はポップアップ）。
   - id: TS-24
     kind: test
     name: 起動遷移の単体試験（TR-01／TR-02、永続記録、人の操作フラグの保持）
@@ -41545,7 +41651,7 @@ entities:
       - RQ-I006
       - RQ-I008
       - RQ-I009
-    revision_ref: REV-023
+    revision_ref: REV-058
     test:
       execution_status: 未実行
       stage: 地図作成と変換
@@ -41555,14 +41661,16 @@ entities:
         → GLIM が dump を書き手動走行へ戻る → 原図が maps/<origin>/source に登録される → 変換 action は「submap なし」で失敗し原図は保持・不完全な成果物は破棄
         → 自動開始分の記録が停止（IFD-46）。 実行記録: research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt（単体 10 件・ROS 上の流れとも合格。初回は
         PRM-38 の仮値の型不一致で gouda_map_creator が起動せず REV-022 で修正）。 未確認: 実データでの submap の点形式と 2D 地図の妥当性、変換が長い場合の processing_state=map_converting
-        の表示。'
+        の表示。 2026-10-17 追加（G-GLIM-EXIT）: GLIM の停止の要求なしの終了の内容（終了コード・経過時間・glim.log の末尾）の組み立て、停止の要求の後の終了は報告しない（単体）。VM
+        の試験スタックで地図作成中に GLIM を SIGABRT し glim_exited の記録とモードの維持、その後の地図作成終了の記録を確かめる（FILE-RECORDER-GLIM-FIX-VM-TEST）。'
       observe: 
         DecisionEvent（mapping_started／record_auto_start／mapping_stopped／source_map_registered／map_convert_failed／record_auto_stop）、mode/state
         の mode と processing_state、maps/index.json、record/status。
       expected: TR-03 で mode=2（事前地図作成）、GLIM が起動し記録が自動開始。TR-04 で mode=1、GLIM が dump 
         を書き終えてから原図が内容ハッシュ付きで登録される。変換は非同期で、失敗しても原図は保持され不完全な成果物は残らない（RQ-I009）。 変換中は 
         processing_state=map_converting で専用モードは現れない（DEC-010）。自動開始した記録だけが止まる（RQ-I017）。実データでの変換（submap 
-        の点形式の確認）は実車で行う。
+        の点形式の確認）は実車で行う。 地図作成中に GLIM が停止の要求なしに終わると、数秒以内に DecisionEvent glim_exited（TR-14）が出て monitor 
+        がポップアップを示し、モードは事前地図作成のまま。通常の終了では glim_exited は出ない。
   - id: TS-28
     kind: test
     name: waypoint セットの保存と速度マスクの生成（単体・API）
@@ -42588,7 +42696,7 @@ entities:
     requirement_refs:
       - RQ-I005
       - RQ-I006
-    revision_ref: REV-047
+    revision_ref: REV-057
     issue:
       category: technical
       state: open
@@ -42604,10 +42712,11 @@ entities:
         にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった 
         （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION 
         は未設定）。
-      next_action: GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 
-        回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM 
-        に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。monitor（Python）の受信周期の低さ（約 2 Hz）は未調査。 
-        地図作成は x86 機で行う。VM で行う場合は、RMW の設定（共有メモリ転送の容量、受信バッファ）・VM の CPU を候補として比べる。上流ソフトは改変しない。
+      next_action: 'GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86
+        機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は
+        x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast
+        DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約
+        2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。VM の試験の環境への設定の追加は承認事項 DEC-116。'
   - id: PRM-60
     kind: parameter
     name: XT-32 の回転数（点群の周波数）
@@ -42914,7 +43023,7 @@ entities:
       - safety
       - operation
     requirement_refs: []
-    revision_ref: REV-048
+    revision_ref: REV-058
     issue:
       category: technical
       state: open
@@ -42933,7 +43042,8 @@ entities:
         が接続されていれば vehicle_bridge も 2 つになる。FILE-VEHICLE-PC-FIELD-MAPPING-1。
       next_action: '実装済み（人の許可 DEC-103）。gouda.sh は pid ファイルに頼らずに同じ利用者の gouda_core の起動（試験スタックを除く）を検出して拒む。sensor supervisor
         は別のプロセスが開いているデバイスにはドライバを起動しない（device_in_use）。 単体試験（DeviceInUseTests）と VM での試験（gouda.sh の拒否と表示、/proc からの検出。FILE-VEHICLE-PC-DUP-START-GUARD）は合格。
-        未実行: センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作（実機の協力が要る）。'
+        未実行: センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作（実機の協力が要る）。 2026-10-17 人の報告（DEC-117）: 最新版を実機 x86 に反映し、二重起動の防止は正常に動いている。センサーを繋いで
+        Gouda を 2 つ起動したときの supervisor の動作の記録は受け取っていない。'
   - id: G-FLOOR-REFLECTION
     kind: issue
     name: 床より下・地面より下の点（光沢のある床の反射、別の高さに写った地面）で地面の推定が下がり、2D 変換で床が障害物や上限より上と判定される
@@ -43050,6 +43160,271 @@ entities:
         FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS。
       next_action: 水平な床での静止の記録から IMU と LiDAR の間の傾きを測る（DEC-105）。値は報告し、取付位置の設定は人が monitor 
         で行う（RQ-I081）。設定を変えた後の地図作成で傾きが消えるかを確かめる。
+  - id: RQ-I083
+    kind: requirement
+    name: intent.md:82（FILE-INTENT-V10）
+    source_refs:
+      - SRC-I082-V10
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I082-V10
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-055
+  - id: C-026
+    kind: reconciliation
+    name: Navigation の設計規約への OSS の追加の許可（intent.md 第9版 82 行 → 第10版 82 行）
+    source_refs:
+      - SRC-I082-V10
+      - SRC-I082
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - DEC-113
+      - AR-010
+      - DEC-021
+      - Q-02
+      - ND-07
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    requirement_refs:
+      - RQ-I083
+    revision_ref: REV-055
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I057
+      adopted_requirement_refs:
+        - RQ-I083
+      scope: 第9版 82 行「Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。」の文末に 
+        「OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。」を追記した第10版 82 行で置換（人の編集）。
+      retained_scope: なるべく Nav2 に機能を持たせ、Nav2 に含まれる機能を独自プログラムで実装しない、という前段は同一。
+      rationale: 人が intent.md を編集（DEC-113）。自己位置推定の方式の選定（DEC-021、design/proposals/localization_selection.md §9 
+        の 2）で、 外部の推定器を使う案 A・A3 が規約の範囲内かを尋ねていた。追記により、公開された OSS で使用実績の豊富なものは Nav2 に追加してよいことが上位要求になった。
+      issue_refs: []
+  - id: G-REC-ROSBAG-RESTART
+    kind: issue
+    name: 同じ記録のセッションで rosbag を止めて再開すると黙って失敗する（同じ出力先、子プロセスの終了を見ない）
+    source_refs:
+      - SRC-I008
+      - SRC-I019
+      - SRC-I020
+      - SRC-I021
+      - SRC-I040
+      - SRC-I043
+      - SRC-I046
+      - SRC-I009
+      - SRC-I013
+      - SRC-I014
+      - SRC-I017
+      - SRC-I045
+      - SRC-I064
+      - SRC-I098
+      - SRC-I106-V9
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs: []
+    revision_ref: REV-058
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-04
+        - ND-02
+        - IFD-10
+        - IFD-12
+        - SO-02
+      resolution_refs: []
+      question: '2026-10-14 18:10:35 に rosbag を止め 18:10:37 に開始し直したとき、recorder は同じ出力先 rosbag/bag に ros2 bag record
+        を起動し、「Output folder ... already exists.」で終了コード 1 になった（VM で再現）。子プロセスの出力は捨てられ終了も見ていなかったため、recorder は記録中と応答し続け、地図作成
+        181044 の rosbag が失われた。分類: 実装（ND-04 の「記録失敗を表示する」に反していた）。'
+      next_action: '実装済み（人の許可 DEC-117）: 開始ごとに rosbag/bag_NN へ書き、出力を bag_NN.log に残し、停止の要求なしの終了を失敗として記録・表示する。単体試験と
+        VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り: x86 機への反映と、次の実機試験（rosbag を 2 本）での確認。'
+  - id: G-GLIM-EXIT
+    kind: issue
+    name: 地図作成中に GLIM が異常終了しても気づけない（GLIM の終了を見ていない）
+    source_refs:
+      - SRC-I007
+      - SRC-I014
+      - SRC-I015
+      - SRC-I016
+      - SRC-I017
+      - SRC-I019
+      - SRC-I021
+      - SRC-I025
+      - SRC-I026
+      - SRC-I036
+      - SRC-I037
+      - SRC-I092
+      - SRC-I093
+      - SRC-I094
+      - SRC-I095
+      - SRC-I097
+      - SRC-I001
+      - SRC-I009
+      - SRC-I010
+      - SRC-I105-V8
+      - SRC-I008
+      - SRC-I013
+      - SRC-I045
+      - SRC-I064
+      - SRC-I098
+      - SRC-I106-V9
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs: []
+    revision_ref: REV-058
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-03
+        - ND-06
+        - ND-02
+        - TR-14
+      resolution_refs: []
+      question: '2026-10-14 の地図作成 175310 で、GLIM が gtsam の例外（IndeterminantLinearSystemException）で 17:55 頃に終了したが、mode_manager
+        は終了を見ておらず、人が 17:57:50 に地図作成終了を押すまで約 2 分間気づけなかった（FILE-EVENING-MAPS-ROSBAG の 6）。分類: 実装（TR-14 の検出・表示が未実装）。'
+      next_action: '実装済み（人の許可 DEC-117）: 地図作成の開始時に GLIM の終了を見張り、停止の要求なしの終了を DecisionEvent glim_exited（TR-14）で記録し、monitor
+        がポップアップで示す。モードは維持し、自動での再起動はしない。単体試験と VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り: x86 機への反映。GLIM が止まらずに処理しなくなる（固まる）場合は検出しない（別の課題）。'
+  - id: RQ-I084
+    kind: requirement
+    name: intent.md:14（FILE-INTENT-V11）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I014-V11
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-059
+  - id: C-027
+    kind: reconciliation
+    name: 体験 9 の初期位置の取得の変更（intent.md 第10版 14 行 → 第11版 14 行）
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I014
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - DEC-118
+      - AR-011
+      - G-INIT-POSE-GNSS
+      - C-010
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+      - safety
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-059
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I011
+      adopted_requirement_refs:
+        - RQ-I084
+      scope: 第10版 14 
+        行の「次に初期位置と向きを人間がある程度指定し、」を「次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。」で置換した第11版
+        14 行（人の編集）。
+      retained_scope: waypoint ファイルと地図の組の選択、重ねたプレビュー、自律走行開始ボタンを一回押すと自己位置推定しながら Nav2 が開始、開始後の追加承認なし、通過・到達の判定は 
+        Nav2、は同一。
+      rationale: 人が intent.md を編集（DEC-118）。初期位置を人が指定する前提の設計への影響は G-INIT-POSE-GNSS（未解決）。
+      issue_refs:
+        - G-INIT-POSE-GNSS
+  - id: G-INIT-POSE-GNSS
+    kind: issue
+    name: 初期位置を GNSS で取得し人が確認する体験（intent 第11版）に、人が初期位置を指定する前提の設計が合っていない
+    source_refs:
+      - SRC-I014
+      - SRC-I036
+      - SRC-I017
+      - SRC-I007
+      - SRC-I008
+      - SRC-I009
+      - SRC-I013
+      - SRC-I045
+      - SRC-I064
+      - SRC-I098
+      - SRC-I106-V9
+      - SRC-I015
+      - SRC-I016
+      - SRC-I019
+      - SRC-I021
+      - SRC-I025
+      - SRC-I026
+      - SRC-I037
+      - SRC-I092
+      - SRC-I093
+      - SRC-I094
+      - SRC-I095
+      - SRC-I097
+      - SRC-X06-0007
+      - SRC-X08-0003
+      - SRC-X08-0004
+      - SRC-X01-0003
+      - SRC-X01-0008
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+      - operation
+      - intent
+    requirement_refs: []
+    revision_ref: REV-059
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - IFD-34
+        - IFD-02
+        - ND-07
+        - ND-02
+        - ND-03
+        - TR-05
+        - H-007
+        - IFD-39
+        - C-010
+      resolution_refs: []
+      question: 'intent 第11版（DEC-118）の体験 9 では、初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は収束と正しさを確認する。設計は人が指定する前提:
+        IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05 の guard、H-007・DEC-009（PC
+        再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク
+        RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。'
+      next_action: '自己位置推定の方式の選定（DEC-115、保留中）を再開するときに一緒に設計する。決めることの候補: GNSS の取込み（ドライバ、topic、品質の扱い）、GNSS の座標と GLIM
+        の地図の座標の対応（地図作成時に GNSS も記録する等）、「確認」の操作（人の確認を開始の条件にするか）、PC 再起動後の扱い（DEC-009 との関係）、GNSS が使えないときの代わり（人の指定を残すか）。いずれも承認事項。'
 migration:
   baseline_definition_count: 198
   id_map:
@@ -50778,6 +51153,50 @@ authority_revisions:
       - RQ-I082
     note: 人の編集（リポジトリ側の design/intent.md）。チャットで「intent.mdの末尾に項目を追加した」と言及。機械比較で末尾 1 行（106 行）の追加のみ（105 
       行は末尾改行の付加だけで文は同一）。
+  - id: AR-010
+    file_ref: FILE-INTENT-V10
+    previous_file_ref: FILE-INTENT-V9
+    sha256: 4bc97d43f7571d73fdeb41846564019c0302115c535d140a4fd83690caa698d5
+    previous_sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
+    archived_previous_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+    added_lines:
+      - line: 82
+        text: 
+          ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。
+    removed_lines:
+      - line: 82
+        text: ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。
+    changed_lines: []
+    instruction_expected_added_lines: 0
+    observed_added_lines: 1
+    decision_ref: DEC-113
+    requirement_refs:
+      - RQ-I083
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-17 03:51）。チャットでの言及はなく機械比較で検出。82 行の置換だけ（文末に 1 
+      文を追記）。削除・追加の行なし（106 行のまま）。 ワークスペース直下の design/intent.md は第6版のままで、正本はリポジトリ側。AI は intent.md 
+      を編集していない（current_copy はリポジトリの design/intent.md の一字も変えない写し）。
+  - id: AR-011
+    file_ref: FILE-INTENT-V11
+    previous_file_ref: FILE-INTENT-V10
+    sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
+    previous_sha256: 4bc97d43f7571d73fdeb41846564019c0302115c535d140a4fd83690caa698d5
+    archived_previous_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+    added_lines:
+      - line: 14
+        text: 9. 
+          ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+    removed_lines:
+      - line: 14
+        text: 9. 
+          ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次に初期位置と向きを人間がある程度指定し、自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+    changed_lines: []
+    instruction_expected_added_lines: 0
+    observed_added_lines: 1
+    decision_ref: DEC-118
+    requirement_refs:
+      - RQ-I084
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-17 16:29）。チャットでの言及はなく機械比較で検出。14 行の置換だけ（106 行のまま）。ワークスペース直下の
+      design/intent.md は第6版のままで、正本はリポジトリ側。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
 decisions:
   - id: DEC-001
     kind: approval
@@ -51152,7 +51571,11 @@ decisions:
     affected_refs:
       - Q-02
     resulting_refs: []
-    note: Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。人の承認待ちから外す。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+    note: Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。 2026-10-17 
+      に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。 
+      人の回答（DEC-112）で検討の範囲は案 A・A3・B。intent.md 第10版（DEC-113）で OSS の追加の扱いが明記された。人の回答（DEC-114）で案 A・A3 
+      を重点的に検証した（FILE-LOCALIZATION-EVAL）。 第一候補を A3 に変える案は承認事項 DEC-115。提案は 
+      design/proposals/localization_selection.md。方式の採用は人の承認を得てから行う。
     disposition: technical_pending
   - id: DEC-022
     kind: question
@@ -52809,7 +53232,8 @@ decisions:
       - ND-02
     resulting_refs: []
     note: 決まらない場合に止まる作業：実車の設定（gouda.sh）での地図作成終了時の自動変換（設定が未確定のため失敗し、原図は残る）と、地図タブの既定値の表示（空欄）。 
-      地図タブで値を手で入れれば再変換はできる。PRM-34・35・36・38・62〜64 は安全の印（静的な地図の障害物の判定）を持つため、値は承認を経て入れる。
+      地図タブで値を手で入れれば再変換はできる。PRM-34・35・36・38・62〜64 は安全の印（静的な地図の障害物の判定）を持つため、値は承認を経て入れる。 
+      2026-10-17、人の指示（DEC-109）により map_creator の改良は保留。自己位置推定の方式の選定（DEC-021）の結果で、2D 地図に要る精度と変換の設定を見直す。
     disposition: open_human
   - id: DEC-099
     kind: measurement
@@ -52931,7 +53355,7 @@ decisions:
     resulting_refs: []
     note: '決まらない場合に止まる作業：Gouda の起動中のスリープの抑止。地図作成・自律走行は今のままでもできるが、蓋を閉じたときやアイドル時の動作は PC の設定次第。 計画: design/proposals/sleep_inhibit_plan.md（DEC-106
       により、許可まで実装しない）。VM では SSH からは抑止を取れない（Access denied）。 電池では 900 s の操作なしで自動サスペンドする設定（VM の既定。FILE-GROUND-PLAN-CHECK
-      の (3)）。'
+      の (3)）。 2026-10-17、人の指示（DEC-117）で検討し、計画を第2版にした（電池での自動サスペンドの危険、抑止の効く範囲、x86 機での確かめ方を追加。推奨は変えず案 A）。'
     disposition: open_human
   - id: DEC-105
     kind: measurement
@@ -52987,7 +53411,8 @@ decisions:
       - PRM-64
       - PRM-05
     resulting_refs: []
-    note: '決まらない場合に止まる作業：2D 地図への変換の修正（今は床の反射・2 層の地面で不合格）。地図作成そのもの（原図の保存）は止まらない。 設計の根拠: FILE-GROUND-PLAN-CHECK、FILE-GROUND-DESIGN-CHECK。'
+    note: '決まらない場合に止まる作業：2D 地図への変換の修正（今は床の反射・2 層の地面で不合格）。地図作成そのもの（原図の保存）は止まらない。 設計の根拠: FILE-GROUND-PLAN-CHECK、FILE-GROUND-DESIGN-CHECK。2026-10-17、人の指示（DEC-109）により保留（自己位置推定の方式を先に決める）。
+      根拠の数値（屋外の山 47 %、下の外れた点 0.6 %）は補正前の odometry の姿勢で求めていた。補正後の軌跡での値は FILE-EVENING-MAPS-ROSBAG の 3。'
     disposition: open_human
   - id: DEC-108
     kind: confirmation
@@ -53020,6 +53445,225 @@ decisions:
     note: '設計は design/proposals/ground_estimation_design.md。方針の修正点（根拠つき）: 軌跡は dump の traj_lidar.txt（補正後）から取り data.txt
       の frame 姿勢は使わない、 H の設計値の構成を一つに決める（PRM-05 未確定の間は窓を広げる）、submap 内の再通過を分割する、候補の上下の整合、R_max は submap の軌跡から測る、押す人の後方の除外。
       実装は人の個別の許可（DEC-106・DEC-107）まで行わない。'
+    disposition: answered
+  - id: DEC-109
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 夕方の解析と修正方針の候補の報告への人の応答（地面の推定の要否、作業の優先順位）
+    answer_verbatim: "地面を推定する必要はあるのか？また、一旦mapcreatorの現在の改良は置いておいて、別の部分の改良に回せないかな？自己位置推定の方式の選定に進みたい。\n"
+    affected_refs:
+      - DEC-107
+      - DEC-098
+      - DEC-021
+      - Q-02
+      - ND-05
+      - ND-07
+      - ND-08
+    resulting_refs: []
+    note: map_creator の改良（地面の推定 DEC-107、変換の暫定値 DEC-098）を保留し、自己位置推定の方式の選定（Q-02、DEC-021）に進む。 選定の提案は 
+      design/proposals/localization_selection.md。地面の推定の要否への答えは同 §1（3D 照合方式なら自己位置推定に地面の推定は要らず、 Nav2 の 2D 
+      地図は経路の高さを基準にした簡単な帯で足りる見込み。2D 方式なら地図全体の地面の推定が要る）。 夕方の解析で見つけた修正方針の候補（IMU と LiDAR の回転、LAN のリンク断、recorder の 
+      rosbag の再開、GLIM の異常終了の検出、二重起動の防止の x86 機への反映）は 作業記録 2026-10-14_evening_maps_rosbag_analysis.md §11 
+      にあり、判断台帳には未登録。
+    disposition: answered
+  - id: DEC-110
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051）への人の追加の指示
+    answer_verbatim: "googleのcartographerも検討してほしい。\n"
+    affected_refs:
+      - DEC-021
+      - Q-02
+      - ND-06
+      - ND-07
+      - ND-08
+    resulting_refs: []
+    note: design/proposals/localization_selection.md §3 の表と §4 の案 C に Cartographer を加えた。Cartographer 
+      の自己位置推定は自身の地図（.pbstream）でしか動かないため、 使うなら地図作成も Cartographer にする（GLIM 
+      の置き換え）。上流は活発な保守を終えている（README）。推定の品質の出力がない。点の時刻の項目（Cartographer は time、 Hesai のドライバは timestamp 
+      の絶対時刻）が合わない。評価に加えるかは提案 §8 の 6 で人に確認する。
+    disposition: answered
+  - id: DEC-111
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051・REV-052）への人の追加の指示
+    answer_verbatim: "https://github.com/RobustFieldAutonomyLab/LeGO-LOAM\nautowareのndt_matching,\nも検討をしてほしい\n"
+    affected_refs:
+      - DEC-021
+      - Q-02
+      - ND-07
+      - ND-08
+      - ND-09
+    resulting_refs: []
+    note: design/proposals/localization_selection.md §3 の表に LeGO-LOAM、Autoware.AI の ndt_matching、Autoware Core
+      の autoware_ndt_scan_matcher ＋ autoware_ekf_localizer を加え、 §4 に案 A3（GLIM の odometry ＋ Autoware Core の NDT
+      と EKF）と、LeGO-LOAM・ndt_matching を外す理由を書いた。評価に A3 を加えるかは提案 §8 の 7 で人に確認する。
+    disposition: answered
+  - id: DEC-112
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051〜053）の承認事項への人の回答（検討の範囲と評価の進め方）
+    answer_verbatim: "kiss-icpは以前の評価試験で目標性能を出せなかった為、検討から外す。案A, A3, Bのみを検討せよ。rosbagをVMに移すのは一旦するな。\n"
+    affected_refs:
+      - DEC-021
+      - Q-02
+      - ND-07
+      - ND-08
+    resulting_refs: []
+    note: 検討の範囲は案 A・A3・B（いずれも odometry は GLIM）。KISS-ICP（案 A2）と Cartographer（案 C）は検討から外す。提案 §8 の 6（Cartographer
+      を評価に加えるか）は加えない、 7（Autoware Core の NDT を加えるか）は加える、と読める。§8 の 3 のうち rosbag の VM への写しはしない（候補の build 
+      の可否は未回答）。 KISS-ICP の以前の評価試験の結果の記録は、このリポジトリにはない（ワークスペースの Sensors/emc270_xt32_icr に KISS-ICP 
+      を使う回転中心の推定の手順がある）。外す理由は人の判断として記録する。
+    disposition: answered
+  - id: DEC-113
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: intent.md
+    question: intent.md 第10版（人の編集。82 行の置換。チャットでの言及なし、機械比較で検出）
+    answer_verbatim: "・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。\n"
+    affected_refs:
+      - FILE-INTENT-V9
+      - RQ-I057
+      - DEC-021
+      - Q-02
+      - ND-07
+    resulting_refs:
+      - AR-010
+      - RQ-I083
+      - C-026
+    note: '自己位置推定の方式の選定の提案（design/proposals/localization_selection.md §9 の 2）で尋ねていた「Nav2 に機能を持たせ」の読みに関わる。 AI の読み:
+      公開された OSS で使用実績の豊富なものは、Nav2 に追加して使ってよい。案 A（lidar_localization_ros2）・案 A3（Autoware Core の NDT と EKF）の外部の推定器は、
+      この条件に当てはまるかで判断される。「使用実績の豊富」の判断は人が行う（AI は判断の材料を示す）。'
+    disposition: answered
+  - id: DEC-114
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（第2版）の承認事項への人の回答
+    answer_verbatim: "外部ドライブを接続した。参照先は\"/Volumes/Crucial_4TB/Gouda\"。VMを起動したので、使用して良い。\n案Aと案A3を重点的に検証せよ。また、両方のnodeを用意しておき、gouda_monitorで切り替えることが出来るようにするという案もある。合格基準値は君の案で良い。次の実機試験でも、同じ場所を二回走ろうと思う。\n"
+    affected_refs:
+      - DEC-021
+      - Q-02
+      - ND-02
+      - ND-07
+      - ND-08
+      - DEC-112
+    resulting_refs: []
+    note: '提案 design/proposals/localization_selection.md §9 への回答として読む。 1（進め方）: 案 A と A3 を重点的に検証する（案 B は比べる相手として残すが重点ではない）。
+      3（評価の場所）: VM を使ってよい。DEC-112 の「rosbag を VM に移さない」は守り、外付けを Parallels の共有で読む。 4（合格基準）: 自己位置推定の位置の誤差の 95 % 点 0.3
+      m 以内、発散なし、誤差 0.5 m 超で不良を出す（AI の案を人が承認）。 5（同じ経路を 2 回）: 次の実機試験で同じ場所を 2 回走る。 2（OSS の使用実績の判断）と 6（独自の小さな node の扱い）は未回答。
+      monitor での切り替えの案は提案 §10 で評価する。'
+    disposition: answered
+  - id: DEC-115
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on:
+    channel: chat
+    question: 【承認】自己位置推定の方式の第一候補を案 A3（GLIM の odometry ＋ Autoware Core の 
+      autoware_ndt_scan_matcher・autoware_ekf_localizer）に変えてよいか。 最終の決定は、次の実機試験（同じ場所を 2 
+      回）のデータで別の走行の地図での評価をしてから。あわせて、A3 の残る課題（誤差 0.5 m 超の跳ねを 1 回見逃した）の対策の進め方 （NDT の設定の調整か、EKF 
+      の診断を「推定不能」の判定に加えるか）と、次の実機試験の段取り（2 回とも出発の前に止まった状態を 10 秒以上作る）を決めていただきたい。
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-021
+      - Q-02
+      - ND-07
+      - ND-08
+      - IF-010
+    resulting_refs: []
+    note: '根拠: FILE-LOCALIZATION-EVAL、FILE-LOCALIZATION-EVAL-FIG、提案 design/proposals/localization_selection.md §6.1・§7。推奨は承認。
+      振る舞いの違い: A3 は初期姿勢のずれが大きいとき姿勢を出さないか探索で戻る。A は誤った姿勢を正常として出し続けうる。 決まらない場合に止まる作業：自己位置推定の実装の設計（ND-07・ND-08 の構成、中継の
+      node、地図の変換の 20 m 格子）。地図作成と記録は止まらない。 2026-10-17、人の指示（DEC-117）により保留。GNSS 受信機（Septentrio mosaic-go G5 P6、ネットワーク
+      RTK）の搭載を踏まえて見直す。'
+    disposition: open_human
+  - id: DEC-116
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on:
+    channel: chat
+    question: 【承認】VM の Gouda の試験の環境（gouda_core/test/stack.sh など VM で動かす試験）に、Fast DDS の共有メモリの区画を大きくする設定（評価で使った 
+      fastdds_eval.xml と同じもの）を入れてよいか。 x86 機（実車）の起動の設定は変えない。
+    answer_verbatim: ''
+    affected_refs:
+      - G-DDS
+      - IFD-21
+      - ND-06
+      - ND-14
+    resulting_refs: []
+    note: '根拠: FILE-LOCALIZATION-EVAL の 5（間引きの node が受け取った数: 既定 200 中 74〜89、設定後 196〜200/200）。推奨は承認（VM での GLIM・地図作成の試験の周期の低さの対策になる見込み。未確認）。
+      起動の方法は増やさない（DEC-090）。決まらない場合に止まる作業：VM での点群を使う試験の信頼性（今は x86 機で地図作成を行っている）。'
+    disposition: open_human
+  - id: DEC-117
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の検証の報告（REV-057）への人の応答（GNSS の搭載、DEC-115 の保留、不具合 2 件の修正、スリープの抑止の検討、x86 機の状態）
+    answer_verbatim: "車両にはSeptentrio mosaic-go G5 P6 dualantennaを新規搭載しました。ネットワークRTKを使います。\n\n自己位置推定の推定方式の選定（DEC-115）は一旦保留とし、次の不具合を修正したい。\n\
+      \n* recorder の不具合: 同じ記録のセッションで rosbag を止めて再開すると、黙って失敗します。10/14 には 181044 の rosbag がこれで失われました。次の試験は rosbag
+      を 2 本取るので、最も優先度が高いと考えます。\n* GLIM の異常終了の検出と表示: 175310 では、GLIM が落ちたことに 2 分間気づけませんでした。\n\nまた、次の課題について検討せよ。\n\n\
+      * 蓋が閉じた際のスリープの抑止（DEC-104）\n\n最新版プログラムは実機x86に反映済みで、二重起動防止機能は正常に動いている。\n"
+    affected_refs:
+      - DEC-115
+      - DEC-104
+      - DEC-106
+      - G-DUP-START
+      - ND-04
+      - ND-03
+      - ND-02
+    resulting_refs:
+      - G-REC-ROSBAG-RESTART
+      - G-GLIM-EXIT
+    note: 「修正したい」を、recorder の rosbag の再開の不具合と GLIM の異常終了の検出・表示の 2 件の個別の許可（DEC-106）として扱った。スリープの抑止は検討だけ（計画 
+      design/proposals/sleep_inhibit_plan.md 第2版、承認は DEC-104）。DEC-115（自己位置推定の方式）は保留。GNSS 受信機（Septentrio 
+      mosaic-go G5 P6、デュアルアンテナ、ネットワーク RTK）の搭載は、自己位置推定（初期位置、NDT 
+      の拘束など）と取付位置（/config。RQ-I081）に関わる。設計への反映は今後の作業で、今回は記録だけ。二重起動の防止は実機で正常との報告（G-DUP-START）。
+    disposition: answered
+  - id: DEC-118
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: intent.md
+    question: intent.md 第11版（人の編集。14 行（体験 9）の置換。チャットでの言及なし、機械比較で検出）
+    answer_verbatim: "9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。\n"
+    affected_refs:
+      - FILE-INTENT-V10
+      - RQ-I011
+      - C-010
+      - IFD-34
+      - ND-07
+      - TR-05
+      - H-007
+      - DEC-009
+      - DEC-115
+    resulting_refs:
+      - AR-011
+      - RQ-I084
+      - C-027
+      - G-INIT-POSE-GNSS
+    note: 初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は位置の収束と正しさを確認する（人が指定するのではない）。同日の人の連絡（DEC-117）で Septentrio 
+      mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）を搭載した。人が初期位置を指定する前提の設計（IFD-34 の開始要求の引数としての初期姿勢、ND-07 の初期化、TR-05 の 
+      guard、H-007・DEC-009 の PC 再起動後の初期位置の再指定）への影響は G-INIT-POSE-GNSS に一覧した。自己位置推定の方式の選定（DEC-115、保留中）で一緒に扱う。
     disposition: answered
 revisions:
   - id: REV-002
@@ -54522,4 +55166,205 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-GROUND-DESIGN-CHECK
+    removed_entity_ids: []
+  - id: REV-051
+    date: '2026-10-17'
+    summary: 2026-10-14 夕方の x86 機の原図 3 件・rosbag 2 本・GLIM と launch 
+      のログの解析を証拠として登録した（FILE-EVENING-MAPS-ROSBAG。作業記録 2026-10-14_evening_maps_rosbag_analysis.md）。 
+      人が、地面の推定の要否を問い、map_creator の現在の改良を一旦置いて自己位置推定の方式の選定に進むよう指示した（DEC-109、原文）。 選定の提案を 
+      design/proposals/localization_selection.md に置いた（地面の推定の要否への答え、要求、候補の事実、構成の案、評価の計画、承認事項）。 DEC-107（地面の推定）と 
+      DEC-098（変換の暫定値）は DEC-109 により保留とし、未回答のまま残す。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+    basis_refs:
+      - DEC-109
+      - DEC-106
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-EVENING-MAPS-ROSBAG
+    removed_entity_ids: []
+  - id: REV-052
+    date: '2026-10-17'
+    summary: 人が Google の Cartographer も検討するよう指示した（DEC-110、原文）。上流の事実（保守の状況、Jazzy のバイナリ、pure localization、3D の 
+      IMU の要否、TF、点の時刻の形式）を確かめ、 design/proposals/localization_selection.md に案 C（Cartographer 
+      で地図作成と自己位置推定）を加えた。AI の評価は「成り立つが、地図作成の置き換え・保守の停止・品質の出力がない点で案 A より不利。第一候補にしない」。 
+      評価に加えるかは人の判断。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+    basis_refs:
+      - DEC-110
+      - DEC-109
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-053
+    date: '2026-10-17'
+    summary: 人が LeGO-LOAM と Autoware の ndt_matching も検討するよう指示した（DEC-111、原文）。上流の事実を確かめた。LeGO-LOAM は ROS 1 
+      だけ（最後の更新 2020 年、ROS 2 への移植は Dashing で IMU なし）で、 保存地図での自己位置推定はない。Autoware.AI の ndt_matching は ROS 1 
+      だけで、Autoware.AI は終了（2023-03 に archive）。後継の Autoware Core の autoware_ndt_scan_matcher と 
+      autoware_ekf_localizer を案 A3 として design/proposals/localization_selection.md に加えた（品質の出力が最も豊富。EKF が 
+      map→base_link を出すため map→odom への中継と速度の中継が要り、 依存が重い）。AI の推奨は、案 A3 をオフラインの評価に加えること。LeGO-LOAM と ndt_matching
+      は外す。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+    basis_refs:
+      - DEC-111
+      - DEC-109
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-054
+    date: '2026-10-17'
+    summary: 人が、KISS-ICP は以前の評価試験で目標性能を出せなかったため検討から外し、案 A・A3・B のみを検討するよう指示した。rosbag を VM 
+      に移すことは一旦しない（DEC-112、原文）。 design/proposals/localization_selection.md の検討の範囲を案 A（GLIM の odometry ＋ 
+      lidar_localization_ros2）、案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）、 案 B（GLIM の odometry ＋ Nav2 
+      AMCL）に絞る。評価は、rosbag を VM に移さずにできる机上の比較と、外付けを Mac で読む分析から進める。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+    basis_refs:
+      - DEC-112
+      - DEC-111
+      - DEC-110
+      - DEC-109
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-055
+    date: '2026-10-17'
+    summary: 人が intent.md を編集した（2026-10-17 03:51、リポジトリ側の design/intent.md。チャットでの言及なし、機械比較で検出）。差分は 82 行の置換だけで、 
+      Navigation の設計規約の文の末尾に「OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。」が加わった。 第10版（SHA-256 
+      4bc97d43…）として記録し、82 行の要求を RQ-I057 から RQ-I083 に置き換える（照合 C-026、RQ-I057 は superseded）。自己位置推定の方式の選定の提案の承認事項 
+      2（「Nav2 に機能を持たせ」の読み）に関わる。
+    basis_refs:
+      - DEC-113
+      - DEC-021
+    added_entity_ids:
+      - RQ-I083
+      - C-026
+    modified_entity_ids:
+      - RQ-I057
+      - C-004
+      - C-012
+      - C-018
+      - H-003
+      - H-005
+      - ND-10
+      - C-020
+    added_source_ids:
+      - SRC-I082-V10
+    added_file_ids:
+      - FILE-INTENT-V10
+    removed_entity_ids: []
+  - id: REV-056
+    date: '2026-10-17'
+    summary: 人が、外付け（/Volumes/Crucial_4TB/Gouda）を接続し、VM の使用を許可した。案 A と案 A3 を重点的に検証するよう指示し、両方の node を用意して 
+      gouda_monitor で切り替える案も示した。 合格基準は AI の案（位置の誤差の 95 % 点 0.3 m 以内、発散なし、誤差 0.5 m 超で不良を出す）で承認された。次の実機試験では同じ場所を
+      2 回走る（DEC-114、原文）。 VM では外付けを Parallels の共有（/media/psf/Crucial_4TB）で読み、rosbag は VM に写さない。検証用のパッケージは Gouda
+      のワークスペースと別のワークスペースに build する。 monitor での切り替えの案は提案として評価する（実装は人の個別の許可 DEC-106 の後）。
+    basis_refs:
+      - DEC-114
+      - DEC-112
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-057
+    date: '2026-10-17'
+    summary: 人の指示（DEC-114）により、案 A（lidar_localization_ros2）と案 A3（Autoware Core の NDT＋EKF）を VM 
+      で検証した（評価用のワークスペース、rosbag は外付けをその場で読み VM に写していない）。 同じ走行の地図での位置の誤差の 95 % 点は A 0.124 m、A3 0.209 m 
+      で、どちらも基準内。初期姿勢が大きくずれたとき、A は誤った姿勢を正常として出し続け（5 m・90 度で 60 秒、524 回中 510 回）、 A3 は棄却するか、Monte Carlo 
+      の初期姿勢の探索で戻った。第一候補を A3 に変える案を承認事項 DEC-115 とした。VM の中で約 2 MB の点群が DDS で落ちていたこと（Fast DDS の共有メモリの区画を 
+      大きくすると等倍でも 200/200 届く）を確かめ、G-DDS に記録し、VM の試験の環境への設定の追加を承認事項 DEC-116 
+      とした。別の走行の地図での評価は、今のデータに重なる走行がなくできなかった。
+    basis_refs:
+      - DEC-114
+      - DEC-021
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-DDS
+    added_source_ids: []
+    added_file_ids:
+      - FILE-LOCALIZATION-EVAL
+      - FILE-LOCALIZATION-EVAL-FIG
+    removed_entity_ids: []
+  - id: REV-058
+    date: '2026-10-17'
+    summary: '人が、Septentrio mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）の搭載を伝え、自己位置推定の方式の選定（DEC-115）を保留し、recorder の rosbag
+      の再開の不具合と GLIM の異常終了の検出・表示の修正を指示し、スリープの抑止（DEC-104）の検討を求め、x86 機への最新版の反映と二重起動の防止の正常な動作を報告した（DEC-117、原文。修正 2 件の個別の許可として扱う:
+      DEC-106）。recorder は開始ごとに別のフォルダへ書き、子プロセスの終了を見張って失敗を記録・表示する。mode_manager は地図作成中の GLIM の終了を見張り、glim_exited（TR-14
+      の検出と表示だけ）を記録する。monitor は両方をポップアップで示す。単体試験（Mac、134 件 OK・1 件 skip）と VM の試験スタックでの試験は合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。x86
+      機への反映と実機での確認は未実行。スリープの抑止の計画を第2版にした（提案。実装なし）。'
+    basis_refs:
+      - DEC-117
+      - DEC-106
+      - DEC-104
+    added_entity_ids:
+      - G-REC-ROSBAG-RESTART
+      - G-GLIM-EXIT
+    modified_entity_ids:
+      - ND-02
+      - ND-03
+      - ND-04
+      - ND-06
+      - SO-02
+      - IFD-10
+      - IFD-12
+      - TR-14
+      - TS-23
+      - TS-27
+      - G-DUP-START
+    added_source_ids: []
+    added_file_ids:
+      - FILE-RECORDER-GLIM-FIX-VM-TEST
+      - FILE-RECORDER-GLIM-FIX-VM-TEST-SCRIPT
+    removed_entity_ids: []
+  - id: REV-059
+    date: '2026-10-17'
+    summary: 人が intent.md を編集した（2026-10-17 16:29、リポジトリ側の design/intent.md。チャットでの言及なし、機械比較で検出）。差分は 14 行（体験 
+      9）の置換だけで、「次に初期位置と向きを人間がある程度指定し、」が「次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。」に変わった。第11版（SHA-256
+      a7a03a31…）として記録し、14 行の要求を RQ-I011 から RQ-I084 に置き換える（照合 
+      C-027）。人が初期位置を指定する前提の設計（IFD-34、ND-07、TR-05、H-007・DEC-009 など）への影響を問題 G-INIT-POSE-GNSS として登録する。設計の変更はしない。
+    basis_refs:
+      - DEC-118
+      - DEC-117
+    added_entity_ids:
+      - RQ-I084
+      - C-027
+      - G-INIT-POSE-GNSS
+    modified_entity_ids:
+      - RQ-I011
+      - C-004
+      - C-010
+      - C-012
+      - H-007
+      - ND-02
+      - ND-03
+      - ND-07
+      - ND-08
+      - ND-10
+      - ND-16
+      - SO-03
+      - SO-05
+      - SO-06
+      - IFD-02
+      - IFD-13
+      - IFD-18
+      - IFD-24
+      - IFD-25
+      - IFD-33
+      - IFD-34
+      - TR-05
+      - PRM-11
+      - IFD-39
+      - TS-02
+    added_source_ids:
+      - SRC-I014-V11
+    added_file_ids:
+      - FILE-INTENT-V11
     removed_entity_ids: []

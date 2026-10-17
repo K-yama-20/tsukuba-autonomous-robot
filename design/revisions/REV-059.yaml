@@ -1,0 +1,141 @@
+# 変更セット REV-059（2026-10-17 第30便の続き: intent.md 第11版（人の編集。14 行の置換）を記録し、影響を G-INIT-POSE-GNSS に一覧。設計の変更はしない）
+# 適用: design/tools/apply_revision.py REV-059
+id: REV-059
+date: '2026-10-17'
+summary: 人が intent.md を編集した（2026-10-17 16:29、リポジトリ側の design/intent.md。チャットでの言及なし、機械比較で検出）。差分は 14 行（体験 9）の置換だけで、「次に初期位置と向きを人間がある程度指定し、」が「次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。」に変わった。第11版（SHA-256
+  a7a03a31…）として記録し、14 行の要求を RQ-I011 から RQ-I084 に置き換える（照合 C-027）。人が初期位置を指定する前提の設計（IFD-34、ND-07、TR-05、H-007・DEC-009 など）への影響を問題 G-INIT-POSE-GNSS として登録する。設計の変更はしない。
+basis_refs:
+- DEC-118
+- DEC-117
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+authority_revision:
+  id: AR-011
+  file_id: FILE-INTENT-V11
+  previous_file_id: FILE-INTENT-V10
+  archived_previous_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+  current_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    14: RQ-I084
+  decision_ref: DEC-118
+  note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-17 16:29）。チャットでの言及はなく機械比較で検出。14 行の置換だけ（106 行のまま）。ワークスペース直下の design/intent.md は第6版のままで、正本はリポジトリ側。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+requirement_ref_replacements:
+  RQ-I011: RQ-I084
+decisions:
+- id: DEC-118
+  kind: confirmation
+  status: recorded
+  asked_on: null
+  answered_on: '2026-10-17'
+  channel: intent.md
+  question: intent.md 第11版（人の編集。14 行（体験 9）の置換。チャットでの言及なし、機械比較で検出）
+  answer_verbatim: '9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+
+    '
+  affected_refs:
+  - FILE-INTENT-V10
+  - RQ-I011
+  - C-010
+  - IFD-34
+  - ND-07
+  - TR-05
+  - H-007
+  - DEC-009
+  - DEC-115
+  resulting_refs:
+  - AR-011
+  - RQ-I084
+  - C-027
+  - G-INIT-POSE-GNSS
+  note: 初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は位置の収束と正しさを確認する（人が指定するのではない）。同日の人の連絡（DEC-117）で Septentrio mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）を搭載した。人が初期位置を指定する前提の設計（IFD-34 の開始要求の引数としての初期姿勢、ND-07 の初期化、TR-05
+    の guard、H-007・DEC-009 の PC 再起動後の初期位置の再指定）への影響は G-INIT-POSE-GNSS に一覧した。自己位置推定の方式の選定（DEC-115、保留中）で一緒に扱う。
+  disposition: answered
+entities:
+- id: C-027
+  kind: reconciliation
+  name: 体験 9 の初期位置の取得の変更（intent.md 第10版 14 行 → 第11版 14 行）
+  intent_lines:
+  - 14
+  source_from_affected: true
+  related_refs:
+  - DEC-118
+  - AR-011
+  - G-INIT-POSE-GNSS
+  - C-010
+  sensitivity:
+  - intent
+  - safety
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs:
+    - RQ-I011
+    adopted_requirement_refs:
+    - RQ-I084
+    scope: 第10版 14 行の「次に初期位置と向きを人間がある程度指定し、」を「次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。」で置換した第11版 14 行（人の編集）。
+    retained_scope: waypoint ファイルと地図の組の選択、重ねたプレビュー、自律走行開始ボタンを一回押すと自己位置推定しながら Nav2 が開始、開始後の追加承認なし、通過・到達の判定は Nav2、は同一。
+    rationale: 人が intent.md を編集（DEC-118）。初期位置を人が指定する前提の設計への影響は G-INIT-POSE-GNSS（未解決）。
+    issue_refs:
+    - G-INIT-POSE-GNSS
+- id: G-INIT-POSE-GNSS
+  kind: issue
+  source_from_affected: true
+  name: 初期位置を GNSS で取得し人が確認する体験（intent 第11版）に、人が初期位置を指定する前提の設計が合っていない
+  sensitivity:
+  - safety
+  - operation
+  - intent
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - IFD-34
+    - IFD-02
+    - ND-07
+    - ND-02
+    - ND-03
+    - TR-05
+    - H-007
+    - IFD-39
+    - C-010
+    resolution_refs: []
+    question: 'intent 第11版（DEC-118）の体験 9 では、初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は収束と正しさを確認する。設計は人が指定する前提: IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05
+      の guard、H-007・DEC-009（PC 再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。'
+    next_action: '自己位置推定の方式の選定（DEC-115、保留中）を再開するときに一緒に設計する。決めることの候補: GNSS の取込み（ドライバ、topic、品質の扱い）、GNSS の座標と GLIM の地図の座標の対応（地図作成時に GNSS も記録する等）、「確認」の操作（人の確認を開始の条件にするか）、PC 再起動後の扱い（DEC-009 との関係）、GNSS が使えないときの代わり（人の指定を残すか）。いずれも承認事項。'
+modifications:
+- id: RQ-I011
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-059: intent.md 第11版で初期位置を GNSS で取得し人が確認する文に置換（C-027、DEC-118）。後継は RQ-I084。'
+- id: C-004
+  append:
+    related_refs:
+    - C-027
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I084
+    - RQ-I019
+    - RQ-I083
+- id: C-012
+  append:
+    related_refs:
+    - C-027
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I084
+    - RQ-I018
+    - RQ-I019
+    - RQ-I055
+    - RQ-I083
+- id: C-010
+  append:
+    related_refs:
+    - C-027
+    - G-INIT-POSE-GNSS
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I084
+    reconciliation.clarification: '「必要条件の内部処理は未設計」は REV-002 時点の記述。現在は TR-05 の guard（ND-07・ND-08・ND-10 活性、ND-06 非活性、地図・waypoint の ID とハッシュ一致）と actions で設計済み（REV-004〜REV-010）。残る未設計はない。 2026-10-17（REV-059）:
+      intent 第11版で初期位置と向きは GNSS で取得し人が確認する文になった。retained_scope の「人間が地図上で初期位置と向きを指定」は第11版と食い違う（G-INIT-POSE-GNSS で未解決）。開始を一度押す・開始後の追加承認なし、は第11版と同一。'

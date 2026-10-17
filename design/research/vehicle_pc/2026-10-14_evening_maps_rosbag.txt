@@ -1,0 +1,266 @@
+# 2026-10-14 夕方の x86 機（人が実施）の原図 3 件・rosbag 2 本・GLIM のログ・launch のログの AI による解析（原文の出力）。
+# 入力: 人の外付け /Volumes/Crucial_4TB/Gouda/gouda_data（x86 機のデータの置き場の写し）を読み取りだけで参照した。生のデータ・ログはリポジトリに入れていない。
+# スクリプト: 2026-10-14_evening_scripts/（traj_judge・tilt_split・tilt_extra・ground_check は原図、mcap_min・extract_bag・bag_stats・imu_lidar_tilt は rosbag。mcap の読み取りは外部パッケージなし）。
+# 比較のため朝の原図 2 件（062749 廊下、063433 屋外）にも同じ解析を掛けた。GLIM の設定（glim_config）は朝と夕方で差分なし（T_lidar_imu 並進 (0, 0, -0.08)、回転なし）。
+# 対応: 原図 173522 ↔ rosbag 20261014_173522（地図作成 17:35:22 開始、rosbag は 17:35:58〜17:43:52）、原図 175857 ↔ rosbag 20261014_175847（17:58:48〜18:10:35）、原図 181044 は rosbag なし（7 の項）。
+# 走行の経路・場所は人に未確認。
+
+===== 1. 軌跡の判定（traj_judge.py。traj_lidar.txt は loop closure の補正後）
+===== 20261014_062749_aafe17ca  06:27:53-06:30:39
+GLIM frames 1667 over 166.6 s = 10.01 Hz; gaps >0.15 s 0, >0.5 s 0, max 0.10 s
+path 137.0 m; start-end xy 0.27 m, dz -0.02 m; z 0.06..2.75
+  step 0.13 m in 0.10 s at 06:28:02 (t=9.6 s)
+  step 0.13 m in 0.10 s at 06:29:37 (t=104.3 s)
+  step 0.13 m in 0.10 s at 06:28:19 (t=26.5 s)
+  speed (frames with dt<=0.15 s): median 1.07 m/s, p95 1.23
+revisits (xy<1.5 m, >60 s apart): 53376 pairs; |dz| median 0.05 p95 0.13 max 0.19 m
+trajectory plane z = a x + b y: tilt 4.43 deg, uphill azimuth -91 deg (initial heading -99 deg), residual std 0.02 m, max |res| 0.06 m
+climb per 5 m piece (24 pieces): heading-independent +0.02 deg (vehicle-fixed), world-fixed tilt 4.50 deg toward azimuth -86 deg, residual std 0.11 deg
+LiDAR z axis vs world z: median 3.50 deg (p10 1.92, p90 4.44); first frame 4.18 deg
+LiDAR attitude in the map: forward axis elevation median +3.37 deg (p10 +1.85, p90 +4.37); left axis elevation median -0.56 deg
+===== 20261014_063433_60417bca  06:34:36-06:45:03
+GLIM frames 6177 over 627.4 s = 9.85 Hz; gaps >0.15 s 10, >0.5 s 3, max 3.53 s
+  gap 3.53 s at 06:38:35 (t=238.8 s), moved 2.72 m
+  gap 2.74 s at 06:40:28 (t=352.6 s), moved 3.02 m
+  gap 3.20 s at 06:44:22 (t=586.2 s), moved 12.61 m
+path 579.6 m; start-end xy 12.68 m, dz +6.41 m; z -0.20..11.76
+  step 12.61 m in 3.20 s at 06:44:22 (t=586.2 s)
+  step 3.02 m in 2.74 s at 06:40:28 (t=352.6 s)
+  step 2.72 m in 3.53 s at 06:38:35 (t=238.8 s)
+  speed (frames with dt<=0.15 s): median 1.08 m/s, p95 1.27
+revisits (xy<1.5 m, >60 s apart): 30369 pairs; |dz| median 1.82 p95 2.29 max 2.46 m
+trajectory plane z = a x + b y: tilt 4.55 deg, uphill azimuth -52 deg (initial heading -142 deg), residual std 1.33 m, max |res| 3.49 m
+climb per 5 m piece (106 pieces): heading-independent +0.74 deg (vehicle-fixed), world-fixed tilt 3.13 deg toward azimuth -60 deg, residual std 2.51 deg
+LiDAR z axis vs world z: median 3.39 deg (p10 1.59, p90 7.07); first frame 3.09 deg
+LiDAR attitude in the map: forward axis elevation median +1.81 deg (p10 -1.37, p90 +5.67); left axis elevation median -0.04 deg
+===== 20261014_173522_cccf4675  17:35:26-17:43:45
+GLIM frames 4945 over 499.0 s = 9.91 Hz; gaps >0.15 s 40, >0.5 s 0, max 0.50 s
+path 358.1 m; start-end xy 2.73 m, dz +0.08 m; z -1.49..1.38
+  step 0.35 m in 0.30 s at 17:36:12 (t=46.3 s)
+  step 0.26 m in 0.20 s at 17:36:45 (t=79.3 s)
+  step 0.24 m in 0.20 s at 17:41:14 (t=348.0 s)
+  speed (frames with dt<=0.15 s): median 0.86 m/s, p95 1.23
+revisits (xy<1.5 m, >60 s apart): 39635 pairs; |dz| median 0.04 p95 0.07 max 0.13 m
+trajectory plane z = a x + b y: tilt 2.03 deg, uphill azimuth -3 deg (initial heading -157 deg), residual std 0.05 m, max |res| 0.28 m
+climb per 5 m piece (66 pieces): heading-independent -0.03 deg (vehicle-fixed), world-fixed tilt 2.14 deg toward azimuth -6 deg, residual std 0.75 deg
+LiDAR z axis vs world z: median 2.10 deg (p10 1.48, p90 3.39); first frame 1.82 deg
+LiDAR attitude in the map: forward axis elevation median -0.28 deg (p10 -1.99, p90 +2.22); left axis elevation median +0.38 deg
+===== 20261014_175857_38cb6968  17:59:01-18:10:28
+GLIM frames 6804 over 686.4 s = 9.91 Hz; gaps >0.15 s 22, >0.5 s 1, max 4.20 s
+  gap 4.20 s at 18:01:03 (t=122.2 s), moved 0.04 m
+path 633.5 m; start-end xy 0.35 m, dz +0.01 m; z 0.08..10.58
+  step 0.24 m in 0.20 s at 18:08:43 (t=582.1 s)
+  step 0.24 m in 0.20 s at 18:08:58 (t=597.0 s)
+  step 0.24 m in 0.20 s at 18:09:49 (t=648.3 s)
+  speed (frames with dt<=0.15 s): median 1.10 m/s, p95 1.28
+revisits (xy<1.5 m, >60 s apart): 42100 pairs; |dz| median 0.04 p95 0.13 max 0.24 m
+trajectory plane z = a x + b y: tilt 4.01 deg, uphill azimuth -28 deg (initial heading -52 deg), residual std 0.63 m, max |res| 1.45 m
+climb per 5 m piece (121 pieces): heading-independent -0.00 deg (vehicle-fixed), world-fixed tilt 4.30 deg toward azimuth -26 deg, residual std 2.33 deg
+LiDAR z axis vs world z: median 3.60 deg (p10 1.96, p90 7.03); first frame 4.09 deg
+LiDAR attitude in the map: forward axis elevation median +0.25 deg (p10 -5.33, p90 +5.62); left axis elevation median +0.64 deg
+===== 20261014_181044_e319abc1  18:10:48-18:18:20
+GLIM frames 4452 over 451.8 s = 9.85 Hz; gaps >0.15 s 8, >0.5 s 2, max 3.20 s
+  gap 3.20 s at 18:12:12 (t=84.5 s), moved 0.40 m
+  gap 3.10 s at 18:12:16 (t=88.6 s), moved 0.01 m
+path 447.9 m; start-end xy 213.70 m, dz -2.94 m; z -3.41..0.09
+  step 0.40 m in 3.20 s at 18:12:12 (t=84.5 s)
+  step 0.33 m in 0.20 s at 18:13:44 (t=176.7 s)
+  step 0.33 m in 0.20 s at 18:13:28 (t=160.5 s)
+  speed (frames with dt<=0.15 s): median 1.16 m/s, p95 1.63
+revisits (xy<1.5 m, >60 s apart): none
+trajectory plane z = a x + b y: tilt 0.53 deg, uphill azimuth -22 deg (initial heading 159 deg), residual std 0.74 m, max |res| 1.41 m
+climb per 5 m piece (88 pieces): heading-independent +0.29 deg (vehicle-fixed), world-fixed tilt 1.38 deg toward azimuth -61 deg, residual std 1.83 deg
+LiDAR z axis vs world z: median 1.90 deg (p10 0.83, p90 4.31); first frame 3.72 deg
+LiDAR attitude in the map: forward axis elevation median -0.33 deg (p10 -2.45, p90 +2.52); left axis elevation median -0.08 deg
+
+===== 2. 地図の傾きの分離（tilt_split.py）: 5 m ごとの区間の経路の勾配と LiDAR の姿勢を、走行方向の関数（定数＋地図に固定の傾き）で当てはめた
+===== 20261014_062749_aafe17ca: forward axis in LiDAR frame (-0.147, -0.989) = azimuth -98.5 deg in LiDAR xy; motion backward share 0.0 %
+  path slope                        : const +0.02 deg, world-fixed 4.49 deg toward az -86, residual std 0.11 deg
+  LiDAR forward elevation           : const +3.15 deg, world-fixed 1.54 deg toward az -149, residual std 0.09 deg
+  forward elevation - path slope    : const +3.13 deg, world-fixed 4.04 deg toward az 114, residual std 0.13 deg
+  LiDAR left elevation (lateral fit): const -0.06 deg, world-fixed 0.48 deg toward az -88, residual std 0.20 deg
+  by heading (45 deg bins): n, mean path slope, mean forward elevation, mean (fe - slope), mean left elevation
+     45- 90:  12   -4.39   +2.20   +6.59   -0.15
+    225-270:  12   +4.42   +4.10   -0.32   +0.02
+===== 20261014_063433_60417bca: forward axis in LiDAR frame (-0.153, -0.988) = azimuth -98.8 deg in LiDAR xy; motion backward share 0.0 %
+  path slope                        : const +0.74 deg, world-fixed 3.12 deg toward az -60, residual std 2.51 deg
+  LiDAR forward elevation           : const +1.82 deg, world-fixed 2.00 deg toward az -29, residual std 1.94 deg
+  forward elevation - path slope    : const +1.09 deg, world-fixed 1.76 deg toward az 83, residual std 1.20 deg
+  LiDAR left elevation (lateral fit): const +0.16 deg, world-fixed 1.84 deg toward az -67, residual std 2.15 deg
+  by heading (45 deg bins): n, mean path slope, mean forward elevation, mean (fe - slope), mean left elevation
+      0- 45:   6   +0.48   +1.95   +1.47   -3.17
+     45- 90:  18   -2.59   +1.02   +3.61   -0.16
+     90-135:   8   +0.59   +2.56   +1.97   +1.13
+    135-180:  26   -1.66   -0.57   +1.10   +0.85
+    180-225:   3   +3.97   +3.61   -0.35   +2.70
+    225-270:  16   +2.22   +1.97   -0.25   +1.79
+    270-315:  11   +3.09   +3.14   +0.04   +0.87
+    315-360:  18   +4.27   +4.32   +0.05   -1.98
+===== 20261014_173522_cccf4675: forward axis in LiDAR frame (-0.158, -0.987) = azimuth -99.1 deg in LiDAR xy; motion backward share 0.0 %
+  path slope                        : const -0.03 deg, world-fixed 2.14 deg toward az -6, residual std 0.75 deg
+  LiDAR forward elevation           : const -0.10 deg, world-fixed 1.57 deg toward az -12, residual std 0.77 deg
+  forward elevation - path slope    : const -0.07 deg, world-fixed 0.60 deg toward az -172, residual std 0.66 deg
+  LiDAR left elevation (lateral fit): const -0.08 deg, world-fixed 2.19 deg toward az -10, residual std 0.65 deg
+  by heading (45 deg bins): n, mean path slope, mean forward elevation, mean (fe - slope), mean left elevation
+      0- 45:   8   +1.48   +1.04   -0.44   -1.13
+     45- 90:   3   +0.11   -0.25   -0.36   -1.62
+     90-135:  13   -0.46   -0.58   -0.12   -2.16
+    135-180:  11   -2.22   -1.66   +0.56   -0.41
+    180-225:   4   -2.25   -1.52   +0.73   +1.24
+    225-270:   6   -0.16   -0.13   +0.04   +1.97
+    270-315:  13   +0.84   +0.56   -0.28   +1.65
+    315-360:   8   +2.14   +1.60   -0.54   +0.50
+===== 20261014_175857_38cb6968: forward axis in LiDAR frame (-0.161, -0.987) = azimuth -99.3 deg in LiDAR xy; motion backward share 0.0 %
+  path slope                        : const -0.00 deg, world-fixed 4.30 deg toward az -26, residual std 2.32 deg
+  LiDAR forward elevation           : const +0.06 deg, world-fixed 4.09 deg toward az -31, residual std 2.37 deg
+  forward elevation - path slope    : const +0.06 deg, world-fixed 0.42 deg toward az -147, residual std 0.73 deg
+  LiDAR left elevation (lateral fit): const -0.24 deg, world-fixed 2.87 deg toward az 18, residual std 1.48 deg
+  by heading (45 deg bins): n, mean path slope, mean forward elevation, mean (fe - slope), mean left elevation
+      0- 45:  21   +1.75   +1.28   -0.47   +0.49
+     45- 90:  13   +1.73   +1.58   -0.15   -3.86
+     90-135:  23   -4.25   -4.33   -0.07   -3.26
+    135-180:   2   -3.77   -3.38   +0.39   -1.00
+    180-225:  26   -2.32   -1.78   +0.53   +0.65
+    225-270:   5   -1.36   -1.11   +0.25   +2.04
+    270-315:  28   +3.79   +3.92   +0.13   +2.05
+    315-360:   3   +2.48   +2.91   +0.43   +1.10
+===== 20261014_181044_e319abc1: forward axis in LiDAR frame (-0.160, -0.987) = azimuth -99.2 deg in LiDAR xy; motion backward share 0.0 %
+  path slope                        : const +0.29 deg, world-fixed 1.38 deg toward az -61, residual std 1.83 deg
+  LiDAR forward elevation           : const +0.08 deg, world-fixed 1.05 deg toward az -102, residual std 1.68 deg
+  forward elevation - path slope    : const -0.21 deg, world-fixed 0.90 deg toward az 168, residual std 0.54 deg
+  LiDAR left elevation (lateral fit): const -0.39 deg, world-fixed 0.77 deg toward az -117, residual std 1.32 deg
+  by heading (45 deg bins): n, mean path slope, mean forward elevation, mean (fe - slope), mean left elevation
+      0- 45:  11   +0.08   -0.47   -0.55   -1.28
+     45- 90:  15   -0.37   -0.99   -0.61   -0.31
+     90-135:  23   -0.86   -0.72   +0.14   +0.61
+    135-180:  24   -1.16   -0.35   +0.81   -0.06
+    225-270:  14   +1.09   +1.04   -0.05   -0.02
+
+（tilt_extra.py）走行方向の LiDAR 座標での仰角（負なら LiDAR の前が走行方向より上を向く）と、地図の平面の傾きの向き（出発時の前向きからの角度。+90 が左）
+20261014_062749_aafe17ca: travel direction elevation in the LiDAR frame median -2.38 deg (p25 -6.57, p75 +0.22); initial forward heading -98 deg; plane tilt 4.43 deg, uphill az -91 = +8 deg from the initial heading; first-frame LiDAR z tilt 4.18 deg
+20261014_063433_60417bca: travel direction elevation in the LiDAR frame median -3.11 deg (p25 -5.85, p75 -0.30); initial forward heading -99 deg; plane tilt 4.55 deg, uphill az -52 = +46 deg from the initial heading; first-frame LiDAR z tilt 3.09 deg
+20261014_173522_cccf4675: travel direction elevation in the LiDAR frame median +0.48 deg (p25 -0.45, p75 +1.45); initial forward heading -99 deg; plane tilt 2.03 deg, uphill az -3 = +96 deg from the initial heading; first-frame LiDAR z tilt 1.82 deg
+20261014_175857_38cb6968: travel direction elevation in the LiDAR frame median +0.42 deg (p25 -0.83, p75 +1.48); initial forward heading -99 deg; plane tilt 4.01 deg, uphill az -28 = +71 deg from the initial heading; first-frame LiDAR z tilt 4.09 deg
+20261014_181044_e319abc1: travel direction elevation in the LiDAR frame median +0.12 deg (p25 -0.82, p75 +1.16); initial forward heading -99 deg; plane tilt 0.53 deg, uphill az -22 = +77 deg from the initial heading; first-frame LiDAR z tilt 3.72 deg
+
+===== 3. 地面の推定の前提（ground_check.py。補正後の軌跡を stamp で対応付け。DEC-107 の H と下の外れた点）
+20261014_063433_60417bca (search 1.20 +- 0.40 m, stamps matched 6149/6177): submaps 217; ground below the sensor: median 1.02 m, p10 0.82, p90 1.42; points within +-0.075 m of the peak: median 26 % of the window; points >0.3 m below the ground (1..8 m): median 12.5 %, p90 33.9 %; annulus 1..4 m plane tilt vs map z: median 1.6 deg, p90 4.2 (215 submaps)
+20261014_173522_cccf4675 (search 1.20 +- 0.40 m, stamps matched 4923/4945): submaps 121; ground below the sensor: median 1.12 m, p10 1.02, p90 1.27; points within +-0.075 m of the peak: median 37 % of the window; points >0.3 m below the ground (1..8 m): median 0.6 %, p90 8.3 %; annulus 1..4 m plane tilt vs map z: median 1.4 deg, p90 2.1 (120 submaps)
+20261014_175857_38cb6968 (search 1.20 +- 0.40 m, stamps matched 6770/6804): submaps 292; ground below the sensor: median 1.22 m, p10 0.87, p90 1.48; points within +-0.075 m of the peak: median 30 % of the window; points >0.3 m below the ground (1..8 m): median 5.7 %, p90 28.4 %; annulus 1..4 m plane tilt vs map z: median 2.0 deg, p90 4.2 (280 submaps)
+20261014_181044_e319abc1 (search 1.20 +- 0.40 m, stamps matched 4432/4452): submaps 122; ground below the sensor: median 1.12 m, p10 0.92, p90 1.37; points within +-0.075 m of the peak: median 37 % of the window; points >0.3 m below the ground (1..8 m): median 0.7 %, p90 20.4 %; annulus 1..4 m plane tilt vs map z: median 1.2 deg, p90 3.3 (120 submaps)
+
+===== 4. rosbag の統計（bag_stats.py）
+===== bag173522.npz
+IMU 47355 msgs 17:35:58.37-17:43:51.95: rate 99.99 Hz, stamp gaps >0.05 s 0, max 0.026 s, non-increasing 0; |acc| median 9.850 m/s2
+LiDAR 4736 frames 17:35:58.26-17:43:51.75: rate 10.00 Hz, header gaps >0.15 s 0 (max 0.11 s); frames with fewer than 64000 points 12 (63744 pts: 11); frame time span >0.15 s 0 (max 0.11 s)
+packet loss (/lidar_packets_loss, cumulative): packets 1389422, lost 0
+===== bag175847.npz
+IMU 70657 msgs 17:58:48.76-18:10:35.34: rate 100.00 Hz, stamp gaps >0.05 s 0, max 0.024 s, non-increasing 0; |acc| median 9.894 m/s2
+LiDAR 7026 frames 17:58:48.68-18:10:35.15: rate 9.95 Hz, header gaps >0.15 s 1 (max 4.20 s); frames with fewer than 64000 points 45 (63744 pts: 44); frame time span >0.15 s 1 (max 4.20 s)
+   frame 18:01:03.88: 28928 points over 4.20 s
+packet loss (/lidar_packets_loss, cumulative): packets 1854435, lost 10387
+   18:01:08.08: +10387 lost (cumulative packets 436220); a frame is 250 packets at 10 Hz
+
+===== 5. IMU の重力の向きと LiDAR の地面の法線（imu_lidar_tilt.py。LiDAR の地面は 0.5 s ごとの frame の 3〜10 m の輪の RANSAC 平面）
+===== bag173522
+ground samples 948, good 940 (inliers>=800, rms<0.03 m, height 0.9..1.5 m); sensor height above the plane: median 1.187 m, p10 1.156, p90 1.215
+static intervals (>= 2 s): IMU up vs LiDAR ground normal, angles in degrees [sensor: left-raised, nose-raised(-y)] [vehicle: left-raised, nose-raised]
+  17:35:58-17:36:01 (3 s, 8 planes): IMU [+1.59 -0.48] [+1.50 -0.72]  LiDAR [-0.25 -0.18] [-0.28 -0.14]  IMU-LiDAR vehicle [+1.78 -0.58]  plane height 1.170 m
+  17:37:26-17:37:30 (3 s, 8 planes): IMU [+1.89 +0.76] [+1.99 +0.45]  LiDAR [+0.06 +0.65] [+0.16 +0.63]  IMU-LiDAR vehicle [+1.83 -0.18]  plane height 1.196 m
+  17:37:32-17:37:41 (10 s, 20 planes): IMU [+1.89 +0.78] [+1.99 +0.47]  LiDAR [-0.01 +0.62] [+0.08 +0.62]  IMU-LiDAR vehicle [+1.91 -0.15]  plane height 1.197 m
+  17:38:15-17:38:17 (2 s, 6 planes): IMU [+1.41 -0.72] [+1.28 -0.93]  LiDAR [-0.70 -0.95] [-0.84 -0.83]  IMU-LiDAR vehicle [+2.12 -0.10]  plane height 1.215 m
+  17:39:09-17:39:16 (7 s, 14 planes): IMU [+1.40 -0.02] [+1.38 -0.24]  LiDAR [-0.78 -0.02] [-0.77 +0.10]  IMU-LiDAR vehicle [+2.15 -0.34]  plane height 1.176 m
+  17:39:17-17:39:24 (7 s, 14 planes): IMU [+1.38 -0.04] [+1.35 -0.25]  LiDAR [-0.76 +0.09] [-0.73 +0.21]  IMU-LiDAR vehicle [+2.09 -0.46]  plane height 1.169 m
+  17:41:57-17:42:02 (5 s, 11 planes): IMU [+1.37 -0.52] [+1.27 -0.73]  LiDAR [-0.67 -0.18] [-0.69 -0.07]  IMU-LiDAR vehicle [+1.96 -0.66]  plane height 1.171 m
+  17:43:38-17:43:51 (13 s, 27 planes): IMU [+1.60 -1.36] [+1.36 -1.60]  LiDAR [-0.29 -1.01] [-0.44 -0.96]  IMU-LiDAR vehicle [+1.80 -0.64]  plane height 1.156 m
+whole run (940 pairs): mean IMU vehicle [+1.54 -0.53], mean LiDAR vehicle [-0.33 -0.07]; difference IMU-LiDAR per pair: left-raised median +1.89 (p25 +1.27, p75 +2.50), nose-raised median -0.36 (p25 -0.86, p75 +0.14)
+Kabsch R (LiDAR normal -> IMU up): image of LiDAR +z in the IMU frame = (+0.0336, +0.0031, +0.9994), angle 1.93 deg; residual angle median 1.27 deg
+===== bag175847
+ground samples 1406, good 1329 (inliers>=800, rms<0.03 m, height 0.9..1.5 m); sensor height above the plane: median 1.182 m, p10 1.121, p90 1.235
+static intervals (>= 2 s): IMU up vs LiDAR ground normal, angles in degrees [sensor: left-raised, nose-raised(-y)] [vehicle: left-raised, nose-raised]
+  17:58:54-17:59:01 (7 s, 16 planes): IMU [+3.56 +1.76] [+3.80 +1.18]  LiDAR [-0.34 +0.89] [-0.20 +0.93]  IMU-LiDAR vehicle [+4.00 +0.25]  plane height 1.175 m
+  17:59:17-17:59:19 (2 s, 5 planes): IMU [+1.22 +1.62] [+1.47 +1.41]  LiDAR [-1.02 +0.46] [-0.93 +0.61]  IMU-LiDAR vehicle [+2.40 +0.80]  plane height 1.160 m
+  18:00:49-18:01:02 (13 s, 27 planes): IMU [+1.79 -0.50] [+1.69 -0.78]  LiDAR [-0.44 -0.03] [-0.44 +0.04]  IMU-LiDAR vehicle [+2.13 -0.82]  plane height 1.182 m
+  18:01:09-18:01:15 (6 s, 12 planes): IMU [+1.79 -0.51] [+1.68 -0.79]  LiDAR [-0.45 -0.03] [-0.45 +0.04]  IMU-LiDAR vehicle [+2.13 -0.83]  plane height 1.181 m
+  18:04:00-18:04:04 (3 s, 8 planes): IMU [+2.50 +2.91] [+2.92 +2.48]  LiDAR [-0.91 -0.57] [-0.99 -0.42]  IMU-LiDAR vehicle [+3.91 +2.90]  plane height 1.241 m
+  18:07:24-18:07:28 (4 s, 7 planes): IMU [+2.82 +0.16] [+2.81 -0.29]  LiDAR [-0.81 +1.00] [-0.64 +1.12]  IMU-LiDAR vehicle [+3.45 -1.41]  plane height 1.087 m
+  18:10:24-18:10:35 (11 s, 23 planes): IMU [+3.08 +2.04] [+3.37 +1.53]  LiDAR [+0.04 +0.99] [+0.20 +0.97]  IMU-LiDAR vehicle [+3.17 +0.56]  plane height 1.150 m
+whole run (1329 pairs): mean IMU vehicle [+1.73 -0.38], mean LiDAR vehicle [-0.36 +0.09]; difference IMU-LiDAR per pair: left-raised median +2.23 (p25 +1.03, p75 +3.25), nose-raised median -0.46 (p25 -1.83, p75 +0.74)
+Kabsch R (LiDAR normal -> IMU up): image of LiDAR +z in the IMU frame = (+0.0373, +0.0012, +0.9993), angle 2.14 deg; residual angle median 2.17 deg
+
+===== 6. GLIM のログの警告（分ごとの件数）
+== 20261014_173522_cccf4675 (      61 lines)
+  large time difference       
+  large time gap              
+  large per-point timestamp   
+  between factor               17:37:2 17:38:1 17:39:2 17:40:2 17:41:5 17:42:1 17:43:1
+  IMU prediction is not good  
+== 20261014_175310_93afb8af (   29596 lines)
+  large time difference        17:53:4508 17:54:5722 17:55:4335
+  large time gap               17:53:42 17:54:7 17:55:12
+  large per-point timestamp    17:53:7 17:55:3
+  between factor               17:53:3 17:54:14 17:55:5
+  IMU prediction is not good   17:54:5 17:55:1
+== 20261014_175857_38cb6968 (     809 lines)
+  large time difference        18:01:340
+  large time gap               18:01:1
+  large per-point timestamp    18:01:1
+  between factor               18:00:1 18:01:1 18:04:1 18:05:2 18:06:2 18:07:4 18:08:1 18:10:3
+  IMU prediction is not good   18:00:5 18:01:4
+== 20261014_181044_e319abc1 (    1045 lines)
+  large time difference        18:12:469
+  large time gap               18:12:2
+  large per-point timestamp    18:12:2
+  between factor               18:11:5 18:13:4 18:14:4 18:15:4 18:17:3
+  IMU prediction is not good   18:11:4
+== 20261014_175310_93afb8af: end of the log
+   1 current_stamp:1791968114.773510
+   1 falling back!!
+   2 http://borg.cc.gatech.edu/ on gtsam::IndeterminantLinearSystemException for
+   1 terminate called after throwing an instance of 'gtsam::IndeterminantLinearSystemException'
+29567:[2026-10-14 17:55:43.393] [submap] [warning] insufficient IMU data between LiDAR frames!! (sub_mapping)
+175310: 「insufficient number of IMU data」の直前の LiDAR の frame の間隔（t_current - t_last、65 件）:
+  1 ms 未満 25、1〜50 ms 17、50 ms 以上 23
+
+===== 7. launch のログ（run/gouda_core.launch.log。17:58:12 の起動以降だけが残る。それより前の起動のログは上書きされている）
+397:[gouda_recorder-3] [INFO] [1791968327.953201737] [gouda_recorder]: rosbag recording started in /home/gouda/gouda_ws/gouda_data/records/20261014_175847/rosbag
+416:[gouda_recorder-3] [INFO] [1791968329.739792361] [gouda_recorder]: log recording started (human) in /home/gouda/gouda_ws/gouda_data/records/20261014_175847
+1761:[gouda_sensor_supervisor-1] [2026-10-14 18:01:08][WARNING]pkt loss freq: 10387/436215
+7422:[gouda_recorder-3] [INFO] [1791969033.560448450] [gouda_recorder]: log recording stopped
+7442:[gouda_recorder-3] [INFO] [1791969035.514432508] [gouda_recorder]: rosbag recording stopped
+7467:[gouda_recorder-3] [INFO] [1791969037.956187442] [gouda_recorder]: rosbag recording started in /home/gouda/gouda_ws/gouda_data/records/20261014_175847/rosbag
+7486:[gouda_recorder-3] [INFO] [1791969039.743088677] [gouda_recorder]: log recording started (human) in /home/gouda/gouda_ws/gouda_data/records/20261014_175847
+8420:[gouda_sensor_supervisor-1] [2026-10-14 18:12:15][WARNING]pkt loss freq: 7970/1669961
+8431:[gouda_sensor_supervisor-1] [2026-10-14 18:12:19][WARNING]pkt loss freq: 7524/10000
+12083:[gouda_recorder-3] [INFO] [1791969504.641147186] [gouda_recorder]: log recording stopped
+12098:[gouda_recorder-3] [INFO] [1791969506.090393811] [gouda_recorder]: rosbag recording stopped
+14819:[gouda_sensor_supervisor-1] [INFO] [1791969784.242900958] [gouda_sensor_supervisor]: device_absent: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when 
+14826:[gouda_sensor_supervisor-1] [INFO] [1791969784.507735823] [gouda_sensor_supervisor]: driver_stopped: XT-32 (ND-14): device absent; the driver is started again when the device re-appears
+14828:[gouda_sensor_supervisor-1] [INFO] [1791969815.821416824] [gouda_sensor_supervisor]: device_absent: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 
+14832:[gouda_sensor_supervisor-1] [INFO] [1791969815.935632012] [gouda_sensor_supervisor]: driver_stopped: IMU (ND-15): device absent; the driver is started again when the device re-appears
+Hesai の frame（18:01・18:12 の欠けの前後）:
+[gouda_sensor_supervisor-1] raw frame:1703 points:28928 packet:113 start time:1791968463.882052 end time:1791968468.081040
+[gouda_sensor_supervisor-1] raw frame:8352 points:7680 packet:30 start time:1791969132.751734 end time:1791969135.950594
+[gouda_sensor_supervisor-1] raw frame:8362 points:57856 packet:226 start time:1791969136.851530 end time:1791969139.950391
+注: 18:23 の device_absent（XT-32、IMU）は走行の後（人が外したと推定）。
+
+===== 8. 記録（records/<session>/log/events.jsonl、session.json）
+20261014_173522 17:35:22.948 record_start auto:map_start  
+20261014_173522 17:43:46.946 decision  mapping_stopped dump complete (121 submap(s))
+20261014_173522 17:43:47.254 decision  source_map_registered source map registered as 20261014_173522_cccf4675 (hash 59855a274d8a…, 121 submap(s))
+20261014_173522 17:43:47.256 record_stop auto:stop  
+20261014_173522 17:53:10.990 record_start auto:map_start  
+20261014_173522 17:57:50.146 decision  mapping_stopped dump directory /home/gouda/gouda_ws/gouda_data/mapping/20261014_175310_93afb8af/glim_dump does not exist
+20261014_173522 17:57:50.147 decision  source_map_not_registered dump incomplete or GLIM not running: the source is kept where it is and nothing is published (RQ-I009)
+20261014_173522 17:57:50.147 record_stop auto:stop  
+20261014_175847 17:58:49.739 record_start human  
+20261014_175847 17:58:57.824 decision  mapping_started GLIM started (pid 13490); origin 20261014_175857_38cb6968
+20261014_175847 18:10:31.321 decision  mapping_stopped dump complete (292 submap(s))
+20261014_175847 18:10:31.967 decision  source_map_registered source map registered as 20261014_175857_38cb6968 (hash bbeef8b513ad…, 292 submap(s))
+20261014_175847 18:10:33.559 record_stop human  
+20261014_175847 18:10:39.742 record_start human  
+20261014_175847 18:10:44.871 decision  mapping_started GLIM started (pid 17343); origin 20261014_181044_e319abc1
+20261014_175847 18:18:22.043 decision  mapping_stopped dump complete (122 submap(s))
+20261014_175847 18:18:22.334 decision  source_map_registered source map registered as 20261014_181044_e319abc1 (hash 32fc76d14e87…, 122 submap(s))
+20261014_175847 18:18:24.640 record_stop human  
+rosbag フォルダの中身: bag

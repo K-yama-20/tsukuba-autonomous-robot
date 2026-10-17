@@ -46,7 +46,7 @@ class RecorderCoreTests(unittest.TestCase):
         ok, _ = self.core.start_log(TRIGGER_HUMAN); self.assertTrue(ok)
         st = self.core.status(); self.assertTrue(st['log_active']); self.assertFalse(st['rosbag_active'])
         ok, _ = self.core.start_rosbag(TRIGGER_HUMAN); self.assertTrue(ok)
-        self.assertEqual(self.bag_calls, [('start', self.root / 'S1' / 'rosbag')])
+        self.assertEqual(self.bag_calls, [('start', self.root / 'S1' / 'rosbag' / 'bag_01')])   # one folder per start (G-REC-ROSBAG-RESTART)
         self.assertTrue((self.root / 'S1' / 'log').is_dir()); self.assertTrue((self.root / 'S1' / 'rosbag').is_dir())
         ok, _ = self.core.stop_log(TRIGGER_HUMAN); self.assertTrue(ok)
         st = self.core.status(); self.assertFalse(st['log_active']); self.assertTrue(st['rosbag_active'])
@@ -127,6 +127,41 @@ class RecorderCoreTests(unittest.TestCase):
         core = RecorderCore(self.root, clock=self.clock, rosbag_start=boom, session_id_factory=lambda: 'S2')
         ok, msg = core.start_rosbag(TRIGGER_HUMAN); self.assertFalse(ok); self.assertIn('ros2 bag missing', msg)
         self.assertFalse(core.status()['rosbag_active']); self.assertEqual(core.status()['failures'], 1)
+
+
+    # ---- G-REC-ROSBAG-RESTART: a rosbag restart in the same session was silently lost (2026-10-14, origin 181044) ----
+    def test_rosbag_restart_in_same_session_writes_a_new_folder(self):
+        self.core.start_rosbag(TRIGGER_HUMAN); self.clock.advance(5); self.core.stop_rosbag(TRIGGER_HUMAN)
+        self.clock.advance(2); ok, msg = self.core.start_rosbag(TRIGGER_HUMAN); self.assertTrue(ok, msg)
+        starts = [c[1] for c in self.bag_calls if c[0] == 'start']
+        self.assertEqual(starts, [self.root / 'S1' / 'rosbag' / 'bag_01', self.root / 'S1' / 'rosbag' / 'bag_02'])
+        self.assertIn('bag_02', msg); self.assertTrue(self.core.status()['rosbag_output'].endswith('bag_02'))
+        outs = json.loads((self.root / 'S1' / 'session.json').read_text())['rosbag_outputs']
+        self.assertEqual([o['result'] for o in outs], ['stopped', 'recording']); self.assertEqual(outs[0]['stopped_at'], 105.0)
+
+    def test_rosbag_start_skips_an_existing_folder(self):
+        (self.root / 'S1' / 'rosbag' / 'bag_01').mkdir(parents=True)
+        self.core.start_rosbag(TRIGGER_HUMAN)
+        self.assertEqual(self.bag_calls[-1], ('start', self.root / 'S1' / 'rosbag' / 'bag_02'))
+
+    def test_rosbag_exit_without_stop_request_is_reported_and_logged(self):
+        self.core.start_log(TRIGGER_HUMAN); self.core.start_rosbag(TRIGGER_HUMAN); self.clock.advance(1)
+        ok, msg = self.core.rosbag_exited(1, "last output: Output folder 'bag_01' already exists.")
+        self.assertTrue(ok); self.assertIn('exit code 1', msg)
+        st = self.core.status()
+        self.assertFalse(st['rosbag_active']); self.assertEqual(st['failures'], 1); self.assertIn('already exists', st['last_failure'])
+        self.assertEqual(st['rosbag_output'], '')
+        sj = json.loads((self.root / 'S1' / 'session.json').read_text())
+        self.assertEqual(sj['failures'][-1]['what'], 'rosbag_exited'); self.assertEqual(sj['rosbag_outputs'][-1]['result'], 'failed')
+        events = [json.loads(l) for l in (self.root / 'S1' / 'log' / 'events.jsonl').read_text().splitlines()]
+        self.assertEqual(events[-1]['kind'], 'record_failure'); self.assertEqual(events[-1]['what'], 'rosbag_exited')
+        ok, _ = self.core.start_rosbag(TRIGGER_HUMAN); self.assertTrue(ok)   # the human can record again, into a new folder
+        self.assertEqual(self.bag_calls[-1], ('start', self.root / 'S1' / 'rosbag' / 'bag_02'))
+
+    def test_rosbag_exit_after_a_stop_request_is_not_a_failure(self):
+        self.core.start_rosbag(TRIGGER_HUMAN); self.core.stop_rosbag(TRIGGER_HUMAN)
+        ok, _ = self.core.rosbag_exited(0); self.assertFalse(ok)
+        self.assertEqual(self.core.status()['failures'], 0); self.assertEqual(self.core.status()['last_failure'], '')
 
 
 if __name__ == '__main__': unittest.main()

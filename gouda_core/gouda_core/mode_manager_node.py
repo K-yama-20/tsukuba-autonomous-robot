@@ -33,7 +33,7 @@ from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
 
 from gouda_core import mode_core
-from gouda_core.glim_runner import GlimRunner, GlimSettings
+from gouda_core.glim_runner import GlimRunner, GlimSettings, unexpected_exit_report
 from gouda_core.map_database import MapDatabase, new_origin_id
 from gouda_core.monitor_core import SensorConfig
 from gouda_core import sensor_extrinsics
@@ -170,11 +170,29 @@ class ModeManagerNode(Node):
             self._publish_decision('mapping_start_failed', 'TR-03', f'GLIM start failed: {e}', {'origin_id': origin_id})
             return False, f'GLIM start failed: {e}'
         self.mapping_origin_id = origin_id
+        if getattr(self.glim, 'proc', None) is not None and hasattr(self.glim.proc, 'wait'):
+            threading.Thread(target=self._watch_glim, args=(self.glim.proc, run, origin_id), name='glim_watch', daemon=True).start()
         self._publish_decision('mapping_started', 'TR-03', f'GLIM started (pid {run.pid}); origin {origin_id}',
                                {'origin_id': origin_id, 'config_dir': str(run.config_dir), 'dump_dir': str(run.dump_dir), 'points_topic': GLIM_POINTS_TOPIC, 'imu_topic': GLIM_IMU_TOPIC, 'frames': GLIM_FRAMES,
                                 'T_lidar_imu': ext['T_lidar_imu'], 'config_revision': cfg.config_revision})
         self.request_auto_record('map_start', 'TR-03')   # asynchronous; a failure never stops mapping (DEC-071)
         return True, 'mapping started'
+
+    def _watch_glim(self, proc, run, origin_id):
+        """Wait for the GLIM process; when it ends without a stop request, record and show it (G-GLIM-EXIT, TR-14 detection
+        only). The wait is event-driven (no polling period is introduced)."""
+        code = proc.wait()
+        with self._lock:
+            report = unexpected_exit_report(run, code, self._now())
+            if report is None:
+                return   # ended by the human's 地図作成終了 (TR-04)
+            reason, details = report
+            self._publish_decision('glim_exited', 'TR-14', reason, dict(details, origin_id=origin_id, mode=self.state.mode))
+        self.get_logger().error(reason)   # the only error call site of this method (rclpy: one severity per call site)
+
+    def _now(self) -> float:
+        t = self.get_clock().now().seconds_nanoseconds()
+        return t[0] + t[1] * 1e-9
 
     def _tr04_end_mapping(self):
         """TR-04 (the guard accepts every human end): the mode returns to manual at once and the request is answered; saving
@@ -212,6 +230,7 @@ class ModeManagerNode(Node):
         self._publish_decision('mapping_stopped', 'TR-04', (run.note if run else 'GLIM was not running'),
                                {'origin_id': origin_id, 'dump_ok': run.dump_ok if run else None, 'submaps': run.submaps if run else 0, 'exit_code': run.exit_code if run else None,
                                 'save_duration_s': run.save_duration_s if run else None,
+                                'glim_exited_unexpectedly_at': run.exited_unexpectedly_at if run else None,
                                 'wait_limit_s': wait_s if wait_s is not None else 'none (PRM-37 unresolved)'})
         converting = False
         if run and run.dump_ok:

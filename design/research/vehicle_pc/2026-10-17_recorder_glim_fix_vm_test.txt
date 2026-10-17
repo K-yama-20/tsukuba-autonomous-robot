@@ -1,0 +1,55 @@
+# 2026-10-17 recorder の rosbag の再開（G-REC-ROSBAG-RESTART）と GLIM の異常終了の検出（G-GLIM-EXIT）の修正の試験（原文の出力）。人の許可 DEC-117。
+# 対象: コミット 6b86d92 ＋ 作業ツリーの変更（gouda_core/gouda_core/recorder_core.py・recorder_node.py・glim_runner.py・mode_manager_node.py、gouda_core/web/app.js、試験 2 件）。
+# 1. Mac の単体試験: cd gouda_core && python3 -m unittest discover -s test -p "test_*.py"
+# 2. VM（Ubuntu 24.04、ROS 2 Jazzy、aarch64）の別のワークスペース ~/gouda_fix_ws に作業ツリーを写して build（colcon build --symlink-install --packages-select gouda_interfaces gouda_core）し、
+#    試験スタック（gouda_core/test/stack.sh、ROS_DOMAIN_ID 77、センサーのドライバなし、trial parameter）で 2026-10-17_recorder_glim_fix_vm_test.sh を実行。
+#    R1: 同じセッションで rosbag を開始・停止・開始・停止。R2: 記録中の ros2 bag record を SIGKILL。G1: 地図作成中に GLIM（glim_rosnode）を SIGABRT し、その後に地図作成終了。G2: 通常の開始・終了。
+# 再現の確認（修正の前）: ros2 bag record -a -o rosbag/bag を 2 回続けて実行すると、2 回目は「[ERROR] [ros2bag]: Output folder 'rosbag/bag' already exists.」で終了コード 1（VM、2026-10-17）。
+
+===== 1. Mac の単体試験
+Ran 134 tests in 3.765s
+
+OK (skipped=1)
+
+===== 2. VM の試験
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/fixtest, monitor http://127.0.0.1:37589/)
+monitor http://127.0.0.1:37589/
+=== R1: rosbag start/stop/start/stop in one session
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_165821/rosbag/bag_01'
+success=True, message='rosbag recording stopped'
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_165821/rosbag/bag_02'
+record: {'rosbag_active': 'True', 'rosbag_output': '/tmp/fixtest/records/20261017_165821/rosbag/bag_02', 'failures': '0', 'last_failure': ''}
+success=True, message='rosbag recording stopped'
+session /tmp/fixtest/records/20261017_165821/
+total 24
+drwxrwxr-x 4 aya aya 4096 Oct 17 16:58 .
+drwxrwxr-x 4 aya aya 4096 Oct 17 16:58 ..
+drwxrwxr-x 2 aya aya 4096 Oct 17 16:58 bag_01
+-rw-rw-r-- 1 aya aya 2012 Oct 17 16:58 bag_01.log
+drwxrwxr-x 2 aya aya 4096 Oct 17 16:58 bag_02
+-rw-rw-r-- 1 aya aya 2112 Oct 17 16:58 bag_02.log
+/tmp/fixtest/records/20261017_165821//rosbag/bag_01/: bag_01_0.mcap metadata.yaml 
+/tmp/fixtest/records/20261017_165821//rosbag/bag_02/: bag_02_0.mcap metadata.yaml 
+rosbag_outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped')] failures: 0
+=== R2: ros2 bag record killed while recording (unexpected exit)
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_165821/rosbag/bag_03'
+killing pid 12703
+record: {'rosbag_active': 'False', 'rosbag_output': '', 'failures': '1', 'last_failure': "rosbag_exited: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792223925.716412765] [rosbag2_recorder]: Subscribed to topic '/gouda_motion_controller/transition_event' | [INFO] [1792223925.717630682] [rosbag2_recorder]: Subscribed to topic '/esp32/status' | [INFO]"}
+last failure: rosbag_exited ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792223925.716412765] [rosbag2_recorder]: Subscribed to topic '/gouda_motion_
+outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped'), ('bag_03', 'failed')]
+=== G1: GLIM killed during mapping
+success=True, message='TR-03: manual -> mapping'
+GLIM pid 12773
+glim_exited events: 1
+  TR-14 GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (automatic recovery is not implemented: TR-14); press 地図作成終了 to end mapping.
+mode: 2
+success=True, message='TR-04: mapping -> manual'
+  source_map_not_registered dump incomplete or GLIM not running: the source is kept where it is and nothing is published (RQ-I009) None
+  mapping_stopped dump directory /tmp/fixtest/mapping/20261017_165851_db2c5b95/glim_dump does not exist 1792223938.2337966
+=== G2: normal mapping start/end (no glim_exited expected)
+success=True, message='TR-03: manual -> mapping'
+success=True, message='TR-04: mapping -> manual'
+glim_exited events (still 1 expected): 1
+test stack stopped
+[gouda_recorder-3] [WARN] [1792223926.717448557] [gouda_recorder]: rosbag recording failed: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792223925.716412765] [ro
+[gouda_mode_manager-2] [ERROR] [1792223938.234358855] [gouda_mode_manager]: GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (au

@@ -1,0 +1,56 @@
+# 変更セット REV-051（2026-10-17 第27便: 夕方の x86 機の原図・rosbag の解析を証拠として登録、人の指示（map_creator の改良を置き、自己位置推定の方式の選定に進む）を原文で記録。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-051
+id: REV-051
+date: '2026-10-17'
+summary: >-
+  2026-10-14 夕方の x86 機の原図 3 件・rosbag 2 本・GLIM と launch のログの解析を証拠として登録した（FILE-EVENING-MAPS-ROSBAG。作業記録 2026-10-14_evening_maps_rosbag_analysis.md）。
+  人が、地面の推定の要否を問い、map_creator の現在の改良を一旦置いて自己位置推定の方式の選定に進むよう指示した（DEC-109、原文）。
+  選定の提案を design/proposals/localization_selection.md に置いた（地面の推定の要否への答え、要求、候補の事実、構成の案、評価の計画、承認事項）。
+  DEC-107（地面の推定）と DEC-098（変換の暫定値）は DEC-109 により保留とし、未回答のまま残す。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+basis_refs: [DEC-109, DEC-106, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-EVENING-MAPS-ROSBAG
+    path: design/research/vehicle_pc/2026-10-14_evening_maps_rosbag.txt
+    role: evidence
+
+decisions:
+  - id: DEC-109
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 夕方の解析と修正方針の候補の報告への人の応答（地面の推定の要否、作業の優先順位）
+    answer_verbatim: |
+      地面を推定する必要はあるのか？また、一旦mapcreatorの現在の改良は置いておいて、別の部分の改良に回せないかな？自己位置推定の方式の選定に進みたい。
+    affected_refs: [DEC-107, DEC-098, DEC-021, Q-02, ND-05, ND-07, ND-08]
+    resulting_refs: []
+    note: >-
+      map_creator の改良（地面の推定 DEC-107、変換の暫定値 DEC-098）を保留し、自己位置推定の方式の選定（Q-02、DEC-021）に進む。
+      選定の提案は design/proposals/localization_selection.md。地面の推定の要否への答えは同 §1（3D 照合方式なら自己位置推定に地面の推定は要らず、
+      Nav2 の 2D 地図は経路の高さを基準にした簡単な帯で足りる見込み。2D 方式なら地図全体の地面の推定が要る）。
+      夕方の解析で見つけた修正方針の候補（IMU と LiDAR の回転、LAN のリンク断、recorder の rosbag の再開、GLIM の異常終了の検出、二重起動の防止の x86 機への反映）は
+      作業記録 2026-10-14_evening_maps_rosbag_analysis.md §11 にあり、判断台帳には未登録。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。提案 design/proposals/localization_selection.md（推奨は 3D 照合。odometry は GLIM を odometry だけで、
+        map→odom は lidar_localization_ros2 の NDT_OMP。比較に Nav2 AMCL）。外から見た振る舞いに関わるため、方式の採用は人の承認を得てから行う。
+  - id: DEC-107
+    set:
+      note: >-
+        決まらない場合に止まる作業：2D 地図への変換の修正（今は床の反射・2 層の地面で不合格）。地図作成そのもの（原図の保存）は止まらない。
+        設計の根拠: FILE-GROUND-PLAN-CHECK、FILE-GROUND-DESIGN-CHECK。2026-10-17、人の指示（DEC-109）により保留（自己位置推定の方式を先に決める）。
+        根拠の数値（屋外の山 47 %、下の外れた点 0.6 %）は補正前の odometry の姿勢で求めていた。補正後の軌跡での値は FILE-EVENING-MAPS-ROSBAG の 3。
+  - id: DEC-098
+    set:
+      note: >-
+        決まらない場合に止まる作業：実車の設定（gouda.sh）での地図作成終了時の自動変換（設定が未確定のため失敗し、原図は残る）と、地図タブの既定値の表示（空欄）。
+        地図タブで値を手で入れれば再変換はできる。PRM-34・35・36・38・62〜64 は安全の印（静的な地図の障害物の判定）を持つため、値は承認を経て入れる。
+        2026-10-17、人の指示（DEC-109）により map_creator の改良は保留。自己位置推定の方式の選定（DEC-021）の結果で、2D 地図に要る精度と変換の設定を見直す。

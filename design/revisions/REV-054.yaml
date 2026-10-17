@@ -1,0 +1,37 @@
+# 変更セット REV-054（2026-10-17 第28便の続き: 人の指示「KISS-ICP を外す。案 A・A3・B のみを検討。rosbag を VM に移さない」を原文で記録。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-054
+id: REV-054
+date: '2026-10-17'
+summary: >-
+  人が、KISS-ICP は以前の評価試験で目標性能を出せなかったため検討から外し、案 A・A3・B のみを検討するよう指示した。rosbag を VM に移すことは一旦しない（DEC-112、原文）。
+  design/proposals/localization_selection.md の検討の範囲を案 A（GLIM の odometry ＋ lidar_localization_ros2）、案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）、
+  案 B（GLIM の odometry ＋ Nav2 AMCL）に絞る。評価は、rosbag を VM に移さずにできる机上の比較と、外付けを Mac で読む分析から進める。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+basis_refs: [DEC-112, DEC-111, DEC-110, DEC-109, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+decisions:
+  - id: DEC-112
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051〜053）の承認事項への人の回答（検討の範囲と評価の進め方）
+    answer_verbatim: |
+      kiss-icpは以前の評価試験で目標性能を出せなかった為、検討から外す。案A, A3, Bのみを検討せよ。rosbagをVMに移すのは一旦するな。
+    affected_refs: [DEC-021, Q-02, ND-07, ND-08]
+    resulting_refs: []
+    note: >-
+      検討の範囲は案 A・A3・B（いずれも odometry は GLIM）。KISS-ICP（案 A2）と Cartographer（案 C）は検討から外す。提案 §8 の 6（Cartographer を評価に加えるか）は加えない、
+      7（Autoware Core の NDT を加えるか）は加える、と読める。§8 の 3 のうち rosbag の VM への写しはしない（候補の build の可否は未回答）。
+      KISS-ICP の以前の評価試験の結果の記録は、このリポジトリにはない（ワークスペースの Sensors/emc270_xt32_icr に KISS-ICP を使う回転中心の推定の手順がある）。外す理由は人の判断として記録する。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。
+        人の回答（DEC-112）で検討の範囲は案 A（GLIM の odometry ＋ lidar_localization_ros2）、案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）、案 B（GLIM の odometry ＋ Nav2 AMCL）。
+        提案は design/proposals/localization_selection.md。rosbag は VM に移さない。外から見た振る舞いに関わるため、方式の採用は人の承認を得てから行う。

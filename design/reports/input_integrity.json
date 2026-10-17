@@ -1,11 +1,11 @@
 {
-  "result": "合格",
+  "result": "違反",
   "note": "原資料・抽出結果・初回移行baselineは変更されていないこと。intent.md は人が編集した新版で、差分は authority_revisions で機械検証する。",
   "files": [
     {
       "path": "design/intent.md",
       "baseline_sha256": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9",
-      "current_sha256": "183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed",
+      "current_sha256": "7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646",
       "status": "intent新版（AR-002として記録・検証）"
     },
     {
@@ -17,8 +17,8 @@
     {
       "path": "design/docs/SystemArchitecture.drawio",
       "baseline_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
-      "current_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
-      "status": "一致"
+      "current_sha256": "c958ce2f9ef83bf35898c66e7142138da2e73537428a7abebffd354e0920dd6e",
+      "status": "不一致"
     },
     {
       "path": "design/docs/extraction_20261008_01a11af4/.DS_Store",

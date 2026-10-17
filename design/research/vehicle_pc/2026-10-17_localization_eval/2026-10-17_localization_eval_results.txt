@@ -1,0 +1,69 @@
+# 2026-10-17 自己位置推定の方式の検証（案 A と案 A3。DEC-114）。原文の出力。評価用の道具で、Gouda の製品のコードではない。
+# 環境: VM（Parallels、aarch64、6 コア、メモリ 7.9 GB、Ubuntu 24.04、ROS 2 Jazzy）の別のワークスペース ~/loc_eval_ws。Gouda のワークスペースは変えていない。
+# 候補:
+#   A  = lidar_localization_ros2 v1.3.0（tag 3878a7a）＋ ndt_omp_ros2（humble ブランチ 63bf15b）。設定は param/nav2_ndt_urban.yaml の写しで、map_path・use_twist_prediction false・use_imu_preintegration false・
+#        enable_map_odom_tf true・use_odom_tf_prediction true・base_frame_id xt32_link・use_sim_time true だけを変えた（params/eval_A_20261014_175857.yaml）。点群は間引かない（preset のまま）。
+#   A3 = autoware_ndt_scan_matcher・autoware_ekf_localizer・autoware_map_loader 1.9.0（apt の Jazzy arm64）。設定は既定の写しで use_sim_time true だけを変えた（params/eval_A3_*.yaml）。
+#        NDT の入力は評価用の C++ の間引き（eval_voxel_filter、1〜100 m、0.5 m の格子）。EKF の速度は GLIM の odometry から作った（tools/twist_relay.py）。初期化は tools/a3_init.py（/initialpose3d と trigger_node、必要なら ndt_align_srv）。
+#        base_link は LiDAR の位置にあって前を向いた評価用の frame（R_lidar_base = Rz(-99.2 度)。EKF は twist の frame_id に base_link を要求する）。
+# 入力: rosbag 20261014_175847（/sensors/xt32/points。外付けを Parallels の共有で読み、VM には写していない: DEC-112）。地図は GLIM の dump 20261014_175857 の全 submap の点（補正後）を 0.2 m で間引いた PCD
+#        （A は 1 つの PCD、A3 は 20 m の格子に分けた PCD と metadata）。odom→base は同じ dump の odom_lidar.txt を再生の時刻に合わせて TF で流した（tools/odom_replay.py。時刻は点群と 6804 frame すべて一致）。
+# 基準: 同じ dump の traj_lidar.txt（loop closure 後）。同じ走行の地図なので楽観的。別の走行の地図での評価はできなかった（下の 4）。
+# 合格基準（DEC-114）: 位置の誤差（水平）の 95 % 点 0.3 m 以内、発散なし、誤差 0.5 m 超で不良を出す。
+# 健全性の判定: A は /alignment_status の failure_category（healthy 以外を不良）。A3 は ndt_scan_matcher の scan_matching_status の level（0 以外を不良）。
+# 再生: 0.5 倍（a_rt・a3_rt は等倍）。評価の起動では Fast DDS の共有メモリの区画を 64 MB にした（tools/fastdds_eval.xml。下の 5）。
+
+===== 1. 走行全体と等倍の再生（summarize_runs.py。初期姿勢は基準のまま。a_p1・a_p2・a3_p1・a3_p2・a3_p2a は走行中に初期化した試験で、下の 2 の止まった状態の試験と区別する）
+| run | kind | poses | span s | rate Hz | err med m | err p95 m | err max m | converged at s | p95 after conv | max after conv | yaw med deg | poses err>0.5 | flagged among them | flagged while err<=0.5 | max gap s | proc med/p95 ms | CPU % med (A3: NDT) | RSS MB max (A3: NDT) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| a_full | A | 6610 | 686 | 9.64 | 0.060 | 0.124 | 0.286 | 0.0 | 0.124 | 0.286 | 0.21 | 0 | 0 | 39 | 4.20 | 55/84 | 141 | 1374 |
+| a3_full | A3 | 6748 | 681 | 9.90 | 0.068 | 0.209 | 0.546 | 0.0 | 0.209 | 0.546 | 0.27 | 1 | 0 | 15 | 4.20 | 33/55 | 57 | 205 |
+| a_rt | A | 993 | 120 | 8.29 | 0.059 | 0.127 | 0.230 | 0.0 | 0.127 | 0.230 | 0.19 | 0 | 0 | 12 | 1.00 | 53/100 | 170 | 1163 |
+| a3_rt | A3 | 1091 | 110 | 9.89 | 0.062 | 0.220 | 0.334 | 0.0 | 0.220 | 0.334 | 0.17 | 0 | 0 | 11 | 0.60 | 22/75 | 118 | 192 |
+| a_p1 | A | 581 | 60 | 9.72 | 0.063 | 0.127 | 1.009 | 1.3 | 0.125 | 0.201 | 0.34 | 2 | 2 | 5 | 1.00 | 52/63 | 82 | 950 |
+| a_p2 | A | 571 | 60 | 9.55 | 0.068 | 3.403 | 4.004 | 11.2 | 0.131 | 0.201 | 0.45 | 92 | 6 | 4 | 1.00 | 52/80 | 96 | 927 |
+| a3_p1 | A3 | 583 | 58 | 10.02 | 0.069 | 0.248 | 0.331 | 0.0 | 0.248 | 0.331 | 0.31 | 0 | 0 | 2 | 0.10 | 39/56 | 39 | 192 |
+| a3_p2 | A3 | 0 | no pose output | | | | | | | | | | | | | | | |
+| a3_p2a | A3 | 0 | no pose output | | | | | | | | | | | | | | | |
+
+a_full {'healthy': 6589, 'overload': 60, 'stale_prediction': 1}
+a3_full {'healthy': 6800, 'iteration_limit': 2, 'iteration_limit+oscillation': 3, 'latency': 1, 'no_initial_pose': 2, 'not_activated': 12, 'out_of_map': 4, 'slow': 4, 'slow+iteration_limit': 4, 'slow+iteration_limit+low_score': 24, 'slow+iteration_limit+oscillation': 2}
+a_rt {'healthy': 987, 'overload': 8}
+a3_rt {'healthy': 1086, 'iteration_limit': 3, 'no_initial_pose': 1, 'not_activated': 12, 'out_of_map': 4, 'slow': 8, 'slow+iteration_limit': 4, 'slow+iteration_limit+low_score': 34}
+a_p1 {'healthy': 575, 'overload': 5}
+a_p2 {'healthy': 558, 'overload': 12}
+a3_p1 {'healthy': 583, 'no_initial_pose': 1, 'not_activated': 12, 'out_of_map': 4}
+
+===== 2. 初期姿勢のずれ（車体が止まっている 18:00:49 から開始。ずれは地図の座標で (dx, dy, dyaw)。p1 = (1 m, 0, 10 度)、p2 = (2 m, 2 m, 30 度)、p3 = (5 m, 0, 90 度)。a3_*as は ndt_align_srv（Monte Carlo、200 粒子）あり）
+| run | kind | poses | span s | rate Hz | err med m | err p95 m | err max m | converged at s | p95 after conv | max after conv | yaw med deg | poses err>0.5 | flagged among them | flagged while err<=0.5 | max gap s | proc med/p95 ms | CPU % med (A3: NDT) | RSS MB max (A3: NDT) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| a_p1s | A | 539 | 60 | 9.01 | 0.039 | 0.108 | 1.000 | 1.0 | 0.108 | 0.134 | 0.14 | 1 | 1 | 4 | 4.20 | 52/63 | 65 | 811 |
+| a3_p1s | A3 | 541 | 58 | 9.30 | 0.067 | 0.118 | 0.222 | 0.0 | 0.118 | 0.222 | 0.23 | 0 | 0 | 4 | 4.20 | 16/48 | 6 | 186 |
+| a_p2s | A | 537 | 60 | 8.98 | 0.040 | 0.111 | 2.828 | 1.7 | 0.109 | 0.134 | 0.14 | 3 | 3 | 5 | 4.20 | 52/68 | 69 | 725 |
+| a3_p2s | A3 | 0 | no pose output | | | | | | | | | | | | | | | |
+| a3_p2as | A3 | 522 | 56 | 9.27 | 0.066 | 0.117 | 0.221 | 0.0 | 0.117 | 0.221 | 0.24 | 0 | 0 | 7 | 4.20 | 17/47 | 37 | 188 |
+| a_p3s | A | 524 | 60 | 8.76 | 6.800 | 9.165 | 9.716 | never | nan | nan | 4.50 | 524 | 16 | 0 | 4.20 | 43/175 | 76 | 777 |
+| a3_p3as | A3 | 521 | 56 | 9.24 | 0.066 | 0.120 | 0.220 | 0.0 | 0.120 | 0.220 | 0.24 | 0 | 0 | 12 | 4.20 | 16/56 | 38 | 188 |
+
+a_p1s {'healthy': 534, 'overload': 4, 'stale_prediction': 1}
+a3_p1s {'healthy': 540, 'iteration_limit+oscillation': 1, 'latency': 1, 'no_initial_pose': 2, 'not_activated': 11, 'out_of_map': 4}
+a_p2s {'healthy': 530, 'overload': 6, 'stale_prediction': 1}
+a3_p2as {'healthy': 518, 'iteration_limit+oscillation': 3, 'latency': 1, 'no_initial_pose': 1, 'not_activated': 13, 'oscillation': 1}
+a_p3s {'bad_match': 1, 'healthy': 510, 'overload': 13, 'stale_prediction': 1}
+a3_p3as {'healthy': 509, 'iteration_limit+oscillation': 3, 'latency': 1, 'no_initial_pose': 2, 'not_activated': 13, 'slow': 9}
+初期化の記録（a3_init.py）: a3_p2as は ndt_align_srv success=True、a3_p3as も success=True。
+走行中に初期化した試験（上の 1 の a_p2）: A は 11.2 s で収束したが、その間の誤差 0.5 m 超の 92 回のうち 86 回を healthy とした。
+走行中に初期化した A3 の ndt_align_srv（a3_p2a）は、探索の間に車体が動いたため、評価の道具が古い姿勢に今の時刻を付けて初期化し、失敗した（道具の不備。止まった状態で行い直したのが上の 2）。
+
+===== 3. A3 の NDT の格子を 1.0 m にした場合（a3r1_seg、地図作成開始から約 456〜536 s の区間）
+NVTL の中央値 1.15（受け入れのしきい値 2.3 は格子 2.0 m の既定に合わせた値）で、全部棄却され姿勢が出なかった。格子を変えるならしきい値の調整が要る（今回は行っていない）。
+
+===== 4. 別の走行の地図での評価ができるか
+- 173522 と 175857: 上から見た構造物の重なりの最良（向き 149 度）は 49 %、背景（全部の向きの中央値）37 %。最良の候補から 1 m の格子の地図で ICP: 合う点（0.5 m 以内）4.8 %、わざとずらした初期値 6 回で 2.3〜4.2 %。同じ場所ではない。
+- 181044 と 175857: 175857 の終わりの姿勢＝181044 の始まりの姿勢として重ねると、181044 の軌跡が 175857 の軌跡から 2 m 以内にあるのは 4 %（出発点の付近だけ）。181044 の rosbag は失われている。
+- よって今あるデータでは別の走行の地図での評価はできない。次の実機試験で同じ場所を 2 回走る（DEC-114）。
+
+===== 5. VM の中の点群の配送（G-DDS）
+- 評価の初め、A・A3 とも処理できる scan が少なかった（0.25〜0.5 倍の再生で 37〜83 %）。外付けの生の読み出しは 106〜160 MB/s で原因ではなかった（dd）。
+- 間引きの node 1 本（待ち行列 1）が受け取った数: Fast DDS の既定では 200 中 74〜89（0.25 倍）。共有メモリの区画を 64 MB にした設定（fastdds_eval.xml）では 196/200（0.25 倍）、200/200（0.5 倍）、200/200（等倍）。
+- VM の中で約 2 MB の点群が DDS で落ちていた（既定の共有メモリの区画に収まらず UDP の分割送信になると推定）。G-DDS の原因の候補を裏付ける。Gouda の設定は変えていない。

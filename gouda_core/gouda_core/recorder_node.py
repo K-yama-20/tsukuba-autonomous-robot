@@ -17,6 +17,7 @@ import json
 import os
 import signal
 import subprocess
+import threading
 from pathlib import Path
 
 import rclpy
@@ -40,6 +41,9 @@ class RecorderNode(Node):
         if not root:
             raise RuntimeError('record_root is not set (PRM-25). Pass it from gouda.sh / the launch file.')
         self._bag_proc: subprocess.Popen | None = None
+        self._bag_stopping = False
+        # Service callbacks and the rosbag watcher thread both change RecorderCore; one lock serialises them.
+        self._lock = threading.RLock()
         self.core = RecorderCore(Path(os.path.expanduser(root)), clock=self._now, rosbag_start=self._bag_start, rosbag_stop=self._bag_stop)
         self.status_pub = self.create_publisher(DiagnosticArray, 'record/status', LATCHED)
         self.create_service(Trigger, 'record/log/start', lambda rq, rs: self._svc(rs, self.core.start_log, TRIGGER_HUMAN))
@@ -59,7 +63,8 @@ class RecorderNode(Node):
         return t[0] + t[1] * 1e-9
 
     def _svc(self, rs, fn, trigger):
-        ok, msg = fn(trigger)
+        with self._lock:
+            ok, msg = fn(trigger)
         rs.success, rs.message = ok, msg
         if ok:   # one call site per severity (rclpy raises when a call site's severity changes)
             self.get_logger().info(msg)
@@ -86,13 +91,34 @@ class RecorderNode(Node):
 
     # ---- rosbag child process (RQ-I016: separate folder of the same session) ----
     def _bag_start(self, out_dir: Path):
+        """Start `ros2 bag record` into out_dir (a new folder per start). Its output goes to out_dir.log next to it, and a
+        watcher thread reports the process ending without a stop request (G-REC-ROSBAG-RESTART: the failure was silent)."""
         if self._bag_proc and self._bag_proc.poll() is None:
             return
-        self._bag_proc = subprocess.Popen(['ros2', 'bag', 'record', '-a', '-o', str(out_dir / 'bag')], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, start_new_session=True)
+        log_path = out_dir.parent / (out_dir.name + '.log')
+        log_file = open(log_path, 'ab')
+        try:
+            proc = subprocess.Popen(['ros2', 'bag', 'record', '-a', '-o', str(out_dir)], stdout=log_file, stderr=subprocess.STDOUT, start_new_session=True)
+        finally:
+            log_file.close()   # the child keeps its own descriptor
+        self._bag_proc = proc; self._bag_stopping = False
+        threading.Thread(target=self._watch_bag, args=(proc, log_path), name='rosbag_watch', daemon=True).start()
+
+    def _watch_bag(self, proc: subprocess.Popen, log_path: Path):
+        code = proc.wait()
+        with self._lock:
+            if proc is not self._bag_proc or self._bag_stopping:
+                return   # stopped by a request (or replaced): not a failure
+            self._bag_proc = None
+            ok, msg = self.core.rosbag_exited(code, 'last output: ' + ' | '.join(_tail(log_path)))
+            self._publish_status()
+        if ok:
+            self.get_logger().warning(msg)   # the only warning call site of this method (rclpy: one severity per call site)
 
     def _bag_stop(self):
         p = self._bag_proc
         if p and p.poll() is None:
+            self._bag_stopping = True
             os.killpg(os.getpgid(p.pid), signal.SIGINT)
             try: p.wait(timeout=30)
             except subprocess.TimeoutExpired: os.killpg(os.getpgid(p.pid), signal.SIGTERM)
@@ -116,6 +142,14 @@ class RecorderNode(Node):
 
     def destroy_node(self):
         self._bag_stop(); super().destroy_node()
+
+
+def _tail(path: Path, lines: int = 3) -> list:
+    """Last non-empty lines of a child process log (for the failure record); empty when unreadable."""
+    try:
+        return [l.strip() for l in path.read_text(encoding='utf-8', errors='replace').splitlines() if l.strip()][-lines:]
+    except OSError:
+        return []
 
 
 def main(args=None):

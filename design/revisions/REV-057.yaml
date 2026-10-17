@@ -1,0 +1,74 @@
+# 変更セット REV-057（2026-10-17 第28便の続き: 自己位置推定の方式の検証（案 A と案 A3）の記録、承認事項 2 件、G-DDS の原因の裏付け。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-057
+id: REV-057
+date: '2026-10-17'
+summary: >-
+  人の指示（DEC-114）により、案 A（lidar_localization_ros2）と案 A3（Autoware Core の NDT＋EKF）を VM で検証した（評価用のワークスペース、rosbag は外付けをその場で読み VM に写していない）。
+  同じ走行の地図での位置の誤差の 95 % 点は A 0.124 m、A3 0.209 m で、どちらも基準内。初期姿勢が大きくずれたとき、A は誤った姿勢を正常として出し続け（5 m・90 度で 60 秒、524 回中 510 回）、
+  A3 は棄却するか、Monte Carlo の初期姿勢の探索で戻った。第一候補を A3 に変える案を承認事項 DEC-115 とした。VM の中で約 2 MB の点群が DDS で落ちていたこと（Fast DDS の共有メモリの区画を
+  大きくすると等倍でも 200/200 届く）を確かめ、G-DDS に記録し、VM の試験の環境への設定の追加を承認事項 DEC-116 とした。別の走行の地図での評価は、今のデータに重なる走行がなくできなかった。
+basis_refs: [DEC-114, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v10_4bc97d43f757.md
+
+files:
+  - id: FILE-LOCALIZATION-EVAL
+    path: design/research/vehicle_pc/2026-10-17_localization_eval/2026-10-17_localization_eval_results.txt
+    role: evidence
+  - id: FILE-LOCALIZATION-EVAL-FIG
+    path: design/research/vehicle_pc/2026-10-17_localization_eval/2026-10-17_localization_full_runs_error.png
+    role: evidence
+
+decisions:
+  - id: DEC-115
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】自己位置推定の方式の第一候補を案 A3（GLIM の odometry ＋ Autoware Core の autoware_ndt_scan_matcher・autoware_ekf_localizer）に変えてよいか。
+      最終の決定は、次の実機試験（同じ場所を 2 回）のデータで別の走行の地図での評価をしてから。あわせて、A3 の残る課題（誤差 0.5 m 超の跳ねを 1 回見逃した）の対策の進め方
+      （NDT の設定の調整か、EKF の診断を「推定不能」の判定に加えるか）と、次の実機試験の段取り（2 回とも出発の前に止まった状態を 10 秒以上作る）を決めていただきたい。
+    answer_verbatim: ''
+    affected_refs: [DEC-021, Q-02, ND-07, ND-08, IF-010]
+    resulting_refs: []
+    note: >-
+      根拠: FILE-LOCALIZATION-EVAL、FILE-LOCALIZATION-EVAL-FIG、提案 design/proposals/localization_selection.md §6.1・§7。推奨は承認。
+      振る舞いの違い: A3 は初期姿勢のずれが大きいとき姿勢を出さないか探索で戻る。A は誤った姿勢を正常として出し続けうる。
+      決まらない場合に止まる作業：自己位置推定の実装の設計（ND-07・ND-08 の構成、中継の node、地図の変換の 20 m 格子）。地図作成と記録は止まらない。
+    disposition: open_human
+  - id: DEC-116
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】VM の Gouda の試験の環境（gouda_core/test/stack.sh など VM で動かす試験）に、Fast DDS の共有メモリの区画を大きくする設定（評価で使った fastdds_eval.xml と同じもの）を入れてよいか。
+      x86 機（実車）の起動の設定は変えない。
+    answer_verbatim: ''
+    affected_refs: [G-DDS, IFD-21, ND-06, ND-14]
+    resulting_refs: []
+    note: >-
+      根拠: FILE-LOCALIZATION-EVAL の 5（間引きの node が受け取った数: 既定 200 中 74〜89、設定後 196〜200/200）。推奨は承認（VM での GLIM・地図作成の試験の周期の低さの対策になる見込み。未確認）。
+      起動の方法は増やさない（DEC-090）。決まらない場合に止まる作業：VM での点群を使う試験の信頼性（今は x86 機で地図作成を行っている）。
+    disposition: open_human
+
+modifications:
+  - id: G-DDS
+    set_nested:
+      issue.next_action: >-
+        GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。
+        処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。
+        2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、
+        共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず
+        UDP の分割送信になって落ちると推定する。VM の試験の環境への設定の追加は承認事項 DEC-116。
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。
+        人の回答（DEC-112）で検討の範囲は案 A・A3・B。intent.md 第10版（DEC-113）で OSS の追加の扱いが明記された。人の回答（DEC-114）で案 A・A3 を重点的に検証した（FILE-LOCALIZATION-EVAL）。
+        第一候補を A3 に変える案は承認事項 DEC-115。提案は design/proposals/localization_selection.md。方式の採用は人の承認を得てから行う。

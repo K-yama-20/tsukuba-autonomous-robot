@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>eval_voxel_filter</name>
+  <version>0.0.1</version>
+  <description>Evaluation helper (not Gouda product code): voxel-grid downsampling of a PointCloud2 for the localization selection (DEC-114).</description>
+  <maintainer email="noreply@example.com">eval</maintainer>
+  <license>BSD-3-Clause</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>pcl_conversions</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

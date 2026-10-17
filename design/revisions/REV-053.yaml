@@ -1,0 +1,40 @@
+# 変更セット REV-053（2026-10-17 第28便の続き: 人の指示「LeGO-LOAM と Autoware の ndt_matching も検討」を原文で記録。選定の提案に案 A3 を追加。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-053
+id: REV-053
+date: '2026-10-17'
+summary: >-
+  人が LeGO-LOAM と Autoware の ndt_matching も検討するよう指示した（DEC-111、原文）。上流の事実を確かめた。LeGO-LOAM は ROS 1 だけ（最後の更新 2020 年、ROS 2 への移植は Dashing で IMU なし）で、
+  保存地図での自己位置推定はない。Autoware.AI の ndt_matching は ROS 1 だけで、Autoware.AI は終了（2023-03 に archive）。後継の Autoware Core の autoware_ndt_scan_matcher と
+  autoware_ekf_localizer を案 A3 として design/proposals/localization_selection.md に加えた（品質の出力が最も豊富。EKF が map→base_link を出すため map→odom への中継と速度の中継が要り、
+  依存が重い）。AI の推奨は、案 A3 をオフラインの評価に加えること。LeGO-LOAM と ndt_matching は外す。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+basis_refs: [DEC-111, DEC-109, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+decisions:
+  - id: DEC-111
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051・REV-052）への人の追加の指示
+    answer_verbatim: |
+      https://github.com/RobustFieldAutonomyLab/LeGO-LOAM
+      autowareのndt_matching,
+      も検討をしてほしい
+    affected_refs: [DEC-021, Q-02, ND-07, ND-08, ND-09]
+    resulting_refs: []
+    note: >-
+      design/proposals/localization_selection.md §3 の表に LeGO-LOAM、Autoware.AI の ndt_matching、Autoware Core の autoware_ndt_scan_matcher ＋ autoware_ekf_localizer を加え、
+      §4 に案 A3（GLIM の odometry ＋ Autoware Core の NDT と EKF）と、LeGO-LOAM・ndt_matching を外す理由を書いた。評価に A3 を加えるかは提案 §8 の 7 で人に確認する。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。提案 design/proposals/localization_selection.md（推奨は 3D 照合。odometry は GLIM を odometry だけで、
+        map→odom は lidar_localization_ros2 の NDT_OMP。比較に Nav2 AMCL）。人の指示（DEC-110）で Cartographer を案 C として加えた（第一候補にはしない）。
+        人の指示（DEC-111）で LeGO-LOAM と Autoware の ndt_matching を検討し、ROS 1 だけのため外した。後継の Autoware Core の NDT を案 A3 として評価に加えることを推奨。
+        外から見た振る舞いに関わるため、方式の採用は人の承認を得てから行う。

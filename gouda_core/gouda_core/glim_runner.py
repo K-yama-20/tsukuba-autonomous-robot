@@ -87,6 +87,8 @@ class GlimRun:
     submaps: int = 0
     note: str = ''
     stop_requested_at: Optional[float] = None
+    log_file: Optional[Path] = None
+    exited_unexpectedly_at: Optional[float] = None   # set when GLIM ended without a stop request (G-GLIM-EXIT)
 
     @property
     def save_duration_s(self) -> Optional[float]:
@@ -116,7 +118,7 @@ class GlimRunner:
         cmd = [self.settings.executable, '--ros-args', '-p', f'config_path:={cfg}', '-p', f'dump_path:={dump_dir}']
         self._log = open(log_file, 'ab')
         self.proc = self._popen(cmd, stdout=self._log, stderr=subprocess.STDOUT, start_new_session=True)
-        self.run = GlimRun(config_dir=cfg, dump_dir=Path(dump_dir), pid=self.proc.pid, started_at=self.clock())
+        self.run = GlimRun(config_dir=cfg, dump_dir=Path(dump_dir), pid=self.proc.pid, started_at=self.clock(), log_file=Path(log_file))
         return self.run
 
     def stop(self, wait_s: Optional[float]) -> GlimRun:
@@ -142,6 +144,29 @@ class GlimRunner:
         r.dump_ok, r.submaps, detail = inspect_dump(r.dump_dir)
         r.note = (r.note + ' ' + detail).strip()
         return r
+
+
+def log_tail(path: Optional[Path], lines: int = 3) -> list:
+    """Last non-empty lines of glim.log (the reason of a crash is usually there); empty when unreadable."""
+    try:
+        return [l.strip() for l in Path(path).read_text(encoding='utf-8', errors='replace').splitlines() if l.strip()][-lines:]
+    except (OSError, TypeError):
+        return []
+
+
+def unexpected_exit_report(run: GlimRun, exit_code: Optional[int], now: float) -> Optional[tuple[str, dict]]:
+    """(reason, details) for a DecisionEvent when GLIM ended without a stop request, None for an exit after a stop request.
+    Detection and display only (TR-14 fallback branch): the mapping mode is kept, GLIM is not restarted, and the human ends
+    mapping with the end button (G-GLIM-EXIT: on 2026-10-14 a crash went unnoticed for 2 minutes)."""
+    if run.stop_requested_at is not None:
+        return None
+    run.exited_unexpectedly_at = now
+    tail = log_tail(run.log_file)
+    reason = (f'GLIM exited without a stop request (exit code {exit_code}) {now - run.started_at:.0f} s after it started; '
+              'the map is not being built. Mapping mode is kept (automatic recovery is not implemented: TR-14); '
+              'press 地図作成終了 to end mapping.')
+    return reason, {'exit_code': exit_code, 'pid': run.pid, 'started_at': run.started_at, 'exited_at': now,
+                    'glim_log': str(run.log_file) if run.log_file else '', 'log_tail': tail, 'dump_dir': str(run.dump_dir)}
 
 
 def inspect_dump(dump_dir: Path) -> tuple[bool, int, str]:
