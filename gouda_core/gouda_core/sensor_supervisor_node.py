@@ -1,9 +1,11 @@
-"""gouda_sensor_supervisor (ND-18): starts the sensor drivers ND-14 (hesai_ros_driver, XT-32) and ND-15 (adi_imu_driver,
-ADIS16607-2) as child processes and re-creates a driver ONLY when its device is re-connected (DEC-088).
+"""gouda_sensor_supervisor (ND-18): starts the sensor drivers ND-14 (hesai_ros_driver, XT-32), ND-15 (adi_imu_driver,
+ADIS16607-2) and ND-19 (septentrio_gnss_driver, mosaic-go; REV-061) as child processes and re-creates a driver ONLY when its
+device is re-connected (DEC-088).
 Design: docs/sensor_supervision.md, device_watch.py (identity and the restart rule).
 
 - Devices are found by name: the IMU by its /dev/serial/by-id name (PRM-54), the LiDAR link by the interface that holds the PC
-  address PRM-51. Kernel numbers (ttyACMn, ifindex) only serve to notice a new enumeration.
+  address PRM-51, the GNSS receiver by its connection PRM-65 (serial: the by-id name; tcp: the interface whose IPv4 prefix
+  contains the receiver address). Kernel numbers (ttyACMn, ifindex) only serve to notice a new enumeration.
 - Evaluation is event driven: `udevadm monitor` (tty / net add-remove) and `ip monitor link address` wake it up; there is no
   polling period. It also runs once at start.
 - Same identity -> no restart, even when a driver exits (restarting the IMU driver without a re-plug freezes the IMU). A
@@ -13,7 +15,8 @@ Design: docs/sensor_supervision.md, device_watch.py (identity and the restart ru
   a second Gouda left running would split the IMU bytes and the LiDAR packets (G-DUP-START). This is recorded
   (device_in_use) and checked again at the next device / address event.
 - Every decision is a DecisionEvent (IFD-28, node gouda_sensor_supervisor) and appears in the monitor history.
-Settings: params_dir / trial (driver settings, as before), run_dir, driver_stop_wait_s (PRM-59; while unresolved a stopping
+Settings: params_dir / trial (driver settings, as before), run_dir, config_dir (<data_root>/config: the human's private
+gnss_rtk.yaml, never in the repository), driver_stop_wait_s (PRM-59; while unresolved a stopping
 driver is waited for without an upper limit). No number is written here (RQ-I076).
 """
 from __future__ import annotations
@@ -33,14 +36,16 @@ from gouda_interfaces.msg import DecisionEvent
 
 from gouda_core import sensor_config as sc
 from gouda_core import device_watch as dw
+from gouda_core import gnss_config as gc
 
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 PRM = {'device_ip_address': 'PRM-50', 'host_ip_address': 'PRM-51', 'udp_port': 'PRM-52', 'ptc_port': 'PRM-53', 'use_timestamp_type': 'PRM-55',
        'spin_rate_rpm': 'PRM-60', 'device': 'PRM-54', 'rate': 'PRM-56'}
+GNSS_PRM = {'device': 'PRM-65', 'configure_rx': 'PRM-74'}
 
 
-def prm(key):
-    return PRM.get(key, 'PRM-?')   # a label only: an unknown key must never stop the supervisor
+def prm(key, table=None):
+    return (table or PRM).get(key, 'PRM-?')   # a label only: an unknown key must never stop the supervisor
 
 
 def optional_double(node, name):
@@ -78,12 +83,14 @@ class SensorSupervisorNode(Node):
         super().__init__('gouda_sensor_supervisor')
         self.declare_parameter('params_dir', '')
         self.declare_parameter('run_dir', '')
+        self.declare_parameter('config_dir', '')
         self.declare_parameter('trial', False)
         self.declare_parameter('driver_stop_wait_s', Parameter.Type.DOUBLE)   # PRM-59
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)
         params_dir = self.get_parameter('params_dir').get_parameter_value().string_value
         self.run_dir = os.path.expanduser(self.get_parameter('run_dir').get_parameter_value().string_value or '.')
         trial = self.get_parameter('trial').get_parameter_value().bool_value
+        self.config_dir = os.path.expanduser(self.get_parameter('config_dir').get_parameter_value().string_value or '') or None
         self.stop_wait_s = optional_double(self, 'driver_stop_wait_s')
         os.makedirs(self.run_dir, exist_ok=True)
         self.state_path = os.path.join(self.run_dir, 'sensor_devices.json')
@@ -136,25 +143,67 @@ class SensorSupervisorNode(Node):
             reason = 'adi_imu_tr_driver_ros2 is not installed'
         elif missing:
             reason = f'unresolved {[f"{k} ({prm(k)})" for k in missing]} in adi_imu_driver.yaml'
+        elif dw.by_id_problem(ip_.get('device')):   # serial devices only by their by-id name (DEC-141)
+            reason = f"device (PRM-54): {dw.by_id_problem(ip_.get('device'))}"
         else:
             cmd = [exe, '--ros-args', '-r', '__node:=adi_imu_driver', '-r', f'{sc.IMU_DRIVER_TOPIC}:={sc.IMU_TOPIC}']
             for k, v in ip_.items():
                 cmd += ['-p', f'{k}:={str(v).lower() if isinstance(v, bool) else v}']
         drivers['imu'] = Driver('imu', 'IMU (ND-15)', dw.WatchedDevice(ip_.get('device') or 'by-id name (PRM-54) unresolved'), cmd, reason)
         drivers['imu'].by_id = ip_.get('device')
+        # ND-19 GNSS: ROS parameter file generated from the upstream template (gnss_config); device = PRM-65
+        drivers['gnss'] = self._build_gnss(params_dir, trial)
         for d in drivers.values():
             if d.not_started_reason:
                 self._decision('driver_not_started', f'{d.label} is not started: {d.not_started_reason}', {'driver': d.key})
         return drivers
 
+    def _build_gnss(self, params_dir, trial):
+        gp = sc.read_node_params(params_dir, 'septentrio_gnss_driver', trial) if params_dir else {}
+        exe = executable('septentrio_gnss_driver', 'septentrio_gnss_driver_node')
+        template = None
+        try:
+            from ament_index_python.packages import get_package_share_directory
+            template = gc.find_template(get_package_share_directory('septentrio_gnss_driver'))
+        except Exception:
+            pass
+        reason, cmd, rtk_note = None, None, ''
+        param_path = os.path.join(self.run_dir, 'septentrio_gnss_driver.params.yaml')
+        if exe is None or template is None:
+            reason = 'septentrio_gnss_driver is not installed'
+        else:
+            r = gc.write_parameter_file(template, gp, param_path, self.config_dir)
+            rtk_note = r['rtk']
+            if r['missing']:
+                reason = f'unresolved {[f"{k} ({prm(k, GNSS_PRM)})" for k in r["missing"]]} in septentrio_gnss_driver.yaml (DEC-140 / DEC-141)'
+            elif r['problems']:
+                reason = '; '.join(r['problems'])
+            else:
+                cmd = [exe, '--ros-args', '-r', '__node:=septentrio_gnss_driver', '-r', f'__ns:={gc.NAMESPACE}', '--params-file', param_path]
+        dev = gc.parse_device(gp.get('device'))
+        name = gp.get('device') or 'connection (PRM-65) unresolved'
+        d = Driver('gnss', 'GNSS (ND-19)', dw.WatchedDevice(name), cmd, reason)
+        d.gnss = dev
+        if cmd is not None:
+            self._decision('settings', f'GNSS driver parameters written ({rtk_note})', {'driver': 'gnss', 'parameter_file': param_path})
+        return d
+
     # ---- device identities ----
     def _observe(self, d):
         if d.key == 'imu':
             return dw.tty_identity(d.by_id) if d.by_id else None
+        if d.key == 'gnss':
+            dev = getattr(d, 'gnss', None)
+            if dev is None:
+                return None
+            if dev['kind'] == 'serial':
+                return dw.tty_identity(dev['path'])
         try:
             out = subprocess.run(['ip', '-j', '-4', 'addr'], capture_output=True, text=True).stdout
         except OSError:
             return None
+        if d.key == 'gnss':
+            return gc.peer_interface(d.gnss['host'], out)
         return dw.net_identity(d.host_ip, out) if d.host_ip else None
 
     def _watch(self, cmd):
@@ -212,6 +261,9 @@ class SensorSupervisorNode(Node):
         own = (os.getpid(),)
         if d.key == 'imu' and d.by_id and os.path.exists(d.by_id):
             return f'serial port {os.path.realpath(d.by_id)}', dw.tty_users(d.by_id, exclude=own)
+        dev = getattr(d, 'gnss', None)
+        if d.key == 'gnss' and dev and dev['kind'] == 'serial' and os.path.exists(dev['path']):
+            return f"serial port {os.path.realpath(dev['path'])}", dw.tty_users(dev['path'], exclude=own)
         if d.key == 'lidar' and getattr(d, 'udp_port', None) is not None:
             return f'UDP port {d.udp_port} ({prm("udp_port")})', dw.udp_port_users(int(d.udp_port), exclude=own)
         return '', []

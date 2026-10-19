@@ -46,11 +46,16 @@ class MapDatabase:
         self.root = Path(root); self.root.mkdir(parents=True, exist_ok=True)
 
     # ---- source maps (原図) ----
-    def register_source(self, dump_dir: Path, origin_id: Optional[str], producer: dict, session: dict) -> tuple[bool, str, Optional[dict]]:
+    def register_source(self, dump_dir: Path, origin_id: Optional[str], producer: dict, session: dict, gnss: Optional[tuple] = None,
+                        config_snapshot: Optional[Path] = None) -> tuple[bool, str, Optional[dict]]:
         """Move a complete GLIM dump into the database as <origin_id>/source and write source_manifest.json.
 
         producer: {'software': 'glim_ros', 'version': '1.2.2-0noble', 'config_hash': ...}. Returns (ok, message, manifest).
         The dump is published only when it is complete (graph.txt/values.bin present); otherwise it is left where it is.
+        gnss: (path of the mapping run's gnss.jsonl, its summary from gnss_log) or None. The file is copied next to source/
+        (not into the GLIM dump: the source content hash keeps its meaning) and the summary goes into the manifest (DEC-126).
+        config_snapshot: the /config (sensor_config.json) as it was when mapping started, copied next to source/ with its SHA-256 in
+        the manifest (REV-067: the GNSS calibration needs the mounting of that run, not a later /config).
         """
         dump_dir = Path(dump_dir)
         if not (dump_dir / 'graph.txt').is_file() or not (dump_dir / 'values.bin').is_file():
@@ -65,8 +70,20 @@ class MapDatabase:
         shutil.move(str(dump_dir), str(tmp / 'source'))
         src_hash = content_hash(tmp / 'source')
         submaps = sum(1 for x in (tmp / 'source').iterdir() if x.is_dir() and x.name.isdigit() and len(x.name) == 6)
+        gnss_entry = None
+        cfg_entry = None
+        if config_snapshot is not None and Path(config_snapshot).is_file():
+            shutil.copy2(str(config_snapshot), str(tmp / 'sensor_config.json'))
+            cfg_entry = {'file': 'sensor_config.json', 'sha256': hashlib.sha256((tmp / 'sensor_config.json').read_bytes()).hexdigest()}
+        if gnss is not None and Path(gnss[0]).is_file():
+            shutil.copy2(str(gnss[0]), str(tmp / gnss[1]['file']))
+            gnss_entry = dict(gnss[1])
         manifest = {'schema': MANIFEST_SCHEMA, 'kind': 'source', 'origin_id': origin_id, 'content_hash': src_hash, 'producer': producer,
                     'session': session, 'submaps': submaps, 'created_at': time.time(), 'frame': 'glim map frame (map_frame_id of the run)'}
+        if gnss_entry is not None:
+            manifest['gnss'] = gnss_entry
+        if cfg_entry is not None:
+            manifest['sensor_config'] = cfg_entry
         (tmp / 'source_manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
         os.replace(tmp, final)   # atomic publish
         self._rebuild_index()

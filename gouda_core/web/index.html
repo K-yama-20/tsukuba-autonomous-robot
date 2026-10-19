@@ -162,6 +162,18 @@
           <div class="events" id="wp-warnings"></div>
           <div class="panel-title" style="margin-top:8px"><span class="code">SAVED</span>保存済み waypoint セット</div>
           <table class="kv" id="wp-routes"></table>
+          <div class="panel-title" style="margin-top:8px"><span class="code">AUTO</span>自律走行の準備（体験 9: waypoint と地図の組の選択、プレビュー、初期位置）</div>
+          <div class="btnrow">
+            <label class="dim">waypoint セット <select id="auto-set"></select></label>
+            <button class="op" id="auto-preview" type="button">プレビュー<small>PREVIEW</small></button>
+          </div>
+          <div class="btnrow">
+            <label class="dim">初期位置 x m <input id="auto-x" class="num"></label>
+            <label class="dim">y m <input id="auto-y" class="num"></label>
+            <label class="dim">向き 度 <input id="auto-yaw-deg" class="num"></label>
+            <label class="dim"><input type="checkbox" id="auto-click-pose"> 地図のクリックで初期位置を置く</label>
+          </div>
+          <div class="note" id="auto-msg">セットを選んでプレビューし、初期位置（map frame）を入れてから上の「自律走行」を押す。GNSS による初期位置（DEC-124）は未実装。</div>
         </div>
       </div>
     </section>

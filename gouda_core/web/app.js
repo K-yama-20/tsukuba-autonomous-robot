@@ -20,7 +20,7 @@
   // ---- commands ----
   document.querySelectorAll('button[data-cmd]').forEach((b) => b.addEventListener('click', async () => {
     const name = b.dataset.cmd; b.classList.add('busy'); b.disabled = true;
-    const body = name === 'start_autonomy' ? { request_id: 'ui-' + Date.now() } : {};
+    const body = name === 'start_autonomy' ? autoStartBody() : {};
     try {
       const r = await fetch('/api/command/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json();
@@ -83,13 +83,14 @@
     $('esp32-status').textContent = e.freshness.status; $('esp32-status').className = 'status ' + statusClass(e.freshness);
     kvTable($('esp32-table'), Object.keys(e.fields).length ? e.fields : {});
     $('esp32-note').textContent = e.note || e.freshness.verdict;
-    // sensors (IFD-21 / IFD-22 reception, DEC-088). Display only; the thresholds are PRM-57 / PRM-58.
+    // sensors (IFD-21 / IFD-22 / IFD-47 reception, DEC-088). Display only; the thresholds are PRM-57 / PRM-58 (GNSS has none).
     if (s.sensors) {
       const rows = {}; let allOk = true;
       for (const st of Object.values(s.sensors)) {
         if (st.status !== 'RECEIVED') allOk = false;
         rows[`${st.label} (${st.topic})`] = `${st.status}  ${st.rate_hz == null ? '— Hz' : st.rate_hz.toFixed(1) + ' Hz'}  age ${st.age_s == null ? '—' : st.age_s.toFixed(2) + ' s'}` +
-          (st.stamp_minus_receive_s == null ? '' : `  stamp-受信 ${st.stamp_minus_receive_s.toFixed(3)} s`) + (st.stale_after_s == null ? '  (しきい値未確定: STALE 判定なし)' : '');
+          (st.stamp_minus_receive_s == null ? '' : `  stamp-受信 ${st.stamp_minus_receive_s.toFixed(3)} s`) + (st.stale_after_s == null ? '  (しきい値未確定: STALE 判定なし)' : '') +
+          (st.detail ? `  ${st.detail}` : '');
       }
       kvTable($('sensors-table'), rows);
       $('sensors-status').textContent = allOk ? 'RECEIVED' : 'CHECK'; $('sensors-status').className = 'status ' + (allOk ? 'ok' : 'amber');
@@ -256,6 +257,35 @@
 
   // ---- waypoint_manager (IFD-30 / IFD-41): edits on the converted map; save generates the speed mask ----
   const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1 };
+  // ---- autonomy preparation (体験 9, IFD-02): the selected set (its map comes with it), the preview, the initial pose ----
+  const autoState = { sel: null };
+  function autoPose() {
+    const x = parseFloat($('auto-x').value), y = parseFloat($('auto-y').value), yd = parseFloat($('auto-yaw-deg').value);
+    return [x, y, yd].every((v) => Number.isFinite(v)) ? { x, y, yaw: yd * Math.PI / 180 } : null;
+  }
+  function autoStartBody() {
+    const b = { request_id: 'ui-' + Date.now() };
+    if (autoState.sel) Object.assign(b, autoState.sel);
+    const p = autoPose(); if (p) b.initial_pose = p;   // without it the mode manager refuses the start (TR-05 guard)
+    return b;
+  }
+  async function autoPreview() {
+    const v = $('auto-set').value; if (!v) { $('auto-msg').textContent = '保存済みの waypoint セットがない'; return; }
+    const [sid, rev] = v.split('/');
+    const j = await (await fetch(`/api/route/${sid}/${rev}`)).json();
+    if (!j.ok) { $('auto-msg').textContent = 'NG: ' + j.message; return; }
+    const m = j.set.map;
+    const g = await (await fetch(`/api/map/${m.origin_id}/${m.revision}/geometry.json`)).json();
+    if (!g.ok) { $('auto-msg').textContent = 'NG: ' + g.message; return; }
+    const img = new Image(); img.src = `/api/map/${m.origin_id}/${m.revision}/map.png?t=${Date.now()}`;
+    img.onload = () => {
+      wpState.map = { origin: m.origin_id, rev: m.revision, hash: m.content_hash }; wpState.geom = g; wpState.img = img;
+      wpState.points = j.set.waypoints.map((w) => Object.assign({}, w)); wpState.limits = j.set.section_limits_mps.slice(); wpDraw();
+      autoState.sel = { waypoint_set_id: sid, waypoint_set_revision: String(parseInt(rev, 10)), waypoint_set_hash: j.manifest.content_hash,
+                        map_id: m.origin_id, map_revision: String(m.revision), map_hash: m.content_hash };
+      $('auto-msg').textContent = `選択: ${sid}/${rev}（地図 ${m.origin_id}/${m.revision}、${j.set.waypoints.length} 点）。初期位置を入れてから「自律走行」を押す`;
+    };
+  }
   function wpFillMaps(s) {
     const sel = $('wp-map-select'); const cur = sel.value; sel.innerHTML = '';
     (s.maps && s.maps.origins || []).forEach((o) => (o.converted || []).forEach((c) => {
@@ -267,6 +297,9 @@
       if (s.mask_params.step_mps != null && !$('wp-step').value) $('wp-step').value = s.mask_params.step_mps;
     }
     if (s.routes) {
+      const as = $('auto-set'); const acur = as.value; as.innerHTML = '';
+      (s.routes.sets || []).forEach((st) => st.revisions.forEach((r) => { const o = document.createElement('option'); o.value = `${st.set_id}/${r.revision}`; o.textContent = `${st.set_id} rev ${r.revision} (map ${r.map.origin_id}/${r.map.revision})`; as.appendChild(o); }));
+      if (acur) as.value = acur;
       const rows = {};
       (s.routes.sets || []).forEach((st) => st.revisions.forEach((r) => { rows[`${st.set_id}/${r.revision}`] = `${r.waypoints} pts, map ${r.map.origin_id}/${r.map.revision}, ${r.warnings} warning(s), ${String(r.content_hash).slice(0, 10)}…`; }));
       kvTable($('wp-routes'), rows);
@@ -291,6 +324,12 @@
     ctx.lineWidth = 2; ctx.strokeStyle = '#39d5e0';
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f0b43c' : '#39d5e0'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a8e6ea'; ctx.font = '11px monospace'; ctx.fillText(String(i), px + 6, py - 6); });
+    const ip = autoPose();
+    if (ip) {   // the initial pose (an arrow in the heading)
+      const [px, py] = toPx(ip); const L = 18;
+      ctx.strokeStyle = '#ff5c8a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ip.yaw), py - L * Math.sin(ip.yaw)); ctx.stroke();
+      ctx.fillStyle = '#ff5c8a'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+    }
     wpTable();
   }
   function wpTable() {
@@ -302,11 +341,18 @@
     const g = wpState.geom; if (!g) return;
     const r = $('wp-canvas').getBoundingClientRect(); const px = (ev.clientX - r.left) * ($('wp-canvas').width / r.width); const py = (ev.clientY - r.top) * ($('wp-canvas').height / r.height);
     const x = g.origin_x + px / wpState.scale * g.resolution; const y = g.origin_y + (g.height - py / wpState.scale) * g.resolution;
+    if ($('auto-click-pose').checked) {   // place the initial pose instead of a waypoint
+      $('auto-x').value = Math.round(x * 1000) / 1000; $('auto-y').value = Math.round(y * 1000) / 1000;
+      if ($('auto-yaw-deg').value === '') $('auto-yaw-deg').value = '0';
+      wpDraw(); return;
+    }
     wpState.points.push({ x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, yaw: 0, kind: 'pass' });
     if (wpState.points.length > 1) wpState.limits.push(wpState.limits.length ? wpState.limits[wpState.limits.length - 1] : null);
     wpDraw();
   });
   $('wp-load-map').addEventListener('click', wpLoadMap);
+  $('auto-preview').addEventListener('click', autoPreview);
+  ['auto-x', 'auto-y', 'auto-yaw-deg'].forEach((id) => $(id).addEventListener('change', wpDraw));
   $('wp-undo').addEventListener('click', () => { wpState.points.pop(); wpState.limits.pop(); wpDraw(); });
   $('wp-clear').addEventListener('click', () => { wpState.points = []; wpState.limits = []; wpDraw(); });
   $('wp-save').addEventListener('click', async () => {

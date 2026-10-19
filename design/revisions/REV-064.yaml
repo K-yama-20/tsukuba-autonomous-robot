@@ -1,0 +1,19 @@
+# 変更セット REV-064（2026-10-18 第33便の続き: DEC-126 の VM の試験の記録）
+# 適用: design/tools/apply_revision.py REV-064
+id: REV-064
+date: '2026-10-18'
+summary: 人が VM を起動した。DEC-126（地図作成の間の GNSS の記録）の ROS 上の試験を VM の試験スタックで行い合格した（FILE-GNSS-MAPPING-RECORD-VM-TEST）。実機（受信機）での記録は未実行。
+basis_refs:
+- DEC-126
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-MAPPING-RECORD-VM-TEST
+  path: design/research/vehicle_pc/2026-10-18_gnss_mapping_record_vm_test.txt
+  role: evidence
+decisions: []
+entities: []
+modifications:
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。 2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。'
+decision_updates: []

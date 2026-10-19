@@ -40,6 +40,9 @@ CONFIG_FIELDS = OrderedDict([
     ('imu_mount_x_m', 'number'), ('imu_mount_y_m', 'number'), ('imu_mount_z_m', 'number'),
     ('imu_mount_roll_rad', 'number'), ('imu_mount_pitch_rad', 'number'), ('imu_mount_yaw_rad', 'number'),
     ('imu_axis_mapping', 'axes'),
+    # GNSS antenna phase centres in base_link (REV-061, ND-13 -> gnss_link / gnss_aux1_link; ND-19 reads them from TF)
+    ('gnss_main_mount_x_m', 'number'), ('gnss_main_mount_y_m', 'number'), ('gnss_main_mount_z_m', 'number'),
+    ('gnss_aux1_mount_x_m', 'number'), ('gnss_aux1_mount_y_m', 'number'), ('gnss_aux1_mount_z_m', 'number'),
 ])
 
 
@@ -101,6 +104,31 @@ class SensorReception:
                 'stale_after_s': stale_after_s}
 
 
+# GNSS quality (IFD-48 PVTGeodetic.mode, IFD-49 AttEuler.mode; REV-061). Meaning of the codes from the Septentrio SBF
+# reference (mosaic): 原本未照合 — written from the AI's knowledge of the SBF definition, to be checked against the receiver's
+# reference guide. The monitor only displays them; nothing is decided from them.
+PVT_MODE_JA = {0: '測位なし', 1: '単独測位', 2: 'DGNSS', 3: '固定位置', 4: 'RTK fix', 5: 'RTK float', 6: 'SBAS', 7: '移動基準 RTK fix',
+               8: '移動基準 RTK float', 10: 'PPP'}
+ATT_MODE_JA = {0: '向きなし', 1: '向きあり（float）', 2: '向きあり（fix）', 3: '向き・ロールあり（float）', 4: '向き・ロールあり（fix）'}
+SBF_DO_NOT_USE_FLOAT = -2e10      # SBF "Do-Not-Use" value of float fields (same reference, 原本未照合)
+
+
+def gnss_quality_text(mode: int, nr_sv: int, h_accuracy_cm: Optional[int]) -> str:
+    kind = PVT_MODE_JA.get(mode & 0x0F, f'不明（{mode & 0x0F}）')
+    acc = '' if h_accuracy_cm is None or h_accuracy_cm == 0xFFFF else f'、水平精度 {h_accuracy_cm / 100:.2f} m'
+    return f'{kind}、衛星 {nr_sv}{acc}'
+
+
+def gnss_attitude_text(mode: int, heading_deg: float) -> str:
+    kind = ATT_MODE_JA.get(mode, f'不明（{mode}）')
+    if mode == 0 or heading_deg <= SBF_DO_NOT_USE_FLOAT / 2:
+        return kind
+    return f'{kind}、heading {heading_deg:.1f} 度'
+
+
+MAPPING_START_SENSORS = ('points', 'imu')   # the mapping-start warning (DEC-088) is about GLIM's inputs only
+
+
 class MonitorCore:
     def __init__(self, clock: Callable[[], float] = time.time, max_events: int = 200):
         self.clock = clock
@@ -115,8 +143,10 @@ class MonitorCore:
         self.connection_revision = 0                     # bumps on every change; SSE clients use it
         self.stale_after_mode_s: Optional[float] = None  # PRM-16 (tbd)
         self.stale_after_esp32_s: Optional[float] = None # PRM-15 (tbd)
-        self.sensors = {'points': SensorReception('XT-32 点群', 'sensors/xt32/points'), 'imu': SensorReception('IMU', 'sensors/imu/data')}  # IFD-21 / IFD-22
-        self.stale_after_sensor_s: dict = {'points': None, 'imu': None}   # PRM-57 / PRM-58
+        self.sensors = {'points': SensorReception('XT-32 点群', 'sensors/xt32/points'), 'imu': SensorReception('IMU', 'sensors/imu/data'),
+                        'gnss': SensorReception('GNSS 位置', 'sensors/gnss/navsatfix')}  # IFD-21 / IFD-22 / IFD-47
+        self.stale_after_sensor_s: dict = {'points': None, 'imu': None, 'gnss': None}   # PRM-57 / PRM-58; GNSS has no threshold (no STALE)
+        self.gnss_detail: dict = {}                        # 'quality' (IFD-48), 'attitude' (IFD-49), or 'note' when the driver's types are absent
         self.settings: dict = {}                           # effective UI parameters (PRM-27..32) for display
 
     # ---- inputs ----
@@ -132,15 +162,22 @@ class MonitorCore:
     def on_sensor(self, key: str, received_at: Optional[float] = None, stamp: Optional[float] = None):
         self.sensors[key].on_message(received_at if received_at is not None else self.clock(), stamp)
 
+    def on_gnss_detail(self, key: str, text: str):
+        self.gnss_detail[key] = text
+
     def sensors_snapshot(self, now: Optional[float] = None) -> dict:
         now = self.clock() if now is None else now
-        return {k: s.status(now, self.stale_after_sensor_s.get(k)) for k, s in self.sensors.items()}
+        out = {k: s.status(now, self.stale_after_sensor_s.get(k)) for k, s in self.sensors.items()}
+        out['gnss']['detail'] = '、'.join(self.gnss_detail[k] for k in ('quality', 'attitude', 'note') if self.gnss_detail.get(k))
+        return out
 
     def mapping_start_warning(self, now: Optional[float] = None) -> Optional[str]:
         """Text of the warning shown when 地図作成開始 is pressed while a sensor has no data (DEC-088); None when both are
         receiving. The start itself is not refused (no additional approval step: RQ-I011)."""
         problems = []
         for k, st in self.sensors_snapshot(now).items():
+            if k not in MAPPING_START_SENSORS:
+                continue
             if st['status'] == 'NOT_RECEIVED':
                 problems.append(f"{st['label']}（{st['topic']}）を受信していない")
             elif st['status'] == 'STALE':

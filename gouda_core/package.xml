@@ -13,6 +13,14 @@
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>lifecycle_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>          <!-- gouda_static_tf (ND-13), mode manager (TR-05 guard) -->
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>tf2_msgs</exec_depend>         <!-- gouda_local_odometry (ND-08 relay) -->
+  <exec_depend>nav2_msgs</exec_depend>        <!-- mode manager: NavigateThroughPoses, ManageLifecycleNodes, SpeedLimit (ND-10) -->
+  <exec_depend>action_msgs</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
+  <exec_depend>rosidl_runtime_py</exec_depend>  <!-- mode manager: GNSS mapping record (message to dict) -->
+  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-serial</exec_depend>   <!-- vehicle_bridge (ESP32), esp32_sim -->
   <exec_depend>python3-yaml</exec_depend>     <!-- generated parameter files, waypoints -->

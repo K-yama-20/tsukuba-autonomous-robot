@@ -1,8 +1,67 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-17（REV-059、第30便）。
+最終更新：2026-10-19（REV-072、第39便）。
 
 **引き継ぎ: `reports/handover_2026-10-17.md`**（次のチャットの最初に貼るプロンプトは §0。次の作業は Global_localization または Navigation のノードの実装の検討と報告。前回の引き継ぎは `handover_2026-10-14.md`）。
+
+**第39便: 最初の起動の前の受信機の記録**（作業記録 `reports/worklog/2026-10-19_rev072_mosaic_before_first_start.md`、記録 `research/vehicle_pc/2026-10-19_mosaic_before_first_start.txt`）。
+- 人の許可（DEC-142）で USB2 から照会。gso: Stream1〜3 は off、Stream4〜10・Res1〜4 は空（10/17 の Stream4 は残っていない）。getDataInOut: 全接続先が入力 auto・出力 SBF+NMEA。USB2 の NMEA では単独測位。
+- 最初の CR で受信機の入力に残っていた GGA の断片が無効なコマンドになった（以前に NMEA が送り返されていた。設定は変わっていない）。
+- 生の記録は位置を含むので VM にだけ置いた。commit はしていない。
+
+**第38便: DEC-140 の回答（configure_rx true）、起動の前後の記録の道具、DEC-139 と GGA の提案**（作業記録 `reports/worklog/2026-10-19_rev070_071_dec140_query_tool_ntrip.md`）。
+- PRM-74 を承認値 true に。**このブランチで Gouda を起動するとドライバが起動し、受信機の全出力を止めて Boot に保存する**（VM の ~/gouda_ws は main なので、まだ起動しない）。
+- 記録の道具 `gouda_core/gouda_core/septentrio_query.py`（照会だけ、by-id、raw・エコー無効を確かめてから）。単体 180 件（Mac・VM）合格。実行は人の許可の後。
+- 提案 `proposals/ntrip_gga_proposal.md`: DEC-139 の推奨を案 B1 に（ドライバが USB2 を補正の入力・GGA の出力に、RTKLIB の str2str が中継。GGA は受信機が 1 秒ごと）。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第37便: 人の指示 DEC-141（PRM-65 の承認、by-id の名前だけ、DEC-140 の材料）**（作業記録 `reports/worklog/2026-10-19_rev069_by_id_prm65_dec140_material.md`）。
+- PRM-65 を承認値（serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00、USB1）に。configure_rx を PRM-74（未確定、DEC-140）にし、決まるまでドライバを起動しない。
+- 実装: IMU・GNSS とも /dev/serial/by-id/ の名前だけを受け付け、それ以外はドライバを起動せず理由を記録。単体 177 件（Mac・VM）合格、同時接続で番号が入れ替わっても取り違えないことを確認。
+- DEC-140 の材料: `proposals/mosaic_receiver_setup_configure_rx_false.md`（USB1 の 2 つの SBF のストリーム、sga・sto、人の手順、Boot には保存しない）。ドライバは起動しておらず、受信機のポートには触っていない。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第36便: 上流 GNSS ドライバのソースの確認（人の手順 1）**（作業記録 `reports/worklog/2026-10-19_rev068_septentrio_source_review.md`、記録 `research/upstream_sensors/septentrio_gnss_driver_1.4.8/source_review_2026-10-19.md`）。
+- シリアルは raw・エコー無効で開く。configure_rx true は起動のたびに受信機の全出力を止め、最後に Boot に保存する（人の資料 §5・§6 と合わない）。主アンテナの位置は補正しない（方位のオフセットだけ）。
+- 承認待ち（新規）: DEC-140（configure_rx を使うか。推奨は使わない）。人の手順 2（PRM-65 を if00）は承認待ち。ドライバはまだ起動していない。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第35便: DEC-125・135・136 の回答、GNSS の較正の検証の道具、mosaic-go の VM への接続**（作業記録 `reports/worklog/2026-10-19_rev067_gnss_calibration_tool_mosaic.md`）。
+- 人の回答: DEC-136 承知、DEC-135 一旦承認（人の実験走行の実データで検証、だめなら不採用）、DEC-125 しばらく VM で実機試験・mosaic-go は USB・補正は NTRIP（Point One TrueRTK）。
+- 実装: 較正の検証の道具 `gouda_core/gouda_core/gnss_calibration.py`（地図への組み込みはしない）、地図作成の時の /config の写しを原図の横に。単体（Mac 173 件・VM 全件）と VM の記録の試験は合格。
+- mosaic-go は VM で if00（USB1）・if02（USB2、NMEA）のシリアルとして見え、USB イーサネットはない。PRM-65 の候補は if00。DEC-139 の案 A は今の接続ではできず、推奨の見直しが要る。
+- **注意**: AI がポートを raw・エコー無効にせずに読んだため、NMEA が受信機へ送り返された可能性がある（人の資料 §2）。
+- 承認待ち（新規）: DEC-138（VM の起動にも Fast DDS の設定）、DEC-139（NTRIP の受け方）。VM の ~/gouda_ws は main のまま。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第34便: GNSS の承認事項の回答の記録と、ソフトウェアでの較正の再検討**（作業記録 `reports/worklog/2026-10-18_rev065_gnss_answers_calibration.md`）。
+- 人の回答: DEC-131 承認、DEC-132 は調査結果を添えてソフトウェアの較正の再検討、DEC-133 条件付き承認（条件は DEC-137 の回答で記録: REV-066、分岐したセッション。人の操作で初期化を始める、失敗は止めて表示、未収束でも警告だけ、人の指定を残す、静止の判定と値は実機検証の後、対応のある地図だけ、PC 再起動後も同じ、方式によらない契約）、DEC-128 は許可の取消（不採用）、DEC-134 保留（過剰な安全策の可能性）。
+- 再検討（合成のデータ。`research/vehicle_pc/2026-10-18_gnss_calib_feasibility/`）: 較正の走行ならレバーアーム 1〜2 mm・取付 Yaw 0.02 度・遅延 5 ms の誤差で同時に推定できる。ant_z は平地で決まらない。直線だけでは遅延を誤り、標準偏差でも見抜けない。方位の定義の取り違えは残差で分かる。
+- 提案 `proposals/gnss_initial_pose_design.md` 第3版 §11。承認待ち DEC-135（ソフトウェアの較正、DEC-127・132 の置き換え）、DEC-136（次の実機試験に較正の動き）。実装はしていない。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第33便: DEC-126 の実装（地図作成の間の GNSS の記録）と、人が貼った GNSS の仕様との照合**（作業記録 `reports/worklog/2026-10-18_rev063_gnss_mapping_record.md`）。
+- 人の回答: 「DEC-126は許可。」同じメッセージに GNSS 活用の実装仕様の文書（扱いの指示なし。DEC-130、写し `research/gnss_reference_spec_2026-10-18.md`）。
+- 実装: 地図作成の間、GNSS（IFD-47〜50。方位の共分散を IFD-50 として追加）を gnss.jsonl に全項目のまま記録し、原図の横に置いて source_manifest.json に SHA-256 と行数を書く。Mac・VM の単体 168 件 OK。VM の試験スタックで地図作成の開始・終了の記録と原図への登録が合格（REV-064、FILE-GNSS-MAPPING-RECORD-VM-TEST）。受信機での実機の記録は未実行。
+- 提案 `proposals/gnss_initial_pose_design.md` を第2版に（仕様との照合 §9、上流 README の確認 §10）。新しい承認待ち DEC-131〜134。DEC-128 は取り下げを推奨（代わり DEC-133）。
+- 全検査は終了コード 1（人の drawio だけ）。commit はしていない。
+
+**第32便: 工程 5-6 の実装（人の許可 DEC-120〜124）と VM の試験**（作業記録 `reports/worklog/2026-10-17_rev061_062_stage56_implementation.md`、記録 `research/vehicle_pc/2026-10-17_stage56_vm_test.txt`）。
+- 人の回答: 「DEC-120〜124 をすべて許可する」。
+- 実装: GNSS の取込み（ND-19、supervisor が起動、monitor に表示）、静的 TF（ND-13、/config に GNSS のアンテナ）、Nav2（RPP・NavFn・velocity_smoother・SpeedFilter、collision_monitor なし、自律走行の間だけ active）、mode_manager の TR-05・06・07・08・10・11・12、ND-08（GLIM の odometry だけ＋中継）、ND-11 の TwistStamped、monitor の「自律走行の準備」、setup.sh に Nav2 と GNSS のドライバ。
+- 実車では: ND-07 がないため自律走行の開始は拒否。Nav2 は未確定の値（PRM-11・17・18・66〜73）のため起動しない。GNSS は接続先（PRM-65）が未確定のため起動しない（DEC-125）。
+- VM の試験（loopback_sim が ND-07・08 の代わり、ESP32 は模擬）: 開始の拒否 2 件、開始 → 適用中で hold の解除 → 最後の waypoint で一時停止（TR-08）、終了・一時停止・再開・走行中の終了。不具合 2 件を直した（SpeedFilter の topic の名前空間、静的 TF の置き換え）。再現しない不具合 1 件（最初の goal の失敗: G-NAV2-FIRST-GOAL）。単体 166 件 OK（Mac・VM）、5-5 と前回の試験の再実行も合格。
+- 自律判断で TF の木を直した（base_link→base_footprint。odom→base_link と合わせて base_link の親を一つに）。人の確認を求める。
+- 提案: GNSS による初期位置の詳細（`proposals/gnss_initial_pose_design.md`）。承認待ち DEC-126〜129。実測・確認待ち DEC-125。
+- 全検査は終了コード 1（原因は人の drawio だけ。設計整合性は違反 0、DR-11 の未判定は 67 件に）。commit はしていない。
+
+**第31便: DEC-116 の実装（試験スタックの Fast DDS の設定）と、工程 5-6 の Global_localization・Navigation の検討（提案）**（作業記録 `reports/worklog/2026-10-17_rev060_stage56_study_dec116.md`、提案 `proposals/stage56_navigation_localization_plan.md`）。
+- 人の回答（DEC-116）: 許可。`gouda_core/test/stack.sh` だけに `gouda_core/test/fastdds_test_stack.xml` を入れた（gouda.sh・x86 機は変えていない）。VM で前回の試験が同じ結果、約 2 MB の点群の配送が 70・86/200 → 178・182/200（FILE-DEC116-FASTDDS）。
+- 人の指示（DEC-119）: Global_localization または Navigation のノードの実装を検討して報告。実装なし（DEC-106）。
+- 推奨: Navigation（Nav2 の構成と mode_manager の client、TR-05）を先に作り、VM で nav2_loopback_sim を使って車体なしで試験。GNSS の取込み（受信・記録・表示）は次の実機試験の前に。ND-08（GLIM の odometry だけ）は方式に依存しない。ND-07 は DEC-115 と GNSS の初期位置の設計の後。
+- 分かったこと: setup.sh は Nav2 を入れない（x86 機の Nav2 の有無は未確認。「実車PC の Nav2 1.3.13」の記録は VM のもの）。ND-13（静的 TF）は未実装。septentrio_gnss_driver は apt に Jazzy 1.4.8。
+- 承認待ち（新規）: DEC-120（順序）、DEC-121（Nav2 の導入）、DEC-122（Nav2 の構成の選択、ND-09・ND-13 の直し）、DEC-123（GNSS の取込み、ND-08）、DEC-124（GNSS による初期位置の方針）。
+- 全検査は終了コード 1（原因は人の drawio だけ。設計整合性は違反 0）。commit はしていない。
 
 **第30便: recorder の rosbag の再開と GLIM の異常終了の検出を修正（実装。人の許可 DEC-117）、スリープの抑止の計画 第2版、intent 第11版**（作業記録 `reports/worklog/2026-10-17_rev058_059_recorder_glim_fix.md`）。
 - 人の連絡（DEC-117）: Septentrio mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）を搭載。DEC-115 は保留。最新版を x86 に反映し、二重起動の防止は正常。
@@ -106,12 +165,12 @@
 
 ## 三つの状態（CLAUDE.md 1.4）＋報告用の三区分（DEC-057）
 
-- 移行が正確：作業ツリーでは**違反 1 件**（2026-10-17、REV-059 適用後）。人が編集中の移行の原資料 `design/docs/SystemArchitecture.drawio` の SHA-256 が baseline と違う（`reports/input_integrity.json`）。それ以外の原資料・抽出結果・baseline は一致。REV-050 の時点（コミット 6950a1a）では合格。drawio の扱い（新版として記録するか、変更を戻すか）は人の判断。
+- 移行が正確：作業ツリーでは**違反 1 件**（2026-10-18、REV-072 適用後）。人が編集中の移行の原資料 `design/docs/SystemArchitecture.drawio` の SHA-256 が baseline と違う（`reports/input_integrity.json`）。それ以外の原資料・抽出結果・baseline は一致。REV-050 の時点（コミット 6950a1a）では合格。drawio の扱い（新版として記録するか、変更を戻すか）は人の判断。
 - 設計検査に合格：**未判定**。設計整合性 17 ルール 違反 0・未判定 4（DR-04 5 件、DR-05 2 件: RQ-I027・RQ-I072 は問題／衝突のみで対応、DR-10 2 件: 版照合、DR-11: 未確定値 59）。検査違反 0 件は未判定の解消でも実車適合の証明でもない。
-- ソフト試験合格：**工程5-1〜5-5 が合格**（5-5: TS-07・TS-13・TS-19 PC 側・TS-12・TS-30 を Ubuntu で、TS-17・18・19・29 を firmware 中核のホスト試験と Python 模擬で。FILE-VEHICLE-PC-STAGE55）。5-3・5-4 はセンサーなし、5-5 は ESP32 実機・ゲームパッド・車体なしの範囲。TS-01〜06・08〜11・14〜16・20〜22 は未実行。
+- ソフト試験合格：**工程5-1〜5-5 が合格**（5-5: TS-07・TS-13・TS-19 PC 側・TS-12・TS-30 を Ubuntu で、TS-17・18・19・29 を firmware 中核のホスト試験と Python 模擬で。FILE-VEHICLE-PC-STAGE55）。5-3・5-4 はセンサーなし、5-5 は ESP32 実機・ゲームパッド・車体なしの範囲。**工程 5-6 は一部**（2026-10-17、VM、loopback_sim を ND-07・08 の代わりに: TS-01・05・15・21 の一部と TS-35〜38 の単体・VM の部分。FILE-STAGE56-VM-TEST。ND-07 は未実装、実車・x86 機は未実行。完了ではない）。TS-02〜04・06・08〜11・14・16・20・22 は未実行。
 - 実車検証済み／実車投入可能：**人の判断待ち**。実車試験は未実施。承認済みの実車値は PRM-07・08・13・21 の 4 件のみ。DAC 電圧（PRM-43〜46）は未確定で、実車向け firmware ビルドには入っていない（DEC-077）。DEC-050 の実機照合は未実施。
 
-## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、REV-059 適用後の作業ツリーで終了コード 1。原因は人が編集中の drawio だけ。下の表は REV-050 の時点の値で、違う所を注記した）
+## 検査結果の件数（`design/.venv/bin/python design/tools/run_checks.py`、REV-072 適用後の作業ツリーで終了コード 1。原因は人が編集中の drawio だけ。下の表は REV-050 の時点の値で、違う所を注記した）
 
 | 検査 | 合格 | 違反 | 未判定 |
 |---|---|---|---|
@@ -126,9 +185,13 @@
 | firmware ビルド（esp32dev・esp32dev_trial） | 2 | 0 | 0（書き込み未実施） |
 | 工程5-1〜5-5 の ROS 上の試験（Ubuntu） | 合格 | 0 | 0（センサー・ESP32・実車は未接続） |
 | ソフト試験（TS-01〜34） | 12（TS-07・12・13・17・18・19・23〜28・29・30 のうち stub 範囲） | 0 | 22（未実行または一部のみ。TS-31〜33 は一部を VM で実行: 作業記録。TS-34 は 1 回目が条件の外で不合格、2 回目は原図は整合・2D 変換は不合格（G-FLOOR-REFLECTION）） |
-| 判断台帳 | 116 件（DEC-109〜DEC-114・DEC-117・DEC-118 を recorded、DEC-115・DEC-116 を pending で追加。pending 16: DEC-021・022・024・050・077・078・079・098・099・100・101・104・105・107・115・116） | | |
+| 判断台帳 | 139 件（REV-067: DEC-125・135・136 を answered、DEC-138・139 を pending。pending 21: DEC-021・022・024・050・077・078・079・098・099・100・101・104・105・107・115・127・129・134・138・139・140。REV-068: DEC-140 を pending。REV-069: DEC-141 を answered（PRM-65 承認）。REV-070: DEC-140 を answered（PRM-74 承認）。pending は DEC-140 を除いた 20） | | |
 
 ## 承認待ち・実測待ち・人の作業・提案
+
+- **承認待ち（第34便、REV-065・066）**: DEC-135（ソフトウェアの較正）、DEC-136（較正の走行）。DEC-133 の条件は DEC-137 で回答済み。DEC-127 は DEC-135 での置き換えを推奨、DEC-129・134 は保留。提案 `proposals/gnss_initial_pose_design.md` 第3版 §11.4。**実測・確認待ち**: DEC-125（x86 機と mosaic-go の接続、RTK の補正の受け方）。DEC-115 は保留のまま（ND-07 が止まっている）。
+- **人の確認（第32便）**: 静的 TF の向きを base_link→base_footprint に直した（自律判断、作業記録 §3）。
+- 人の作業（第32便）: x86 機への反映（setup.sh が Nav2 と GNSS のドライバを入れる。sudo）。実車値 PRM-65〜73 の決定（Nav2 を実車で起動する前に要る）。
 
 - **承認待ち（第25便、REV-044）**: DEC-101 旧実装のファイル（scripts/、gouda_gui/ など、third_party/external.repos、patches/）の扱い。推奨: 案 A（旧 scripts/setup.sh を止まるようにし、残りは 5-6 の設計で再利用の有無を確かめてから整理）。止まる作業: なし。
 - 人の作業（VM）: 古い NetworkManager の接続 gouda-hesai 2 つ（enp0s5 に 192.168.1.100）の削除の判断、時刻同期の有効化（`sudo timedatectl set-ntp true`）。
@@ -166,15 +229,15 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第11版（SHA a7a03a31…、106 行。82 行: DEC-113、14 行: DEC-118 を人が編集）。旧版は `baselines/migration_v1/intent.md`、`baselines/intent_history/` |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-059。次は REV-060、DEC-119 |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json`（1.1） | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py`。最新 REV-072。次は REV-073、DEC-143 |
 | 正本（Markdown） | `design/docs/` | `map_conversion.md`（地図の変換と地図作成の実機試験の手順）、`sensor_supervision.md`、`implementation_stages.md`、`esp32_protocol_v4.md`（5-5 のプロトコルと firmware の振る舞い）、`vehicle_output_timing.md`、`speed_filter_design.md`、`regulations_2026.md`、`git_management_plan.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜118） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜142） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml`、`generated/human_decisions_r2.md` |
 | ゲート3 承認の対象 | `design/baselines/gate3_2026-10-09/` | 最終承認はコミット f208066 |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`（trial ファイルも生成）、`apply_revision.py` |
 | 生成物（手編集禁止） | `generated/`（`params/` に node 別設定と `*.trial.yaml`、`firmware_config.yaml`・`.trial.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時ヘッダ `firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp` はビルド時に生成（コミットしない） |
-| 提案 | `proposals/` | 承認済み仕様として使わない。最新: `sleep_inhibit_plan.md`（DEC-104）、`ground_estimation_design.md`（DEC-107。`ground_estimation_plan.md` を置き換え） |
+| 提案 | `proposals/` | 承認済み仕様として使わない。最新: `gnss_initial_pose_design.md`（DEC-126〜129）、`stage56_navigation_localization_plan.md`（DEC-120〜124、許可済み）、`sleep_inhibit_plan.md`（DEC-104）、`ground_estimation_design.md`（DEC-107。`ground_estimation_plan.md` を置き換え） |
 | 調査・証拠 | `research/` | `vehicle_pc/`（工程 5-1〜5-5 の試験記録、夕方の解析 `2026-10-14_evening_*`）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-17_rev058_059_recorder_glim_fix.md`（その前 `2026-10-17_rev056_057_localization_verification.md`、 `2026-10-17_rev051_localization_selection.md`、`2026-10-14_evening_maps_rosbag_analysis.md`）。引き継ぎ `reports/handover_2026-10-17.md`（前回 `handover_2026-10-14.md`） |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 最新 `2026-10-19_rev072_mosaic_before_first_start.md`（その前 `2026-10-19_rev070_071_dec140_query_tool_ntrip.md`、`2026-10-19_rev069_by_id_prm65_dec140_material.md`、`2026-10-19_rev068_septentrio_source_review.md`、`2026-10-19_rev067_gnss_calibration_tool_mosaic.md`、`2026-10-18_rev065_gnss_answers_calibration.md`、`2026-10-18_rev063_gnss_mapping_record.md`、`2026-10-17_rev061_062_stage56_implementation.md`、`2026-10-17_rev060_stage56_study_dec116.md`、`2026-10-17_rev058_059_recorder_glim_fix.md`、 `2026-10-17_rev056_057_localization_verification.md`、 `2026-10-17_rev051_localization_selection.md`、`2026-10-14_evening_maps_rosbag_analysis.md`）。引き継ぎ `reports/handover_2026-10-17.md`（前回 `handover_2026-10-14.md`） |
 | ロボット実装（新） | `gouda_interfaces/`（SoftwareMode・DecisionEvent・MotionHold・StartAutonomy・ConvertMap）、`gouda_core/`（recorder・mode_manager・monitor（地図タブの入力検査 map_tab.py）・map_creator（変換 map_convert.py、解析 map_inspect.py）・sensor_supervisor・motion_controller・vehicle_bridge、esp32_protocol・esp32_sim、web/、test/ に Ubuntu 試験 script）、`gouda.sh`（start／stop／status のみ、環境変数なし）、`setup.sh`（PC のセットアップ）、`update.sh`（main への更新）、`third_party/drivers.repos`（ドライバの commit）、試験用 `gouda_core/test/stack.sh` | 工程5-1〜5-5 |
 | firmware（新） | `firmware/gouda_esp32_v4/` | `include/gouda_v4/{protocol,config,control}.hpp`、`src/main.cpp`、`tools/gen_build_config.py`、`test/host/`。旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換え対象 |

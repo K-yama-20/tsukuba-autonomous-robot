@@ -1,0 +1,73 @@
+# 変更セット REV-069（2026-10-19 第37便: 人の指示 DEC-141 の記録、PRM-65 の承認、configure_rx を PRM-74（未確定）に）
+# 適用: design/tools/apply_revision.py REV-069
+id: REV-069
+date: '2026-10-19'
+summary: '人の指示（DEC-141、原文）: PRM-65 を承認（serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00、受信機の USB1）。センサー（IMU も GNSS も）はいつも by-id の名前で探す。GNSS の設定は /dev/serial/by-id/ の名前だけを受け付ける検査を加える（実装の許可）。DEC-140 はまだ決めず、決まるまで手でも Gouda でも septentrio のドライバを起動しない。そのため configure_rx を未確定の設定 PRM-74（決定先 DEC-140）として宣言し、値がない間 supervisor はドライバを起動しない。'
+basis_refs:
+- DEC-141
+- DEC-140
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+decisions:
+- id: DEC-141
+  kind: approval
+  status: answered
+  asked_on: null
+  answered_on: '2026-10-19'
+  channel: chat
+  question: PRM-65 の承認、センサーを by-id の名前で探すこと（GNSS の検査の実装の許可）、DEC-140 が決まるまでドライバを起動しないこと、DEC-140 の判断の材料の作成（人の指示）
+  answer_verbatim: "次の 3 点を指示する。人の回答として判断台帳に原文で記録すること。\n\n1. PRM-65（GNSS ドライバの接続先）を承認する。値は by-id の名前を使い、\n   serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00（受信機の USB1）とする。\n   ttyACM の番号では指定しない。\n\n2. Gouda が起動するときは、センサー（IMU も GNSS も）をいつも by-id の名前で探すこと。\n   IMU も mosaic-go も ttyACM になり、差す順や再接続で番号が入れ替わるため。\n   GNSS の設定（gnss_config）は、今は serial: の後ろにどんなパスでも受け付けるので、\n   IMU と同じく /dev/serial/by-id/ の名前だけを受け付け、それ以外ならドライバを起動せず理由を記録する検査を加えること（実装を許可する）。\n   単体試験を足し、IMU と GNSS を同時につないだ場合でも取り違えないこと（名前の指す実体で見張る・使用中を判定する）を確かめること。\n\n3. DEC-140（configure_rx を使うか）はまだ決めない。決まるまで、手でも Gouda でも septentrio のドライバを起動しないこと。\n   判断の材料として、configure_rx を false にした場合に受信機に先に設定しておく必要がある SBF の出力\n   （ブロック名、出力先 USB1、間隔、使うストリームの番号）と、その設定を人が行う手順の案を、\n   私の注意事項（reports/mosaic-G5_P6_取扱上の注意事項.md の §4〜§6: gso で確認してから、Res1〜4 は使わない、Boot 保存は別の工程）に沿って出すこと。\n   受信機のポートには触らないこと（読むだけでも、raw・エコー無効の確認と私の許可の後）。\n\n終わったら、変更、試験の結果、DEC-140 の判断の材料を報告すること。commit はしないこと。\n"
+  affected_refs:
+  - PRM-65
+  - ND-18
+  - ND-19
+  - ND-15
+  - DEC-140
+  resulting_refs:
+  - PRM-74
+  note: PRM-65 を承認値にした（REV-069）。「決まるまで…Gouda でも起動しない」を守るため、configure_rx を未確定の設定 PRM-74 にし、supervisor は値がない間ドライバを起動しない（AI の判断。PRM-65 だけが決まると Gouda の起動でドライバが configure_rx true のまま起動するため）。IMU の設定にも by-id の名前だけを受け付ける検査を加えた（指示の 2 の「センサー（IMU も GNSS も）をいつも by-id の名前で探すこと」。それまでは PRM-54 の値が by-id であるだけで、検査はなかった）。
+  disposition: answered
+entities:
+- id: PRM-74
+  kind: parameter
+  intent_lines:
+  - 14
+  - 103
+  name: GNSS ドライバの configure_rx（受信機の設定をドライバが書くか）
+  issue_refs:
+  - G-INIT-POSE-GNSS
+  sensitivity:
+  - operation
+  parameter:
+    owner_ref: ND-19
+    value: null
+    value_state: unresolved
+    unit: null
+    stage: 自律走行の為の最小構成
+    purpose: true なら起動のたびにドライバが受信機の全出力を止め、自分の設定を作り Boot に保存する（FILE-SEPTENTRIO-SOURCE-REVIEW）。false なら受信機の設定は人の手順で行い、ドライバは読むだけ。値がない間、supervisor はドライバを起動しない（DEC-141）
+    measurement: 不要（人の判断。DEC-140）
+    decision_deadline: ドライバの最初の起動の前
+    software_trial_value: null
+    software_trial_basis: null
+    declaration: ros_parameter
+    target: septentrio_gnss_driver
+    param_key: configure_rx
+    value_type: bool
+    apply_timing: launch
+modifications:
+- id: PRM-65
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-141
+  set_nested:
+    parameter.value: serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-141）
+    parameter.measurement: 'VM の ls -l /dev/serial/by-id/（2026-10-19。if00 が受信機の USB1: 人の資料 §3）'
+  interpretation_append: 'REV-069: DEC-141 で承認。ttyACM の番号では指定しない。by-id の名前（/dev/serial/by-id/）以外の serial の値は、ドライバを起動せず理由を記録する。'
+- id: ND-18
+  interpretation_append: 'REV-069（DEC-141）: シリアルの機器（IMU・GNSS）は /dev/serial/by-id/ の名前だけを受け付け、それ以外の値ならドライバを起動せず理由を記録する。見張り（同一性）と使用中の判定は名前の指す実体（realpath）で行い、IMU と GNSS を同時につないでも取り違えない。GNSS のドライバは configure_rx（PRM-74）が未確定の間は起動しない。'
+decision_updates:
+- id: DEC-140
+  set:
+    note: '推奨は案 2（人の資料 §5「既存の用途を上書きしない」・§6「Boot 保存は別工程」に合う）。案 2 では受信機の設定の手順（コマンドの列）を作る必要があり、AI が案を作って人が実行する（シリアルへの送信は人の確認の後）。案 2 は gnss_config の configure_rx を false にする設定の変更で、許可が要る。決まらない場合に止まる作業：ドライバの最初の起動（手順 4）。起動すると案 1 なら Boot に保存されるため、起動の前に決める。根拠 FILE-SEPTENTRIO-SOURCE-REVIEW。 2026-10-19 人の指示（DEC-141）: まだ決めない。決まるまで手でも Gouda でもドライバを起動しない。configure_rx を PRM-74（未確定）にした。'

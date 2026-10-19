@@ -17,6 +17,7 @@ as a DecisionEvent (event=settings) at start-up and on every /config save. No nu
 from __future__ import annotations
 
 import json
+import math
 import os
 import threading
 from pathlib import Path
@@ -27,7 +28,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.parameter import Parameter
-from sensor_msgs.msg import PointCloud2, Imu
+from sensor_msgs.msg import PointCloud2, Imu, NavSatFix
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
@@ -35,6 +36,7 @@ from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
 from gouda_core.monitor_core import MonitorCore, SensorConfig
+from gouda_core import monitor_core
 from gouda_core.monitor_server import MonitorServer
 from gouda_core.map_database import MapDatabase
 from gouda_core import waypoints as wpmod
@@ -121,6 +123,8 @@ class MonitorNode(Node):
         sensor_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=5)
         self.create_subscription(PointCloud2, 'sensors/xt32/points', lambda b: self._on_sensor('points', b), sensor_qos, raw=True)
         self.create_subscription(Imu, 'sensors/imu/data', lambda b: self._on_sensor('imu', b), sensor_qos, raw=True)
+        self.create_subscription(NavSatFix, 'sensors/gnss/navsatfix', lambda b: self._on_sensor('gnss', b), sensor_qos, raw=True)   # IFD-47
+        self._subscribe_gnss_detail(sensor_qos)
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
         # 地図 tab (intent.md:106): re-conversion through IFD-37 map/convert with the settings typed in the tab; the defaults
@@ -161,6 +165,22 @@ class MonitorNode(Node):
                 with self._lock:
                     self.core.on_record({kv.key: kv.value for kv in st.values} | {'level': int.from_bytes(st.level, 'big') if isinstance(st.level, bytes) else int(st.level), 'message': st.message})
         self.server.notify(self.core.connection_revision)
+
+    def _subscribe_gnss_detail(self, qos):
+        """IFD-48 / IFD-49 use the driver's own types; without the driver package the monitor says so instead of failing."""
+        try:
+            from septentrio_gnss_driver.msg import PVTGeodetic, AttEuler
+        except ImportError:
+            self.core.on_gnss_detail('note', 'septentrio_gnss_driver の型がない（ドライバ未導入）: 品質と向きは表示しない')
+            return
+        def quality(m):
+            with self._lock:
+                self.core.on_gnss_detail('quality', monitor_core.gnss_quality_text(int(m.mode), int(m.nr_sv), int(m.h_accuracy)))
+        def attitude(m):
+            with self._lock:
+                self.core.on_gnss_detail('attitude', monitor_core.gnss_attitude_text(int(m.mode), float(m.heading)))
+        self.create_subscription(PVTGeodetic, 'sensors/gnss/pvtgeodetic', quality, qos)
+        self.create_subscription(AttEuler, 'sensors/gnss/atteuler', attitude, qos)
 
     def _on_sensor(self, key: str, raw: bytes):
         with self._lock:
@@ -350,6 +370,15 @@ class MonitorNode(Node):
             req = StartAutonomy.Request(); req.request_id = str(body.get('request_id', ''))
             for k in ('map_id', 'map_revision', 'map_hash', 'waypoint_set_id', 'waypoint_set_revision', 'waypoint_set_hash'):
                 setattr(req, k, str(body.get(k, '')))
+            ip = body.get('initial_pose')   # the human's initial pose (体験 9); without it frame_id stays empty and ND-03 refuses
+            if isinstance(ip, dict):
+                try:
+                    x, y, yaw = float(ip['x']), float(ip['y']), float(ip['yaw'])
+                    req.initial_pose.header.frame_id = 'map'; req.initial_pose.header.stamp = self.get_clock().now().to_msg()
+                    req.initial_pose.pose.pose.position.x, req.initial_pose.pose.pose.position.y = x, y
+                    req.initial_pose.pose.pose.orientation.z, req.initial_pose.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
+                except (KeyError, TypeError, ValueError):
+                    pass
             ok, msg = self._call(self.start_client, req, lambda r: (bool(r.accepted), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
         elif name == 'pause':   # the pause button has its own waits (PRM-31 / PRM-32, DEC-073)
             ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_pause_service_ready_wait_s'], self.ui['ui_pause_service_response_wait_s'])

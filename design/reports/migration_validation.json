@@ -1,13 +1,13 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 5971,
+    "executed_checks": 5983,
     "violations": [
       {
         "code": "MIGRATION",
         "path": "unchanged design/docs/SystemArchitecture.drawio",
         "detail": {
-          "actual": "c958ce2f9ef83bf35898c66e7142138da2e73537428a7abebffd354e0920dd6e",
+          "actual": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
           "expected": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
         }
       },
@@ -15,7 +15,7 @@
         "code": "MIGRATION",
         "path": "model file hash FILE-DRAWIO",
         "detail": {
-          "actual": "c958ce2f9ef83bf35898c66e7142138da2e73537428a7abebffd354e0920dd6e",
+          "actual": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
           "expected": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
         }
       },
@@ -23,7 +23,7 @@
         "code": "MIGRATION",
         "path": "source matches prior extraction /Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/design/docs/SystemArchitecture.drawio",
         "detail": {
-          "actual": "c958ce2f9ef83bf35898c66e7142138da2e73537428a7abebffd354e0920dd6e",
+          "actual": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
           "expected": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
         }
       }
@@ -250,6 +250,18 @@
       "model file hash FILE-RECORDER-GLIM-FIX-VM-TEST",
       "model file hash FILE-RECORDER-GLIM-FIX-VM-TEST-SCRIPT",
       "model file hash FILE-INTENT-V11",
+      "model file hash FILE-DEC116-FASTDDS",
+      "model file hash FILE-DEC116-FASTDDS-SCRIPT",
+      "model file hash FILE-STAGE56-VM-TEST",
+      "model file hash FILE-UPSTREAM-SEPTENTRIO-GNSS-YAML",
+      "model file hash FILE-GNSS-REF-SPEC",
+      "model file hash FILE-GNSS-MAPPING-RECORD-VM-TEST",
+      "model file hash FILE-GNSS-CALIB-RESEARCH",
+      "model file hash FILE-GNSS-CALIB-FEASIBILITY",
+      "model file hash FILE-GNSS-CALIB-FEASIBILITY-SCRIPT",
+      "model file hash FILE-GNSS-RECORD-CONFIG-SNAPSHOT-VM-TEST",
+      "model file hash FILE-SEPTENTRIO-SOURCE-REVIEW",
+      "model file hash FILE-MOSAIC-BEFORE-FIRST-START",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -6005,9 +6017,9 @@
   "design_validity": {
     "result": "未判定",
     "reason": "移行検査は設計妥当性検証ではない。設計整合性は check_design.py の三値結果を参照。未設計・未確定・資料衝突を保持。",
-    "known_issue_count": 49,
+    "known_issue_count": 50,
     "known_issue_counts": {
-      "technical": 22,
+      "technical": 23,
       "source_missing": 7,
       "human": 20
     },
@@ -7490,7 +7502,7 @@
         ],
         "resolution_refs": [],
         "question": "hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION は未設定）。",
-        "next_action": "GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。VM の試験の環境への設定の追加は承認事項 DEC-116。"
+        "next_action": "GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。 2026-10-17 人の許可（DEC-116）により、試験スタック（gouda_core/test/stack.sh）だけに同じ設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた。gouda.sh・x86 機は変えていない。 VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。 残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。"
       },
       {
         "id": "G-DUP-START",
@@ -7598,7 +7610,21 @@
         ],
         "resolution_refs": [],
         "question": "intent 第11版（DEC-118）の体験 9 では、初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は収束と正しさを確認する。設計は人が指定する前提: IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05 の guard、H-007・DEC-009（PC 再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。",
-        "next_action": "自己位置推定の方式の選定（DEC-115、保留中）を再開するときに一緒に設計する。決めることの候補: GNSS の取込み（ドライバ、topic、品質の扱い）、GNSS の座標と GLIM の地図の座標の対応（地図作成時に GNSS も記録する等）、「確認」の操作（人の確認を開始の条件にするか）、PC 再起動後の扱い（DEC-009 との関係）、GNSS が使えないときの代わり（人の指定を残すか）。いずれも承認事項。"
+        "next_action": "2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009 は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。 2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。"
+      },
+      {
+        "id": "G-NAV2-FIRST-GOAL",
+        "category": "technical",
+        "state": "open",
+        "affected_refs": [
+          "ND-10",
+          "ND-03",
+          "TR-05",
+          "TR-07"
+        ],
+        "resolution_refs": [],
+        "question": "2026-10-17 の VM の試験の 1 回目（FILE-STAGE56-VM-TEST の 1）で、lifecycle の STARTUP の完了の約 50 ms 後に送った NavigateThroughPoses の goal が、bt_navigator の「Timed out while waiting for action server to acknowledge goal request for compute_path_through_poses」で失敗（status 6）し、TR-07 で一時停止した。2 回目・3 回目は起きなかった。待ちの値は上流の nav2_params.yaml の default_server_timeout（20 ms）のまま。分類は未確定（VM の遅さ、または開始の直後に goal を送る設計）。",
+        "next_action": "待ちの値は変えていない（試験を通すための延長はしない: CLAUDE.md 1.5）。今の振る舞いは安全側（一時停止に入り、人の再開 TR-10 で残りの waypoint から続けられる）。x86 機で起きるかを確かめる。起きる場合の対策の候補は承認事項にする：(a) default_server_timeout を変える（値）、(b) STARTUP の後に計画の server の準備を確かめてから goal を送る（実装）。"
       }
     ],
     "open_conflicts": [
@@ -7630,8 +7656,8 @@
   },
   "design_maturity": {
     "未設計": 409,
-    "案": 436,
-    "承認済み": 23
+    "案": 454,
+    "承認済み": 26
   },
   "revisions": [
     {
@@ -8213,6 +8239,136 @@
       "added_source_ids": 1,
       "added_file_ids": 1,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-060",
+      "date": "2026-10-17",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 2,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-061",
+      "date": "2026-10-17",
+      "basis_refs": 5,
+      "added_entity_ids": 17,
+      "modified_entity_ids": 11,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-062",
+      "date": "2026-10-17",
+      "basis_refs": 5,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 13,
+      "added_source_ids": 0,
+      "added_file_ids": 2,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-063",
+      "date": "2026-10-18",
+      "basis_refs": 3,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 7,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-064",
+      "date": "2026-10-18",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-065",
+      "date": "2026-10-18",
+      "basis_refs": 5,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 3,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-066",
+      "date": "2026-10-18",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-067",
+      "date": "2026-10-19",
+      "basis_refs": 3,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-068",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-069",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-070",
+      "date": "2026-10-19",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-071",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-072",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -8408,11 +8564,11 @@
     }
   ],
   "decisions": {
-    "count": 116,
+    "count": 140,
     "by_status": {
-      "answered": 52,
-      "recorded": 48,
-      "pending": 16
+      "answered": 70,
+      "recorded": 50,
+      "pending": 20
     },
     "pending": [
       "DEC-021",
@@ -8430,7 +8586,11 @@
       "DEC-105",
       "DEC-107",
       "DEC-115",
-      "DEC-116"
+      "DEC-127",
+      "DEC-129",
+      "DEC-134",
+      "DEC-138",
+      "DEC-139"
     ]
   },
   "vehicle_verification": {
@@ -8438,7 +8598,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 868,
+    "entity_count": 889,
     "source_count": 501,
     "id_map_count": 202,
     "legacy_198_count": 198,

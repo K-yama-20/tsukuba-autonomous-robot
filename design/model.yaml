@@ -276,6 +276,54 @@ files:
     path: design/intent.md
     sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
     role: authority
+  - id: FILE-DEC116-FASTDDS
+    path: design/research/vehicle_pc/2026-10-17_dec116_fastdds_test_stack.txt
+    sha256: 3fb8a89277ba46ca7ee87bf81201c1d3a092faa916e69297a2b184efc36dfca7
+    role: evidence
+  - id: FILE-DEC116-FASTDDS-SCRIPT
+    path: design/research/vehicle_pc/2026-10-17_dec116_pc2_check.py
+    sha256: 9006b072a67d350cb9462f46157cb1af0423578e58da2a6698ae4c8b4863a503
+    role: evidence
+  - id: FILE-STAGE56-VM-TEST
+    path: design/research/vehicle_pc/2026-10-17_stage56_vm_test.txt
+    sha256: 67f7bbc36d8f77f78adc4c831a8bc59d6f3099fc215777bc0a947e42e7477efa
+    role: evidence
+  - id: FILE-UPSTREAM-SEPTENTRIO-GNSS-YAML
+    path: design/research/upstream_sensors/septentrio_gnss_driver_1.4.8/gnss.yaml
+    sha256: 0cd18e8be1610f8e2531f1463537f6e1efed45eeb323c8d0d4e0bea0114fa563
+    role: evidence
+  - id: FILE-GNSS-REF-SPEC
+    path: design/research/gnss_reference_spec_2026-10-18.md
+    sha256: 14bb21b4278565db6b51721a30078bfa4eb6652d39da8337c69cb0052ff76859
+    role: evidence
+  - id: FILE-GNSS-MAPPING-RECORD-VM-TEST
+    path: design/research/vehicle_pc/2026-10-18_gnss_mapping_record_vm_test.txt
+    sha256: 18c99c14e7f94cd0addead14e42a90e45eb50d858866b1d074d0c96c8c3b40f5
+    role: evidence
+  - id: FILE-GNSS-CALIB-RESEARCH
+    path: design/research/gnss_calibration_research_2026-10-18.md
+    sha256: 7e047d1833815ffd23249fc10e28c555992c18c8a5f13961dca95302ec505b5d
+    role: evidence
+  - id: FILE-GNSS-CALIB-FEASIBILITY
+    path: design/research/vehicle_pc/2026-10-18_gnss_calib_feasibility/result.txt
+    sha256: b82f6b11de386d1de33d0e43ec3ed93bd8c71b2357ca2308a683313d09614a33
+    role: evidence
+  - id: FILE-GNSS-CALIB-FEASIBILITY-SCRIPT
+    path: design/research/vehicle_pc/2026-10-18_gnss_calib_feasibility/calib_sim.py
+    sha256: b7e8e7bdbfb0a9c49abe5fdc8b1e3f58e34219608058ce15b4148ff8bf316418
+    role: evidence
+  - id: FILE-GNSS-RECORD-CONFIG-SNAPSHOT-VM-TEST
+    path: design/research/vehicle_pc/2026-10-18_gnss_record_config_snapshot_vm_test.txt
+    sha256: 290c922e3cd28addac67880f9871b27776640c1cc063e215d1b764ea265829f1
+    role: evidence
+  - id: FILE-SEPTENTRIO-SOURCE-REVIEW
+    path: design/research/upstream_sensors/septentrio_gnss_driver_1.4.8/source_review_2026-10-19.md
+    sha256: c966ca9652472f528e433d8b98668ba1f6014f2414113956577a77eda7201406
+    role: evidence
+  - id: FILE-MOSAIC-BEFORE-FIRST-START
+    path: design/research/vehicle_pc/2026-10-19_mosaic_before_first_start.txt
+    sha256: 35747130e3f99399af04b0448406d05f8b8b0c3f1c24ca6ca603b4d81fcfc526
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34547,7 +34595,10 @@ entities:
       - H-009
       - G-GLIM-EXIT
       - G-INIT-POSE-GNSS
-    interpretation: ''
+      - G-NAV2-FIRST-GOAL
+    interpretation: 'REV-062: 工程 5-6 で TR-05・06・07・08・10（同じプロセスの中だけ）・11・12 を実装（autonomy_core・autonomy_client）。PC
+      再起動後の再開と自動復帰（TR-13〜16）は 5-7。 REV-063（DEC-126）: 地図作成の間（TR-03〜TR-04）、IFD-47〜50 を全項目のまま作業フォルダの gnss.jsonl に書き、原図の登録（IFD-29）で原図の横に置き、SHA-256
+      と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。'
     sensitivity:
       - safety
       - operation
@@ -34568,7 +34619,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-059
+    revision_ref: REV-063
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34616,6 +34667,10 @@ entities:
         - IFD-39
         - IFD-14
         - IFD-42
+        - IFD-47
+        - IFD-48
+        - IFD-49
+        - IFD-50
       serves_refs:
         - IFD-02
         - IFD-03
@@ -34903,12 +34958,16 @@ entities:
       - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-059
+    revision_ref: REV-061
     ros_node:
       node_name: gouda_local_odometry
       responsibilities:
         - 局所的な車体速度・角速度・姿勢の推定と odom→base_link TF の発行（自律走行・一時停止で単独の発行者）
         - nav_msgs/Odometry の公開（Nav2 controller の odom 入力、記録）
+        - '構成（DEC-123）: GLIM（ND-06 と同じ実行ファイル）を odometry だけの設定（enable_local_mapping・enable_global_mapping を false、map_frame_id=odom、odom_frame_id=odom_glim、base_frame_id=base_link、publish_imu2lidar=false）で起動し、中継の
+          node（gouda_local_odometry）が GLIM の ~/odom と IMU の角速度から IFD-25 を作る'
+        - TF の木は map →（ND-07）odom →（GLIM、単位行列）odom_glim →（GLIM）base_link。base_link の親は一つ。地図作成の GLIM 
+          とは同時に動かさない（RQ-I004）
       absorbs_module_refs:
         - M-008
       active_in_mode_refs:
@@ -34926,10 +34985,11 @@ entities:
       calls_refs: []
       owned_state_refs:
         - SO-06
-      placement_rationale: 選定する推定器が map→odom と odom→base_link の両方を提供する場合は ND-07 と同一 node に統合可（Q-02 の結論で決める）。
+      placement_rationale: 3 案（A・A3・B）に共通（提案 localization_selection.md §3、DEC-123）。ND-07 と別に作る。GLIM の起動・停止は 
+        ND-03 が行う（地図作成の GLIM と同じ glim_runner）。
   - id: ND-09
     kind: ros_node
-    name: gouda_obstacle_filter（XT-32障害物候補点群）
+    name: 障害物の扱い（独自の node なし。Nav2 costmap の VoxelLayer・ObstacleLayer の設定、DEC-122）
     source_refs:
       - SRC-I015
       - SRC-I010
@@ -34947,27 +35007,29 @@ entities:
     requirement_refs:
       - RQ-I012
       - RQ-I007
-    revision_ref: REV-002
+    revision_ref: REV-061
     ros_node:
       node_name: gouda_obstacle_filter
       responsibilities:
-        - XT-32 点群から地面・車体を除いた障害物候補点群を Nav2 costmap へ提供（M-023 の今回範囲）
-        - 無点群を周囲安全の証拠にしない（観測外を安全とみなさない：RQ-I012）
+        - XT-32 点群（IFD-21）を Nav2 の costmap の観測源として直接使い、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。独自の node は作らない（DEC-122 の案 
+          a）
+        - 無点群を周囲安全の証拠にしない（観測外を安全とみなさない：RQ-I012。track_unknown_space）
+        - 坂で地面が帯に入り障害物になる場合は、実車の記録で確かめてから独自の地面の除去（旧案、DEC-107 と同じ課題）を提案する
       absorbs_module_refs:
         - M-023
       active_in_mode_refs:
         - MODE-AUTO
         - MODE-PAUSE
-      lifecycle: lifecycle_node
-      process_group: gouda_perception
-      publishes_refs:
-        - IFD-23
+      lifecycle: external
+      process_group: nav2
+      publishes_refs: []
       subscribes_refs:
         - IFD-21
       serves_refs: []
       calls_refs: []
       owned_state_refs: []
-      placement_rationale: 自己位置推定用の元点群は加工しない。collision_stop_request の発行は未確認（H-003）で設計に含めない。
+      placement_rationale: 'REV-061（DEC-122）: 独自の node を作らず ND-10 の costmap の設定で実現する。IFD-23（perception/obstacle_points）は発行しない（costmap
+        は IFD-21 を直接購読する）。自己位置推定用の元点群は加工しない。'
   - id: ND-10
     kind: ros_node
     name: Nav2 スタック（bt_navigator・planner・controller・behavior・costmap・map_server、外部）
@@ -34993,7 +35055,10 @@ entities:
       - H-005
       - H-011
       - H-013
-    interpretation: ''
+      - Q-04
+      - G-NAV2-FIRST-GOAL
+    interpretation: 'REV-061（DEC-122）: Nav2 は lifecycle_manager の autostart を false にし、ND-03 が自律走行の開始（TR-05）で起動、手動走行への遷移（TR-11・TR-12）で停止する（IFD-36）。手動走行・地図作成では
+      inactive（map→odom の持ち主がない）。'
     sensitivity:
       - safety
       - operation
@@ -35005,16 +35070,24 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-059
+    revision_ref: REV-062
     ros_node:
       node_name: nav2_stack
       responsibilities:
         - 経路計画・追従・後退・再計画・通過／到達判定（RQ-I011・RQ-I018・RQ-I019）
-        - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15）
+        - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15。velocity_smoother を経た後の値）
         - costmap の SpeedFilter による SpeedLimit の発行と controller への適用（IFD-14、DEC-031）。mask・filter info は標準 
           server で配信（IFD-42）
         - map_server による静的地図の提供（IFD-24）
         - 設定・プラグイン・BT で拡張し本体は改変しない（RQ-I056・RQ-I057）
+        - '構成（DEC-122）: controller は Regulated Pure Pursuit、planner は NavFn、BT は上流の navigate_through_poses_w_replanning_and_recovery.xml
+          の写しに PRM-11・PRM-18 を入れたもの、behaviors は spin・backup・wait、velocity_smoother を使う、collision_monitor は使わない（RQ-I072）、cmd_vel
+          は TwistStamped（PRM-12）'
+        - 障害物は XT-32 の点群（IFD-21）を local の VoxelLayer・global の ObstacleLayer 
+          に直接入れ、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。track_unknown_space を true にして観測していない所を空きとみなさない（RQ-I012、DEC-122）
+        - 設定は上流の nav2_bringup の nav2_params.yaml を雛形に、plugin の選択、frame・topic（IF の名前）と PRM 
+          の値だけを差し込んで起動時に作る。雛形のその他の値は変えない。実車の設定（trial なし）で PRM-11・17・18・66〜73 のどれかが未確定なら Nav2 
+          を起動せず理由を記録する（RQ-I076、intent.md:85）
       absorbs_module_refs:
         - M-011
       active_in_mode_refs:
@@ -35200,13 +35273,20 @@ entities:
       - RQ-I074
       - RQ-I058
       - RQ-I076
-    revision_ref: REV-005
+    revision_ref: REV-061
     ros_node:
       node_name: gouda_static_tf
       responsibilities:
-        - base_footprint→base_link（REP-103：x前方・y左方・z上方）、base_link→各センサ frame の静的TFを単独で発行（RQ-I058）
-        - gouda_monitor の /config（IFD-26）で人が指定した LiDAR・IMU の座標方向と取付位置を読み、Nav2 前提の方向への変換を静的TFの回転として表す（DEC-007）
-        - センサ取付値は未決（RQ-I070）。値が未入力のときは TF を発行せず準備不成立として表示する
+        - base_link→base_footprint（base_footprint は base_link 
+          の真下、z=−PRM-05。REP-103：x前方・y左方・z上方）、base_link→各センサ 
+          frame（xt32_link・imu_link・gnss_link・gnss_aux1_link）の静的TFを単独で発行（RQ-I058）。base_footprint を base_link 
+          の子にするのは、odom→base_link（IFD-19）と合わせて base_link の親を一つにするため（REV-061 で直した。以前の base_footprint→base_link は
+          IFD-19 と同時に使うと base_link の親が二つになる）
+        - gouda_monitor の /config（IFD-26）で人が指定した LiDAR・IMU の座標方向と取付位置、GNSS の 2 つのアンテナの位置を読み、Nav2 
+          前提の方向への変換を静的TFの回転として表す（DEC-007）
+        - /config の UNKNOWN の項目は中立の値（移動 0、回転なし、軸は base_link の軸）で出し、その一覧を 
+          DecisionEvent（static_tf_published）に記録する（RQ-I081・DEC-122。以前の「未入力なら TF を発行しない」を置き換え）
+        - /config の保存（monitor の DecisionEvent settings）で読み直して出し直す
       absorbs_module_refs:
         - M-038
       active_in_mode_refs:
@@ -35217,14 +35297,15 @@ entities:
       process_group: gouda_core
       publishes_refs:
         - IFD-20
+        - IFD-28
       subscribes_refs:
         - IFD-26
       serves_refs: []
       calls_refs: []
       owned_state_refs:
         - SO-10
-      placement_rationale: robot_state_publisher（URDF）か static_transform_publisher かは Q-11。軸の変換は TF 
-        のみで行い、点群・IMU データ自体を書き換えない（元 topic を上書きしない）。
+      placement_rationale: static_transform_publisher ではなく小さな node（gouda_static_tf）。/config の保存で出し直すため。軸の変換は 
+        TF のみで行い、点群・IMU データ自体を書き換えない。取付の計算は GLIM の T_lidar_imu と同じ sensor_extrinsics を使う。
   - id: ND-14
     kind: ros_node
     name: hesai_ros_driver（XT-32、外部）
@@ -36401,11 +36482,12 @@ entities:
       - RQ-I020
       - RQ-I063
       - RQ-I055
-    revision_ref: REV-003
+    revision_ref: REV-062
     designed_interface:
       transport: topic
       name: cmd_vel
-      message_type: geometry_msgs/msg/Twist（jazzy 既定）／ TwistStamped（enable_stamped_cmd_vel=true の案）
+      message_type: geometry_msgs/msg/TwistStamped（PRM-12 を DEC-122 で true に承認。velocity_smoother が出し、ND-11 
+        が購読。期限切れの判定は今も受信時刻）
       standard_type: true
       custom_type_reason:
       purpose: command
@@ -36666,7 +36748,7 @@ entities:
       - RQ-I070
       - RQ-I074
       - RQ-I058
-    revision_ref: REV-004
+    revision_ref: REV-061
     designed_interface:
       transport: tf
       name: /tf_static
@@ -36684,9 +36766,11 @@ entities:
         - ND-09
         - ND-10
         - ND-16
+        - ND-19
       unit: m, rad
-      frame: base_footprint → base_link（REP-103）→ xt32_link, imu_link（センサの座標方向は /config の指定値から ND-13 
-        が回転として変換。取付値は未決 RQ-I070）
+      frame: base_link（REP-103）→ base_footprint（z=−PRM-05）, xt32_link, imu_link, gnss_link, 
+        gnss_aux1_link（センサの座標方向・取付位置は /config の指定値から ND-13 が変換。UNKNOWN は中立の値：DEC-122）。base_link の親は 
+        odom（IFD-19）だけ（REV-061 で base_footprint→base_link を逆向きに直した）
       time_semantics: 静的。設定変更時に再発行（transient_local で後続の購読者に届く）
       qos:
         reliability: reliable
@@ -36723,7 +36807,7 @@ entities:
       - RQ-I001
       - RQ-I006
       - RQ-I012
-    revision_ref: REV-047
+    revision_ref: REV-061
     designed_interface:
       transport: topic
       name: sensors/xt32/points
@@ -36739,6 +36823,7 @@ entities:
         - ND-07
         - ND-08
         - ND-09
+        - ND-10
         - ND-16
         - ND-02
       unit: m
@@ -36828,7 +36913,7 @@ entities:
       - safety
     requirement_refs:
       - RQ-I012
-    revision_ref: REV-003
+    revision_ref: REV-061
     designed_interface:
       transport: topic
       name: perception/obstacle_points
@@ -36843,7 +36928,8 @@ entities:
         - ND-10
       unit: m
       frame: xt32_link（raytrace 原点は実センサ位置。base_link への変換は IFD-20）
-      time_semantics: header.stamp は元点群の計測時刻。stale を空間が空いた証拠にしない（RQ-I012）
+      time_semantics: 'REV-061（DEC-122）: 発行しない。障害物は ND-10 の costmap が IFD-21 を直接購読して扱う（ND-09 は独自の node を持たない）。以前の定義:
+        header.stamp は元点群の計測時刻。stale を空間が空いた証拠にしない（RQ-I012）'
       qos:
         reliability: best_effort
         durability: volatile
@@ -36974,7 +37060,7 @@ entities:
       - RQ-I058
       - RQ-I076
       - RQ-I081
-    revision_ref: REV-032
+    revision_ref: REV-061
     designed_interface:
       transport: parameter
       name: gouda_monitor /config → 永続化 YAML → ND-13 の ROS parameter
@@ -36990,7 +37076,8 @@ entities:
         - ND-03
       unit: m, rad。軸の向き（lidar_axis_mapping・imu_axis_mapping）はセンサ自身の x・y・z 軸が base_link のどちらを向くかの文（例「+x 
         forward, +y left, +z up」。 向きは forward／back／left／right／up／down または 前／後／左／右／上／下）。姿勢は R = R_rpy × A（A 
-        の列がセンサ軸、roll・pitch・yaw は base_link で軸の向きの後に適用）。 左手系の指定は回転として使えないため保存時に警告し、使用時は base_link の軸で置き換えて記録する
+        の列がセンサ軸、roll・pitch・yaw は base_link で軸の向きの後に適用）。 左手系の指定は回転として使えないため保存時に警告し、使用時は base_link 
+        の軸で置き換えて記録する。GNSS の主アンテナ（gnss_main_mount_x/y/z_m）と副アンテナ（gnss_aux1_mount_x/y/z_m）は位置だけ（REV-061）
       frame: base_link（REP-103）→ sensor frames。センサ座標方向の指定値は人が gouda_monitor で入力（DEC-007）
       time_semantics: 設定版を記録。実行中の黙った変更はしない。変更は記録（RQ-I015：設定変更後に記録）。座標方向の指定を変えた場合は静的TFを再発行し設定版を更新。 GLIM 
         へは地図作成開始（TR-03）の時点の値と設定版を渡して記録し、地図作成中の変更はその地図作成には反映しない。 取付値は人が gouda_monitor 
@@ -37082,7 +37169,7 @@ entities:
       - RQ-I029
       - RQ-I030
       - RQ-I032
-    revision_ref: REV-034
+    revision_ref: REV-061
     designed_interface:
       transport: topic
       name: log/decision
@@ -37097,6 +37184,7 @@ entities:
         - ND-12
         - ND-02
         - ND-18
+        - ND-13
       consumer_refs:
         - ND-04
       unit:
@@ -37131,13 +37219,15 @@ entities:
     related_refs: []
     issue_refs:
       - G-ARCH
-    interpretation: ''
+    interpretation: 'REV-063（DEC-126）: 原図の横に gnss.jsonl（地図作成の間の GNSS の記録）を置き、source_manifest.json の gnss に SHA-256
+      と行数を書く。原図（source/）の content_hash には含めない。 REV-067: 地図作成の開始の時の /config（sensor_config.json）の写しを原図の横に置き、source_manifest.json
+      の sensor_config に SHA-256 を書く（GNSS の較正の入力）。'
     sensitivity: []
     requirement_refs:
       - RQ-I008
       - RQ-I009
       - RQ-I078
-    revision_ref: REV-042
+    revision_ref: REV-067
     designed_interface:
       transport: file
       name: <data_root>/maps/{origin_id}/{source|converted/{revision}}/ ＋ manifest、index.json
@@ -37671,7 +37761,10 @@ entities:
       - H-001
       - H-005
       - G-INIT-POSE-GNSS
-    interpretation: ''
+      - G-NAV2-FIRST-GOAL
+    interpretation: 'REV-062: 実装（工程 5-6）。guard は、Nav2 の設定がそろっている（nav2_config で未確定の値がない）、waypoint セット・速度マスク・変換後地図のハッシュの一致、地図の座標の初期姿勢、ND-07
+      の node（gouda_global_localization）があること。ND-08（GLIM の odometry だけ）は TR-05 の中で起動する。開始の手順の失敗は TR-07（stop_reason
+      node_failure）で一時停止。'
     sensitivity:
       - safety
       - operation
@@ -37681,7 +37774,7 @@ entities:
       - RQ-I015
       - RQ-I004
       - RQ-I078
-    revision_ref: REV-059
+    revision_ref: REV-062
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-AUTO
@@ -37752,7 +37845,8 @@ entities:
     adoption: designed_proposal
     field_bindings: {}
     related_refs: []
-    issue_refs: []
+    issue_refs:
+      - G-NAV2-FIRST-GOAL
     interpretation: ''
     sensitivity:
       - safety
@@ -37761,7 +37855,7 @@ entities:
       - RQ-I012
       - RQ-I018
       - RQ-I029
-    revision_ref: REV-010
+    revision_ref: REV-062
     transition:
       from_mode_ref: MODE-AUTO
       to_mode_ref: MODE-PAUSE
@@ -38522,37 +38616,39 @@ entities:
     source_refs:
       - SRC-I091
       - SRC-I080
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-01
       - V-001
-    interpretation: 案は true（TwistStamped で期限切れ判定を可能にする）。採用版の既定値と対応は V-001 の照合後に確定。
+    interpretation: '案は true（TwistStamped で期限切れ判定を可能にする）。採用版の既定値と対応は V-001 の照合後に確定。 REV-061: DEC-122 で TwistStamped（true）を承認。ND-11
+      の購読の型を合わせる。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I055
-    revision_ref: REV-006
+    revision_ref: REV-061
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: true
+      value_state: approved
       unit:
       stage: 車体出力
       purpose: cmd_vel を TwistStamped にして期限切れ判定を可能にする
       measurement: 不要（設定選択）
-      decision_deadline: motion_controller の実装前
-      software_trial_value: true
-      software_trial_basis: 案（TwistStamped）。実車採用値ではなく設定選択
+      decision_deadline: 決定済み（DEC-122）
+      software_trial_value:
+      software_trial_basis: 承認済みの設定選択のため仮値なし
       declaration: ros_parameter
       target: controller_server
       param_key: enable_stamped_cmd_vel
       value_type: bool
       apply_timing: launch
+    approval_decision_ref: DEC-122
   - id: P-001
     kind: issue
     name: intent.md:99 の座標系文言の更新案（人の作業）
@@ -39003,12 +39099,15 @@ entities:
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-011
+    revision_ref: REV-062
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
-      procedure: 速度マスク（IFD-41）と filter info を Nav2 の mask 用 map_server・costmap_filter_info_server 
-        に読み込ませてから自律走行開始（IFD-02）を1回行う。開始地点は区間 0 の帯内。
+      procedure: '速度マスク（IFD-41）と filter info を Nav2 の mask 用 map_server・costmap_filter_info_server に読み込ませてから自律走行開始（IFD-02）を1回行う。開始地点は区間
+        0 の帯内。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が
+        ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: 初期位置を区間 0 の帯の中（1.5, 0）にして開始。SpeedFilter が mask・filter info
+        を受け、speed_limit を出し、speed_limit_application_state が applied（適用中）になってから motion_hold=false（DEC-056）。値の量子化（PRM-20
+        の刻み）の照合は未実行。'
       observe: speed_limit topic の受信内容と受信時刻、SpeedFilter のログ。
       expected: 開始直後に区間 0 の上限（percentage=false, m/s、PRM-20 の刻みに量子化）が1回発行される。値 0.0（無制限）は帯内では発行されない。 
         帯外（cell=0）から開始した場合は Nav2 の挙動どおり無制限で、speed_limit_application_state に「帯外・無制限」が記録される（DEC-045・DEC-047）。
@@ -39124,11 +39223,14 @@ entities:
       - RQ-I017
       - RQ-I012
       - RQ-I067
-    revision_ref: REV-010
+    revision_ref: REV-062
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
-      procedure: Nav2 stub が result SUCCEEDED を返す場合と、error_code≠NONE で終了する場合を別々に与える。
+      procedure: 'Nav2 stub が result SUCCEEDED を返す場合と、error_code≠NONE で終了する場合を別々に与える。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2
+        の loopback_sim が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: SUCCEEDED → TR-08（一時停止、remaining=1、stop_reason
+        goal_reached）を確認。失敗は 1 回目の実行で起きた goal の失敗（status 6）→ TR-07（一時停止、stop_reason plan_failure、残りの waypoint を保持）を確認（意図して起こしたものではない:
+        G-NAV2-FIRST-GOAL）。error_code の記録は 0（BT の受理の待ちの失敗で error_code が付かない）。'
       observe: IFD-01 のモード・残 waypoint・停止原因区分、記録。
       expected: SUCCEEDED → 一時停止、remaining=[最終 waypoint]。失敗 → 一時停止、停止原因区分に Nav2 の error_code/error_msg が記録され、残
         waypoint は保持される。
@@ -40281,12 +40383,14 @@ entities:
       - RQ-I029
       - RQ-I031
       - RQ-I033
-    revision_ref: REV-010
+    revision_ref: REV-062
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
-      procedure: (1) mask・filter info を配信せずに自律走行開始を試みる。(2) 配信後、ロボット位置を mask 範囲外に置く。(3) 帯外（cell=0）に置く。(4) 
-        帯内に置く。
+      procedure: '(1) mask・filter info を配信せずに自律走行開始を試みる。(2) 配信後、ロボット位置を mask 範囲外に置く。(3) 帯外（cell=0）に置く。(4) 帯内に置く。
+        実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が ND-07・ND-08
+        の代わり、ESP32 は esp32_sim、センサー・車体なし）: (3) 帯外（初期位置 0, 0）で outside_band を記録し hold は外れない、(4) 帯内で applied を記録し
+        hold が外れる、を確認。(1)（mask なしの開始）・(2)（マスク外）は未実行。'
       observe: IFD-01 の speed_limit_application_state、DecisionEvent の記録、monitor の表示、speed_limit topic の受信。
       expected: (1) 未読込・上限なし が記録・表示され、開始は保留される。(2) マスク外・直前値保持。(3) 帯外・無制限。(4) 適用中（値）。いずれも記録だけで再現でき、SpeedLimit 
         の発行元は Nav2 の SpeedFilter のみ。
@@ -40660,12 +40764,14 @@ entities:
     requirement_refs:
       - RQ-I025
       - RQ-I064
-    revision_ref: REV-011
+    revision_ref: REV-062
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
-      procedure: 起動（直前モード記録なし／手動走行／自律走行の 3 条件）、復帰（TR-13 の stub）、monitor の再接続、を自律走行開始ボタン（IFD-02）を押さずに行う。最後に 
-        IFD-02 を 1 回呼ぶ。
+      procedure: '起動（直前モード記録なし／手動走行／自律走行の 3 条件）、復帰（TR-13 の stub）、monitor の再接続、を自律走行開始ボタン（IFD-02）を押さずに行う。最後に IFD-02
+        を 1 回呼ぶ。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim
+        が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: 起動の直後（手動走行）に goal はなく hold=true。初期位置なしの開始と ND-07 なしの開始は拒否され
+        goal は送られない。IFD-02 を 1 回呼ぶと追加の承認なしに goal が送られる。PC 再起動・復帰（TR-13）・monitor の再接続の条件は未実行。'
       observe: NavigateThroughPoses goal の送信の有無と時刻、motion_hold の値、IFD-01 のモード。
       expected: IFD-02 を呼ぶまで goal は送信されず motion_hold=true のまま。起動後は手動走行（TR-01）か一時停止（TR-02）。IFD-02 を 1 
         回呼ぶと追加の承認なしに goal が送信される（RQ-I025・RQ-I011、TR-05）。復帰（TR-13）での再 goal は自律走行中に限られる。
@@ -42446,13 +42552,14 @@ entities:
     issue_refs:
       - G-DUP-START
       - G-LIDAR-DROPOUT
-    interpretation: ''
+    interpretation: 'REV-069（DEC-141）: シリアルの機器（IMU・GNSS）は /dev/serial/by-id/ の名前だけを受け付け、それ以外の値ならドライバを起動せず理由を記録する。見張り（同一性）と使用中の判定は名前の指す実体（realpath）で行い、IMU
+      と GNSS を同時につないでも取り違えない。GNSS のドライバは configure_rx（PRM-74）が未確定の間は起動しない。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I004
       - RQ-I076
-    revision_ref: REV-048
+    revision_ref: REV-069
     ros_node:
       node_name: gouda_sensor_supervisor
       responsibilities:
@@ -42696,7 +42803,7 @@ entities:
     requirement_refs:
       - RQ-I005
       - RQ-I006
-    revision_ref: REV-057
+    revision_ref: REV-060
     issue:
       category: technical
       state: open
@@ -42716,7 +42823,9 @@ entities:
         機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は
         x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast
         DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約
-        2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。VM の試験の環境への設定の追加は承認事項 DEC-116。'
+        2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。 2026-10-17 人の許可（DEC-116）により、試験スタック（gouda_core/test/stack.sh）だけに同じ設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた。gouda.sh・x86
+        機は変えていない。 VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。
+        残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。'
   - id: PRM-60
     kind: parameter
     name: XT-32 の回転数（点群の周波数）
@@ -43404,7 +43513,7 @@ entities:
       - operation
       - intent
     requirement_refs: []
-    revision_ref: REV-059
+    revision_ref: REV-065
     issue:
       category: technical
       state: open
@@ -43423,8 +43532,831 @@ entities:
         IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05 の guard、H-007・DEC-009（PC
         再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク
         RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。'
-      next_action: '自己位置推定の方式の選定（DEC-115、保留中）を再開するときに一緒に設計する。決めることの候補: GNSS の取込み（ドライバ、topic、品質の扱い）、GNSS の座標と GLIM
-        の地図の座標の対応（地図作成時に GNSS も記録する等）、「確認」の操作（人の確認を開始の条件にするか）、PC 再起動後の扱い（DEC-009 との関係）、GNSS が使えないときの代わり（人の指定を残すか）。いずれも承認事項。'
+      next_action: '2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で
+        GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009
+        は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。
+        2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は
+        DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。'
+  - id: ND-19
+    kind: ros_node
+    name: septentrio_gnss_driver（mosaic-go G5 P6、デュアルアンテナ、外部）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: 'REV-068: 上流 v1.4.8 のソースの確認（FILE-SEPTENTRIO-SOURCE-REVIEW）。configure_rx true は起動のたびに受信機の全出力を止め、最後に
+      Boot に保存する。gnss の種類では TF から主→副の方位・仰角のオフセット（sto）だけを設定し、主アンテナの位置は補正しない。configure_rx の扱いは DEC-140。 REV-070（DEC-140）:
+      configure_rx true。最初の起動の前後で受信機の gso と getDataInOut を記録する（人の指示）。 REV-072: 最初の起動の前の受信機の状態（FILE-MOSAIC-BEFORE-FIRST-START）:
+      SBF の Stream1〜3 は block の組があり off、Stream4〜10・Res1〜4 は none・off。全接続先の入力 auto・出力 SBF+NMEA。ファームウェア 1.1.1。'
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-072
+    ros_node:
+      node_name: septentrio_gnss_driver
+      responsibilities:
+        - mosaic-go の位置（NavSatFix、IFD-47）、測位の品質（PVTGeodetic の 
+          mode・衛星数、IFD-48）、デュアルアンテナの向き（AttEuler、IFD-49）を出す。その他の上流の topic（gpsfix・pose・共分散・diagnostics 
+          など）は上流の設定の雛形のまま出し、記録だけに使う
+        - 設定は上流の config/gnss.yaml 
+          を雛形に、接続先（PRM-65）、frame（gnss_link・gnss_aux1_link・base_link）、受信機の種類（gnss、multi_antenna）を差し込んで起動時に作る。雛形のその他の値は変えない
+        - アンテナの位置は TF（ND-13 が /config から出す 
+          base_link→gnss_link・gnss_aux1_link）から読む（get_spatial_config_from_tf）。ドライバ自身は TF を出さない
+        - ネットワーク RTK の補正の設定は、x86 機の <data_root>/config/gnss_rtk.yaml（人が置く。公開のリポジトリに入れない）があればその rtk_settings 
+          を使い、なければ補正なし（DEC-125）
+        - 時刻は PC の時刻（use_gnss_time false。他のセンサーと同じ時計）
+      absorbs_module_refs: []
+      active_in_mode_refs:
+        - MODE-MANUAL
+        - MODE-MAP
+        - MODE-AUTO
+        - MODE-PAUSE
+      lifecycle: external
+      process_group: sensors
+      publishes_refs:
+        - IFD-47
+        - IFD-48
+        - IFD-49
+        - IFD-50
+      subscribes_refs:
+        - IFD-20
+      serves_refs: []
+      calls_refs: []
+      owned_state_refs: []
+      placement_rationale: '第三者ドライバ（apt の Jazzy 1.4.8、改変しない。DEC-075 と同じ方針）。gouda_sensor_supervisor（ND-18）が子プロセスとして起動し、接続先の機器が再接続されたときだけ作り直す（DEC-088
+        の規則）。 すべてのモードで動かし、地図作成の時にも記録する（地図と GNSS の座標の対応に使う: DEC-124）。走行の判断には使わない（初期位置の方針は DEC-124 の詳細の設計の後）。'
+  - id: IFD-47
+    kind: designed_interface
+    name: sensors/gnss/navsatfix（GNSS の位置）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-063
+    designed_interface:
+      transport: topic
+      name: sensors/gnss/navsatfix
+      message_type: sensor_msgs/msg/NavSatFix
+      standard_type: true
+      custom_type_reason:
+      purpose: data
+      owner_ref: ND-19
+      publisher_refs:
+        - ND-19
+      consumer_refs:
+        - ND-02
+        - ND-04
+        - ND-03
+      unit: 度（緯度・経度）、m（楕円体高）、m²（共分散）
+      frame: gnss_link（主アンテナ。base_link からの位置は IFD-20）
+      time_semantics: header.stamp は PC の時刻（use_gnss_time false）。status は上流の対応（RTK の fix と float の区別は IFD-48 の
+        mode で見る）
+      qos:
+        reliability: reliable
+        durability: volatile
+        history_depth:
+      version_dependency:
+        status: none
+        evidence: []
+        note: 上流 septentrio_gnss_driver 1.4.8（apt、Jazzy）の config/gnss.yaml で publish.navsatfix=true。QoS 
+          は上流の既定（導入後に確かめる）
+      legacy_refs: []
+  - id: IFD-48
+    kind: designed_interface
+    name: sensors/gnss/pvtgeodetic（測位の品質：RTK fix／float／単独、衛星数）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-063
+    designed_interface:
+      transport: topic
+      name: sensors/gnss/pvtgeodetic
+      message_type: septentrio_gnss_driver/msg/PVTGeodetic
+      standard_type: false
+      custom_type_reason: 上流ドライバの型（Septentrio の SBF の PVTGeodetic）。RTK の fix と float の区別（mode）と衛星数を標準の 
+        NavSatFix は持たない。Gouda は型を定義しない
+      purpose: diagnostic
+      owner_ref: ND-19
+      publisher_refs:
+        - ND-19
+      consumer_refs:
+        - ND-02
+        - ND-04
+        - ND-03
+      unit: mode（SBF の定義の番号）、nr_sv（個）
+      frame:
+      time_semantics: header.stamp は PC の時刻。monitor は mode を表示に使うだけで停止の条件にしない
+      qos:
+        reliability: reliable
+        durability: volatile
+        history_depth:
+      version_dependency:
+        status: none
+        evidence: []
+        note: 上流 septentrio_gnss_driver 1.4.8。monitor は型が入っていないときは「ドライバ未導入」と表示する
+      legacy_refs: []
+  - id: IFD-49
+    kind: designed_interface
+    name: sensors/gnss/atteuler（デュアルアンテナの向き）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-063
+    designed_interface:
+      transport: topic
+      name: sensors/gnss/atteuler
+      message_type: septentrio_gnss_driver/msg/AttEuler
+      standard_type: false
+      custom_type_reason: 上流ドライバの型（SBF の AttEuler）。デュアルアンテナの向きとその有効性を標準型で表せない。Gouda は型を定義しない
+      purpose: data
+      owner_ref: ND-19
+      publisher_refs:
+        - ND-19
+      consumer_refs:
+        - ND-02
+        - ND-04
+        - ND-03
+      unit: 度（heading・pitch。上流の定義）
+      frame: base_link の向き（use_ros_axis_orientation true、アンテナの位置は IFD-20 の gnss_link・gnss_aux1_link から上流が補正）
+      time_semantics: header.stamp は PC の時刻。向きが無効なとき上流は無効の値を出す（表示で区別する）
+      qos:
+        reliability: reliable
+        durability: volatile
+        history_depth:
+      version_dependency:
+        status: none
+        evidence: []
+        note: 上流 septentrio_gnss_driver 1.4.8
+      legacy_refs: []
+  - id: PRM-65
+    kind: parameter
+    name: GNSS ドライバの接続先（mosaic-go）
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: '2026-10-19 人の回答（DEC-125）: しばらくは VM で実機試験、mosaic-go は USB 接続。値（tcp の USB イーサネットか serial の by-id）は
+      mosaic-go を VM につないで AI が確かめる（2026-10-19 の時点では VM に接続されていなかった）。 REV-069: DEC-141 で承認。ttyACM の番号では指定しない。by-id
+      の名前（/dev/serial/by-id/）以外の serial の値は、ドライバを起動せず理由を記録する。'
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-069
+    parameter:
+      owner_ref: ND-19
+      value: serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: septentrio_gnss_driver の device（tcp://<IP>:<port> か serial:/dev/serial/by-id/...）。supervisor 
+        はこの名前で機器を見張る（serial は by-id の名前、tcp は IP を含むネットワークの I/F）
+      measurement: 'VM の ls -l /dev/serial/by-id/（2026-10-19。if00 が受信機の USB1: 人の資料 §3）'
+      decision_deadline: 決定済み（DEC-141）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: septentrio_gnss_driver
+      param_key: device
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-141
+  - id: PRM-66
+    kind: parameter
+    name: Nav2 の前進の最高速度
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I084
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m/s
+      stage: 自律走行の為の最小構成
+      purpose: RPP の desired_linear_vel と velocity_smoother の max_velocity（x）。区間の速度上限（IFD-14）はこれより低い値だけが効く
+      measurement: 人の決定（Q-06、車体の性能と運用）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 0.5
+      software_trial_basis: 上流 jazzy の nav2_params.yaml（1.3.13 と同一）の velocity_smoother の max_velocity（x 
+        0.5）。VM の模擬の試験用で実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: max_linear_velocity_mps
+      value_type: double
+      apply_timing: launch
+  - id: PRM-67
+    kind: parameter
+    name: Nav2 の最大の角速度
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I084
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: rad/s
+      stage: 自律走行の為の最小構成
+      purpose: velocity_smoother の max_velocity（yaw）、RPP の rotate_to_heading_angular_vel、behavior_server の 
+        max_rotational_vel
+      measurement: 人の決定（Q-06）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 1.0
+      software_trial_basis: 上流 jazzy の nav2_params.yaml の behavior_server の max_rotational_vel（1.0）。同じ雛形の 
+        velocity_smoother の max_velocity（yaw）は 2.0 で、3 か所に一つの値を使うため低い方にした。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: max_angular_velocity_radps
+      value_type: double
+      apply_timing: launch
+  - id: PRM-68
+    kind: parameter
+    name: Nav2 の前進の加速度・減速度の上限
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I084
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m/s²
+      stage: 自律走行の為の最小構成
+      purpose: velocity_smoother の max_accel（x）と max_decel（x、符号を反転）
+      measurement: 実車の加減速の実測と人の決定（Q-06）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 2.5
+      software_trial_basis: 上流 jazzy の nav2_params.yaml の velocity_smoother の max_accel（x）。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: linear_accel_limit_mps2
+      value_type: double
+      apply_timing: launch
+  - id: PRM-73
+    kind: parameter
+    name: Nav2 の旋回の角加速度・角減速度の上限
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I084
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: rad/s²
+      stage: 自律走行の為の最小構成
+      purpose: velocity_smoother の max_accel（yaw）と max_decel（yaw、符号を反転）
+      measurement: 実車の旋回の実測と人の決定（Q-06）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 3.2
+      software_trial_basis: 上流 jazzy の nav2_params.yaml の velocity_smoother の max_accel（yaw）。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: angular_accel_limit_radps2
+      value_type: double
+      apply_timing: launch
+  - id: PRM-69
+    kind: parameter
+    name: Nav2 の footprint（base_link 基準の多角形）
+    source_refs:
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+      - H-005
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m（Nav2 の footprint の文字列「[[x1, y1], [x2, y2], ...]」）
+      stage: 自律走行の為の最小構成
+      purpose: local・global の costmap の footprint。intent.md:100 は外形 1,010×598 mm 
+        と原点（後輪の駆動軸の中央）を与えるが、直方体の前後の位置は与えていない
+      measurement: 車体の前端・後端の後輪軸からの距離の実測（Q-06）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: '[[0.505, 0.299], [0.505, -0.299], [-0.505, -0.299], [-0.505, 0.299]]'
+      software_trial_basis: 外形 1,010×598 mm（PRM-01・02）を base_link の中心に置いた長方形。前後の位置は仮（実車の位置ではない）。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: footprint
+      value_type: string
+      apply_timing: launch
+  - id: PRM-70
+    kind: parameter
+    name: 障害物とみなす点の高さの下限（base_link 基準）
+    source_refs:
+      - SRC-I015
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-04
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I012
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 自律走行の為の最小構成
+      purpose: costmap の VoxelLayer・ObstacleLayer の 
+        min_obstacle_height。これより低い点（地面）は障害物にしない。坂では地面が帯に入りうる（DEC-122 の注意）
+      measurement: 実車の地図・走行の記録での確認（Q-04）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 0.1
+      software_trial_basis: 仮値（VM の試験用。base_link の高さ PRM-05 0.165 m より地面側の点を除く程度）。実車採用値ではない
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: obstacle_min_height_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-71
+    kind: parameter
+    name: 障害物とみなす点の高さの上限（base_link 基準）
+    source_refs:
+      - SRC-I015
+      - SRC-I100-V3
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-04
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I012
+      - RQ-I074
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 自律走行の為の最小構成
+      purpose: costmap の VoxelLayer・ObstacleLayer の max_obstacle_height。車体より高い点（木の枝など）を障害物にしない
+      measurement: 車高（PRM-03）と実車の記録での確認（Q-04）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 0.95
+      software_trial_basis: 車高 PRM-03（intent.md:100 の 950 mm）。base_link の高さとの差は考えていない仮値。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: obstacle_max_height_m
+      value_type: double
+      apply_timing: launch
+  - id: PRM-72
+    kind: parameter
+    name: costmap の膨張半径
+    source_refs:
+      - SRC-I015
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - C-018
+    issue_refs:
+      - Q-06
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I012
+    revision_ref: REV-061
+    parameter:
+      owner_ref: ND-10
+      value:
+      value_state: unresolved
+      unit: m
+      stage: 自律走行の為の最小構成
+      purpose: local・global の costmap の InflationLayer の inflation_radius（障害物からどれだけ離れて計画するか）
+      measurement: 人の決定（Q-06、歩道の幅と車幅）
+      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      software_trial_value: 0.7
+      software_trial_basis: 上流 jazzy の nav2_params.yaml の local_costmap と global_costmap の 
+        inflation_radius（0.7）。試験用
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: inflation_radius_m
+      value_type: double
+      apply_timing: launch
+  - id: TS-35
+    kind: test
+    name: GNSS の取込み（ドライバの起動、記録、表示）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-19
+      - ND-18
+      - ND-02
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - PRM-65
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-071
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。
+        実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB
+        の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき
+        driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。
+        2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は
+        Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl
+        に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。 2026-10-19 追加（REV-069・071）:
+        by-id の名前だけを受け付ける検査と IMU・GNSS の同時接続の取り違えがないこと（test_serial_by_id.py 3 件、test_gnss_config.py）、最初の起動の前後の記録の道具（test_septentrio_query.py
+        3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。'
+      observe: DecisionEvent（driver_started・driver_not_started）、monitor の GNSS の表示（受信・品質・衛星数・向き）、rosbag の 
+        topic の一覧
+      expected: 接続先が決まっていればドライバが起動し、IFD-47〜49 が記録・表示される。未確定なら起動せず理由が記録・表示される。表示だけで停止の条件にしない
+  - id: TS-36
+    kind: test
+    name: 静的 TF（ND-13）の発行
+    source_refs:
+      - SRC-I098
+      - SRC-I100-V3
+      - SRC-I105-V8
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-13
+      - IFD-20
+      - IFD-26
+      - PRM-05
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I070
+      - RQ-I074
+      - RQ-I081
+    revision_ref: REV-062
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 単体（取付の値から TF を作る、UNKNOWN の項目は中立で記録）。VM の試験スタックで /tf_static を受け、/config を保存して出し直されることを確かめる 
+        単体（test_sensor_extrinsics.py の 2 件）は合格。VM の試験スタックで /config を保存すると revision 1 の静的 TF 
+        が出し直され、base_link→gnss_aux1_link が (-0.5, 0, 1.1)、base_link→base_footprint が (0, 0, -0.165) 
+        になることを確認（FILE-STAGE56-VM-TEST の 3。最初は rclpy の StaticTransformBroadcaster が同じ子の frame 
+        を置き換えず古い値のままだった。実装を直した）。
+      observe: /tf_static の 
+        base_footprint→base_link・base_link→xt32_link・imu_link・gnss_link・gnss_aux1_link、DecisionEvent（static_tf_published）
+      expected: 各 TF が一つの発行者（ND-13）から出る。UNKNOWN の項目は中立の値で出し、その一覧が記録される。/config の保存で出し直される
+  - id: TS-37
+    kind: test
+    name: Nav2 の設定の生成と起動の可否
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I082-V10
+      - SRC-I085
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-10
+      - PRM-11
+      - PRM-12
+      - PRM-17
+      - PRM-18
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - PRM-73
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I084
+      - RQ-I083
+      - RQ-I060
+    revision_ref: REV-062
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 単体（上流の nav2_params.yaml を雛形に、plugin の選択と PRM の値を差し込む。未確定の値があれば実車では生成しない）。VM の試験スタックで Nav2 
+        を起動し lifecycle の状態を見る 単体（test_nav2_config.py 8 件）は合格。VM の試験スタック（trial）で Nav2 の各 server は起動の後 
+        unconfigured のまま（autostart false）、TR-05 で STARTUP、TR-11・TR-12 で RESET 
+        を確認（FILE-STAGE56-VM-TEST）。実車の設定（trial なし）では未確定の値のため Nav2 を起動しないことは単体で確認（ROS 上は未実行）。
+      observe: 生成した設定ファイル、DecisionEvent（nav2_configured・nav2_not_configured）、lifecycle_manager の状態
+      expected: 実車の設定（trial なし）では PRM-66〜73 などが未確定の間 Nav2 を起動せず理由を記録する。試験（trial）では仮値で起動し、自律走行・一時停止以外では 
+        inactive
+  - id: TS-38
+    kind: test
+    name: ND-08（GLIM の odometry だけ＋中継）
+    source_refs:
+      - SRC-I007
+      - SRC-I083
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - ND-08
+      - IFD-25
+      - IFD-19
+      - ND-06
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I004
+      - RQ-I058
+    revision_ref: REV-062
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: 単体（GLIM の odometry だけの設定の生成、中継の変換）。記録の再生で localization/odometry と odom→base_link を確かめる 
+        単体（test_local_odometry.py 5 件）は合格。TR-05 で GLIM（odometry だけ）が起動し、TR-11・TR-12 で停止することを VM で確認（センサーなしのため 
+        odometry は出ない）。記録の再生での確認は未実行（外付けの SSD が接続されていない）。
+      observe: localization/odometry（frame・速度・角速度）、TF の木（map→odom→odom_glim→base_link で base_link の親が一つ）
+      expected: odom→base_link が一つの経路だけで得られ、速度と角速度が入る。地図作成の GLIM と同時に動かない
+  - id: G-NAV2-FIRST-GOAL
+    kind: issue
+    name: Nav2 の有効化の直後の goal が、BT の計画の受理の待ち（上流の雛形の default_server_timeout 20 ms）を超えて失敗することがある（VM、1 回、再現しない）
+    source_refs:
+      - SRC-I014
+      - SRC-I015
+      - SRC-I024
+      - SRC-I025
+      - SRC-I026
+      - SRC-I081
+      - SRC-I082
+      - SRC-I007
+      - SRC-I016
+      - SRC-I017
+      - SRC-I019
+      - SRC-I021
+      - SRC-I036
+      - SRC-I037
+      - SRC-I092
+      - SRC-I093
+      - SRC-I094
+      - SRC-I095
+      - SRC-I097
+      - SRC-I013
+      - SRC-I041
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs: []
+    revision_ref: REV-062
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-10
+        - ND-03
+        - TR-05
+        - TR-07
+      resolution_refs: []
+      question: 2026-10-17 の VM の試験の 1 回目（FILE-STAGE56-VM-TEST の 1）で、lifecycle の STARTUP の完了の約 50 ms 後に送った 
+        NavigateThroughPoses の goal が、bt_navigator の「Timed out while waiting for action server to acknowledge 
+        goal request for compute_path_through_poses」で失敗（status 6）し、TR-07 で一時停止した。2 回目・3 回目は起きなかった。待ちの値は上流の 
+        nav2_params.yaml の default_server_timeout（20 ms）のまま。分類は未確定（VM の遅さ、または開始の直後に goal を送る設計）。
+      next_action: '待ちの値は変えていない（試験を通すための延長はしない: CLAUDE.md 1.5）。今の振る舞いは安全側（一時停止に入り、人の再開 TR-10 で残りの waypoint から続けられる）。x86
+        機で起きるかを確かめる。起きる場合の対策の候補は承認事項にする：(a) default_server_timeout を変える（値）、(b) STARTUP の後に計画の server の準備を確かめてから
+        goal を送る（実装）。'
+  - id: IFD-50
+    kind: designed_interface
+    name: sensors/gnss/attcoveuler（デュアルアンテナの向きの共分散）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-063
+    designed_interface:
+      transport: topic
+      name: sensors/gnss/attcoveuler
+      message_type: septentrio_gnss_driver/msg/AttCovEuler
+      standard_type: false
+      custom_type_reason: 上流ドライバの型（SBF の AttCovEuler）。向きの分散を標準型で表せない。Gouda は型を定義しない
+      purpose: diagnostic
+      owner_ref: ND-19
+      publisher_refs:
+        - ND-19
+      consumer_refs:
+        - ND-03
+        - ND-04
+      unit: 度²（上流の定義。原本未照合）
+      frame:
+      time_semantics: header.stamp は PC の時刻。地図作成の間の記録（DEC-126）と、方位の品質の判定（tbd）に使う
+      qos:
+        reliability: reliable
+        durability: volatile
+        history_depth:
+      version_dependency:
+        status: none
+        evidence: []
+        note: 上流 septentrio_gnss_driver 1.4.8 の gnss.yaml で publish.attcoveuler=true
+      legacy_refs: []
+  - id: TS-39
+    kind: test
+    name: GNSS の外部パラメータの較正（DEC-135 の検証の道具）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - DEC-135
+      - DEC-136
+      - IFD-29
+      - ND-19
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+    revision_ref: REV-067
+    test:
+      execution_status: 未実行
+      stage: 自律走行の為の最小構成
+      procedure: '単体（test_gnss_calibration.py 5 件、合成のデータを原図の形のファイルで）: ENU の往復、較正の走行で真値に戻る、方位の定義の違いを残差で見分ける、直線の走行は走行の内容に出る、RTK
+        fix だけを使う。Mac・VM で合格（2026-10-18）。実データ（人の実験走行、DEC-136）: python3 -m gouda_core.gnss_calibration <maps/<origin>>
+        --out <report.json> と重みの値を与えて実行し、別の走行で残差を確かめる。未実行。'
+      observe: 推定値と標準偏差（事前との比）、残差（位置・方位）、走行の内容（向きの範囲・後退・旋回）、方位の定義の判定
+      expected: 実データでレバーアーム・取付 Yaw・遅延が決まり、別の走行で残差が小さいこと。判定の値は未確定（実データで提案）。決まらなければ DEC-135 は不採用（人の回答）。
+  - id: PRM-74
+    kind: parameter
+    name: GNSS ドライバの configure_rx（受信機の設定をドライバが書くか）
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: 'REV-070: DEC-140 で true。ドライバが起動のたびに受信機の全出力を止め、自分の設定を作り、Boot に保存する（FILE-SEPTENTRIO-SOURCE-REVIEW）。受信機の設定は
+      Gouda（ドライバ）が持つ。人の資料の §5・§6（gso で確かめる、Res1〜4 を使わない、Boot 保存は別工程）は手での調査の規則として残る。'
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-070
+    parameter:
+      owner_ref: ND-19
+      value: true
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: true なら起動のたびにドライバが受信機の全出力を止め、自分の設定を作り Boot に保存する（FILE-SEPTENTRIO-SOURCE-REVIEW）。false 
+        なら受信機の設定は人の手順で行い、ドライバは読むだけ。値がない間、supervisor はドライバを起動しない（DEC-141）
+      measurement: 不要（人の判断。DEC-140）
+      decision_deadline: 決定済み（DEC-140）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: septentrio_gnss_driver
+      param_key: configure_rx
+      value_type: bool
+      apply_timing: launch
+    approval_decision_ref: DEC-140
 migration:
   baseline_definition_count: 198
   id_map:
@@ -53595,22 +54527,26 @@ decisions:
     disposition: open_human
   - id: DEC-116
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-17'
-    answered_on:
+    answered_on: '2026-10-17'
     channel: chat
     question: 【承認】VM の Gouda の試験の環境（gouda_core/test/stack.sh など VM で動かす試験）に、Fast DDS の共有メモリの区画を大きくする設定（評価で使った 
       fastdds_eval.xml と同じもの）を入れてよいか。 x86 機（実車）の起動の設定は変えない。
-    answer_verbatim: ''
+    answer_verbatim: "DEC−116は許可する\n"
     affected_refs:
       - G-DDS
       - IFD-21
       - ND-06
       - ND-14
-    resulting_refs: []
+    resulting_refs:
+      - FILE-DEC116-FASTDDS
+      - G-DDS
     note: '根拠: FILE-LOCALIZATION-EVAL の 5（間引きの node が受け取った数: 既定 200 中 74〜89、設定後 196〜200/200）。推奨は承認（VM での GLIM・地図作成の試験の周期の低さの対策になる見込み。未確認）。
-      起動の方法は増やさない（DEC-090）。決まらない場合に止まる作業：VM での点群を使う試験の信頼性（今は x86 機で地図作成を行っている）。'
-    disposition: open_human
+      起動の方法は増やさない（DEC-090）。決まらない場合に止まる作業：VM での点群を使う試験の信頼性（今は x86 機で地図作成を行っている）。 2026-10-17 人が許可（原文は answer_verbatim）。gouda_core/test/stack.sh
+      に FASTRTPS_DEFAULT_PROFILES_FILE（gouda_core/test/fastdds_test_stack.xml、評価の fastdds_eval.xml と同じ内容）を入れた。gouda.sh
+      は変えていない。 確認は FILE-DEC116-FASTDDS（前回の試験スタックの試験が同じ結果、点群の配送が 70・86/200 → 178・182/200）。'
+    disposition: answered
   - id: DEC-117
     kind: confirmation
     status: recorded
@@ -53664,6 +54600,633 @@ decisions:
     note: 初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は位置の収束と正しさを確認する（人が指定するのではない）。同日の人の連絡（DEC-117）で Septentrio 
       mosaic-go G5 P6（デュアルアンテナ、ネットワーク RTK）を搭載した。人が初期位置を指定する前提の設計（IFD-34 の開始要求の引数としての初期姿勢、ND-07 の初期化、TR-05 の 
       guard、H-007・DEC-009 の PC 再起動後の初期位置の再指定）への影響は G-INIT-POSE-GNSS に一覧した。自己位置推定の方式の選定（DEC-115、保留中）で一緒に扱う。
+    disposition: answered
+  - id: DEC-119
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-17'
+    channel: chat（前のチャットで人が出した指示。引き継ぎのプロンプト design/reports/handover_2026-10-17.md §0 に原文として記載され、2026-10-17 
+      に人が新しいチャットに貼った）
+    question: 次の作業の指示（Global_localization または Navigation のノードの実装の検討と報告）
+    answer_verbatim: "次にやりたいことは、Global_localizationまたはNavigationのノードの実装。まずは検討して、結果を私に報告せよ。\n"
+    affected_refs:
+      - ND-07
+      - ND-08
+      - ND-10
+      - ND-03
+      - DEC-115
+      - G-INIT-POSE-GNSS
+    resulting_refs:
+      - DEC-120
+      - DEC-121
+      - DEC-122
+      - DEC-123
+      - DEC-124
+    note: '検討と報告だけを行った（実装は人の個別の許可の後: DEC-106）。提案 design/proposals/stage56_navigation_localization_plan.md。 原文は前のチャットの人の発言で、このチャットでは引き継ぎのプロンプトの写しとして受け取った（前のチャットの記録は読んでいない）。'
+    disposition: answered
+  - id: DEC-120
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-17'
+    channel: chat
+    question: '【承認】工程 5-6 の進める順序。Navigation（Nav2 の構成・BT・mode_manager の Nav2 の client と TR-05・速度マスクの読み込み）と GNSS の取込み（受信・記録・表示）を先に作り、
+      Global_localization（ND-07）は DEC-115（方式）と GNSS の初期位置の設計（DEC-124）の後にする。Navigation の試験は VM で Nav2 の標準の模擬（nav2_loopback_sim）を使い、車体を動かさない。
+      代わりの案: (b) Global_localization を先に作る（DEC-115 の決定が先に要る）、(c) 両方を同時に作る。'
+    answer_verbatim: "DEC-120〜124 をすべて許可する\n"
+    affected_refs:
+      - ND-10
+      - ND-03
+      - ND-07
+      - ND-08
+      - TR-05
+      - IFD-13
+      - IFD-42
+      - DEC-115
+    resulting_refs:
+      - ND-10
+      - ND-03
+    note: '推奨は承認。理由: Navigation は方式にも GNSS にも依存しない部分が大きく、模擬で 5-6 の試験（TS-01・02・05・14・15・21）を通せる。GNSS は次の実機試験の rosbag
+      に入れる必要がある（時間の制約）。 振る舞いの違い: 実車の起動では、ND-07・ND-08 が無い間 TR-05 は拒否のまま（自己位置推定なしに車体が動かない）。 決まらない場合に止まる作業：Navigation
+      の実装全体。提案 design/proposals/stage56_navigation_localization_plan.md §1・§7。'
+    disposition: answered
+  - id: DEC-121
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-17'
+    channel: chat
+    question: '【承認】Nav2 の導入。(1) setup.sh の apt の一覧に Nav2（navigation2 のうち使うパッケージと nav2_bringup）を加える（x86 機にも入る）。 (2)
+      VM に nav2_loopback_sim（apt、Jazzy 1.3.13）を入れる（sudo がないため人の作業）。(3) nav2_loopback_sim は試験スタック（gouda_core/test）でだけ起動し、gouda.sh
+      では起動しない。 代わりの案: Nav2 を setup.sh に入れず人が手で入れる。'
+    answer_verbatim: "DEC-120〜124 をすべて許可する\n"
+    affected_refs:
+      - ND-10
+      - ND-01
+      - V-001
+    resulting_refs:
+      - ND-10
+      - TS-37
+    note: '推奨は承認。事実: setup.sh の apt の一覧は ros-jazzy-desktop・GLIM・ドライバの依存だけで、Nav2 を入れない。「実車PC の Nav2 1.3.13」の記録（research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）は
+      VM（arm64）のもので、x86 機の Nav2 の有無は未確認。 版は Jazzy の apt（VM は 1.3.13）。決まらない場合に止まる作業：Nav2 の起動と試験。'
+    disposition: answered
+  - id: DEC-122
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-17'
+    channel: chat
+    question: '【承認】Nav2 の構成の選択と関係する正本の直し。controller は Regulated Pure Pursuit（代わり: MPPI、Jazzy の既定）、planner は NavFn、BT
+      は上流の navigate_through_poses_w_replanning_and_recovery.xml の写しに PRM-11・PRM-18 を入れる、 behaviors は spin・backup・wait、velocity_smoother
+      を使う、collision_monitor は使わない（RQ-I072）、cmd_vel は TwistStamped（PRM-12 を true に）。 障害物は独自の node（ND-09）を作らず XT-32
+      の点群を Nav2 の VoxelLayer・ObstacleLayer に高さの帯で入れ、観測していない所を空きとみなさない（track_unknown_space）。 静的 TF（ND-13）は /config
+      が UNKNOWN の項目を中立の値で出して記録する（今の正本は「未入力なら TF を出さない」）。Nav2 は自律走行・一時停止以外では inactive にする。'
+    answer_verbatim: "DEC-120〜124 をすべて許可する\n"
+    affected_refs:
+      - ND-10
+      - ND-09
+      - ND-13
+      - ND-11
+      - IFD-15
+      - PRM-11
+      - PRM-12
+      - PRM-17
+      - PRM-18
+      - Q-04
+      - Q-06
+    resulting_refs:
+      - ND-10
+      - ND-09
+      - ND-13
+      - PRM-12
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - PRM-73
+      - TS-36
+      - TS-37
+    note: '推奨は承認。振る舞いの違い: RPP は経路をなぞるだけで軽く挙動を説明しやすい。MPPI は回避が滑らかだが CPU を使う。collision_monitor を使わないので、近づいたら止める PC
+      側の機構はない（障害物は costmap と計画で扱う）。 velocity_smoother を使うと cmd_vel の発行元が velocity_smoother になる（IFD-15 の記述を直す）。障害物の高さの帯は坂の上りで地面を障害物にしうる（推測。実車の地図で確かめ、問題なら
+      ND-09 を作る）。 値（加速度・速度・footprint）は Q-06 の実車値まで仮値。決まらない場合に止まる作業：Nav2 の設定の生成と N1〜N3 の試験。提案 §4。'
+    disposition: answered
+  - id: DEC-123
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-17'
+    channel: chat
+    question: '【承認】(1) GNSS の取込みの実装: septentrio_gnss_driver（apt、Jazzy 1.4.8、改変しない）を setup.sh に加え、sensor_supervisor
+      が LiDAR・IMU と同じくデバイスの有無を見てドライバを起動する。 位置・品質（RTK fix／float／単独）・デュアルアンテナの向きを topic で出し、rosbag に記録し、monitor のセンサーの欄に表示する（表示だけで停止の条件にしない）。次の実機試験の前に
+      x86 機へ。 (2) ND-08 の実装: 自律走行・一時停止の間だけ GLIM を odometry だけの設定で起動し、~/odom と IMU の角速度から localization/odometry（IFD-25）を作る小さな中継の
+      node（3 案に共通。DEC-115 を待たない）。'
+    answer_verbatim: "DEC-120〜124 をすべて許可する\n"
+    affected_refs:
+      - ND-08
+      - ND-18
+      - ND-02
+      - ND-04
+      - IFD-25
+      - G-INIT-POSE-GNSS
+      - DEC-115
+    resulting_refs:
+      - ND-19
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - PRM-65
+      - ND-08
+      - TS-35
+      - TS-38
+      - DEC-125
+    note: '推奨は (1)(2) とも承認。(1) は次の実機試験の rosbag に GNSS を入れるため（地図と GNSS の対応、GNSS の初期位置の評価に要る）。ネットワーク RTK の接続先・認証の情報は公開のリポジトリに入れない（置き場所は実装の時に提案）。
+      アンテナの取付位置は人が /config で設定する（RQ-I081。質問しない）。前提: 走行中に車載 PC がインターネットにつながること。 (2) の根拠は提案 design/proposals/localization_selection.md
+      §3。決まらない場合に止まる作業：(1) 次の実機試験での GNSS の記録、(2) ND-07 の結合と Navigation の実データでの試験。'
+    disposition: answered
+  - id: DEC-124
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 【承認】GNSS による初期位置の設計の方針（G-INIT-POSE-GNSS）。地図作成の時に GNSS（RTK fix の点）と GLIM の軌跡を記録して重ね合わせ、GNSS 
+      の座標から地図の座標への変換を原図と一緒に保存する。 開始の準備で GNSS の位置と向きを地図の座標にして自己位置推定の初期値にし（A3 なら Monte Carlo の探索で照合）、monitor に 
+      GNSS の姿勢と照合の結果を重ねて表示し、人が確認してから開始ボタンを押す。 GNSS が fix でない・地図の対応がないときは人の指定（IFD-39）を使う。PC 再起動後（DEC-009）は「GNSS
+      で取り直して人が確認、または人が指定」に読み替える。保存した最後の姿勢は使わない。
+    answer_verbatim: "DEC-120〜124 をすべて許可する\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - IFD-34
+      - IFD-39
+      - IFD-02
+      - ND-07
+      - ND-02
+      - ND-03
+      - ND-05
+      - TR-05
+      - H-007
+      - DEC-009
+    resulting_refs:
+      - G-INIT-POSE-GNSS
+    note: '推奨は承認（詳細の設計を提案として出してから実装）。振る舞いの違い: 今の設計は人の指定だけ。案では GNSS の値が既定になり人は確認する。誤った GNSS（マルチパス・float）で照合が別の場所に収束する危険があるため、品質の区分と照合の結果の両方を示し、開始は人の確認の後とする。
+      DEC-009 の読み替えは確定済みの判断の変更に当たるため、承認された場合は新しい項目として記録する（DEC-009 は書き換えない）。決まらない場合に止まる作業：GNSS の初期位置（L3）、PC 再起動後の再開の設計。提案
+      §5.2。'
+    disposition: answered
+  - id: DEC-125
+    kind: measurement
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: 【実測・確認】x86 機と mosaic-go の接続と、ネットワーク RTK の補正の受け方。 (1) ドライバの接続先（PRM-65）。USB でつないだとき、受信機の USB 
+      イーサネット（工場出荷時は tcp://192.168.3.1:28784、上流の設定の既定）を使うか、USB のシリアル（/dev/serial/by-id/ の名前）を使うか。 x86 機で 
+      mosaic-go をつないだ状態の `ls -l /dev/serial/by-id/` と `ip -4 addr` の出力をいただきたい。 (2) ネットワーク RTK の補正を、受信機の中の 
+      NTRIP の機能で受けるか（受信機がインターネットに出られる必要がある）、PC の側で受けて受信機に渡すか。接続先・認証の情報は公開のリポジトリに入れず、x86 機の 
+      <data_root>/config/gnss_rtk.yaml に人が置く案。
+    answer_verbatim: "DEC-125：しばらくはVMをつかって実機試験を行う。mosaic-goはusb接続。RTK補正はNTRIPを使い、 truertk.pointonenav.comの有料サービスを使う。\n"
+    affected_refs:
+      - PRM-65
+      - ND-19
+      - ND-18
+    resulting_refs:
+      - DEC-138
+      - DEC-139
+      - PRM-65
+    note: 決まらない場合に止まる作業：x86 機での GNSS のドライバの起動（PRM-65 が未確定の間、supervisor はドライバを起動せず理由を記録する）。補正の受け方が決まらない間は RTK 
+      なし（単独測位）で記録する。 AI は接続先を推測で決めない（上流の既定は工場出荷時の値で、x86 機の実際の接続ではない）。 2026-10-19 回答。VM の ~/gouda_ws は 
+      main（7e747b5）のままで、このブランチの変更（GNSS など）は入っていない。VM で実機試験をするには反映が要る（commit・push と VM の更新は人の判断）。VM 
+      では点群の配送の問題（G-DDS）があり DEC-138 とした。NTRIP の受け方は DEC-139。
+    disposition: answered
+  - id: DEC-126
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-18'
+    channel: chat
+    question: 【承認】地図作成の間（TR-03〜TR-04）、mode_manager が GNSS（IFD-47〜49）を地図作成の作業フォルダに記録し、原図（IFD-29）に gnss.jsonl 
+      として登録する（提案 design/proposals/gnss_initial_pose_design.md §2）。GNSS がなくても地図作成は止めない。
+    answer_verbatim: "DEC-126は許可。\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - ND-03
+      - ND-05
+      - IFD-29
+    resulting_refs:
+      - IFD-50
+      - ND-03
+      - IFD-29
+      - TS-35
+    note: 推奨は承認（次の実機試験の前に実装すると、同じ場所の 2 回の走行で対応の計算を試せる）。決まらない場合に止まる作業：GNSS と地図の座標の対応（DEC-127）。
+    disposition: answered
+  - id: DEC-127
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on:
+    channel: chat
+    question: 【承認】GNSS と地図の座標の対応を地図の変換で計算し、変換後地図の manifest に保存する（RTK fix の点だけ、ENU に変換、GLIM の補正後の軌跡と主アンテナの位置で 
+      2D の重ね合わせ、残差を記録。提案 §3）。使ってよいかの判定の値（残差・点の数・範囲）は tbd で、実機試験のデータで提案する。
+    answer_verbatim: ''
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - ND-05
+      - IFD-29
+    resulting_refs: []
+    note: '推奨は承認。決まらない場合に止まる作業：GNSS の値の地図の座標への変換（DEC-128）。 2026-10-18 第2版（提案 §9）: 貼られた仕様（DEC-130）に合わせ、T1 を 4 自由度（x,
+      y, z, yaw）＋RANSAC にし、地図作成の時の記録（DEC-126）で行う読み替えを推奨。'
+    disposition: open_human
+  - id: DEC-128
+    kind: approval
+    status: answered
+    asked_on: '2026-10-17'
+    answered_on: '2026-10-18'
+    channel: chat
+    question: 【承認】自律走行の準備の欄で、地図に対応があり GNSS が使えるとき、GNSS 
+      の位置と向きを地図に重ねて表示し、初期位置の欄に既定の値として入れる（人は直せる。開始ボタンを押すことが確認で、追加の承認の操作は加えない。提案 §4）。使えないときは理由を表示し、人の指定だけ。
+    answer_verbatim: "DEC-128は許可を取り消す。\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - ND-02
+      - IFD-02
+      - RQ-I084
+    resulting_refs: []
+    note: '推奨は承認。振る舞いの違い：人が数値を打つ代わりに GNSS の値を確かめて押せる。誤った fix の危険は品質と照合の結果の表示で人が見分ける。決まらない場合に止まる作業：GNSS による初期位置（体験
+      9）。 2026-10-18 第2版: 代わりの案 DEC-133（貼られた仕様 T3 の形）を推奨し、本項目は取り下げを推奨。 2026-10-18 人の回答「DEC-128は許可を取り消す。」。DEC-128
+      はそれまで承認待ち（許可の記録はなかった）で、AI は取り下げを推奨していた。不採用として扱う（GNSS の値を開始の要求の欄に既定で入れる形は作らない）。'
+    disposition: answered
+  - id: DEC-129
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on:
+    channel: chat
+    question: 【承認】PC 再起動後の再開の前の初期位置の要求（IFD-39、DEC-009）に、DEC-128 と同じ画面（GNSS 
+      の値を既定にし人が確かめて送る）を使う。人の操作が要ること、保存した最後の姿勢を使わないことは変えない。DEC-009 は書き換えない（提案 §5）。
+    answer_verbatim: ''
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - H-007
+      - IFD-39
+      - TR-10
+    resulting_refs: []
+    note: 推奨は承認。決まらない場合に止まる作業：PC 再起動後の再開（工程 5-7）の画面。
+    disposition: open_human
+  - id: DEC-130
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-18'
+    channel: chat（DEC-126 の許可と同じメッセージに貼られた文書）
+    question: GNSS（デュアルアンテナ・ネットワーク RTK）活用 実装仕様まとめ（人が貼った文書。扱いの指示なし）
+    answer_verbatim: "# GNSS（デュアルアンテナ・ネットワークRTK）活用 実装仕様まとめ\n\n## 0. 本書の扱い\n\n- 本書に出てくる名称と数値は、**すべて参考値**です。実装する環境やパッケージに合わせて決めてください。\n\
+      \  - 名称：座標系名、TFフレーム名、パラメータ名、トピック名、ノード名、サービス名、状態名\n  - 数値：閾値、監視時間、サンプル数、許容誤差、精度の目安、受け入れ基準\n- 表中の「（参考）」は、上記の扱いをあらためて示すための表記です。\n\
+      - 実機の仕様（アンテナ間隔0.6mなど）は実測値です。ただし、それをもとに決める判定の閾値は参考値です。\n\n## 1. 目的\n\n- LiDAR事前地図の座標系と、GNSSの絶対座標系（局所ENU）を対応付ける\n\
+      - GNSSの位置と方位から初期姿勢を自動で与え、NDTの初期収束の失敗をなくす\n- 走行中にNDTが発散していないかを監視し、発散したら再初期化する\n\n## 2. 前提\n\n- 事前地図：IMUと3D
+      LiDARで作成する（Z軸は重力方向に揃っている前提）\n- 自己位置推定：NDT系（ROS 2）\n- GNSS：ネットワークRTK、デュアルアンテナ（アンテナ間隔0.6m、実測値）\n  - 方位精度の目安：0.2〜0.5°（参考）\n\
+      \  - 静止状態で方位を取得できる\n\n## 3. 座標系とTF構成\n\n| 親 → 子（名称は参考） | 種別 | 発行元 |\n|---|---|---|\n| `enu` → `map` | static
+      TF | オフライン校正の結果（T1） |\n| `map` → `odom` | 動的 | NDT |\n| `odom` → `base_link` | 動的 | オドメトリまたはEKF |\n| `base_link`
+      → `gnss_main` / `gnss_sub` | static TF | 実測したアンテナ取付位置 |\n\n- 局所ENUは、基準点（緯度・経度・高さ）を原点とし、東・北・上を軸とする接平面座標系です。\n\
+      - 平面直角座標系やUTMは原則として使いません。使う場合は子午線収差の補正が必要です。\n\n## 4. パラメータ（地図ファイルとまとめてバージョン管理する）\n\n| パラメータ名（参考） | 内容 |\n\
+      |---|---|\n| `lat0`, `lon0`, `h0` | 局所ENUの基準点 |\n| `map_to_enu_x/y/z/yaw` | T1で求める変換。p_enu = R·p_map + t |\n\
+      | `ant_x/y/z` | `base_link`から見た主アンテナの位相中心の位置 |\n| `mount_yaw_offset` | `base_link`のx軸から見た「主→副アンテナ」方向の角度（T2で求める）
+      |\n| `heading_frame` | 受信機が出力する方位の定義（北0・時計回り、または東0・反時計回り） |\n| 品質判定・監視の閾値 | 7章・8章を参照 |\n\n- 地図を作り直したら、T1とT2もやり直します。\n\
+      \n## 5. 方位の変換手順\n\n1. 受信機の出力：ψ_NED（真北から時計回り）\n2. ENUへの変換：ψ_ENU = π/2 − ψ_NED\n3. 地図座標系への変換：ψ_map = ψ_ENU −
+      map_to_enu_yaw\n4. 車体座標系への変換：ψ_base = ψ_map − mount_yaw_offset\n\n- 方位は真北基準なので、磁気偏角は補正しません。\n- 受信機やドライバがすでにENU定義で方位を出力している場合は、手順2を省きます。\n\
+      \n## 6. 実装タスク\n\n### T1：地図座標系とENUの変換推定（オフライン、地図ごとに1回）\n\n1. 事前地図上で初期姿勢を手動で与え、NDTが収束したことを目視で確認する\n2. コース全体を曲がり角も含めて走行し、以下を記録する\n\
+      \   - NDTの姿勢\n   - GNSSの位置\n   - GNSSの方位\n   - TF\n3. 次の条件をすべて満たす時刻のデータだけを、対応点として抽出する\n   - GNSSがRTK Fixである\n\
+      \   - NDTのスコアが良好である\n   - 特徴が少なくNDTが退化しやすい区間ではない\n4. NDTの姿勢をGNSSの時刻に補間し、レバーアーム補正でアンテナ位置に換算する\n   - p_ant_map
+      = p_base_map + R_base_map · l_ant\n5. RANSACで外れ値を除き、最小二乗法（SVD）で4自由度（x, y, z, yaw）を推定する\n   - 縮尺は1に固定する\n \
+      \  - yawは位置の対応だけから推定する（方位データは使わない）\n6. 出力\n   - 変換パラメータ\n   - ENU→地図座標系のstatic TF\n\n### T2：アンテナ取付オフセットの校正\n\
+      \n- NDTが収束している区間で、「GNSS方位から求めた地図座標系のYaw」から「NDTのYaw」を引き、その円周平均をとる\n- T1で求めたyawを固定してから行う（T1とT2の誤差を区別するため）\n\
+      - ハードウェア側で確認すること\n  - 2本のアンテナが同じ型番で、コネクタの向きが揃っている\n  - グランドプレートが付いている\n  - 受信機にアンテナ間隔（基線長）を設定してある\n\n### T3：初期姿勢ノード（ノード名は参考：`dual_antenna_initial_pose`）\n\
+      \n- 入力（トピック名・型は参考）\n  - GNSS位置：`/fix`（`NavSatFix`）\n  - GNSS方位：`/gnss/heading`（`Imu`型。独自メッセージの場合は変換ノードを用意する）\n\
+      - 出力（トピック名は参考）\n  - `/initialpose`（`PoseWithCovarianceStamped`）\n  - 使うNDTパッケージが初期姿勢を受け取る方法に合わせる\n- 状態遷移（状態名は参考）\n\
+      \  1. WAIT_FIX：位置と方位の両方がFixになるまで待つ\n  2. SAMPLE：静止状態でN個のサンプルを集める\n     - 方位は円周平均、位置は平均をとる\n  3. PUBLISH：レバーアーム補正をしてから、共分散を付けて配信する\n\
+      \  4. VERIFY：一定時間、8章の判定基準を満たすか確認する\n  5. TRACKING：通常走行に移る\n     - VERIFYで失敗した場合はSAMPLEに戻る\n- 再初期化用のサービスを用意する（名称の参考：`~/reinitialize`、型：`std_srvs/Trigger`）\n\
+      - 傾斜地向けの拡張：roll/pitchをIMUで埋め、3Dのレバーアーム補正にする\n\n### T4：走行中の監視と再初期化\n\n- 発散の判定：以下の(1)または(2)が一定時間続き、**かつ**(3)が成り立つ場合に発散とみなす\n\
+      \  1. NDTの位置とGNSS位置の差が閾値を超える\n  2. NDTのYawとGNSS方位の差が閾値を超える\n  3. NDTのスコアが劣化している\n- (3)を必須にする理由：GNSS側の誤Fixだけで自己位置がリセットされるのを防ぐため\n\
+      - 発散時の動作：停止 → 再初期化サービスを呼ぶ → T3の手順で初期化する\n\n### T5（任意）：EKFでの融合\n\n- `robot_localization`などのEKFに、次の3つを入力する\n\
+      \  - NDTの姿勢\n  - RTKの位置\n  - GNSS方位（絶対Yaw）\n- 位置と方位は別々に品質判定し、それぞれ独立に融合をオン・オフする\n\n## 7. 品質判定（数値はすべて参考）\n\n\
+      | 対象 | 採用条件 | 参考値 |\n|---|---|---|\n| 位置 | RTK Fix、かつ水平方向の標準偏差が閾値以下 | 3cm |\n| 方位 | 方位の解がFix、かつ標準偏差が閾値以下 |
+      1° |\n| 方位（誤Fix対策） | 受信機が算出した基線長と実測値との差が閾値以内 | 数cm |\n| 方位（整合性） | 基線方向の傾きとIMUの傾きの差が閾値以内 | 数度 |\n| 静止判定（方位）
+      | サンプル間のばらつきが閾値以内 | 0.5° |\n| 静止判定（位置） | サンプル間のばらつきが閾値以内 | 3cm |\n| 時刻同期 | 位置と方位のタイムスタンプの差が閾値以内 | 0.1s |\n\
+      | サンプル数 | SAMPLE状態で集める数 | 20 |\n\n- `NavSatFix`のステータスだけではFixとFloatを区別できないことが多いため、ドライバ固有のRTK状態を使います。\n\n##
+      8. 監視・判定の閾値（数値はすべて参考）\n\n| 項目 | 参考値 |\n|---|---|\n| 発散判定：位置の差 | 1.0m |\n| 発散判定：Yawの差 | 3° |\n| 発散判定：継続時間 |
+      3s |\n| VERIFY：GNSS位置との差 | 0.3m |\n| VERIFY：GNSS方位との差 | 3° |\n| VERIFY：確認時間 | 数秒 |\n| NDTスコアの閾値 | 使うパッケージの指標に合わせて決める
+      |\n\n## 9. 受け入れ基準（数値はすべて参考）\n\n| 項目 | 参考基準 |\n|---|---|\n| T1の水平残差 | RMSが数cm〜十数cmで、場所による偏りがない |\n| 方位の残差（GNSS方位
+      − NDTのYaw − 取付オフセット） | 1°未満で安定している |\n| 初期化 | スタート地点で静止した状態から自動で収束する（成功率を記録する） |\n| 検証方法 | T1とは別の日の走行データで残差を確認する
+      |\n\n- 残差が走行距離とともに増える場合や、特定の区間に偏る場合\n  - 地図のゆがみ、またはNDTの退化を疑う\n  - 必要なら、GNSSを拘束に加えて地図を作り直す\n\n## 10. 注意事項\n\
+      \n- 測地系\n  - ネットワークRTKの座標はJGD2011基準です。\n  - 外部の座標と比べる場合は、ITRFとの差（1m以上になることがある）に注意します。\n- 高さ：楕円体高と標高のどちらを使うかを統一します。\n\
+      - 時刻同期\n  - GNSSとROSの時刻を同期させます（PPS/NTPなど）。\n  - 例：1m/sで走行中に0.1sずれると、10cmの位置誤差になります。\n- バージョン管理：地図ファイルと変換パラメータは、必ず同じバージョンとして扱います。\n\
+      \n## 11. 実装前に確認する事項\n\n- ドライバが方位をどの形式で出力するか（メッセージ型、NEDかENUか）\n- 2本のアンテナの配置（前後か左右か）\n- NDTパッケージが初期姿勢をどのように受け取るか（トピックかサービスか、その名称）\n\
+      - ドライバが基線長とRTK状態を出力しているか\n- 各名称と各閾値を、実際の環境に合わせて確定すること\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - ND-19
+      - ND-07
+      - DEC-124
+      - DEC-127
+      - DEC-128
+    resulting_refs:
+      - DEC-131
+      - DEC-132
+      - DEC-133
+      - DEC-134
+    note: 扱いの指示がないため参考の資料として扱い、提案 design/proposals/gnss_initial_pose_design.md §9・§10 
+      で照合した。文書は名称と数値をすべて参考値としている（数値は採らない）。アンテナ間隔 0.6 m 
+      は文書の中で実測値とされている（人の実測値として記録。設計の値にはまだ使っていない）。同じメッセージの人の言葉は「DEC-126は許可。」だけ。
+    disposition: answered
+  - id: DEC-131
+    kind: approval
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-18'
+    channel: chat
+    question: 【承認】enu→map の static TF を出す（貼られた仕様 §3）。発行元は選んだ地図を知る node（TR-05 の時の ND-03 か、初期位置の node）。frame 名は 
+      Gouda の IF の名前に合わせる（提案 §9）。
+    answer_verbatim: "DEC-131：承認\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - IFD-20
+      - ND-03
+    resulting_refs: []
+    note: 推奨は承認（記録の再生・可視化で GNSS と地図を重ねられる）。決まらない場合に止まる作業：GNSS と地図の重ね合わせの TF での表現。 2026-10-18 
+      承認。実装は対応の計算（DEC-135）の後（対応がない間は出す値がない）。
+    disposition: answered
+  - id: DEC-132
+    kind: approval
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-18'
+    channel: chat
+    question: '【承認】アンテナの取付の方位オフセットの校正（貼られた仕様 T2）を加え、結果を人が確かめて /config に保存する形にする（取付値は人が monitor で設定: RQ-I081）。'
+    answer_verbatim: "DEC-132：次の調査結果が出ていることから、再検討してソフトウェア較正の可能性を探れ\"## 結論\n\n- **ほぼすべてソフトウェアで推定（校正）できます。** 実測値を初期値（事前情報）とし、NDTの自己位置を基準にしたバッチ最小二乗で補正するのが標準的な方法です。\n\
+      - 問題の構造はハンドアイキャリブレーションと同じです。「NDTで求めた`base_link`の姿勢」と「GNSSの観測値」を対応付けて、外部パラメータを解きます。\n- ただし、**パラメータごとに推定に必要なロボットの運動が違います。**
+      必要な運動をしていないデータでは、そのパラメータは推定できません（他の量と区別できず、吸収されてしまう）。\n- 以下の名称・数値はすべて参考値です。\n\n## パラメータごとの推定可否\n\n| パラメータ
+      | 推定できるか | 必要な運動・観測 | 区別しにくい相手 |\n|---|---|---|---|\n| 主アンテナの水平位置（`ant_x`, `ant_y`） | ○ | Yawを大きく変える（8の字走行、左右両方向の旋回、その場旋回）
+      | 直進だけだとT1の平行移動に吸収される |\n| 主アンテナの高さ（`ant_z`） | △ | roll/pitchが変わる走行（傾斜区間） | 平地ではT1のzオフセットと区別できない |\n| 取付Yaw（`mount_yaw_offset`）
+      | ○ | GNSS方位とNDTのYawの比較（静止でも可） | T1のyaw（位置データから別に決めれば分離できる） |\n| 基線のpitch/rollのずれ | ○ | 基線方向の傾きとIMUの傾きの比較
+      | IMUの取付誤差 |\n| アンテナ間隔（基線長） | ○（受信機が推定） | 受信機がFix解から基線ベクトルを直接求める | ― |\n| 時刻遅延（GNSSの遅れ） | ○ | 前進と後退、速度の変化
+      | 一方向に一定速度で走るだけだと`ant_x`と区別できない |\n\n- **基線長**\n  - アンテナ間の基線長は、受信機が搬送波位相からmm単位で求めています。巻尺による実測値より正確なことが多いです。\n\
+      \  - Fix中の基線長の長期平均を設定値として使い、実測値は初期値と誤Fix判定の基準にします。\n  - 位相中心のずれは、同じ型番のアンテナをコネクタの向きを揃えて取り付ければ相殺されます。\n- **高さ（`ant_z`）の影響は小さい**\n\
+      \  - 平地では推定できませんが、誤差はT1のzに吸収されるため実害はほとんどありません。\n  - 例：高さに5cmの誤差があっても、5°の傾斜で生じる水平誤差は約4mmです。\n- **基準になるのはNDTが出す`base_link`**\n\
+      \  - 推定されるのは「NDTが出力する`base_link`」から見たアンテナ位置です。\n  - `base_link`→LiDARの外部パラメータに誤差があっても、その分も含めて吸収されます。\n  -
+      したがって、TFを変えたら校正をやり直します。\n\n## 定式化（T1とT2を統合した同時推定）\n\n- 推定する変数：( \\theta, t ) （T1）、( l ) （レバーアーム）、( \\psi_m
+      ) （取付Yaw）、必要なら ( \\Delta t ) （時刻遅延）\n- 位置の残差\n  [\n  r^{pos}_i = R_z(\\theta)\\left(p^{map}_{base,i} + R^{map}_{base,i}\\
+      , l\\right) + t - p^{enu}_{ant,i}\n  ]\n- 方位の残差\n  [\n  r^{yaw}_i = \\mathrm{wrap}\\left(\\psi^{enu}_{gnss,i}
+      - \\psi^{map}_{base,i} - \\theta - \\psi_m\\right)\n  ]\n- 事前情報（実測値）の残差\n  [\n  r^{prior} = \\left( l - l_{meas},\\
+      \\psi_m - \\psi_{m,meas} \\right)\n  ]\n- 各残差をそれぞれの標準偏差で割って重みを揃え、Huber損失などのロバスト最小二乗で解きます。\n- 事前情報を入れる効果\n\
+      \  - 観測できない方向（例：平地での`ant_z`）は実測値のまま残る\n  - 推定結果が数値的に安定する\n- **推定後の標準偏差を事前の標準偏差と比べる**と、データからその値がどれだけ決まったか（可観測性）を判定できます。\n\
+      \n## データ取得の走行パターン（参考）\n\n- 上空が開けた場所で、RTK Fixが続く状態で行います。\n- 8の字走行（左右両方向の旋回を含む）：水平レバーアーム用\n- その場旋回（差動駆動の場合）：水平レバーアームを効率よく推定できる\n\
+      - 前進と後退、低速と高速：時刻遅延と`ant_x`を分けるため\n- 静止区間を複数のYawで取る：取付Yaw用\n- 傾斜区間（あれば）：`ant_z`用\n- サンプル間の相関を抑えるため、一定距離ごと・一定時間ごとに間引きます（例：0.2s間隔、0.5m間隔）。\n\
+      \n## 実装例（オフラインのバッチ校正）\n\n- 入力は、時刻同期とRTK Fix・NDTスコアによる選別が済んだ配列を想定しています。\n- `psi_enu`はENU定義（東を0、反時計回りが正）に変換済みの方位です。\n\
+      - `th0`, `t0`には、前回のSVD位置合わせ（T1）の結果を初期値として与えます。\n\n```python\n# File: calib_gnss_extrinsics.py\nimport numpy
+      as np\nfrom scipy.optimize import least_squares\nfrom scipy.spatial.transform import Rotation as Rot\n\nNAMES
+      = [\"theta\", \"tx\", \"ty\", \"tz\", \"ant_x\", \"ant_y\", \"ant_z\", \"mount_yaw\"]\n\n\ndef rz(th):\n \
+      \   c, s = np.cos(th), np.sin(th)\n    return np.array([[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]])\n\n\n\
+      def wrap(a):\n    return np.arctan2(np.sin(a), np.cos(a))\n\n\ndef calibrate(p_base, R_base, p_enu, psi_enu,\n\
+      \              th0, t0, l_meas, psi_m_meas,\n              sig_pos=0.02,\n              sig_yaw=np.radians(0.3),\n\
+      \              sig_l_prior=(0.02, 0.02, 0.02),\n              sig_psi_prior=np.radians(2.0)):\n    \"\"\"\n\
+      \    p_base : (N,3) NDTによるbase_link位置 [map]\n    R_base : (N,3,3) NDTによるbase_link姿勢 [map]\n    p_enu  : (N,3)
+      主アンテナ位置 [enu]\n    psi_enu: (N,) GNSS方位（ENU定義）[rad]\n    \"\"\"\n    yaw_base = Rot.from_matrix(R_base).as_euler(\"\
+      zyx\")[:, 0]\n    l_meas = np.asarray(l_meas, dtype=float)\n    sig_l_prior = np.asarray(sig_l_prior, dtype=float)\n\
+      \n    def fun(x):\n        th, t, l, psi_m = x[0], x[1:4], x[4:7], x[7]\n        p_ant_map = p_base + np.einsum(\"\
+      nij,j->ni\", R_base, l)\n        pred = p_ant_map @ rz(th).T + t\n        r_pos = ((pred - p_enu) / sig_pos).ravel()\n\
+      \        r_yaw = wrap(psi_enu - yaw_base - th - psi_m) / sig_yaw\n        r_prior = np.concatenate([\n   \
+      \         (l - l_meas) / sig_l_prior,\n            [wrap(psi_m - psi_m_meas) / sig_psi_prior],\n        ])\n\
+      \        return np.concatenate([r_pos, r_yaw, r_prior])\n\n    x0 = np.concatenate([[th0], t0, l_meas, [psi_m_meas]])\n\
+      \    res = least_squares(fun, x0, loss=\"huber\", f_scale=3.0)\n\n    # 残差を標準偏差で正規化しているため、(J^T J)^-1 を共分散の近似とする\n\
+      \    cov = np.linalg.inv(res.jac.T @ res.jac)\n    std = np.sqrt(np.diag(cov))\n\n    prior_std = {\"ant_x\"\
+      : sig_l_prior[0], \"ant_y\": sig_l_prior[1],\n                 \"ant_z\": sig_l_prior[2], \"mount_yaw\": sig_psi_prior}\n\
+      \    for name, val, s in zip(NAMES, res.x, std):\n        note = \"\"\n        if name in prior_std and s
+      > 0.8 * prior_std[name]:\n            note = \"  <- データからほぼ決まっていない（運動不足の可能性）\"\n        if name in (\"theta\"\
+      , \"mount_yaw\"):\n            print(f\"{name:10s} = {np.degrees(val):9.4f} deg  (std {np.degrees(s):.4f}){note}\"\
+      )\n        else:\n            print(f\"{name:10s} = {val:9.4f} m    (std {s:.4f}){note}\")\n\n    return res.x,
+      cov\n```\n\n- 拡張\n  - 時刻遅延 ( \\Delta t ) を変数に加え、NDTの姿勢を ( t_{gnss} - \\Delta t ) で補間して評価します。前進と後退の両方のデータが必要です。\n\
+      \  - 基線のpitchのずれは、別の1次元問題として「GNSSが出す基線の傾き − IMUのpitch」の平均で求められます。\n- サンプルどうしに相関が残っていると、標準偏差は実際より小さく出ます。判定にはある程度の余裕を持たせてください。\n\
+      \n## 結果の検証\n\n- **車体座標系で残差を見る**\n  - 校正前の位置残差を`base_link`座標系に変換して平均すると、レバーアームの誤差がそのまま見えます。\n  - 校正後にこの平均がほぼ0になれば合格です。\n\
+      - **Yawに依存するパターンを見る**\n  - 横軸をYawにして`enu`系の残差をプロットし、正弦波状のパターンが消えているかを確認します。\n- **速度に依存するパターンを見る**\n  - 進行方向の残差が速度に比例していれば、時刻遅延が残っています。\n\
+      - **別の日のデータで検証する**\n  - 校正に使っていない走行データで、残差のRMSが改善しているかを確認します。\n- **実測値との差を確認する**\n  - 推定値と実測値が、実測誤差よりはるかに大きく食い違う場合（例：5cm以上、5°以上）は、TFの定義（符号・軸・フレームの取り違え）を疑います。\n\
+      \n## 注意点\n\n- **NDT自体の誤差がそのまま混入する**\n  - 特徴の少ない区間や、NDTのスコアが悪い区間は使いません。\n  - 推定できる精度の目安：レバーアームは1cm程度、取付Yawは0.1°程度（参考値。環境とデータ量に依存）。\n\
+      - **オンライン推定について**\n  - EKFや因子グラフの状態にレバーアームを加えて逐次推定することもできます。\n  - ただし、運動が足りない区間では推定値がふらつきます。オフラインのバッチ校正で値を確定させ、走行中は残差の監視だけにする方が安全です。\n\
+      - **管理方法**\n  - 校正結果は地図ファイル・TFと同じバージョンで管理します。\n  - アンテナやLiDARを付け直したら、校正をやり直します。\"\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - IFD-26
+      - ND-19
+    resulting_refs:
+      - DEC-135
+      - DEC-136
+      - FILE-GNSS-CALIB-RESEARCH
+      - FILE-GNSS-CALIB-FEASIBILITY
+    note: 推奨は承認。上流ドライバが TF から att_offset を計算するかは README に明記がない（提案 §10）。決まらない場合に止まる作業：GNSS の方位の残りのずれの補正。 
+      2026-10-18 人の指示でソフトウェアの較正を再検討した（提案 §11、FILE-GNSS-CALIB-FEASIBILITY）。手での校正ではなく同時推定にする案を DEC-135 
+      とした。調査結果の写しは FILE-GNSS-CALIB-RESEARCH。
+    disposition: answered
+  - id: DEC-133
+    kind: approval
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-18'
+    channel: chat
+    question: '【承認】初期化を貼られた仕様 T3 の形にする: 初期位置の node が静止中の GNSS の位置・方位を集めて平均し、ND-07 に送り、収束を確かめ、monitor に表示する。人は表示を見て開始ボタンを押す。開始の要求（IFD-02）は「GNSS
+      で初期化済みの推定を使う」か「人の指定」を選ぶ形に変える。DEC-128 の代わり（推奨は DEC-128 を取り下げ）。'
+    answer_verbatim: "DEC-133：条件付きで承認。\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - IFD-02
+      - IFD-34
+      - ND-07
+      - ND-02
+      - RQ-I084
+    resulting_refs:
+      - DEC-137
+    note: '推奨は承認（intent 体験 9 の「取得されて表示され、人が収束と正しさを確認する」に近い）。ND-07 の実装（DEC-115）が前提。判定の値（サンプル数・静止の判定など）は tbd。決まらない場合に止まる作業：GNSS
+      による初期位置の実装。 2026-10-18「条件付きで承認」。条件の記載がないため DEC-137 で確認する。条件が分かるまで、この項目に基づく実装はしない。 2026-10-18 条件（DEC-137 の回答、原文「1a2a3b4ok5実機検証してから6実機検証してから7a8a9b」。番号は
+      AI が示した条件の表の項目）: (1) 自動の初期化は、自律走行の準備の画面で人が「GNSS で初期化」を押したときに始める。(2) 収束の確認に失敗したら止めて理由を表示し、人がやり直す（自動でやり直さない）。(3)
+      収束していないときも開始ボタンは拒否せず、警告だけを出して人の判断で開始できる（TR-05 に条件を足さない）。(4) GNSS が使えないときの人の指定（今の初期位置の入力）は残す。(5) 静止の判定に何を使うかと
+      (6) 判定の値は、実機での検証の後に決める（それまで tbd）。(7) 対象は GNSS との対応（DEC-135）がある地図だけ。(8) PC 再起動後も同じ流れを使う（再開は人の操作の後。DEC-009 は書き換えない）。(9)
+      自己位置推定の方式によらない形にする（初期姿勢を送って収束の結果を受け取ることだけを ND-07 との契約にする）。実装の前提（ND-07 の方式 DEC-115、対応 DEC-135）は変わらない。'
+    disposition: answered
+  - id: DEC-134
+    kind: approval
+    status: pending
+    asked_on: '2026-10-18'
+    answered_on:
+    channel: chat
+    question: '【承認】走行中の発散の監視と再初期化（貼られた仕様 T4: NDT と GNSS の差が続き、かつ NDT のスコアが劣化したら、停止して再初期化）を、推定不能からの自動復帰（TR-13）の具体化として設計する。詳細の設計は
+      ND-07 の後に出し、それまで実装しない。'
+    answer_verbatim: ''
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - TR-13
+      - ND-07
+      - RQ-I013
+    resulting_refs: []
+    note: 推奨は承認。新しい保護に当たるため（intent 38 行）提案として出す。値（差・継続時間・スコア）は tbd。決まらない場合に止まる作業：走行中の再初期化。 2026-10-18 
+      人の回答「DEC-134：保留。過剰過ぎる安全策の可能性がある。」。保留のまま。詳細の設計も出さない（人の再開の指示まで）。
+    disposition: open_human
+  - id: DEC-135
+    kind: approval
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: '【承認】ソフトウェアでの較正（提案 design/proposals/gnss_initial_pose_design.md §11.3）: 地図作成の走行の記録（gnss.jsonl と GLIM
+      の補正後の軌跡、その時の /config）から、map→ENU（θ, t）・主アンテナの水平位置・取付 Yaw・時刻遅延を一回のバッチの最小二乗で同時に推定し（ant_z は /config の値に固定、事前の値は
+      /config）、結果を変換後地図の manifest に保存し、enu→map の TF（DEC-131）に使う。DEC-127（T1 だけ）と DEC-132 の手での校正を置き換える。判定の値は tbd。'
+    answer_verbatim: "DEC-135は、一旦承認する。実験走行を私が行ってデータを取ってくるので、実データでも可能か検証しよう。実データでうまく推定出来なければ、ボツです。\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - ND-05
+      - IFD-29
+      - DEC-127
+      - DEC-131
+    resulting_refs:
+      - TS-39
+    note: 推奨は承認。根拠 FILE-GNSS-CALIB-FEASIBILITY（合成のデータ）。可観測性は標準偏差だけでなく走行の内容でも判定する。決まらない場合に止まる作業：GNSS 
+      と地図の対応、enu→map の TF、GNSS による初期位置。 2026-10-19 
+      一旦承認。検証の道具（gouda_core/gouda_core/gnss_calibration.py）だけを実装し、地図の変換・manifest・enu→map の TF 
+      への組み込みは実データでの検証の後（不採用もありうる）。
+    disposition: answered
+  - id: DEC-136
+    kind: approval
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: 【承認】次の実機試験の地図作成の走行に、較正の動き（上空の開けた所で、8 の字、その場旋回の両方向、前進と後退、複数の向きで静止）を入れる（人の操作。提案 §11.3）。
+    answer_verbatim: "DEC-136は承知した。\n"
+    affected_refs:
+      - G-INIT-POSE-GNSS
+      - TS-34
+    resulting_refs: []
+    note: '推奨は承認（直線だけの走行ではレバーアームと遅延が決まらない: FILE-GNSS-CALIB-FEASIBILITY の S1）。決まらない場合に止まる作業：実データでの較正。'
+    disposition: answered
+  - id: DEC-137
+    kind: question
+    status: answered
+    asked_on: '2026-10-18'
+    answered_on: '2026-10-18'
+    channel: chat（DEC-133 の条件として AI が示した 9 項目の表への回答。分岐したセッションで受けた）
+    question: 【確認】DEC-133（初期化を貼られた仕様 T3 の形にする）を「条件付きで承認」とのことだが、条件の内容を教えていただきたい。
+    answer_verbatim: "1a2a3b4ok5実機検証してから6実機検証してから7a8a9b\n"
+    affected_refs:
+      - DEC-133
+      - G-INIT-POSE-GNSS
+    resulting_refs:
+      - DEC-133
+    note: 条件が分かるまで DEC-133 に基づく実装はしない（ND-07 の実装も前提）。 回答の項目は、AI が示した表（1 開始の契機 a 人の操作、2 失敗時 a 止めて表示、3 未収束の開始 b 
+      警告だけ、4 人の指定を残す、5 静止の判定、6 判定の値、7 対象の地図 a 対応がある地図だけ、8 PC 再起動後 a 同じ流れ、9 方式との関係 b 方式によらない）に対応する。8a は DEC-129
+      と同じ方向だが、DEC-129 への回答としては記録していない。
+    disposition: answered
+  - id: DEC-138
+    kind: approval
+    status: pending
+    asked_on: '2026-10-19'
+    answered_on:
+    channel: chat
+    question: '【承認】VM で実機試験を行う間、gouda.sh start（実車の起動）でも Fast DDS の共有メモリの区画を大きくする設定（試験スタックの gouda_core/test/fastdds_test_stack.xml
+      と同じ内容）を使う。VM では既定の設定で約 2 MB の点群が落ち（G-DDS、FILE-DEC116-FASTDDS: 70・86/200）、GLIM の処理周期が 4 Hz 台になる。代わりの案: 使わない（x86
+      機に戻るまで VM の地図は粗いまま）。'
+    answer_verbatim: ''
+    affected_refs:
+      - G-DDS
+      - ND-01
+      - ND-06
+      - IFD-21
+    resulting_refs: []
+    note: '推奨は承認。起動の方法は増やさない（DEC-090）: 環境の切替や引数ではなく、gouda.sh が常に同じ設定を使う形（x86 機でも害はない見込み。x86 機で確かめる）。決まらない場合に止まる作業：VM
+      での地図作成の品質（実機試験の結果）。'
+    disposition: open_human
+  - id: DEC-139
+    kind: approval
+    status: pending
+    asked_on: '2026-10-19'
+    answered_on:
+    channel: chat
+    question: '【承認】ネットワーク RTK（Point One の TrueRTK、NTRIP）の受け方。案 A（推奨）: 受信機の中の NTRIP の機能を使う（ドライバの rtk_settings.ntrip_1
+      に接続先・認証を書き、GGA は受信機が送る）。受信機は USB イーサネットで PC を通してインターネットに出る必要があり、VM に転送（NAT）の設定が要る（sudo、人の作業）。案 B: PC で NTRIP
+      のクライアントを動かし、補正を受信機に渡す（ドライバの ip_server_1 か serial_1。クライアントのソフトの追加が要る）。どちらでも、接続先・認証は公開しないファイル（<data_root>/config/gnss_rtk.yaml）に人が書く。'
+    answer_verbatim: ''
+    affected_refs:
+      - ND-19
+      - PRM-65
+      - G-INIT-POSE-GNSS
+    resulting_refs: []
+    note: '推奨は案 A（ドライバと受信機の機能だけで済み、GGA の送信も受信機がする）。Point One の接続先のポート・mountpoint・GGA の要否は**原本未照合**（人の契約の情報で確かめる）。決まらない場合に止まる作業：RTK
+      fix での記録（補正なしでは単独測位で、較正 DEC-135 の検証に使えない）。 2026-10-19 見直し: mosaic-go は USB のシリアル 2 本だけで USB イーサネットがなく、案 A
+      はできない。DEC-140（configure_rx true）を受けて、推奨を案 B1 に変える（ドライバの rtk_settings.serial_1 で受信機の USB2 を補正の入力と GGA の出力にし、PC
+      の RTKLIB str2str が NTRIP と USB2 を中継。GGA は受信機が 1 秒ごとに出す）。提案 design/proposals/ntrip_gga_proposal.md。'
+    disposition: open_human
+  - id: DEC-140
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: '【承認】ドライバの configure_rx を使うか。案 1: true（雛形のまま）。ドライバが起動のたびに受信機の全出力を止め、自分の設定を作り、Boot に保存する（人の調査の Stream4
+      は消える）。案 2（推奨）: false にし、受信機の設定（必要な SBF の出力、USB2 の補正の入力と GGA、方位のオフセット、マルチアンテナ）は人の資料の手順で一度だけ行い、Boot への保存も人が判断する。ドライバは読むだけ（接続の最初のエスケープの列は送る）。'
+    answer_verbatim: "DEC-140 は true。受信機の設定は Gouda（ドライバ）が持つ。注意事項 §5・§6 は手での調査の規則として残す。最初の起動の前後で gso と getDataInOut
+      を記録すること。GGA の出し方は DEC-139 と一緒に提案すること。\n"
+    affected_refs:
+      - ND-19
+      - PRM-65
+      - DEC-139
+    resulting_refs:
+      - PRM-74
+    note: '推奨は案 2（人の資料 §5「既存の用途を上書きしない」・§6「Boot 保存は別工程」に合う）。案 2 では受信機の設定の手順（コマンドの列）を作る必要があり、AI が案を作って人が実行する（シリアルへの送信は人の確認の後）。案
+      2 は gnss_config の configure_rx を false にする設定の変更で、許可が要る。決まらない場合に止まる作業：ドライバの最初の起動（手順 4）。起動すると案 1 なら Boot に保存されるため、起動の前に決める。根拠
+      FILE-SEPTENTRIO-SOURCE-REVIEW。 2026-10-19 人の指示（DEC-141）: まだ決めない。決まるまで手でも Gouda でもドライバを起動しない。configure_rx を
+      PRM-74（未確定）にした。'
+    disposition: answered
+  - id: DEC-141
+    kind: approval
+    status: answered
+    asked_on:
+    answered_on: '2026-10-19'
+    channel: chat
+    question: PRM-65 の承認、センサーを by-id の名前で探すこと（GNSS の検査の実装の許可）、DEC-140 が決まるまでドライバを起動しないこと、DEC-140 
+      の判断の材料の作成（人の指示）
+    answer_verbatim: "次の 3 点を指示する。人の回答として判断台帳に原文で記録すること。\n\n1. PRM-65（GNSS ドライバの接続先）を承認する。値は by-id の名前を使い、\n   serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00（受信機の
+      USB1）とする。\n   ttyACM の番号では指定しない。\n\n2. Gouda が起動するときは、センサー（IMU も GNSS も）をいつも by-id の名前で探すこと。\n   IMU も mosaic-go
+      も ttyACM になり、差す順や再接続で番号が入れ替わるため。\n   GNSS の設定（gnss_config）は、今は serial: の後ろにどんなパスでも受け付けるので、\n   IMU と同じく /dev/serial/by-id/
+      の名前だけを受け付け、それ以外ならドライバを起動せず理由を記録する検査を加えること（実装を許可する）。\n   単体試験を足し、IMU と GNSS を同時につないだ場合でも取り違えないこと（名前の指す実体で見張る・使用中を判定する）を確かめること。\n\
+      \n3. DEC-140（configure_rx を使うか）はまだ決めない。決まるまで、手でも Gouda でも septentrio のドライバを起動しないこと。\n   判断の材料として、configure_rx
+      を false にした場合に受信機に先に設定しておく必要がある SBF の出力\n   （ブロック名、出力先 USB1、間隔、使うストリームの番号）と、その設定を人が行う手順の案を、\n   私の注意事項（reports/mosaic-G5_P6_取扱上の注意事項.md
+      の §4〜§6: gso で確認してから、Res1〜4 は使わない、Boot 保存は別の工程）に沿って出すこと。\n   受信機のポートには触らないこと（読むだけでも、raw・エコー無効の確認と私の許可の後）。\n\
+      \n終わったら、変更、試験の結果、DEC-140 の判断の材料を報告すること。commit はしないこと。\n"
+    affected_refs:
+      - PRM-65
+      - ND-18
+      - ND-19
+      - ND-15
+      - DEC-140
+    resulting_refs:
+      - PRM-74
+    note: PRM-65 を承認値にした（REV-069）。「決まるまで…Gouda でも起動しない」を守るため、configure_rx を未確定の設定 PRM-74 にし、supervisor 
+      は値がない間ドライバを起動しない（AI の判断。PRM-65 だけが決まると Gouda の起動でドライバが configure_rx true のまま起動するため）。IMU の設定にも by-id 
+      の名前だけを受け付ける検査を加えた（指示の 2 の「センサー（IMU も GNSS も）をいつも by-id の名前で探すこと」。それまでは PRM-54 の値が by-id であるだけで、検査はなかった）。
+    disposition: answered
+  - id: DEC-142
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: 起動の前の記録（gso・getDataInOut）を受信機の USB2 で取ってよいか（待ち時間）
+    answer_verbatim: "起動の前の記録を USB2（if02）で取ってよい。待ち時間は 1 秒とする\n"
+    affected_refs:
+      - ND-19
+      - DEC-140
+    resulting_refs:
+      - FILE-MOSAIC-BEFORE-FIRST-START
+    note: 許可は起動の前の 1 回の照会（lif,Identification・gso・getDataInOut）だけ。起動の後の記録は、最初の起動の時に改めて許可を得る。生の記録（位置を含む）は VM の 
+      ~/gnss_records/ にだけ置いた。
     disposition: answered
 revisions:
   - id: REV-002
@@ -55367,4 +56930,280 @@ revisions:
       - SRC-I014-V11
     added_file_ids:
       - FILE-INTENT-V11
+    removed_entity_ids: []
+  - id: REV-060
+    date: '2026-10-17'
+    summary: '人が DEC-116 を許可した（原文）。試験スタック（gouda_core/test/stack.sh）だけに Fast DDS の共有メモリの区画を大きくする設定（gouda_core/test/fastdds_test_stack.xml）を入れた。
+      gouda.sh と x86 機の設定は変えていない。VM で、前回の試験（FILE-RECORDER-GLIM-FIX-VM-TEST の手順）が同じ結果になること、約 2 MB の点群の配送が設定なし 70・86/200
+      から設定あり 178・182/200 に増えることを確かめた（FILE-DEC116-FASTDDS）。 人の指示（DEC-119、原文）により、工程 5-6 の Global_localization と Navigation
+      の実装を検討した（提案 design/proposals/stage56_navigation_localization_plan.md。実装なし: DEC-106）。 推奨: Navigation（Nav2 の構成と
+      mode_manager の client）を先に作り VM の模擬で試験する。GNSS の取込みを次の実機試験の前に作る。ND-07 は DEC-115 と GNSS の初期位置の設計の後。ND-08 は方式に依存しないので先に作れる。
+      承認事項 DEC-120〜DEC-124 を登録した。setup.sh が Nav2 を入れないこと（x86 機の Nav2 の有無は未確認）を確かめた。'
+    basis_refs:
+      - DEC-116
+      - DEC-119
+      - DEC-106
+      - DEC-115
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-DDS
+      - G-INIT-POSE-GNSS
+    added_source_ids: []
+    added_file_ids:
+      - FILE-DEC116-FASTDDS
+      - FILE-DEC116-FASTDDS-SCRIPT
+    removed_entity_ids: []
+  - id: REV-061
+    date: '2026-10-17'
+    summary: '人が DEC-120〜124 をすべて許可した（原文）。許可された設計を正本に反映する。 GNSS: Septentrio の上流ドライバ（ND-19）を sensor supervisor が起動し、位置・品質・向きを
+      IFD-47〜49 で出す。接続先 PRM-65 と RTK の補正の受け方は人に確認する（DEC-125）。アンテナの位置は /config で人が設定し ND-13 が TF として出す。 Nav2（ND-10）:
+      RPP・NavFn・上流の BT（PRM-11・18）・spin/backup/wait・velocity_smoother、collision_monitor は使わない、TwistStamped（PRM-12
+      を承認値 true に）。自律走行・一時停止の間だけ active。 実車値（速度・加速度・footprint・障害物の高さ・膨張半径）を PRM-66〜73 として宣言し、未確定の間は実車では Nav2 を起動しない（試験だけ仮値）。
+      障害物（ND-09）は独自の node を作らず Nav2 の costmap の層の設定で扱う。ND-13 は /config の UNKNOWN を中立の値で出して記録する。ND-08 は GLIM の odometry
+      だけ＋中継。 設計の直し（自律判断）: IFD-19（odom→base_link）と IFD-20（base_footprint→base_link）を同時に使うと base_link の親が二つになるため、静的
+      TF を base_link→base_footprint（z=−PRM-05）にした（base_link の親は odom だけ。Nav2・GLIM は base_link を使う）。 DEC-124（GNSS
+      による初期位置）は方針の承認で、実装の前に詳細の設計を提案として出す（DEC-009 は書き換えない）。'
+    basis_refs:
+      - DEC-120
+      - DEC-121
+      - DEC-122
+      - DEC-123
+      - DEC-124
+    added_entity_ids:
+      - ND-19
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - PRM-65
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-73
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - TS-35
+      - TS-36
+      - TS-37
+      - TS-38
+    modified_entity_ids:
+      - ND-08
+      - ND-09
+      - ND-10
+      - ND-13
+      - IFD-20
+      - IFD-21
+      - IFD-23
+      - IFD-26
+      - IFD-28
+      - PRM-12
+      - G-INIT-POSE-GNSS
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-062
+    date: '2026-10-17'
+    summary: 工程 5-6 の実装（人の許可 DEC-120〜123）と試験の記録。GNSS の取込み（ND-19 を sensor supervisor が起動、monitor に表示）、静的 
+      TF（ND-13、gouda_static_tf）、Nav2 の構成（nav2_config、gouda_nav2.launch.py、自律走行の間だけ active）、mode_manager の Nav2
+      の client（TR-05・06・07・08・10・11・12）、ND-08（GLIM の odometry だけ＋gouda_local_odometry）、ND-11 の cmd_vel を 
+      TwistStamped に（PRM-12）、monitor の自律走行の準備の欄、setup.sh に Nav2 と GNSS のドライバ。VM 
+      の試験（FILE-STAGE56-VM-TEST）で、開始の拒否 2 件、開始 → 適用中で hold の解除 → 最後の waypoint 
+      で一時停止、終了・一時停止・再開・走行中の終了を確認。見つけた不具合 2 件（SpeedFilter の topic の名前空間、静的 TF の置き換え）を直した。再現しない不具合 1 件（最初の goal 
+      の BT の受理の待ちの失敗）を G-NAV2-FIRST-GOAL に記録。実車では ND-07 が無いため自律走行の開始は拒否される。DEC-124 の詳細の設計を提案にし、承認事項 
+      DEC-126〜129 を登録した。
+    basis_refs:
+      - DEC-120
+      - DEC-121
+      - DEC-122
+      - DEC-123
+      - DEC-124
+    added_entity_ids:
+      - G-NAV2-FIRST-GOAL
+    modified_entity_ids:
+      - ND-03
+      - ND-10
+      - IFD-15
+      - TR-05
+      - TR-07
+      - TS-01
+      - TS-05
+      - TS-15
+      - TS-21
+      - TS-35
+      - TS-36
+      - TS-37
+      - TS-38
+    added_source_ids: []
+    added_file_ids:
+      - FILE-STAGE56-VM-TEST
+      - FILE-UPSTREAM-SEPTENTRIO-GNSS-YAML
+    removed_entity_ids: []
+  - id: REV-063
+    date: '2026-10-18'
+    summary: '人が DEC-126 を許可した（原文）。同じメッセージで GNSS の活用の実装仕様の文書を貼った（扱いの指示なし。DEC-130 に原文、design/research/gnss_reference_spec_2026-10-18.md
+      に写し）。DEC-126 を実装: 地図作成の間、mode_manager が GNSS（IFD-47〜50。方位の共分散 AttCovEuler を IFD-50 として追加）を作業フォルダの gnss.jsonl
+      に全項目のまま書き、原図の登録で原図の横に置いて SHA-256 と行数を source_manifest.json に記録する（GLIM の dump の内容ハッシュは変えない）。Mac の単体は合格。VM が停止していて
+      ROS 上の試験は未実行。提案 gnss_initial_pose_design.md を第2版にし（貼られた仕様との照合、上流 README の確認）、承認事項 DEC-131〜134 を登録した。'
+    basis_refs:
+      - DEC-126
+      - DEC-130
+      - DEC-124
+    added_entity_ids:
+      - IFD-50
+    modified_entity_ids:
+      - ND-03
+      - IFD-29
+      - ND-19
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - TS-35
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-REF-SPEC
+    removed_entity_ids: []
+  - id: REV-064
+    date: '2026-10-18'
+    summary: 人が VM を起動した。DEC-126（地図作成の間の GNSS の記録）の ROS 上の試験を VM 
+      の試験スタックで行い合格した（FILE-GNSS-MAPPING-RECORD-VM-TEST）。実機（受信機）での記録は未実行。
+    basis_refs:
+      - DEC-126
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-35
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-MAPPING-RECORD-VM-TEST
+    removed_entity_ids: []
+  - id: REV-065
+    date: '2026-10-18'
+    summary: '人の回答（原文）: DEC-131 承認、DEC-132 は調査結果を添えてソフトウェアの較正の再検討を指示、DEC-133 は条件付きで承認（条件の記載なし。DEC-137 で確認）、DEC-128
+      は許可の取消、DEC-134 は保留（過剰な安全策の可能性）。DEC-132 の再検討として、合成のデータで同時推定（T1・レバーアーム・取付 Yaw・遅延）の試算をした（FILE-GNSS-CALIB-FEASIBILITY）。較正の走行ならレバーアーム
+      1〜2 mm、取付 Yaw 0.02 度、遅延 5 ms の誤差、ant_z は平地で決まらない、直線だけでは遅延を誤り標準偏差でも見抜けない、方位の定義の取り違えは残差で分かる。提案を第3版にし、DEC-135（ソフトウェアの較正。DEC-127・DEC-132
+      の置き換え）と DEC-136（較正の走行）を登録した。実装はしていない。'
+    basis_refs:
+      - DEC-131
+      - DEC-132
+      - DEC-133
+      - DEC-134
+      - DEC-128
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-INIT-POSE-GNSS
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-CALIB-RESEARCH
+      - FILE-GNSS-CALIB-FEASIBILITY
+      - FILE-GNSS-CALIB-FEASIBILITY-SCRIPT
+    removed_entity_ids: []
+  - id: REV-066
+    date: '2026-10-18'
+    summary: 人が DEC-137（DEC-133 の条件の確認）に回答した（原文「1a2a3b4ok5実機検証してから6実機検証してから7a8a9b」）。DEC-133 
+      の条件として記録した（人の開始で初期化、失敗は止めて表示、未収束でも警告だけで開始は人の判断、人の指定を残す、静止の判定と値は実機検証の後、対応のある地図だけ、PC 
+      再起動後も同じ流れ、方式によらない契約）。実装はしていない（ND-07・DEC-135 が前提）。
+    basis_refs:
+      - DEC-137
+      - DEC-133
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-067
+    date: '2026-10-19'
+    summary: '人の回答（原文）: DEC-136 承知、DEC-135 一旦承認（人が実験走行でデータを取り、実データで推定できるか検証する。できなければ不採用）、DEC-125 しばらくは VM で実機試験、mosaic-go
+      は USB、RTK の補正は NTRIP（truertk.pointonenav.com の有料サービス）。DEC-135 の検証の道具として推定器 gnss_calibration.py（numpy だけ。地図への組み込みはしない）と単体試験を実装し、地図作成の時の
+      /config の写しを原図の横に登録するようにした（推定の入力）。Mac・VM の単体試験と VM の記録の試験は合格。VM での実機試験に向けた課題を承認事項にした: DEC-138（VM の起動に Fast
+      DDS の共有メモリの設定）、DEC-139（NTRIP の受け方）。接続先 PRM-65 は mosaic-go を VM につないでから確かめる。'
+    basis_refs:
+      - DEC-125
+      - DEC-135
+      - DEC-136
+    added_entity_ids:
+      - TS-39
+    modified_entity_ids:
+      - IFD-29
+      - PRM-65
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-RECORD-CONFIG-SNAPSHOT-VM-TEST
+    removed_entity_ids: []
+  - id: REV-068
+    date: '2026-10-19'
+    summary: '手順 1（人の指示の順序）: 上流ドライバ septentrio_gnss_driver v1.4.8 のソースを確かめた（FILE-SEPTENTRIO-SOURCE-REVIEW）。シリアルは
+      Boost.Asio の open で raw・エコー無効になる。configure_rx が true だと、起動のたびに受信機のすべての SBF・NMEA の出力を止め（sso/sno, all）、自分のストリームを
+      Stream1 から作り、最後に eccf, Current, Boot で Boot に保存する（人の資料の注意 §5・§6 と合わない）。gnss の種類では TF から主→副の方位・仰角のオフセットだけを設定し、主アンテナの位置は補正しない。承認事項
+      DEC-140（configure_rx を使うか）を登録した。'
+    basis_refs:
+      - DEC-125
+      - DEC-139
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-19
+    added_source_ids: []
+    added_file_ids:
+      - FILE-SEPTENTRIO-SOURCE-REVIEW
+    removed_entity_ids: []
+  - id: REV-069
+    date: '2026-10-19'
+    summary: '人の指示（DEC-141、原文）: PRM-65 を承認（serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00、受信機の
+      USB1）。センサー（IMU も GNSS も）はいつも by-id の名前で探す。GNSS の設定は /dev/serial/by-id/ の名前だけを受け付ける検査を加える（実装の許可）。DEC-140 はまだ決めず、決まるまで手でも
+      Gouda でも septentrio のドライバを起動しない。そのため configure_rx を未確定の設定 PRM-74（決定先 DEC-140）として宣言し、値がない間 supervisor はドライバを起動しない。'
+    basis_refs:
+      - DEC-141
+      - DEC-140
+    added_entity_ids:
+      - PRM-74
+    modified_entity_ids:
+      - ND-18
+      - PRM-65
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-070
+    date: '2026-10-19'
+    summary: '人の回答（DEC-140、原文）: configure_rx は true。受信機の設定は Gouda（ドライバ）が持つ。人の資料の §5・§6 は手での調査の規則として残す。最初の起動の前後で
+      gso と getDataInOut を記録する。GGA の出し方は DEC-139 と一緒に提案する。PRM-74 を承認値 true にした。これで PRM-65・PRM-74 がそろい、このブランチの Gouda
+      の起動では supervisor が GNSS のドライバを起動する（VM の ~/gouda_ws は main のままで、まだ起動しない）。'
+    basis_refs:
+      - DEC-140
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-19
+      - PRM-74
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-071
+    date: '2026-10-19'
+    summary: 'DEC-140 の回答の指示に沿って、最初の起動の前後で受信機の gso と getDataInOut を記録する道具 gouda_core/gouda_core/septentrio_query.py（照会だけ、by-id
+      の名前だけ、他のプロセスが開いていれば送らない、raw・エコー無効を読み直してから送る）と単体試験を作った（受信機には触っていない）。DEC-139 と GGA の出し方を提案した（design/proposals/ntrip_gga_proposal.md）:
+      USB だけの接続では受信機の中の NTRIP は使えないので、ドライバが USB2 を補正の入力と GGA の出力にし、PC の RTKLIB str2str が NTRIP と USB2 を中継する案 B1
+      を推奨。'
+    basis_refs:
+      - DEC-140
+      - DEC-139
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-35
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-072
+    date: '2026-10-19'
+    summary: '人の許可（DEC-142、原文）で、最初の起動の前の受信機の記録を USB2（if02）で取った（FILE-MOSAIC-BEFORE-FIRST-START。照会 3 件とも受理、送る前に raw・エコー無効を読み直し）。gso:
+      Stream1（COM1）・Stream2（COM2）・Stream3（USB2）に block の組があるが off、Stream4〜10 と Res1〜4 は none・off（2026-10-17 の人の調査の
+      Stream4 は残っていない）。getDataInOut: COM1・COM2・USB1・USB2 は入力 auto・出力 SBF+NMEA。最初の CR に対し、受信機の入力に残っていた GGA の断片が「Invalid
+      command」になった（以前に NMEA が受信機へ送り返されていたことを示す。2026-10-19 の AI の raw でない読み出しと整合するが断定できない）。USB2 の NMEA では単独測位（品質
+      1）だった。'
+    basis_refs:
+      - DEC-142
+      - DEC-140
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-19
+    added_source_ids: []
+    added_file_ids:
+      - FILE-MOSAIC-BEFORE-FIRST-START
     removed_entity_ids: []

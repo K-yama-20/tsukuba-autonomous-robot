@@ -1,0 +1,31 @@
+# 2026-10-18 REV-067: 地図作成の時の /config の写しを原図の横に登録（GNSS の較正の入力）と、DEC-126 の記録の再試験（原文の出力）。gouda_core/test/ubuntu_gnss_mapping_record.sh（G0 で /config を保存してから地図作成）。
+# 対象: コミット 2ce59ea ＋ 作業ツリー（REV-060〜067 の変更）。VM の ~/gouda_fix_ws に写して build。VM の単体試験は全件 OK・1 件 skip（gnss_calibration の 5 件を含む。numpy 1.26.4）。試験専用の上流の型の扱いは FILE-GNSS-MAPPING-RECORD-VM-TEST と同じ。
+
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/gnssrec, monitor http://127.0.0.1:36473/)
+=== G0 /config saved (antenna and LiDAR mounting; the snapshot of the run is registered with the source map: REV-067)
+{"ok": true, "message": "config revision 1 saved (3 field(s))", "config": {"values": {"lidar_mount_x_m": "UNKNOWN", "lid
+=== G1 mapping with GNSS messages
+success=True, message='TR-03: manual -> mapping'
+published 20 x 4 messages
+success=True, message='TR-04: mapping -> manual'
+   TR-03 gnss_record_started | GNSS recorded to /tmp/gnssrec/mapping/20261018_114959_cd11dce8/gnss.jsonl | x1
+   TR-04 gnss_record_stopped | GNSS record closed: {'sensors/gnss/navsatfix': 20, 'sensors/gnss/pvtgeodetic': 20, 'sensors/gnss/atteuler': 20, 'sensors/gnss/attcoveuler': 20} | x1
+   TR-04 source_map_registered | source map registered as 20261018_114959_cd11dce8 (hash 973471a19061…, 0 submap(s)) | x1
+source map dir: /tmp/gnssrec/maps/20261018_114959_cd11dce8/
+gnss.jsonl
+sensor_config.json
+source
+source_manifest.json
+manifest sensor_config: {'file': 'sensor_config.json', 'sha256': 'cf39e02bb40e440e39b981272aaea571c1fcb05aebab4622547137eb29e6d5b1'}
+file sha256 matches: True
+manifest gnss: {'file': 'gnss.jsonl', 'sha256': 'c0107fd3c2d8e6b4d8c32af5d0a2562394db978591870623b1b0aff17c6b0979', 'counts': {'sensors/gnss/navsatfix': 20, 'sensors/gnss/pvtgeodetic': 20, 'sensors/gnss/atteuler': 20, 'sensors/gnss/attcoveuler': 20}}
+source content_hash: 973471a1906197f3
+gnss.jsonl lines: 80, sha256: c0107fd3c2d8e6b4d8c32af5d0a2562394db978591870623b1b0aff17c6b0979
+20
+=== G2 mapping without GNSS messages
+success=True, message='TR-03: manual -> mapping'
+success=True, message='TR-04: mapping -> manual'
+   TR-03 gnss_record_started | GNSS recorded to /tmp/gnssrec/mapping/20261018_115025_1c35f7dd/gnss.jsonl | x1
+   TR-04 gnss_record_stopped | GNSS record closed: {} (no GNSS message: no alignment can be made from this map) | x1
+   TR-04 source_map_registered | source map registered as 20261018_115025_1c35f7dd (hash d0252ce90444…, 0 submap(s)) | x1
+test stack stopped

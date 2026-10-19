@@ -1,0 +1,160 @@
+# 変更セット REV-060（2026-10-17 第31便: DEC-116 の許可と試験スタックへの Fast DDS の設定、Global_localization・Navigation の実装の検討（提案）と承認事項 5 件）
+# 適用: design/tools/apply_revision.py REV-060
+id: REV-060
+date: '2026-10-17'
+summary: >-
+  人が DEC-116 を許可した（原文）。試験スタック（gouda_core/test/stack.sh）だけに Fast DDS の共有メモリの区画を大きくする設定（gouda_core/test/fastdds_test_stack.xml）を入れた。
+  gouda.sh と x86 機の設定は変えていない。VM で、前回の試験（FILE-RECORDER-GLIM-FIX-VM-TEST の手順）が同じ結果になること、約 2 MB の点群の配送が設定なし 70・86/200 から設定あり 178・182/200 に増えることを確かめた（FILE-DEC116-FASTDDS）。
+  人の指示（DEC-119、原文）により、工程 5-6 の Global_localization と Navigation の実装を検討した（提案 design/proposals/stage56_navigation_localization_plan.md。実装なし: DEC-106）。
+  推奨: Navigation（Nav2 の構成と mode_manager の client）を先に作り VM の模擬で試験する。GNSS の取込みを次の実機試験の前に作る。ND-07 は DEC-115 と GNSS の初期位置の設計の後。ND-08 は方式に依存しないので先に作れる。
+  承認事項 DEC-120〜DEC-124 を登録した。setup.sh が Nav2 を入れないこと（x86 機の Nav2 の有無は未確認）を確かめた。
+basis_refs: [DEC-116, DEC-119, DEC-106, DEC-115]
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+
+files:
+  - id: FILE-DEC116-FASTDDS
+    path: design/research/vehicle_pc/2026-10-17_dec116_fastdds_test_stack.txt
+    role: evidence
+  - id: FILE-DEC116-FASTDDS-SCRIPT
+    path: design/research/vehicle_pc/2026-10-17_dec116_pc2_check.py
+    role: evidence
+
+decisions:
+  - id: DEC-119
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat（前のチャットで人が出した指示。引き継ぎのプロンプト design/reports/handover_2026-10-17.md §0 に原文として記載され、2026-10-17 に人が新しいチャットに貼った）
+    question: 次の作業の指示（Global_localization または Navigation のノードの実装の検討と報告）
+    answer_verbatim: |
+      次にやりたいことは、Global_localizationまたはNavigationのノードの実装。まずは検討して、結果を私に報告せよ。
+    affected_refs: [ND-07, ND-08, ND-10, ND-03, DEC-115, G-INIT-POSE-GNSS]
+    resulting_refs: [DEC-120, DEC-121, DEC-122, DEC-123, DEC-124]
+    note: >-
+      検討と報告だけを行った（実装は人の個別の許可の後: DEC-106）。提案 design/proposals/stage56_navigation_localization_plan.md。
+      原文は前のチャットの人の発言で、このチャットでは引き継ぎのプロンプトの写しとして受け取った（前のチャットの記録は読んでいない）。
+    disposition: answered
+  - id: DEC-120
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】工程 5-6 の進める順序。Navigation（Nav2 の構成・BT・mode_manager の Nav2 の client と TR-05・速度マスクの読み込み）と GNSS の取込み（受信・記録・表示）を先に作り、
+      Global_localization（ND-07）は DEC-115（方式）と GNSS の初期位置の設計（DEC-124）の後にする。Navigation の試験は VM で Nav2 の標準の模擬（nav2_loopback_sim）を使い、車体を動かさない。
+      代わりの案: (b) Global_localization を先に作る（DEC-115 の決定が先に要る）、(c) 両方を同時に作る。
+    answer_verbatim: ''
+    affected_refs: [ND-10, ND-03, ND-07, ND-08, TR-05, IFD-13, IFD-42, DEC-115]
+    resulting_refs: []
+    note: >-
+      推奨は承認。理由: Navigation は方式にも GNSS にも依存しない部分が大きく、模擬で 5-6 の試験（TS-01・02・05・14・15・21）を通せる。GNSS は次の実機試験の rosbag に入れる必要がある（時間の制約）。
+      振る舞いの違い: 実車の起動では、ND-07・ND-08 が無い間 TR-05 は拒否のまま（自己位置推定なしに車体が動かない）。
+      決まらない場合に止まる作業：Navigation の実装全体。提案 design/proposals/stage56_navigation_localization_plan.md §1・§7。
+    disposition: open_human
+  - id: DEC-121
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】Nav2 の導入。(1) setup.sh の apt の一覧に Nav2（navigation2 のうち使うパッケージと nav2_bringup）を加える（x86 機にも入る）。
+      (2) VM に nav2_loopback_sim（apt、Jazzy 1.3.13）を入れる（sudo がないため人の作業）。(3) nav2_loopback_sim は試験スタック（gouda_core/test）でだけ起動し、gouda.sh では起動しない。
+      代わりの案: Nav2 を setup.sh に入れず人が手で入れる。
+    answer_verbatim: ''
+    affected_refs: [ND-10, ND-01, V-001]
+    resulting_refs: []
+    note: >-
+      推奨は承認。事実: setup.sh の apt の一覧は ros-jazzy-desktop・GLIM・ドライバの依存だけで、Nav2 を入れない。「実車PC の Nav2 1.3.13」の記録（research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）は VM（arm64）のもので、x86 機の Nav2 の有無は未確認。
+      版は Jazzy の apt（VM は 1.3.13）。決まらない場合に止まる作業：Nav2 の起動と試験。
+    disposition: open_human
+  - id: DEC-122
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】Nav2 の構成の選択と関係する正本の直し。controller は Regulated Pure Pursuit（代わり: MPPI、Jazzy の既定）、planner は NavFn、BT は上流の navigate_through_poses_w_replanning_and_recovery.xml の写しに PRM-11・PRM-18 を入れる、
+      behaviors は spin・backup・wait、velocity_smoother を使う、collision_monitor は使わない（RQ-I072）、cmd_vel は TwistStamped（PRM-12 を true に）。
+      障害物は独自の node（ND-09）を作らず XT-32 の点群を Nav2 の VoxelLayer・ObstacleLayer に高さの帯で入れ、観測していない所を空きとみなさない（track_unknown_space）。
+      静的 TF（ND-13）は /config が UNKNOWN の項目を中立の値で出して記録する（今の正本は「未入力なら TF を出さない」）。Nav2 は自律走行・一時停止以外では inactive にする。
+    answer_verbatim: ''
+    affected_refs: [ND-10, ND-09, ND-13, ND-11, IFD-15, PRM-11, PRM-12, PRM-17, PRM-18, Q-04, Q-06]
+    resulting_refs: []
+    note: >-
+      推奨は承認。振る舞いの違い: RPP は経路をなぞるだけで軽く挙動を説明しやすい。MPPI は回避が滑らかだが CPU を使う。collision_monitor を使わないので、近づいたら止める PC 側の機構はない（障害物は costmap と計画で扱う）。
+      velocity_smoother を使うと cmd_vel の発行元が velocity_smoother になる（IFD-15 の記述を直す）。障害物の高さの帯は坂の上りで地面を障害物にしうる（推測。実車の地図で確かめ、問題なら ND-09 を作る）。
+      値（加速度・速度・footprint）は Q-06 の実車値まで仮値。決まらない場合に止まる作業：Nav2 の設定の生成と N1〜N3 の試験。提案 §4。
+    disposition: open_human
+  - id: DEC-123
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】(1) GNSS の取込みの実装: septentrio_gnss_driver（apt、Jazzy 1.4.8、改変しない）を setup.sh に加え、sensor_supervisor が LiDAR・IMU と同じくデバイスの有無を見てドライバを起動する。
+      位置・品質（RTK fix／float／単独）・デュアルアンテナの向きを topic で出し、rosbag に記録し、monitor のセンサーの欄に表示する（表示だけで停止の条件にしない）。次の実機試験の前に x86 機へ。
+      (2) ND-08 の実装: 自律走行・一時停止の間だけ GLIM を odometry だけの設定で起動し、~/odom と IMU の角速度から localization/odometry（IFD-25）を作る小さな中継の node（3 案に共通。DEC-115 を待たない）。
+    answer_verbatim: ''
+    affected_refs: [ND-08, ND-18, ND-02, ND-04, IFD-25, G-INIT-POSE-GNSS, DEC-115]
+    resulting_refs: []
+    note: >-
+      推奨は (1)(2) とも承認。(1) は次の実機試験の rosbag に GNSS を入れるため（地図と GNSS の対応、GNSS の初期位置の評価に要る）。ネットワーク RTK の接続先・認証の情報は公開のリポジトリに入れない（置き場所は実装の時に提案）。
+      アンテナの取付位置は人が /config で設定する（RQ-I081。質問しない）。前提: 走行中に車載 PC がインターネットにつながること。
+      (2) の根拠は提案 design/proposals/localization_selection.md §3。決まらない場合に止まる作業：(1) 次の実機試験での GNSS の記録、(2) ND-07 の結合と Navigation の実データでの試験。
+    disposition: open_human
+  - id: DEC-124
+    kind: approval
+    status: pending
+    asked_on: '2026-10-17'
+    answered_on: null
+    channel: chat
+    question: >-
+      【承認】GNSS による初期位置の設計の方針（G-INIT-POSE-GNSS）。地図作成の時に GNSS（RTK fix の点）と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。
+      開始の準備で GNSS の位置と向きを地図の座標にして自己位置推定の初期値にし（A3 なら Monte Carlo の探索で照合）、monitor に GNSS の姿勢と照合の結果を重ねて表示し、人が確認してから開始ボタンを押す。
+      GNSS が fix でない・地図の対応がないときは人の指定（IFD-39）を使う。PC 再起動後（DEC-009）は「GNSS で取り直して人が確認、または人が指定」に読み替える。保存した最後の姿勢は使わない。
+    answer_verbatim: ''
+    affected_refs: [G-INIT-POSE-GNSS, IFD-34, IFD-39, IFD-02, ND-07, ND-02, ND-03, ND-05, TR-05, H-007, DEC-009]
+    resulting_refs: []
+    note: >-
+      推奨は承認（詳細の設計を提案として出してから実装）。振る舞いの違い: 今の設計は人の指定だけ。案では GNSS の値が既定になり人は確認する。誤った GNSS（マルチパス・float）で照合が別の場所に収束する危険があるため、品質の区分と照合の結果の両方を示し、開始は人の確認の後とする。
+      DEC-009 の読み替えは確定済みの判断の変更に当たるため、承認された場合は新しい項目として記録する（DEC-009 は書き換えない）。決まらない場合に止まる作業：GNSS の初期位置（L3）、PC 再起動後の再開の設計。提案 §5.2。
+    disposition: open_human
+
+modifications:
+  - id: G-DDS
+    set_nested:
+      issue.next_action: >-
+        GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。
+        処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。
+        2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、
+        共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。
+        2026-10-17 人の許可（DEC-116）により、試験スタック（gouda_core/test/stack.sh）だけに同じ設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた。gouda.sh・x86 機は変えていない。
+        VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。
+        残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。
+  - id: G-INIT-POSE-GNSS
+    set_nested:
+      issue.next_action: >-
+        自己位置推定の方式の選定（DEC-115、保留中）を再開するときに一緒に設計する。決めることの候補: GNSS の取込み（ドライバ、topic、品質の扱い）、GNSS の座標と GLIM の地図の座標の対応（地図作成時に GNSS も記録する等）、
+        「確認」の操作（人の確認を開始の条件にするか）、PC 再起動後の扱い（DEC-009 との関係）、GNSS が使えないときの代わり（人の指定を残すか）。いずれも承認事項。
+        2026-10-17（DEC-119 の検討）: 方針の案を承認事項 DEC-124、GNSS の取込み（受信・記録・表示）を DEC-123 の (1) にした（提案 design/proposals/stage56_navigation_localization_plan.md §5）。
+        septentrio_gnss_driver は apt に Jazzy 1.4.8 がある（VM で確認、未導入）。VM の ~/mosaic_test.sbf は 0 バイト。
+
+decision_updates:
+  - id: DEC-116
+    set:
+      status: answered
+      answered_on: '2026-10-17'
+      answer_verbatim: |
+        DEC−116は許可する
+      resulting_refs: [FILE-DEC116-FASTDDS, G-DDS]
+      note: >-
+        根拠: FILE-LOCALIZATION-EVAL の 5（間引きの node が受け取った数: 既定 200 中 74〜89、設定後 196〜200/200）。推奨は承認（VM での GLIM・地図作成の試験の周期の低さの対策になる見込み。未確認）。
+        起動の方法は増やさない（DEC-090）。決まらない場合に止まる作業：VM での点群を使う試験の信頼性（今は x86 機で地図作成を行っている）。
+        2026-10-17 人が許可（原文は answer_verbatim）。gouda_core/test/stack.sh に FASTRTPS_DEFAULT_PROFILES_FILE（gouda_core/test/fastdds_test_stack.xml、評価の fastdds_eval.xml と同じ内容）を入れた。gouda.sh は変えていない。
+        確認は FILE-DEC116-FASTDDS（前回の試験スタックの試験が同じ結果、点群の配送が 70・86/200 → 178・182/200）。
+      disposition: answered

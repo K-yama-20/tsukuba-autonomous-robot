@@ -1,0 +1,34 @@
+# 変更セット REV-068（2026-10-19 第36便: 上流ドライバのソースの確認、承認事項 DEC-140）
+# 適用: design/tools/apply_revision.py REV-068
+id: REV-068
+date: '2026-10-19'
+summary: '手順 1（人の指示の順序）: 上流ドライバ septentrio_gnss_driver v1.4.8 のソースを確かめた（FILE-SEPTENTRIO-SOURCE-REVIEW）。シリアルは Boost.Asio の open で raw・エコー無効になる。configure_rx が true だと、起動のたびに受信機のすべての SBF・NMEA の出力を止め（sso/sno, all）、自分のストリームを Stream1 から作り、最後に eccf, Current, Boot で Boot に保存する（人の資料の注意 §5・§6 と合わない）。gnss の種類では TF から主→副の方位・仰角のオフセットだけを設定し、主アンテナの位置は補正しない。承認事項 DEC-140（configure_rx を使うか）を登録した。'
+basis_refs:
+- DEC-125
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-SEPTENTRIO-SOURCE-REVIEW
+  path: design/research/upstream_sensors/septentrio_gnss_driver_1.4.8/source_review_2026-10-19.md
+  role: evidence
+decisions:
+- id: DEC-140
+  kind: approval
+  status: pending
+  asked_on: '2026-10-19'
+  answered_on: null
+  channel: chat
+  question: '【承認】ドライバの configure_rx を使うか。案 1: true（雛形のまま）。ドライバが起動のたびに受信機の全出力を止め、自分の設定を作り、Boot に保存する（人の調査の Stream4 は消える）。案 2（推奨）: false にし、受信機の設定（必要な SBF の出力、USB2 の補正の入力と GGA、方位のオフセット、マルチアンテナ）は人の資料の手順で一度だけ行い、Boot への保存も人が判断する。ドライバは読むだけ（接続の最初のエスケープの列は送る）。'
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - PRM-65
+  - DEC-139
+  resulting_refs: []
+  note: 推奨は案 2（人の資料 §5「既存の用途を上書きしない」・§6「Boot 保存は別工程」に合う）。案 2 では受信機の設定の手順（コマンドの列）を作る必要があり、AI が案を作って人が実行する（シリアルへの送信は人の確認の後）。案 2 は gnss_config の configure_rx を false にする設定の変更で、許可が要る。決まらない場合に止まる作業：ドライバの最初の起動（手順 4）。起動すると案 1 なら Boot に保存されるため、起動の前に決める。根拠 FILE-SEPTENTRIO-SOURCE-REVIEW。
+  disposition: open_human
+entities: []
+modifications:
+- id: ND-19
+  interpretation_append: 'REV-068: 上流 v1.4.8 のソースの確認（FILE-SEPTENTRIO-SOURCE-REVIEW）。configure_rx true は起動のたびに受信機の全出力を止め、最後に Boot に保存する。gnss の種類では TF から主→副の方位・仰角のオフセット（sto）だけを設定し、主アンテナの位置は補正しない。configure_rx の扱いは DEC-140。'
+decision_updates: []

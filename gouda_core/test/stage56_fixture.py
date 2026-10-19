@@ -1,0 +1,29 @@
+"""Stage 5-6 VM test fixture (test only): a synthetic converted map (free space) and a waypoint set with its speed mask, stored as
+stages 5-3 / 5-4 store them, under <data_root>. Prints the StartAutonomy request fields (JSON) for the test script.
+usage: python3 stage56_fixture.py <data_root>"""
+import json
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from gouda_core import speed_mask as sm  # noqa: E402
+from gouda_core import waypoints as wp  # noqa: E402
+
+root = Path(sys.argv[1])
+RES, W, H, OX, OY = 0.1, 300, 300, -15.0, -15.0          # 30 m x 30 m of free space (synthetic; not a vehicle value)
+MAP_HASH = 'synthetic-free-map-stage56'
+mdir = root / 'maps' / 'origin_st56' / 'converted' / '001'; mdir.mkdir(parents=True, exist_ok=True)
+(mdir / 'map.pgm').write_bytes(b'P5\n%d %d\n255\n' % (W, H) + bytes([254]) * (W * H))
+(mdir / 'map.yaml').write_text(f'image: map.pgm\nmode: trinary\nresolution: {RES}\norigin: [{OX}, {OY}, 0.0]\nnegate: 0\noccupied_thresh: 0.65\nfree_thresh: 0.25\n')
+(mdir / 'manifest.json').write_text(json.dumps({'revision': 1, 'content_hash': MAP_HASH, 'created_at': time.time()}))
+ws = wp.WaypointSet('origin_st56', 1, MAP_HASH, [wp.Waypoint(1.0, 0.0), wp.Waypoint(4.0, 0.0), wp.Waypoint(4.0, 3.0)], [0.3, 0.2])
+db = wp.RouteDatabase(root / 'routes')
+sid, rev, tmp = db.begin(None)
+g = sm.MapGeometry(resolution=RES, origin_x=OX, origin_y=OY, width=W, height=H)
+res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 1.0, 0.05)
+files = sm.write_mask(res, g, tmp, 'speed_filter_mask', 'costmap_filter_info')
+ok, msg, man = db.publish(sid, rev, tmp, ws, files, [], {'half_width_m': 1.0, 'step_mps': 0.05})
+assert ok, msg
+print(json.dumps({'waypoint_set_id': sid, 'waypoint_set_revision': str(rev), 'waypoint_set_hash': man['content_hash'],
+                  'map_id': 'origin_st56', 'map_revision': '1', 'map_hash': MAP_HASH}))

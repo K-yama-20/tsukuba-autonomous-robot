@@ -58,10 +58,11 @@ def render(model):
                 p = e['parameter']
                 lines.append(f"{indent}#   {p['param_key']}  {e['id']} unit={p['unit']} issues={','.join(e['issue_refs'])}")
         files[fname] = '\n'.join(lines) + '\n'
-        trial = [e for e in tbd if e['parameter'].get('software_trial_value') is not None and fname != 'bt_params.yaml']
+        trial = [e for e in tbd if e['parameter'].get('software_trial_value') is not None]
         if trial:
             # firmware_config.trial.yaml: flat keys, read only by GOUDA_TRIAL=1 firmware builds (desk/stub tests; never flashed to the vehicle)
-            flat = fname == 'firmware_config.yaml'
+            # bt_params.trial.yaml: flat keys, read only by the Nav2 configuration of the test stack (trial:=true; never the vehicle)
+            flat = fname in ('firmware_config.yaml', 'bt_params.yaml')
             tl = [HEADER, '# SOFTWARE TRIAL VALUES (ソフト試験用の仮値。実車採用値ではない。実車では読み込まない: parameters_by_stage.md)', f'# source model entities sha256: {msha[:16]}', '']
             if not flat:
                 tl += [f"{ents[0]['parameter']['target']}:", '  ros__parameters:']

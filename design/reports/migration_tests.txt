@@ -78,11 +78,11 @@ AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'unchanged [757 cha
 
 First list contains 3 additional elements.
 First extra element 0:
-{'code': 'MIGRATION', 'path': 'unchanged design/docs/SystemArchitecture.drawio', 'detail': {'actual': 'c958ce2f9ef83bf35898c66e7142138da2e73537428a7abebffd354e0920dd6e', 'expected': 'f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4'}}
+{'code': 'MIGRATION', 'path': 'unchanged design/docs/SystemArchitecture.drawio', 'detail': {'actual': '6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7', 'expected': 'f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4'}}
 
 Diff is 902 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 68 tests in 42.636s
+Ran 68 tests in 45.301s
 
 FAILED (failures=1)

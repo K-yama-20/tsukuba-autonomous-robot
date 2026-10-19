@@ -126,6 +126,37 @@ def t_lidar_imu(values: dict) -> dict:
             'complete': not (dl or di)}
 
 
+# Frames of the static TF (IFD-20, ND-13). Names from the design, not settings.
+BASE_FOOTPRINT, BASE_LINK = 'base_footprint', 'base_link'
+SENSOR_FRAMES = {'lidar': 'xt32_link', 'imu': 'imu_link'}
+ANTENNA_FRAMES = {'gnss_main': 'gnss_link', 'gnss_aux1': 'gnss_aux1_link'}   # ND-19 reads the antenna positions from these (REV-061)
+
+
+def antenna_position(values: dict, antenna: str) -> Tuple[Tuple[float, float, float], List[str]]:
+    """(t, defaulted) of a GNSS antenna phase centre in base_link; only a position (an antenna has no axes)."""
+    defaulted = []
+    def num(key):
+        v = values.get(key, UNKNOWN)
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v): return float(v)
+        defaulted.append(key); return 0
+    return (num(f'{antenna}_mount_x_m'), num(f'{antenna}_mount_y_m'), num(f'{antenna}_mount_z_m')), defaulted
+
+
+def static_transforms(values: dict, base_link_z_m: float) -> dict:
+    """ND-13: every static transform from /config values (REV-061, DEC-122). UNKNOWN fields -> neutral element, listed.
+    Returns {'transforms': [{'parent', 'child', 'translation', 'rotation' (x, y, z, w)}], 'defaulted_fields', 'problems'}."""
+    # base_footprint is a child of base_link (directly below it): base_link has one parent, odom (IFD-19), in every mode (REV-061)
+    out = [{'parent': BASE_LINK, 'child': BASE_FOOTPRINT, 'translation': (0, 0, -float(base_link_z_m)), 'rotation': (0, 0, 0, 1)}]
+    defaulted, problems = [], []
+    for sensor, frame in SENSOR_FRAMES.items():
+        r, t, d, p = sensor_pose(values, sensor)
+        out.append({'parent': BASE_LINK, 'child': frame, 'translation': t, 'rotation': quaternion(r)}); defaulted += d; problems += p
+    for antenna, frame in ANTENNA_FRAMES.items():
+        t, d = antenna_position(values, antenna)
+        out.append({'parent': BASE_LINK, 'child': frame, 'translation': t, 'rotation': (0, 0, 0, 1)}); defaulted += d
+    return {'transforms': out, 'defaulted_fields': defaulted, 'problems': problems}
+
+
 def validate_axis_mapping(text: str) -> Optional[str]:
     """None when the text parses; otherwise the reason (used by the monitor when saving /config)."""
     try:

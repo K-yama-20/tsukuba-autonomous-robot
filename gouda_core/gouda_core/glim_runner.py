@@ -20,7 +20,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-REQUIRED_DUMP_FILES = ('graph.txt', 'values.bin')   # written by GLIM 1.2.2 on shutdown even without data
+REQUIRED_DUMP_FILES = ('graph.txt', 'values.bin')
+ODOMETRY_ONLY_FRAMES = {'map': 'odom', 'odom': 'odom_glim'}   # GLIM's "map" is Gouda's odom; GLIM's odom is an extra frame below it
+TF_EXTENSION = 'librviz_viewer.so'   # the GLIM extension that publishes TF and odometry (glim_ros2 1.2.2)   # written by GLIM 1.2.2 on shutdown even without data
 SUBMAP_DIR = re.compile(r'^\d{6}$')
 
 
@@ -36,6 +38,7 @@ class GlimSettings:
     template_dir: Path = Path('/opt/ros/jazzy/share/glim/config')
     executable: str = '/opt/ros/jazzy/lib/glim_ros/glim_rosnode'
     extension_modules: tuple = ()   # no viewers: the monitor owns the display areas (design rules §6)
+    odometry_only: bool = False     # ND-08 in 自律走行・一時停止 (REV-061, DEC-123): no local / global mapping; see build_runtime_config
 
 
 def _strip_comments(text: str) -> str:
@@ -66,6 +69,12 @@ def build_runtime_config(settings: GlimSettings, out_dir: Path, t_lidar_imu=None
     r.update({'points_topic': settings.points_topic, 'imu_topic': settings.imu_topic, 'lidar_frame_id': settings.lidar_frame_id,
               'imu_frame_id': settings.imu_frame_id, 'base_frame_id': settings.base_frame_id, 'odom_frame_id': settings.odom_frame_id,
               'map_frame_id': settings.map_frame_id, 'extension_modules': list(settings.extension_modules)})
+    if settings.odometry_only:
+        # ND-08 (提案 localization_selection.md §3, DEC-123): odometry only; GLIM's TF (published by librviz_viewer.so) becomes
+        # odom -> odom_glim (identity without global mapping) -> base_link, so the global localization (ND-07) owns map -> odom
+        # alone; imu -> lidar is not published (the static TF has one owner, ND-13).
+        r.update({'enable_local_mapping': False, 'enable_global_mapping': False, 'publish_imu2lidar': False,
+                  'map_frame_id': ODOMETRY_ONLY_FRAMES['map'], 'odom_frame_id': ODOMETRY_ONLY_FRAMES['odom'], 'extension_modules': [TF_EXTENSION]})
     (out_dir / 'config_ros.json').write_text(json.dumps(ros, indent=2) + '\n')
     if t_lidar_imu is not None:   # from /config (sensor_extrinsics; intent.md:105). The template value is another sensor's.
         sens = json.loads(_strip_comments((out_dir / 'config_sensors.json').read_text()))

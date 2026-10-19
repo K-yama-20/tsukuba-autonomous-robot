@@ -1,0 +1,103 @@
+# 変更セット REV-067（2026-10-19 第35便: DEC-125・135・136 の回答、較正の検証の道具、/config の写し、承認事項 DEC-138・139）
+# 適用: design/tools/apply_revision.py REV-067
+id: REV-067
+date: '2026-10-19'
+summary: '人の回答（原文）: DEC-136 承知、DEC-135 一旦承認（人が実験走行でデータを取り、実データで推定できるか検証する。できなければ不採用）、DEC-125 しばらくは VM で実機試験、mosaic-go は USB、RTK の補正は NTRIP（truertk.pointonenav.com の有料サービス）。DEC-135 の検証の道具として推定器 gnss_calibration.py（numpy だけ。地図への組み込みはしない）と単体試験を実装し、地図作成の時の /config の写しを原図の横に登録するようにした（推定の入力）。Mac・VM の単体試験と VM の記録の試験は合格。VM での実機試験に向けた課題を承認事項にした: DEC-138（VM の起動に Fast DDS の共有メモリの設定）、DEC-139（NTRIP の受け方）。接続先 PRM-65 は mosaic-go を VM につないでから確かめる。'
+basis_refs:
+- DEC-125
+- DEC-135
+- DEC-136
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-RECORD-CONFIG-SNAPSHOT-VM-TEST
+  path: design/research/vehicle_pc/2026-10-18_gnss_record_config_snapshot_vm_test.txt
+  role: evidence
+decisions:
+- id: DEC-138
+  kind: approval
+  status: pending
+  asked_on: '2026-10-19'
+  answered_on: null
+  channel: chat
+  question: '【承認】VM で実機試験を行う間、gouda.sh start（実車の起動）でも Fast DDS の共有メモリの区画を大きくする設定（試験スタックの gouda_core/test/fastdds_test_stack.xml と同じ内容）を使う。VM では既定の設定で約 2 MB の点群が落ち（G-DDS、FILE-DEC116-FASTDDS: 70・86/200）、GLIM の処理周期が 4 Hz 台になる。代わりの案: 使わない（x86 機に戻るまで VM の地図は粗いまま）。'
+  answer_verbatim: ''
+  affected_refs:
+  - G-DDS
+  - ND-01
+  - ND-06
+  - IFD-21
+  resulting_refs: []
+  note: '推奨は承認。起動の方法は増やさない（DEC-090）: 環境の切替や引数ではなく、gouda.sh が常に同じ設定を使う形（x86 機でも害はない見込み。x86 機で確かめる）。決まらない場合に止まる作業：VM での地図作成の品質（実機試験の結果）。'
+  disposition: open_human
+- id: DEC-139
+  kind: approval
+  status: pending
+  asked_on: '2026-10-19'
+  answered_on: null
+  channel: chat
+  question: '【承認】ネットワーク RTK（Point One の TrueRTK、NTRIP）の受け方。案 A（推奨）: 受信機の中の NTRIP の機能を使う（ドライバの rtk_settings.ntrip_1 に接続先・認証を書き、GGA は受信機が送る）。受信機は USB イーサネットで PC を通してインターネットに出る必要があり、VM に転送（NAT）の設定が要る（sudo、人の作業）。案 B: PC で NTRIP のクライアントを動かし、補正を受信機に渡す（ドライバの ip_server_1 か serial_1。クライアントのソフトの追加が要る）。どちらでも、接続先・認証は公開しないファイル（<data_root>/config/gnss_rtk.yaml）に人が書く。'
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - PRM-65
+  - G-INIT-POSE-GNSS
+  resulting_refs: []
+  note: 推奨は案 A（ドライバと受信機の機能だけで済み、GGA の送信も受信機がする）。Point One の接続先のポート・mountpoint・GGA の要否は**原本未照合**（人の契約の情報で確かめる）。決まらない場合に止まる作業：RTK fix での記録（補正なしでは単独測位で、較正 DEC-135 の検証に使えない）。
+  disposition: open_human
+entities:
+- id: TS-39
+  kind: test
+  intent_lines:
+  - 14
+  name: GNSS の外部パラメータの較正（DEC-135 の検証の道具）
+  related_refs:
+  - DEC-135
+  - DEC-136
+  - IFD-29
+  - ND-19
+  sensitivity:
+  - operation
+  test:
+    execution_status: 未実行
+    stage: 自律走行の為の最小構成
+    procedure: '単体（test_gnss_calibration.py 5 件、合成のデータを原図の形のファイルで）: ENU の往復、較正の走行で真値に戻る、方位の定義の違いを残差で見分ける、直線の走行は走行の内容に出る、RTK fix だけを使う。Mac・VM で合格（2026-10-18）。実データ（人の実験走行、DEC-136）: python3 -m gouda_core.gnss_calibration <maps/<origin>> --out <report.json> と重みの値を与えて実行し、別の走行で残差を確かめる。未実行。'
+    observe: 推定値と標準偏差（事前との比）、残差（位置・方位）、走行の内容（向きの範囲・後退・旋回）、方位の定義の判定
+    expected: 実データでレバーアーム・取付 Yaw・遅延が決まり、別の走行で残差が小さいこと。判定の値は未確定（実データで提案）。決まらなければ DEC-135 は不採用（人の回答）。
+modifications:
+- id: IFD-29
+  interpretation_append: 'REV-067: 地図作成の開始の時の /config（sensor_config.json）の写しを原図の横に置き、source_manifest.json の sensor_config に SHA-256 を書く（GNSS の較正の入力）。'
+- id: PRM-65
+  interpretation_append: '2026-10-19 人の回答（DEC-125）: しばらくは VM で実機試験、mosaic-go は USB 接続。値（tcp の USB イーサネットか serial の by-id）は mosaic-go を VM につないで AI が確かめる（2026-10-19 の時点では VM に接続されていなかった）。'
+decision_updates:
+- id: DEC-125
+  set:
+    status: answered
+    answered_on: '2026-10-19'
+    answer_verbatim: 'DEC-125：しばらくはVMをつかって実機試験を行う。mosaic-goはusb接続。RTK補正はNTRIPを使い、 truertk.pointonenav.comの有料サービスを使う。
+
+      '
+    resulting_refs:
+    - DEC-138
+    - DEC-139
+    - PRM-65
+    disposition: answered
+    note: 決まらない場合に止まる作業：x86 機での GNSS のドライバの起動（PRM-65 が未確定の間、supervisor はドライバを起動せず理由を記録する）。補正の受け方が決まらない間は RTK なし（単独測位）で記録する。 AI は接続先を推測で決めない（上流の既定は工場出荷時の値で、x86 機の実際の接続ではない）。 2026-10-19 回答。VM の ~/gouda_ws は main（7e747b5）のままで、このブランチの変更（GNSS など）は入っていない。VM で実機試験をするには反映が要る（commit・push と VM の更新は人の判断）。VM では点群の配送の問題（G-DDS）があり DEC-138 とした。NTRIP の受け方は DEC-139。
+- id: DEC-135
+  set:
+    status: answered
+    answered_on: '2026-10-19'
+    answer_verbatim: 'DEC-135は、一旦承認する。実験走行を私が行ってデータを取ってくるので、実データでも可能か検証しよう。実データでうまく推定出来なければ、ボツです。
+
+      '
+    resulting_refs:
+    - TS-39
+    disposition: answered
+    note: 推奨は承認。根拠 FILE-GNSS-CALIB-FEASIBILITY（合成のデータ）。可観測性は標準偏差だけでなく走行の内容でも判定する。決まらない場合に止まる作業：GNSS と地図の対応、enu→map の TF、GNSS による初期位置。 2026-10-19 一旦承認。検証の道具（gouda_core/gouda_core/gnss_calibration.py）だけを実装し、地図の変換・manifest・enu→map の TF への組み込みは実データでの検証の後（不採用もありうる）。
+- id: DEC-136
+  set:
+    status: answered
+    answered_on: '2026-10-19'
+    answer_verbatim: 'DEC-136は承知した。
+
+      '
+    disposition: answered

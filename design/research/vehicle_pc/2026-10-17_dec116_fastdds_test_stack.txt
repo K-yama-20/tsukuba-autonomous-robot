@@ -1,0 +1,56 @@
+# 2026-10-17 DEC-116（人の許可）: 試験スタック（gouda_core/test/stack.sh）に Fast DDS の共有メモリの区画を大きくする設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた後の VM での確認（原文の出力）。
+# 対象: コミット 2ce59ea ＋ 作業ツリーの変更（gouda_core/test/stack.sh、gouda_core/test/fastdds_test_stack.xml）。VM（Ubuntu 24.04、ROS 2 Jazzy、aarch64）の ~/gouda_fix_ws に 2 ファイルを写して実行。x86 機・gouda.sh は変えていない。
+# 1. 退行の確認: design/research/vehicle_pc/2026-10-17_recorder_glim_fix_vm_test.sh をそのまま実行（ROS_DOMAIN_ID 77）。結果は前回（FILE-RECORDER-GLIM-FIX-VM-TEST）と同じ（時刻・pid・フォルダ名だけが違う）。
+#    試験スタックの全プロセス（launch・各 node・子プロセス）の環境に FASTRTPS_DEFAULT_PROFILES_FILE が入り、/dev/shm の fastrtps の区画は 70255136 バイト（設定どおり 64 MiB＋管理領域）。
+#    注: ssh から ros2 node list --no-daemon を実行すると、変更前の stack.sh でも何も表示されなかった（今回の変更とは関係しない。サービスの呼出しと monitor の /api/state は動く）。
+# 2. 点群の配送: 2026-10-17_dec116_pc2_check.py（rclpy、PointCloud2 2,048,000 バイト、10 Hz、BEST_EFFORT、200 通、別プロセス 2 つ、ROS_DOMAIN_ID 78）。default は設定なし、profile は fastdds_test_stack.xml。
+#    Python の受信は C++ の評価（FILE-LOCALIZATION-EVAL の 5: 196〜200/200）より少ない。設定の有無の差を見るための確認。
+
+===== 1. 退行の確認
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/fixtest, monitor http://127.0.0.1:33703/)
+monitor http://127.0.0.1:33703/
+=== R1: rosbag start/stop/start/stop in one session
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_172923/rosbag/bag_01'
+success=True, message='rosbag recording stopped'
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_172923/rosbag/bag_02'
+record: {'rosbag_active': 'True', 'rosbag_output': '/tmp/fixtest/records/20261017_172923/rosbag/bag_02', 'failures': '0', 'last_failure': ''}
+success=True, message='rosbag recording stopped'
+session /tmp/fixtest/records/20261017_172923/
+total 24
+drwxrwxr-x 4 aya aya 4096 Oct 17 17:29 .
+drwxrwxr-x 4 aya aya 4096 Oct 17 17:29 ..
+drwxrwxr-x 2 aya aya 4096 Oct 17 17:29 bag_01
+-rw-rw-r-- 1 aya aya 2012 Oct 17 17:29 bag_01.log
+drwxrwxr-x 2 aya aya 4096 Oct 17 17:29 bag_02
+-rw-rw-r-- 1 aya aya 2012 Oct 17 17:29 bag_02.log
+/tmp/fixtest/records/20261017_172923//rosbag/bag_01/: bag_01_0.mcap metadata.yaml 
+/tmp/fixtest/records/20261017_172923//rosbag/bag_02/: bag_02_0.mcap metadata.yaml 
+rosbag_outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped')] failures: 0
+=== R2: ros2 bag record killed while recording (unexpected exit)
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_172923/rosbag/bag_03'
+killing pid 20608
+record: {'rosbag_active': 'False', 'rosbag_output': '', 'failures': '1', 'last_failure': "rosbag_exited: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792225790.932374003] [rosbag2_recorder]: Subscribed to topic '/esp32/status' | [INFO] [1792225790.951413253] [rosbag2_recorder]: Subscribed to topic '/control/motion_hold' | [INFO] [1792225790.95187575"}
+last failure: rosbag_exited ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792225790.932374003] [rosbag2_recorder]: Subscribed to topic '/esp32/status'
+outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped'), ('bag_03', 'failed')]
+=== G1: GLIM killed during mapping
+success=True, message='TR-03: manual -> mapping'
+GLIM pid 20674
+glim_exited events: 1
+  TR-14 GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (automatic recovery is not implemented: TR-14); press 地図作成終了 to end mapping.
+mode: 2
+success=True, message='TR-04: mapping -> manual'
+  source_map_not_registered dump incomplete or GLIM not running: the source is kept where it is and nothing is published (RQ-I009) None
+  mapping_stopped dump directory /tmp/fixtest/mapping/20261017_172956_235b0e48/glim_dump does not exist 1792225803.5094793
+=== G2: normal mapping start/end (no glim_exited expected)
+success=True, message='TR-03: manual -> mapping'
+success=True, message='TR-04: mapping -> manual'
+glim_exited events (still 1 expected): 1
+test stack stopped
+[gouda_recorder-3] [WARN] [1792225792.257367670] [gouda_recorder]: rosbag recording failed: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792225790.932374003] [ro
+[gouda_mode_manager-2] [ERROR] [1792225803.510269342] [gouda_mode_manager]: GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (au
+
+===== 2. 点群の配送
+default run1: received 70/200
+default run2: received 86/200
+profile run1: received 178/200
+profile run2: received 182/200

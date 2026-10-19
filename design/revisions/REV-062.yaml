@@ -1,0 +1,134 @@
+# 変更セット REV-062（2026-10-17 第32便: 工程 5-6 の実装と VM の試験の記録、G-NAV2-FIRST-GOAL、DEC-124 の詳細の設計の承認事項 DEC-126〜129）
+# 適用: design/tools/apply_revision.py REV-062
+id: REV-062
+date: '2026-10-17'
+summary: 工程 5-6 の実装（人の許可 DEC-120〜123）と試験の記録。GNSS の取込み（ND-19 を sensor supervisor が起動、monitor に表示）、静的 TF（ND-13、gouda_static_tf）、Nav2 の構成（nav2_config、gouda_nav2.launch.py、自律走行の間だけ active）、mode_manager の Nav2 の client（TR-05・06・07・08・10・11・12）、ND-08（GLIM の odometry だけ＋gouda_local_odometry）、ND-11 の cmd_vel を TwistStamped に（PRM-12）、monitor の自律走行の準備の欄、setup.sh に Nav2 と GNSS のドライバ。VM の試験（FILE-STAGE56-VM-TEST）で、開始の拒否 2 件、開始 → 適用中で hold の解除 → 最後の waypoint で一時停止、終了・一時停止・再開・走行中の終了を確認。見つけた不具合 2 件（SpeedFilter の topic の名前空間、静的 TF の置き換え）を直した。再現しない不具合 1 件（最初の goal の BT の受理の待ちの失敗）を G-NAV2-FIRST-GOAL に記録。実車では ND-07 が無いため自律走行の開始は拒否される。DEC-124 の詳細の設計を提案にし、承認事項 DEC-126〜129 を登録した。
+basis_refs:
+- DEC-120
+- DEC-121
+- DEC-122
+- DEC-123
+- DEC-124
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-STAGE56-VM-TEST
+  path: design/research/vehicle_pc/2026-10-17_stage56_vm_test.txt
+  role: evidence
+- id: FILE-UPSTREAM-SEPTENTRIO-GNSS-YAML
+  path: design/research/upstream_sensors/septentrio_gnss_driver_1.4.8/gnss.yaml
+  role: evidence
+decisions:
+- id: DEC-126
+  kind: approval
+  status: pending
+  asked_on: '2026-10-17'
+  answered_on: null
+  channel: chat
+  question: 【承認】地図作成の間（TR-03〜TR-04）、mode_manager が GNSS（IFD-47〜49）を地図作成の作業フォルダに記録し、原図（IFD-29）に gnss.jsonl として登録する（提案 design/proposals/gnss_initial_pose_design.md §2）。GNSS がなくても地図作成は止めない。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - ND-03
+  - ND-05
+  - IFD-29
+  resulting_refs: []
+  note: 推奨は承認（次の実機試験の前に実装すると、同じ場所の 2 回の走行で対応の計算を試せる）。決まらない場合に止まる作業：GNSS と地図の座標の対応（DEC-127）。
+  disposition: open_human
+- id: DEC-127
+  kind: approval
+  status: pending
+  asked_on: '2026-10-17'
+  answered_on: null
+  channel: chat
+  question: 【承認】GNSS と地図の座標の対応を地図の変換で計算し、変換後地図の manifest に保存する（RTK fix の点だけ、ENU に変換、GLIM の補正後の軌跡と主アンテナの位置で 2D の重ね合わせ、残差を記録。提案 §3）。使ってよいかの判定の値（残差・点の数・範囲）は tbd で、実機試験のデータで提案する。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - ND-05
+  - IFD-29
+  resulting_refs: []
+  note: 推奨は承認。決まらない場合に止まる作業：GNSS の値の地図の座標への変換（DEC-128）。
+  disposition: open_human
+- id: DEC-128
+  kind: approval
+  status: pending
+  asked_on: '2026-10-17'
+  answered_on: null
+  channel: chat
+  question: 【承認】自律走行の準備の欄で、地図に対応があり GNSS が使えるとき、GNSS の位置と向きを地図に重ねて表示し、初期位置の欄に既定の値として入れる（人は直せる。開始ボタンを押すことが確認で、追加の承認の操作は加えない。提案 §4）。使えないときは理由を表示し、人の指定だけ。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - ND-02
+  - IFD-02
+  - RQ-I084
+  resulting_refs: []
+  note: 推奨は承認。振る舞いの違い：人が数値を打つ代わりに GNSS の値を確かめて押せる。誤った fix の危険は品質と照合の結果の表示で人が見分ける。決まらない場合に止まる作業：GNSS による初期位置（体験 9）。
+  disposition: open_human
+- id: DEC-129
+  kind: approval
+  status: pending
+  asked_on: '2026-10-17'
+  answered_on: null
+  channel: chat
+  question: 【承認】PC 再起動後の再開の前の初期位置の要求（IFD-39、DEC-009）に、DEC-128 と同じ画面（GNSS の値を既定にし人が確かめて送る）を使う。人の操作が要ること、保存した最後の姿勢を使わないことは変えない。DEC-009 は書き換えない（提案 §5）。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - H-007
+  - IFD-39
+  - TR-10
+  resulting_refs: []
+  note: 推奨は承認。決まらない場合に止まる作業：PC 再起動後の再開（工程 5-7）の画面。
+  disposition: open_human
+entities:
+- id: G-NAV2-FIRST-GOAL
+  kind: issue
+  source_from_affected: true
+  name: Nav2 の有効化の直後の goal が、BT の計画の受理の待ち（上流の雛形の default_server_timeout 20 ms）を超えて失敗することがある（VM、1 回、再現しない）
+  sensitivity:
+  - operation
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-10
+    - ND-03
+    - TR-05
+    - TR-07
+    resolution_refs: []
+    question: 2026-10-17 の VM の試験の 1 回目（FILE-STAGE56-VM-TEST の 1）で、lifecycle の STARTUP の完了の約 50 ms 後に送った NavigateThroughPoses の goal が、bt_navigator の「Timed out while waiting for action server to acknowledge goal request for compute_path_through_poses」で失敗（status 6）し、TR-07 で一時停止した。2 回目・3 回目は起きなかった。待ちの値は上流の nav2_params.yaml の default_server_timeout（20 ms）のまま。分類は未確定（VM の遅さ、または開始の直後に goal を送る設計）。
+    next_action: '待ちの値は変えていない（試験を通すための延長はしない: CLAUDE.md 1.5）。今の振る舞いは安全側（一時停止に入り、人の再開 TR-10 で残りの waypoint から続けられる）。x86 機で起きるかを確かめる。起きる場合の対策の候補は承認事項にする：(a) default_server_timeout を変える（値）、(b) STARTUP の後に計画の server の準備を確かめてから goal を送る（実装）。'
+modifications:
+- id: TS-01
+  set_nested:
+    test.procedure: '速度マスク（IFD-41）と filter info を Nav2 の mask 用 map_server・costmap_filter_info_server に読み込ませてから自律走行開始（IFD-02）を1回行う。開始地点は区間 0 の帯内。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: 初期位置を区間 0 の帯の中（1.5, 0）にして開始。SpeedFilter が mask・filter info を受け、speed_limit を出し、speed_limit_application_state が applied（適用中）になってから motion_hold=false（DEC-056）。値の量子化（PRM-20 の刻み）の照合は未実行。'
+- id: TS-05
+  set_nested:
+    test.procedure: 'Nav2 stub が result SUCCEEDED を返す場合と、error_code≠NONE で終了する場合を別々に与える。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: SUCCEEDED → TR-08（一時停止、remaining=1、stop_reason goal_reached）を確認。失敗は 1 回目の実行で起きた goal の失敗（status 6）→ TR-07（一時停止、stop_reason plan_failure、残りの waypoint を保持）を確認（意図して起こしたものではない: G-NAV2-FIRST-GOAL）。error_code の記録は 0（BT の受理の待ちの失敗で error_code が付かない）。'
+- id: TS-15
+  set_nested:
+    test.procedure: '(1) mask・filter info を配信せずに自律走行開始を試みる。(2) 配信後、ロボット位置を mask 範囲外に置く。(3) 帯外（cell=0）に置く。(4) 帯内に置く。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: (3) 帯外（初期位置 0, 0）で outside_band を記録し hold は外れない、(4) 帯内で applied を記録し hold が外れる、を確認。(1)（mask なしの開始）・(2)（マスク外）は未実行。'
+- id: TS-21
+  set_nested:
+    test.procedure: '起動（直前モード記録なし／手動走行／自律走行の 3 条件）、復帰（TR-13 の stub）、monitor の再接続、を自律走行開始ボタン（IFD-02）を押さずに行う。最後に IFD-02 を 1 回呼ぶ。 実行記録（2026-10-17、VM、FILE-STAGE56-VM-TEST、gouda_core/test/ubuntu_stage5-6.sh。Nav2 の loopback_sim が ND-07・ND-08 の代わり、ESP32 は esp32_sim、センサー・車体なし）: 起動の直後（手動走行）に goal はなく hold=true。初期位置なしの開始と ND-07 なしの開始は拒否され goal は送られない。IFD-02 を 1 回呼ぶと追加の承認なしに goal が送られる。PC 再起動・復帰（TR-13）・monitor の再接続の条件は未実行。'
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。'
+- id: TS-36
+  set_nested:
+    test.procedure: 単体（取付の値から TF を作る、UNKNOWN の項目は中立で記録）。VM の試験スタックで /tf_static を受け、/config を保存して出し直されることを確かめる 単体（test_sensor_extrinsics.py の 2 件）は合格。VM の試験スタックで /config を保存すると revision 1 の静的 TF が出し直され、base_link→gnss_aux1_link が (-0.5, 0, 1.1)、base_link→base_footprint が (0, 0, -0.165) になることを確認（FILE-STAGE56-VM-TEST の 3。最初は rclpy の StaticTransformBroadcaster が同じ子の frame を置き換えず古い値のままだった。実装を直した）。
+- id: TS-37
+  set_nested:
+    test.procedure: 単体（上流の nav2_params.yaml を雛形に、plugin の選択と PRM の値を差し込む。未確定の値があれば実車では生成しない）。VM の試験スタックで Nav2 を起動し lifecycle の状態を見る 単体（test_nav2_config.py 8 件）は合格。VM の試験スタック（trial）で Nav2 の各 server は起動の後 unconfigured のまま（autostart false）、TR-05 で STARTUP、TR-11・TR-12 で RESET を確認（FILE-STAGE56-VM-TEST）。実車の設定（trial なし）では未確定の値のため Nav2 を起動しないことは単体で確認（ROS 上は未実行）。
+- id: TS-38
+  set_nested:
+    test.procedure: 単体（GLIM の odometry だけの設定の生成、中継の変換）。記録の再生で localization/odometry と odom→base_link を確かめる 単体（test_local_odometry.py 5 件）は合格。TR-05 で GLIM（odometry だけ）が起動し、TR-11・TR-12 で停止することを VM で確認（センサーなしのため odometry は出ない）。記録の再生での確認は未実行（外付けの SSD が接続されていない）。
+- id: IFD-15
+  set_nested:
+    designed_interface.message_type: geometry_msgs/msg/TwistStamped（PRM-12 を DEC-122 で true に承認。velocity_smoother が出し、ND-11 が購読。期限切れの判定は今も受信時刻）
+- id: TR-05
+  interpretation_append: 'REV-062: 実装（工程 5-6）。guard は、Nav2 の設定がそろっている（nav2_config で未確定の値がない）、waypoint セット・速度マスク・変換後地図のハッシュの一致、地図の座標の初期姿勢、ND-07 の node（gouda_global_localization）があること。ND-08（GLIM の odometry だけ）は TR-05 の中で起動する。開始の手順の失敗は TR-07（stop_reason node_failure）で一時停止。'
+- id: ND-03
+  interpretation_append: 'REV-062: 工程 5-6 で TR-05・06・07・08・10（同じプロセスの中だけ）・11・12 を実装（autonomy_core・autonomy_client）。PC 再起動後の再開と自動復帰（TR-13〜16）は 5-7。'
+decision_updates: []

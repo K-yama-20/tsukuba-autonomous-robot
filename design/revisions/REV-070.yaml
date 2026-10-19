@@ -1,0 +1,34 @@
+# 変更セット REV-070（2026-10-19 第38便: DEC-140 の回答（configure_rx true）、PRM-74 の承認）
+# 適用: design/tools/apply_revision.py REV-070
+id: REV-070
+date: '2026-10-19'
+summary: '人の回答（DEC-140、原文）: configure_rx は true。受信機の設定は Gouda（ドライバ）が持つ。人の資料の §5・§6 は手での調査の規則として残す。最初の起動の前後で gso と getDataInOut を記録する。GGA の出し方は DEC-139 と一緒に提案する。PRM-74 を承認値 true にした。これで PRM-65・PRM-74 がそろい、このブランチの Gouda の起動では supervisor が GNSS のドライバを起動する（VM の ~/gouda_ws は main のままで、まだ起動しない）。'
+basis_refs:
+- DEC-140
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+decisions: []
+entities: []
+modifications:
+- id: PRM-74
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-140
+  set_nested:
+    parameter.value: true
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-140）
+  interpretation_append: 'REV-070: DEC-140 で true。ドライバが起動のたびに受信機の全出力を止め、自分の設定を作り、Boot に保存する（FILE-SEPTENTRIO-SOURCE-REVIEW）。受信機の設定は Gouda（ドライバ）が持つ。人の資料の §5・§6（gso で確かめる、Res1〜4 を使わない、Boot 保存は別工程）は手での調査の規則として残る。'
+- id: ND-19
+  interpretation_append: 'REV-070（DEC-140）: configure_rx true。最初の起動の前後で受信機の gso と getDataInOut を記録する（人の指示）。'
+decision_updates:
+- id: DEC-140
+  set:
+    status: answered
+    answered_on: '2026-10-19'
+    answer_verbatim: 'DEC-140 は true。受信機の設定は Gouda（ドライバ）が持つ。注意事項 §5・§6 は手での調査の規則として残す。最初の起動の前後で gso と getDataInOut を記録すること。GGA の出し方は DEC-139 と一緒に提案すること。
+
+      '
+    resulting_refs:
+    - PRM-74
+    disposition: answered

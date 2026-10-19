@@ -1,0 +1,289 @@
+# 2026-10-17 工程 5-6（REV-061、人の許可 DEC-120〜124）の VM での試験（原文の出力）。
+# 対象: コミット 2ce59ea ＋ 作業ツリーの変更（gouda_core の autonomy_core.py・autonomy_client.py・nav2_config.py・gnss_config.py・static_tf_node.py・local_odometry_node.py・odometry_core.py・mode_manager_node.py・mode_core.py・monitor_*・sensor_supervisor_node.py・sensor_extrinsics.py・glim_runner.py・motion_controller_node.py、launch、web、試験）。
+# VM（Ubuntu 24.04、ROS 2 Jazzy、aarch64）の ~/gouda_fix_ws に gouda_core・design/generated/params・design/research の照合用の雛形を写して colcon build --symlink-install。
+# 試験専用: nav2_loopback_sim 1.3.13 とその依存（ros-jazzy-tf-transformations、python3-transforms3d、ros-jazzy-nav2-simple-commander）は VM に導入していない（sudo なし）。
+#   ROS 2 の apt から apt-get download して ~/upstream_pkgs/x に展開し、試験の script の中だけ AMENT_PREFIX_PATH・PYTHONPATH で読む。loopback_sim は ND-07・ND-08 の代わり（node 名 gouda_global_localization）。
+# 試験の script: gouda_core/test/ubuntu_stage5-6.sh（合成の地図 30 m 四方の空き、waypoint 3 点、区間の上限 0.3・0.2 m/s: gouda_core/test/stage56_fixture.py）。ESP32 は esp32_sim。センサー・車体なし。
+# 注: 模擬（loopback_sim）は cmd_vel をそのまま積分するので、motion_hold（ND-11 の中立）とは関係なく動く。hold は control/motion_hold の値と DecisionEvent で確かめた。
+
+===== 1. 1 回目（修正の前。2 つの不具合を見つけた）
+# (a) SpeedFilter が global_costmap の名前空間の中で相対名の costmap_filter_info・speed_limit を使い、配信側に届かなかった（分類: 実装。nav2_config の topic を絶対名に直した）。
+# (b) Nav2 の有効化の約 50 ms 後に goal を送り、bt_navigator が compute_path_through_poses の受理を待つ時間（上流の雛形の default_server_timeout 20 ms）を超えて goal が失敗（status 6）→ TR-07 で一時停止。
+#     2 回目・3 回目の試験では起きなかった（再現しない。待ち時間の値は変えていない: CLAUDE.md 1.5）。初期位置 (0, 0) は帯の外で、hold は外れなかった（設計どおり）。
+=== T1 before the start (TS-21) and the TR-05 guards
+mode=MANUAL stop= remaining=0 section=-1 speed_limit=unknown
+  start_autonomy ok=False refused: TR-05: initial pose frame '' is not map (no initial pose given?)
+  start_autonomy ok=False refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (stage 5-6, DEC-115)
+=== T2 start with selection and initial pose -> drive to the last waypoint (TR-05 -> TR-08)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=3 section=0 speed_limit=unknown
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+  reached PAUSE
+mode=PAUSE stop=plan_failure remaining=3 section=0 speed_limit=outside_band
+   TR-07 automatic_pause | Nav2 goal ended with status 6: error_code 0 | x1
+- Translation: [0.000, 0.000, 0.000]
+  end_autonomy ok=True TR-12: pause -> manual
+mode=MANUAL stop=human remaining=3 section=0 speed_limit=outside_band
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=unknown
+  pause ok=True TR-06: autonomy -> pause
+mode=PAUSE stop=human remaining=1 section=1 speed_limit=unknown
+  resume ok=True TR-10: pause -> autonomy
+
+===== 2. 3 回目（修正の後。最後の実行。全文）
+fixture: {"waypoint_set_id": "20261017_190129_a633f8", "waypoint_set_revision": "1", "waypoint_set_hash": "73b6edb15062da9f5ceafe470772fa4ec3f929415214ae06fa761bf8499bf8ce", "map_id": "origin_st56", "map_revision": "1", "map_hash": "synthetic-free-map-stage56"}
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/st56, monitor http://127.0.0.1:39791/)
+monitor http://127.0.0.1:39791/
+=== Nav2 lifecycle after the stack start (expected: servers present, inactive; autostart false)
+  controller_server: unconfigured [1]
+  bt_navigator: unconfigured [1]
+  map_server: unconfigured [1]
+  velocity_smoother: unconfigured [1]
+=== ESP32 simulator behind vehicle_bridge (PRM-61 is unresolved in the model; the test gives the pty)
+Set parameter successful
+=== T1 before the start (TS-21) and the TR-05 guards
+mode=MANUAL stop= remaining=0 section=-1 speed_limit=unknown
+hold: true reason: mode=manual 
+  start_autonomy ok=False refused: TR-05: initial pose frame '' is not map (no initial pose given?)
+  (without ND-07: the loopback simulator is not running yet)
+  start_autonomy ok=False refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (stage 5-6, DEC-115)
+=== loopback simulator as the ND-07 / ND-08 stub (node name gouda_global_localization)
+=== T2 start with selection and initial pose -> drive to the last waypoint (TR-05 -> TR-08)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=3 section=0 speed_limit=unknown
+hold: true reason: mode=autonomy speed_limit=unknown (waiting for 適用中) 
+mode=AUTONOMY stop= remaining=2 section=0 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+  reached PAUSE
+mode=PAUSE stop=goal_reached remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=goal_reached 
+   TR-05 human_request | refused: TR-05: initial pose frame '' is not map (no initial pose given?) | x1
+   TR-05 human_request | refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (stage 5-6, DEC-115) | x1
+   TR-05 human_request | TR-05: manual -> autonomy | x1
+   TR-05 record_auto_start | log recording started (auto:autonomy_start) in /tmp/st56/records/20261017_190157 | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 37364) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 nav2_parameters_set | map /tmp/st56/maps/origin_st56/converted/001/map.yaml, mask /tmp/st56/routes/20261017_190129_a633f8/001/speed_mask.yaml, base 0.0, multiplier 0.05 | x1
+   TR-05 initial_pose_sent | IFD-34 localization/initial_pose sent once | x1
+   TR-05 speed_limit_application_state | unknown (不明) | x1
+   TR-05 nav2_started | Nav2 servers active (lifecycle_manager_navigation STARTUP) | x1
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:1, vehicle_bridge:3) | x1
+   TR-05 nav2_goal_sent | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | x1
+   TR-05 speed_limit_application_state | applied (適用中) | x1
+   TR-05 motion_hold_released | speed limit applied (適用中): motion_hold=false (DEC-056) | x1
+   TR-08 goal_reached | Nav2 reached the last waypoint | x1
+  final pose (map->base_link):
+- Translation: [3.938, 2.766, 0.000]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.119, 0.993]
+=== T3 end from pause (TR-12)
+  end_autonomy ok=True TR-12: pause -> manual
+mode=MANUAL stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=manual stop_reason=human 
+  controller_server: unconfigured [1]
+  bt_navigator: unconfigured [1]
+  gouda_motion_controller: inactive [2]
+  vehicle_bridge: inactive [2]
+=== T4 start, pause (TR-06), resume (TR-10), end while driving (TR-11)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+  pause ok=True TR-06: autonomy -> pause
+mode=PAUSE stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=human 
+  resume ok=True TR-10: pause -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+hold: false reason: '' 
+  end_autonomy ok=True TR-11: autonomy -> manual
+mode=MANUAL stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=manual stop_reason=human 
+   TR-05 human_request | refused: TR-05: initial pose frame '' is not map (no initial pose given?) | x1
+   TR-05 human_request | refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (stage 5-6, DEC-115) | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 37364) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:1, vehicle_bridge:3) | x1
+   TR-08 goal_reached | Nav2 reached the last waypoint | x1
+   TR-12 human_request | TR-12: pause -> manual | x1
+   TR-12 navigation_goal_check | no active Nav2 goal | x1
+   TR-12 vehicle_output_deactivated | gouda_motion_controller deactivate: True | x1
+   TR-12 vehicle_output_deactivated | vehicle_bridge deactivate: True | x1
+   TR-12 nav2_reset | Nav2 RESET: True | x1
+   TR-12 odometry_stopped | ND-08 GLIM (odometry only) stopped (exit code 0) | x1
+   TR-12 record_auto_stop | log recording stopped | x1
+   TR-05 human_request | TR-05: manual -> autonomy | x2
+   TR-05 record_auto_start | log recording started (auto:autonomy_start) in /tmp/st56/records/20261017_190157 | x2
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 37781) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 nav2_parameters_set | map /tmp/st56/maps/origin_st56/converted/001/map.yaml, mask /tmp/st56/routes/20261017_190129_a633f8/001/speed_mask.yaml, base 0.0, multiplier 0.05 | x2
+   TR-05 initial_pose_sent | IFD-34 localization/initial_pose sent once | x2
+   TR-05 speed_limit_application_state | unknown (不明) | x2
+   TR-05 nav2_started | Nav2 servers active (lifecycle_manager_navigation STARTUP) | x2
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:3, vehicle_bridge:3) | x1
+   TR-05 nav2_goal_sent | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | x2
+   TR-06 human_request | TR-06: autonomy -> pause | x1
+   TR-06 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-10 human_request | TR-10: pause -> autonomy | x1
+   TR-10 nav2_goal_sent | NavigateThroughPoses goal accepted (1 poses from waypoint 2) | x1
+   TR-05 speed_limit_application_state | applied (適用中) | x3
+   TR-05 motion_hold_released | speed limit applied (適用中): motion_hold=false (DEC-056) | x3
+   TR-11 human_request | TR-11: autonomy -> manual | x1
+   TR-11 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-11 vehicle_output_deactivated | gouda_motion_controller deactivate: True | x1
+   TR-11 vehicle_output_deactivated | vehicle_bridge deactivate: True | x1
+   TR-11 nav2_reset | Nav2 RESET: True | x1
+   TR-11 odometry_stopped | ND-08 GLIM (odometry only) stopped (exit code 0) | x1
+   TR-11 record_auto_stop | log recording stopped | x1
+=== warnings / errors in the launch log
+[gouda_mode_manager-12] [WARN] [1792231313.822107167] [gouda_mode_manager]: start_autonomy: refused: TR-05: initial pose frame '' is not map (no initial pose given?)
+[gouda_mode_manager-12] [WARN] [1792231313.859389000] [gouda_mode_manager]: start_autonomy: refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (stage 5-6, DEC-115)
+1
+test stack stopped
+
+===== 3. 静的 TF の出し直し（TS-36。/config を保存して base_link→gnss_aux1_link を確かめる）
+# 1 回目は保存の後も古い値（0）が配られた: rclpy の StaticTransformBroadcaster は同じ子の frame を置き換えない（/opt/ros/jazzy/lib/python3.12/site-packages/tf2_ros/static_transform_broadcaster.py の sendTransform）。
+# gouda_static_tf が /tf_static に全件を毎回出すように直した（分類: 実装）。直した後の出力:
+- Translation: [-0.500, 0.000, 1.100]   (base_link -> gnss_aux1_link、/config revision 1)
+- Translation: [0.000, 0.000, -0.165]   (base_link -> base_footprint)
+static_tf_published: static TF published for /config revision 0
+static_tf_published: static TF published for /config revision 1
+
+===== 4. 工程 5-5 の試験の再実行（ND-11 の cmd_vel を TwistStamped に変えたため。gouda_core/test/ubuntu_stage5-5.sh）
+# この script の中の単体試験は、VM の写しに design/research の照合用の雛形がなく 16 件がエラー（試験の環境。Hesai の既存の試験も同じ）。雛形を写した後の VM の単体試験は 166 件 OK・1 件 skip。
+fatal: not a git repository (or any of the parent directories): .git
+== commit:   date: 2026-10-17T19:03:34+09:00
+Finished <<< gouda_core [0.72s]
+
+Summary: 2 packages finished [1.08s]
+== unit tests
+Ran 166 tests in 4.024s
+
+FAILED (errors=16)
+== A) stub chain (sim pty, bridge, motion_controller, probe)
+sim pty: /dev/pts/0
+esp32_sim pty=/dev/pts/0 boot_token=0xf2bd8a0b config_valid=False
+Transitioning successful
+Transitioning successful
+Transitioning successful
+Transitioning successful
+active [3]
+active [3]
+{
+ "settings": {
+  "cmd_vel_timeout_s(PRM-08)": 0.7,
+  "motion_hold_timeout_s(PRM-42)": 0.5,
+  "command_publish_period_s(PRM-41)": 0.05
+ },
+ "phase1_hold_true_joy_all_neutral": true,
+ "phase1_joy_count": 40,
+ "phase2_first_non_neutral_after_hold_false_s": 0.006,
+ "phase2_esp32_pc_source_seen": true,
+ "phase3_cmd_vel_stop_to_neutral_s": 0.747,
+ "phase3_within_PRM08_plus_period": true,
+ "phase3_joy_rate_hz": 20.4,
+ "phase3_esp32_status_rate_hz": 18.9,
+ "phase3_esp32_stayed_pc_source": true,
+ "phase4_hold_stop_to_neutral_s": 0.451,
+ "phase4_within_PRM42_plus_period": true,
+ "decisions": [
+  "gouda_motion_controller settings: configured from generated parameters",
+  "vehicle_bridge settings: configured",
+  "vehicle_bridge hello_sent: HELLO sent; waiting for HELLO_REPLY (boot_token)",
+  "vehicle_bridge hello_reply: boot_token=0xf2bd8a0b config_valid=False generation=0 protocol=4",
+  "vehicle_bridge config_sent: SET_CONFIG sent (apply_timing=runtime_set)",
+  "vehicle_bridge esp32_event: config_set",
+  "vehicle_bridge esp32_ack: request 0x03: accepted",
+  "vehicle_bridge activated: COMMAND transmission started (period PRM-14, pc_enable_request set)",
+  "vehicle_bridge command_output: joystick_command not received -> neutral",
+  "vehicle_bridge esp32_event: pc_enabled",
+  "gouda_motion_controller activated: joystick_command publication started (period PRM-41)",
+  "gouda_motion_controller output_neutral: motion_hold not received",
+  "vehicle_bridge command_output: joystick_command forwarded",
+  "gouda_motion_controller output_neutral: motion_hold=true (probe)",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: cmd_vel stale",
+  "gouda_motion_controller output_drive: drive",
+  "gouda_motion_controller output_neutral: motion_hold expired (probe)"
+ ]
+}
+-- deactivate bridge: firmware PC source must expire (PRM-13) -> sim log shows source none / pc_stale
+Transitioning successful
+-- sim transitions:
+12 ms applied source=0 reason=1 target_mv=None pc_enabled=False
+0 ms event boot arg=0
+4385 ms applied source=0 reason=2 target_mv=(2500, 2500) pc_enabled=False
+4385 ms event config_set arg=1
+5396 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+5396 ms event pc_enabled arg=0
+14589 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+17360 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+18664 ms applied source=2 reason=9 target_mv=(2500, 3600) pc_enabled=True
+20061 ms applied source=2 reason=9 target_mv=(2500, 2500) pc_enabled=True
+23460 ms applied source=0 reason=7 target_mv=(2500, 2500) pc_enabled=False
+23460 ms event pc_disabled_stale arg=0
+== B) test stack (stack.sh: isolated domain, trial values, no sensor drivers) + bridge against the sim (TS-30, TS-12)
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/stage55/stack, monitor http://127.0.0.1:41441/)
+-- TS-30 motion_hold (latched; expect hold=true, mode=1 manual):
+header:
+  stamp:
+    sec: 1792231451
+    nanosec: 938684316
+  frame_id: ''
+hold: true
+reason: mode=manual
+mode: 1
+---
+Set parameter successful
+Transitioning successful
+-- TS-12 /api/state esp32 (bridge configured, sim running):
+{"freshness": {"status": "RECEIVED", "age_s": 0.0004363059997558594, "verdict": "最終受信から 0.0 s"}, "fields": {"source": "none", "reason": "bt_disconnected", "target_x_mv": "2500", "pc_enabled": "false", "config_valid": "true"}}
+-- TS-12 /api/state esp32 after the sim stopped (expect STALE with PRM-15 trial, mode unchanged):
+{"freshness": {"status": "STALE", "age_s": 1.5620200634002686, "verdict": "最終受信から 1.6 s 経過（しきい値 0.25 s）"}, "mode": "MANUAL"}
+test stack stopped
+== done
+
+===== 5. 前回の試験（recorder の rosbag の再開・GLIM の異常終了。2026-10-17_recorder_glim_fix_vm_test.sh）の再実行
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/fixtest, monitor http://127.0.0.1:43893/)
+monitor http://127.0.0.1:43893/
+=== R1: rosbag start/stop/start/stop in one session
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_190504/rosbag/bag_01'
+success=True, message='rosbag recording stopped'
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_190504/rosbag/bag_02'
+record: {'rosbag_active': 'True', 'rosbag_output': '/tmp/fixtest/records/20261017_190504/rosbag/bag_02', 'failures': '0', 'last_failure': ''}
+success=True, message='rosbag recording stopped'
+session /tmp/fixtest/records/20261017_190504/
+total 24
+drwxrwxr-x 4 aya aya 4096 Oct 17 19:05 .
+drwxrwxr-x 4 aya aya 4096 Oct 17 19:05 ..
+drwxrwxr-x 2 aya aya 4096 Oct 17 19:05 bag_01
+-rw-rw-r-- 1 aya aya 3575 Oct 17 19:05 bag_01.log
+drwxrwxr-x 2 aya aya 4096 Oct 17 19:05 bag_02
+-rw-rw-r-- 1 aya aya 3575 Oct 17 19:05 bag_02.log
+/tmp/fixtest/records/20261017_190504//rosbag/bag_01/: bag_01_0.mcap metadata.yaml 
+/tmp/fixtest/records/20261017_190504//rosbag/bag_02/: bag_02_0.mcap metadata.yaml 
+rosbag_outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped')] failures: 0
+=== R2: ros2 bag record killed while recording (unexpected exit)
+success=True, message='rosbag recording started in /tmp/fixtest/records/20261017_190504/rosbag/bag_03'
+killing pid 40073
+record: {'rosbag_active': 'False', 'rosbag_output': '', 'failures': '1', 'last_failure': "rosbag_exited: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792231530.850017145] [rosbag2_recorder]: Subscribed to topic '/vehicle_bridge/transition_event' | [INFO] [1792231530.855606853] [rosbag2_recorder]: Subscribed to topic '/esp32/status' | [INFO] [1792231"}
+last failure: rosbag_exited ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792231530.850017145] [rosbag2_recorder]: Subscribed to topic '/vehicle_bridg
+outputs: [('bag_01', 'stopped'), ('bag_02', 'stopped'), ('bag_03', 'failed')]
+=== G1: GLIM killed during mapping
+success=True, message='TR-03: manual -> mapping'
+GLIM pid 40140
+glim_exited events: 1
+  TR-14 GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (automatic recovery is not implemented: TR-14); press 地図作成終了 to end mapping.
+mode: 2
+success=True, message='TR-04: mapping -> manual'
+  source_map_not_registered dump incomplete or GLIM not running: the source is kept where it is and nothing is published (RQ-I009) None
+  mapping_stopped dump directory /tmp/fixtest/mapping/20261017_190536_f29493cf/glim_dump does not exist 1792231544.2141695
+=== G2: normal mapping start/end (no glim_exited expected)
+success=True, message='TR-03: manual -> mapping'
+success=True, message='TR-04: mapping -> manual'
+glim_exited events (still 1 expected): 1
+test stack stopped
+[gouda_recorder-13] [WARN] [1792231532.268982062] [gouda_recorder]: rosbag recording failed: ros2 bag record exited without a stop request (exit code -9); last output: [INFO] [1792231530.850017145] [r
+[gouda_mode_manager-12] [ERROR] [1792231544.216400402] [gouda_mode_manager]: GLIM exited without a stop request (exit code -6) 7 s after it started; the map is not being built. Mapping mode is kept (a

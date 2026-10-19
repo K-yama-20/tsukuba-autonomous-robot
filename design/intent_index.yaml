@@ -28,6 +28,12 @@ authority:
     role: authority_superseded
   FILE-INTENT-V9:
     sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
+    role: authority_superseded
+  FILE-INTENT-V10:
+    sha256: 4bc97d43f7571d73fdeb41846564019c0302115c535d140a4fd83690caa698d5
+    role: authority_superseded
+  FILE-INTENT-V11:
+    sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
     role: authority
 line_count: 78
 lines:
@@ -91,6 +97,7 @@ lines:
       - TR-05
       - TS-31
       - TS-32
+      - TS-38
     issue_refs: []
   - line: 8
     requirement_id: RQ-I005
@@ -233,15 +240,16 @@ lines:
     issue_refs:
       - H-013
   - line: 14
-    requirement_id: RQ-I011
+    requirement_id: RQ-I084
     text: 9. 
-      ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次に初期位置と向きを人間がある程度指定し、自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
-    source_id: SRC-I014
-    authority_file: FILE-INTENT
+      ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+    source_id: SRC-I014-V11
+    authority_file: FILE-INTENT-V11
     referenced_by:
       - C-004
       - C-010
       - C-012
+      - C-027
       - H-007
       - IFD-02
       - IFD-13
@@ -251,18 +259,32 @@ lines:
       - IFD-33
       - IFD-34
       - IFD-39
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - IFD-50
       - ND-02
       - ND-03
       - ND-07
       - ND-08
       - ND-10
       - ND-16
+      - ND-19
       - PRM-11
+      - PRM-65
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-73
+      - PRM-74
       - SO-03
       - SO-05
       - SO-06
       - TR-05
       - TS-02
+      - TS-35
+      - TS-37
+      - TS-39
     issue_refs: []
   - line: 15
     requirement_id: RQ-I012
@@ -280,6 +302,9 @@ lines:
       - ND-09
       - ND-10
       - PRM-18
+      - PRM-70
+      - PRM-71
+      - PRM-72
       - TR-07
       - TS-05
     issue_refs: []
@@ -857,18 +882,21 @@ lines:
       - ND-10
     issue_refs: []
   - line: 82
-    requirement_id: RQ-I057
-    text: ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。
-    source_id: SRC-I082
-    authority_file: FILE-INTENT
+    requirement_id: RQ-I083
+    text: 
+      ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。
+    source_id: SRC-I082-V10
+    authority_file: FILE-INTENT-V10
     referenced_by:
       - C-004
       - C-012
       - C-018
       - C-020
+      - C-026
       - H-003
       - H-005
       - ND-10
+      - TS-37
     issue_refs: []
   - line: 83
     requirement_id: RQ-I058
@@ -883,6 +911,7 @@ lines:
       - IFD-36
       - ND-01
       - ND-13
+      - TS-38
     issue_refs: []
   - line: 84
     requirement_id: RQ-I059
@@ -896,7 +925,8 @@ lines:
     text: ・人の判断が必要な未決事項は、選択肢・推奨案・影響範囲を付けてまとめて報告する。それに依存しない作業は継続する。未確定の実車値を、一般論による値で補わない。
     source_id: SRC-I085
     authority_file: FILE-INTENT
-    referenced_by: []
+    referenced_by:
+      - TS-37
     issue_refs: []
   - line: 86
     requirement_id: RQ-I061
@@ -1098,6 +1128,7 @@ lines:
       - SO-03
       - SO-10
       - TS-25
+      - TS-36
     issue_refs: []
   - line: 100
     requirement_id: RQ-I074
@@ -1125,6 +1156,14 @@ lines:
       - PRM-34
       - PRM-35
       - PRM-36
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-73
+      - TS-36
     issue_refs: []
   - line: 101
     requirement_id: RQ-I072
@@ -1187,6 +1226,8 @@ lines:
       - PRM-59
       - PRM-60
       - PRM-61
+      - PRM-65
+      - PRM-74
       - TS-29
     issue_refs: []
   - line: 104
@@ -1208,6 +1249,7 @@ lines:
       - IFD-26
       - ND-06
       - TR-03
+      - TS-36
     issue_refs: []
   - line: 106
     requirement_id: RQ-I082

@@ -1,7 +1,7 @@
 """gouda_motion_controller node (ND-11) — stage 5-5 (vehicle output), lifecycle node around MotionCore.
 
-Subscribes cmd_vel (IFD-15, geometry_msgs/Twist, reliable, volatile, depth 1; Nav2 jazzy default type. TwistStamped is
-PRM-12, unresolved) and control/motion_hold (IFD-40, gouda_interfaces/MotionHold, reliable, transient_local, depth 1).
+Subscribes cmd_vel (IFD-15, geometry_msgs/TwistStamped since PRM-12 was approved true (DEC-122, REV-061), reliable,
+volatile, depth 1; the staleness is still judged by the receive time (PRM-08), the header.stamp is not used for it) and control/motion_hold (IFD-40, gouda_interfaces/MotionHold, reliable, transient_local, depth 1).
 Publishes vehicle/joystick_command (IFD-16, sensor_msgs/Joy, reliable, volatile, depth 1; axes[0]=forward, axes[1]=turn,
 [-1, 1]) every command_publish_period_s (PRM-41) while ACTIVE; nothing is published while inactive (manual / mapping
 modes: no non-neutral command leaves this node). Publishes log/decision (IFD-28, transient_local 50) on every change of
@@ -21,7 +21,7 @@ import rclpy
 from rclpy.lifecycle import LifecycleNode, TransitionCallbackReturn
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from sensor_msgs.msg import Joy
 from gouda_interfaces.msg import MotionHold, DecisionEvent
 
@@ -70,7 +70,7 @@ class MotionControllerNode(LifecycleNode):
         self.period = values['command_publish_period_s']
         self.joy_pub = self.create_lifecycle_publisher(Joy, 'vehicle/joystick_command', COMMAND_QOS)
         self.hold_sub = self.create_subscription(MotionHold, 'control/motion_hold', self._on_hold, LATCHED)
-        self.cmd_sub = self.create_subscription(Twist, 'cmd_vel', self._on_cmd_vel, COMMAND_QOS)
+        self.cmd_sub = self.create_subscription(TwistStamped, 'cmd_vel', self._on_cmd_vel, COMMAND_QOS)
         self._decision('settings', 'configured from generated parameters', values)
         return TransitionCallbackReturn.SUCCESS
 
@@ -99,9 +99,9 @@ class MotionControllerNode(LifecycleNode):
     def _now(self) -> float:
         return self.get_clock().now().nanoseconds * 1e-9
 
-    def _on_cmd_vel(self, msg: Twist):
+    def _on_cmd_vel(self, msg: TwistStamped):
         with self._lock:
-            if self.core: self.core.on_cmd_vel(msg.linear.x, msg.angular.z, self._now())
+            if self.core: self.core.on_cmd_vel(msg.twist.linear.x, msg.twist.angular.z, self._now())
 
     def _on_hold(self, msg: MotionHold):
         with self._lock:

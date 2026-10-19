@@ -17,6 +17,20 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+BY_ID_DIR = '/dev/serial/by-id/'   # serial devices are named only by their by-id link (DEC-081, DEC-141)
+
+
+def by_id_problem(path: str) -> Optional[str]:
+    """None when path is a /dev/serial/by-id/<name> link name; otherwise why it is refused. ttyACM / ttyUSB numbers swap with
+    the plug order and on re-connection (the IMU and the mosaic-go are both ttyACM), so they are never accepted (DEC-141)."""
+    if not isinstance(path, str) or not path.startswith(BY_ID_DIR):
+        return f'{path!r} is not a {BY_ID_DIR} name (ttyACM numbers swap with the plug order; DEC-141)'
+    name = path[len(BY_ID_DIR):]
+    if not name or '/' in name or name in ('.', '..'):
+        return f'{path!r} does not name one device under {BY_ID_DIR}'
+    return None
+
+
 ACTION_NONE = 'none'
 ACTION_START = 'start'        # device appeared (first time, or after being absent)
 ACTION_RESTART = 'restart'    # device re-enumerated while present: new identity
