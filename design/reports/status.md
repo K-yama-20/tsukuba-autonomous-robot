@@ -1,8 +1,18 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-125、第93便）。
+最終更新：2026-10-21（REV-125、第96便）。
 
-**引き継ぎ: `reports/handover_2026-10-21.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-17.md`、その §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+**引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第96便: 引き継ぎからの再開と、main の上での検査**（作業記録 `reports/worklog/2026-10-21_bin096_resume_check.md`）。
+- main（416a6d6）の写しで全検査を実行：設計検査は違反 0・未判定 5（変わらず）。入力の完全性は .DS_Store 2 つが「無い」で違反（git では無視されているのに baseline に含まれる。手元以外ではいつも違反になる）。扱いは承認事項として提示。
+- 人の指示で、手元を main（416a6d6）から作ったブランチ design/records-2026-10-21 に切り替え、第94〜96便の記録を commit した（push は未実行）。
+
+**第95便: 次のチャットへの引き継ぎ**（`reports/handover_2026-10-21_2.md`）。
+- 第85〜94便の状態、守ること、人の判断待ちをまとめた。main は 416a6d6（作業ブランチは merge 済み）。手元は design/field-mapping-2026-10-14 のまま、第94・95便の記録は未 commit。
+
+**第94便: main への取り込み（PR #11・#10）**（作業記録 `reports/worklog/2026-10-21_bin094_main_merge.md`）。
+- 人が GitHub の画面から PR #11（作業ブランチ、REV-060〜125）と PR #10（README の更新手順）を main に merge した（main は 416a6d6）。main と作業ブランチの差は README.md だけ。PR #6（歩行者用信号、main と衝突）は人の判断待ち。
 
 **第93便: 試験 test_nav2_config の修正（REV-125、DEC-199）**（作業記録 `reports/worklog/2026-10-21_rev125_test_nav2_config_fix.md`）。
 - 人の許可で、test_vehicle_files_alone_do_not_build を、生成物の写しから PRM-66 を消して「組まない」を確かめる形に直し、本物の生成物で「組める」を確かめる試験を足した。合否の基準は変えていない。Mac 223 合格・不合格 0。規則を壊した写しでは不合格になることを確認。設計検査は違反 0・未判定 5。
@@ -373,7 +383,7 @@
 第87便（REV-119、2026-10-21）で書き直した（DEC-185、人の許可の転記）。件数は `design/reports/design_check.txt` の要約行と、各便の作業記録から取った。
 
 - **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第14版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
-- **設計検査に合格**: 未判定。17 ルールのうち合格 12・違反 0・未判定 5。未判定の内訳は、DR-04 が 5 件、DR-05 が 2 件、DR-10 が 2 件（版の照合）、DR-11 が 49 件（未確定の値）、DR-15 が 30 件（コードの中の数値。偶然の一致を含む、`reports/dr15_literal_audit_2026-10-21.md`）。違反 0 件は、未判定の解消や実車への適合の証明ではない。
+- **設計検査に合格**: 未判定。17 ルールのうち合格 12・違反 0・未判定 5。未判定の内訳は、DR-04 が 5 件、DR-05 が 2 件、DR-10 が 2 件（版の照合）、DR-11 が 30 件（未確定の値）、DR-15 が 30 件（コードの中の数値。偶然の一致を含む、`reports/dr15_literal_audit_2026-10-21.md`）。違反 0 件は、未判定の解消や実車への適合の証明ではない。
 - **ソフト試験**:
   - 工程 5-1〜5-5 は合格（stub・Ubuntu・VM。ESP32 の実機・ゲームパッド・車体なし）。
   - 工程 5-6 は一部だけ（2026-10-17、VM。ND-07・08 は loopback_sim で代用。FILE-STAGE56-VM-TEST）。
