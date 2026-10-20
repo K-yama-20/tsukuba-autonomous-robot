@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 18
+pending_decision_count: 19
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1119,4 +1119,11 @@ pending_decisions:
     status: pending
     question: '【承認】新しい検査ルールの案（提案 ntrip_gga_proposal.md 第3版 §6）: 検査を実行する機械に <data_root>/config/gnss_rtk.yaml があれば、その
       ntrip の節の値がリポジトリの作業ツリー・design/generated・<data_root>/run のログと params に現れないことを調べる。ファイルがなければ未判定。あわせて伏せ字・読み方・記録の単体の試験を足す。'
+    resulting_refs: []
+  - id: DEC-184
+    kind: question
+    status: pending
+    question: A2 の (5)：Hokuyo の LiDAR（詳細設計書の M-021 urg_node2・M-033 Hokuyo LiDAR。シートでは自律走行・実装中）を今年使うか。正本には ND 
+      も扱いの解釈もない。推奨：今年の実車の構成に入れる予定がなければ「使わない（行は旧資料の記録として残す）」と記録し、使うなら 
+      ND・IF・取付（/config）・障害物の層（ND-09）の設計を追加する。決まらない場合に止まる作業：なし（今の構成は XT-32 だけで障害物を扱う）。
     resulting_refs: []

@@ -35045,7 +35045,8 @@ entities:
     issue_refs:
       - Q-02
       - G-ARCH
-    interpretation: ''
+    interpretation: REV-119（DEC-182、A1 案 1）：lifecycle を plain_node、process_group を gouda_core、作り方を実装（/tf の 
+      odom_glim→base_link と、直前の 2 つの姿勢の差による速度）に合わせた。以前の記述の「GLIM の ~/odom と IMU の角速度から作る」は実装されていない。
     sensitivity:
       - safety
       - operation
@@ -35053,14 +35054,17 @@ entities:
       - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-061
+    revision_ref: REV-119
     ros_node:
       node_name: gouda_local_odometry
       responsibilities:
-        - 局所的な車体速度・角速度・姿勢の推定と odom→base_link TF の発行（自律走行・一時停止で単独の発行者）
+        - 局所的な車体速度・角速度・姿勢の推定と odom→base_link TF の発行（自律走行・一時停止で単独の発行者。TF を出すのは GLIM で、中継の node は TF を出さない）
         - nav_msgs/Odometry の公開（Nav2 controller の odom 入力、記録）
-        - '構成（DEC-123）: GLIM（ND-06 と同じ実行ファイル）を odometry だけの設定（enable_local_mapping・enable_global_mapping を false、map_frame_id=odom、odom_frame_id=odom_glim、base_frame_id=base_link、publish_imu2lidar=false）で起動し、中継の
-          node（gouda_local_odometry）が GLIM の ~/odom と IMU の角速度から IFD-25 を作る'
+        - '構成（DEC-123）: GLIM（ND-06 と同じ実行ファイル）を odometry だけの設定（enable_local_mapping・enable_global_mapping を false、map_frame_id=odom、odom_frame_id=odom_glim、base_frame_id=base_link、publish_imu2lidar=false）で、TR-05
+          で ND-03 が起動する'
+        - 中継の node（gouda_local_odometry）は通常の node で、gouda_core.launch.py が常に起動する。/tf の odom_glim→base_link 
+          を受けるたびに、最新の odom→odom_glim と合成した odom→base_link の姿勢と、直前の 2 つの姿勢の差から求めた車体の速度で IFD-25 
+          を出す（odometry_core）。GLIM が止まっている間（手動走行・事前地図作成）は何も出さない（姿勢を作らない）。DEC-182
         - TF の木は map →（ND-07）odom →（GLIM、単位行列）odom_glim →（GLIM）base_link。base_link の親は一つ。地図作成の GLIM 
           とは同時に動かさない（RQ-I004）
       absorbs_module_refs:
@@ -35068,8 +35072,8 @@ entities:
       active_in_mode_refs:
         - MODE-AUTO
         - MODE-PAUSE
-      lifecycle: lifecycle_node
-      process_group: gouda_localization
+      lifecycle: plain_node
+      process_group: gouda_core
       publishes_refs:
         - IFD-19
         - IFD-25
@@ -35081,7 +35085,8 @@ entities:
       owned_state_refs:
         - SO-06
       placement_rationale: 3 案（A・A3・B）に共通（提案 localization_selection.md §3、DEC-123）。ND-07 と別に作る。GLIM の起動・停止は 
-        ND-03 が行う（地図作成の GLIM と同じ glim_runner）。
+        ND-03 が行う（地図作成の GLIM と同じ glim_runner）。中継の node は常に起動しているが、自律走行の外では Nav2・ND-11・ND-12 
+        が止まっているので車体の指令は生まれない（DEC-182）。lifecycle 化と作り方の見直し（A3 の EKF と役割が重なるか）は ND-07 の設計のときに必要なら判断する。
   - id: ND-09
     kind: ros_node
     name: 障害物の扱い（独自の node なし。Nav2 costmap の VoxelLayer・ObstacleLayer の設定、DEC-122）
@@ -35153,7 +35158,8 @@ entities:
       - Q-04
       - G-NAV2-FIRST-GOAL
     interpretation: 'REV-061（DEC-122）: Nav2 は lifecycle_manager の autostart を false にし、ND-03 が自律走行の開始（TR-05）で起動、手動走行への遷移（TR-11・TR-12）で停止する（IFD-36）。手動走行・地図作成では
-      inactive（map→odom の持ち主がない）。'
+      inactive（map→odom の持ち主がない）。 REV-119（DEC-183、A2 の (4)）：起動する server の名前（smoother_server・filter_mask_server・costmap_filter_info_server・lifecycle_manager_navigation
+      を含む）を責務に補った。振る舞いは変えていない。'
     sensitivity:
       - safety
       - operation
@@ -35165,7 +35171,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-062
+    revision_ref: REV-119
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35183,6 +35189,9 @@ entities:
         - 設定は上流の nav2_bringup の nav2_params.yaml を雛形に、plugin の選択、frame・topic（IF の名前）と PRM 
           の値だけを差し込んで起動時に作る。雛形のその他の値は変えない。実車の設定（trial なし）で PRM-11・17・18・66〜73 のどれかが未確定なら Nav2 
           を起動せず理由を記録する（RQ-I076、intent.md:85）
+        - 起動する server（gouda_nav2.launch.py。DEC-183 で名前を補足）：map_server（静的地図、IFD-24）、filter_mask_server（速度マスク用の 
+          map_server、IFD-42）、costmap_filter_info_server（IFD-42）、controller_server、smoother_server、planner_server、behavior_server、bt_navigator、velocity_smoother、lifecycle_manager_navigation（autostart
+          false。ND-03 が IFD-36 で起動・停止）
       absorbs_module_refs:
         - M-011
       active_in_mode_refs:
@@ -56710,6 +56719,85 @@ decisions:
       で入れる運用値で、generated/params の PRM にはしない（センサの取付値の /config と同じ扱い。人の要望）。値の範囲は 0 以上 1 未満（倒し量の正規化の範囲 [-1, 1] 
       の内側）。ある向きの最低倒し量としきい値のどちらかが未設定なら、その向きは補償しない。
     disposition: answered
+  - id: DEC-182
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: A1：ND-08（gouda_local_odometry）の正本と実装の食い違い（lifecycle：正本 lifecycle_node／実装 通常の 
+      Node。process_group：正本 gouda_localization／実装 gouda_core.launch.py で常時起動。作り方：正本「GLIM の ~/odom と IMU の角速度から
+      IFD-25 を作る」／実装「/tf の odom_glim→base_link を受け、直前 2 姿勢の差から速度を出す（odometry_core）」。動く時期：正本 MODE-AUTO・PAUSE／実装
+      node は常時、GLIM の odometry は TR-05 で mode_manager が起動し、GLIM が止まっている間は何も出さない）。案 1：正本を実装に合わせる。案 
+      2：実装を正本に合わせる（lifecycle 化など）
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「A1は案1でよい。」\n"
+    affected_refs:
+      - ND-08
+      - IFD-25
+    resulting_refs:
+      - ND-08
+    note: '転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った）。人の問い「A1: 案1で高凝集・疎結合、node可交換性は保たれているか？…」に分岐セッションが答えた要点：常時起動でも、自律走行の外では
+      Nav2・ND-11・ND-12 が止まっているので車体指令は生まれない。node は TF を出さず RQ-I004 に触れない。一時停止中は出ているべき。lifecycle 化の利点は状態の見える化だけ。DEC-123
+      は ND-08 を方式 A・A3・B に共通としているが、A3（Autoware の EKF）と役割が重なるかは未確認（推測）。lifecycle 化と作り方の見直しは、ND-07 の設計のときに必要なら判断する。同じ転記に人の発言「メインのチャットで別の作業が進行中である為、今は何も変更を加えてはならない。後で指示します。」があり、メインの作業（第86便）の
+      commit・push の後に人が転記を貼ったことを着手の指示とした（AI の解釈）。'
+    disposition: answered
+  - id: DEC-183
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: A2：詳細設計書（Google スプレッドシート Gouda_architecture_detail）と正本の食い違い（第61便）の扱い。推奨案：(1) 
+      「使用モード定義」の自律走行の行に不採用の safety_supervisor・Safety_gate（DEC-004、M-013・M-014）が残る → 
+      正本を正とし、シートの変更案を作る（シートは人のファイル、編集は人）。(2) シートにない node（ND-18 sensor_supervisor、ND-13 static_tf（シートは 
+      robot_state_publisher）、ND-19 GNSS のドライバ、ND-04 recorder（シートは gouda_logger））→ 同じ。(3) M-039 の二つの意味（12 行目 
+      gouda_section_executor／41 行目 gnss_localization_submodule）→ 41 行目の GNSS に新しい番号（例 
+      M-040）を付ける案。正本の番号は変えない。(4) 正本の ND-10 に smoother_server・filter_mask_server・lifecycle_manager_navigation 
+      の名前がない → 変更セットで補う。(5) Hokuyo（M-021 urg_node2、M-033）の扱いが正本にない → 人の判断を台帳に登録する
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「A2: 推奨案で問題ない。」\n"
+    affected_refs:
+      - ND-10
+      - M-039
+      - M-013
+      - M-014
+      - M-021
+      - M-033
+    resulting_refs:
+      - ND-10
+    note: (1)〜(3) のシートの変更案は design/proposals/spreadsheet_change_requests_2026-10-21.md（提案。シートの編集は人）。(4) はこの 
+      REV-119 で ND-10 の責務に補った。(5) は DEC-184（pending）。転記の出所は DEC-182 の note と同じ。
+    disposition: answered
+  - id: DEC-184
+    kind: question
+    status: pending
+    asked_on: '2026-10-21'
+    answered_on:
+    channel: chat
+    question: A2 の (5)：Hokuyo の LiDAR（詳細設計書の M-021 urg_node2・M-033 Hokuyo LiDAR。シートでは自律走行・実装中）を今年使うか。正本には ND 
+      も扱いの解釈もない。推奨：今年の実車の構成に入れる予定がなければ「使わない（行は旧資料の記録として残す）」と記録し、使うなら 
+      ND・IF・取付（/config）・障害物の層（ND-09）の設計を追加する。決まらない場合に止まる作業：なし（今の構成は XT-32 だけで障害物を扱う）。
+    answer_verbatim: ''
+    affected_refs:
+      - M-021
+      - M-033
+      - ND-09
+    resulting_refs: []
+    note: 人の A2 の回答（DEC-183、推奨案）で、台帳への登録までが決まった。使うかどうかはまだ答えられていない。
+    disposition: open_human
+  - id: DEC-185
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: A3：design/reports/status.md の古い記述（「三つの状態」の DEC-160 の記述、「検査結果の件数」の表が REV-050 
+      の時点のまま、「承認待ち」の一覧に回答済みの項目が混ざる など）を今の状態に合わせて書き直してよいか
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「A3: status.mdを今の状態に合わせて書き直して良い。」\n"
+    affected_refs: []
+    resulting_refs: []
+    note: status.md は現状の要約（記録）で正本ではない。書き直しは第87便で行い、件数は design/reports/design_check.txt の要約行から書く。転記の出所は DEC-182
+      の note と同じ。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -59400,6 +59488,23 @@ revisions:
       - ND-12
       - TR-03
       - PRM-78
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-119
+    date: '2026-10-21'
+    summary: 分岐セッションで人が答えた A1〜A3（転記、DEC-182〜185）を記録する。A1：ND-08 の lifecycle・process_group・作り方を実装に合わせる（案 
+      1）。A2：詳細設計書（スプレッドシート）との食い違いは正本を正とし、シートの変更案を作る（シートの編集は人）。正本の ND-10 に、起動する server の名前を補う。Hokuyo 
+      を使うかは質問として登録する（pending）。A3：status.md を今の状態に合わせて書き直すことの許可。
+    basis_refs:
+      - DEC-182
+      - DEC-183
+      - DEC-184
+      - DEC-185
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-08
+      - ND-10
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []
