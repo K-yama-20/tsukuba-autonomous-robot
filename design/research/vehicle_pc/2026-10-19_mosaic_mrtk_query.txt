@@ -1,0 +1,40 @@
+mosaic-go G5 P6: MRTKLIB での照会（読むだけ）。2026-10-19、人の許可（DEC-143、原文は判断台帳）の後に AI が VM で実行。
+
+実行の条件
+- 道具: MRTKLIB v0.7.11（VM の ~/MRTKLIB、git dd325d6、build/mrtk）の `mrtk relay`。
+  openserial は c_iflag・c_oflag・c_lflag を 0 にする（raw・エコー無効。src/stream/mrtk_stream.c）。人の資料 §2。
+- ポート: /dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02（受信機の USB2）。
+  実行の前に fuser で誰も開いていないことを確かめた（Gouda は動いたまま。ドライバは USB1 = if00 だけを開いている）。
+- コマンド: mrtk relay -in serial://serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02:115200 -out file://<記録先>/usb2_reply.log -c <記録先>/cmds.txt
+  （timeout -s INT 15 で停止）
+- cmds.txt（開いたときに各行を CR LF 付きで送る。! の行は MRTKLIB の指示）:
+    !HEX 0d / !WAIT 500 / grc / !WAIT 1500 / gfm / !WAIT 1500 / gga / !WAIT 1500 / lif,Permissions / !WAIT 3000
+  送ったのは照会だけ。設定を変えるコマンドは送っていない。
+- 生の記録: VM の ~/gnss_records/mrtk_check_20261018T132131/（VM の時計は 2026-10-18 を示していた。日付の差は VM の時計による）
+  usb2_reply.log 6066 bytes sha256 ae10c3cc2146fa837c591725285ce502970f16ef33372e7c41a94deee397a145
+  cmds.txt sha256 8aa3f43f09847d69af9f9984431cbc96b27025b74d4639d0ef85a94bc3613391
+  受信に NMEA の行は 0 行（位置は含まれない）。下は返答の写し（許可ファイルは関係する行だけ）。
+
+返答（usb2_reply.log から写し）
+USB2>$R: grc
+  ReceiverCapabilities, Main+Aux1, GPSL1CA+GPSL2PY+GPSL2C+GPSL5+GPSL1C+GLOL1CA+GLOL2P+GLOL2CA+GLOL3+GALE1BC+GALE6BC+GALE5a+GALE5b+GALE5+GEOL1+GEOL5+BDSB1I+BDSB2I+BDSB3I+BDSB1C+BDSB2a+BDSB2b+QZSL1CA+QZSL2C+QZSL5+QZSL6+QZSL1C+QZSL1S+QZSL1CB+LBAND+NAVICL5, DSK1+COM1+COM2+USB1+USB2, SBAS+DGNSSRover+RTKRover+RTKBase+RTCMv3x+TimeSync+xPPSOutput+TimedEvent+InternalLogging+APME+RAIM+MovingBase+MeasAv+IM+DSK1+FreqSync+Integrity+GalOSNMA+UnrestrictedMotion+PPPGalileoHAS-SIS, 10, 10
+USB2>$R: gfm
+  FrontendMode, Nominal
+USB2>$R: gga
+  GNSSAttitude, MultiAntenna, Fixed
+USB2>$R; lif,Permissions
+  （許可ファイル 2 ブロック。関係する行）
+    <nb_ant         val="2"  descr="Number of antennas" valdescr="Permitted for 2 antennas"/>
+    <attitude       val="2"  descr="Attitude" valdescr="Permitted mode 2 (angles, rates and aux ant positions)"/>
+    <movingbase     val="1"  descr="Moving Base" valdescr="Permitted"/>
+    <rtkrover       val="15" descr="RTK Rover" valdescr="Advanced RTK"/>
+    <ethernet       val="0"  descr="Ethernet" valdescr="Not permitted"/>
+    <ins            val="0"  descr="INS" valdescr="Not permitted"/>
+
+読み取り（AI）
+- 能力: アンテナは Main+Aux1（Aux1 の能力あり）。許可: 2 本のアンテナ、方位（mode 2）。→ 型・許可は原因ではない。
+- 方位の計算: MultiAntenna, Fixed（ドライバの sga が効いている）。
+- frontend mode: Nominal。Reference Guide 1.0.1 の setFrontendMode の値は SingleAnt と DualAnt だけで、Nominal は載っていない
+  （実機 1.1.1 との版の差。Nominal の意味は原本未照合）。Hardware Manual §4.2.3.2 では、2 本で動かすには
+  setFrontendMode, DualAnt を Boot に保存して再起動する。副アンテナの観測が一つもない（FILE-GNSS-OUTDOOR-CHECK）ことと合わせ、
+  Nominal は単一アンテナの動作と推測する（推測。未確認）。

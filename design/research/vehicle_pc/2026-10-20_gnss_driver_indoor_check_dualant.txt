@@ -1,0 +1,33 @@
+GNSS のドライバの屋内の検査（DualAnt にした後、受信機を VM につなぎ直した後）。2026-10-20、AI が VM で実行（読むだけ。受信機のポートには触っていない: ドライバが USB1 を開いており、USB2 は開いていない）。
+人の連絡: 「vmをつないだ。ドライバ等の検査をせよ。屋内なので衛星電波の受信は出来ない」
+
+VM の時計は 2026-10-18 16:00 JST を示していた（VM の時計のずれ）。~/gouda_ws は 3341602。Gouda は動いていた（ros2 launch pid 174357）。
+
+1. 機器とプロセス
+- /dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00 -> ttyACM0、-if02 -> ttyACM1（15:59 に作り直し）。
+- fuser: ttyACM0 は septentrio_gnss_driver（pid 190424）だけ。ttyACM1 は誰も開いていない。
+
+2. ドライバの起動のログ（~/gouda_ws/gouda_data/run/gouda_core.launch.log、時刻は ROS の秒）
+- 1792300751: GNSS の接続先が無い（device_absent）。driver は機器が現れたら起動する。
+- 1792301019: gouda_static_tf「static TF published for /config revision 18」（UNKNOWN の値なし。それ以前の 15〜17 は一部 UNKNOWN）。
+- 1792306746: device_present（ttyACM0 usb 3-9）、driver_started（pid 190424）。
+- 1792306747: ドライバの警告「Pitch angle output by topic /atteuler is a tilt angle rotated by 90.000000.」（/pose も同じ）。
+  → TF（/config revision 18: main (0.45, 0.17, 0.77)、aux1 (0.45, -0.17, 0.77) m）から方位のオフセット 90 度を求めた（主→副が右向き。Reference Guide §1.11 の配置と合う）。pitch は roll として読む。
+- 1792306750: 「The connection descriptor is USB1」「Setting up Rx.」、ERROR「$R? sntp, on : Invalid command!」（既知: 第40便。template の ntp_server true）、「Setup complete.」。
+- 「Multi antenna requested but Rx does not support it.」の警告はなかった。
+
+3. topic（ros2 topic hz / echo --once）
+- 出ている topic: /sensors/gnss/{pvtgeodetic, pvtcartesian, poscovgeodetic, poscovcartesian, velcovgeodetic, atteuler, attcoveuler, measepoch, rfstatus, aimplusstatus}、/diagnostics。
+  navsatfix は一覧になかった（屋内で解がないためと推測。第40便の屋内では単独測位があり出ていた）。
+- 周期: pvtgeodetic 9.998 Hz、atteuler 9.999 Hz、attcoveuler 10.002 Hz、measepoch 10.007 Hz、rfstatus 1.000 Hz。
+- pvtgeodetic: mode 0、error 1、tow 4294967295・wnc 65535（受信機の時刻が未確定）、nr_sv 255、latency 11。
+- atteuler: mode 0、error 1（Main-Aux1 の測定が足りない）、nr_sv 255、heading NaN。
+- measepoch: n 0（観測なし）、tow 未確定。
+- rfstatus: n 0、flags 0（干渉の帯域の報告なし）。
+- /diagnostics（AIM+）: interference「spectrum clean」、spoofing「none detected」、hardware_id 100012541。
+
+読み取り（AI）
+- ドライバは by-id の USB1 で起動し、設定を終え、PVT・方位・観測を 10 Hz で出している。拒否は既知の sntp だけ。
+- 方位のオフセットは /config の値から 90 度（取付の左右の配置と合う）。
+- 屋内のため衛星の観測は 0 で、測位・方位とも出ない（期待どおり）。副アンテナの観測・AGC・方位の確認は屋外で行う。
+- 受信機の frontend mode（DualAnt）はこの検査では照会していない（ポートに触らないため）。ドライバは setFrontendMode を送らないので、reset の後の DualAnt（FILE-MOSAIC-MRTK-QUERY-FOLLOWUP）から変わる理由はない（推測）。

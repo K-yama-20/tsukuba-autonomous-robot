@@ -1,0 +1,38 @@
+# 変更セット REV-105（2026-10-21 第72便: PRM-49 を 50 ms に変更 DEC-169）
+# 適用: design/tools/apply_revision.py REV-105
+id: REV-105
+date: '2026-10-21'
+summary: '人の指示（DEC-169、原文）で PRM-49（ESP32 STATUS の送信周期）を 500 ms（DEC-159）から 50 ms に変更。PRM-15（1.5 s）は 50 ms より長く、関係は保たれる。同じ指示の後半（vehicle_bridge を事前地図作成モードでも起動）は、configure だけか activate までかを人に確かめてから別に記録する。'
+basis_refs:
+- DEC-169
+- DEC-159
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-169
+  kind: approval
+  status: answered
+  asked_on: null
+  answered_on: '2026-10-21'
+  channel: chat
+  question: PRM-49（ESP32 STATUS の送信周期）の変更と、vehicle_bridge を事前地図作成モードでも起動すること（人の指示）
+  answer_verbatim: "prm-49のstatusの値は50msに設定せよ。vehicle_bridgeは事前地図作成モードでも起動せよ。\n"
+  affected_refs:
+  - PRM-49
+  - ND-12
+  - DEC-159
+  resulting_refs:
+  - PRM-49
+  note: 'PRM-49 は DEC-159 の 500 ms を置き換え（DEC-159 は書き換えない）。後半の ND-12 の事前地図作成モードでの起動は、振る舞いが変わる（ESP32 との接続・設定の登録・STATUS の受信、または PC 指令の送信まで）ため、どの段階まで起動するかを人に確かめてから設計と実装の変更を記録する（このREVでは未反映）。'
+  disposition: answered
+entities: []
+modifications:
+- id: PRM-49
+  set:
+    approval_decision_ref: DEC-169
+  set_nested:
+    parameter.value: 50
+    parameter.decision_deadline: 決定済み（DEC-169。DEC-159 の 500 ms を置き換え）
+    parameter.measurement: 人の指示の値（DEC-169）。PRM-15（1.5 s）はこれより長い
+  interpretation_append: 'REV-105: DEC-169 で 500 ms から 50 ms に変更。'
+decision_updates: []

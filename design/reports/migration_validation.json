@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 5983,
+    "executed_checks": 6008,
     "violations": [
       {
         "code": "MIGRATION",
@@ -9,6 +9,22 @@
         "detail": {
           "actual": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
           "expected": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
+        }
+      },
+      {
+        "code": "MIGRATION",
+        "path": "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
+        "detail": {
+          "actual": "62d89055ffb52281e0146fc7c19596cee58a80e32d53a8581660d86d8755c2bf",
+          "expected": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf"
+        }
+      },
+      {
+        "code": "MIGRATION",
+        "path": "unchanged design/docs/extraction_20261008_01a11af4/raw_xlsx/.DS_Store",
+        "detail": {
+          "actual": "fbd69bd928c62c91b1e5cc1d69a413ac0aaf475e89b4b22138571fb54750a9d1",
+          "expected": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574"
         }
       },
       {
@@ -120,6 +136,18 @@
       "intent instruction expectation compared AR-011",
       "intent non-append edit recorded with decision AR-011",
       "intent added line AR-011:14 has requirement entity",
+      "intent previous copy archived AR-012",
+      "intent reproduced from archived copy plus recorded lines AR-012",
+      "intent observed added line count recorded AR-012",
+      "intent instruction expectation compared AR-012",
+      "intent added line AR-012:107 has requirement entity",
+      "intent previous copy archived AR-013",
+      "intent removed line text recorded AR-013:16",
+      "intent reproduced from archived copy plus recorded lines AR-013",
+      "intent observed added line count recorded AR-013",
+      "intent instruction expectation compared AR-013",
+      "intent non-append edit recorded with decision AR-013",
+      "intent added line AR-013:16 has requirement entity",
       "unchanged design/docs/Gouda_architecture_detail.xlsx",
       "unchanged design/docs/SystemArchitecture.drawio",
       "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
@@ -249,7 +277,7 @@
       "model file hash FILE-LOCALIZATION-EVAL-FIG",
       "model file hash FILE-RECORDER-GLIM-FIX-VM-TEST",
       "model file hash FILE-RECORDER-GLIM-FIX-VM-TEST-SCRIPT",
-      "model file hash FILE-INTENT-V11",
+      "model file hash (archived) FILE-INTENT-V11",
       "model file hash FILE-DEC116-FASTDDS",
       "model file hash FILE-DEC116-FASTDDS-SCRIPT",
       "model file hash FILE-STAGE56-VM-TEST",
@@ -262,6 +290,16 @@
       "model file hash FILE-GNSS-RECORD-CONFIG-SNAPSHOT-VM-TEST",
       "model file hash FILE-SEPTENTRIO-SOURCE-REVIEW",
       "model file hash FILE-MOSAIC-BEFORE-FIRST-START",
+      "model file hash FILE-GNSS-FIRST-START",
+      "model file hash FILE-GNSS-OUTDOOR-CHECK",
+      "model file hash FILE-MOSAIC-DUAL-ANTENNA-NOTE",
+      "model file hash FILE-MOSAIC-MRTK-QUERY",
+      "model file hash FILE-MOSAIC-MRTK-QUERY-FOLLOWUP",
+      "model file hash FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT",
+      "model file hash FILE-ESP32-DAC-WIRING-20261020",
+      "model file hash FILE-RTKLIB-STR2STR-REVIEW",
+      "model file hash (archived) FILE-INTENT-V12",
+      "model file hash FILE-INTENT-V13",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -2537,6 +2575,8 @@
       "intent verbatim (its version) SRC-I106-V9",
       "intent verbatim (its version) SRC-I082-V10",
       "intent verbatim (its version) SRC-I014-V11",
+      "intent verbatim (its version) SRC-I107-V12",
+      "intent verbatim (its version) SRC-I016-V13",
       "row disposition inventory",
       "row disposition ('モジュール定義', 1)",
       "row disposition ('モジュール定義', 2)",
@@ -4456,6 +4496,7 @@
       "live intent requirements still present in current file",
       "superseded requirement justified RQ-I010",
       "superseded requirement justified RQ-I011",
+      "superseded requirement justified RQ-I013",
       "superseded requirement justified RQ-I021",
       "superseded requirement justified RQ-I057",
       "superseded requirement justified RQ-I066",
@@ -6017,9 +6058,9 @@
   "design_validity": {
     "result": "未判定",
     "reason": "移行検査は設計妥当性検証ではない。設計整合性は check_design.py の三値結果を参照。未設計・未確定・資料衝突を保持。",
-    "known_issue_count": 50,
+    "known_issue_count": 52,
     "known_issue_counts": {
-      "technical": 23,
+      "technical": 25,
       "source_missing": 7,
       "human": 20
     },
@@ -7610,7 +7651,7 @@
         ],
         "resolution_refs": [],
         "question": "intent 第11版（DEC-118）の体験 9 では、初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は収束と正しさを確認する。設計は人が指定する前提: IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05 の guard、H-007・DEC-009（PC 再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。",
-        "next_action": "2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009 は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。 2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。"
+        "next_action": "2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009 は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。 2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。 2026-10-20 DEC-147（人の運用の条件）：本番はスタート位置に並んだらすぐ発進。fix を待つ時間は取れるが、八の字旋回などの較正の動きはできない。本番の初期化は静止のまま行う（DEC-133 の T3 の形と合う）。較正の動きは実験・地図作成の走行だけ。fix を待つ時間の上限は tbd（実験で測る）。intent.md への追記は DEC-148。"
       },
       {
         "id": "G-NAV2-FIRST-GOAL",
@@ -7625,6 +7666,38 @@
         "resolution_refs": [],
         "question": "2026-10-17 の VM の試験の 1 回目（FILE-STAGE56-VM-TEST の 1）で、lifecycle の STARTUP の完了の約 50 ms 後に送った NavigateThroughPoses の goal が、bt_navigator の「Timed out while waiting for action server to acknowledge goal request for compute_path_through_poses」で失敗（status 6）し、TR-07 で一時停止した。2 回目・3 回目は起きなかった。待ちの値は上流の nav2_params.yaml の default_server_timeout（20 ms）のまま。分類は未確定（VM の遅さ、または開始の直後に goal を送る設計）。",
         "next_action": "待ちの値は変えていない（試験を通すための延長はしない: CLAUDE.md 1.5）。今の振る舞いは安全側（一時停止に入り、人の再開 TR-10 で残りの waypoint から続けられる）。x86 機で起きるかを確かめる。起きる場合の対策の候補は承認事項にする：(a) default_server_timeout を変える（値）、(b) STARTUP の後に計画の server の準備を確かめてから goal を送る（実装）。"
+      },
+      {
+        "id": "G-GNSS-NO-HEADING",
+        "category": "technical",
+        "state": "open",
+        "affected_refs": [
+          "ND-19",
+          "IFD-49",
+          "IFD-50"
+        ],
+        "resolution_refs": [],
+        "question": "最初の起動（FILE-GNSS-FIRST-START）で、AttEuler は 249 回すべて mode 0・error 1、heading と cov_headhead は NaN。位置は単独測位で水平精度 約 11 m と受信が弱い。error 1 の意味（SBF の定義）は原本未照合。候補: 副アンテナが空を見ていない・つながっていない、屋内で衛星が足りない、受信機の設定（sga, MultiAntenna が入ったか。ドライバは受信機の能力の照会の結果が heading 対応のときだけ送る）。",
+        "next_action": "2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20 屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測 0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。"
+      },
+      {
+        "id": "G-RECOVERY-COUNT",
+        "category": "technical",
+        "state": "open",
+        "affected_refs": [
+          "ND-03",
+          "PRM-10",
+          "H-006",
+          "TR-13",
+          "TR-14",
+          "TR-15",
+          "TR-16",
+          "TS-06",
+          "TS-09"
+        ],
+        "resolution_refs": [],
+        "question": "intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03 の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。",
+        "next_action": "工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。"
       }
     ],
     "open_conflicts": [
@@ -7651,13 +7724,14 @@
       "C-024",
       "C-025",
       "C-026",
-      "C-027"
+      "C-027",
+      "C-028"
     ]
   },
   "design_maturity": {
-    "未設計": 409,
-    "案": 454,
-    "承認済み": 26
+    "未設計": 412,
+    "案": 440,
+    "承認済み": 47
   },
   "revisions": [
     {
@@ -8369,6 +8443,456 @@
       "added_source_ids": 0,
       "added_file_ids": 1,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-073",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 4,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-074",
+      "date": "2026-10-19",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-075",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 2,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-076",
+      "date": "2026-10-19",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-077",
+      "date": "2026-10-19",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-078",
+      "date": "2026-10-19",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-079",
+      "date": "2026-10-20",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-080",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-081",
+      "date": "2026-10-20",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-082",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-083",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-084",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-085",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-086",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-087",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-088",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-089",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 2,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-090",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-091",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-092",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-093",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-094",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-095",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 7,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-096",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 5,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-097",
+      "date": "2026-10-20",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-098",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-099",
+      "date": "2026-10-20",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-100",
+      "date": "2026-10-20",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-101",
+      "date": "2026-10-20",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-102",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-103",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 9,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-104",
+      "date": "2026-10-21",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-105",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-106",
+      "date": "2026-10-21",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-107",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-108",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 4,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-109",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-110",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-111",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-112",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-113",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-114",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 1,
+      "added_source_ids": 1,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-115",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-116",
+      "date": "2026-10-21",
+      "basis_refs": 3,
+      "added_entity_ids": 4,
+      "modified_entity_ids": 15,
+      "added_source_ids": 1,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-117",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -8561,23 +9085,56 @@
       "added_line_numbers": [
         14
       ]
+    },
+    {
+      "id": "AR-012",
+      "file_ref": "FILE-INTENT-V12",
+      "previous_file_ref": "FILE-INTENT-V11",
+      "sha256": "2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383",
+      "previous_sha256": "7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646",
+      "archived_previous_copy": "design/baselines/intent_history/intent_v11_a7a03a313c6d.md",
+      "instruction_expected_added_lines": 1,
+      "observed_added_lines": 1,
+      "decision_ref": "DEC-178",
+      "requirement_refs": [
+        "RQ-I085"
+      ],
+      "note": "人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 00:16）。機械比較で末尾 1 行（107 行）の追加のみ（106 行は末尾改行の付加だけで文は同一）。人がチャットで「intent.md の変更は12版として保存せよ」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。",
+      "added_line_numbers": [
+        107
+      ]
+    },
+    {
+      "id": "AR-013",
+      "file_ref": "FILE-INTENT-V13",
+      "previous_file_ref": "FILE-INTENT-V12",
+      "sha256": "c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f",
+      "previous_sha256": "2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383",
+      "archived_previous_copy": "design/baselines/intent_history/intent_v12_2427bc6a5456.md",
+      "instruction_expected_added_lines": 0,
+      "observed_added_lines": 1,
+      "decision_ref": "DEC-179",
+      "requirement_refs": [
+        "RQ-I086"
+      ],
+      "note": "人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 03:47）。16 行の置換だけ（107 行のまま）。人がチャットで「intent.mdを再度更新したので確認せよ。」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。",
+      "added_line_numbers": [
+        16
+      ]
     }
   ],
   "decisions": {
-    "count": 140,
+    "count": 177,
     "by_status": {
-      "answered": 70,
-      "recorded": 50,
-      "pending": 20
+      "answered": 105,
+      "recorded": 54,
+      "pending": 18
     },
     "pending": [
       "DEC-021",
       "DEC-022",
       "DEC-024",
       "DEC-050",
-      "DEC-077",
-      "DEC-078",
-      "DEC-079",
       "DEC-098",
       "DEC-099",
       "DEC-100",
@@ -8590,7 +9147,8 @@
       "DEC-129",
       "DEC-134",
       "DEC-138",
-      "DEC-139"
+      "DEC-148",
+      "DEC-152"
     ]
   },
   "vehicle_verification": {
@@ -8598,8 +9156,8 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 889,
-    "source_count": 501,
+    "entity_count": 899,
+    "source_count": 503,
     "id_map_count": 202,
     "legacy_198_count": 198,
     "unbound_edges": 1,

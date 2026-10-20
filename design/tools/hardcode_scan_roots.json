@@ -1,7 +1,18 @@
 {
-  "note": "DR-15 のハードコード走査対象（リポジトリ相対）。新実装（工程5）の Gouda パッケージの製品コード（node・中核・launch）。単体試験の合成データ（test/）は対象外。旧実装は置き換え対象（DEC-030）のため対象外。",
+  "note": "DR-15・DR-17 の走査対象（リポジトリ相対）。roots は新実装の Python のパッケージ（DR-17 も使う）。scan は他の言語の製品コード（DEC-175 で追加：web、firmware、起動・セットアップのシェル）。単体試験（test/）は対象外。生成されるヘッダ build_config.hpp は対象外（値は正本から生成）。旧実装は置き換え対象（DEC-030）のため対象外。",
   "roots": [
     "gouda_core/gouda_core",
     "gouda_core/launch"
+  ],
+  "scan": [
+    {"path": "gouda_core/web", "glob": ["*.js", "*.html"], "lang": "js"},
+    {"path": "firmware/gouda_esp32_v4/src", "glob": ["*.cpp", "*.hpp", "*.h"], "lang": "cpp"},
+    {"path": "firmware/gouda_esp32_v4/include", "glob": ["*.cpp", "*.hpp", "*.h"], "lang": "cpp"},
+    {"path": "gouda.sh", "lang": "shell"},
+    {"path": "setup.sh", "lang": "shell"},
+    {"path": "update.sh", "lang": "shell"}
+  ],
+  "exclude": [
+    "firmware/gouda_esp32_v4/include/gouda_v4/build_config.hpp"
   ]
 }

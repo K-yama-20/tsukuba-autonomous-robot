@@ -30,6 +30,8 @@ VOL1 = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityP
 
 def load_flat(path):
     vals = {}
+    if path.endswith('.trial.yaml') and not Path(path).is_file():   # no trial file once every value is approved
+        return vals
     for line in Path(path).read_text().splitlines():
         m = re.match(r'\s*(\w+): ([-\d.]+)', line)
         if m: vals[m.group(1)] = float(m.group(2))

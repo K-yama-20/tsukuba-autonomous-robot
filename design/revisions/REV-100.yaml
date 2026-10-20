@@ -1,0 +1,32 @@
+# 変更セット REV-100（2026-10-20 第68便: DEC-161・DEC-162 の回答）
+# 適用: design/tools/apply_revision.py REV-100
+id: REV-100
+date: '2026-10-20'
+summary: '人の回答（原文）。DEC-162：車体の電源を先に切ってから基板の電源を切る運用で足り、順番を間違えても非常停止ボタンを押せばよい、無視してよい未決事項。プルダウンは付けない。DEC-161：必要ない。PRM-46＝4720 mV（DEC-160）のまま、実車の給電での実測はしない。'
+basis_refs:
+- DEC-161
+- DEC-162
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-46
+  set_nested:
+    parameter.measurement: '人の指示の値（DEC-160）。無負荷の実測 4.72 V（FILE-ESP32-DAC-WIRING-20261020）。実車の給電での実測は不要（DEC-161 の人の回答）'
+  interpretation_append: 'REV-100: DEC-161 で実測は不要と人が回答。'
+- id: ND-17
+  interpretation_append: 'REV-100（DEC-162 の人の回答）：R7 除去後に EMC の入力が浮く件は、電源を切る順番（車体の電源→基板の電源）の運用で扱い、順番を誤ったときは物理の非常停止ボタン（M-028）で止める。プルダウンは付けない。'
+decision_updates:
+- id: DEC-161
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: "DEC-161は必要ない。\n"
+    disposition: answered
+- id: DEC-162
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: "DEC-162は、車体の電源を先に切ってから基板の電源を切れば良いだけの話である。もし順番を間違えても、非常停止ボタンを押せば良い。無視して良い未決事項だ\n"
+    disposition: answered

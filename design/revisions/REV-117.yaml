@@ -1,0 +1,19 @@
+# 変更セット REV-117（2026-10-21 第82便: PRM-10 の承認の根拠を DEC-168 に）
+# 適用: design/tools/apply_revision.py REV-117
+id: REV-117
+date: '2026-10-21'
+summary: 'REV-116 で PRM-10 の approval_decision_ref を DEC-179（confirmation、status recorded）にしたため DR-01（承認の根拠は回答済みの決定）に違反した。同じ人の編集（intent.md 第13版 16 行）を原文で記録した回答済みの DEC-168 に変える。値と意味は変えない。'
+basis_refs:
+- DEC-168
+- DEC-179
+intent_version_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-10
+  set:
+    approval_decision_ref: DEC-168
+  set_nested:
+    parameter.decision_deadline: 決定済み（DEC-168。intent.md 第13版 16 行、DEC-179）
+decision_updates: []

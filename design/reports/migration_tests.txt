@@ -30,8 +30,19 @@ test_version_dependent_if_approved (test_check_design.DesignRuleTests.test_versi
 test_whole_row_superseded (test_check_design.DesignRuleTests.test_whole_row_superseded) ... ok
 test_bare_integer_one_is_not_flagged_as_approved_one_second (test_check_design.HardcodeScanTests.test_bare_integer_one_is_not_flagged_as_approved_one_second) ... ok
 test_float_literal_of_approved_value_is_flagged (test_check_design.HardcodeScanTests.test_float_literal_of_approved_value_is_flagged) ... ok
+test_allowlist_accepts_and_stale_entry_is_reported (test_check_design.HardcodeScanV2Tests.test_allowlist_accepts_and_stale_entry_is_reported) ... ok
+test_approved_value_in_python_code_is_reported (test_check_design.HardcodeScanV2Tests.test_approved_value_in_python_code_is_reported) ... ok
+test_comments_docstrings_and_strings_are_not_scanned (test_check_design.HardcodeScanV2Tests.test_comments_docstrings_and_strings_are_not_scanned) ... ok
+test_indexes_enum_names_and_html_text_are_not_reported (test_check_design.HardcodeScanV2Tests.test_indexes_enum_names_and_html_text_are_not_reported) ... ok
+test_integer_approved_value_only_in_its_declaration_language (test_check_design.HardcodeScanV2Tests.test_integer_approved_value_only_in_its_declaration_language) ... ok
+test_time_values_are_reported_in_every_language (test_check_design.HardcodeScanV2Tests.test_time_values_are_reported_in_every_language) ... ok
 test_current_intent_passes (test_check_intent_identity.IntentIdentityTests.test_current_intent_passes) ... ok
 test_unrecorded_contract_change_fails (test_check_intent_identity.IntentIdentityTests.test_unrecorded_contract_change_fails) ... ok
+test_concurrent_reservations_are_distinct (test_reserve_ids.ReserveIdsTests.test_concurrent_reservations_are_distinct) ... ok
+test_next_numbers (test_reserve_ids.ReserveIdsTests.test_next_numbers) ... ok
+test_second_session_gets_the_following_numbers (test_reserve_ids.ReserveIdsTests.test_second_session_gets_the_following_numbers) ... ok
+test_without_revision (test_reserve_ids.ReserveIdsTests.test_without_revision) ... ok
+test_written_change_set_is_not_a_reservation (test_reserve_ids.ReserveIdsTests.test_written_change_set_is_not_a_reservation) ... ok
 test_answered_decision_needs_verbatim (test_validate_model.CoreTests.test_answered_decision_needs_verbatim) ... ok
 test_approved_without_evidence (test_validate_model.CoreTests.test_approved_without_evidence) ... ok
 test_bad_fixture_cases (test_validate_model.CoreTests.test_bad_fixture_cases) ... ok
@@ -74,15 +85,15 @@ Traceback (most recent call last):
   File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/rules/test_validate_model.py", line 103, in test_real_model
     def test_real_model(self): self.assertEqual(self.errors(self.m), [])
                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'unchanged [757 chars]4'}}] != []
+AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'unchanged [1296 chars]4'}}] != []
 
-First list contains 3 additional elements.
+First list contains 5 additional elements.
 First extra element 0:
 {'code': 'MIGRATION', 'path': 'unchanged design/docs/SystemArchitecture.drawio', 'detail': {'actual': '6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7', 'expected': 'f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4'}}
 
-Diff is 902 characters long. Set self.maxDiff to None to see it.
+Diff is 1508 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 68 tests in 45.301s
+Ran 79 tests in 43.367s
 
 FAILED (failures=1)

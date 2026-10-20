@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "bafaea408c60846c3827d0217b1e5287d943ff96817fc052db49a43aa1a664ef",
+  "model_entities_sha256": "7274a7d9aa26e9a3ccb6716653f8866ebb63e925ba32207bc73fb5106f26bae5",
   "parameters": [
     {
       "id": "PRM-54",
@@ -105,8 +105,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 2500,
       "unit": "mV"
     },
     {
@@ -117,8 +117,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 280,
       "unit": "mV"
     },
     {
@@ -129,8 +129,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 4720,
       "unit": "mV"
     },
     {
@@ -141,8 +141,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 4720,
       "unit": "mV"
     },
     {
@@ -153,8 +153,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 800,
       "unit": "比（×10000）"
     },
     {
@@ -165,8 +165,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 200,
       "unit": "ms"
     },
     {
@@ -177,8 +177,8 @@
       "declaration": "firmware_config",
       "apply_timing": "runtime_set",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 50,
       "unit": "ms"
     },
     {
@@ -292,13 +292,13 @@
     {
       "id": "PRM-10",
       "file": "gouda_mode_manager.yaml",
-      "key": "recovery_attempt_limit",
+      "key": "recovery_record_every",
       "target": "gouda_mode_manager",
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 50,
       "unit": "回"
     },
     {
@@ -309,8 +309,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.2,
       "unit": "s"
     },
     {
@@ -333,8 +333,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.5,
       "unit": "s"
     },
     {
@@ -489,8 +489,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.111,
       "unit": "m/s"
     },
     {
@@ -501,8 +501,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.97,
       "unit": "rad/s"
     },
     {
@@ -513,8 +513,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.05,
       "unit": "s"
     },
     {
@@ -525,9 +525,21 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.5,
       "unit": "s"
+    },
+    {
+      "id": "PRM-78",
+      "file": "gouda_motion_controller.yaml",
+      "key": "max_reverse_speed_mps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.472,
+      "unit": "m/s"
     },
     {
       "id": "PRM-66",
@@ -746,6 +758,30 @@
       "unit": null
     },
     {
+      "id": "PRM-75",
+      "file": "septentrio_gnss_driver.yaml",
+      "key": "rtk_input_port",
+      "target": "septentrio_gnss_driver",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "string",
+      "value_state": "approved",
+      "value": "USB2",
+      "unit": null
+    },
+    {
+      "id": "PRM-76",
+      "file": "septentrio_gnss_driver.yaml",
+      "key": "rtk_relay_device",
+      "target": "septentrio_gnss_driver",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "string",
+      "value_state": "approved",
+      "value": "serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02",
+      "unit": null
+    },
+    {
       "id": "PRM-09",
       "file": "vehicle_bridge.yaml",
       "key": "joystick_timeout_s",
@@ -753,8 +789,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.35,
       "unit": "s"
     },
     {
@@ -765,8 +801,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.1,
       "unit": "s"
     },
     {
@@ -777,8 +813,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "lifecycle_configure",
       "value_type": "string",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": "/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_968984148ebcf0118816167148e9de0f-if00-port0",
       "unit": null
     }
   ]

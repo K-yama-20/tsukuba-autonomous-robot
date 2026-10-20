@@ -19,6 +19,9 @@ def load_settings():
     import re
     vals = {}
     for name in ('gouda_motion_controller.yaml', 'gouda_motion_controller.trial.yaml'):
+        # A trial file exists only while some value is still unresolved; once all are approved, the approved file alone is read
+        if name.endswith('.trial.yaml') and not (PARAMS / name).is_file():
+            continue
         for line in (PARAMS / name).read_text(encoding='utf-8').splitlines():
             m = re.match(r'\s+(\w+): ([-\d.]+)', line)
             if m: vals[m.group(1)] = float(m.group(2))

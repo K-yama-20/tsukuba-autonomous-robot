@@ -1,0 +1,16 @@
+# 変更セット REV-101（2026-10-20 第68便: REV-100 の ND-17 の追記を DR-06 に合わせて書き直す）
+# 適用: design/tools/apply_revision.py REV-101
+id: REV-101
+date: '2026-10-20'
+summary: REV-100 で ND-17 の解釈に追記した文が DR-06（非常停止の語を node の定義に含めない、intent.md:101）に当たったため、その文を除き、DEC-162 の回答の原文を参照する形に書き直した。DEC-162 の回答の原文と意味は変えていない。
+basis_refs:
+- DEC-162
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-17
+  set:
+    interpretation: REV-095（DEC-077、人の申告）：基板は EMC-270 の基準電圧にわざと接続していない。ESP32 側（DAC）から電圧を出し、GND で返すだけ。DAC の出力は EMC-270 の基準電圧に追従しない（絶対電圧）。 REV-097（FILE-ESP32-DAC-WIRING-20261020）：DAC（MCP4922）の基準は ESP32 の 5V ピン（PC の USB 5V）を 1 kΩ・1 kΩ で半分にしたもの、倍率は 2 倍（GA=0）。出力は 5V の実電圧 × code/4096。リレー K1 は故障のため迂回し、R1・R2 の後から空中配線で EMC の入力へ（Y は J2-3、X の先は未確認）。EMC-270 との接続は DAC の電圧線 2 本と GND 1 本。R7 を除去（2026-10-20）。図面との違い（リレー迂回、空中配線、R7 除去、Q6 の netlist と kicad_pcb の不一致）の図面への反映は人の判断。 REV-100・REV-101（DEC-162 の人の回答）：R7 除去後に EMC の入力が浮く件は、電源を切る順番（車体の電源→基板の電源）の運用で扱い、プルダウンは付けない。順番を誤ったときの扱いは DEC-162 の回答の原文のとおり。
+decision_updates: []

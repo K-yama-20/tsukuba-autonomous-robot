@@ -1,0 +1,22 @@
+# 変更セット REV-074（2026-10-19 第40便の続き: 屋外での測位と方位の確認）
+# 適用: design/tools/apply_revision.py REV-074
+id: REV-074
+date: '2026-10-19'
+summary: 屋外（人がアンテナを空の開けた所に出した）で測位と方位を確かめた（FILE-GNSS-OUTDOOR-CHECK）。単独測位（600/600、衛星 16〜21、水平精度の中央値 約 6.4 m）。方位は出ない（AttEuler mode 0・error 1 が 599/599、方位の衛星数なし）。MeasEpoch の観測はすべて主アンテナ（番号 0）で、副アンテナ（番号 1）の観測が一つもない。方位が出ない直接の理由は副アンテナの観測がないこと。ドライバの能力の警告はなく、sga, MultiAntenna は送られたと見る。
+basis_refs:
+- DEC-140
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-OUTDOOR-CHECK
+  path: design/research/vehicle_pc/2026-10-19_gnss_outdoor_check.txt
+  role: evidence
+decisions: []
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけで、副アンテナの観測が一つもない。候補（未確定）: 副アンテナがつながっていない・ケーブル・給電、受信機の副アンテナの入力が無効、受信機の型・許可（permfile）がデュアルアンテナの方位に対応していない、MultiAntenna の設定が効いていない。確かめ方: 人が副アンテナの接続を確かめる。受信機の能力と方位の設定を照会する（照会の道具は今は lif・gso・getDataInOut だけ。照会を足すのは実装の許可が要る）。'
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。 2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。 2026-10-19 追加（REV-069・071）: by-id の名前だけを受け付ける検査と IMU・GNSS の同時接続の取り違えがないこと（test_serial_by_id.py 3 件、test_gnss_config.py）、最初の起動の前後の記録の道具（test_septentrio_query.py 3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。 2026-10-19 実機（VM、屋内、FILE-GNSS-FIRST-START）: ドライバが by-id の名前（USB1）で起動、IFD-47〜50 が出る。単独測位は出たが方位は出ない（G-GNSS-NO-HEADING）。屋外の確認は未実行。 2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位（衛星 16〜21）、方位は出ない（副アンテナの観測なし）。'
+decision_updates: []

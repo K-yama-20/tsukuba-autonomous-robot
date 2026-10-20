@@ -1,0 +1,32 @@
+# 変更セット REV-107（2026-10-21 第75便: DEC-173 の回答）
+# 適用: design/tools/apply_revision.py REV-107
+id: REV-107
+date: '2026-10-21'
+summary: 人の回答（DEC-173、原文）：DR-15 の調査で見つかった時間の値の扱い。通知の集約と STATUS の送信時刻はすでに実装済み（調査報告の誤りを訂正）。gouda.sh stop の上限を外す、rosbag の停止の強制終了を廃止して進捗を表示する、は人の決定（実装は許可を確認）。
+basis_refs:
+- DEC-173
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-173
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: DR-15 の調査（reports/dr15_literal_audit_2026-10-21.md）で見つかった時間の値の扱い
+  answer_verbatim: "vehicle_bridgeの読み出し失敗の後の待ち 0.5 sで通知欄が埋まる問題：同種の通知は\"×5\"のように、回数を書くことにして、同じ通知は同じ欄しか使えないようにしよう。\nvehicle_bridgeの読み出し待ち0.05sでstatusの読み取りが遅れる問題については、esp32のstatusに送信時刻を含めるようにしよう。esp32内のタイマー値で問題ない。\n書込み待ちの上限0.2sはどうするのが最適か、意見を述べよ。\ngouda.sh stopの30s制限は外して良い。stop出来ないときは人間がubuntuを再起動するからだ。\nrosbagの停止の30s強制終了は廃止。30s以上かかっている場合は、定期的に進捗を出せると良いのだが、難しいかな？シーケンシャルバーみたいなので、進捗をグラフィカルに表示。これはポップアップウィンドウで表示。\n"
+  affected_refs:
+  - ND-12
+  - ND-02
+  - ND-04
+  - ND-01
+  - IFD-38
+  resulting_refs: []
+  note: (1) 通知の集約：monitor はすでに同じ通知（node・event・transition_id・reason）を 1 行にまとめ「×回数」を表示している（monitor_core.py の on_decision、web/app.js:115）。調査報告の「通知欄が埋まる」は誤りで、残る影響は ROS の DecisionEvent の保持（transient_local、深さ 50）が、あとから接続した購読者（monitor の再起動など）に対して埋まることだけ。(2) STATUS の送信時刻：STATUS にはすでに ESP32 の時刻（uptime_ms、送信時の now_。payload の 36 バイト目）があり、/esp32/status に出ている（vehicle_core.status_key_values）。変更不要。(3) 書き込みの待ちの上限：人が意見を求めた（第75便の報告で回答）。(4) gouda.sh stop の SIGTERM（30 s）・SIGKILL（10 s）を外す：人の決定。実装は許可を確認する。(5) rosbag の停止の 30 s の強制終了を廃止、時間がかかるときは monitor のポップアップで進捗を表示：人の決定。今の停止は record/rosbag/stop のサービスの中で待つため、上限をなくすとサービスが返らない。非同期の停止と進捗の表示の設計を人に示し、実装の許可を確認する。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-12
+  interpretation_append: REV-107（DEC-173）：STATUS の送信時刻は ESP32 の uptime_ms として /esp32/status に出ている（既存）。
+decision_updates: []

@@ -1,0 +1,102 @@
+# 変更セット REV-095（2026-10-20 第63便: DEC-077・DEC-079 の回答、PRM-43〜48 の承認）
+# 適用: design/tools/apply_revision.py REV-095
+id: REV-095
+date: '2026-10-20'
+summary: '人が DEC-077（DAC の初期登録値）と DEC-079（手動仲裁の値）に回答（原文）。PRM-43＝2500 mV、PRM-44＝230 mV、PRM-45＝4700 mV、PRM-46＝4700 mV、PRM-47＝800（半径 8 %）、PRM-48＝200 ms を承認値にした。人の申告（事実）：基板は EMC-270 の基準電圧に接続しておらず、ESP32 側から電圧を出し GND で返すだけ。firmware のコードは変えていない。'
+basis_refs:
+- DEC-077
+- DEC-079
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-43
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-077
+  set_nested:
+    parameter.value: 2500
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-077）
+    parameter.measurement: '旧 firmware の記載値を人が承認（DEC-077）。電圧の測定値ではない。実車での中立の確認（Q-03、DEC-050 の実機照合）は残る'
+  interpretation_append: 'REV-095: DEC-077 で旧 firmware の値 2500 mV を承認。'
+- id: PRM-44
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-077
+  set_nested:
+    parameter.value: 230
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-077）
+    parameter.measurement: '旧 firmware の記載値を人が承認（DEC-077）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-095: DEC-077 で旧 firmware の値 230 mV を承認。'
+- id: PRM-45
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-077
+  set_nested:
+    parameter.value: 4700
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-077）
+    parameter.measurement: '旧 firmware の記載値を人が承認（DEC-077）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-095: DEC-077 で旧 firmware の値 4700 mV を承認。'
+- id: PRM-46
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-077
+  set_nested:
+    parameter.value: 4700
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-077）
+    parameter.measurement: '旧 firmware の記載値（kDacFullScaleMv）を人が承認（DEC-077）。VREF の測定値ではない。基板の VREF の確認（Q-03）は残る'
+  interpretation_append: 'REV-095: DEC-077 で旧 firmware の値 4700 mV を承認。回答の「（x,y軸の合計値）」の意味は未確認。firmware はこの値を両軸（MCP4922 の 2 チャンネル）に共通の、コード 4095 に対応する電圧として使う（旧 firmware と同じ使い方）。人の申告：基板は EMC-270 の基準電圧に接続していない。'
+- id: PRM-47
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-079
+  set_nested:
+    parameter.value: 800
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-079）
+    parameter.measurement: 不要（DEC-079 で人が半径 8 % を承認）
+  interpretation_append: 'REV-095: DEC-079 で半径 8 %（×10000 で 800）を承認。firmware の判定は左スティックの半径（manualVector の sqrt(x²+y²)）で、回答の「半径」と一致する。'
+- id: PRM-48
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-079
+  set_nested:
+    parameter.value: 200
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-079）
+    parameter.measurement: 不要（DEC-079 で人が 200 ms を承認）
+  interpretation_append: 'REV-095: DEC-079 で 200 ms を承認。'
+- id: ND-17
+  interpretation_append: 'REV-095（DEC-077、人の申告）：基板は EMC-270 の基準電圧にわざと接続していない。ESP32 側（DAC）から電圧を出し、GND で返すだけ。DAC の出力は EMC-270 の基準電圧に追従しない（絶対電圧）。'
+decision_updates:
+- id: DEC-077
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: "dec-077：旧firmwareに書かれた値をそのまま使え。具体的には、中立2500mv, 最小230mv, 最大4700mv, フルスケール4700mv（x,y軸の合計値）とする。\n実は基板にはわざとemc-270の基準電圧は接続していない。esp32から電圧を出し、gndで返してもらうだけである。\n"
+    disposition: answered
+    resulting_refs:
+    - PRM-43
+    - PRM-44
+    - PRM-45
+    - PRM-46
+- id: DEC-079
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: "dec-079：dead zoneは半径8%, 中立の安定時間は200msとする。\n"
+    disposition: answered
+    resulting_refs:
+    - PRM-47
+    - PRM-48

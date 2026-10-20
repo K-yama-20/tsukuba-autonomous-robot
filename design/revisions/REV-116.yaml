@@ -1,0 +1,193 @@
+# 変更セット REV-116（2026-10-21 第82便: intent.md 第13版、DEC-168 の解消、PRM-10、DEC-172 の PRM-78）
+# 適用: design/tools/apply_revision.py REV-116
+# 変更セット REV-116（2026-10-21 第82便: intent.md 第13版、DEC-168 の解消、PRM-10、DEC-172 の PRM-78）
+# 適用: design/tools/apply_revision.py REV-116
+id: REV-116
+date: '2026-10-21'
+summary: intent.md 第13版（人の編集。16 行の置換：自動復帰は回数の上限なく、50 回ごとに理由を記録）を記録（AR-013、RQ-I086、DEC-179、C-028）。DEC-168 を解消し、PRM-10 を「理由を記録する回数の区切り 50」に。設計への影響は G-RECOVERY-COUNT。DEC-172 の回答で後退の正規化の値 PRM-78＝0.472 m/s（1.7 km/h）を保存（実装は許可待ち）。
+basis_refs:
+- DEC-179
+- DEC-168
+- DEC-172
+intent_version_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+authority_revision:
+  id: AR-013
+  file_id: FILE-INTENT-V13
+  previous_file_id: FILE-INTENT-V12
+  archived_previous_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+  current_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    16: RQ-I086
+  decision_ref: DEC-179
+  note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 03:47）。16 行の置換だけ（107 行のまま）。人がチャットで「intent.mdを再度更新したので確認せよ。」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+requirement_ref_replacements:
+  RQ-I013: RQ-I086
+files: []
+decisions:
+- id: DEC-179
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-21'
+  channel: chat + intent.md
+  question: intent.md 第13版（人の編集。16 行の置換。異常終了後の自動復帰の回数の扱い）
+  answer_verbatim: "intent.mdを再度更新したので確認せよ。\n\n（intent.md 第13版 16 行）・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）\n"
+  affected_refs:
+  - FILE-INTENT-V12
+  - RQ-I013
+  - PRM-10
+  - ND-03
+  - DEC-168
+  - DEC-008
+  - H-006
+  - TR-13
+  - TR-14
+  - TR-15
+  - TR-16
+  - TS-06
+  - TS-09
+  - C-006
+  resulting_refs:
+  - AR-013
+  - RQ-I086
+  - C-028
+  - G-RECOVERY-COUNT
+  note: 人の編集（2026-10-21 03:47）。第12版 16 行の「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」を「復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）」に置換。その前の途中の編集（03:45「復旧回数が50回を超える度に、理由を記録する。」）は記録していない（人に意味を問い、人が 03:47 に書き直した）。意味：自動復帰の回数に上限はなく、上限到達で一時停止に入らない。50 回ごと（50・100・150…回目）に理由を記録する。「復旧できない場合は一時停止」の文も無くなった。DEC-168（PRM-10 の無制限と intent.md:16 の食い違い）はこの版で解消。PRM-10 は「理由を記録する回数の区切り」50 回（intent.md の記載値）に置き換える。設計への影響（復旧できないときの扱い、DEC-008・H-006、TR-13〜16、TS-06・09）は G-RECOVERY-COUNT に一覧した。設計の変更は工程 5-7 の設計のときに行う。
+  disposition: answered
+entities:
+- id: C-028
+  kind: reconciliation
+  name: 異常終了後の自動復帰の回数の扱い（intent.md 第12版 16 行 → 第13版 16 行）
+  intent_lines:
+  - 16
+  source_from_affected: true
+  related_refs:
+  - DEC-179
+  - AR-013
+  - G-RECOVERY-COUNT
+  - C-006
+  - DEC-168
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs:
+    - RQ-I013
+    adopted_requirement_refs:
+    - RQ-I086
+    scope: 第12版 16 行の「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」を「復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）」で置換した第13版 16 行（人の編集）。
+    retained_scope: 自動復帰の依存順序（プロセス再起動→mission 状態の復元→旧 Nav2 goal の終了・破棄の確認→自律走行指令の再許可）、人の追加承認なし、各段階の成否の記録は同一。
+    rationale: 人が intent.md を編集（DEC-179）。復旧できないときの扱いなど設計への影響は G-RECOVERY-COUNT（未解決）。
+    issue_refs:
+    - G-RECOVERY-COUNT
+- id: G-RECOVERY-COUNT
+  kind: issue
+  source_from_affected: true
+  name: 自動復帰の回数に上限が無くなり、復旧できないときの扱いも intent から無くなった（intent 第13版）
+  sensitivity:
+  - safety
+  - operation
+  - intent
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-03
+    - PRM-10
+    - H-006
+    - TR-13
+    - TR-14
+    - TR-15
+    - TR-16
+    - TS-06
+    - TS-09
+    resolution_refs: []
+    question: intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03 の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。
+    next_action: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。
+- id: PRM-78
+  kind: parameter
+  name: cmd_vel の正規化に用いる最大後退速度
+  source_refs:
+  - SRC-I091
+  - SRC-I102-V3
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-39
+  issue_refs:
+  - Q-06
+  interpretation: 'REV-116: DEC-172 で人が 1.7 km/h を指定（1700/3600＝0.472 m/s）。motion_controller はまだこの値を読まない（後退の正規化の実装は許可待ち）。'
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I063
+  - RQ-I075
+  approval_decision_ref: DEC-172
+  parameter:
+    owner_ref: ND-11
+    value: 0.472
+    value_state: approved
+    unit: m/s
+    stage: 車体出力
+    purpose: cmd_vel の linear.x が負（後退）のとき、この値で割って正規化操作値（前後）にする。車椅子側の制御で後退は 1.7 km/h に制限される（人の申告、DEC-171）ため、前進の PRM-39 と分ける
+    measurement: 人の指定（DEC-172）：1.7 km/h（1700/3600＝0.472 m/s）。車椅子側の制限の値（人の申告）で、測定値ではない。実車の速度の確認（Q-06）は残る
+    decision_deadline: 決定済み（DEC-172）
+    software_trial_value:
+    software_trial_basis:
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: max_reverse_speed_mps
+    value_type: double
+    apply_timing: launch
+modifications:
+- id: RQ-I013
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-116: intent.md 第13版で自動復帰の回数の文を置換（C-028、DEC-179）。後継は RQ-I086。'
+- id: C-006
+  append:
+    related_refs:
+    - C-028
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I086
+    - RQ-I014
+    - RQ-I025
+    - RQ-I064
+    - RQ-I069
+- id: PRM-10
+  set:
+    name: 自動復帰の理由を記録する回数の区切り
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-179
+  set_nested:
+    parameter.value: 50
+    parameter.value_state: approved
+    parameter.purpose: 自動復帰の回数がこの値の倍数（50・100・150…回目）になるたびに理由を記録する（intent.md 第13版 16 行、RQ-I086）。回数の上限ではなく、到達しても一時停止に入らない
+    parameter.measurement: 不要（intent.md 第13版 16 行の記載値。DEC-179）
+    parameter.decision_deadline: 決定済み（DEC-179）
+    parameter.param_key: recovery_record_every
+  interpretation_append: 'REV-116: intent.md 第13版（DEC-179）で「試行回数上限」から「理由を記録する回数の区切り（50 回ごと）」に置き換え。DEC-168 はこれで解消。'
+decision_updates:
+- id: DEC-168
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "（intent.md の人の編集、第13版 16 行）・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）\n"
+    disposition: answered
+- id: DEC-172
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "DEC-172: 後退用のPRMを1.7km/hとして保存。（m/sに直して良い）\n"
+    disposition: answered
+    resulting_refs:
+    - PRM-78

@@ -164,4 +164,43 @@ class RecorderCoreTests(unittest.TestCase):
         self.assertEqual(self.core.status()['failures'], 0); self.assertEqual(self.core.status()['last_failure'], '')
 
 
+class RosbagSaveTests(unittest.TestCase):
+    """DEC-174: the rosbag stop returns at once; the save ends later (no time limit) and its result is in the status."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); self.root = Path(self.tmp.name)
+        self.clock = FakeClock(); self.saving = True
+        self.core = RecorderCore(self.root, clock=self.clock, rosbag_start=lambda d: None, rosbag_stop=lambda: self.saving,
+                                 session_id_factory=lambda: 'S1')
+
+    def tearDown(self): self.tmp.cleanup()
+
+    def test_stop_returns_at_once_and_the_save_is_shown(self):
+        self.core.start_rosbag(TRIGGER_HUMAN); self.clock.advance(5)
+        ok, msg = self.core.stop_rosbag(TRIGGER_HUMAN); self.assertTrue(ok); self.assertIn('saving', msg)
+        st = self.core.status()
+        self.assertFalse(st['rosbag_active']); self.assertTrue(st['rosbag_saving'])
+        self.assertTrue(st['rosbag_saving_output'].endswith('bag_01')); self.assertEqual(st['rosbag_saving_started_at'], 105.0)
+        ok, msg = self.core.start_rosbag(TRIGGER_HUMAN); self.assertFalse(ok); self.assertIn('still being saved', msg)
+        self.clock.advance(42)
+        ok, msg = self.core.rosbag_finalized(0); self.assertTrue(ok, msg)
+        st = self.core.status(); self.assertFalse(st['rosbag_saving']); self.assertEqual(st['failures'], 0)
+        last = json.loads(st['rosbag_last_save']); self.assertTrue(last['ok']); self.assertEqual(last['finished_at'] - last['started_at'], 42)
+        sj = json.loads((self.root / 'S1' / 'session.json').read_text()); self.assertEqual(sj['rosbag_outputs'][-1]['result'], 'stopped')
+        ok, _ = self.core.start_rosbag(TRIGGER_HUMAN); self.assertTrue(ok)   # a new recording after the save ended
+
+    def test_a_failed_save_is_recorded(self):
+        self.core.start_log(TRIGGER_HUMAN); self.core.start_rosbag(TRIGGER_HUMAN); self.core.stop_rosbag(TRIGGER_HUMAN)
+        ok, msg = self.core.rosbag_finalized(2, 'last output: disk full'); self.assertFalse(ok); self.assertIn('exit code 2', msg)
+        st = self.core.status(); self.assertEqual(st['failures'], 1); self.assertIn('disk full', st['last_failure'])
+        self.assertFalse(json.loads(st['rosbag_last_save'])['ok'])
+        sj = json.loads((self.root / 'S1' / 'session.json').read_text()); self.assertEqual(sj['rosbag_outputs'][-1]['result'], 'save_failed')
+        events = [json.loads(l) for l in (self.root / 'S1' / 'log' / 'events.jsonl').read_text().splitlines()]
+        self.assertEqual(events[-1]['what'], 'rosbag_save')
+
+    def test_stop_when_the_process_had_already_ended(self):
+        self.saving = False
+        self.core.start_rosbag(TRIGGER_HUMAN); ok, msg = self.core.stop_rosbag(TRIGGER_HUMAN)
+        self.assertTrue(ok); self.assertFalse(self.core.status()['rosbag_saving'])
+
+
 if __name__ == '__main__': unittest.main()

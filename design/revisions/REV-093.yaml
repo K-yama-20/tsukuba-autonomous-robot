@@ -1,0 +1,34 @@
+# 変更セット REV-093（2026-10-20 第60便: B1 の段 3、中継の起動の実装）
+# 適用: design/tools/apply_revision.py REV-093
+id: REV-093
+date: '2026-10-20'
+summary: '人の許可（DEC-157、原文）で案 B1 の段 3 を実装した。sensor supervisor が NTRIP の中継（str2str）を 4 つめの子プロセスとして PRM-76（USB2 の by-id）で見張って起動する（ntrip が有効、PRM-75/76、str2str、GNSS のドライバの設定がそろうとき）。起動に使う command（秘密を含む）はメモリの中だけで、記録には伏せ字の command だけを書き、全ドライバの command も記録の前に伏せ字にする。中継の標準エラーは状態の文字・バイト数・bps だけに減らし、状態の変化だけを ntrip_relay_state として記録する。終了したら ntrip_relay_exited を記録し、同じ同一性では作り直さない。gnss_config に RTKLIB の URL で使えない文字の検証を足した。単体: Mac 194 件合格・1 件 skip、VM 195 件合格。'
+basis_refs:
+- DEC-157
+- DEC-156
+- DEC-151
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-157
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: 案 B1 の段 3（中継の起動。supervisor、gnss_config の検証、試験）を実装してよいか
+  answer_verbatim: '段 3（中継の起動）の実装を許可する。
+
+    '
+  affected_refs:
+  - ND-18
+  - ND-19
+  - PRM-75
+  - PRM-76
+  - DEC-156
+  resulting_refs: []
+  note: 変えたファイル：gouda_core/gouda_core/ntrip_relay.py（新規。command の組み立て、状態の行の解釈、状態の変化の追跡。ROS なし）、gouda_core/gouda_core/sensor_supervisor_node.py（_build_relay、_observe・_device_users・_start・_read_relay・_wait_exit、起動の時の記録の伏せ字）、gouda_core/gouda_core/gnss_config.py（文字の検証、serial_1_baud）、gouda_core/test/test_ntrip_relay.py（新規 6 件、偽の str2str を含む）、gouda_core/test/test_gnss_config.py（誤りの例を 4 つ追加）。ROS 上での動き（supervisor が実際に中継を起動する）は未確認（段 4 で str2str を入れ、段 6 で VM の試験）。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

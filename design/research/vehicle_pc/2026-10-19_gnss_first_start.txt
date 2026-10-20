@@ -1,0 +1,54 @@
+# 2026-10-19 GNSS ドライバの最初の起動（gouda.sh start、VM、コミット 3341602）と、起動の後の受信機の記録・測位と方位の確認（原文の出力。位置は含めない）
+# 人の指示: 「VMは更新した。次に進め」（手順 4。起動の前後の記録は DEC-140 の回答の指示）。アンテナは屋内（屋外ではない）。
+# 生の記録の SHA-256: 9917d534c7eb35ebdbefb227d5c4ee9bbb91d988dd90ccfafc9eee58cf132251 （VM の ~/gnss_records/ にだけ置く）
+
+===== 1. 起動のログ（gouda_core.launch.log の GNSS の行）
+17:[gouda_sensor_supervisor-1] [INFO] [1792295879.606061101] [gouda_sensor_supervisor]: settings: GNSS driver parameters written (/home/aya/gouda_ws/gouda_data/config/gnss_rtk.yaml not found: no RTK corrections)
+21:[gouda_sensor_supervisor-1] [INFO] [1792295879.612461268] [gouda_sensor_supervisor]: device_present: GNSS (ND-19): serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00 -> ttyACM0 usb 3-7
+22:[gouda_sensor_supervisor-1] [INFO] [1792295879.623370976] [gouda_sensor_supervisor]: driver_started: GNSS (ND-19): started (pid 159612) for ttyACM0 usb 3-7 (device present)
+26:[gouda_sensor_supervisor-1] [INFO] [1792295880.739946685] [sensors.gnss.septentrio_gnss_driver]: This is ROSaic driver version 1.4.7
+27:[gouda_sensor_supervisor-1] [INFO] [1792295880.740648810] [sensors.gnss.septentrio_gnss_driver]: Connecting serially to device /dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00, targeted baudrate: 921600
+28:[gouda_sensor_supervisor-1] [INFO] [1792295880.779313768] [sensors.gnss.septentrio_gnss_driver]: Set ASIO baudrate to 921600, leaving InitializeSerial() method
+29:[gouda_sensor_supervisor-1] [INFO] [1792295880.786696935] [sensors.gnss.septentrio_gnss_driver]: The connection descriptor is USB1
+30:[gouda_sensor_supervisor-1] [INFO] [1792295880.786826977] [sensors.gnss.septentrio_gnss_driver]: Setting up Rx.
+31:[gouda_sensor_supervisor-1] [ERROR] [1792295880.799386935] [sensors.gnss.septentrio_gnss_driver]: Invalid command just sent to the Rx! The Rx's response contains 33 bytes and reads:
+32:[gouda_sensor_supervisor-1]  $R? sntp, on : Invalid command!
+34:[gouda_sensor_supervisor-1] [INFO] [1792295881.007262810] [sensors.gnss.septentrio_gnss_driver]: Setup complete.
+
+===== 2. 起動の後の照会（USB2、待ち 1 秒。端末の設定（読み直し）: {'echo': False, 'icanon': False, 'icrnl': False, 'ixon': False, 'ixoff': False, 'opost': False} ）
+--- 送信: 'CR のみ'  判定: []  受信 5 bytes
+--- 送信: 'lif,Identification'  判定: ['accepted']  受信 1147 bytes
+--- 送信: 'gso'  判定: ['accepted']  受信 730 bytes
+$R: gso
+  SBFOutput, Stream1, USB1, GALAuthStatus+ReceiverStatus+ReceiverSetup+QualityInd+RFStatus, msec500
+  SBFOutput, Stream2, none, none, off
+  SBFOutput, Stream3, USB1, MeasEpoch+AttEuler+PVTCartesian+PosCovCartesian+PVTGeodetic+PosCovGeodetic+VelCovGeodetic+DOP+ChannelStatus+AttCovEuler, msec100
+  SBFOutput, Stream4, none, none, off
+  SBFOutput, Stream5, none, none, off
+  SBFOutput, Stream6, none, none, off
+  SBFOutput, Stream7, none, none, off
+  SBFOutput, Stream8, none, none, off
+  SBFOutput, Stream9, none, none, off
+  SBFOutput, Stream10, none, none, off
+  SBFOutput, Res1, none, none, off
+  SBFOutput, Res2, none, none, off
+  SBFOutput, Res3, none, none, off
+  SBFOutput, Res4, none, none, off
+USB2>
+--- 送信: 'getDataInOut'  判定: ['accepted']  受信 229 bytes
+$R: getDataInOut
+  DataInOut, DSK1, auto, SBF+NMEA, (off)
+  DataInOut, COM1, auto, SBF+NMEA, (on)
+  DataInOut, COM2, auto, SBF+NMEA, (on)
+  DataInOut, USB1, auto, SBF+NMEA, (on)
+  DataInOut, USB2, auto, SBF+NMEA, (on)
+USB2>
+
+===== 3. 測位と方位（ROS の topic を 25 秒購読。gnss_check_probe。品質の項目だけ。位置は出力していない）
+pvt 250 last: (1, 15, 1106, 0)          # (PVT の mode の下位 4 bit, 衛星数, h_accuracy [0.01 m], error)
+att 249 last: (0, 255, 1, nan, nan)     # (AttEuler の mode, nr_sv, error, heading, pitch)
+cov 249 last: (nan,)                    # AttCovEuler の cov_headhead
+fix 249 last: (0, 7)                    # NavSatFix の status, service
+pvt mode counts Counter({1: 250}) nr_sv range 13 17
+att mode counts Counter({0: 249}) att error codes Counter({1: 249})
+valid headings 0 None

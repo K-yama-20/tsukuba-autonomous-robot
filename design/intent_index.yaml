@@ -34,8 +34,14 @@ authority:
     role: authority_superseded
   FILE-INTENT-V11:
     sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
+    role: authority_superseded
+  FILE-INTENT-V12:
+    sha256: 2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383
+    role: authority_superseded
+  FILE-INTENT-V13:
+    sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
     role: authority
-line_count: 78
+line_count: 79
 lines:
   - line: 1
     requirement_id: RQ-I001
@@ -277,6 +283,8 @@ lines:
       - PRM-68
       - PRM-73
       - PRM-74
+      - PRM-75
+      - PRM-76
       - SO-03
       - SO-05
       - SO-06
@@ -309,19 +317,18 @@ lines:
       - TS-05
     issue_refs: []
   - line: 16
-    requirement_id: RQ-I013
+    requirement_id: RQ-I086
     text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
-      自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。
-    source_id: SRC-I016
-    authority_file: FILE-INTENT
+      自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）
+    source_id: SRC-I016-V13
+    authority_file: FILE-INTENT-V13
     referenced_by:
       - C-006
       - C-019
-      - G-RECOVERY
+      - C-028
       - H-006
       - ND-03
       - PRM-10
-      - Q-05
       - SO-01
       - TR-02
       - TR-09
@@ -330,10 +337,7 @@ lines:
       - TR-15
       - TR-16
       - TS-09
-    issue_refs:
-      - Q-05
-      - G-RECOVERY
-      - H-006
+    issue_refs: []
   - line: 17
     requirement_id: RQ-I014
     text: ・一時停止モードにおいて、gouda_monitorの再開ボタンを押すと自己位置推定をしながら自律走行を再開する。再開する地点の再設定は必須ではない。
@@ -678,6 +682,7 @@ lines:
       - IFD-27
       - IFD-38
       - IFD-43
+      - IFD-51
       - ND-02
       - PRM-15
       - PRM-16
@@ -981,6 +986,7 @@ lines:
       - PRM-40
       - PRM-41
       - PRM-42
+      - PRM-78
       - SO-08
       - SO-09
       - TR-06
@@ -1189,6 +1195,7 @@ lines:
       - PRM-39
       - PRM-40
       - PRM-41
+      - PRM-78
     issue_refs:
       - H-009
   - line: 103
@@ -1228,6 +1235,9 @@ lines:
       - PRM-61
       - PRM-65
       - PRM-74
+      - PRM-75
+      - PRM-76
+      - PRM-77
       - TS-29
     issue_refs: []
   - line: 104
@@ -1270,4 +1280,12 @@ lines:
       - PRM-64
       - TS-33
       - TS-34
+    issue_refs: []
+  - line: 107
+    requirement_id: RQ-I085
+    text: ・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。
+    source_id: SRC-I107-V12
+    authority_file: FILE-INTENT-V12
+    referenced_by:
+      - ND-17
     issue_refs: []

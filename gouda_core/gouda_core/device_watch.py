@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -123,6 +124,34 @@ def tty_users(device_path: str, proc_root: str = '/proc', exclude: tuple = ()) -
     driver on the same IMU port splits its bytes)."""
     target = os.path.realpath(device_path)
     return sorted({pid for pid, link in _fd_targets(proc_root, exclude) if link.startswith('/') and os.path.realpath(link) == target})
+
+
+# NTRIP connection data is secret (DEC-139: never in logs, rosbag or records). A command line of another process (e.g. the
+# str2str relay, DEC-151) can hold it, so every command line is redacted before it is recorded: ntrip URLs entirely (caster,
+# port and mountpoint are contract data too), and the user:password part of any other URL (an '@' later in the path also hides
+# the host: over-redaction is accepted).
+REDACTED = '<redacted>'
+_NTRIP_URL = re.compile(r'\b(ntrip[sc]?)://\S*', re.IGNORECASE)
+_USERINFO = re.compile(r'\b([A-Za-z][A-Za-z0-9+.-]*://)\S*@')   # up to the LAST '@' of the token: a password may hold '/' or '@'
+
+
+def redact_command(text: str) -> str:
+    """The command line with ntrip URLs and URL user info replaced by <redacted>."""
+    return _USERINFO.sub(lambda m: m.group(1) + REDACTED + '@', _NTRIP_URL.sub(lambda m: m.group(1) + '://' + REDACTED, text))
+
+
+def command_lines(pids, proc_root: str = '/proc', limit: int = 200) -> dict:
+    """{pid: redacted command line} ('?' when unreadable). Redacted before it is shortened, so a cut never keeps a partial secret."""
+    out = {}
+    for pid in pids:
+        try:
+            with open(os.path.join(proc_root, str(pid), 'cmdline'), 'rb') as f:
+                raw = f.read().replace(b'\0', b' ').decode(errors='replace').strip()
+        except OSError:
+            out[pid] = '?'
+            continue
+        out[pid] = redact_command(raw)[:limit]
+    return out
 
 
 def udp_port_users(port: int, proc_root: str = '/proc', exclude: tuple = ()) -> list:

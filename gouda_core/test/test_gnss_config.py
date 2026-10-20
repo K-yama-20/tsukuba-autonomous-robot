@@ -3,7 +3,8 @@
 Checked: the driver parameters replace ONLY the Gouda keys of the upstream template (saved copy in
 design/research/upstream_sensors/septentrio_gnss_driver_1.4.8/gnss.yaml) and keep every other value; an unresolved connection
 (PRM-65) stops the generation instead of being filled in; a connection that is neither tcp nor serial is refused; the private
-RTK file replaces only rtk_settings and its absence means no corrections; the receiver is found by the interface whose prefix
+NTRIP file (DEC-154) never reaches the driver, its values never appear in the parameters or the notes, and a valid one only sets
+rtk_settings.serial_1.port (PRM-75); the receiver is found by the interface whose prefix
 contains its address."""
 import copy
 import json
@@ -24,6 +25,8 @@ GOUDA_KEYS = {'device', 'configure_rx', 'frame_id', 'aux1_frame_id', 'vehicle_fr
               'multi_antenna', 'use_gnss_time', 'publish', 'rtk_settings'}
 TCP = 'tcp://192.0.2.1:28784'   # documentation address (RFC 5737), not a vehicle value
 DECIDED = {'device': TCP, 'configure_rx': False}   # configure_rx (PRM-74) is undecided in the model; a test value here
+DECIDED_RTK = dict(DECIDED, rtk_input_port='USB2', rtk_relay_device='serial:/dev/serial/by-id/usb-X-if02')   # PRM-75, PRM-76
+FAKE_NTRIP = {'caster': 'caster.example.invalid', 'port': 47613, 'mountpoint': 'FAKEMOUNT', 'user': 'fakeuser', 'password': 'fakepass'}   # made up
 
 
 def template():
@@ -76,21 +79,111 @@ class DriverParameterTests(unittest.TestCase):
                 r = gc.write_parameter_file(str(TEMPLATE), {'device': bad, 'configure_rx': False}, os.path.join(d, 'p.yaml'), d)
                 self.assertTrue(r['problems']); self.assertFalse(os.path.exists(os.path.join(d, 'p.yaml')), 'a ttyACM name never starts the driver')
 
-    def test_private_rtk_file(self):
+    def _write_rtk(self, d, doc, mode=0o600):
+        path = os.path.join(d, gc.RTK_FILE)
+        with open(path, 'w') as f:
+            if isinstance(doc, str):
+                f.write(doc)
+            else:
+                yaml.safe_dump(doc, f)
+        os.chmod(path, mode)
+
+    def _check_no_secret(self, out, result):
+        text = json.dumps(result) + (open(out).read() if os.path.exists(out) else '')
+        for v in FAKE_NTRIP.values():
+            self.assertNotIn(str(v), text)
+
+    def test_ntrip_file_valid(self):
         with tempfile.TemporaryDirectory() as d:
             out = os.path.join(d, 'run', 'p.yaml')
+            r = gc.write_parameter_file(str(TEMPLATE), DECIDED_RTK, out, d)
+            self.assertIn('not found', r['rtk']); self.assertFalse(r['corrections'])
+            self._write_rtk(d, {'ntrip': FAKE_NTRIP})
+            ntrip, note = gc.read_ntrip(d)
+            self.assertEqual(ntrip, FAKE_NTRIP, 'the relay gets the five values')
+            r = gc.write_parameter_file(str(TEMPLATE), DECIDED_RTK, out, d)
+            self.assertTrue(r['corrections']); self.assertIn('ntrip from', r['rtk'])
+            with open(out) as f: rtk = yaml.safe_load(f)['/**']['ros__parameters']['rtk_settings']
+            expected = copy.deepcopy(template()['rtk_settings']); expected['serial_1']['port'] = 'USB2'
+            self.assertEqual(rtk, expected, 'only serial_1.port changes; rtk_standard, send_gga, baud_rate, keep_open stay')
+            self._check_no_secret(out, r)
+            self.assertEqual(os.stat(out).st_mode & 0o077, 0)
+
+    def test_ntrip_without_input_port(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = os.path.join(d, 'p.yaml')
+            self._write_rtk(d, {'ntrip': FAKE_NTRIP})
             r = gc.write_parameter_file(str(TEMPLATE), DECIDED, out, d)
-            self.assertIn('not found', r['rtk'])
-            rtk = {'ntrip_1': {'id': 'NTR1', 'caster': 'caster.example', 'caster_port': 2101, 'username': 'u', 'password': 'secret', 'mountpoint': 'M'}}
-            with open(os.path.join(d, gc.RTK_FILE), 'w') as f: yaml.safe_dump({'rtk_settings': rtk}, f)
-            r = gc.write_parameter_file(str(TEMPLATE), DECIDED, out, d)
-            self.assertIn('rtk_settings from', r['rtk']); self.assertNotIn('secret', json.dumps(r))
-            with open(out) as f: doc = yaml.safe_load(f)
-            self.assertEqual(doc['/**']['ros__parameters']['rtk_settings'], rtk)
-            self.assertEqual(os.stat(out).st_mode & 0o077, 0, 'the parameter file may hold the account: owner only')
-            with open(os.path.join(d, gc.RTK_FILE), 'w') as f: f.write('rtk_settings: [1, 2]\n')
-            r = gc.write_parameter_file(str(TEMPLATE), DECIDED, out, d)
-            self.assertIn('no rtk_settings mapping', r['rtk'])
+            self.assertFalse(r['corrections']); self.assertIn('rtk_input_port (PRM-75) unresolved', r['rtk'])
+            with open(out) as f: rtk = yaml.safe_load(f)['/**']['ros__parameters']['rtk_settings']
+            self.assertEqual(rtk, template()['rtk_settings']); self._check_no_secret(out, r)
+
+    def test_ntrip_file_refused(self):
+        bad_cases = {
+            'missing key': {'ntrip': {k: v for k, v in FAKE_NTRIP.items() if k != 'password'}},
+            'port text': {'ntrip': dict(FAKE_NTRIP, port='2101x')},
+            'port bool': {'ntrip': dict(FAKE_NTRIP, port=True)},
+            'port range': {'ntrip': dict(FAKE_NTRIP, port=70000)},
+            'space': {'ntrip': dict(FAKE_NTRIP, user='fake user')},
+            'empty': {'ntrip': dict(FAKE_NTRIP, password='')},
+            'slash': {'ntrip': dict(FAKE_NTRIP, mountpoint='FAKE/MOUNT')},
+            'not mapping': {'ntrip': ['x']},
+            'old format': {'rtk_settings': {'ntrip_1': {'caster': FAKE_NTRIP['caster'], 'username': FAKE_NTRIP['user'],
+                                                        'password': FAKE_NTRIP['password'], 'mountpoint': FAKE_NTRIP['mountpoint']}},
+                           'ntrip': FAKE_NTRIP},
+            'hash in password': {'ntrip': dict(FAKE_NTRIP, password='fake#pass')},
+            'colon in user': {'ntrip': dict(FAKE_NTRIP, user='fake:user')},
+            'colon in mountpoint': {'ntrip': dict(FAKE_NTRIP, mountpoint='FAKE:MOUNT')},
+            'colon in caster': {'ntrip': dict(FAKE_NTRIP, caster='caster.example.invalid:1')},
+            'yaml list': '- a\n- b\n',
+            'broken yaml': 'ntrip: [\n',
+        }
+        for name, doc in bad_cases.items():
+            with self.subTest(name), tempfile.TemporaryDirectory() as d:
+                out = os.path.join(d, 'p.yaml')
+                self._write_rtk(d, doc)
+                ntrip, note = gc.read_ntrip(d)
+                self.assertIsNone(ntrip); self.assertIn('no RTK corrections', note)
+                r = gc.write_parameter_file(str(TEMPLATE), DECIDED_RTK, out, d)
+                self.assertFalse(r['corrections']); self.assertTrue(os.path.exists(out), 'the driver still starts without corrections')
+                with open(out) as f: rtk = yaml.safe_load(f)['/**']['ros__parameters']['rtk_settings']
+                self.assertEqual(rtk, template()['rtk_settings'])
+                self._check_no_secret(out, r)
+
+    def test_numeric_values_get_a_quoting_hint(self):
+        with tempfile.TemporaryDirectory() as d:
+            self._write_rtk(d, 'ntrip:\n  caster: caster.example.invalid\n  port: 47613\n  mountpoint: FAKEMOUNT\n  user: fakeuser\n  password: 31415926\n')
+            ntrip, note = gc.read_ntrip(d)
+            self.assertIsNone(ntrip); self.assertIn('password is not a string', note); self.assertIn('quotes', note)
+            self.assertNotIn('31415926', note)
+            self._write_rtk(d, 'ntrip:\n  caster: caster.example.invalid\n  port: 47613\n  mountpoint: FAKEMOUNT\n  user: fakeuser\n  password: "31415926"\n')
+            ntrip, _ = gc.read_ntrip(d)
+            self.assertEqual(ntrip['password'], '31415926')
+
+    def test_prepare_driver_hands_the_secret_to_the_relay_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = os.path.join(d, 'p.yaml')
+            self._write_rtk(d, {'ntrip': FAKE_NTRIP})
+            r, ntrip = gc.prepare_driver(str(TEMPLATE), DECIDED_RTK, out, d)
+            self.assertEqual(ntrip, FAKE_NTRIP); self.assertTrue(r['corrections']); self.assertEqual(r['baud'], template()['rtk_settings']['serial_1']['baud_rate'])
+            self._check_no_secret(out, r)
+            r, ntrip = gc.prepare_driver(str(TEMPLATE), DECIDED, out, d)   # PRM-75 missing: no corrections, no secret handed out
+            self.assertIsNone(ntrip); self.assertFalse(r['corrections'])
+
+    def test_ntrip_file_permissions(self):
+        for mode in (0o640, 0o604, 0o660):
+            with self.subTest(oct(mode)), tempfile.TemporaryDirectory() as d:
+                self._write_rtk(d, {'ntrip': FAKE_NTRIP}, mode)
+                ntrip, note = gc.read_ntrip(d)
+                self.assertIsNone(ntrip); self.assertIn('chmod 600', note)
+                self.assertNotIn(FAKE_NTRIP['password'], note)
+
+    def test_ntrip_extra_keys_named_not_valued(self):
+        with tempfile.TemporaryDirectory() as d:
+            self._write_rtk(d, {'ntrip': FAKE_NTRIP, 'comment': 'fake-extra-value'})
+            ntrip, note = gc.read_ntrip(d)
+            self.assertEqual(ntrip, FAKE_NTRIP); self.assertIn("ignored keys: ['comment']", note)
+            self.assertNotIn('fake-extra-value', note)
 
     def test_peer_interface(self):
         links = [{'ifname': 'lo', 'ifindex': 1, 'addr_info': [{'local': '127.0.0.1', 'prefixlen': 8}]},

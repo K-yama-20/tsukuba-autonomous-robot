@@ -1,0 +1,33 @@
+# 変更セット REV-090（2026-10-20 第56便: B1 の段 2、gnss_config の実装）
+# 適用: design/tools/apply_revision.py REV-090
+id: REV-090
+date: '2026-10-20'
+summary: '人の許可（DEC-155、原文）で案 B1 の段 2 を実装した（gnss_config）。gnss_rtk.yaml は ntrip の節（caster・port・mountpoint・user・password）だけを読み（read_ntrip）、欠け・型の誤り・所有者以外の権限・旧い書式（rtk_settings）のときは使わない。ドライバの params には NTRIP の値を一切入れず、有効なときだけ rtk_settings.serial_1.port を PRM-75（USB2）にする（ほかは雛形のまま）。誤りでもドライバは補正なしで起動する。注記には項目の名前だけを書く。単体の試験を 1 件置き換え 5 件追加（偽の値だけ）。Mac・VM とも 188 件合格・1 件 skip。'
+basis_refs:
+- DEC-155
+- DEC-154
+- DEC-151
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-155
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: 案 B1 の段 2（gnss_config の実装。read_ntrip、serial_1.port、試験）を実装してよいか
+  answer_verbatim: '段 2（gnss_config の実装）を許可する。
+
+    '
+  affected_refs:
+  - ND-19
+  - PRM-75
+  - PRM-76
+  - DEC-154
+  resulting_refs: []
+  note: 変えたファイル：gouda_core/gouda_core/gnss_config.py（read_rtk を read_ntrip に、driver_parameters の corrections、write_parameter_file の結果に corrections）、gouda_core/test/test_gnss_config.py（旧い RTK のファイルの試験を NTRIP の試験 5 件に置き換え）。sensor_supervisor_node.py は変えていない（結果の rtk の注記をそのまま記録する。注記に秘密は入らない）。PRM-76（中継の接続先）は段 3 で使う。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

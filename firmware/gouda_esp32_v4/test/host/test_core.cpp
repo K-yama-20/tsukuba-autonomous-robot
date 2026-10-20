@@ -84,6 +84,14 @@ int main() {
         c.btReport(6000, 0, t); step(c, t); CHECK(!c.centered()); c.btReport(0, 0, t + 1); CHECK(c.centered());
     }
 
+    // manual still passes after the PC source went stale and was disabled (PRM-13): manual does not depend on the PC state
+    { Core c(TOKEN, &cfg, false, 0); c.btConnect(0); c.btReport(0, 0, 0); cmd(c, 0, 0, 0); step(c, 0); cmd(c, 10, 5000, 0); CHECK(step(c, 10).source == SRC_PC);
+      uint32_t t = 20;
+      while (t < 10 + W + 100) { c.btReport(0, 0, t); step(c, t); t += 50; }   // gamepad connected and centred, no PC frames
+      CHECK(!c.pcEnabled() && hasEvent(c, E_PC_DISABLED_STALE) && c.applied().source == SRC_NONE);
+      c.btReport(0, 8000, t); Applied a = step(c, t); CHECK(a.source == SRC_MANUAL && a.target_x_mv == N && a.target_y_mv > N);
+      c.btReport(0, 0, t + 10); a = step(c, t + 10); CHECK(a.source == SRC_NONE && a.target_x_mv == N && a.target_y_mv == N); }
+
     // BT disconnect -> neutral; SET_CONFIG validation / generation; HELLO reply; periodic STATUS
     { Core c(TOKEN, &cfg, false, 0); c.btConnect(0); c.btReport(0, 0, 0); c.btReport(0, 9000, 10); CHECK(step(c, 10).source == SRC_MANUAL);
       c.btDisconnect(20); Applied a = step(c, 20); CHECK(a.source == SRC_NONE && a.target_x_mv == N && a.target_y_mv == N);

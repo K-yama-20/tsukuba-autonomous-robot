@@ -70,5 +70,5 @@ baseline は `../baselines/migration_v1/`（凍結）。`build_migration.py` は
 | 宣言先・キー・型・適用時期の欠落 | declaration が ros_parameter／bt_xml／firmware_config 等で `target`・`param_key`・`value_type`・`apply_timing` のいずれかが空 | （上と同じ経路。`test_parameter_without_declaration` で検出） |
 | 重複宣言 | 同じ `(target, param_key)` が 2 件以上 | `test_duplicate_parameter_declaration` |
 | 生成物と正本の不一致 | `generated/params/*.yaml` が `generate_params.render(model)` の出力と一致しない | `test_generated_params_must_match_model` |
-| ハードコード | 承認値（approved）と一致する数値リテラルが実装リポジトリの Gouda パッケージの `.py` にあり、同じファイルに `param_key` が無い → 未判定として報告 | 実装が無いため現在は対象 0 件（検査は実行される） |
+| ハードコード（DEC-175 で改訂、`tools/hardcode_scan.py`） | コメント・docstring・文字列を除いたコードだけを走査。対象は `tools/hardcode_scan_roots.json`（Python のパッケージ、web の JavaScript・HTML の script、firmware の C++、gouda.sh・setup.sh・update.sh）。(1) 承認値と同じ数のリテラル（小数は全言語、10 以上の整数は宣言の言語だけ）、(2) 待ち・期限・周期・再試行の行にある 0 以外の数（承認値でなくても）→ 未判定として報告。人が許容したものは `tools/hardcode_allowlist.json`（ファイル・行の文字列・数・理由・判断）で除き、何にも一致しない許容の項目は報告する | `HardcodeScanV2Tests`（文章を見ない、各言語の時間の値、添字・enum 名・HTML の本文を見ない、整数の言語、許容の一覧と古い項目）、`HardcodeScanTests` |
 | 正当な設定の非検出 | 別 target の同じキーは重複としない。実モデルは違反 0 | `test_legitimate_settings_not_flagged`、`test_real_model_has_no_violations` |

@@ -1,0 +1,20 @@
+# 変更セット REV-083（2026-10-20 第49便: DualAnt の後のドライバの屋内の検査）
+# 適用: design/tools/apply_revision.py REV-083
+id: REV-083
+date: '2026-10-20'
+summary: '人が受信機を VM につなぎ直した後、屋内でドライバを検査した（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT。読むだけ、受信機のポートには触れていない）。Gouda の sensor supervisor が by-id の USB1 を見つけてドライバを起動し、設定を終えた（拒否は既知の sntp, on だけ）。/config revision 18 の取付から方位のオフセット 90 度を設定した（主→副が右）。PVT・方位・観測は 10 Hz、RFStatus は 1 Hz。屋内のため観測 0、測位と方位は mode 0（期待どおり）。干渉・なりすましなし。'
+basis_refs:
+- DEC-146
+- DEC-149
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT
+  path: design/research/vehicle_pc/2026-10-20_gnss_driver_indoor_check_dualant.txt
+  role: evidence
+decisions: []
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20 屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測 0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。'
+decision_updates: []

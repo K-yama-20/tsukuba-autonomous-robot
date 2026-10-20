@@ -1,0 +1,49 @@
+# 変更セット REV-099（2026-10-20 第67便: DEC-160 の回答、PRM-44・45・46 の変更）
+# 適用: design/tools/apply_revision.py REV-099
+id: REV-099
+date: '2026-10-20'
+summary: '人の回答（DEC-160、原文）：最大 4720 mV、最低 280 mV、フルスケール 4720 mV。PRM-45＝4720、PRM-44＝280、PRM-46＝4720 を承認値にした（DEC-159 の 4800・200 と DEC-077 の 4700 を置き換え）。中立 2500 mV（PRM-43）は変わらず、円の中心 (280＋4720)/2＝2500 mV が中立と一致、半径 2220 mV。最大＝フルスケールで firmware の設定の検査（dac_max_mv ≤ dac_full_scale_mv）に合格する。同じ回答の「firmwareを修正し、ビルドするコマンドを生成せよ」で実車向けビルドを実行。'
+basis_refs:
+- DEC-160
+- DEC-159
+- DEC-161
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-44
+  set:
+    approval_decision_ref: DEC-160
+  set_nested:
+    parameter.value: 280
+    parameter.decision_deadline: 決定済み（DEC-160。DEC-159 の 200 mV を置き換え）
+    parameter.measurement: '人の指示の値（DEC-160）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-099: DEC-160 で 200 mV から 280 mV に変更（円の中心が中立 2500 mV と一致）。'
+- id: PRM-45
+  set:
+    approval_decision_ref: DEC-160
+  set_nested:
+    parameter.value: 4720
+    parameter.decision_deadline: 決定済み（DEC-160。DEC-159 の 4800 mV を置き換え）
+    parameter.measurement: '人の指示の値（DEC-160）。コード 4095 の無負荷の実測 4.72 V（FILE-ESP32-DAC-WIRING-20261020）と同じ。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-099: DEC-160 で 4800 mV から 4720 mV に変更。フルスケールと等しく、設定の検査に合格する。'
+- id: PRM-46
+  set:
+    approval_decision_ref: DEC-160
+  set_nested:
+    parameter.value: 4720
+    parameter.decision_deadline: 決定済み（DEC-160。DEC-077 の 4700 mV を置き換え）
+    parameter.measurement: '人の指示の値（DEC-160）。無負荷の実測 4.72 V（FILE-ESP32-DAC-WIRING-20261020）。実車と同じ PC・ケーブルでの実測は DEC-161 で残る'
+  interpretation_append: 'REV-099: DEC-160 で 4700 mV から 4720 mV に変更。'
+decision_updates:
+- id: DEC-160
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: "最大を4720mv, 最低を280mv, フルスケールを4720とする。firmwareを修正し、ビルドするコマンドを生成せよ。\n"
+    disposition: answered
+    resulting_refs:
+    - PRM-44
+    - PRM-45
+    - PRM-46

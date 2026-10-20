@@ -1,0 +1,100 @@
+# 変更セット REV-112（2026-10-21 第80便: DEC-177、ESP32 の USB の切断回数の表示と記録）
+# 適用: design/tools/apply_revision.py REV-112
+id: REV-112
+date: '2026-10-21'
+summary: 人の承認（DEC-177、原文）で、ESP32 の USB の切断回数を monitor に常に表示し記録する（IFD-51 を追加）。数えるのは事前地図作成と自律走行のセッションの中だけ、一時停止と再開では続ける。
+basis_refs:
+- DEC-177
+- DEC-176
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-177
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: ESP32 の USB の切断回数の表示と記録の形（第80便の前の報告の案 1〜4：1 vehicle_bridge が数えて新しい topic に出す、2 monitor に常時表示しポップアップは使わない、3 切断・再接続の記録に回数を添え理由の文を固定、4 数える範囲）
+  answer_verbatim: "1~3は承認する。4については、自律走行セッション中と事前地図作成のセッション中のみ記録。一時停止して再開した場合は、カウントを継続する。\n"
+  affected_refs:
+  - ND-12
+  - ND-02
+  - ND-04
+  - IFD-01
+  - IFD-28
+  resulting_refs:
+  - IFD-51
+  note: 人の要望（原文、同じ日）：「切断回数をmonitorに表示し、ログに残すようなことをしてほしい。…切断したときにポップアップが出ると、他の情報が隠れて見えなくなる。gouda_monitorはgouda上に搭載されたpcの画面に表示されるので、ポップアップを消すのが難しいです」。実施（第80便）：セッションは mode/state で決める（手動走行から事前地図作成・自律走行に入ると始まり、一時停止と再開では続き、手動走行に戻ると終わる。PC 再起動で一時停止から始まるときは自律走行のセッション）。セッションの外では接続の状態だけを出し、数えない。事前地図作成のセッションで数えられるのは、vehicle_bridge が事前地図作成でポートを開いている場合だけ（DEC-169 の事前地図作成での configure は実装の許可待ち。今は事前地図作成では開いていない）。
+  disposition: answered
+entities:
+- id: IFD-51
+  kind: designed_interface
+  name: vehicle/link_status（ESP32 の USB 接続の状態とセッションごとの切断回数）
+  source_refs:
+  - SRC-I045
+  - SRC-I041
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-38
+  issue_refs: []
+  interpretation: REV-112（DEC-177）で追加。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I033
+  designed_interface:
+    transport: topic
+    name: vehicle/link_status
+    message_type: diagnostic_msgs/msg/DiagnosticArray（status 1 件、name=esp32_usb_link、values に link（up／down／not_open）、session（mapping／autonomy／空）、session_started_at、disconnects、reconnects、last_down_at、last_up_at、down_since、down_total_s、last_session（JSON）、revision）
+    standard_type: true
+    custom_type_reason:
+    purpose: diagnostic
+    owner_ref: ND-12
+    publisher_refs:
+    - ND-12
+    consumer_refs:
+    - ND-02
+    - ND-04
+    unit: 回、s、時刻は wall clock の秒
+    frame:
+    time_semantics: 接続の状態・セッション・回数が変わるたびに発行（周期の値は持たない）。表示と記録のためだけで、停止条件にしない（DEC-176：切断しても自律走行は続く）
+    qos:
+      reliability: reliable
+      durability: transient_local
+      history_depth: 1
+    version_dependency:
+      status: unconfirmed
+      evidence: []
+      note: 標準の型
+    legacy_refs: []
+modifications:
+- id: ND-12
+  set_nested:
+    ros_node.publishes_refs:
+    - IFD-17
+    - IFD-28
+    - IFD-38
+    - IFD-51
+    ros_node.subscribes_refs:
+    - IFD-16
+    - IFD-43
+    - IFD-01
+  interpretation_append: REV-112（DEC-177）：ESP32 の USB の切断・再接続を、事前地図作成と自律走行のセッションの中だけ数え（一時停止と再開では続ける）、IFD-51 に出す。切断の記録（serial_disconnected）の理由の文は固定にし、原因と回数は details に入れる（monitor の ×回数が切断回数になる）。セッションの始まりと終わりも記録する（link_count_started・link_count_ended）。
+- id: ND-02
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-01
+    - IFD-12
+    - IFD-24
+    - IFD-25
+    - IFD-27
+    - IFD-33
+    - IFD-38
+    - IFD-21
+    - IFD-22
+    - IFD-51
+  interpretation_append: REV-112（DEC-177）：画面上部の USB の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。
+decision_updates: []

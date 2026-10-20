@@ -7,13 +7,13 @@
 | 確認対象 | 結果 | 範囲 |
 |---|---|---|
 | 前段の抽出忠実性 | 48項目一致という既存結果を保持 | 再抽出は行っていない。元資料ハッシュと既存抽出時ハッシュの一致を今回確認 |
-| YAMLの形式・移行忠実性 | 合格、違反0件 | 5903件の比較・規則検査。設計テストのケース数ではない |
+| YAMLの形式・移行忠実性 | 違反、違反1件 | 9件の比較・規則検査。設計テストのケース数ではない |
 | 設計内容の妥当性 | 未判定 | 下位設計、ROS版でのIF確認、状態遷移の成立性、実車値は未検証 |
 | ロボット実装・ソフト動作 | 未実施 | 移行ツールの試験と、ROS Nodeの動作試験は別 |
 | 実車確認・投入判断 | 未実施・人の判断待ち | YAML移行を実車確認済みとは扱わない |
 
 既存定義IDは **198/198件** が同じIDへ移行。加えて既存の変更記録ID `CH-01`〜`CH-04` を保持したため、既存ID対応表は **202件**。198件側の重複・対応漏れは0件。CHは旧抽出器のIDパターン対象外だったが行原文には存在しており、今回の追加抽出ではない。
-モデルは820要素、出典497件。Excelモジュール38件にIDなし行の `gouda_section_executor` を `M-039` として加えた39件。図は101 vertex（枠・注記含む）、2構造要素、84接続を全て保持。図の要素数をモジュール数やExcel IF46件と同一視しない。
+モデルは899要素、出典503件。Excelモジュール38件にIDなし行の `gouda_section_executor` を `M-039` として加えた39件。図は101 vertex（枠・注記含む）、2構造要素、84接続を全て保持。図の要素数をモジュール数やExcel IF46件と同一視しない。
 
 ## 正本の読み方と状態
 
@@ -34,7 +34,7 @@
 
 Node分割、process配置、IFの標準型選択・所有者・QoS・時刻、パラメータの個別定義、復旧時の必要状態・旧goal処理、ログ/rosbagの独立制御、故障応答の詳細、現要求に対応した試験は未設計。既存25試験は未実行。新しい通過判定、後退累計管理、境界での実速度保証、モード、保護、承認操作は追加していない。
 
-モデルの設計状態（図・出典整理用要素も含む件数）: {"未設計": 403, "案": 407, "承認済み": 10}。承認済み0件。
+モデルの設計状態（図・出典整理用要素も含む件数）: {"未設計": 412, "案": 440, "承認済み": 47}。承認済み0件。
 
 ## 矛盾・変更対応
 
@@ -86,7 +86,7 @@ C-001〜C-013は上位要求が明示する変更/具体化の対応。旧案の
 
 原位置: Excel 基本仕様!A15:D15; Excel データ契約!A10:E10; Excel 状態遷移!A5:E5; Excel 状態遷移!A18:E18; Excel 使用・開発検証!A15:E15; Excel 未決事項!A9:D9; Excel モジュール定義!A39:AD39; Excel モジュール定義!A12:AD12
 
-現在の採用要求: `RQ-I011`, `RQ-I019`, `RQ-I057`。intent.md:14–14; intent.md:25–25; intent.md:82–82
+現在の採用要求: `RQ-I084`, `RQ-I019`, `RQ-I083`。intent.md:14–14; intent.md:25–25; intent.md:82–82
 
 ### C-005 Nav2の後退と再計画
 
@@ -110,7 +110,7 @@ C-001〜C-013は上位要求が明示する変更/具体化の対応。旧案の
 
 原位置: Excel データ契約!A23:E23; Excel 状態遷移!A12:E12; Excel 状態遷移!A13:E13; Excel モジュール定義!A8:AD8; Excel モジュール定義!A39:AD39; Excel 使用・開発検証!A22:E22; Excel 未決事項!A11:D11
 
-現在の採用要求: `RQ-I013`, `RQ-I014`, `RQ-I025`, `RQ-I064`, `RQ-I069`。intent.md:16–16; intent.md:17–17; intent.md:36–36; intent.md:92–92; intent.md:97–97
+現在の採用要求: `RQ-I086`, `RQ-I014`, `RQ-I025`, `RQ-I064`, `RQ-I069`。intent.md:16–16; intent.md:17–17; intent.md:36–36; intent.md:92–92; intent.md:97–97
 
 ### C-007 最終点後の扱い
 
@@ -158,7 +158,7 @@ Bluetooth断時追加処理なしという旧記載を採用要件にしない�
 
 原位置: Excel 基本仕様!A7:D7; Excel 状態遷移!A3:E3; Excel 状態遷移!A4:E4; Excel モジュール定義!A3:AD3; Excel モジュール定義!A8:AD8
 
-現在の採用要求: `RQ-I011`。intent.md:14–14
+現在の採用要求: `RQ-I084`。intent.md:14–14
 
 ### C-011 地図変換と成果物同一性
 
@@ -182,7 +182,7 @@ Gouda section executor/progress trackerを独立した二重実行/判定主体�
 
 原位置: Excel モジュール定義!A12:AD12; Excel データ契約!A9:E9; Excel インターフェース定義!A20:P20; Excel インターフェース定義!A21:P21; drawio page=lc-_yTM2-hEJOly5ozWo element=2TSgiu6-nVzXwyzMdGmE-24; drawio page=lc-_yTM2-hEJOly5ozWo element=2TSgiu6-nVzXwyzMdGmE-25
 
-現在の採用要求: `RQ-I011`, `RQ-I018`, `RQ-I019`, `RQ-I055`, `RQ-I057`。intent.md:14–14; intent.md:24–24; intent.md:25–25; intent.md:80–80; intent.md:82–82
+現在の採用要求: `RQ-I084`, `RQ-I018`, `RQ-I019`, `RQ-I055`, `RQ-I083`。intent.md:14–14; intent.md:24–24; intent.md:25–25; intent.md:80–80; intent.md:82–82
 
 ### C-013 waypoint UIの配置
 
@@ -340,9 +340,49 @@ RQ-I078 は速度上限を「区間（waypoint i → i+1）の属性」＝進行
 
 現在の採用要求: `RQ-I080`。intent.md:95–95
 
+### C-026 Navigation の設計規約への OSS の追加の許可（intent.md 第9版 82 行 → 第10版 82 行）
+
+状態: `resolved_by_intent`。
+
+第9版 82 行「Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。」の文末に 「OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。」を追記した第10版 82 行で置換（人の編集）。
+
+旧側の影響ID: `RQ-I057`
+
+原位置: intent.md:82–82
+
+現在の採用要求: `RQ-I083`。intent.md:82–82
+
+### C-027 体験 9 の初期位置の取得の変更（intent.md 第10版 14 行 → 第11版 14 行）
+
+状態: `resolved_by_intent`。
+
+第10版 14 行の「次に初期位置と向きを人間がある程度指定し、」を「次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。」で置換した第11版 14 行（人の編集）。
+
+旧側の影響ID: `RQ-I011`
+
+原位置: intent.md:14–14
+
+現在の採用要求: `RQ-I084`。intent.md:14–14
+
+未解消問題: `G-INIT-POSE-GNSS`
+
+### C-028 異常終了後の自動復帰の回数の扱い（intent.md 第12版 16 行 → 第13版 16 行）
+
+状態: `resolved_by_intent`。
+
+第12版 16 行の「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」を「復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）」で置換した第13版 16 行（人の編集）。
+
+旧側の影響ID: `RQ-I013`
+
+原位置: intent.md:16–16
+
+現在の採用要求: `RQ-I086`。intent.md:16–16
+
+未解消問題: `G-RECOVERY-COUNT`
+
 ## 残っている問題
 
-計41件。技術事項14件、人の判断20件、資料不足7件。未解消衝突3件は資料不足の問題に紐付き、二重加算しない。元Qは部分的に置換されたものも閉じずに残余課題を保持。
+計52件。技術事項25件、人の判断20件、資料不足7件。未解消衝突3件は資料不足の問題に紐付き、二重加算しない。元Qは部分的に置換されたものも閉じずに残余課題を保持。
 
 | 問題ID | 分類 | 状態 | 内容 |
 |---|---|---|---|
@@ -387,6 +427,17 @@ RQ-I078 は速度上限を「区間（waypoint i → i+1）の属性」＝進行
 | G-FIRMWARE | technical | open | 新 ESP32 firmware と PC-ESP32 通信の設計（AI の技術作業） |
 | G-TUNING | technical | deferred | 実機調整で決める項目（設計規則・人の判断事項にしない） |
 | H-013 | human | resolved | 区間属性の上限と位置ベース上限（Speed Filter）の食い違いの解消方法 |
+| G-DDS | technical | open | 点群（約 2 MB、10 Hz）の別プロセスへの配送で欠落する（購読側が 2〜3 Hz） |
+| G-DUP-START | technical | open | Gouda が 2 つ同時に起動できてしまう（gouda.sh の二重起動の検出が data_root の pid ファイルだけに依存） |
+| G-FLOOR-REFLECTION | technical | open | 床より下・地面より下の点（光沢のある床の反射、別の高さに写った地面）で地面の推定が下がり、2D 変換で床が障害物や上限より上と判定される |
+| G-LIDAR-DROPOUT | technical | open | 屋外の地図作成で LiDAR の frame が 2.7〜3.5 s 途切れ、その後 GLIM がずれる |
+| G-MAP-TILT | technical | open | 地図全体が前後方向に約 4 度傾く（水平な廊下が坂に写る） |
+| G-REC-ROSBAG-RESTART | technical | open | 同じ記録のセッションで rosbag を止めて再開すると黙って失敗する（同じ出力先、子プロセスの終了を見ない） |
+| G-GLIM-EXIT | technical | open | 地図作成中に GLIM が異常終了しても気づけない（GLIM の終了を見ていない） |
+| G-INIT-POSE-GNSS | technical | open | 初期位置を GNSS で取得し人が確認する体験（intent 第11版）に、人が初期位置を指定する前提の設計が合っていない |
+| G-NAV2-FIRST-GOAL | technical | open | Nav2 の有効化の直後の goal が、BT の計画の受理の待ち（上流の雛形の default_server_timeout 20 ms）を超えて失敗することがある（VM、1 回、再現しない） |
+| G-GNSS-NO-HEADING | technical | open | デュアルアンテナの方位が出ない（2026-10-19、屋内、最初の起動） |
+| G-RECOVERY-COUNT | technical | open | 自動復帰の回数に上限が無くなり、復旧できないときの扱いも intent から無くなった（intent 第13版） |
 
 ### 人が判断する7件
 
@@ -723,8 +774,19 @@ RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位
 - **U-DRAW-003**（source_missing）図のheartbeat_and_status/collision_stop_requestとExcelの任意/未提供記載の対応が未確認。 次の作業: 解消（REV-004）。heartbeat は表示・診断のみ（DEC-006）、collision_stop_request は不採用（DEC-005）。資料間の不一致は履歴として保持。
 - **U-HISTORY**（source_missing）CH-02はlocal_odometry/mission_managerが図に未記載とするが、現在図には両ラベルが存在する。 次の作業: 閉じる（REV-009）。変更記録と図は履歴・参照であり下位設計は依存しない。
 - **V-001**（source_missing）人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。 次の作業: 解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。 上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。
-- **G-FIRMWARE**（technical）参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。 次の作業: H-012（手動経路）と H-009（時間値）の回答後に、経路に依存しない部分から設計する。実装は工程5（ゲート3承認後）。
+- **G-FIRMWARE**（technical）参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。 次の作業: プロトコル v4 と firmware の振る舞いを docs/esp32_protocol_v4.md に設計（REV-027）。実装は firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 DEC-050。firmware の版は本文書の版（v4）と build id で管理
 - **G-TUNING**（technical）境界付近の揺らぎ（帯幅 PRM-19、境界セル、減速タイミング）は詳細設計しない（DEC-055）。帯幅は mask 生成器の入力として実機調整で決め、 揺れ幅・継続時間・減速距離（PRM-22〜24）は TS-16 の記録項目で合否判定に使わない。これらは設計規則にも人の判断事項にもしない（DEC-045・DEC-049）。 次の作業: 実車試験の段階で TS-16 の記録を材料に調整する。値は正本に書かず、調整記録を research/vehicle_pc/ 以下に残す。設計検査では「値未確定（実機調整）」として扱う。
+- **G-DDS**（technical）hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION は未設定）。 次の作業: GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。 2026-10-17 人の許可（DEC-116）により、試験スタック（gouda_core/test/stack.sh）だけに同じ設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた。gouda.sh・x86 機は変えていない。 VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。 残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。
+- **G-DUP-START**（technical）2026-10-14 04:32 に起動した Gouda が、ワークスペースとデータの置き場をごみ箱へ移した後も動き続けた。pid ファイルもごみ箱へ移ったため、04:39 の bash gouda.sh start は起動中と判定できず、 2 つ目を起動した。2 つ目の monitor はポート 8080 が使用中で終了し、人は 1 つ目の monitor で地図作成を開始した。開始の要求は同じ ROS ドメインの 2 つの mode_manager に届き、GLIM が 2 つ起動した。 各起動の sensor supervisor がそれぞれドライバを起動し、同じ IMU のシリアルポートと同じ LiDAR を 2 つずつのドライバが読んだ（IMU の時刻の逆行、frame の欠け、GLIM の遅れ）。 ESP32 が接続されていれば vehicle_bridge も 2 つになる。FILE-VEHICLE-PC-FIELD-MAPPING-1。 次の作業: 実装済み（人の許可 DEC-103）。gouda.sh は pid ファイルに頼らずに同じ利用者の gouda_core の起動（試験スタックを除く）を検出して拒む。sensor supervisor は別のプロセスが開いているデバイスにはドライバを起動しない（device_in_use）。 単体試験（DeviceInUseTests）と VM での試験（gouda.sh の拒否と表示、/proc からの検出。FILE-VEHICLE-PC-DUP-START-GUARD）は合格。 未実行: センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作（実機の協力が要る）。 2026-10-17 人の報告（DEC-117）: 最新版を実機 x86 に反映し、二重起動の防止は正常に動いている。センサーを繋いで Gouda を 2 つ起動したときの supervisor の動作の記録は受け取っていない。
+- **G-FLOOR-REFLECTION**（technical）2 回目の試験の原図で、廊下の中の点の高さは床（センサーの約 1.2 m 下）と天井（約 1.3 m 上）に山があるが、床より 0.2〜1.8 m 下にも 4109 点（全体の 12 %）あり、廊下の幅の中に壁に沿って並ぶ。 地面の推定は格子ごとの最も低い点の下側の包絡なので、これらに引かれて実際の床より約 1.9 m 低くなった（中央値でセンサーの 3.08 m 下）。 分析用の 2D 変換では、床より下の点が障害物の帯に入り廊下の中を埋め、床は上限より上と判定され、空きのセルは 325 しかなかった。FILE-VEHICLE-PC-FIELD-MAPPING-2。 x86 機の同じ廊下でも床より下の点が 11.4 % あり、同じく不合格（機材ではなく場所の性質）。屋外（x86）では、地面より 0.5 m 以上下の点は最初の 120 s で 3.2 % だが、 同じ場所を通った後の区間では別の通過の地面が 1.8 m 違う高さに写り（G-LIDAR-DROPOUT）、地面と判定された点は全体の 0.1 % だった。FILE-X86-MAPPING-MAPS。 次の作業: 地面の推定を、地面より下の外れた点と、別の高さに写った地面に強くする（設計の修正。docs/map_conversion.md §2 と map_convert.py、単体試験に床の反射と 2 層の地面の合成データを加える）。 候補: (a) 地図作成の軌跡（センサーの高さ）から /config の取付高さを引いた床の近くだけを地面の候補にする（/config がなければ点だけで推定）。軌跡は通過ごとに使うので、通過ごとの高さのずれにも追従する。 (b) 格子ごとに最も低い点ではなく、点の多い低い面（高さの分布の山）を地面にする。VM の 2 回目と x86 の廊下・屋外の原図で再変換して確かめる。
+- **G-LIDAR-DROPOUT**（technical）x86 機の屋外の地図作成（2026-10-14 06:34〜06:45）で、GLIM が受け取る LiDAR の frame が 06:38:35 に 3.5 s、06:40:29 に 2.7 s、06:44:22 に 3.2 s 途切れた。 それぞれの後、約 1 分間、点と IMU の時刻の差の警告が続いた（1.0〜3.6 s）。3 回目では約 9 m ずれ、同じ場所を通った所で高さが中央値 1.8 m 違う。 人によると出発点にほぼ一致して戻ったので、地図の終点のずれ（水平 12.7 m、高さ 6.4 m）は誤差（DEC-103）。FILE-X86-MAPPING-MAPS。 カーネルのログでは、3 回とも同じ秒に LiDAR を繋いだ有線 LAN（enp2s0、本体内蔵の r8169）が Link is Down になり、2〜3 s 後に Link is Up になった（物理層でのリンク断）。 サスペンドの記録はなく、GLIM は動き続けた。ACPI の処理の行が 3 回のうち 2 回と同じ頃にある。蓋の開閉は systemd-logind の journal に出るため、まだ確かめていない。 supervisor は反応していない（IP アドレスが残り、ドライバは作り直されていない）。FILE-X86-LIDAR-DROPOUT。 次の作業: 蓋の開閉の時刻を journal で確かめ、リンク断の時刻と比べる（人に依頼。journalctl の systemd-logind の Lid closed / Lid opened）。 一致すれば、蓋を閉じたときの電源管理が有線 LAN を切ると見て、スリープ・蓋の動作の抑止（DEC-104）で防ぐ。 一致しなければ、LAN のケーブル・コネクタ（車体の振動。廊下では途切れなし）を疑う。どちらでも、屋外の地図作成では monitor の SENSORS 表で点群の途切れを見る。
+- **G-MAP-TILT**（technical）水平な廊下（人の回答 DEC-103）の地図で、軌跡が廊下の向きに一様に上る。VM の 2 回目で 4.15 度、x86 機で 4.40 度、往復で同じ直線に乗る（直線からの差 0.02 m）。 地図全体が一定の角度で傾いている形で、出発時の車体の前後の軸の周りの回転。IMU と LiDAR の間に、/config（両方とも傾き 0）にない前後の傾きがある場合や、 開始時の重力の向きの推定がずれた場合に、この形になる。GLIM の IMU の予測の回転の誤差は小さい（0.07 度）が、平面上の回転だけでは前後の傾きのずれは見えにくい。 FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS。 次の作業: 水平な床での静止の記録から IMU と LiDAR の間の傾きを測る（DEC-105）。値は報告し、取付位置の設定は人が monitor で行う（RQ-I081）。設定を変えた後の地図作成で傾きが消えるかを確かめる。
+- **G-REC-ROSBAG-RESTART**（technical）2026-10-14 18:10:35 に rosbag を止め 18:10:37 に開始し直したとき、recorder は同じ出力先 rosbag/bag に ros2 bag record を起動し、「Output folder ... already exists.」で終了コード 1 になった（VM で再現）。子プロセスの出力は捨てられ終了も見ていなかったため、recorder は記録中と応答し続け、地図作成 181044 の rosbag が失われた。分類: 実装（ND-04 の「記録失敗を表示する」に反していた）。 次の作業: 実装済み（人の許可 DEC-117）: 開始ごとに rosbag/bag_NN へ書き、出力を bag_NN.log に残し、停止の要求なしの終了を失敗として記録・表示する。単体試験と VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り: x86 機への反映と、次の実機試験（rosbag を 2 本）での確認。
+- **G-GLIM-EXIT**（technical）2026-10-14 の地図作成 175310 で、GLIM が gtsam の例外（IndeterminantLinearSystemException）で 17:55 頃に終了したが、mode_manager は終了を見ておらず、人が 17:57:50 に地図作成終了を押すまで約 2 分間気づけなかった（FILE-EVENING-MAPS-ROSBAG の 6）。分類: 実装（TR-14 の検出・表示が未実装）。 次の作業: 実装済み（人の許可 DEC-117）: 地図作成の開始時に GLIM の終了を見張り、停止の要求なしの終了を DecisionEvent glim_exited（TR-14）で記録し、monitor がポップアップで示す。モードは維持し、自動での再起動はしない。単体試験と VM の試験スタックで合格（FILE-RECORDER-GLIM-FIX-VM-TEST）。残り: x86 機への反映。GLIM が止まらずに処理しなくなる（固まる）場合は検出しない（別の課題）。
+- **G-INIT-POSE-GNSS**（technical）intent 第11版（DEC-118）の体験 9 では、初期位置と向きは GNSS で取得して地図に重ねて monitor に表示し、人は収束と正しさを確認する。設計は人が指定する前提: IFD-34（localization/initial_pose は開始要求の引数を ND-03 が 1 回転送）、IFD-02（開始要求の引数）、ND-07（人の初期姿勢から初期化）、TR-05 の guard、H-007・DEC-009（PC 再起動後は人が初期位置を再指定してから再開）、IFD-39、C-010 の保持範囲（人が地図上で初期位置と向きを指定）。GNSS の受信機（Septentrio mosaic-go G5 P6、デュアルアンテナ、ネットワーク RTK）の取込みの node・IF・座標の対応（GNSS の座標と地図の座標）も未設計。 次の作業: 2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009 は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。 2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。 2026-10-20 DEC-147（人の運用の条件）：本番はスタート位置に並んだらすぐ発進。fix を待つ時間は取れるが、八の字旋回などの較正の動きはできない。本番の初期化は静止のまま行う（DEC-133 の T3 の形と合う）。較正の動きは実験・地図作成の走行だけ。fix を待つ時間の上限は tbd（実験で測る）。intent.md への追記は DEC-148。
+- **G-NAV2-FIRST-GOAL**（technical）2026-10-17 の VM の試験の 1 回目（FILE-STAGE56-VM-TEST の 1）で、lifecycle の STARTUP の完了の約 50 ms 後に送った NavigateThroughPoses の goal が、bt_navigator の「Timed out while waiting for action server to acknowledge goal request for compute_path_through_poses」で失敗（status 6）し、TR-07 で一時停止した。2 回目・3 回目は起きなかった。待ちの値は上流の nav2_params.yaml の default_server_timeout（20 ms）のまま。分類は未確定（VM の遅さ、または開始の直後に goal を送る設計）。 次の作業: 待ちの値は変えていない（試験を通すための延長はしない: CLAUDE.md 1.5）。今の振る舞いは安全側（一時停止に入り、人の再開 TR-10 で残りの waypoint から続けられる）。x86 機で起きるかを確かめる。起きる場合の対策の候補は承認事項にする：(a) default_server_timeout を変える（値）、(b) STARTUP の後に計画の server の準備を確かめてから goal を送る（実装）。
+- **G-GNSS-NO-HEADING**（technical）最初の起動（FILE-GNSS-FIRST-START）で、AttEuler は 249 回すべて mode 0・error 1、heading と cov_headhead は NaN。位置は単独測位で水平精度 約 11 m と受信が弱い。error 1 の意味（SBF の定義）は原本未照合。候補: 副アンテナが空を見ていない・つながっていない、屋内で衛星が足りない、受信機の設定（sga, MultiAntenna が入ったか。ドライバは受信機の能力の照会の結果が heading 対応のときだけ送る）。 次の作業: 2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20 屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測 0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。
+- **G-RECOVERY-COUNT**（technical）intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03 の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。 次の作業: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。
 
 接続先未特定は `U-DRAW-001`。原ページ `lc-_yTM2-hEJOly5ozWo`、線 `2TSgiu6-nVzXwyzMdGmE-18`。`targetPoint` は残し、`to_ref: null` を維持。
 
@@ -732,8 +794,8 @@ RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位
 
 これらは移行検査合格をもって成立したとは判断していない。
 
-- `RQ-I011`（intent.md:14）：9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次に初期位置と向きを人間がある程度指定し、自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
-- `RQ-I013`（intent.md:16）：・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。
+- `RQ-I084`（intent.md:14）：9. ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+- `RQ-I086`（intent.md:16）：・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）
 - `RQ-I015`（intent.md:19）：・人間が明示的に自律走行終了ボタンを押さない限り、自律走行を終了してはならない。また、万が一navigationが異常終了した場合や、一時停止ボタンを押した場合でも、ログ取りは継続する。ログは、PCが受信した入力、判断と理由・状態遷移・各段の指令・通信結果・設定状況（地図作成前後と自律走行開始前後、設定変更後に記録）を記録し、データの欠落があった場合はその範囲も記録する。受信していない値は推測で記録しない。ログ取りはRecordボタンを押せばいつでも開始でき、Stop Recordボタンを押せばいつでも終了できる。また、地図作成開始時と自律走行開始時にRecordボタンが押されていない場合は、自動でRecordを開始し、人間が地図作成終了ボタンや自律走行終了ボタンを押したときに停止される。Recordの自動開始の契機は、人が押した地図作成開始ボタンと自律走行開始ボタンのみとする。異常終了後の復帰や再開ボタンでは開始しないが、ログ取得を再開できるようにする。ログ取得に失敗しても走行は止めない。
 - `RQ-I018`（intent.md:24）：後退と再計画はNav2のBTが管理し、Goudaの責務ではない。
 - `RQ-I019`（intent.md:25）：Navigationの実行主体はNav2とし、Gouda側で二重に実行しない。

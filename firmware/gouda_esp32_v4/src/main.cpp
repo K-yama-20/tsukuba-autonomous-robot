@@ -30,7 +30,7 @@ bool btConnectedPending = false, btDisconnectedPending = false;
 void writeDac(uint16_t x, uint16_t y) {
     if (x == lastDacX && y == lastDacY) return;
     SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
-    digitalWrite(kDacCsPin, LOW); SPI.transfer16(uint16_t(0x1000 | (x & 0x0FFF))); digitalWrite(kDacCsPin, HIGH);   // A: X (steering), gain 1x, active
+    digitalWrite(kDacCsPin, LOW); SPI.transfer16(uint16_t(0x1000 | (x & 0x0FFF))); digitalWrite(kDacCsPin, HIGH);   // A: X (steering), gain 2x (GA=0), active
     digitalWrite(kDacCsPin, LOW); SPI.transfer16(uint16_t(0x9000 | (y & 0x0FFF))); digitalWrite(kDacCsPin, HIGH);   // B: Y (forward/reverse)
     SPI.endTransaction();
     lastDacX = x; lastDacY = y;

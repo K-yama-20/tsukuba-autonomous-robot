@@ -1,0 +1,73 @@
+# 変更セット REV-108（2026-10-21 第76便: DEC-174、書き込み・rosbag の停止・gouda.sh stop）
+# 適用: design/tools/apply_revision.py REV-108
+id: REV-108
+date: '2026-10-21'
+summary: 人の許可（DEC-174、原文）で実装：vehicle_bridge の書き込みを待たない方式に、rosbag の停止を非同期にして保存の進捗をポップアップで表示、gouda.sh stop の上限を撤去して 1 s ごとに保存の進捗を表示（PRM-77）。
+basis_refs:
+- DEC-174
+- DEC-173
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-174
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 実装の許可（第75便の報告）：vehicle_bridge の書き込みの方式、rosbag の非同期の停止と進捗のポップアップ、gouda.sh stop の上限の撤去と進捗の表示
+  answer_verbatim: "・書込み待ちの上限0.2sは、書込みを待たない方式とせよ。\n・rosbagの停止に関しては、君の推奨通りでいこう。まさに私が考えていたことです。ただし、30s経ってからポップアップが出るのは遅すぎるので、30sの制限は撤廃して、保存開始と同時にポップアップを出そう。\n・gouda.sh stopについては、glimの保存状況をrosbagの保存の時と同じような情報を1sおきにterminalに表示しよう。\n"
+  affected_refs:
+  - ND-12
+  - ND-04
+  - ND-02
+  - ND-01
+  - IFD-11
+  - IFD-12
+  - PRM-77
+  resulting_refs:
+  - PRM-77
+  note: 実施（第76便）：(1) vehicle_bridge の書き込みは pyserial を使わず、O_NONBLOCK の fd へ os.write。入りきらない分は捨て、固定の理由で記録（monitor が ×回数にまとめる）。pyserial 3.5 の write_timeout=0 は EAGAIN で忙しく回り続けるため使わない。(2) record/rosbag/stop は SIGINT を送ってすぐ返す。保存中は record/status の rosbag_saving・rosbag_saving_output・rosbag_saving_started_at、終わると rosbag_last_save。保存中は新しい rosbag を始めない。終了時（shutdown）は保存を上限なしで待つ。monitor は保存の始まりと同時にポップアップ（往復するバー、経過時間、書き出したファイルの大きさ、増え方。全体の量は分からない）。(3) gouda.sh stop は SIGTERM・SIGKILL を送らず、PRM-77（1 s）ごとに GLIM（dump_path）と ros2 bag record（-o）の保存の大きさと増え方を表示する。
+  disposition: answered
+entities:
+- id: PRM-77
+  kind: parameter
+  name: gouda.sh stop の保存の進捗の表示の間隔
+  source_refs: []
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs: []
+  issue_refs: []
+  interpretation: 'REV-108: DEC-174 で人が「1sおき」と指定。'
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I076
+  parameter:
+    owner_ref: ND-01
+    value: 1
+    value_state: approved
+    unit: s
+    stage: 記録
+    purpose: gouda.sh stop が GLIM と rosbag の保存の進捗をターミナルに表示する間隔（DEC-174）。停止の上限ではない
+    measurement: 不要（人の指定。DEC-174）
+    decision_deadline: 決定済み（DEC-174）
+    software_trial_value:
+    software_trial_basis:
+    declaration: model_declared
+    target: gouda.sh
+    param_key: stop.progress_period_s
+    value_type: int
+    apply_timing: build_time
+  approval_decision_ref: DEC-174
+modifications:
+- id: ND-12
+  interpretation_append: REV-108（DEC-174）：シリアルの書き込みは待たない（O_NONBLOCK の os.write、入りきらない分は捨てて記録）。write_timeout 0.2 s を廃止。
+- id: ND-04
+  interpretation_append: REV-108（DEC-174）：rosbag の停止（IFD-11）は停止の要求だけを受けてすぐ返し、保存は上限なしで続く。保存中と保存の結果を record/status（IFD-12）に出す。保存中は新しい rosbag を始めない。終了時は保存を待つ。強制の停止（30 s で SIGTERM）は廃止。
+- id: ND-02
+  interpretation_append: REV-108（DEC-174）：rosbag の保存の始まりと同時にポップアップで進捗（往復するバー、経過時間、書き出したファイルの大きさと増え方）を示し、終わったら完了・失敗を示す。
+- id: ND-01
+  interpretation_append: REV-108（DEC-174）：stop は SIGINT の後、時間の上限なしに待つ（SIGTERM・SIGKILL を送らない）。PRM-77 ごとに GLIM と rosbag の保存の大きさと増え方を表示する。終わらないときは人が PC を再起動する。
+decision_updates: []

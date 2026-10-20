@@ -136,3 +136,9 @@ input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px s
 .prev-views .view { background: var(--bg2); color: var(--fg); border: 1px solid var(--line); padding: 2px 8px; cursor: pointer; font: inherit; }
 .prev-views .view small { display: block; font-size: 10px; opacity: .7; }
 .prev-views .view.sel { border-color: var(--cyan); color: var(--cyan); }
+/* rosbag save progress (DEC-174): the total is unknown, so the bar runs back and forth until the save ends */
+.bagbar { position: relative; height: 10px; margin: 8px 0; border: 1px solid var(--amber); overflow: hidden; }
+.bagbar-run { position: absolute; top: 0; bottom: 0; width: 30%; background: var(--amber); animation: bagrun 1.6s ease-in-out infinite alternate; }
+.bagbar-run.done { width: 100%; animation: none; }
+.bagbar-run.fail { width: 100%; animation: none; background: var(--red, #c33); }
+@keyframes bagrun { from { left: 0; } to { left: 70%; } }

@@ -1,0 +1,142 @@
+# 変更セット REV-103（2026-10-21 第70便: DEC-166、車体出力の実車の設定値）
+# 適用: design/tools/apply_revision.py REV-103
+id: REV-103
+date: '2026-10-21'
+summary: 人の回答（DEC-166）で車体出力の実車の設定値を承認：PRM-14・09・41・16・42・15・61・39・40。これで gouda_motion_controller・vehicle_bridge・gouda_mode_manager の周期の値と、ESP32 の接続先がそろう。
+basis_refs:
+- DEC-166
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-166
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 車体出力の実車の設定値（分岐セッションの表 A1〜A7 の推奨案）と、スティックを倒し切ったときの前進速度（PRM-39）・角速度（PRM-40）
+  answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「A1~7は推奨案で決定。A7については、今VMにつないでいるので読み取れ。スティックを倒しきったときの速度は4km/hとせよ。但しこれは振れがある。」\n（このセッションでの値の表の確認の問いへの回答。原文）「0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する」\n"
+  affected_refs:
+  - PRM-14
+  - PRM-09
+  - PRM-41
+  - PRM-16
+  - PRM-42
+  - PRM-15
+  - PRM-61
+  - PRM-39
+  - PRM-40
+  resulting_refs:
+  - PRM-14
+  - PRM-09
+  - PRM-41
+  - PRM-16
+  - PRM-42
+  - PRM-15
+  - PRM-61
+  - PRM-39
+  - PRM-40
+  note: A1〜A7 の内容は分岐セッションの表で、記録した側は転送された要約で知った。記録した側は値の表（PRM-14＝0.1、PRM-09＝0.35、PRM-41＝0.05、PRM-16＝0.2、PRM-42＝0.5、PRM-15＝1.5 s、PRM-61＝by-id、PRM-39＝1.11 m/s）を人に示し、人は PRM-40 の値で答えた（表への異論なし）。PRM-39 は 1.111 m/s として記録。「A9, A10」「方針11」は分岐セッションの表の項目で、この変更セットでは扱わない（内容を確かめてから別に記録する）。PRM-39 は Nav2 の PRM-66（未確定、試験の仮値 0.5 m/s）より大きいが、正規化の分母なので矛盾ではない（DEC-163 と合わせて PRM-66・67 を決める）。
+  disposition: answered
+entities: []
+modifications:
+- id: PRM-14
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.1
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A1。PRM-13（1.0 s）の 1/5 以下
+  interpretation_append: 'REV-103: DEC-166 で 0.1 を承認。'
+- id: PRM-09
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.35
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A2。PRM-14 より長く PRM-08（0.7 s）より短い
+  interpretation_append: 'REV-103: DEC-166 で 0.35 を承認。'
+- id: PRM-41
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.05
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A3。PRM-09 より十分短い、Nav2 の 20 Hz と同じ
+  interpretation_append: 'REV-103: DEC-166 で 0.05 を承認。'
+- id: PRM-16
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.2
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A4
+  interpretation_append: 'REV-103: DEC-166 で 0.2 を承認。'
+- id: PRM-42
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.5
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A5。PRM-16 より長く PRM-08 より短い
+  interpretation_append: 'REV-103: DEC-166 で 0.5 を承認。'
+- id: PRM-15
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 1.5
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A6。PRM-49（0.5 s）の 3 回分。表示だけ
+  interpretation_append: 'REV-103: DEC-166 で 1.5 を承認。'
+- id: PRM-61
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: /dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_968984148ebcf0118816167148e9de0f-if00-port0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：A7。2026-10-21 VM の ls -l /dev/serial/by-id/ で 1 件のみ（CP2102N、ESP32-DevKitC-VE と整合。分岐セッションと記録した側の両方で読んだ）
+  interpretation_append: 'REV-103: DEC-166 で /dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_968984148ebcf0118816167148e9de0f-if00-port0 を承認。'
+- id: PRM-39
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 1.111
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：人の指定 4 km/h（4000/3600＝1.111 m/s）。人の注記「但しこれは振れがある」。測定値ではない。実車の速度の確認（Q-06・Q-03）は残る
+  interpretation_append: 'REV-103: DEC-166 で 1.111 を承認。'
+- id: PRM-40
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-166
+  set_nested:
+    parameter.value: 0.97
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-166）
+    parameter.measurement: 人の決定（DEC-166）：人の指定（このセッションの回答）。測定値ではない
+  interpretation_append: 'REV-103: DEC-166 で 0.97 を承認。'
+decision_updates: []

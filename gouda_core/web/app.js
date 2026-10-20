@@ -67,6 +67,21 @@
     $('bag-status').className = 'status ' + (rf.status === 'NOT_RECEIVED' ? 'amber' : bagActive ? 'ok' : '');
     kvTable($('record-table'), Object.assign({}, r.fields, { freshness: rf.status, age_s: rf.age_s == null ? '—' : rf.age_s.toFixed(1) }),
       ['freshness', 'age_s', 'log_active', 'log_started_by', 'auto_started_by', 'rosbag_active', 'rosbag_started_by', 'rosbag_output', 'session_dir', 'last_gap', 'failures', 'last_failure', 'status_revision', 'message']);
+    // rosbag save progress (DEC-174): shown from the moment the save starts until it ends
+    if (rf.status !== 'NOT_RECEIVED') {
+      if (r.fields.rosbag_saving === 'True') {
+        if (!bagSave) { bagSave = { started: Number(r.fields.rosbag_saving_started_at), output: r.fields.rosbag_saving_output, last: null };
+          $('bagsave-title').textContent = 'rosbag を保存中'; $('bagsave-bar').className = 'bagbar-run'; $('bagsave-ack').hidden = true; $('bagsave').hidden = false; updateBagSave(); }
+      } else if (bagSave && !bagSave.finished) {
+        let res = null; try { res = JSON.parse(r.fields.rosbag_last_save || 'null'); } catch (e) { res = null; }
+        bagSave.finished = true;
+        const ok = res && res.ok && res.output === bagSave.output;
+        $('bagsave-title').textContent = ok ? 'rosbag の保存が完了' : 'rosbag の保存に失敗';
+        $('bagsave-bar').className = 'bagbar-run ' + (ok ? 'done' : 'fail');
+        $('bagsave-body').textContent = `${bagSave.output}\n${res ? `所要 ${fmtAge(res.finished_at - res.started_at)}、終了コード ${res.exit_code}` : ''}${ok ? '' : `\n${r.fields.last_failure || ''}`}`;
+        $('bagsave-ack').hidden = false;
+      }
+    }
     // pop-up for a new recording failure (G-REC-ROSBAG-RESTART: a rosbag that ended without a stop request was silent).
     // The count received on (re)connect is the baseline and does not trigger it.
     const nFail = Number(r.fields.failures || 0);
@@ -78,6 +93,7 @@
       }
       seenRecordFailures = nFail;
     }
+    renderUsb(s);
     // esp32 (nothing until stage 5-5)
     const e = s.esp32;
     $('esp32-status').textContent = e.freshness.status; $('esp32-status').className = 'status ' + statusClass(e.freshness);
@@ -143,6 +159,44 @@
     $('clock').textContent = 'server ' + fmtT(s.now);
   }
   let seenEventsBaseline = null;   // set from the first snapshot after connect: retained history is not a trigger
+  // ESP32 USB link (DEC-177): always on screen, never a pop-up (the vehicle PC screen is hard to operate)
+  const fmtClock = (t) => (t ? new Date(Number(t) * 1000).toLocaleTimeString() : '—');
+  function usbText(u, nowS) {
+    if (!u || !u.link) return ['—', ''];
+    const inSession = !!u.session, n = inSession ? `　切断 ${u.disconnects} 回` : '';
+    if (u.link === 'down') return [`切断中 ${inSession && u.down_since ? fmtAge(nowS - Number(u.down_since)) : ''}${n}`, 'red'];
+    if (u.link === 'not_open') return [`未接続${n}`, 'amber'];
+    return [`OK${n}`, Number(u.disconnects || 0) > 0 ? 'amber' : 'cyan'];
+  }
+  function renderUsb(s) {
+    const u = s.usb_link || {};
+    const [t, c] = usbText(u, Date.now() / 1000); $('usb-short').textContent = t; $('usb-short').className = 'v ' + c;
+    let last = {}; try { last = JSON.parse(u.last_session || 'null') || {}; } catch (e) { last = {}; }
+    const kind = { mapping: '事前地図作成', autonomy: '自律走行' };
+    kvTable($('usb-table'), u.link ? {
+      'USB 接続': { up: '接続中', down: '切断中', not_open: '未接続（vehicle_bridge が開いていない）' }[u.link] || u.link,
+      'セッション': u.session ? `${kind[u.session] || u.session}（${fmtClock(u.session_started_at)} から）` : 'なし（数えない）',
+      '切断／再接続': u.session ? `${u.disconnects} 回 / ${u.reconnects} 回` : '—',
+      '最後の切断／復帰': u.session ? `${fmtClock(u.last_down_at)} / ${fmtClock(u.last_up_at)}` : '—',
+      '切断の合計時間': u.session && u.down_total_s !== '' ? fmtAge(Number(u.down_total_s)) : '—',
+      '前回のセッション': last.kind ? `${kind[last.kind] || last.kind}: 切断 ${last.disconnects} 回、合計 ${fmtAge(Number(last.down_total_s))}` : '—',
+    } : {});
+  }
+  let bagSave = null;   // the rosbag save shown in the progress pop-up (DEC-174)
+  function fmtBytes(n) { if (n == null) return '不明'; const u = ['B', 'KB', 'MB', 'GB']; let i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return `${n.toFixed(i ? 1 : 0)} ${u[i]}`; }
+  async function updateBagSave() {
+    if (!bagSave || bagSave.finished) return;
+    try {
+      const j = await (await fetch('/api/rosbag_saving', { cache: 'no-store' })).json();
+      if (!bagSave || bagSave.finished || !j.saving) return;
+      const elapsed = j.now - bagSave.started;
+      let rate = '';
+      if (bagSave.last && j.bytes != null && bagSave.last.bytes != null && j.now > bagSave.last.now) rate = `、増え方 ${fmtBytes(Math.max(0, (j.bytes - bagSave.last.bytes) / (j.now - bagSave.last.now)))}/s`;
+      bagSave.last = { bytes: j.bytes, now: j.now };
+      $('bagsave-body').textContent = `${j.output}\n経過 ${fmtAge(elapsed)}、書き出したファイル ${fmtBytes(j.bytes)}${rate}\n全体の量は分からないため、バーは保存中であることだけを示す。時間の上限はない。`;
+    } catch (e) { /* the next tick retries */ }
+  }
+  $('bagsave-ack').addEventListener('click', () => { $('bagsave').hidden = true; bagSave = null; });
   let seenRecordFailures = null;   // recorder failure count at the first snapshot after connect (baseline)
   $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
 
@@ -381,5 +435,6 @@
   }
   connect();
   // keep ages moving between pushes (display only)
-  setInterval(() => { if (lastState) { const s = lastState; const dt = Date.now() / 1000 - s.now; if (s.mode.freshness.age_s != null) $('mode-age').textContent = fmtAge(s.mode.freshness.age_s + dt); } }, 1000);
+  setInterval(() => { updateBagSave(); if (lastState) { const [t, c] = usbText(lastState.usb_link, Date.now() / 1000); $('usb-short').textContent = t; $('usb-short').className = 'v ' + c; }
+    if (lastState) { const s = lastState; const dt = Date.now() / 1000 - s.now; if (s.mode.freshness.age_s != null) $('mode-age').textContent = fmtAge(s.mode.freshness.age_s + dt); } }, 1000);
 })();

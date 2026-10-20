@@ -1,0 +1,24 @@
+# 変更セット REV-076（2026-10-19 第42便: DEC-144 の回答と、frontend mode の値の照会）
+# 適用: design/tools/apply_revision.py REV-076
+id: REV-076
+date: '2026-10-19'
+summary: 人が DEC-144 を承認（原文）。指示どおり先に値の一覧を照会した（FILE-MOSAIC-MRTK-QUERY の追記）。help, setFrontendMode は引数名 fmMode と説明だけで値の一覧を返さず、help, fmMode はエラー（$R?）。firmware 1.1.x の資料も見つからず、DualAnt が 1.1.1 の値かは未確認。一覧で DualAnt を確かめられなかったので、(b) の設定には進まず人に報告した。
+basis_refs:
+- DEC-144
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal。原因の候補は frontend mode（2 本の動作には DualAnt を Boot に保存して再起動。Hardware Manual §4.2.3.2）。DEC-144 承認。値の一覧は受信機の help から得られず（REV-076）、DualAnt が firmware 1.1.1 の値かは未確認。次: 人の判断（sfm, DualAnt を Current にだけ送り、応答と gfm で確かめてから Boot 保存・再起動に進むか）。'
+decision_updates:
+- id: DEC-144
+  set:
+    status: answered
+    answered_on: '2026-10-19'
+    answer_verbatim: 'DEC-144 を承認する。まず help, setFrontendMode で値の一覧を照会し、結果を報告してから DualAnt の設定に進むこと。
+
+      '
+    disposition: answered

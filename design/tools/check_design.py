@@ -260,24 +260,11 @@ def run(model, schema, manifest):
         f = outdir / name
         if not f.exists(): v.append(f'generated/params/{name} が生成されていない'); continue
         if name != 'index.json' and f.read_text() != text: v.append(f'generated/params/{name} が正本から再生成した内容と一致しない（手編集の疑い）')
-    # hardcode scan: approved numeric values must not appear as literals in Gouda source trees (none implemented yet).
-    # Source trees of the NEW implementation (工程5). Configured in tools/hardcode_scan_roots.json; empty until the
-    # new nodes exist. The legacy implementation is replaced (DEC-030) and is not scanned.
-    cfg = Path(__file__).resolve().parent / 'hardcode_scan_roots.json'
-    roots = [Path(__file__).resolve().parents[2] / r for r in json.loads(cfg.read_text())['roots']] if cfg.exists() else []
-    approved = [(e['id'], e['parameter']['param_key'], e['parameter']['value']) for e in model['entities'] if e['kind'] == 'parameter' and e['parameter']['value_state'] == 'approved' and isinstance(e['parameter']['value'], (int, float))]
-    for root in roots:
-        if not root.exists(): continue
-        for src in root.rglob('*.py'):
-            try: text = src.read_text()
-            except Exception: continue
-            for pid, key, val in approved:
-                # Literal forms of the approved value as written in Python source: the float form (1.0, 0.7) and, for a
-                # float with an integral value, also "1." — but not the bare integer "1", which would flag every index.
-                forms = {repr(float(val)), '%g' % val} if isinstance(val, float) and not float(val).is_integer() else {repr(float(val)), f'{int(val)}.'}
-                # License identifiers such as "Apache-2.0" are not values; the scan ignores them.
-                scan_text = re.sub(r'Apache-\d+\.\d+', '', text)
-                if any(re.search(rf'(?<![\w.]){re.escape(f)}(?![\w.])', scan_text) for f in forms) and key not in scan_text: u.append(f'{pid}: 承認値 {val} に一致するリテラルが {src.relative_to(root.parent)} にある（param_key 不在。確認が必要）')
+    # hardcode scan (DEC-175, tools/hardcode_scan.py): code only (comments, docstrings and strings removed) of the Python
+    # packages, the web UI, the firmware and the start/setup scripts; approved values and every time value (wait,
+    # timeout, period, retry) are reported as undetermined unless the human accepted them in tools/hardcode_allowlist.json.
+    import hardcode_scan
+    u += hardcode_scan.scan(model)[0]
     result('DR-15', v, u)
     # DR-16 auto-record start IFs: callers and transitions
     auto_ifs = {i: e for i, e in ifs.items() if e['designed_interface']['transport'] == 'service' and e['designed_interface']['name'].startswith(AUTO_RECORD_IF_PREFIX)}

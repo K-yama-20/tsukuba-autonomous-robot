@@ -15,6 +15,7 @@ reloads; every field is UNKNOWN until a measured value is entered; each save bum
 from __future__ import annotations
 
 import json
+import os
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -50,6 +51,19 @@ CONFIG_FIELDS = OrderedDict([
 class Received:
     data: dict
     received_at: float
+
+
+def folder_bytes(path: str) -> Optional[int]:
+    """Total size of the files under path (a rosbag being saved, DEC-174); None when it cannot be read."""
+    try:
+        total = 0
+        for root, _dirs, files in os.walk(path):
+            for f in files:
+                try: total += os.path.getsize(os.path.join(root, f))
+                except OSError: pass
+        return total
+    except OSError:
+        return None
 
 
 @dataclass
@@ -135,6 +149,7 @@ class MonitorCore:
         self.mode: Optional[Received] = None
         self.record: Optional[Received] = None
         self.esp32: Optional[Received] = None          # IFD-38: nothing until stage 5-5
+        self.usb_link: Optional[Received] = None       # vehicle/link_status (DEC-177): ESP32 USB link and per-session counts
         self.nodes: list = []                            # names seen on the graph (ND-02 reads them periodically)
         self.nodes_at: Optional[float] = None
         self.events: "OrderedDict[tuple, EventAggregate]" = OrderedDict()
@@ -158,6 +173,9 @@ class MonitorCore:
 
     def on_esp32(self, data: dict, received_at: Optional[float] = None):
         self.esp32 = Received(data, received_at if received_at is not None else self.clock()); self.connection_revision += 1
+
+    def on_usb_link(self, data: dict, received_at: Optional[float] = None):
+        self.usb_link = Received(data, received_at if received_at is not None else self.clock()); self.connection_revision += 1
 
     def on_sensor(self, key: str, received_at: Optional[float] = None, stamp: Optional[float] = None):
         self.sensors[key].on_message(received_at if received_at is not None else self.clock(), stamp)
@@ -224,6 +242,7 @@ class MonitorCore:
             'record': {'freshness': fr.__dict__, 'fields': self.record.data if self.record else {}},
             'esp32': {'freshness': fe.__dict__, 'fields': self.esp32.data if self.esp32 else {},
                       'note': 'ESP32 STATUS は工程5-5（車体出力）で受信する。取得できる項目は新 firmware の STATUS 定義に従い、取得できない項目は常に不明（DEC-006）' if not self.esp32 else ''},
+            'usb_link': self.usb_link.data if self.usb_link else {},
             'nodes': {'names': self.nodes, 'at': self.nodes_at, 'age_s': (now - self.nodes_at) if self.nodes_at else None},
             'sensors': self.sensors_snapshot(now),
             'external_displays': {

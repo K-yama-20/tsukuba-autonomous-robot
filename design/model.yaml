@@ -1,12 +1,12 @@
 schema_version: '1.1'
 metadata:
-  authority_ref: FILE-INTENT-V11
+  authority_ref: FILE-INTENT-V13
   scope: スキーマ・既存資料移行・出典・矛盾整理・移行検査のみ。新規下位設計、ROS実装、完成図表は対象外。
   id_policy: 既存IDを保持。新IDは今回割当てたregistryを固定し、位置変更や名称変更で再採番しない。
   extraction_verification_ref: FILE-EXTRACT-VERIFY
   design_validity: 未判定
   vehicle_verification: 未実施
-  model_revision: REV-059
+  model_revision: REV-116
 files:
   - id: FILE-INTENT
     path: design/intent.md
@@ -275,7 +275,9 @@ files:
   - id: FILE-INTENT-V11
     path: design/intent.md
     sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
-    role: authority
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V12
+    archived_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
   - id: FILE-DEC116-FASTDDS
     path: design/research/vehicle_pc/2026-10-17_dec116_fastdds_test_stack.txt
     sha256: 3fb8a89277ba46ca7ee87bf81201c1d3a092faa916e69297a2b184efc36dfca7
@@ -324,6 +326,48 @@ files:
     path: design/research/vehicle_pc/2026-10-19_mosaic_before_first_start.txt
     sha256: 35747130e3f99399af04b0448406d05f8b8b0c3f1c24ca6ca603b4d81fcfc526
     role: evidence
+  - id: FILE-GNSS-FIRST-START
+    path: design/research/vehicle_pc/2026-10-19_gnss_first_start.txt
+    sha256: cd370e34cc36bb9e2bc31e267b36f51fd22d744a9757af679688fb486b2c62b8
+    role: evidence
+  - id: FILE-GNSS-OUTDOOR-CHECK
+    path: design/research/vehicle_pc/2026-10-19_gnss_outdoor_check.txt
+    sha256: 64b2e0925fe5516ee632c5939384e07b20031342e8ed18b8c9f8f49dd1077ed8
+    role: evidence
+  - id: FILE-MOSAIC-DUAL-ANTENNA-NOTE
+    path: design/research/gnss_mosaic_g5_dual_antenna_2026-10-19.md
+    sha256: 5fdb22cc91b381f3af8abbac90880b32908935ca04b981cc0a42aad238e6c030
+    role: evidence
+  - id: FILE-MOSAIC-MRTK-QUERY
+    path: design/research/vehicle_pc/2026-10-19_mosaic_mrtk_query.txt
+    sha256: 6541c0a432c6db357b9a96eb0e3968a49bb95a1faa190ef88ae59c23fa4e9196
+    role: evidence
+  - id: FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+    path: design/research/vehicle_pc/2026-10-19_mosaic_mrtk_query_followup.txt
+    sha256: b47499b5186119ce789da938db762ac0bd924fb24d55ac87974995403c35d1cd
+    role: evidence
+  - id: FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT
+    path: design/research/vehicle_pc/2026-10-20_gnss_driver_indoor_check_dualant.txt
+    sha256: ba2eee48b50d427e3e155279cc20dd2ed695312d8a2b4844196bda2ee2ca47c5
+    role: evidence
+  - id: FILE-ESP32-DAC-WIRING-20261020
+    path: design/research/vehicle_pc/2026-10-20_esp32_dac_wiring_measurement.md
+    sha256: 59841e02e02c7dd234d626dad7a414ab97cea6e11ee587aba366952a43bc4890
+    role: evidence
+  - id: FILE-RTKLIB-STR2STR-REVIEW
+    path: design/research/upstream_sensors/rtklib_2.4.3b34_str2str_review_2026-10-20.md
+    sha256: dd896f571fde8d11e412e7990c17870ba4f2b834ea7e49ec4f0cdd07cd90a486
+    role: evidence
+  - id: FILE-INTENT-V12
+    path: design/intent.md
+    sha256: 2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V13
+    archived_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+  - id: FILE-INTENT-V13
+    path: design/intent.md
+    sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    role: authority
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -12786,6 +12830,35 @@ sources:
       basis: intent.md 新版 AR-011（DEC-118 の回答）を上位要求とする
       locations:
         - intent.md:14
+  - id: SRC-I107-V12
+    file_ref: FILE-INTENT-V12
+    kind: intent_lines
+    locator:
+      line_start: 107
+      line_end: 107
+    raw_fields:
+      text: ・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-012（DEC-178 の回答）を上位要求とする
+      locations:
+        - intent.md:107
+  - id: SRC-I016-V13
+    file_ref: FILE-INTENT-V13
+    kind: intent_lines
+    locator:
+      line_start: 16
+      line_end: 16
+    raw_fields:
+      text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
+        自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-013（DEC-179 の回答）を上位要求とする
+      locations:
+        - intent.md:16
 entities:
   - id: RQ-I001
     kind: requirement
@@ -12994,20 +13067,21 @@ entities:
     source_refs:
       - SRC-I016
     design_status: 未設計
-    adoption: upper_requirement
+    adoption: superseded
     field_bindings:
       statement:
         source_ref: SRC-I016
         field: text
-    related_refs: []
+    related_refs:
+      - C-028
     issue_refs:
       - Q-05
       - G-RECOVERY
       - H-006
-    interpretation: ''
+    interpretation: 'REV-116: intent.md 第13版で自動復帰の回数の文を置換（C-028、DEC-179）。後継は RQ-I086。'
     sensitivity:
       - intent
-    revision_ref: REV-002
+    revision_ref: REV-116
   - id: RQ-I014
     kind: requirement
     name: intent.md:17
@@ -13123,9 +13197,16 @@ entities:
     related_refs: []
     issue_refs:
       - H-001
-    interpretation: ''
+    interpretation: REV-104：RQ-I020 の補足（DEC-163）：ESP32 の firmware 
+      は、純正のジョイスティックを模倣するため、出力電圧をスティックの可動範囲と同じ円の中に限る。motion_controller 
+      の出力（前後＝linear.x÷PRM-39、旋回＝angular.z÷PRM-40、各 −1〜1 に切り詰め）の倒し量 √(前後²＋旋回²) が 1 を超えると、firmware（control.hpp の
+      mapVoltage）は前後と旋回の比を保ったまま倒し量 1 まで縮める。例：前後 1.0・旋回 1.0（倒し量 1.41）は前後 0.71・旋回 0.71 になり、速度・角速度とも 71 % 
+      になる。曲がる半径（速度÷角速度）は変わらず、経路の形はずれずに遅くなるだけ。倒し量が 1 以下なら縮めない。これは車体の物理的な制約で、motion_controller 
+      が速度を下げるものではないが、cmd_vel より遅くなる唯一の例外として扱う。起きないように、Nav2 の最高速度・最高角速度（PRM-66・67）は 
+      (PRM-66÷PRM-39)²＋(PRM-67÷PRM-40)² ≦ 1 を満たす組で決める。
     sensitivity:
       - intent
+    revision_ref: REV-104
   - id: RQ-I021
     kind: requirement
     name: intent.md:27
@@ -32121,6 +32202,7 @@ entities:
     related_refs:
       - Q-10
       - C-019
+      - C-028
     issue_refs: []
     interpretation: ''
     sensitivity: []
@@ -32135,7 +32217,7 @@ entities:
         - T-21
         - Q-10
       adopted_requirement_refs:
-        - RQ-I013
+        - RQ-I086
         - RQ-I014
         - RQ-I025
         - RQ-I064
@@ -32153,7 +32235,7 @@ entities:
       scope_within_intent: 
         収まる。RQ-I013（自動復帰・依存順序・人の追加承認不要）、RQ-I064（直前状態へ復帰、PC再起動は一時停止へ）、RQ-I069（必要な状態だけ復元）。REV-002 の 
         clarification で固定四段階ではなく依存順序と明記。復旧不能時の遷移先は intent から一意でなかったため C-019→DEC-008 で人が決めた（置換ではなく補足）。
-    revision_ref: REV-009
+    revision_ref: REV-116
   - id: C-007
     kind: reconciliation
     name: 最終点後の扱い
@@ -33914,11 +33996,11 @@ entities:
       - operation
       - intent
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I026
       - RQ-I069
-    revision_ref: REV-004
+    revision_ref: REV-116
     reconciliation:
       state: resolved_by_decision
       affected_refs:
@@ -34237,17 +34319,18 @@ entities:
       - C-019
       - C-006
       - DEC-008
-    issue_refs: []
+    issue_refs:
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I026
       - RQ-I069
-    revision_ref: REV-004
+    revision_ref: REV-116
     issue:
       category: human
       state: resolved
@@ -34408,14 +34491,15 @@ entities:
     issue_refs:
       - G-ARCH
       - G-DUP-START
-    interpretation: ''
+    interpretation: REV-108（DEC-174）：stop は SIGINT の後、時間の上限なしに待つ（SIGTERM・SIGKILL を送らない）。PRM-77 ごとに GLIM と 
+      rosbag の保存の大きさと増え方を表示する。終わらないときは人が PC を再起動する。
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I003
       - RQ-I004
       - RQ-I058
-    revision_ref: REV-048
+    revision_ref: REV-108
     ros_node:
       node_name: gouda_launcher
       responsibilities:
@@ -34476,7 +34560,9 @@ entities:
       - G-REC-ROSBAG-RESTART
       - G-GLIM-EXIT
       - G-INIT-POSE-GNSS
-    interpretation: ''
+    interpretation: REV-108（DEC-174）：rosbag 
+      の保存の始まりと同時にポップアップで進捗（往復するバー、経過時間、書き出したファイルの大きさと増え方）を示し、終わったら完了・失敗を示す。 REV-112（DEC-177）：画面上部の USB 
+      の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。
     sensitivity:
       - operation
     requirement_refs:
@@ -34489,7 +34575,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-059
+    revision_ref: REV-112
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34543,6 +34629,7 @@ entities:
         - IFD-38
         - IFD-21
         - IFD-22
+        - IFD-51
       serves_refs: []
       calls_refs:
         - IFD-02
@@ -34596,6 +34683,7 @@ entities:
       - G-GLIM-EXIT
       - G-INIT-POSE-GNSS
       - G-NAV2-FIRST-GOAL
+      - G-RECOVERY-COUNT
     interpretation: 'REV-062: 工程 5-6 で TR-05・06・07・08・10（同じプロセスの中だけ）・11・12 を実装（autonomy_core・autonomy_client）。PC
       再起動後の再開と自動復帰（TR-13〜16）は 5-7。 REV-063（DEC-126）: 地図作成の間（TR-03〜TR-04）、IFD-47〜50 を全項目のまま作業フォルダの gnss.jsonl に書き、原図の登録（IFD-29）で原図の横に置き、SHA-256
       と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。'
@@ -34606,7 +34694,7 @@ entities:
       - RQ-I004
       - RQ-I084
       - RQ-I012
-      - RQ-I013
+      - RQ-I086
       - RQ-I014
       - RQ-I015
       - RQ-I017
@@ -34619,7 +34707,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-063
+    revision_ref: REV-116
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34712,7 +34800,8 @@ entities:
     issue_refs:
       - G-LOG
       - G-REC-ROSBAG-RESTART
-    interpretation: ''
+    interpretation: REV-108（DEC-174）：rosbag の停止（IFD-11）は停止の要求だけを受けてすぐ返し、保存は上限なしで続く。保存中と保存の結果を 
+      record/status（IFD-12）に出す。保存中は新しい rosbag を始めない。終了時は保存を待つ。強制の停止（30 s で SIGTERM）は廃止。
     sensitivity:
       - operation
     requirement_refs:
@@ -34723,7 +34812,7 @@ entities:
       - RQ-I028
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-058
+    revision_ref: REV-108
     ros_node:
       node_name: gouda_recorder
       responsibilities:
@@ -35136,7 +35225,8 @@ entities:
       - H-002
       - H-003
       - H-009
-    interpretation: ''
+    interpretation: REV-106：DEC-171 で不感帯の補償（案 A）を方針として承認（実装は許可待ち）。後退の正規化は 
+      DEC-172。最高速度の規則（SR-06・07）は車椅子側の速度上限で守る（DEC-170、人の確定）。
     sensitivity:
       - safety
       - operation
@@ -35146,7 +35236,7 @@ entities:
       - RQ-I044
       - RQ-I036
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-106
     ros_node:
       node_name: gouda_motion_controller
       responsibilities:
@@ -35202,7 +35292,14 @@ entities:
       - G-FIRMWARE
       - H-012
       - G-DUP-START
-    interpretation: ''
+    interpretation: REV-107（DEC-173）：STATUS の送信時刻は ESP32 の uptime_ms として /esp32/status に出ている（既存）。 
+      REV-108（DEC-174）：シリアルの書き込みは待たない（O_NONBLOCK の os.write、入りきらない分は捨てて記録）。write_timeout 0.2 s を廃止。 
+      REV-111（DEC-176）：USB の差し直しで、読み出しの失敗を切断として記録（serial_disconnected）し、ポートを閉じる。udevadm monitor の tty 
+      のイベント（周期なし）で同じ by-id の名前の再出現を確かめて開き直し（serial_reconnected）、HELLO からセッションを始める（設定の登録は HELLO_REPLY が新しい 
+      boot_token か設定が無効のとき）。lifecycle の状態は変えない。切断中の書き込みは記録なしで捨てる。自律走行は切断で一時停止にしない（人の決定）。 
+      REV-112（DEC-177）：ESP32 の USB の切断・再接続を、事前地図作成と自律走行のセッションの中だけ数え（一時停止と再開では続ける）、IFD-51 
+      に出す。切断の記録（serial_disconnected）の理由の文は固定にし、原因と回数は details に入れる（monitor の 
+      ×回数が切断回数になる）。セッションの始まりと終わりも記録する（link_count_started・link_count_ended）。
     sensitivity:
       - safety
       - operation
@@ -35213,7 +35310,7 @@ entities:
       - RQ-I068
       - RQ-I036
       - RQ-I076
-    revision_ref: REV-045
+    revision_ref: REV-112
     ros_node:
       node_name: vehicle_bridge
       responsibilities:
@@ -35240,9 +35337,11 @@ entities:
         - IFD-17
         - IFD-28
         - IFD-38
+        - IFD-51
       subscribes_refs:
         - IFD-16
         - IFD-43
+        - IFD-01
       serves_refs: []
       calls_refs: []
       owned_state_refs:
@@ -35463,10 +35562,10 @@ entities:
       - RQ-I065
       - RQ-I067
       - RQ-I069
-      - RQ-I013
+      - RQ-I086
       - RQ-I029
       - RQ-I030
-    revision_ref: REV-008
+    revision_ref: REV-116
     state_owner:
       owner_ref: ND-03
       state_items:
@@ -37651,9 +37750,9 @@ entities:
       - RQ-I064
       - RQ-I025
       - RQ-I069
-      - RQ-I013
+      - RQ-I086
       - RQ-I015
-    revision_ref: REV-004
+    revision_ref: REV-116
     transition:
       from_mode_ref:
       to_mode_ref: MODE-PAUSE
@@ -37923,9 +38022,9 @@ entities:
       - safety
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
-    revision_ref: REV-010
+    revision_ref: REV-116
     transition:
       from_mode_ref: MODE-AUTO
       to_mode_ref: MODE-PAUSE
@@ -38071,16 +38170,17 @@ entities:
       - Q-05
       - H-006
       - G-RECOVERY
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I069
       - RQ-I025
-    revision_ref: REV-010
+    revision_ref: REV-116
     transition:
       from_mode_ref: MODE-AUTO
       to_mode_ref: MODE-AUTO
@@ -38117,14 +38217,15 @@ entities:
       - H-006
       - G-RECOVERY
       - G-GLIM-EXIT
+      - G-RECOVERY-COUNT
     interpretation: 'REV-058: 地図作成中の GLIM の異常終了の検出と表示（DecisionEvent glim_exited と monitor のポップアップ）だけを実装。プロセスの再起動・試行回数（PRM-10）・状態の復元は未実装（G-GLIM-EXIT）。'
     sensitivity:
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I069
-    revision_ref: REV-058
+    revision_ref: REV-116
     transition:
       from_mode_ref: MODE-MAP
       to_mode_ref: MODE-MAP
@@ -38157,15 +38258,16 @@ entities:
       - Q-05
       - H-006
       - G-RECOVERY
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I069
-    revision_ref: REV-010
+    revision_ref: REV-116
     transition:
       from_mode_ref: MODE-PAUSE
       to_mode_ref: MODE-PAUSE
@@ -38198,14 +38300,15 @@ entities:
       - Q-05
       - H-006
       - G-RECOVERY
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
       - RQ-I069
-    revision_ref: REV-010
+    revision_ref: REV-116
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-MANUAL
@@ -38508,30 +38611,30 @@ entities:
     name: joystick_command 期限切れのしきい値
     source_refs:
       - SRC-I091
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
       - Q-03
       - H-009
-    interpretation: ESP32 の watchdog 時間（Q-03）との関係で決める実車値。
+    interpretation: 'ESP32 の watchdog 時間（Q-03）との関係で決める実車値。 REV-103: DEC-166 で 0.35 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-12
-      value:
-      value_state: unresolved
+      value: 0.35
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: joystick_command の期限切れで bridge が中立を送るまでの時間。motion_controller は hold 中も中立を周期発行するため、本値は 
         motion_controller 自体の停止に対する保険
-      measurement: motion_controller→bridge の遅延の実測
-      decision_deadline: 車体出力の実装前（PRM-08 より短く、PRM-14 より長い値。人が決める）
+      measurement: 人の決定（DEC-166）：A2。PRM-14 より長く PRM-08（0.7 s）より短い
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.35
       software_trial_basis: PRM-08=0.7 s の 1/2 で、PRM-14 の仮値 0.1 s より長い（モデルの関係条件「PRM-08 より短く PRM-14 より長い」を満たす 
         stub 試験用の仮値）。実車採用値ではない
@@ -38540,40 +38643,46 @@ entities:
       param_key: joystick_timeout_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-10
     kind: parameter
-    name: 自動復帰の試行回数上限
+    name: 自動復帰の理由を記録する回数の区切り
     source_refs:
       - SRC-I016
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
-    interpretation: RQ-I013 の上限値。人が決める（Q-05）。
+      - G-RECOVERY-COUNT
+    interpretation: 'RQ-I013 の上限値。人が決める（Q-05）。 REV-104：人の指示（DEC-168、原文）「PRM-10に関して、回数制限は設けない。無制限とする。」。intent.md:16
+      と食い違うため値の記録は DEC-168 の回答の後。 REV-116: intent.md 第13版（DEC-179）で「試行回数上限」から「理由を記録する回数の区切り（50 回ごと）」に置き換え。DEC-168
+      はこれで解消。'
     sensitivity:
       - safety
       - operation
     requirement_refs:
-      - RQ-I013
-    revision_ref: REV-006
+      - RQ-I086
+    revision_ref: REV-117
     parameter:
       owner_ref: ND-03
-      value:
-      value_state: unresolved
+      value: 50
+      value_state: approved
       unit: 回
       stage: blocked・一時停止・復帰
-      purpose: 自動復帰の試行回数上限（RQ-I013）
-      measurement: 不要（運用値）。人が決める
-      decision_deadline: 復旧手順の実装前
+      purpose: 自動復帰の回数がこの値の倍数（50・100・150…回目）になるたびに理由を記録する（intent.md 第13版 16 
+        行、RQ-I086）。回数の上限ではなく、到達しても一時停止に入らない
+      measurement: 不要（intent.md 第13版 16 行の記載値。DEC-179）
+      decision_deadline: 決定済み（DEC-168。intent.md 第13版 16 行、DEC-179）
       software_trial_value:
       software_trial_basis: 仮値なし。stub 試験では試験ごとに明示する
       declaration: ros_parameter
       target: gouda_mode_manager
-      param_key: recovery_attempt_limit
+      param_key: recovery_record_every
       value_type: int
       apply_timing: launch
+    approval_decision_ref: DEC-168
   - id: PRM-11
     kind: parameter
     name: Nav2 RemovePassedGoals の radius（waypoint 通過判定半径）
@@ -39247,13 +39356,14 @@ entities:
       - TR-13
     issue_refs:
       - H-001
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I020
       - RQ-I078
-    revision_ref: REV-011
+    revision_ref: REV-116
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
@@ -39336,13 +39446,14 @@ entities:
       - TR-16
     issue_refs:
       - Q-05
+      - G-RECOVERY-COUNT
     interpretation: ''
     sensitivity:
       - operation
     requirement_refs:
-      - RQ-I013
+      - RQ-I086
       - RQ-I064
-    revision_ref: REV-010
+    revision_ref: REV-116
     test:
       execution_status: 未実行
       stage: blocked・一時停止・復帰
@@ -39495,30 +39606,30 @@ entities:
     source_refs:
       - SRC-I096
       - SRC-I091
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - H-009
       - Q-03
       - G-FIRMWARE
-    interpretation: 制約は「送信間隔＋jitter < watchdog」（IF-028 K29 の方針）。値は未確定。
+    interpretation: '制約は「送信間隔＋jitter < watchdog」（IF-028 K29 の方針）。値は未確定。 REV-103: DEC-166 で 0.1 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I063
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-12
-      value:
-      value_state: unresolved
+      value: 0.1
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: ESP32 watchdog（PRM-13）に対して十分短い周期で最新値または中立を送り続ける
-      measurement: シリアル送信時間と jitter の実測。firmware の status 送信は 50 ms 周期（docs/gouda_protocol_v3.md）
-      decision_deadline: 車体出力の実装前
+      measurement: 人の決定（DEC-166）：A1。PRM-13（1.0 s）の 1/5 以下
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.1
       software_trial_basis: PRM-13=1.0 s の 1/10（モデルの条件「PRM-13 の 1/5 以下」を満たす）。旧 bridge の送信 timer 0.05 
         s（gouda_vehicle/gouda_vehicle/bridge.py）の 2 倍。stub 試験用の仮値で実車採用値ではない
@@ -39527,33 +39638,34 @@ entities:
       param_key: send_period_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-15
     kind: parameter
     name: ESP32 STATUS の表示 stale 閾値
     source_refs:
       - SRC-I045
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
       - H-010
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 1.5 を承認。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I033
-    revision_ref: REV-006
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-02
-      value:
-      value_state: unresolved
+      value: 1.5
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: /esp32/status が途絶したとき「不明」に切り替える時間（表示のみ。停止条件ではない）
-      measurement: STATUS 受信周期の実測
-      decision_deadline: 車体出力の実装前
+      measurement: 人の決定（DEC-166）：A6。PRM-49（0.5 s）の 3 回分。表示だけ
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.25
       software_trial_basis: 既存 bridge の _fresh_status 0.25 s（実装リポジトリ）。表示用の仮値で実車採用値ではない
       declaration: ros_parameter
@@ -39561,35 +39673,36 @@ entities:
       param_key: esp32_status_stale_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-16
     kind: parameter
     name: mode/state・motion_hold の周期発行間隔
     source_refs:
       - SRC-I037
       - SRC-I045
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 0.2 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I026
       - RQ-I033
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-03
-      value:
-      value_state: unresolved
+      value: 0.2
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: mode/state・motion_hold の周期発行間隔（ND-03）。motion_hold の期限切れ判定（ND-11）と monitor 表示の鮮度に関わる。UI 
         側の周期・待ち時間は別の parameter（PRM-27〜32）で、本値と混同しない
-      measurement: mode_manager の処理周期の実測
-      decision_deadline: 車体出力の実装前
+      measurement: 人の決定（DEC-166）：A4
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.2
       software_trial_basis: PRM-08=0.7 s より短い（モデルの条件）。PRM-42 の仮値 0.5 s の 2/5。stub 試験用の仮値で実車採用値ではない
       declaration: ros_parameter
@@ -39597,6 +39710,7 @@ entities:
       param_key: state_publish_period_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-17
     kind: parameter
     name: Nav2 controller_frequency
@@ -39859,7 +39973,15 @@ entities:
       - G-FIRMWARE
       - H-012
       - H-009
-    interpretation: ''
+    interpretation: REV-095（DEC-077、人の申告）：基板は EMC-270 の基準電圧にわざと接続していない。ESP32 側（DAC）から電圧を出し、GND で返すだけ。DAC の出力は 
+      EMC-270 の基準電圧に追従しない（絶対電圧）。 REV-097（FILE-ESP32-DAC-WIRING-20261020）：DAC（MCP4922）の基準は ESP32 の 5V ピン（PC の 
+      USB 5V）を 1 kΩ・1 kΩ で半分にしたもの、倍率は 2 倍（GA=0）。出力は 5V の実電圧 × code/4096。リレー K1 は故障のため迂回し、R1・R2 の後から空中配線で EMC 
+      の入力へ（Y は J2-3、X の先は未確認）。EMC-270 との接続は DAC の電圧線 2 本と GND 1 本。R7 を除去（2026-10-20）。図面との違い（リレー迂回、空中配線、R7 
+      除去、Q6 の netlist と kicad_pcb の不一致）の図面への反映は人の判断。 REV-100・REV-101（DEC-162 の人の回答）：R7 除去後に EMC 
+      の入力が浮く件は、電源を切る順番（車体の電源→基板の電源）の運用で扱い、プルダウンは付けない。順番を誤ったときの扱いは DEC-162 の回答の原文のとおり。 
+      REV-102（DEC-164）：main.cpp の writeDac のコメントを「gain 2x (GA=0)」に直した（動作は変わらない）。 REV-104（DEC-167 A10）：PC 
+      指令が途絶して pc_enabled が false になった後でも、ゲームパッドの手動操作が SRC_MANUAL で出ることをホスト試験に加えた。 
+      REV-114：電源を切る順番（車体の電源→基板の電源）の運用は intent.md 第12版 107 行（RQ-I085）に人が書いた（DEC-162 と同じ）。
     sensitivity:
       - safety
       - operation
@@ -39870,7 +39992,8 @@ entities:
       - RQ-I075
       - RQ-I076
       - RQ-I077
-    revision_ref: REV-027
+      - RQ-I085
+    revision_ref: REV-115
     ros_node:
       node_name: esp32_firmware
       responsibilities:
@@ -41823,29 +41946,30 @@ entities:
     source_refs:
       - SRC-I091
       - SRC-I102-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 1.111 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-11
-      value:
-      value_state: unresolved
+      value: 1.111
+      value_state: approved
       unit: m/s
       stage: 車体出力
       purpose: cmd_vel の linear.x をこの値で割って正規化操作値（前後）にする。Nav2 controller 
         の最大速度（Q-06）と同じ値にして、ジョイスティック全開がこの速度に対応するようにする
-      measurement: 実車の最大速度（Q-06）の決定と、ジョイスティック電圧と車速の対応の実測（Q-03）
-      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      measurement: 人の決定（DEC-166）：人の指定 4 km/h（4000/3600＝1.111 
+        m/s）。人の注記「但しこれは振れがある」。測定値ではない。実車の速度の確認（Q-06・Q-03）は残る
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.26
       software_trial_basis: Nav2 上流（nav2_bringup の例の nav2_params）の max_vel_x と同じ値。stub 
         試験で非零の正規化値を得るための仮値。実車採用値ではない
@@ -41854,34 +41978,35 @@ entities:
       param_key: max_linear_speed_mps
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-40
     kind: parameter
     name: cmd_vel の正規化に用いる最大角速度
     source_refs:
       - SRC-I091
       - SRC-I102-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 0.97 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-11
-      value:
-      value_state: unresolved
+      value: 0.97
+      value_state: approved
       unit: rad/s
       stage: 車体出力
       purpose: cmd_vel の angular.z をこの値で割って正規化操作値（旋回）にする
-      measurement: 実車の最大旋回速度（Q-06）の決定と、ジョイスティック電圧と旋回の対応の実測（Q-03）
-      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      measurement: 人の決定（DEC-166）：人の指定（このセッションの回答）。測定値ではない
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 1.0
       software_trial_basis: Nav2 上流（nav2_bringup の例の nav2_params）の max_vel_theta と同じ値。stub 試験用の仮値。実車採用値ではない
       declaration: ros_parameter
@@ -41889,34 +42014,35 @@ entities:
       param_key: max_angular_speed_radps
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-41
     kind: parameter
     name: gouda_motion_controller の操作値の発行周期
     source_refs:
       - SRC-I091
       - SRC-I102-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 0.05 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-11
-      value:
-      value_state: unresolved
+      value: 0.05
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: 中立を含む操作値（IFD-16）を一定周期で発行し続ける周期。bridge の joystick_command 期限（PRM-09）より十分短いこと
-      measurement: motion_controller の処理周期と cmd_vel の受信周期（PRM-17）の実測
-      decision_deadline: 車体出力の実車試験前
+      measurement: 人の決定（DEC-166）：A3。PRM-09 より十分短い、Nav2 の 20 Hz と同じ
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.05
       software_trial_basis: Nav2 controller_frequency の上流既定 20 Hz（PRM-17 の仮値）と同じ周期。PRM-09 の仮値 0.35 s 
         より短い。実車採用値ではない
@@ -41925,35 +42051,36 @@ entities:
       param_key: command_publish_period_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-42
     kind: parameter
     name: motion_hold の期限切れ判定（gouda_motion_controller）
     source_refs:
       - SRC-I037
       - SRC-I091
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-05
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で 0.5 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I026
       - RQ-I063
-    revision_ref: REV-027
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-11
-      value:
-      value_state: unresolved
+      value: 0.5
+      value_state: approved
       unit: s
       stage: 車体出力
       purpose: 最後に受信した motion_hold（IFD-40）からこの時間を超えたら hold 扱い（中立）にする。周期発行間隔 PRM-16 より長く、cmd_vel 途絶 PRM-08 
         より短いこと
-      measurement: mode_manager の周期発行間隔（PRM-16）の実測後に人が決める
-      decision_deadline: 車体出力の実車試験前
+      measurement: 人の決定（DEC-166）：A5。PRM-16 より長く PRM-08 より短い
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value: 0.5
       software_trial_basis: PRM-16 の仮値 0.2 s の 2.5 倍で、PRM-08=0.7 s より短い（関係条件を満たす stub 試験用の仮値）。実車採用値ではない
       declaration: ros_parameter
@@ -41961,35 +42088,36 @@ entities:
       param_key: motion_hold_timeout_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-166
   - id: PRM-43
     kind: parameter
     name: DAC 中立電圧（firmware 設定）
     source_refs:
       - SRC-I096
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-03
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-077 で旧 firmware の値 2500 mV を承認。 REV-096: DEC-159 で 2500 mV のままと確認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-096
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 2500
+      value_state: approved
       unit: mV
       stage: 車体出力
       purpose: 中立（停止）のときに DAC へ要求する電圧。両軸共通。電圧測定値ではなく要求値
-      measurement: 実車で中立となる電圧の実測（Q-03、generated/measurement_plan.md）。実測までの初期登録値は DEC-077
-      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      measurement: 旧 firmware の記載値を人が承認（DEC-077）。電圧の測定値ではない。実車での中立の確認（Q-03、DEC-050 の実機照合）は残る
+      decision_deadline: 決定済み（DEC-077）
       software_trial_value: 2500
       software_trial_basis: 旧 firmware の 
         kNeutralMv=2500（firmware/gouda_dualsense_usb/include/control.hpp、docs/gouda_protocol_v3.md「停止 2.5 
@@ -41999,35 +42127,37 @@ entities:
       param_key: dac_neutral_mv
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-077
   - id: PRM-44
     kind: parameter
     name: DAC 最小電圧（firmware 設定）
     source_refs:
       - SRC-I096
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-03
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-077 で旧 firmware の値 230 mV を承認。 REV-096: DEC-159 で 230 mV から 200 mV に変更。 REV-099:
+      DEC-160 で 200 mV から 280 mV に変更（円の中心が中立 2500 mV と一致）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-099
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 280
+      value_state: approved
       unit: mV
       stage: 車体出力
       purpose: 円形制限写像の最小端（左・後）の要求電圧
-      measurement: 実車の端点の実測（Q-03）。初期登録値は DEC-077
-      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      measurement: 人の指示の値（DEC-160）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る
+      decision_deadline: 決定済み（DEC-160。DEC-159 の 200 mV を置き換え）
       software_trial_value: 230
       software_trial_basis: 旧 firmware の kMinimumMv=230。卓上 stub 試験専用で実車採用値ではない
       declaration: firmware_config
@@ -42035,35 +42165,38 @@ entities:
       param_key: dac_min_mv
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-160
   - id: PRM-45
     kind: parameter
     name: DAC 最大電圧（firmware 設定）
     source_refs:
       - SRC-I096
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-03
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-077 で旧 firmware の値 4700 mV を承認。 REV-096: DEC-159 で 4700 mV から 4800 mV に変更。PRM-46（4700
+      mV）を超えるため、DEC-160 の回答まで firmware の設定は不正（DAC に書かない）。 REV-099: DEC-160 で 4800 mV から 4720 mV に変更。フルスケールと等しく、設定の検査に合格する。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-099
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 4720
+      value_state: approved
       unit: mV
       stage: 車体出力
       purpose: 円形制限写像の最大端（右・前）の要求電圧
-      measurement: 実車の端点の実測（Q-03）。初期登録値は DEC-077
-      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      measurement: 人の指示の値（DEC-160）。コード 4095 の無負荷の実測 4.72 
+        V（FILE-ESP32-DAC-WIRING-20261020）と同じ。実車の端点の確認（Q-03）は残る
+      decision_deadline: 決定済み（DEC-160。DEC-159 の 4800 mV を置き換え）
       software_trial_value: 4700
       software_trial_basis: 旧 firmware の kMaximumMv=4700。卓上 stub 試験専用で実車採用値ではない
       declaration: firmware_config
@@ -42071,35 +42204,40 @@ entities:
       param_key: dac_max_mv
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-160
   - id: PRM-46
     kind: parameter
     name: DAC フルスケール電圧（firmware 設定）
     source_refs:
       - SRC-I096
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-03
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-077 で旧 firmware の値 4700 mV を承認。回答の「（x,y軸の合計値）」の意味は未確認。firmware はこの値を両軸（MCP4922
+      の 2 チャンネル）に共通の、コード 4095 に対応する電圧として使う（旧 firmware と同じ使い方）。人の申告：基板は EMC-270 の基準電圧に接続していない。 REV-096: PRM-45＝4800
+      mV（DEC-159）がこの値を超える。値と「x,y軸の合計値」の意味を DEC-160 で問う。 REV-097：フルスケールは 5V の実電圧に等しい（倍率 2 倍、基準は 5V の半分）。無負荷の実測 4.72
+      V（FILE-ESP32-DAC-WIRING-20261020）。実測値への置き換えは DEC-161。人の補足（転記）「電圧合計は√x^2+y^2<=4700mvであるべきだ。」は DEC-160 に記録。
+      REV-099: DEC-160 で 4700 mV から 4720 mV に変更。 REV-100: DEC-161 で実測は不要と人が回答。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-100
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 4720
+      value_state: approved
       unit: mV
       stage: 車体出力
       purpose: 12 bit コード 4095 に対応する電圧（mV→コード変換）。MCP4922 の VREF とゲインで決まる
-      measurement: 基板の VREF の実測（Q-03）。初期登録値は DEC-077
-      decision_deadline: 実車向け firmware の書き込み前（DEC-077）
+      measurement: 人の指示の値（DEC-160）。無負荷の実測 4.72 V（FILE-ESP32-DAC-WIRING-20261020）。実車の給電での実測は不要（DEC-161 の人の回答）
+      decision_deadline: 決定済み（DEC-160。DEC-077 の 4700 mV を置き換え）
       software_trial_value: 4700
       software_trial_basis: 旧 firmware の kDacFullScaleMv=4700（参照 firmware は 4990 を初期候補とする。どちらも測定値ではない）。卓上 stub
         試験専用
@@ -42108,34 +42246,35 @@ entities:
       param_key: dac_full_scale_mv
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-160
   - id: PRM-47
     kind: parameter
     name: 手動入力の deadzone（firmware 設定）
     source_refs:
       - SRC-I034
       - SRC-I035
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-079 で半径 8 %（×10000 で 800）を承認。firmware の判定は左スティックの半径（manualVector の sqrt(x²+y²)）で、回答の「半径」と一致する。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I023
       - RQ-I024
-    revision_ref: REV-027
+    revision_ref: REV-095
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 800
+      value_state: approved
       unit: 比（×10000）
       stage: 車体出力
       purpose: ゲームパッドの左スティックの半径がこの比以下なら無操作（中立）とみなす。手動優先の「操作が有効」の判定に使う
-      measurement: 不要（既存動作の値の維持を人が判断する。DEC-079）
-      decision_deadline: 実車向け firmware の設定登録前（DEC-079）
+      measurement: 不要（DEC-079 で人が半径 8 % を承認）
+      decision_deadline: 決定済み（DEC-079）
       software_trial_value: 800
       software_trial_basis: 旧 firmware の kDeadzone=0.08（8 %）を ×10000 にした値。卓上 stub 試験専用
       declaration: firmware_config
@@ -42143,34 +42282,35 @@ entities:
       param_key: manual_deadzone_q10000
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-079
   - id: PRM-48
     kind: parameter
     name: 手動操作から PC 指令へ戻す中立安定時間（firmware 設定）
     source_refs:
       - SRC-I034
       - SRC-I096
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-095: DEC-079 で 200 ms を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I023
       - RQ-I068
-    revision_ref: REV-027
+    revision_ref: REV-095
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 200
+      value_state: approved
       unit: ms
       stage: 車体出力
       purpose: 手動操作が中立に戻ってからこの時間安定した後に PC 指令が出力を所有できる（TS-17 の「戻る条件」）
-      measurement: 不要（既存動作の値の維持を人が判断する。DEC-079）
-      decision_deadline: 実車向け firmware の設定登録前（DEC-079）
+      measurement: 不要（DEC-079 で人が 200 ms を承認）
+      decision_deadline: 決定済み（DEC-079）
       software_trial_value: 200
       software_trial_basis: 旧 firmware の kNeutralResumeMs=200。卓上 stub 試験専用
       declaration: firmware_config
@@ -42178,33 +42318,34 @@ entities:
       param_key: manual_release_neutral_ms
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-079
   - id: PRM-49
     kind: parameter
     name: ESP32 STATUS の送信周期（firmware 設定）
     source_refs:
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - G-FIRMWARE
       - Q-05
-    interpretation: ''
+    interpretation: 'REV-096: DEC-159 で 500 ms を承認。 REV-105: DEC-169 で 500 ms から 50 ms に変更。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I076
-    revision_ref: REV-027
+    revision_ref: REV-105
     parameter:
       owner_ref: ND-17
-      value:
-      value_state: unresolved
+      value: 50
+      value_state: approved
       unit: ms
       stage: 車体出力
       purpose: STATUS（IFD-43）の周期送信間隔。monitor の stale 閾値（PRM-15）はこれより長くする
-      measurement: シリアルの帯域と PC 側の受信周期の実測（PRM-15 と合わせる）
-      decision_deadline: 車体出力の実車試験前
+      measurement: 人の指示の値（DEC-169）。PRM-15（1.5 s）はこれより長い
+      decision_deadline: 決定済み（DEC-169。DEC-159 の 500 ms を置き換え）
       software_trial_value: 50
       software_trial_basis: 旧 firmware の STATUS 送信 50 ms（docs/gouda_protocol_v3.md）。参照 firmware は 100 ms。卓上 
         stub 試験専用
@@ -42213,6 +42354,7 @@ entities:
       param_key: status_period_ms
       value_type: int
       apply_timing: runtime_set
+    approval_decision_ref: DEC-169
   - id: TS-29
     kind: test
     name: PC–ESP32 プロトコル v4 のコーデック共通試験（Python と C++ で同じゴールデンベクタ）
@@ -42869,29 +43011,32 @@ entities:
     source_refs:
       - SRC-I096
       - SRC-I103-V4
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - G-FIRMWARE
-    interpretation: ''
+    interpretation: 'REV-103: DEC-166 で /dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_968984148ebcf0118816167148e9de0f-if00-port0
+      を承認。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-037
+    revision_ref: REV-103
     parameter:
       owner_ref: ND-12
-      value:
-      value_state: unresolved
+      value: 
+        /dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_968984148ebcf0118816167148e9de0f-if00-port0
+      value_state: approved
       unit:
       stage: 車体出力
       purpose: vehicle_bridge が開く ESP32 のシリアルデバイス。IMU と同じく /dev/serial/by-id の名前だけを使い、ttyACM 等の番号は使わない（DEC-081
         の方針）。未確定の間、vehicle_bridge は configure を拒否する
-      measurement: 新 firmware の書き込み時に、実車PC の ls -l /dev/serial/by-id/ の出力で決める
-      decision_deadline: 新 firmware の実機試験の前
+      measurement: 人の決定（DEC-166）：A7。2026-10-21 VM の ls -l /dev/serial/by-id/ で 1 件のみ（CP2102N、ESP32-DevKitC-VE 
+        と整合。分岐セッションと記録した側の両方で読んだ）
+      decision_deadline: 決定済み（DEC-166）
       software_trial_value:
       software_trial_basis: 仮値なし（試験 script は pty のパスを ros2 param set で与える）
       declaration: ros_parameter
@@ -42899,6 +43044,7 @@ entities:
       param_key: serial_port
       value_type: string
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-166
   - id: RQ-I082
     kind: requirement
     name: intent.md:106（FILE-INTENT-V9）
@@ -43513,7 +43659,7 @@ entities:
       - operation
       - intent
     requirement_refs: []
-    revision_ref: REV-065
+    revision_ref: REV-079
     issue:
       category: technical
       state: open
@@ -43536,7 +43682,9 @@ entities:
         GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009
         は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。
         2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は
-        DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。'
+        DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。 2026-10-20 DEC-147（人の運用の条件）：本番はスタート位置に並んだらすぐ発進。fix
+        を待つ時間は取れるが、八の字旋回などの較正の動きはできない。本番の初期化は静止のまま行う（DEC-133 の T3 の形と合う）。較正の動きは実験・地図作成の走行だけ。fix を待つ時間の上限は tbd（実験で測る）。intent.md
+        への追記は DEC-148。'
   - id: ND-19
     kind: ros_node
     name: septentrio_gnss_driver（mosaic-go G5 P6、デュアルアンテナ、外部）
@@ -43548,15 +43696,18 @@ entities:
     related_refs: []
     issue_refs:
       - G-INIT-POSE-GNSS
+      - G-GNSS-NO-HEADING
     interpretation: 'REV-068: 上流 v1.4.8 のソースの確認（FILE-SEPTENTRIO-SOURCE-REVIEW）。configure_rx true は起動のたびに受信機の全出力を止め、最後に
       Boot に保存する。gnss の種類では TF から主→副の方位・仰角のオフセット（sto）だけを設定し、主アンテナの位置は補正しない。configure_rx の扱いは DEC-140。 REV-070（DEC-140）:
       configure_rx true。最初の起動の前後で受信機の gso と getDataInOut を記録する（人の指示）。 REV-072: 最初の起動の前の受信機の状態（FILE-MOSAIC-BEFORE-FIRST-START）:
-      SBF の Stream1〜3 は block の組があり off、Stream4〜10・Res1〜4 は none・off。全接続先の入力 auto・出力 SBF+NMEA。ファームウェア 1.1.1。'
+      SBF の Stream1〜3 は block の組があり off、Stream4〜10・Res1〜4 は none・off。全接続先の入力 auto・出力 SBF+NMEA。ファームウェア 1.1.1。 REV-073:
+      最初の起動（2026-10-19、VM）。受信機は sntp, on を拒否した（ファームウェア 1.1.1。Gouda は受信機の NTP を使わない。雛形の ntp_server を変えるかは承認事項）。起動の後の受信機の
+      SBF の出力は Stream1・Stream3（USB1）。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I084
-    revision_ref: REV-072
+    revision_ref: REV-073
     ros_node:
       node_name: septentrio_gnss_driver
       responsibilities:
@@ -43690,12 +43841,13 @@ entities:
     related_refs: []
     issue_refs:
       - G-INIT-POSE-GNSS
+      - G-GNSS-NO-HEADING
     interpretation: ''
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I084
-    revision_ref: REV-063
+    revision_ref: REV-073
     designed_interface:
       transport: topic
       name: sensors/gnss/atteuler
@@ -44074,7 +44226,7 @@ entities:
       - operation
     requirement_refs:
       - RQ-I084
-    revision_ref: REV-071
+    revision_ref: REV-074
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
@@ -44086,7 +44238,8 @@ entities:
         Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl
         に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。 2026-10-19 追加（REV-069・071）:
         by-id の名前だけを受け付ける検査と IMU・GNSS の同時接続の取り違えがないこと（test_serial_by_id.py 3 件、test_gnss_config.py）、最初の起動の前後の記録の道具（test_septentrio_query.py
-        3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。'
+        3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。 2026-10-19 実機（VM、屋内、FILE-GNSS-FIRST-START）: ドライバが by-id の名前（USB1）で起動、IFD-47〜50
+        が出る。単独測位は出たが方位は出ない（G-GNSS-NO-HEADING）。屋外の確認は未実行。 2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位（衛星 16〜21）、方位は出ない（副アンテナの観測なし）。'
       observe: DecisionEvent（driver_started・driver_not_started）、monitor の GNSS の表示（受信・品質・衛星数・向き）、rosbag の 
         topic の一覧
       expected: 接続先が決まっていればドライバが起動し、IFD-47〜49 が記録・表示される。未確定なら起動せず理由が記録・表示される。表示だけで停止の条件にしない
@@ -44260,12 +44413,13 @@ entities:
     related_refs: []
     issue_refs:
       - G-INIT-POSE-GNSS
+      - G-GNSS-NO-HEADING
     interpretation: ''
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I084
-    revision_ref: REV-063
+    revision_ref: REV-073
     designed_interface:
       transport: topic
       name: sensors/gnss/attcoveuler
@@ -44357,6 +44511,350 @@ entities:
       value_type: bool
       apply_timing: launch
     approval_decision_ref: DEC-140
+  - id: G-GNSS-NO-HEADING
+    kind: issue
+    name: デュアルアンテナの方位が出ない（2026-10-19、屋内、最初の起動）
+    source_refs:
+      - SRC-I014-V11
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs: []
+    revision_ref: REV-083
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-19
+        - IFD-49
+        - IFD-50
+      resolution_refs: []
+      question: '最初の起動（FILE-GNSS-FIRST-START）で、AttEuler は 249 回すべて mode 0・error 1、heading と cov_headhead は NaN。位置は単独測位で水平精度
+        約 11 m と受信が弱い。error 1 の意味（SBF の定義）は原本未照合。候補: 副アンテナが空を見ていない・つながっていない、屋内で衛星が足りない、受信機の設定（sga, MultiAntenna
+        が入ったか。ドライバは受信機の能力の照会の結果が heading 対応のときだけ送る）。'
+      next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main
+        側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend
+        mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20
+        屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測
+        0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34
+        m（DEC-149）を確かめる。'
+  - id: PRM-75
+    kind: parameter
+    name: GNSS の補正の入力の接続先（受信機の側の名前）
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-089
+    parameter:
+      owner_ref: ND-19
+      value: USB2
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: ドライバの rtk_settings.serial_1.port。受信機はこの接続先で RTCM の補正を受け、GGA を 1 
+        秒ごとに出す（FILE-SEPTENTRIO-SOURCE-REVIEW §5）。gnss_rtk.yaml の ntrip の節が有効なときだけ書く。無いときは雛形の空のまま（補正なし）
+      measurement: 不要（DEC-139 の案 B1。人の資料の if02 = USB2）
+      decision_deadline: 決定済み（DEC-154）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: septentrio_gnss_driver
+      param_key: rtk_input_port
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-154
+  - id: PRM-76
+    kind: parameter
+    name: NTRIP の中継の接続先（受信機の USB2 の by-id）
+    source_refs:
+      - SRC-I014-V11
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs:
+      - G-INIT-POSE-GNSS
+    interpretation: ''
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-089
+    parameter:
+      owner_ref: ND-19
+      value: serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: 中継（str2str、DEC-151 の段 3）が RTCM を書き GGA を読む受信機のポート。PRM-65 と同じ書き方と規則（by-id 
+        の名前だけ、DEC-141）。supervisor はこの名前で見張る
+      measurement: VM の ls -l /dev/serial/by-id/（2026-10-19・2026-10-20。if02 が受信機の USB2）
+      decision_deadline: 決定済み（DEC-154）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: septentrio_gnss_driver
+      param_key: rtk_relay_device
+      value_type: string
+      apply_timing: launch
+    approval_decision_ref: DEC-154
+  - id: PRM-77
+    kind: parameter
+    name: gouda.sh stop の保存の進捗の表示の間隔
+    source_refs:
+      - SRC-I103-V4
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: 'REV-108: DEC-174 で人が「1sおき」と指定。'
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I076
+    revision_ref: REV-109
+    parameter:
+      owner_ref: ND-01
+      value: 1
+      value_state: approved
+      unit: s
+      stage: 記録
+      purpose: gouda.sh stop が GLIM と rosbag の保存の進捗をターミナルに表示する間隔（DEC-174）。停止の上限ではない
+      measurement: 不要（人の指定。DEC-174）
+      decision_deadline: 決定済み（DEC-174）
+      software_trial_value:
+      software_trial_basis:
+      declaration: model_declared
+      target: gouda.sh
+      param_key: stop.progress_period_s
+      value_type: int
+      apply_timing: build_time
+    approval_decision_ref: DEC-174
+  - id: IFD-51
+    kind: designed_interface
+    name: vehicle/link_status（ESP32 の USB 接続の状態とセッションごとの切断回数）
+    source_refs:
+      - SRC-I045
+      - SRC-I041
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-38
+    issue_refs: []
+    interpretation: REV-112（DEC-177）で追加。
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I033
+    revision_ref: REV-113
+    designed_interface:
+      transport: topic
+      name: vehicle/link_status
+      message_type: diagnostic_msgs/msg/DiagnosticArray（status 1 件、name=esp32_usb_link、values に 
+        link（up／down／not_open）、session（mapping／autonomy／空）、session_started_at、disconnects、reconnects、last_down_at、last_up_at、down_since、down_total_s、last_session（JSON）、revision）
+      standard_type: true
+      custom_type_reason:
+      purpose: diagnostic
+      owner_ref: ND-12
+      publisher_refs:
+        - ND-12
+      consumer_refs:
+        - ND-02
+        - ND-04
+      unit: 回、s、時刻は wall clock の秒
+      frame:
+      time_semantics: 接続の状態・セッション・回数が変わるたびに発行（周期の値は持たない）。表示と記録のためだけで、停止条件にしない（DEC-176：切断しても自律走行は続く）
+      qos:
+        reliability: reliable
+        durability: transient_local
+        history_depth: 1
+      version_dependency:
+        status: none
+        evidence: []
+        note: ''
+      legacy_refs: []
+  - id: RQ-I085
+    kind: requirement
+    name: intent.md:107（FILE-INTENT-V12）
+    source_refs:
+      - SRC-I107-V12
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I107-V12
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-114
+  - id: RQ-I086
+    kind: requirement
+    name: intent.md:16（FILE-INTENT-V13）
+    source_refs:
+      - SRC-I016-V13
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I016-V13
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-116
+  - id: C-028
+    kind: reconciliation
+    name: 異常終了後の自動復帰の回数の扱い（intent.md 第12版 16 行 → 第13版 16 行）
+    source_refs:
+      - SRC-I016-V13
+      - SRC-I016
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - DEC-179
+      - AR-013
+      - G-RECOVERY-COUNT
+      - C-006
+      - DEC-168
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I086
+    revision_ref: REV-116
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I013
+      adopted_requirement_refs:
+        - RQ-I086
+      scope: 第12版 16 
+        行の「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」を「復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）」で置換した第13版
+        16 行（人の編集）。
+      retained_scope: 自動復帰の依存順序（プロセス再起動→mission 状態の復元→旧 Nav2 goal の終了・破棄の確認→自律走行指令の再許可）、人の追加承認なし、各段階の成否の記録は同一。
+      rationale: 人が intent.md を編集（DEC-179）。復旧できないときの扱いなど設計への影響は G-RECOVERY-COUNT（未解決）。
+      issue_refs:
+        - G-RECOVERY-COUNT
+  - id: G-RECOVERY-COUNT
+    kind: issue
+    name: 自動復帰の回数に上限が無くなり、復旧できないときの扱いも intent から無くなった（intent 第13版）
+    source_refs:
+      - SRC-I007
+      - SRC-I014
+      - SRC-I015
+      - SRC-I016
+      - SRC-I017
+      - SRC-I019
+      - SRC-I021
+      - SRC-I025
+      - SRC-I026
+      - SRC-I036
+      - SRC-I037
+      - SRC-I092
+      - SRC-I093
+      - SRC-I094
+      - SRC-I095
+      - SRC-I097
+      - SRC-I013
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - safety
+      - operation
+      - intent
+    requirement_refs: []
+    revision_ref: REV-116
+    issue:
+      category: technical
+      state: open
+      affected_refs:
+        - ND-03
+        - PRM-10
+        - H-006
+        - TR-13
+        - TR-14
+        - TR-15
+        - TR-16
+        - TS-06
+        - TS-09
+      resolution_refs: []
+      question: intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 
+        回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03
+        の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。
+      next_action: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 
+        回ごとの記録の中身、復帰の間隔。いずれも承認事項。
+  - id: PRM-78
+    kind: parameter
+    name: cmd_vel の正規化に用いる最大後退速度
+    source_refs:
+      - SRC-I091
+      - SRC-I102-V3
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - PRM-39
+    issue_refs:
+      - Q-06
+    interpretation: 'REV-116: DEC-172 で人が 1.7 km/h を指定（1700/3600＝0.472 m/s）。motion_controller はまだこの値を読まない（後退の正規化の実装は許可待ち）。'
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I063
+      - RQ-I075
+    revision_ref: REV-116
+    parameter:
+      owner_ref: ND-11
+      value: 0.472
+      value_state: approved
+      unit: m/s
+      stage: 車体出力
+      purpose: cmd_vel の linear.x が負（後退）のとき、この値で割って正規化操作値（前後）にする。車椅子側の制御で後退は 1.7 km/h 
+        に制限される（人の申告、DEC-171）ため、前進の PRM-39 と分ける
+      measurement: 人の指定（DEC-172）：1.7 km/h（1700/3600＝0.472 m/s）。車椅子側の制限の値（人の申告）で、測定値ではない。実車の速度の確認（Q-06）は残る
+      decision_deadline: 決定済み（DEC-172）
+      software_trial_value:
+      software_trial_basis:
+      declaration: ros_parameter
+      target: gouda_motion_controller
+      param_key: max_reverse_speed_mps
+      value_type: double
+      apply_timing: launch
+    approval_decision_ref: DEC-172
 migration:
   baseline_definition_count: 198
   id_map:
@@ -52129,6 +52627,46 @@ authority_revisions:
       - RQ-I084
     note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-17 16:29）。チャットでの言及はなく機械比較で検出。14 行の置換だけ（106 行のまま）。ワークスペース直下の
       design/intent.md は第6版のままで、正本はリポジトリ側。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+  - id: AR-012
+    file_ref: FILE-INTENT-V12
+    previous_file_ref: FILE-INTENT-V11
+    sha256: 2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383
+    previous_sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
+    archived_previous_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+    added_lines:
+      - line: 107
+        text: ・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。
+    removed_lines: []
+    changed_lines: []
+    instruction_expected_added_lines: 1
+    observed_added_lines: 1
+    decision_ref: DEC-178
+    requirement_refs:
+      - RQ-I085
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 00:16）。機械比較で末尾 1 行（107 行）の追加のみ（106 
+      行は末尾改行の付加だけで文は同一）。人がチャットで「intent.md の変更は12版として保存せよ」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+  - id: AR-013
+    file_ref: FILE-INTENT-V13
+    previous_file_ref: FILE-INTENT-V12
+    sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    previous_sha256: 2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383
+    archived_previous_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+    added_lines:
+      - line: 16
+        text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
+          自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）
+    removed_lines:
+      - line: 16
+        text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
+          自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。
+    changed_lines: []
+    instruction_expected_added_lines: 0
+    observed_added_lines: 1
+    decision_ref: DEC-179
+    requirement_refs:
+      - RQ-I086
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 03:47）。16 行の置換だけ（107 
+      行のまま）。人がチャットで「intent.mdを再度更新したので確認せよ。」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
 decisions:
   - id: DEC-001
     kind: approval
@@ -53016,7 +53554,10 @@ decisions:
       - M-025
       - M-027
     resulting_refs: []
-    note: 事実確認であり承認ではない。新 firmware の実装・書き込み後に実機で確認する（人の協力）。
+    note: 事実確認であり承認ではない。新 firmware の実装・書き込み後に実機で確認する（人の協力）。 REV-097 
+      追記（FILE-ESP32-DAC-WIRING-20261020）：照合する項目を加える。X の空中配線の先、R5・R6 の実装、リレー K1 が付いたままか、JP2・JP3 の状態、J1-3・J1-6 
+      の元のジョイスティックの線、ESP32 の電源断時の車体の振る舞い。設計前提の「リレー不使用」は、リレーの故障による迂回で実物でも成り立っている（人の申告）。ADS1015 での監視（提案の候補）は、Y は 
+      R7 除去のため使えず、X は R5・R6 次第。
     disposition: fact_check_pending
   - id: DEC-051
     kind: confirmation
@@ -53649,16 +54190,17 @@ decisions:
     disposition: answered
   - id: DEC-077
     kind: question
-    status: pending
+    status: answered
     asked_on: '2026-10-10'
-    answered_on:
+    answered_on: '2026-10-20'
     channel: chat
     question: 【承認】新 firmware（ND-17）の DAC 出力電圧の初期登録値。旧 firmware に記載の要求値（中立 2500 mV、最小 230 mV、最大 4700 mV、DAC 
       フルスケール 4700 mV。 
       docs/gouda_protocol_v3.md・firmware/gouda_dualsense_usb/include/control.hpp。電圧測定値ではない）を、Q-03 
       の実測が終わるまでの初期登録値（PRM-43〜46）として承認するか。 承認されない間、実車向け firmware ビルドには DAC 値が入らず、firmware は config_valid=0 で 
       DAC へ書き込まない（卓上の stub 試験は仮値ビルドで進める）。
-    answer_verbatim: ''
+    answer_verbatim: "dec-077：旧firmwareに書かれた値をそのまま使え。具体的には、中立2500mv, 最小230mv, 最大4700mv, フルスケール4700mv（x,y軸の合計値）とする。\n\
+      実は基板にはわざとemc-270の基準電圧は接続していない。esp32から電圧を出し、gndで返してもらうだけである。\n"
     affected_refs:
       - ND-17
       - SO-11
@@ -53667,20 +54209,24 @@ decisions:
       - PRM-45
       - PRM-46
       - IFD-17
-    resulting_refs: []
+    resulting_refs:
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
     note: '推奨: 旧 firmware の記載値を初期登録値として承認し、Q-03 の実測後に差し替える（人は旧 firmware を実機で動作確認済みと申告: DEC-037）。 代替: 実測（Q-03）まで登録しない（実車試験の前に計測が必要。計測手順は
       generated/measurement_plan.md）。 決まらない場合に止まる作業: 実車向け firmware の書き込み（卓上 stub 試験・PC 側ソフト試験は止まらない）。'
-    disposition: open_human
+    disposition: answered
   - id: DEC-078
     kind: question
-    status: pending
+    status: answered
     asked_on: '2026-10-10'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】車体出力（5-5）の完了条件に基本契約 5 件の stub 試験を含める案（docs/implementation_stages.md §5）の採否。TS-20 の stub 
       版（ND-03 の一時停止遷移の代わりに motion_hold=true を与えて ND-11 が中立を出す）と、TS-21 の「hold=false かつ新鮮な cmd_vel 
       のときだけ非中立」（TS-07）を 5-5 に前倒しし、本体は 5-7・5-6 で再確認する。
-    answer_verbatim: ''
+    answer_verbatim: "0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する\n"
     affected_refs:
       - TS-07
       - TS-20
@@ -53688,16 +54234,16 @@ decisions:
       - ND-11
     resulting_refs: []
     note: '推奨: 含める（車体に指令を出す経路が最初に動く時点で基本契約が満たされていることを示せる）。代替: 含めず本来の工程で行う。 決まらない場合に止まる作業: なし（stub 試験自体は TS-07 の範囲で実行し、採否は完了条件の扱いだけに影響する）。'
-    disposition: open_human
+    disposition: answered
   - id: DEC-079
     kind: question
-    status: pending
+    status: answered
     asked_on: '2026-10-10'
-    answered_on:
+    answered_on: '2026-10-20'
     channel: chat
     question: 【承認】新 firmware の手動仲裁の値を既存動作のまま維持するか。手動入力の deadzone（半径 8 %、旧 firmware kDeadzone。PRM-47）と、 
       手動操作が中立に戻ってから PC 指令へ戻すまでの安定時間（200 ms、旧 firmware kNeutralResumeMs。PRM-48）。いずれも電圧・停止距離ではなく操作の仲裁条件。
-    answer_verbatim: ''
+    answer_verbatim: "dec-079：dead zoneは半径8%, 中立の安定時間は200msとする。\n"
     affected_refs:
       - ND-17
       - SO-11
@@ -53705,10 +54251,12 @@ decisions:
       - PRM-48
       - TS-17
       - TS-18
-    resulting_refs: []
+    resulting_refs:
+      - PRM-47
+      - PRM-48
     note: '推奨: 既存値を維持する（DEC-048 の「既存動作を firmware 書き直しを理由に撤去しない」と同じ考え方。実車で不都合があれば新しい判断事項にする）。 代替: 実車試験で調整する（G-TUNING）。決まらない場合に止まる作業:
       実車向け firmware の設定登録（卓上 stub 試験は仮値で進める）。'
-    disposition: open_human
+    disposition: answered
   - id: DEC-080
     kind: confirmation
     status: recorded
@@ -55145,24 +55693,31 @@ decisions:
     disposition: open_human
   - id: DEC-139
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-19'
-    answered_on:
+    answered_on: '2026-10-20'
     channel: chat
     question: '【承認】ネットワーク RTK（Point One の TrueRTK、NTRIP）の受け方。案 A（推奨）: 受信機の中の NTRIP の機能を使う（ドライバの rtk_settings.ntrip_1
       に接続先・認証を書き、GGA は受信機が送る）。受信機は USB イーサネットで PC を通してインターネットに出る必要があり、VM に転送（NAT）の設定が要る（sudo、人の作業）。案 B: PC で NTRIP
       のクライアントを動かし、補正を受信機に渡す（ドライバの ip_server_1 か serial_1。クライアントのソフトの追加が要る）。どちらでも、接続先・認証は公開しないファイル（<data_root>/config/gnss_rtk.yaml）に人が書く。'
-    answer_verbatim: ''
+    answer_verbatim: "B1を採用する。NRTKのパスワード、ユーザー名等はリモート、git, ログ、rosbag, 記録文書にも載せてはならない。\n"
     affected_refs:
       - ND-19
       - PRM-65
       - G-INIT-POSE-GNSS
-    resulting_refs: []
+    resulting_refs:
+      - DEC-151
+      - DEC-152
     note: '推奨は案 A（ドライバと受信機の機能だけで済み、GGA の送信も受信機がする）。Point One の接続先のポート・mountpoint・GGA の要否は**原本未照合**（人の契約の情報で確かめる）。決まらない場合に止まる作業：RTK
       fix での記録（補正なしでは単独測位で、較正 DEC-135 の検証に使えない）。 2026-10-19 見直し: mosaic-go は USB のシリアル 2 本だけで USB イーサネットがなく、案 A
       はできない。DEC-140（configure_rx true）を受けて、推奨を案 B1 に変える（ドライバの rtk_settings.serial_1 で受信機の USB2 を補正の入力と GGA の出力にし、PC
-      の RTKLIB str2str が NTRIP と USB2 を中継。GGA は受信機が 1 秒ごとに出す）。提案 design/proposals/ntrip_gga_proposal.md。'
-    disposition: open_human
+      の RTKLIB str2str が NTRIP と USB2 を中継。GGA は受信機が 1 秒ごとに出す）。提案 design/proposals/ntrip_gga_proposal.md。 2026-10-20
+      第2版（人の指示、分岐したチャットでの検討の共有。原文の抜粋「DEC-139 の選択肢に「案 B3」を足して提案を更新し、承認事項として私に示すこと。実装はまだしない（DEC-106）。」）：案 B3 を追加＝Gouda
+      の中の専用の node が caster に HTTP でつなぎ（認証・マウントポイント）、RTCM をそのまま USB2 に書き、USB2 の GGA を caster に返す（中身は解釈しない）。B3 は状態（補正の量・最後に届いてからの時間・接続）を
+      topic・monitor に出せ、パスワードがプロセスの一覧に出ないが、NTRIP の接続・再接続・途切れの検出・シリアルの読み書きを自作して試験する必要がある。B1 は起動と見張りだけで実績があるが、状態は標準出力だけで、パスワードが引数に入る。中継には
+      VM の MRTKLIB の mrtk relay も使える。推奨：まず B1 で RTK fix を確かめ、必要なら後で B3 に置き換える（最初から自作すると、fix が出ないときに補正の契約・受信機の設定・自作のコードの切り分けが難しい）。案
+      A・案 C は今の接続ではできない。提案 design/proposals/ntrip_gga_proposal.md 第2版 §2・§2.1〜2.3。'
+    disposition: answered
   - id: DEC-140
     kind: approval
     status: answered
@@ -55227,6 +55782,786 @@ decisions:
       - FILE-MOSAIC-BEFORE-FIRST-START
     note: 許可は起動の前の 1 回の照会（lif,Identification・gso・getDataInOut）だけ。起動の後の記録は、最初の起動の時に改めて許可を得る。生の記録（位置を含む）は VM の 
       ~/gnss_records/ にだけ置いた。
+    disposition: answered
+  - id: DEC-143
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: 受信機の USB2（if02）で、MRTKLIB の mrtk relay を使い、読むだけの照会（grc・gfm・gga・lif,Permissions）を送ってよいか
+    answer_verbatim: "許可する。USB2（if02）で mrtk relay を使い、grc・gfm・gga・lif,Permissions の照会だけを送ってよい。設定は変えないこと。\n"
+    affected_refs:
+      - ND-19
+      - G-GNSS-NO-HEADING
+    resulting_refs:
+      - FILE-MOSAIC-MRTK-QUERY
+    note: 指示の原文（前のメッセージ）「mainとauxのアンテナを入れ替えたところ、mainのみ受信できた。よって、アンテナやケーヴル自体に問題は無いと考えられる。mosaic-go g5 
+      p6のマニュアルを参照して、mrtklibを使って動作確認をせよ。mrtklibはvmにいれてある」。送ったのは 4 つの照会と最初の CR だけ。生の記録は VM の ~/gnss_records/ 
+      にだけ置いた。
+    disposition: answered
+  - id: DEC-144
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: 【承認】受信機を 2 本のアンテナで動かす設定。(a) まず読むだけの照会 help, setFrontendMode で firmware 1.1.1 
+      の値の一覧を確かめる（USB2、mrtk relay）。(b) 一覧に DualAnt があれば、Gouda を止めてから sfm, DualAnt → exeCopyConfigFile, Current,
+      Boot → exeResetReceiver, Hard, none を送る（設定の変更・Boot 保存・受信機の再起動）。(c) 屋外で MeasEpoch に副アンテナ（番号 
+      1）の観測があり、AttEuler の mode が 0 でないことを確かめる。
+    answer_verbatim: "DEC-144 を承認する。まず help, setFrontendMode で値の一覧を照会し、結果を報告してから DualAnt の設定に進むこと。\n"
+    affected_refs:
+      - ND-19
+      - G-GNSS-NO-HEADING
+      - DEC-140
+    resulting_refs:
+      - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+    note: 推奨は (a) の後に (b)（Hardware Manual §4.2.3.2 の手順そのもの）。振る舞いの違い：DualAnt 
+      では副アンテナの入力を使い、方位（IFD-49・50）が出うる。Hardware Manual は DualAnt で副アンテナを開放にしないこと、前置増幅の利得の上限と 2 本の差 5 dB 
+      以内を求める（今のアンテナの利得は原本未照合）。人の資料 §6 の Boot 保存の別工程に当たる。ドライバ（configure_rx true）は起動のたびに eccf, Current, Boot 
+      を送るので、Current の値はいずれ Boot に入る。代替案：Nominal のまま（方位は出ない。較正 DEC-135 の取付 
+      Yaw・方位の観測が使えない）。決まらない場合に止まる作業：方位の確認、方位を使う較正の検証。
+    disposition: answered
+  - id: DEC-145
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: sfm, DualAnt を受信機の Current にだけ送って（Boot 保存・再起動なし）、値として受理されるか確かめてよいか
+    answer_verbatim: "sfm, DualAnt を Current にだけ送ってよい（Boot 保存・再起動はしない）。応答と gfm を報告すること。\n"
+    affected_refs:
+      - ND-19
+      - G-GNSS-NO-HEADING
+      - DEC-144
+    resulting_refs:
+      - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+    note: 送ったのは gfm・sfm, DualAnt・gfm と最初の CR だけ（USB2、mrtk relay、fuser で空きを確認）。受理され、gfm は DualAnt。効くのは次の reset 
+      から（マニュアル 1.0.1）。
+    disposition: answered
+  - id: DEC-146
+    kind: approval
+    status: answered
+    asked_on: '2026-10-19'
+    answered_on: '2026-10-19'
+    channel: chat
+    question: Gouda を止め、受信機に eccf, Current, Boot と exeResetReceiver, Hard, none を送ってよいか（DualAnt を Boot 
+      に保存して効かせる）
+    answer_verbatim: "Gouda を止め、eccf, Current, Boot と exeResetReceiver, Hard, none を送ってよい。再起動の後に gfm を確かめて報告すること。\n"
+    affected_refs:
+      - ND-19
+      - G-GNSS-NO-HEADING
+      - DEC-144
+    resulting_refs:
+      - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+    note: Boot 保存は人の資料 §6 の別工程に当たり、人が明示して許可した。reset で USB が切れたため eccf と reset の応答は記録できず、reset の後の 
+      gfm（DualAnt）で効いたことを確かめた。
+    disposition: answered
+  - id: DEC-147
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-20'
+    channel: 'chat（分岐したセッション local_3d2072bf「btw: dec-131~134の中身」で人が発言。そのセッションからの連絡で受け取った）'
+    question: 本番と実験の運用の条件（DEC-135・136 の判断の材料の説明の後の、人の発言）
+    answer_verbatim: "実験の際は手間がかかっても良いが、本番はスタート位置に並んだらすぐ発進しなければならない。つまり、本番はfixの為の時間は取れるものの、八の字旋回等は出来ない。\n"
+    affected_refs:
+      - DEC-133
+      - DEC-135
+      - DEC-136
+      - G-INIT-POSE-GNSS
+      - RQ-I084
+    resulting_refs:
+      - DEC-148
+    note: 原文はこのセッションでは直接見ていない（分岐したセッションの連絡の転記。原文の照合は人の確認で行う）。設計との関係（AI の整理）：(1) 
+      較正（DEC-135）の動きは実験・地図作成の走行でだけ行い、本番の初期化は静止して fix を待つ形（DEC-133、T3）なので食い違わない。(2) 
+      本番の初期化の手順に、車体を動かす操作（旋回・前後の移動による較正・方位の確定）を入れてはならない。fix を待つ時間の上限は未定（tbd、実験で測る）。(3) 
+      分岐したセッションが人に示した見直しの案（アンテナの位置・取付 Yaw を車両の値として実験で一度較正して /config に保存し、地図ごとには map→ENU だけを推定する。LiDAR 
+      の取付を変えたらやり直し）は、実データで比べてから決める判断事項で、まだ台帳に登録していない（DEC-135 の検証の結果を見て提案する）。(4) 実験で測るとよい項目（分岐したセッションの案）：電源投入から
+      RTK fix・方位 fix までの時間、静止中のばらつき、「GNSS で初期化」から ND-07 の収束までの時間と成功率、スタート地点に似た場所での fix の得やすさ。
+    disposition: answered
+  - id: DEC-148
+    kind: approval
+    status: pending
+    asked_on: '2026-10-20'
+    answered_on:
+    channel: chat
+    question: 【承認】DEC-147 の運用の条件を intent.md に追記するか（人が編集する。案は design/proposals/intent_edit_requests.md 
+      §3：intent.md:14（体験 9）の GNSS による初期位置の文の後に「本番はスタート位置に並んだらすぐ発進する。初期化では fix 
+      を待つことはできるが、八の字旋回などの車体を動かす較正はできない。較正の動きは実験・地図作成の走行で行う。」を足す）
+    answer_verbatim: ''
+    affected_refs:
+      - RQ-I084
+      - DEC-133
+      - DEC-135
+    resulting_refs: []
+    note: 推奨は追記（本番の初期化に車体の動きを入れない、という制約を正本の意図に置き、ND-07・初期位置の設計の検査の根拠にする）。代替案：判断台帳の DEC-147 だけで扱う（intent.md 
+      は変えない）。検査ルールにする案（初期化の手順・状態遷移に車体の運動の指令を含めない）は、初期位置の node の設計ができてから提案する。決まらない場合に止まる作業：なし（DEC-147 
+      の記録で設計は進められる）。
+    disposition: open_human
+  - id: DEC-149
+    kind: confirmation
+    status: recorded
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【確認】今の車体の GNSS のアンテナ間隔は、/config の 0.34 m（main と aux1 が左右）か、DEC-130 の仕様の 0.6 m か
+    answer_verbatim: "現在の車体のアンテナ間隔は 0.34 m で、config の値が正しい。DEC-130 の 0.6 m は古い値。\n"
+    affected_refs:
+      - DEC-130
+      - ND-19
+      - ND-13
+      - G-GNSS-NO-HEADING
+    resulting_refs: []
+    note: 回答は AI が示した選択肢の文（ボタン）を人が選んだもの。影響（AI の整理）。(1) 方位のオフセットは /config の TF から計算され、ドライバは sto, 90, 0 
+      を送るはず（推測。Reference Guide v1.1.1 §1.11 の aux1 が main の右なら 90 と合う。この配置では受信機の pitch は roll として読む）。(2) 
+      方位の精度はデータシートの 1 m で 0.15 度より悪くなる（推測）。精度の実測は屋外の確認で行う。(3) DEC-130 の仕様のほかの参考値は変えない。
+    disposition: answered
+  - id: DEC-150
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 二つのセッションが status.md の便の番号を重ねて書き、REV の番号も同じ作業ツリーで取り合いうる問題を解決するか（AI の報告を引用した指示）
+    answer_verbatim: "この問題を解決せよ\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 人が引用した AI の報告は、status.md の第45便の重なりと、REV の番号の取り合いの 2 点。対応：(1) status.md の便を時系列に並べ直した（第46便→第47便、AI 
+      の第45便→第46便）。作業記録の見出しも直した。(2) 道具 reserve_ids.py：REV は design/revisions/REV-NNN.yaml を、DEC・便は 
+      design/reports/reservations/ の印のファイルを O_CREAT|O_EXCL で作って番号を取る。次の番号は使用中の最大＋1（REV のファイル、model.yaml と REV 
+      のファイルの DEC、status.md の便、印）。(3) apply_revision.py は中身が予約の印だけの REV 
+      を拒否する。設計の正本の内容は変えていない（基盤の作業）。もう一つのセッション（gnss_localization_submodule 責務設計）に使い方を知らせる。
+    disposition: answered
+  - id: DEC-151
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【承認】案 B1 の実装の案（提案 ntrip_gga_proposal.md 第3版 §5）。(1) gnss_rtk.yaml を ntrip 
+      の節（caster・port・mountpoint・user・password、中継だけが読む）と、ドライバに渡す 
+      rtk_settings.serial_1（USB2、秘密を含まない）に分け、rtk_settings に認証の項目があれば起動を拒否する。(2) supervisor がドライバの後に str2str 
+      を子プロセスとして起動し、USB2 の by-id で見張る。(3) cmdline の記録は伏せ字にし、中継の command と状態の msg の欄は記録しない。(4) setup.sh の apt に 
+      rtklib を足す。(5) monitor に中継の状態と補正の年齢を出す。(6) 引数が同じ PC の ps で見える残るリスクを受け入れる（受け入れない場合は B3）。
+    answer_verbatim: "DEC-151 を承認する。実装の各段はそれぞれ許可を求めること。\n"
+    affected_refs:
+      - ND-19
+      - DEC-139
+      - G-INIT-POSE-GNSS
+    resulting_refs: []
+    note: 推奨は承認。(1)〜(5) はそれぞれ実装の許可が要る（DEC-106）。rtk_standard（RTCM の版）・ポート・マウントポイント・GGA の要否は Point One 
+      の契約の資料で人が確かめる（原本未照合）。apt の str2str がポートを raw にするかは導入の前にソースで確かめる。決まらない場合に止まる作業：RTK fix の確認（手順 
+      5）と、較正（DEC-135）の実データでの検証。
+    disposition: answered
+  - id: DEC-152
+    kind: approval
+    status: pending
+    asked_on: '2026-10-20'
+    answered_on:
+    channel: chat
+    question: '【承認】新しい検査ルールの案（提案 ntrip_gga_proposal.md 第3版 §6）: 検査を実行する機械に <data_root>/config/gnss_rtk.yaml があれば、その
+      ntrip の節の値がリポジトリの作業ツリー・design/generated・<data_root>/run のログと params に現れないことを調べる。ファイルがなければ未判定。あわせて伏せ字・読み方・記録の単体の試験を足す。'
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-139
+    resulting_refs: []
+    note: 人の指摘（DEC-139 の回答の条件）を検査ルールにする案（CLAUDE.md 
+      1.2）。推奨は承認。代替案：単体の試験だけにする（実の秘密の値は調べない）。決まらない場合に止まる作業：なし（DEC-151 の実装の中の単体の試験は進められる）。
+    disposition: open_human
+  - id: DEC-153
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 案 B1 の段 1（sensor supervisor の記録の伏せ字）を実装してよいか（提案 ntrip_gga_proposal.md §7）
+    answer_verbatim: "段 1（記録の伏せ字）の実装を許可する。\n"
+    affected_refs:
+      - ND-18
+      - DEC-151
+    resulting_refs: []
+    note: 
+      変えたファイル：gouda_core/gouda_core/device_watch.py（redact_command・command_lines）、gouda_core/gouda_core/sensor_supervisor_node.py（_start
+      の cmdline の読み取りを command_lines に置き換え）、gouda_core/test/test_redact_command.py（新規、偽の値だけ）。
+    disposition: answered
+  - id: DEC-154
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【承認】案 B1 の段 2 の設計（提案 ntrip_gga_proposal.md §8）。(1) gnss_rtk.yaml は ntrip 
+      の節（caster・port・mountpoint・user・password）だけを持ち、中継だけが読む。項目の欠け・型の誤り・権限が広い（mode & 0o077）・旧い書式（rtk_settings 
+      を持つ）のときは中継だけを起動せず、ドライバは補正なしで起動する。記録には項目の名前だけを書き値は書かない。(2) 新しい PRM 2 つ：受信機の補正の入力の接続先の名前 USB2（ドライバの 
+      rtk_settings.serial_1.port。ntrip が有効なときだけ書く）、中継の接続先 
+      serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02。(3) 
+      rtk_standard（auto）・send_gga（auto）・baud_rate（115200）・keep_open（true）は雛形のまま。(4) 段 2 の実装の許可は 1〜3 の後に改めて求める。
+    answer_verbatim: "DEC-154 を承認する。\n"
+    affected_refs:
+      - ND-19
+      - ND-18
+      - PRM-65
+      - DEC-151
+    resulting_refs:
+      - PRM-75
+      - PRM-76
+    note: 推奨は承認。代替案：(1) で誤りのときドライバの起動も止める（補正が無くても単独測位は使えるので推奨しない）。(3) で rtk_standard を RTCMv3 に固定する（Point One 
+      の RTCM の版は原本未照合なので、確かめるまでは auto を推奨）。Point One が NTRIP v1 を受け付けるかは原本未照合（段 4 で確かめる）。決まらない場合に止まる作業：段 
+      2〜6、RTK fix の確認。
+    disposition: answered
+  - id: DEC-155
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 案 B1 の段 2（gnss_config の実装。read_ntrip、serial_1.port、試験）を実装してよいか
+    answer_verbatim: "段 2（gnss_config の実装）を許可する。\n"
+    affected_refs:
+      - ND-19
+      - PRM-75
+      - PRM-76
+      - DEC-154
+    resulting_refs: []
+    note: 変えたファイル：gouda_core/gouda_core/gnss_config.py（read_rtk を read_ntrip に、driver_parameters の 
+      corrections、write_parameter_file の結果に corrections）、gouda_core/test/test_gnss_config.py（旧い RTK のファイルの試験を 
+      NTRIP の試験 5 件に置き換え）。sensor_supervisor_node.py は変えていない（結果の rtk の注記をそのまま記録する。注記に秘密は入らない）。PRM-76（中継の接続先）は段 
+      3 で使う。
+    disposition: answered
+  - id: DEC-156
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: '【承認】案 B1 の段 3 の設計（提案 ntrip_gga_proposal.md §9）。(1) 中継（str2str）を sensor supervisor の子プロセスにし、PRM-76（USB2
+      の by-id）で見張る。起動は ntrip が有効・PRM-75/76 がある・str2str がある・GNSS のドライバの設定がそろうとき。str2str の timeout・再接続・表示の間隔は既定のまま。(2)
+      秘密の扱い：記録用の command（ntrip を伏せ字）と起動に使う command を分け、全ドライバの command を記録の前に伏せ字にする。中継の標準エラーからは状態の文字・バイト数・bps だけを取り出し
+      msg は捨てる。状態の変化だけを記録する。(3) 中継が終わっても同じ同一性では作り直さない（DEC-088 と同じ。案 A）。(4) gnss_config の検証を足す（# は不可、user と mountpoint
+      に : は不可、caster に : / @ は不可）。(5) 段 3 の実装の許可は 1〜4 の後に改めて求める。'
+    answer_verbatim: "DEC-156 を承認する。\n"
+    affected_refs:
+      - ND-18
+      - ND-19
+      - PRM-75
+      - PRM-76
+      - DEC-151
+    resulting_refs: []
+    note: 推奨は承認。(3) の代替案 B：中継だけは終了の後に一定の時間をおいて作り直す（間隔は新しい PRM）。apt の rtklib の str2str が user・password の URL 
+      のデコードをするかは未確認（段 4 で確かめ、するなら percent-encoding で (4) の制約を緩める案を別に出す）。決まらない場合に止まる作業：段 3〜6、RTK fix の確認。
+    disposition: answered
+  - id: DEC-157
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 案 B1 の段 3（中継の起動。supervisor、gnss_config の検証、試験）を実装してよいか
+    answer_verbatim: "段 3（中継の起動）の実装を許可する。\n"
+    affected_refs:
+      - ND-18
+      - ND-19
+      - PRM-75
+      - PRM-76
+      - DEC-156
+    resulting_refs: []
+    note: 変えたファイル：gouda_core/gouda_core/ntrip_relay.py（新規。command の組み立て、状態の行の解釈、状態の変化の追跡。ROS 
+      なし）、gouda_core/gouda_core/sensor_supervisor_node.py（_build_relay、_observe・_device_users・_start・_read_relay・_wait_exit、起動の時の記録の伏せ字）、gouda_core/gouda_core/gnss_config.py（文字の検証、serial_1_baud）、gouda_core/test/test_ntrip_relay.py（新規
+      6 件、偽の str2str を含む）、gouda_core/test/test_gnss_config.py（誤りの例を 4 つ追加）。ROS 上での動き（supervisor 
+      が実際に中継を起動する）は未確認（段 4 で str2str を入れ、段 6 で VM の試験）。
+    disposition: answered
+  - id: DEC-158
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: コードレビュー（/code-review、high）の指摘 8 件をすべて直してよいか
+    answer_verbatim: "レビューの指摘をすべて直すことを許可する。\n"
+    affected_refs:
+      - ND-18
+      - ND-19
+      - DEC-156
+    resulting_refs: []
+    note: 変えたファイル：gouda_core/gouda_core/ntrip_relay.py（read_status 
+      は例外を数えて読み続ける、build_relay）、gouda_core/gouda_core/gnss_config.py（prepare_driver、引用符の案内、RTK_KEYS と 
+      serial_1_baud 
+      を削除）、gouda_core/gouda_core/device_watch.py（_USERINFO）、gouda_core/gouda_core/sensor_supervisor_node.py（Driver
+      の項目、_drivers_summary、_read_relay で追跡を新しく、key 
+      ごとの分岐を削除）、試験：test_ntrip_relay.py・test_redact_command.py・test_gnss_config.py 
+      に追加、test_sensor_supervisor_relay.py（新規、ROS が要る）。原因の分類はすべて実装。
+    disposition: answered
+  - id: DEC-159
+    kind: approval
+    status: answered
+    asked_on:
+    answered_on: '2026-10-20'
+    channel: chat
+    question: DAC の中立・最大・最小の電圧と STATUS の周期（DEC-077 の回答の後の人の指示。第63便の報告の問い 2 への回答を含む）
+    answer_verbatim: "中立2500mv, 最大4800mv最小200mvに変更する。\nstatusは500msとする。\n"
+    affected_refs:
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-49
+      - DEC-077
+    resulting_refs:
+      - PRM-44
+      - PRM-45
+      - PRM-49
+      - DEC-160
+    note: DEC-077 の回答（PRM-44＝230、PRM-45＝4700）を置き換える新しい項目（DEC-077 は書き換えない）。PRM-43 は 2500 mV 
+      のまま。フルスケールには触れていないため PRM-46 は 4700 mV のまま。最大 4800 mV ＞ フルスケール 4700 mV となり、firmware の 
+      Config::valid（config.hpp、dac_max_mv ≤ dac_full_scale_mv）が不合格で config_valid=0、DAC に書かない（安全側）。DEC-160 
+      で問う。PRM-49＝500 ms により monitor の stale 閾値 PRM-15（未確定）は 500 ms より長くする必要がある（PRM-49 の purpose）。PRM-15 の stub
+      試験の仮値 0.25 s はこの関係を満たさないが、stub 試験は firmware の仮値 50 ms で動くため、仮値は変えていない。
+    disposition: answered
+  - id: DEC-160
+    kind: question
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【承認】DAC のフルスケール電圧（PRM-46。12 bit コード 4095 に対応する電圧）を何 mV にするか。最大 4800 mV（DEC-159）は今の 4700 mV 
+      を超えるため、firmware は設定を不正として DAC に書かない。あわせて DEC-077 の回答の「フルスケール4700mv（x,y軸の合計値）」の意味（firmware は x・y 
+      の各チャンネルで、コード 4095 に対応する電圧として使う）を確かめたい。
+    answer_verbatim: "最大を4720mv, 最低を280mv, フルスケールを4720とする。firmwareを修正し、ビルドするコマンドを生成せよ。\n"
+    affected_refs:
+      - PRM-46
+      - PRM-45
+      - ND-17
+      - DEC-077
+      - DEC-159
+    resulting_refs:
+      - PRM-44
+      - PRM-45
+      - PRM-46
+    note: 推奨：基板の MCP4922 の VREF（とゲイン）の実際の値にする。VREF が 4800 mV 以上なら、その値を PRM-46 にする。VREF が 4800 mV 未満なら、DAC は 
+      4800 mV を出せないので、最大を下げる（DEC-159 の見直し）。代替：測るまで 4800 mV 
+      以上の仮の値にする（mV→コードの換算がずれ、全電圧が比例してずれるので推奨しない）。決まらない場合に止まる作業：実車向け firmware の書き込み（設定が不正のため DAC に書かない）。 
+      REV-097 
+      追記：分岐セッションで人が「（x,y軸の合計値）」を補足（転記）「電圧合計は√x^2+y^2<=4700mvであるべきだ。」「…正方形状の電圧は物理的に出せない。円形にしか動かせないからね。」。円の制限は 
+      firmware の mapVoltage で行う（中心＝(最小＋最大)/2、半径＝(最大−最小)/2）。DEC-159 の値では中心 2500 mV（中立と一致）・半径 2300 mV。この補足の 4700
+      mV が円の何（半径・直径・最大）を指すかは未確認。実測（FILE-ESP32-DAC-WIRING-20261020）：フルスケールは 5V の実電圧で無負荷 4.72 V、DAC の電源 4.78 
+      V。MCP4922 の出力は電源電圧を超えられないので、今の給電では 4800 mV は出せない（DEC-161）。
+    disposition: answered
+  - id: DEC-161
+    kind: measurement
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【実測】DAC のフルスケール（PRM-46）を実測値にする。DAC は 2 倍の倍率で、基準は ESP32 の 5V ピン（PC の USB 5V）を半分にしたもの。出力のフルスケールは 
+      USB 5V の実電圧に等しい。無負荷・コード 4095 で 4.72 V（FILE-ESP32-DAC-WIRING-20261020）。実車と同じ PC・USB 
+      ケーブル（・ハブ）で、車両に接続した状態（駆動電源を切るか車輪を浮かせる）で中立のコードを出し、EMC の入力端で測る。
+    answer_verbatim: "DEC-161は必要ない。\n"
+    affected_refs:
+      - PRM-46
+      - PRM-43
+      - PRM-45
+      - DEC-160
+      - ND-17
+    resulting_refs: []
+    note: 承認値 4700 mV と実測 4720 mV の差は約 0.4 %（中立 2500 mV の換算で約 10 mV）。USB 5V が 5.0 V になると、4700 mV のままでは中立が約 
+      +159 mV ずれる（計算。測定ではない）。測る条件（PC・ケーブル・テスターの機種）が欠けている。専用の基準電圧 IC などの改造は提案の候補（未作成）。決まらない場合に止まる作業：DEC-160 
+      の確定、実車向け firmware の書き込み。
+    disposition: answered
+  - id: DEC-162
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 【承認・実測】R7 を外したため、Y の EMC 入力に GND への抵抗がない。X も R5・R6 の実装次第で同じ（未確認）。ESP32 の電源が切れたときや DAC 
+      が出力しないとき、EMC の入力が浮く（人の指摘「r7を外すと回路が浮くことになる。」）。EMC-270 が浮いた入力をどう扱うかは不明。両軸に同じ大きい抵抗（例 100 kΩ）でプルダウンを付けるか。
+    answer_verbatim: "DEC-162は、車体の電源を先に切ってから基板の電源を切れば良いだけの話である。もし順番を間違えても、非常停止ボタンを押せば良い。無視して良い未決事項だ\n"
+    affected_refs:
+      - ND-17
+      - PRM-43
+      - DEC-050
+      - RQ-I068
+    resulting_refs: []
+    note: 推奨：両軸に同じ値の大きい抵抗でプルダウン（1 kΩ との分圧で約 1 % 下がる。中立の実測は付けた後に行う）。ただしプルダウンでは入力が 0 V になり、中立（約 2.5 
+      V）にはならない。EMC-270 が 0 V をどう扱うか（停止か、端の指令か）を実機で確かめるまで、電源断時の安全は根拠がない。代替：何も付けず、ESP32 
+      の電源断時の車体の振る舞いを先に確かめる。安全に関わる（PC 出力の中立化は車体の停止保証ではない：CLAUDE.md 1.5）。決まらない場合に止まる作業：実車での走行試験。
+    disposition: answered
+  - id: DEC-163
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】RQ-I020（motion_controller は cmd_vel 
+      より速度を下げない）の補足。電圧は円の中だけ（純正のジョイスティックの模倣、人の発言）なので、速度と角速度が同時に大きく円の外に出る指令は、firmware が方向を保って円に縮める（物理的な制約）。Nav2
+      の上限（PRM-39・40 など）は円に収まる組で決める、と補足してよいか。
+    answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「では、そのように書け。詳しく書かないと意味不明である」\n"
+    affected_refs:
+      - RQ-I020
+      - ND-11
+      - ND-17
+      - PRM-39
+      - PRM-40
+    resulting_refs: []
+    note: 推奨：補足する。今の実装は PC で正規化し、ESP32 の mapVoltage で r・θ 
+      を円に写す（人の発言「電圧円の半径rと方向θをまず計算して…」と同等、と分岐セッションで説明し異論なし）。代替：motion_controller 
+      が円の外の指令を記録する（観測の追加）。決まらない場合に止まる作業：PRM-39・40 の決定。
+    disposition: answered
+  - id: DEC-164
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認（実装の許可）】firmware/gouda_esp32_v4/src/main.cpp の writeDac のコメント「gain 1x」を「gain 2x」に直す。コマンド 
+      0x1000・0x9000 は GA=0（2 倍）で、動作は旧 firmware と同じ。コメントだけの変更で動作は変わらない。
+    answer_verbatim: "DEC-164の修正を許可する\n"
+    affected_refs:
+      - ND-17
+      - PRM-46
+    resulting_refs: []
+    note: 推奨：直す（フルスケールが 5V の実電圧になる根拠を誤解させないため）。代替：直さない。決まらない場合に止まる作業：なし。
+    disposition: answered
+  - id: DEC-165
+    kind: approval
+    status: answered
+    asked_on: '2026-10-20'
+    answered_on: '2026-10-20'
+    channel: chat
+    question: 案 B1 の段 4（setup.sh に rtklib を足す、apt の str2str のソースを確かめる）を行ってよいか
+    answer_verbatim: "段 4（setup.sh に rtklib、apt の str2str のソースの確認）を許可する。\n"
+    affected_refs:
+      - ND-18
+      - DEC-151
+      - DEC-156
+    resulting_refs:
+      - FILE-RTKLIB-STR2STR-REVIEW
+    note: 変えたファイル：setup.sh（apt の一覧と説明）。gnss_config の文字の検証は緩めない（apt の str2str は URL のデコードをしない）。残る確認：Point One 
+      の接続の版（NTRIP v1 を受け付けるか）と TLS の要否、認証が暗号化されずに流れることの受け入れ。
+    disposition: answered
+  - id: DEC-166
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 車体出力の実車の設定値（分岐セッションの表 A1〜A7 の推奨案）と、スティックを倒し切ったときの前進速度（PRM-39）・角速度（PRM-40）
+    answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「A1~7は推奨案で決定。A7については、今VMにつないでいるので読み取れ。スティックを倒しきったときの速度は4km/hとせよ。但しこれは振れがある。」\n\
+      （このセッションでの値の表の確認の問いへの回答。原文）「0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する」\n"
+    affected_refs:
+      - PRM-14
+      - PRM-09
+      - PRM-41
+      - PRM-16
+      - PRM-42
+      - PRM-15
+      - PRM-61
+      - PRM-39
+      - PRM-40
+    resulting_refs:
+      - PRM-14
+      - PRM-09
+      - PRM-41
+      - PRM-16
+      - PRM-42
+      - PRM-15
+      - PRM-61
+      - PRM-39
+      - PRM-40
+    note: A1〜A7 
+      の内容は分岐セッションの表で、記録した側は転送された要約で知った。記録した側は値の表（PRM-14＝0.1、PRM-09＝0.35、PRM-41＝0.05、PRM-16＝0.2、PRM-42＝0.5、PRM-15＝1.5
+      s、PRM-61＝by-id、PRM-39＝1.11 m/s）を人に示し、人は PRM-40 の値で答えた（表への異論なし）。PRM-39 は 1.111 m/s として記録。「A9, 
+      A10」「方針11」は分岐セッションの表の項目で、この変更セットでは扱わない（内容を確かめてから別に記録する）。PRM-39 は Nav2 の PRM-66（未確定、試験の仮値 0.5 
+      m/s）より大きいが、正規化の分母なので矛盾ではない（DEC-163 と合わせて PRM-66・67 を決める）。
+    disposition: answered
+  - id: DEC-167
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 作業の許可（分岐セッションの表）：A9 test_vehicle_core.py の修正（仮値のファイルがないときは、承認値のファイルだけを読む）、A10 試験の追加（PC 
+      指令が途絶して無効になった後でも、ゲームパッドが通ること）
+    answer_verbatim: "0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する\n"
+    affected_refs:
+      - TS-17
+      - TS-18
+      - TS-19
+      - ND-17
+    resulting_refs: []
+    note: 'A9・A10 の文面は分岐セッション（local_d45b61f7…）から原文の転送で確かめた。回答の前半（PRM-40）は DEC-166、方針11 は DEC-078 に記録。実施は第71便（A9:
+      gouda_core/test/test_vehicle_core.py の load_yaml_flat、A10: firmware/gouda_esp32_v4/test/host/test_core.cpp）。'
+    disposition: answered
+  - id: DEC-168
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認・intent との矛盾】人の指示「PRM-10に関して、回数制限は設けない。無制限とする。」は 
+      intent.md:16「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」と食い違う。(1) intent.md:16 
+      の「または復旧の試行回数が上限に達した場合」を人が削るか、(2) PRM-10 をどう表すか（推奨：PRM-10 を「上限なし（no_limit）」と記録し、mode_manager の parameter 
+      として宣言しない。未確定（tbd）のままにはしない）。
+    answer_verbatim: "（intent.md の人の編集、第13版 16 行）・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2
+      goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）\n"
+    affected_refs:
+      - PRM-10
+      - RQ-I013
+      - ND-03
+    resulting_refs: []
+    note: 人の指示（原文、2026-10-21）「PRM-10に関して、回数制限は設けない。無制限とする。」。intent.md は人が所有するため AI は編集しない（CLAUDE.md 
+      1.5）。振る舞いの違い：上限なしでは、異常終了と自動復帰を繰り返す場合に、一時停止へ入らず復帰（自律走行指令の再許可を含む）を続ける。「復旧できない場合」の一時停止は残る。影響：PRM-10、RQ-I013、ND-03、TS-06。決まらない場合に止まる作業：工程
+      5-7（自動復帰）の実装。それ以外は止まらない。
+    disposition: answered
+  - id: DEC-169
+    kind: approval
+    status: answered
+    asked_on:
+    answered_on: '2026-10-21'
+    channel: chat
+    question: PRM-49（ESP32 STATUS の送信周期）の変更と、vehicle_bridge を事前地図作成モードでも起動すること（人の指示）
+    answer_verbatim: "prm-49のstatusの値は50msに設定せよ。vehicle_bridgeは事前地図作成モードでも起動せよ。\n"
+    affected_refs:
+      - PRM-49
+      - ND-12
+      - DEC-159
+    resulting_refs:
+      - PRM-49
+    note: PRM-49 は DEC-159 の 500 ms を置き換え（DEC-159 は書き換えない）。後半の ND-12 の事前地図作成モードでの起動は、振る舞いが変わる（ESP32 
+      との接続・設定の登録・STATUS の受信、または PC 指令の送信まで）ため、どの段階まで起動するかを人に確かめてから設計と実装の変更を記録する（このREVでは未反映）。
+    disposition: answered
+  - id: DEC-170
+    kind: confirmation
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 大会の最高速度の規則（SR-06 最高 6 km/h、SR-07 誤動作しても超えない。保証する層は Q-G5）をどの層で守るか
+    answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「最高速度の規則は気にしなくてよい。これは車椅子自体に速度上限設定があるためである。これは反論を許さない。低速での動き出しについては、最低倒し量を決めれば良いのでは。」\n"
+    affected_refs:
+      - ND-11
+      - ND-17
+      - PRM-39
+    resulting_refs: []
+    note: 人の確定事項（反論を許さない）。SR-06・07（docs/regulations_2026.md）と Q-G5 
+      は、ソフトではなく車椅子（EMC-270）自体の速度上限の設定で守る。安全の根拠になる前提として、重大な前提の一覧に載せる（CLAUDE.md 1.4）：EMC-270 の速度上限の設定が 6 km/h 
+      以下であること（設定値は原本未照合・未確認）。後半（最低倒し量）は DEC-171。
+    disposition: answered
+  - id: DEC-171
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 低速での動き出しのための不感帯の補償（案 A：motion_controller で、倒し量 r＞0 のとき 
+      出力＝最低倒し量＋(1−最低倒し量)×r、小さなしきい値より下は中立のまま。自律走行の指令だけにかかり手動には影響しない。最低倒し量は前進・後退・旋回で実測。案 B：Nav2 の設定で代用、は不採用）
+    answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「案Aで良いと思う。後退時は車椅子側の制御の関係で1.7km/hに制限される。前進は仕様上は4.5km/hだったが、実際は分からない。後で検証すれば良いのだが、まずnav2で自律走行させてみよう。そうすれば未設定でのnav2の性能も分かるし、操作ログからいくらか情報が取れるんじゃないかな」\n"
+    affected_refs:
+      - ND-11
+      - RQ-I020
+      - PRM-39
+      - PRM-40
+    resulting_refs:
+      - DEC-172
+    note: 案 A を方針として承認（設計の方向）。実装（motion_core 
+      の変更）と新しい設定（最低倒し量・しきい値、値は実測）の追加は、人の許可を改めて求める（DEC-106）。人の申告（事実）：後退は車椅子側の制御で 1.7 km/h（0.47 m/s）に制限、前進は仕様上 
+      4.5 km/h（1.25 m/s）で実際は未確認。「まずnav2で自律走行させてみよう」は、今の構成では開始できない（ND-07 がなく TR-05 で拒否、Nav2 の実車の値 
+      PRM-11・17・18・66〜73 が未確定で Nav2 が起動しない）と分岐セッションで人に説明済み、人の判断待ち。
+    disposition: answered
+  - id: DEC-172
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】後退の正規化の値を前進と別に持つか。motion_controller は前後とも PRM-39（1.111 m/s）で割るが、後退は車椅子側で 0.47 m/s（1.7 
+      km/h、人の申告）に制限されるため、後退では倒し量と実速度の比が前進と違う（倒し切っても 0.47 m/s）。
+    answer_verbatim: "DEC-172: 後退用のPRMを1.7km/hとして保存。（m/sに直して良い）\n"
+    affected_refs:
+      - ND-11
+      - PRM-39
+    resulting_refs:
+      - PRM-78
+    note: 推奨：後退用の正規化の値（例：PRM-39 と別の PRM、値は実測）を持つ。Nav2 の後退の上限（min_vel_x などの PRM-66〜73 
+      の該当項目）もこれに合わせる。代替：今のまま（後退は遅くなるだけで、cmd_vel より遅い向きのずれ。RQ-I020 の例外の扱いになる）。前進の PRM-39（人の指定 4 km/h）と仕様 4.5 
+      km/h の差は実測（Q-06）で確かめる。決まらない場合に止まる作業：後退を含む自律走行の速度の検証。
+    disposition: answered
+  - id: DEC-173
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: DR-15 の調査（reports/dr15_literal_audit_2026-10-21.md）で見つかった時間の値の扱い
+    answer_verbatim: "vehicle_bridgeの読み出し失敗の後の待ち 0.5 sで通知欄が埋まる問題：同種の通知は\"×5\"のように、回数を書くことにして、同じ通知は同じ欄しか使えないようにしよう。\n\
+      vehicle_bridgeの読み出し待ち0.05sでstatusの読み取りが遅れる問題については、esp32のstatusに送信時刻を含めるようにしよう。esp32内のタイマー値で問題ない。\n書込み待ちの上限0.2sはどうするのが最適か、意見を述べよ。\n\
+      gouda.sh stopの30s制限は外して良い。stop出来ないときは人間がubuntuを再起動するからだ。\nrosbagの停止の30s強制終了は廃止。30s以上かかっている場合は、定期的に進捗を出せると良いのだが、難しいかな？シーケンシャルバーみたいなので、進捗をグラフィカルに表示。これはポップアップウィンドウで表示。\n"
+    affected_refs:
+      - ND-12
+      - ND-02
+      - ND-04
+      - ND-01
+      - IFD-38
+    resulting_refs: []
+    note: (1) 通知の集約：monitor はすでに同じ通知（node・event・transition_id・reason）を 1 行にまとめ「×回数」を表示している（monitor_core.py の 
+      on_decision、web/app.js:115）。調査報告の「通知欄が埋まる」は誤りで、残る影響は ROS の DecisionEvent の保持（transient_local、深さ 
+      50）が、あとから接続した購読者（monitor の再起動など）に対して埋まることだけ。(2) STATUS の送信時刻：STATUS にはすでに ESP32 の時刻（uptime_ms、送信時の 
+      now_。payload の 36 バイト目）があり、/esp32/status に出ている（vehicle_core.status_key_values）。変更不要。(3) 
+      書き込みの待ちの上限：人が意見を求めた（第75便の報告で回答）。(4) gouda.sh stop の SIGTERM（30 s）・SIGKILL（10 s）を外す：人の決定。実装は許可を確認する。(5) 
+      rosbag の停止の 30 s の強制終了を廃止、時間がかかるときは monitor のポップアップで進捗を表示：人の決定。今の停止は record/rosbag/stop 
+      のサービスの中で待つため、上限をなくすとサービスが返らない。非同期の停止と進捗の表示の設計を人に示し、実装の許可を確認する。
+    disposition: answered
+  - id: DEC-174
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 実装の許可（第75便の報告）：vehicle_bridge の書き込みの方式、rosbag の非同期の停止と進捗のポップアップ、gouda.sh stop の上限の撤去と進捗の表示
+    answer_verbatim: "・書込み待ちの上限0.2sは、書込みを待たない方式とせよ。\n・rosbagの停止に関しては、君の推奨通りでいこう。まさに私が考えていたことです。ただし、30s経ってからポップアップが出るのは遅すぎるので、30sの制限は撤廃して、保存開始と同時にポップアップを出そう。\n\
+      ・gouda.sh stopについては、glimの保存状況をrosbagの保存の時と同じような情報を1sおきにterminalに表示しよう。\n"
+    affected_refs:
+      - ND-12
+      - ND-04
+      - ND-02
+      - ND-01
+      - IFD-11
+      - IFD-12
+      - PRM-77
+    resulting_refs:
+      - PRM-77
+    note: 実施（第76便）：(1) vehicle_bridge の書き込みは pyserial を使わず、O_NONBLOCK の fd へ 
+      os.write。入りきらない分は捨て、固定の理由で記録（monitor が ×回数にまとめる）。pyserial 3.5 の write_timeout=0 は EAGAIN 
+      で忙しく回り続けるため使わない。(2) record/rosbag/stop は SIGINT を送ってすぐ返す。保存中は record/status の 
+      rosbag_saving・rosbag_saving_output・rosbag_saving_started_at、終わると rosbag_last_save。保存中は新しい rosbag 
+      を始めない。終了時（shutdown）は保存を上限なしで待つ。monitor は保存の始まりと同時にポップアップ（往復するバー、経過時間、書き出したファイルの大きさ、増え方。全体の量は分からない）。(3) 
+      gouda.sh stop は SIGTERM・SIGKILL を送らず、PRM-77（1 s）ごとに GLIM（dump_path）と ros2 bag 
+      record（-o）の保存の大きさと増え方を表示する。
+    disposition: answered
+  - id: DEC-175
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 検査器 DR-15 の走査の範囲が狭い件（整数・firmware の C++・シェル・JavaScript を調べない、文章の中の数を拾う、承認値と同じ数しか探さない。報告 
+      reports/dr15_literal_audit_2026-10-21.md §3）を直すか
+    answer_verbatim: "・usbを差し直したときにvehicle_bridgeがesp32を認識できないのは大問題なので、改善策を考えてほしい。\n・esp32のuptime_ms が STATUS を作った瞬間の値であるかどうかを確かめてほしい。\n\
+      ・検査器（DR-15）の調べる範囲が狭い件は修正してほしい。本番に謎の原因でgoudaが停止して、完走失敗となることが最も怖い。\n"
+    affected_refs:
+      - RQ-I076
+    resulting_refs: []
+    note: 検査ルールの改訂（新しい制約の追加と既存の例外の廃止）の人の承認。実施は第77便：tools/hardcode_scan.py（新規）、check_design.py の DR-15 
+      の走査を置き換え、hardcode_scan_roots.json に scan・exclude を追加、hardcode_allowlist.json（新規、空）。旧来の「同じファイルに param_key
+      があれば報告しない」例外は廃止。許容の一覧への項目の追加は人の判断。回答の前の 2 点（USB の差し直し、uptime_ms）は同じ便で調査・提案。
+    disposition: answered
+  - id: DEC-176
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: USB を差し直したときの vehicle_bridge の再接続（第77便の作業記録 §3 の案 1〜5）の実装と、案 6（自律走行中の切断で一時停止に入れるか）
+    answer_verbatim: "USB を差し直したときの改善案を実装せよ。\n1~5は承認する。（btコントローラからの指令はusb接続断の際も常に受入可能にしておくこと。現在外部給電は考えていないが、将来的に外部給電する可能性もあるので、念のために指示しておく）\n\
+      6については、自律走行中に切断したとしても一時停止には入れず、続行させる設定とする。\n"
+    affected_refs:
+      - ND-12
+      - ND-17
+      - ND-03
+    resulting_refs: []
+    note: 実施は第79便（gouda_core/gouda_core/vehicle_bridge_node.py の SerialTransport、試験 
+      gouda_core/test/test_serial_reconnect.py）。BT コントローラの指令の受け入れは firmware の手動の判定が PC・USB 
+      の状態を見ないことで成り立つ（control.hpp の applied()、ホスト試験 DEC-167 A10）。firmware は変えていない。案 6：mode_manager は 
+      vehicle_bridge の切断を見ず、自律走行は続く。切断中は COMMAND が届かず、firmware が PRM-13（1.0 s）で PC 指令を中立にするため、車体は止まり、再接続後に 
+      HELLO の返事の boot_token で COMMAND が再開する（Nav2 の goal は続く）。USB 給電では差し直しで ESP32 が再起動し、PC の有効化に中立の COMMAND 
+      が要る。
+    disposition: answered
+  - id: DEC-177
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: ESP32 の USB の切断回数の表示と記録の形（第80便の前の報告の案 1〜4：1 vehicle_bridge が数えて新しい topic に出す、2 monitor 
+      に常時表示しポップアップは使わない、3 切断・再接続の記録に回数を添え理由の文を固定、4 数える範囲）
+    answer_verbatim: "1~3は承認する。4については、自律走行セッション中と事前地図作成のセッション中のみ記録。一時停止して再開した場合は、カウントを継続する。\n"
+    affected_refs:
+      - ND-12
+      - ND-02
+      - ND-04
+      - IFD-01
+      - IFD-28
+    resulting_refs:
+      - IFD-51
+    note: 
+      人の要望（原文、同じ日）：「切断回数をmonitorに表示し、ログに残すようなことをしてほしい。…切断したときにポップアップが出ると、他の情報が隠れて見えなくなる。gouda_monitorはgouda上に搭載されたpcの画面に表示されるので、ポップアップを消すのが難しいです」。実施（第80便）：セッションは
+      mode/state で決める（手動走行から事前地図作成・自律走行に入ると始まり、一時停止と再開では続き、手動走行に戻ると終わる。PC 
+      再起動で一時停止から始まるときは自律走行のセッション）。セッションの外では接続の状態だけを出し、数えない。事前地図作成のセッションで数えられるのは、vehicle_bridge 
+      が事前地図作成でポートを開いている場合だけ（DEC-169 の事前地図作成での configure は実装の許可待ち。今は事前地図作成では開いていない）。
+    disposition: answered
+  - id: DEC-178
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-21'
+    channel: chat + intent.md
+    question: intent.md 第12版の記録、rosbag の保存のポップアップの閉じ方、既知の 12 件の試験の修正（人の指示）
+    answer_verbatim: "rosbagの保存のポップアップは自分でボタンを押して消す方式にする。\n12県の試験の修正を行え。intent.md の変更は12版として保存せよ\n\n（intent.md 第12版
+      107 行）・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。\n"
+    affected_refs:
+      - FILE-INTENT-V11
+      - ND-02
+      - DEC-162
+      - DEC-174
+    resulting_refs:
+      - AR-012
+      - RQ-I085
+    note: intent.md 第12版：人が 107 行を追記（リポジトリ側の design/intent.md、更新 2026-10-21 00:16。DEC-162 の回答と同じ運用）。106 
+      行は末尾改行の付加だけで文は同一。rosbag の保存のポップアップ：今の実装（完了・失敗の後に確認ボタンで人が閉じる、DEC-174）のまま。変更なし。12 
+      件の試験の修正（第81便）：test_motion_core.py（9 件）は trial ファイルが無いとき承認値だけを読む（A9 と同じ。stage55_probe.py 
+      も）。test_vehicle_core.py の 2 件は「DAC の値が未確定」の頃の期待値を、全項目が承認値になった今の状態に合わせ、不完全な設定（DAC の値を除いたもの）が不正で DAC 
+      に書かないことは引き続き確かめる。対角の 1 mV の 1 件は、試験の名前どおり旧 firmware の表（中立 2500、230〜4700 mV、フルスケール 
+      4700。firmware/gouda_dualsense_usb/include/control.hpp:11・12）を試験の中に固定して確かめる形にした（期待値の変更。人の指示「12県の試験の修正を行え」による）。承認値（280〜4720
+      mV）で斜めに倒し切ると x 4069・y 4070 と 1 mV 非対称になる実装の振る舞い（Python の模型と firmware の mapVoltage 
+      の円の内側への寄せ）は直していない（実装の修正の要否は人の判断）。
+    disposition: answered
+  - id: DEC-179
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-21'
+    channel: chat + intent.md
+    question: intent.md 第13版（人の編集。16 行の置換。異常終了後の自動復帰の回数の扱い）
+    answer_verbatim: "intent.mdを再度更新したので確認せよ。\n\n（intent.md 第13版 16 行）・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元
+      → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）\n"
+    affected_refs:
+      - FILE-INTENT-V12
+      - RQ-I013
+      - PRM-10
+      - ND-03
+      - DEC-168
+      - DEC-008
+      - H-006
+      - TR-13
+      - TR-14
+      - TR-15
+      - TR-16
+      - TS-06
+      - TS-09
+      - C-006
+    resulting_refs:
+      - AR-013
+      - RQ-I086
+      - C-028
+      - G-RECOVERY-COUNT
+    note: 人の編集（2026-10-21 03:47）。第12版 16 
+      行の「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」を「復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）」に置換。その前の途中の編集（03:45「復旧回数が50回を超える度に、理由を記録する。」）は記録していない（人に意味を問い、人が
+      03:47 に書き直した）。意味：自動復帰の回数に上限はなく、上限到達で一時停止に入らない。50 
+      回ごと（50・100・150…回目）に理由を記録する。「復旧できない場合は一時停止」の文も無くなった。DEC-168（PRM-10 の無制限と intent.md:16 
+      の食い違い）はこの版で解消。PRM-10 は「理由を記録する回数の区切り」50 回（intent.md 
+      の記載値）に置き換える。設計への影響（復旧できないときの扱い、DEC-008・H-006、TR-13〜16、TS-06・09）は G-RECOVERY-COUNT に一覧した。設計の変更は工程 5-7 
+      の設計のときに行う。
     disposition: answered
 revisions:
   - id: REV-002
@@ -57206,4 +58541,694 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-MOSAIC-BEFORE-FIRST-START
+    removed_entity_ids: []
+  - id: REV-073
+    date: '2026-10-19'
+    summary: '人の指示「VMは更新した。次に進め」により、VM（コミット 3341602）で gouda.sh start をし、GNSS のドライバが初めて起動した（FILE-GNSS-FIRST-START）。ドライバは
+      USB1 で接続し設定を終えたが、受信機は sntp, on（雛形の ntp_server true）を Invalid command で拒否した。起動の後の gso: Stream1（USB1、状態の block、msec500）と
+      Stream3（USB1、PVT・方位など 10 block、msec100）、ほかは off。getDataInOut は起動の前と同じ。USB2 の NMEA は止まった。屋内で、単独測位（mode 1、衛星
+      13〜17、水平精度 約 11 m）、方位は出ない（AttEuler mode 0、error 1、heading NaN）。手順 4 は屋外での確認が残る。'
+    basis_refs:
+      - DEC-140
+      - DEC-142
+    added_entity_ids:
+      - G-GNSS-NO-HEADING
+    modified_entity_ids:
+      - ND-19
+      - IFD-49
+      - TS-35
+      - IFD-50
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-FIRST-START
+    removed_entity_ids: []
+  - id: REV-074
+    date: '2026-10-19'
+    summary: 屋外（人がアンテナを空の開けた所に出した）で測位と方位を確かめた（FILE-GNSS-OUTDOOR-CHECK）。単独測位（600/600、衛星 16〜21、水平精度の中央値 約 6.4 
+      m）。方位は出ない（AttEuler mode 0・error 1 が 599/599、方位の衛星数なし）。MeasEpoch の観測はすべて主アンテナ（番号 0）で、副アンテナ（番号 
+      1）の観測が一つもない。方位が出ない直接の理由は副アンテナの観測がないこと。ドライバの能力の警告はなく、sga, MultiAntenna は送られたと見る。
+    basis_refs:
+      - DEC-140
+    added_entity_ids: []
+    modified_entity_ids:
+      - TS-35
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-OUTDOOR-CHECK
+    removed_entity_ids: []
+  - id: REV-075
+    date: '2026-10-19'
+    summary: 人が main と aux のアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。Septentrio の Reference Guide 1.0.1 と Hardware
+      Manual 1.1.1 を読み（FILE-MOSAIC-DUAL-ANTENNA-NOTE）、人の許可（DEC-143）で MRTKLIB の mrtk relay から USB2 
+      に照会だけを送った（FILE-MOSAIC-MRTK-QUERY）。能力は Main+Aux1、許可は 2 本のアンテナと方位、方位の計算は MultiAntenna, Fixed。frontend mode
+      は Nominal（マニュアル 1.0.1 の値 SingleAnt・DualAnt にない。意味は原本未照合）。2 本で動かすには setFrontendMode DualAnt を Boot 
+      に保存して再起動する（Hardware Manual §4.2.3.2）。その変更を承認事項 DEC-144 にした。
+    basis_refs:
+      - DEC-143
+      - DEC-140
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids:
+      - FILE-MOSAIC-DUAL-ANTENNA-NOTE
+      - FILE-MOSAIC-MRTK-QUERY
+    removed_entity_ids: []
+  - id: REV-076
+    date: '2026-10-19'
+    summary: 人が DEC-144 を承認（原文）。指示どおり先に値の一覧を照会した（FILE-MOSAIC-MRTK-QUERY の追記）。help, setFrontendMode は引数名 fmMode
+      と説明だけで値の一覧を返さず、help, fmMode はエラー（$R?）。firmware 1.1.x の資料も見つからず、DualAnt が 1.1.1 の値かは未確認。一覧で DualAnt 
+      を確かめられなかったので、(b) の設定には進まず人に報告した。
+    basis_refs:
+      - DEC-144
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-077
+    date: '2026-10-19'
+    summary: 人の許可（DEC-145、原文）で、受信機の USB2 から sfm, DualAnt を Current にだけ送った（FILE-MOSAIC-MRTK-QUERY の追記）。前の gfm は
+      Nominal、sfm, DualAnt は受理（$R:）、後の gfm は DualAnt。Boot 保存・再起動はしていない。マニュアル 1.0.1 ではこの設定は次の reset 
+      から効く。ドライバ（configure_rx true）は起動のたびに eccf, Current, Boot を送るので、次のドライバの起動で DualAnt が Boot に保存される。
+    basis_refs:
+      - DEC-145
+      - DEC-144
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-078
+    date: '2026-10-19'
+    summary: 人の許可（DEC-146、原文）で Gouda を止め、USB2 から eccf, Current, Boot と exeResetReceiver, Hard, none 
+      を送った（FILE-MOSAIC-MRTK-QUERY の追記）。reset で USB が切れ、返答は記録できなかった。by-id の名前は作り直された（if02 は ttyACM2 に）。reset 
+      の後の gfm は DualAnt、gga は MultiAntenna, Fixed。Boot 保存と reset は効いた。副アンテナの観測と方位は未確認。Gouda は止めたまま。
+    basis_refs:
+      - DEC-146
+      - DEC-145
+      - DEC-144
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-079
+    date: '2026-10-20'
+    summary: 人の運用の条件（原文）を記録した（DEC-147）。分岐したセッションが DEC-135・136 
+      の材料を説明した後に人から受けた発言で、そのセッションからの連絡で受け取った。本番はスタート位置に並んだらすぐ発進し、fix 
+      を待つ時間はあるが八の字旋回などの較正の動きはできない。実験は手間をかけてよい。今の設計（較正 DEC-135 は実験・地図作成の走行で行い、本番は静止して fix を待って初期化する DEC-133 の 
+      T3 の形）とは食い違わない。intent.md への追記の案を承認事項 DEC-148 にした（intent_edit_requests.md §3）。
+    basis_refs:
+      - DEC-147
+      - DEC-133
+      - DEC-135
+      - DEC-136
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-INIT-POSE-GNSS
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-080
+    date: '2026-10-20'
+    summary: 人の確認（原文）を記録した（DEC-149）。今の車体の GNSS のアンテナ間隔は 0.34 m で、/config（VM の 
+      sensor_config.json、config_revision 18。main (0.45, 0.17, 0.77)、aux1 (0.45, -0.17, 0.77) m）の値が正しい。DEC-130 
+      の仕様の「アンテナ間隔 0.6 m（実測値）」は古い値。DEC-130 は書き換えない。
+    basis_refs:
+      - DEC-149
+      - DEC-130
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-081
+    date: '2026-10-20'
+    summary: 二つのセッションが status.md に同じ「第45便」を書いていた。時系列に並べ直した（第45便 P6 の調査、第46便 運用の条件 REV-079、第47便 ガイドとアンテナ間隔 
+      REV-080）。番号を取り合わないように、REV・DEC・便の番号を排他的なファイルの作成で予約する道具 design/tools/reserve_ids.py（単体の試験 5 
+      件）を足し、apply_revision.py は予約だけの REV を適用しないようにした（DEC-150）。
+    basis_refs:
+      - DEC-150
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-082
+    date: '2026-10-20'
+    summary: 'REV-075 で登録した 2 つの証拠のファイル（FILE-MOSAIC-MRTK-QUERY、FILE-MOSAIC-DUAL-ANTENNA-NOTE）に、登録の後で AI が追記していたため、記録の
+      SHA-256 と合わず移行の検査が違反になっていた（REV-076 以降。AI の誤り。分類: 実装（記録の手順））。2 つのファイルを登録の時の内容に戻し（SHA-256 が記録と一致することを確かめた）、追記の部分を新しいファイル
+      FILE-MOSAIC-MRTK-QUERY-FOLLOWUP に移して登録した。内容は変えていない。REV-076〜078 の「FILE-MOSAIC-MRTK-QUERY の追記」は、この新しいファイルの第
+      1 部を指す。'
+    basis_refs:
+      - DEC-144
+      - DEC-145
+      - DEC-146
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+    removed_entity_ids: []
+  - id: REV-083
+    date: '2026-10-20'
+    summary: 人が受信機を VM につなぎ直した後、屋内でドライバを検査した（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT。読むだけ、受信機のポートには触れていない）。Gouda
+      の sensor supervisor が by-id の USB1 を見つけてドライバを起動し、設定を終えた（拒否は既知の sntp, on だけ）。/config revision 18 
+      の取付から方位のオフセット 90 度を設定した（主→副が右）。PVT・方位・観測は 10 Hz、RFStatus は 1 Hz。屋内のため観測 0、測位と方位は mode 
+      0（期待どおり）。干渉・なりすましなし。
+    basis_refs:
+      - DEC-146
+      - DEC-149
+    added_entity_ids: []
+    modified_entity_ids:
+      - G-GNSS-NO-HEADING
+    added_source_ids: []
+    added_file_ids:
+      - FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT
+    removed_entity_ids: []
+  - id: REV-084
+    date: '2026-10-20'
+    summary: 人の指示で、DEC-139（NTRIP の補正の受け方）の選択肢に案 B3（Gouda の専用 node が NTRIP と受信機の USB2 を中継）を足し、提案 
+      design/proposals/ntrip_gga_proposal.md を第2版にした（B1 との比較と共通の注意）。推奨は変えない（まず B1 で RTK fix を確かめ、必要なら後で 
+      B3）。実装はしていない（DEC-106）。
+    basis_refs:
+      - DEC-139
+      - DEC-140
+      - DEC-125
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-085
+    date: '2026-10-20'
+    summary: 人が DEC-139 で案 B1 を採用（原文）。同じ回答の条件（NTRIP の認証などをリモート・git・ログ・rosbag・記録文書に載せない）に沿う B1 
+      の設計の案（DEC-151）と、検査ルールの案（DEC-152）を提案 design/proposals/ntrip_gga_proposal.md 第3版 §5・§6 
+      に書いた。漏れうる経路（中継の引数、supervisor の cmdline の記録、str2str の状態の出力、ドライバの params）をソースで確かめた。実装はしていない（DEC-106）。
+    basis_refs:
+      - DEC-139
+      - DEC-106
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-086
+    date: '2026-10-20'
+    summary: 人が DEC-151（案 B1 の実装の案）を承認（原文）。実装の段を 6 つに分け（提案 ntrip_gga_proposal.md 第3版 
+      §7）、段ごとに許可を求める。最初の段は記録の伏せ字（秘密の対策の前提）。実装はしていない。
+    basis_refs:
+      - DEC-151
+      - DEC-139
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-087
+    date: '2026-10-20'
+    summary: 人の許可（DEC-153、原文）で、案 B1 の段 1 を実装した。sensor supervisor（ND-18）が他のプロセスの command line を device_in_use 
+      の記録に書く前に、ntrip の URL は全体を、ほかの URL は user:password の部分を <redacted> 
+      にする（device_watch.redact_command・command_lines。伏せ字の後で 200 文字に切る）。ほかの振る舞いは変えていない。単体の試験 5 
+      件を追加（test_redact_command.py）。Mac・VM とも 184 件合格・1 件 skip。
+    basis_refs:
+      - DEC-153
+      - DEC-151
+      - DEC-139
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-088
+    date: '2026-10-20'
+    summary: 人の指示「段 2 の設計（gnss_rtk.yaml の書式と、追加する PRM の案）を示せ。実装はまだしない。」により、提案 ntrip_gga_proposal.md §8 に段 2 
+      の設計の案を書き、承認事項 DEC-154 にした。PRM は承認の後に正本に足す（今は足していない）。実装はしていない。
+    basis_refs:
+      - DEC-151
+      - DEC-139
+      - DEC-141
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-089
+    date: '2026-10-20'
+    summary: 人が DEC-154（案 B1 の段 2 の設計）を承認（原文）。新しい PRM 2 つを承認値で足した。PRM-75 受信機の補正の入力の接続先の名前 USB2、PRM-76 中継の接続先 
+      serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02。gnss_rtk.yaml 
+      の書式と誤りの扱い、雛形のままの値は提案 ntrip_gga_proposal.md §8 のとおり。段 2 の実装（gnss_config）はまだしていない（許可を改めて求める）。
+    basis_refs:
+      - DEC-154
+      - DEC-151
+      - DEC-141
+    added_entity_ids:
+      - PRM-75
+      - PRM-76
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-090
+    date: '2026-10-20'
+    summary: 人の許可（DEC-155、原文）で案 B1 の段 2 を実装した（gnss_config）。gnss_rtk.yaml は ntrip 
+      の節（caster・port・mountpoint・user・password）だけを読み（read_ntrip）、欠け・型の誤り・所有者以外の権限・旧い書式（rtk_settings）のときは使わない。ドライバの
+      params には NTRIP の値を一切入れず、有効なときだけ rtk_settings.serial_1.port を 
+      PRM-75（USB2）にする（ほかは雛形のまま）。誤りでもドライバは補正なしで起動する。注記には項目の名前だけを書く。単体の試験を 1 件置き換え 5 件追加（偽の値だけ）。Mac・VM とも 188 
+      件合格・1 件 skip。
+    basis_refs:
+      - DEC-155
+      - DEC-154
+      - DEC-151
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-091
+    date: '2026-10-20'
+    summary: 人の指示「段 3（中継の起動）の設計を示せ。実装はまだしない。」により、提案 ntrip_gga_proposal.md §9 に段 3 の設計の案を書き、承認事項 DEC-156 
+      にした。supervisor の起動の時の記録が全ドライバの command をそのまま書くこと（中継を同じ形で足すと認証が記録に出る）と、MRTKLIB の URL 
+      の分け方（使えない文字）をソースで確かめた。実装はしていない。
+    basis_refs:
+      - DEC-151
+      - DEC-154
+      - DEC-139
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-092
+    date: '2026-10-20'
+    summary: 人が DEC-156（案 B1 の段 3 の設計、提案 ntrip_gga_proposal.md §9）を承認（原文）。中継の終了の扱いは案 A（同じ同一性では作り直さない）。段 3 
+      の実装はまだしていない（許可を改めて求める）。
+    basis_refs:
+      - DEC-156
+      - DEC-151
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-093
+    date: '2026-10-20'
+    summary: '人の許可（DEC-157、原文）で案 B1 の段 3 を実装した。sensor supervisor が NTRIP の中継（str2str）を 4 つめの子プロセスとして PRM-76（USB2
+      の by-id）で見張って起動する（ntrip が有効、PRM-75/76、str2str、GNSS のドライバの設定がそろうとき）。起動に使う command（秘密を含む）はメモリの中だけで、記録には伏せ字の
+      command だけを書き、全ドライバの command も記録の前に伏せ字にする。中継の標準エラーは状態の文字・バイト数・bps だけに減らし、状態の変化だけを ntrip_relay_state として記録する。終了したら
+      ntrip_relay_exited を記録し、同じ同一性では作り直さない。gnss_config に RTKLIB の URL で使えない文字の検証を足した。単体: Mac 194 件合格・1 件 skip、VM
+      195 件合格。'
+    basis_refs:
+      - DEC-157
+      - DEC-156
+      - DEC-151
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-094
+    date: '2026-10-20'
+    summary: '人の許可（DEC-158、原文）で、未コミットの GNSS・NTRIP のコードのレビューの指摘 8 件を直した。中継を作り直すたびに状態の追跡を新しくする、標準エラーの読み取りは例外があっても最後まで読む、数値として読まれた
+      user・password・mountpoint に引用符の案内、URL の user:password の伏せ字を最後の @ まで、supervisor の中継の経路の試験（偽の str2str。ROS のある
+      VM で実行）、秘密のファイルと雛形を 1 回だけ読む（prepare_driver）、中継を key ごとの特別扱いでなく Driver の項目（launch・serial_path・stderr_reader・exit_event）で扱う、使っていない
+      RTK_KEYS を消す。振る舞いの設計（DEC-156）は変えていない。単体: Mac 199 件合格・3 件 skip、VM 202 件合格。'
+    basis_refs:
+      - DEC-158
+      - DEC-156
+      - DEC-157
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-095
+    date: '2026-10-20'
+    summary: 人が DEC-077（DAC の初期登録値）と DEC-079（手動仲裁の値）に回答（原文）。PRM-43＝2500 mV、PRM-44＝230 mV、PRM-45＝4700 
+      mV、PRM-46＝4700 mV、PRM-47＝800（半径 8 %）、PRM-48＝200 ms を承認値にした。人の申告（事実）：基板は EMC-270 の基準電圧に接続しておらず、ESP32 
+      側から電圧を出し GND で返すだけ。firmware のコードは変えていない。
+    basis_refs:
+      - DEC-077
+      - DEC-079
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
+      - PRM-47
+      - PRM-48
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-096
+    date: '2026-10-20'
+    summary: 人の指示（DEC-159、原文）：中立 2500 mV（変わらず）、最大 4800 mV、最小 200 mV に変更、STATUS は 500 
+      ms。PRM-44＝200、PRM-45＝4800、PRM-49＝500 を承認値にした（DEC-077 の値は台帳に残し、PRM-44・45 だけ DEC-159 
+      で置き換え）。フルスケール（PRM-46＝4700 mV）は回答に無く、最大 4800 mV がフルスケールを超えるため firmware の設定の検査（dac_max_mv ≤ 
+      dac_full_scale_mv）が不合格になり、firmware は DAC に書かない。フルスケールの値と「x,y軸の合計値」の意味を DEC-160 で問う。
+    basis_refs:
+      - DEC-159
+      - DEC-160
+      - DEC-077
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
+      - PRM-49
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-097
+    date: '2026-10-20'
+    summary: 分岐したセッションからの引き継ぎ（人の指示「元のセッションで記録させる」）を記録。証拠 
+      FILE-ESP32-DAC-WIRING-20261020（人のテスターでの実測、人の発言の転記、図面の読み取り）。DAC の出力はコード 4095 で無負荷 4.72 V、DAC の倍率は 2 
+      倍で、フルスケール（PRM-46）は ESP32 の 5V ピン（PC の USB 5V）の実電圧に等しい。最大 4800 
+      mV（DEC-159）は今の給電では出せない。新規：DEC-161（実測：フルスケールと USB 5V への依存）、DEC-162（承認・実測：R7 除去後に EMC 
+      の入力が浮く。安全）、DEC-163（承認：RQ-I020 の補足、円の外の指令）、DEC-164（承認：firmware のコメントの誤りの修正）。DEC-160・DEC-050 に追記。
+    basis_refs:
+      - DEC-160
+      - DEC-159
+      - DEC-077
+      - DEC-050
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+      - PRM-46
+    added_source_ids: []
+    added_file_ids:
+      - FILE-ESP32-DAC-WIRING-20261020
+    removed_entity_ids: []
+  - id: REV-098
+    date: '2026-10-20'
+    summary: 人の許可（DEC-165、原文）で案 B1 の段 4 を行った。setup.sh の apt の一覧に rtklib（Ubuntu universe、str2str）を足した。apt の 
+      rtklib 2.4.3.b34 のソースを読み（FILE-RTKLIB-STR2STR-REVIEW）、シリアルは raw・エコー無効、URL のデコードはしない（gnss_config 
+      の文字の検証は必要）、状態の表示の形は ntrip_relay と同じ、SIGINT で止まる、trace は既定で無し、NTRIP v1（HTTP/1.0、Basic 認証）で TLS 
+      がないことを確かめた。Point One が v1・TLS なしを受け付けるかは原本未照合。VM への導入は人（sudo）。
+    basis_refs:
+      - DEC-165
+      - DEC-151
+      - DEC-156
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-RTKLIB-STR2STR-REVIEW
+    removed_entity_ids: []
+  - id: REV-099
+    date: '2026-10-20'
+    summary: 人の回答（DEC-160、原文）：最大 4720 mV、最低 280 mV、フルスケール 4720 mV。PRM-45＝4720、PRM-44＝280、PRM-46＝4720 
+      を承認値にした（DEC-159 の 4800・200 と DEC-077 の 4700 を置き換え）。中立 2500 mV（PRM-43）は変わらず、円の中心 (280＋4720)/2＝2500 mV 
+      が中立と一致、半径 2220 mV。最大＝フルスケールで firmware の設定の検査（dac_max_mv ≤ 
+      dac_full_scale_mv）に合格する。同じ回答の「firmwareを修正し、ビルドするコマンドを生成せよ」で実車向けビルドを実行。
+    basis_refs:
+      - DEC-160
+      - DEC-159
+      - DEC-161
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-44
+      - PRM-45
+      - PRM-46
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-100
+    date: '2026-10-20'
+    summary: 
+      人の回答（原文）。DEC-162：車体の電源を先に切ってから基板の電源を切る運用で足り、順番を間違えても非常停止ボタンを押せばよい、無視してよい未決事項。プルダウンは付けない。DEC-161：必要ない。PRM-46＝4720
+      mV（DEC-160）のまま、実車の給電での実測はしない。
+    basis_refs:
+      - DEC-161
+      - DEC-162
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+      - PRM-46
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-101
+    date: '2026-10-20'
+    summary: REV-100 で ND-17 の解釈に追記した文が DR-06（非常停止の語を node の定義に含めない、intent.md:101）に当たったため、その文を除き、DEC-162 
+      の回答の原文を参照する形に書き直した。DEC-162 の回答の原文と意味は変えていない。
+    basis_refs:
+      - DEC-162
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-102
+    date: '2026-10-21'
+    summary: 人の回答（DEC-164、原文）で、firmware/gouda_esp32_v4/src/main.cpp の writeDac の A チャンネルのコメント「gain 1x」を「gain 
+      2x (GA=0)」に直した。コメントだけで、コマンド値 0x1000・0x9000 と動作は変えていない。
+    basis_refs:
+      - DEC-164
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-103
+    date: '2026-10-21'
+    summary: 人の回答（DEC-166）で車体出力の実車の設定値を承認：PRM-14・09・41・16・42・15・61・39・40。これで 
+      gouda_motion_controller・vehicle_bridge・gouda_mode_manager の周期の値と、ESP32 の接続先がそろう。
+    basis_refs:
+      - DEC-166
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-09
+      - PRM-14
+      - PRM-15
+      - PRM-16
+      - PRM-39
+      - PRM-40
+      - PRM-41
+      - PRM-42
+      - PRM-61
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-104
+    date: '2026-10-21'
+    summary: 人の回答の記録：DEC-167（A9・A10 の許可）、DEC-078（方針11 ＝ 5-5 の完了条件に基本契約 5 件の stub 
+      試験を含める、を許可）、DEC-163（分岐セッションでの回答の転記。RQ-I020 の補足を詳しく書く）。人の指示「PRM-10 は無制限」は intent.md:16 と食い違うため 
+      DEC-168（承認待ち）に登録。
+    basis_refs:
+      - DEC-167
+      - DEC-078
+      - DEC-163
+      - DEC-168
+    added_entity_ids: []
+    modified_entity_ids:
+      - RQ-I020
+      - PRM-10
+      - ND-17
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-105
+    date: '2026-10-21'
+    summary: 人の指示（DEC-169、原文）で PRM-49（ESP32 STATUS の送信周期）を 500 ms（DEC-159）から 50 ms に変更。PRM-15（1.5 s）は 50 ms 
+      より長く、関係は保たれる。同じ指示の後半（vehicle_bridge を事前地図作成モードでも起動）は、configure だけか activate までかを人に確かめてから別に記録する。
+    basis_refs:
+      - DEC-169
+      - DEC-159
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-49
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-106
+    date: '2026-10-21'
+    summary: 分岐セッションからの人の発言の転送を記録。DEC-170（最高速度の規則は車椅子側の速度上限で守る。人の確定）、DEC-171（不感帯の補償 案 A を方針として承認。実装は許可待ち。後退 
+      1.7 km/h・前進仕様 4.5 km/h の申告）、DEC-172（後退の正規化。承認待ち）。
+    basis_refs:
+      - DEC-170
+      - DEC-171
+      - DEC-172
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-11
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-107
+    date: '2026-10-21'
+    summary: 人の回答（DEC-173、原文）：DR-15 の調査で見つかった時間の値の扱い。通知の集約と STATUS の送信時刻はすでに実装済み（調査報告の誤りを訂正）。gouda.sh stop 
+      の上限を外す、rosbag の停止の強制終了を廃止して進捗を表示する、は人の決定（実装は許可を確認）。
+    basis_refs:
+      - DEC-173
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-12
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-108
+    date: '2026-10-21'
+    summary: 人の許可（DEC-174、原文）で実装：vehicle_bridge の書き込みを待たない方式に、rosbag の停止を非同期にして保存の進捗をポップアップで表示、gouda.sh stop 
+      の上限を撤去して 1 s ごとに保存の進捗を表示（PRM-77）。
+    basis_refs:
+      - DEC-174
+      - DEC-173
+    added_entity_ids:
+      - PRM-77
+    modified_entity_ids:
+      - ND-01
+      - ND-02
+      - ND-04
+      - ND-12
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-109
+    date: '2026-10-21'
+    summary: REV-108 で足した PRM-77 の source_refs が空で、スキーマ（空でないこと）に違反した（DR-01、他のルールが連鎖して未判定）。出典を 
+      intent.md:103（実測値・設定はハードコードせず宣言的に書く、RQ-I076）に。値と意味は変えていない。
+    basis_refs:
+      - DEC-174
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-77
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-110
+    date: '2026-10-21'
+    summary: 人の承認（DEC-175）で DR-15 のハードコードの走査を改訂。コードだけ（コメント・docstring・文字列を除く）を 
+      Python・web・firmware・シェルで走査し、承認値と同じ数に加えて、待ち・期限・周期・再試行の行の 0 以外の数を未判定として報告する。人が許容したものは許容の一覧で除く。
+    basis_refs:
+      - DEC-175
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-111
+    date: '2026-10-21'
+    summary: 人の承認（DEC-176）で vehicle_bridge の USB 再接続を実装。案 6 は「自律走行中に切断しても一時停止に入れず続行」。
+    basis_refs:
+      - DEC-176
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-12
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-112
+    date: '2026-10-21'
+    summary: 人の承認（DEC-177、原文）で、ESP32 の USB の切断回数を monitor に常に表示し記録する（IFD-51 
+      を追加）。数えるのは事前地図作成と自律走行のセッションの中だけ、一時停止と再開では続ける。
+    basis_refs:
+      - DEC-177
+      - DEC-176
+    added_entity_ids:
+      - IFD-51
+    modified_entity_ids:
+      - ND-02
+      - ND-12
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-113
+    date: '2026-10-21'
+    summary: REV-112 で足した IFD-51 の version_dependency を unconfirmed にしたため DR-10（版未照合の IF 
+      は未解決の問題を参照する）に違反した。IFD-51 は Gouda 内の topic で標準の型だけを使い、版に依存しないので none にする（他の内部 IF と同じ）。
+    basis_refs:
+      - DEC-177
+    added_entity_ids: []
+    modified_entity_ids:
+      - IFD-51
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-114
+    date: '2026-10-21'
+    summary: 人の指示（DEC-178）：intent.md 第12版（107 行の追記、SHA 2427bc6a…、AR-012、RQ-I085）を記録。rosbag 
+      の保存のポップアップは確認ボタンで閉じる今の方式のまま。既知の 12 件の試験を修正（試験の基盤 10 件、期待値 2 件と旧 firmware の表の固定 1 件）。
+    basis_refs:
+      - DEC-178
+      - DEC-162
+    added_entity_ids:
+      - RQ-I085
+    modified_entity_ids:
+      - ND-17
+    added_source_ids:
+      - SRC-I107-V12
+    added_file_ids:
+      - FILE-INTENT-V12
+    removed_entity_ids: []
+  - id: REV-115
+    date: '2026-10-21'
+    summary: REV-114 で足した RQ-I085（intent.md 第12版 107 行：車体の電源を先に切ってから基板の電源を切る運用）が設計要素に対応付いておらず DR-05 
+      に違反した。基板（ESP32・DAC）の電圧出力の扱いなので ND-17 の requirement_refs に加える（意味は変えない対応付け）。
+    basis_refs:
+      - DEC-178
+      - DEC-162
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-17
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-116
+    date: '2026-10-21'
+    summary: intent.md 第13版（人の編集。16 行の置換：自動復帰は回数の上限なく、50 回ごとに理由を記録）を記録（AR-013、RQ-I086、DEC-179、C-028）。DEC-168 
+      を解消し、PRM-10 を「理由を記録する回数の区切り 50」に。設計への影響は G-RECOVERY-COUNT。DEC-172 の回答で後退の正規化の値 PRM-78＝0.472 m/s（1.7 
+      km/h）を保存（実装は許可待ち）。
+    basis_refs:
+      - DEC-179
+      - DEC-168
+      - DEC-172
+    added_entity_ids:
+      - RQ-I086
+      - C-028
+      - G-RECOVERY-COUNT
+      - PRM-78
+    modified_entity_ids:
+      - RQ-I013
+      - C-006
+      - C-019
+      - H-006
+      - ND-03
+      - SO-01
+      - TR-02
+      - TR-09
+      - TR-13
+      - TR-14
+      - TR-15
+      - TR-16
+      - PRM-10
+      - TS-06
+      - TS-09
+    added_source_ids:
+      - SRC-I016-V13
+    added_file_ids:
+      - FILE-INTENT-V13
+    removed_entity_ids: []
+  - id: REV-117
+    date: '2026-10-21'
+    summary: REV-116 で PRM-10 の approval_decision_ref を DEC-179（confirmation、status recorded）にしたため 
+      DR-01（承認の根拠は回答済みの決定）に違反した。同じ人の編集（intent.md 第13版 16 行）を原文で記録した回答済みの DEC-168 に変える。値と意味は変えない。
+    basis_refs:
+      - DEC-168
+      - DEC-179
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-10
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

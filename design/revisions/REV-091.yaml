@@ -1,0 +1,32 @@
+# 変更セット REV-091（2026-10-20 第57便: B1 の段 3 の設計の案）
+# 適用: design/tools/apply_revision.py REV-091
+id: REV-091
+date: '2026-10-20'
+summary: 人の指示「段 3（中継の起動）の設計を示せ。実装はまだしない。」により、提案 ntrip_gga_proposal.md §9 に段 3 の設計の案を書き、承認事項 DEC-156 にした。supervisor の起動の時の記録が全ドライバの command をそのまま書くこと（中継を同じ形で足すと認証が記録に出る）と、MRTKLIB の URL の分け方（使えない文字）をソースで確かめた。実装はしていない。
+basis_refs:
+- DEC-151
+- DEC-154
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-156
+  kind: approval
+  status: pending
+  asked_on: '2026-10-20'
+  answered_on: null
+  channel: chat
+  question: '【承認】案 B1 の段 3 の設計（提案 ntrip_gga_proposal.md §9）。(1) 中継（str2str）を sensor supervisor の子プロセスにし、PRM-76（USB2 の by-id）で見張る。起動は ntrip が有効・PRM-75/76 がある・str2str がある・GNSS のドライバの設定がそろうとき。str2str の timeout・再接続・表示の間隔は既定のまま。(2) 秘密の扱い：記録用の command（ntrip を伏せ字）と起動に使う command を分け、全ドライバの command を記録の前に伏せ字にする。中継の標準エラーからは状態の文字・バイト数・bps だけを取り出し msg は捨てる。状態の変化だけを記録する。(3) 中継が終わっても同じ同一性では作り直さない（DEC-088 と同じ。案 A）。(4) gnss_config の検証を足す（# は不可、user と mountpoint に : は不可、caster に : / @ は不可）。(5) 段 3 の実装の許可は 1〜4 の後に改めて求める。'
+  answer_verbatim: ''
+  affected_refs:
+  - ND-18
+  - ND-19
+  - PRM-75
+  - PRM-76
+  - DEC-151
+  resulting_refs: []
+  note: 推奨は承認。(3) の代替案 B：中継だけは終了の後に一定の時間をおいて作り直す（間隔は新しい PRM）。apt の rtklib の str2str が user・password の URL のデコードをするかは未確認（段 4 で確かめ、するなら percent-encoding で (4) の制約を緩める案を別に出す）。決まらない場合に止まる作業：段 3〜6、RTK fix の確認。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

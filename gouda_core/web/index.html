@@ -32,6 +32,7 @@
         <span class="k">LINK</span><span class="v amber" id="link-state">CONNECTING</span>
         <span class="k">NODES</span><span class="v" id="node-count">—</span>
         <span class="k">REC</span><span class="v" id="rec-short">NOT_RECEIVED</span>
+        <span class="k">USB</span><span class="v" id="usb-short">—</span>
       </div>
     </div>
     <div class="hdr-right ops" id="ops">
@@ -73,6 +74,7 @@
         </div>
         <div class="panel bottom" id="esp32">
           <div class="panel-title"><span class="code">ESP32</span>ESP32 CONTROLLER <span class="status amber" id="esp32-status">NOT_RECEIVED</span></div>
+          <table class="kv" id="usb-table"></table>
           <table class="kv" id="esp32-table"></table>
           <div class="note" id="esp32-note"></div>
         </div>
@@ -220,6 +222,7 @@
     <span class="dim">表示断は停止契機ではない（DEC-014）。</span>
   </footer>
 </div>
+<div id="bagsave" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">ROSBAG</span><span id="bagsave-title">rosbag を保存中</span></div><div class="bagbar"><div class="bagbar-run" id="bagsave-bar"></div></div><div class="popup-body" id="bagsave-body"></div><div class="btnrow"><button class="op" id="bagsave-ack" type="button" hidden>確認<small>ACK</small></button></div></div></div>
 <div id="popup" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">WARNING</span><span id="popup-title">記録の自動開始に失敗</span></div><div class="popup-body" id="popup-body"></div><div class="btnrow"><button class="op" id="popup-ack" type="button">確認<small>ACK</small></button></div></div></div>
 <script src="/static/app.js"></script>
 </body>

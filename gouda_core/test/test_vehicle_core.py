@@ -26,6 +26,9 @@ def load_yaml_flat(*names):
     import re
     vals = {}
     for name in names:
+        # A trial file exists only while some value is still unresolved; once all are approved, the approved file alone is read
+        if name.endswith('.trial.yaml') and not (PARAMS / name).is_file():
+            continue
         for line in (PARAMS / name).read_text(encoding='utf-8').splitlines():
             m = re.match(r'\s*(\w+): ([-\d.]+)', line)
             if m: vals[m.group(1)] = float(m.group(2))
@@ -74,9 +77,12 @@ class CodecTests(unittest.TestCase):
         cfg = firmware_config()
         self.assertEqual(cfg['pc_command_watchdog_ms'], 1000, 'PRM-13 1.0 s -> ms'); self.assertEqual(cfg['bt_report_timeout_ms'], 250, 'PRM-21 0.25 s -> ms')
         self.assertTrue(sim.config_valid(cfg))
+        # Since DEC-077/079/160/169 every firmware value is approved: the approved file alone is a complete, valid configuration.
         approved_only = p.config_from_params(load_yaml_flat('firmware_config.yaml'))
-        self.assertNotIn('dac_neutral_mv', approved_only, 'DAC values are unresolved (DEC-077): never filled in')
-        self.assertFalse(sim.config_valid(approved_only))
+        self.assertEqual(set(approved_only), set(p.CONFIG_KEYS)); self.assertTrue(sim.config_valid(approved_only))
+        # An incomplete configuration (DAC values absent, as before DEC-077) is never filled in and is not valid.
+        partial = {k: v for k, v in approved_only.items() if not k.startswith('dac_')}
+        self.assertNotIn('dac_neutral_mv', partial); self.assertFalse(sim.config_valid(partial))
         items = p.config_items(cfg); self.assertEqual(len(items), 10); self.assertEqual(p.decode_config_items(items), {k: cfg[k] for k in p.CONFIG_KEYS})
 
     def test_newer_sequence(self):
@@ -141,8 +147,9 @@ class FirmwareModelTests(unittest.TestCase):
     def test_without_config_dac_is_not_written(self):
         fw = sim.Esp32Sim(boot_token=1, config=None)
         a = fw.applied(); self.assertEqual(a.source, sim.SRC_NONE); self.assertEqual(a.reason, sim.R_CONFIG_INVALID); self.assertIsNone(a.dac)
-        approved_only = p.config_from_params(load_yaml_flat('firmware_config.yaml'))
-        fw2 = sim.Esp32Sim(boot_token=1, config=approved_only); self.assertIsNone(fw2.applied().dac)
+        # an incomplete configuration (DAC values absent) does not write the DAC either
+        partial = {k: v for k, v in p.config_from_params(load_yaml_flat('firmware_config.yaml')).items() if not k.startswith('dac_')}
+        fw2 = sim.Esp32Sim(boot_token=1, config=partial); self.assertIsNone(fw2.applied().dac)
 
     def test_boot_is_neutral_and_pc_disabled(self):
         a = self.applied(0); self.assertEqual(a.source, sim.SRC_NONE); self.assertEqual(a.target_mv, self.neutral); self.assertFalse(self.fw.pc_enabled)
@@ -246,12 +253,14 @@ class FirmwareModelTests(unittest.TestCase):
         c = p.decode_config(next(f for f in p.Parser().feed(out) if f.kind == p.CONFIG).payload); self.assertEqual(c['dac_neutral_mv'], self.cfg['dac_neutral_mv']); self.assertEqual(c['config_generation'], 1)
 
     def test_voltage_mapping_matches_previous_firmware_table(self):
-        n, lo, hi = self.cfg['dac_neutral_mv'], self.cfg['dac_min_mv'], self.cfg['dac_max_mv']
+        # The previous firmware's values (control.hpp of firmware/gouda_dualsense_usb: neutral 2500, 230..4700 mV, full scale
+        # 4700) are fixed here: the test checks the mapping against that table, independent of the approved values.
+        n, lo, hi = 2500, 230, 4700
         self.assertEqual(sim.map_voltage(0, 0, n, lo, hi), (n, n))
         x, y = sim.map_voltage(1, 0, n, lo, hi); self.assertEqual(y, n); self.assertLessEqual(x, hi); self.assertGreater(x, hi - 5)
         x, y = sim.map_voltage(-1, 0, n, lo, hi); self.assertEqual(y, n); self.assertGreaterEqual(x, lo); self.assertLess(x, lo + 5)
         x, y = sim.map_voltage(1, 1, n, lo, hi); self.assertTrue(sim.inside_circle(x, y, lo, hi)); self.assertEqual(x, y)
-        self.assertEqual(sim.dac_code(self.cfg['dac_full_scale_mv'], self.cfg['dac_full_scale_mv']), 4095)
+        self.assertEqual(sim.dac_code(4700, 4700), 4095)
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ import json
 import math
 import os
 import threading
+import time
 from pathlib import Path
 
 import rclpy
@@ -113,6 +114,7 @@ class MonitorNode(Node):
         # threshold is PRM-15 (unresolved; trial file in stub tests). Without it, STALE is never shown (freshness verdict says so).
         self.declare_parameter('esp32_status_stale_s', Parameter.Type.DOUBLE)
         self.core.stale_after_esp32_s = optional_double(self, 'esp32_status_stale_s')
+        self.create_subscription(DiagnosticArray, 'vehicle/link_status', self._on_usb_link, LATCHED)   # DEC-177
         self.create_subscription(DiagnosticArray, '/esp32/status', self._on_esp32, QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10))
         # IFD-21 / IFD-22 reception (DEC-088): display and the mapping-start warning only, never a stop condition. Raw (serialized)
         # messages: the monitor only counts arrivals and reads header.stamp, so the 64000-point clouds are not deserialized.
@@ -140,7 +142,7 @@ class MonitorNode(Node):
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
-                                                '/api/map_settings': self._get_map_settings},
+                                                '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving},
                                     post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert})
         url = self.server.start()
         self._publish_settings('startup')
@@ -193,6 +195,13 @@ class MonitorNode(Node):
                     self.core.on_esp32({kv.key: kv.value for kv in st.values} | {'message': st.message, 'hardware_id': st.hardware_id})
         self.server.notify(self.core.connection_revision)
 
+    def _on_usb_link(self, arr: DiagnosticArray):
+        for st in arr.status:
+            if st.name == 'esp32_usb_link':
+                with self._lock:
+                    self.core.on_usb_link({kv.key: kv.value for kv in st.values})
+        self.server.notify(self.core.connection_revision)
+
     def _on_decision(self, d: DecisionEvent):
         with self._lock:
             self.core.on_decision({'stamp': d.header.stamp.sec + d.header.stamp.nanosec * 1e-9, 'node': d.node, 'event': d.event, 'transition_id': d.transition_id,
@@ -227,6 +236,15 @@ class MonitorNode(Node):
         return snap
 
     # ---- 地図 tab (intent.md:106, RQ-I082) ----
+    def _get_rosbag_saving(self, rest, query):
+        """Progress of the rosbag save after a stop request (DEC-174): the folder named in record/status and its size on disk.
+        The total is not known (ros2 bag record does not report it), so the page shows elapsed time, size and growth."""
+        fields = self.core.record.data if self.core.record else {}
+        out = fields.get('rosbag_saving_output', '')
+        return {'ok': True, 'saving': fields.get('rosbag_saving') == 'True', 'output': out,
+                'started_at': fields.get('rosbag_saving_started_at', ''), 'bytes': monitor_core.folder_bytes(out) if out else None,
+                'last_save': fields.get('rosbag_last_save', ''), 'now': time.time()}
+
     def _get_map_settings(self, rest, query):
         """The conversion settings with gouda_map_creator's current values as defaults (None when it has no value)."""
         values = {}

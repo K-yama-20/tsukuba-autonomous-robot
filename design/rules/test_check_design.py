@@ -97,7 +97,8 @@ class DesignRuleTests(unittest.TestCase):
         b['param_key'] = a['param_key']  # different target (gouda_mode_manager vs gouda_motion_controller)
         r = self.res(m)['DR-15']
         self.assertEqual(r['violations'], [x for x in r['violations'] if 'が 2 回宣言' not in x])
-        self.assertEqual(self.res(self.m)['DR-15']['result'], '合格')
+        # The real model has no DR-15 violation. Undetermined findings of the code scan (DEC-175) are for the human to decide.
+        self.assertEqual(self.res(self.m)['DR-15']['violations'], [])
     def test_five_metres_reused(self):
         m = copy.deepcopy(self.m); p = self.ent(m, 'PRM-11')['parameter']; p['value'] = 5.0; p['value_state'] = 'source_value'
         self.assertEqual(self.res(m)['DR-13']['result'], '違反')
@@ -133,6 +134,69 @@ class HardcodeScanTests(unittest.TestCase):
         r = self._scan('timeout = 1.0\nother = 0.7\n')
         self.assertTrue(any('PRM-13' in u for u in r['undetermined']), r['undetermined'])
         self.assertTrue(any('PRM-08' in u for u in r['undetermined']), r['undetermined'])
+
+
+class HardcodeScanV2Tests(unittest.TestCase):
+    """DR-15 code scan (DEC-175, tools/hardcode_scan.py): only code is scanned; approved values and time values are
+    reported in Python, C++, JavaScript and shell; the allowlist accepts a finding and reports an entry that matches nothing."""
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(DESIGN / 'tools'))
+        import hardcode_scan
+        cls.h = hardcode_scan; cls.m = load_yaml(DESIGN / 'model.yaml')
+        cls.tmp = DESIGN / 'rules' / 'fixtures' / '_scan_v2_tmp'; cls.rel = 'design/rules/fixtures/_scan_v2_tmp'
+
+    def _scan(self, files, allow=()):
+        import shutil
+        self.tmp.mkdir(parents=True, exist_ok=True)
+        try:
+            scan = []
+            for name, (lang, text) in files.items():
+                (self.tmp / name).write_text(text)
+                if lang == 'python': continue
+                scan.append({'path': f'{self.rel}/{name}', 'lang': lang})
+            cfg = {'roots': [self.rel] if any(l == 'python' for l, _ in files.values()) else [], 'scan': scan}
+            return self.h.scan(self.m, cfg, list(allow))[0]
+        finally:
+            shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_comments_docstrings_and_strings_are_not_scanned(self):
+        u = self._scan({'a.py': ('python', '"""see CLAUDE.md 1.5 and wait 0.7 s"""\n# timeout 0.7\nVERSION = "tool 0.2"\nx = 1\n')})
+        self.assertEqual(u, [])
+
+    def test_approved_value_in_python_code_is_reported(self):
+        u = self._scan({'a.py': ('python', 'cmd_vel_timeout = 0.7\n')})
+        self.assertTrue(any('PRM-08' in x for x in u), u)
+
+    def test_time_values_are_reported_in_every_language(self):
+        u = self._scan({'a.py': ('python', 'import time\ntime.sleep(0.3)\n'),
+                        'b.cpp': ('cpp', '// delay(9) in a comment\nconstexpr int kRetryPeriodMs = 7;\nvoid f() { delay(1); }\n'),
+                        'c.js': ('js', 'setTimeout(f, 1500); // 2500\n'),
+                        'd.sh': ('shell', 'for _ in $(seq 1 30); do sleep 1; done  # 99\n')})
+        joined = '\n'.join(u)
+        for needle in ('a.py:2: 0.3', 'b.cpp:2: 7', 'b.cpp:3: 1', 'c.js:1: 1500', 'd.sh:1: 30', 'd.sh:1: 1'):
+            self.assertIn(needle, joined)
+        for absent in (': 9 ', ': 2500 ', ': 99 '):
+            self.assertNotIn(absent, joined)
+
+    def test_indexes_enum_names_and_html_text_are_not_reported(self):
+        u = self._scan({'a.cpp': ('cpp', 'c.bt_report_timeout_ms = it[5];\n'),
+                        'b.py': ('python', 'R_WAITING_CENTER = 11\n'),
+                        'c.html': ('js', '<p>timeout 30 s</p><script>let a = 1;</script>\n')})
+        self.assertEqual(u, [])
+
+    def test_integer_approved_value_only_in_its_declaration_language(self):
+        u = self._scan({'a.py': ('python', 'status = 200\n'), 'b.cpp': ('cpp', 'int release = 200;\n')})
+        self.assertFalse(any('a.py' in x for x in u), u)
+        self.assertTrue(any('b.cpp' in x and 'PRM-48' in x for x in u), u)
+
+    def test_allowlist_accepts_and_stale_entry_is_reported(self):
+        files = {'a.py': ('python', 'import time\ntime.sleep(0.3)\n')}
+        ok = {'file': f'{self.rel}/a.py', 'line_contains': 'time.sleep(', 'literal': '0.3', 'reason': 'test', 'decision': 'DEC-175'}
+        stale = dict(ok, literal='0.4')
+        self.assertEqual(self._scan(files, [ok]), [])
+        u = self._scan(files, [ok, stale])
+        self.assertEqual(len(u), 1); self.assertIn('一致しない', u[0])
 
 
 class AutoRecordAndQosRuleTests(unittest.TestCase):

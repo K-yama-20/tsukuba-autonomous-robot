@@ -50,6 +50,10 @@ class Session:
     # One entry per rosbag start: a restart in the same session writes to a new folder (G-REC-ROSBAG-RESTART: a second
     # `ros2 bag record -o <existing folder>` exits at once and the bag was silently lost on 2026-10-14).
     rosbag_outputs: list = field(default_factory=list)
+    # The rosbag being saved after a stop request (DEC-174): ros2 bag record finishes writing after SIGINT; there is no time
+    # limit, and the monitor shows the progress from the start of the save. None when no save is in progress.
+    rosbag_finalizing: Optional[dict] = None
+    last_finalize: Optional[dict] = None
 
 
 class RecorderCore:
@@ -149,6 +153,8 @@ class RecorderCore:
         s = self._ensure_session()
         if s.rosbag_active:
             return True, 'rosbag already active'
+        if s.rosbag_finalizing is not None:
+            return False, f"refused: the previous rosbag is still being saved ({s.rosbag_finalizing['output']})"
         out = self._next_rosbag_dir(s)
         try:
             self._rosbag_start(out)
@@ -164,18 +170,49 @@ class RecorderCore:
         return True, f'rosbag recording started in {out}'
 
     def stop_rosbag(self, trigger: str) -> tuple[bool, str]:
+        """Request the stop and return at once (DEC-174): the save continues in ros2 bag record and ends in rosbag_finalized."""
         s = self.session
         if s is None or not s.rosbag_active:
             return True, 'rosbag recording is not active'
-        try:
-            self._rosbag_stop()
-        except Exception as e:
-            s.failures.append({'time': self.clock(), 'what': 'rosbag_stop', 'error': str(e)})
+        out = s.rosbag_outputs[-1]['output'] if s.rosbag_outputs else ''
         s.rosbag_active = False; s.rosbag_started_by = ''
         if s.rosbag_outputs and s.rosbag_outputs[-1]['stopped_at'] is None:
-            s.rosbag_outputs[-1].update(stopped_at=self.clock(), result='stopped')
+            s.rosbag_outputs[-1].update(stopped_at=self.clock(), result='saving')
+        try:
+            saving = self._rosbag_stop()
+        except Exception as e:
+            s.failures.append({'time': self.clock(), 'what': 'rosbag_stop', 'error': str(e), 'output': out})
+            if s.rosbag_outputs: s.rosbag_outputs[-1].update(result='stop_failed')
+            self.status_revision += 1; self._write_session_json()
+            self._log_failure('rosbag_stop', str(e), out)
+            return False, f'rosbag stop failed: {e}'
+        if saving:
+            s.rosbag_finalizing = {'output': out, 'started_at': self.clock()}
+            msg = f'rosbag stop requested; saving {out}'
+        else:   # the process had already ended: nothing to wait for
+            if s.rosbag_outputs: s.rosbag_outputs[-1].update(result='stopped')
+            msg = 'rosbag recording stopped'
         self.status_revision += 1; self._write_session_json()
-        return True, 'rosbag recording stopped'
+        return True, msg
+
+    def rosbag_finalized(self, returncode, detail: str = '') -> tuple[bool, str]:
+        """ros2 bag record ended after a stop request: the save is complete (exit code 0) or failed (recorded and shown)."""
+        s = self.session
+        if s is None or s.rosbag_finalizing is None:
+            return False, 'no rosbag was being saved'
+        f = s.rosbag_finalizing; s.rosbag_finalizing = None
+        ok = returncode == 0
+        result = 'stopped' if ok else 'save_failed'
+        for o in reversed(s.rosbag_outputs):
+            if o['output'] == f['output']:
+                o.update(result=result, saved_at=self.clock(), exit_code=returncode); break
+        s.last_finalize = {'output': f['output'], 'started_at': f['started_at'], 'finished_at': self.clock(), 'ok': ok, 'exit_code': returncode}
+        if not ok:
+            error = f'ros2 bag record ended with exit code {returncode} while saving; {detail}'.strip().rstrip(';')
+            s.failures.append({'time': self.clock(), 'what': 'rosbag_save', 'error': error, 'output': f['output']})
+            self._log_failure('rosbag_save', error, f['output'])
+        self.status_revision += 1; self._write_session_json()
+        return ok, (f"rosbag saved: {f['output']}" if ok else f"rosbag save failed (exit code {returncode}): {f['output']}")
 
     def rosbag_exited(self, returncode, detail: str = '') -> tuple[bool, str]:
         """The `ros2 bag record` process ended without a stop request (start refused, disk full, crash). The rosbag is
@@ -247,4 +284,8 @@ class RecorderCore:
             'failures': len(s.failures) if s else 0, 'status_revision': self.status_revision,
             'rosbag_output': (s.rosbag_outputs[-1]['output'] if s and s.rosbag_outputs and s.rosbag_active else ''),
             'last_failure': (f"{s.failures[-1]['what']}: {s.failures[-1]['error']}"[:300] if s and s.failures else ''),
+            'rosbag_saving': bool(s and s.rosbag_finalizing),
+            'rosbag_saving_output': (s.rosbag_finalizing['output'] if s and s.rosbag_finalizing else ''),
+            'rosbag_saving_started_at': (s.rosbag_finalizing['started_at'] if s and s.rosbag_finalizing else ''),
+            'rosbag_last_save': (json.dumps(s.last_finalize, ensure_ascii=False) if s and s.last_finalize else ''),
         }

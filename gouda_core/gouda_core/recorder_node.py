@@ -3,7 +3,8 @@
 Services (std_srvs/Trigger): record/log/start (IFD-08, human Record), record/log/stop (IFD-09, human Stop Record),
 record/log/start_autodrive (IFD-44) and record/log/start_pre_mapping (IFD-45) called by gouda_mode_manager only when a
 human start operation was accepted (DR-16), record/log/stop_auto (IFD-46) stopping only an auto-started log,
-record/rosbag/start (IFD-10), record/rosbag/stop (IFD-11). All log entrances share one start procedure and state
+record/rosbag/start (IFD-10), record/rosbag/stop (IFD-11). The rosbag stop only requests the stop (SIGINT) and returns;
+ros2 bag record finishes saving without a time limit and the end of the save is published in record/status (DEC-174). All log entrances share one start procedure and state
 (RecorderCore.start_log); the origin and trigger are kept and written to the log (DEC-071).
 Subscribes mode/state (IFD-01) and log/decision (IFD-28, transient_local) and writes them to the log.
 Publishes record/status (IFD-12, diagnostic_msgs/DiagnosticArray, reliable, transient_local, depth 1) on every change.
@@ -107,22 +108,33 @@ class RecorderNode(Node):
     def _watch_bag(self, proc: subprocess.Popen, log_path: Path):
         code = proc.wait()
         with self._lock:
-            if proc is not self._bag_proc or self._bag_stopping:
-                return   # stopped by a request (or replaced): not a failure
+            if proc is not self._bag_proc:
+                return   # replaced: not this recording
             self._bag_proc = None
-            ok, msg = self.core.rosbag_exited(code, 'last output: ' + ' | '.join(_tail(log_path)))
+            if self._bag_stopping:   # the save after a stop request has ended (DEC-174)
+                self._bag_stopping = False
+                saved, msg = self.core.rosbag_finalized(code, 'last output: ' + ' | '.join(_tail(log_path)))
+                failed = not saved
+            else:
+                failed, msg = self.core.rosbag_exited(code, 'last output: ' + ' | '.join(_tail(log_path)))
+                saved = False
             self._publish_status()
-        if ok:
+        if saved:
+            self.get_logger().info(msg)
+        elif failed:
             self.get_logger().warning(msg)   # the only warning call site of this method (rclpy: one severity per call site)
 
-    def _bag_stop(self):
+    def _bag_stop(self) -> bool:
+        """Send SIGINT and return at once (DEC-174). True while ros2 bag record is still saving; the watcher thread reports
+        the end. No time limit: a forced stop would cut the bag (the human restarts the PC if it never ends)."""
         p = self._bag_proc
         if p and p.poll() is None:
             self._bag_stopping = True
-            os.killpg(os.getpgid(p.pid), signal.SIGINT)
-            try: p.wait(timeout=30)
-            except subprocess.TimeoutExpired: os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+            try: os.killpg(os.getpgid(p.pid), signal.SIGINT)
+            except ProcessLookupError: pass   # it ended just now; the watcher thread reports how
+            return True
         self._bag_proc = None
+        return False
 
     # ---- status (IFD-12) ----
     _last_status_rev = -1
@@ -136,12 +148,22 @@ class RecorderNode(Node):
         arr = DiagnosticArray(); arr.header.stamp = self.get_clock().now().to_msg()
         d = DiagnosticStatus(); d.name = 'gouda_recorder'; d.hardware_id = ''
         d.level = DiagnosticStatus.OK if st['failures'] == 0 else DiagnosticStatus.WARN
-        d.message = ('log ' + ('active' if st['log_active'] else 'stopped')) + ', rosbag ' + ('active' if st['rosbag_active'] else 'stopped')
+        d.message = ('log ' + ('active' if st['log_active'] else 'stopped')) + ', rosbag ' + ('active' if st['rosbag_active'] else 'saving' if st['rosbag_saving'] else 'stopped')
         d.values = [KeyValue(key=k, value=str(v)) for k, v in st.items()]
         arr.status = [d]; self.status_pub.publish(arr)
 
     def destroy_node(self):
-        self._bag_stop(); super().destroy_node()
+        """On shutdown the rosbag is stopped and its save is waited for without a time limit (DEC-174); gouda.sh stop
+        shows the progress."""
+        with self._lock:
+            if self.core.session is not None and self.core.session.rosbag_active:
+                self.core.stop_rosbag('shutdown')
+            else:
+                self._bag_stop()
+            p = self._bag_proc
+        if p is not None:
+            p.wait()
+        super().destroy_node()
 
 
 def _tail(path: Path, lines: int = 3) -> list:

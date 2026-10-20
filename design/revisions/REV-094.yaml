@@ -1,0 +1,32 @@
+# 変更セット REV-094（2026-10-20 第62便: コードレビューの指摘 8 件の修正）
+# 適用: design/tools/apply_revision.py REV-094
+id: REV-094
+date: '2026-10-20'
+summary: '人の許可（DEC-158、原文）で、未コミットの GNSS・NTRIP のコードのレビューの指摘 8 件を直した。中継を作り直すたびに状態の追跡を新しくする、標準エラーの読み取りは例外があっても最後まで読む、数値として読まれた user・password・mountpoint に引用符の案内、URL の user:password の伏せ字を最後の @ まで、supervisor の中継の経路の試験（偽の str2str。ROS のある VM で実行）、秘密のファイルと雛形を 1 回だけ読む（prepare_driver）、中継を key ごとの特別扱いでなく Driver の項目（launch・serial_path・stderr_reader・exit_event）で扱う、使っていない RTK_KEYS を消す。振る舞いの設計（DEC-156）は変えていない。単体: Mac 199 件合格・3 件 skip、VM 202 件合格。'
+basis_refs:
+- DEC-158
+- DEC-156
+- DEC-157
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-158
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: コードレビュー（/code-review、high）の指摘 8 件をすべて直してよいか
+  answer_verbatim: 'レビューの指摘をすべて直すことを許可する。
+
+    '
+  affected_refs:
+  - ND-18
+  - ND-19
+  - DEC-156
+  resulting_refs: []
+  note: 変えたファイル：gouda_core/gouda_core/ntrip_relay.py（read_status は例外を数えて読み続ける、build_relay）、gouda_core/gouda_core/gnss_config.py（prepare_driver、引用符の案内、RTK_KEYS と serial_1_baud を削除）、gouda_core/gouda_core/device_watch.py（_USERINFO）、gouda_core/gouda_core/sensor_supervisor_node.py（Driver の項目、_drivers_summary、_read_relay で追跡を新しく、key ごとの分岐を削除）、試験：test_ntrip_relay.py・test_redact_command.py・test_gnss_config.py に追加、test_sensor_supervisor_relay.py（新規、ROS が要る）。原因の分類はすべて実装。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []
