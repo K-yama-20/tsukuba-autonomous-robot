@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 6008,
+    "executed_checks": 6019,
     "violations": [
       {
         "code": "MIGRATION",
@@ -33,6 +33,16 @@
         "detail": {
           "actual": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
           "expected": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4"
+        }
+      },
+      {
+        "code": "MIGRATION",
+        "path": "live intent requirements still present in current file",
+        "detail": {
+          "actual": [
+            "・車体は全長 1,010 mm × 全幅 598 mm × 全高 950 mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint` は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。"
+          ],
+          "expected": []
         }
       },
       {
@@ -148,6 +158,14 @@
       "intent instruction expectation compared AR-013",
       "intent non-append edit recorded with decision AR-013",
       "intent added line AR-013:16 has requirement entity",
+      "intent previous copy archived AR-014",
+      "intent removed line text recorded AR-014:100",
+      "intent reproduced from archived copy plus recorded lines AR-014",
+      "intent observed added line count recorded AR-014",
+      "intent instruction expectation compared AR-014",
+      "intent non-append edit recorded with decision AR-014",
+      "intent added line AR-014:100 has requirement entity",
+      "intent added line AR-014:108 has requirement entity",
       "unchanged design/docs/Gouda_architecture_detail.xlsx",
       "unchanged design/docs/SystemArchitecture.drawio",
       "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
@@ -299,7 +317,8 @@
       "model file hash FILE-ESP32-DAC-WIRING-20261020",
       "model file hash FILE-RTKLIB-STR2STR-REVIEW",
       "model file hash (archived) FILE-INTENT-V12",
-      "model file hash FILE-INTENT-V13",
+      "model file hash (archived) FILE-INTENT-V13",
+      "model file hash FILE-INTENT-V14",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -2577,6 +2596,8 @@
       "intent verbatim (its version) SRC-I014-V11",
       "intent verbatim (its version) SRC-I107-V12",
       "intent verbatim (its version) SRC-I016-V13",
+      "intent verbatim (its version) SRC-I100-V14",
+      "intent verbatim (its version) SRC-I108-V14",
       "row disposition inventory",
       "row disposition ('モジュール定義', 1)",
       "row disposition ('モジュール定義', 2)",
@@ -7693,11 +7714,14 @@
           "TR-15",
           "TR-16",
           "TS-06",
-          "TS-09"
+          "TS-09",
+          "PRM-18",
+          "TR-07",
+          "ND-10"
         ],
         "resolution_refs": [],
         "question": "intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03 の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。",
-        "next_action": "工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。"
+        "next_action": "工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。あわせて、Nav2 の BT の recovery の回数と理由も 50 回ごとに記録する仕組みを設計に足す（DEC-194、人が採用。PRM-18＝9999999 で BT がほぼ失敗を返さないため）。"
       }
     ],
     "open_conflicts": [
@@ -7725,13 +7749,14 @@
       "C-025",
       "C-026",
       "C-027",
-      "C-028"
+      "C-028",
+      "C-029"
     ]
   },
   "design_maturity": {
-    "未設計": 412,
-    "案": 442,
-    "承認済み": 47
+    "未設計": 415,
+    "案": 423,
+    "承認済み": 66
   },
   "revisions": [
     {
@@ -8933,6 +8958,46 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-122",
+      "date": "2026-10-21",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 21,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-123",
+      "date": "2026-10-21",
+      "basis_refs": 3,
+      "added_entity_ids": 3,
+      "modified_entity_ids": 26,
+      "added_source_ids": 2,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-124",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-125",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -9161,21 +9226,40 @@
       "added_line_numbers": [
         16
       ]
+    },
+    {
+      "id": "AR-014",
+      "file_ref": "FILE-INTENT-V14",
+      "previous_file_ref": "FILE-INTENT-V13",
+      "sha256": "9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4",
+      "previous_sha256": "c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f",
+      "archived_previous_copy": "design/baselines/intent_history/intent_v13_c4d1a69aee5f.md",
+      "instruction_expected_added_lines": 1,
+      "observed_added_lines": 2,
+      "decision_ref": "DEC-196",
+      "requirement_refs": [
+        "RQ-I087",
+        "RQ-I088"
+      ],
+      "note": "人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 06:05 の後、全高を直した版。SHA-256 9bf08d3e…、108 行）。100 行の置換と 108 行の追記だけ。途中の版（全高 120 mm、SHA-256 6af20a12…）は記録していない（人に確かめ、人が「1200mmの誤りであった。intent.mdは修正した」と直した）。AI は intent.md を編集していない（current_copy は一字も変えない写し）。",
+      "added_line_numbers": [
+        100,
+        108
+      ]
     }
   ],
   "decisions": {
-    "count": 189,
+    "count": 197,
     "by_status": {
-      "answered": 114,
-      "recorded": 54,
-      "pending": 21
+      "answered": 121,
+      "recorded": 56,
+      "pending": 20
     },
     "pending": [
       "DEC-021",
       "DEC-022",
       "DEC-024",
       "DEC-050",
-      "DEC-098",
       "DEC-099",
       "DEC-100",
       "DEC-101",
@@ -9199,8 +9283,8 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 901,
-    "source_count": 503,
+    "entity_count": 904,
+    "source_count": 505,
     "id_map_count": 202,
     "legacy_198_count": 198,
     "unbound_edges": 1,

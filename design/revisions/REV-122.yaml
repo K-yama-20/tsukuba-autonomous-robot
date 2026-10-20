@@ -1,0 +1,341 @@
+# 変更セット REV-122（2026-10-21 第90便: DEC-192〜195、DEC-098、Nav2 の実車の値、PRM-39、地図の変換の値）
+# 適用: design/tools/apply_revision.py REV-122
+id: REV-122
+date: '2026-10-21'
+summary: 分岐セッションで人が答えた D10・D11（転記、DEC-192〜194、DEC-098）を記録する。Nav2 の実車の値 PRM-11・17・18・66〜73 を承認値にする（footprint は足置きを外した車体、障害物の上限は地面から 1.35 m）。PRM-39 を 1.25 m/s（4.5 km/h）にする（DEC-166 の値を置き換え）。PRM-18＝9999999 の振る舞いの変化を承認し、G-RECOVERY-COUNT に BT の recovery の記録を足す。地図の変換の値 PRM-33〜36・38・62〜64 を承認値にする（PRM-36 は 1.35 m）。intent.md:100 の車体の寸法と「人は乗らない」の追記案は DEC-195（pending）。
+basis_refs:
+- DEC-192
+- DEC-193
+- DEC-194
+- DEC-098
+intent_version_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+files: []
+decisions:
+- id: DEC-192
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: D10：Nav2 の実車の値（PRM-11・17・18・66〜73）。未確定の間、実車では Nav2 を起動しない（intent.md:85）
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「D10: 全体的に安全思想に偏りすぎ。また、電動車椅子に人は絶対に乗らないし乗るスペースもない。以下の値を設定せよ。\n69:後輪車軸から前端まで55cm, 後端まで24cm。横幅は60cm, 車輪間の距離は530mm。\n66: 前進の最高速は4.5km/hとする。\n67: 最大の角速度は1.0rad/sとする。\n68: 加速度上限は1.2m/s^2とするが、実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある。\n73: 2.0rad/sとする。\n17: 20hzでよい。\n70: -0.065mでよい。\n71: 障害物の高さ上限は地面から135cmでよい。\n72: 0.5mでよい。\n11: 0.7mとする。\n18: recoveryの回数は9999999回とする。」\n"
+  affected_refs:
+  - PRM-11
+  - PRM-17
+  - PRM-18
+  - PRM-66
+  - PRM-67
+  - PRM-68
+  - PRM-69
+  - PRM-70
+  - PRM-71
+  - PRM-72
+  - PRM-73
+  - ND-10
+  resulting_refs:
+  - PRM-11
+  - PRM-17
+  - PRM-18
+  - PRM-66
+  - PRM-67
+  - PRM-68
+  - PRM-69
+  - PRM-70
+  - PRM-71
+  - PRM-72
+  - PRM-73
+  note: 換算：PRM-69 は base_link（後輪軸の中央）基準で、前端 0.55 m、後端 0.24 m、横幅 0.60 m の長方形 [[0.55, 0.30], [0.55, -0.30], [-0.24, -0.30], [-0.24, 0.30]]。PRM-66＝4.5 km/h＝1.25 m/s。PRM-71＝地面から 1.35 m − PRM-05（base_link の高さ 0.165 m、記載値）＝1.185 m（base_link 基準）。PRM-70＝−0.065 m（base_link 基準。地面から 0.10 m）。人の申告（事実として記録）：車輪の間隔 530 mm、足置きは取り外した、人は乗らない。注：PRM-67 の 1.0 rad/s は、倒し切ったときの旋回 PRM-40（0.97 rad/s）を少し超えるので、motion_controller で頭打ちになる（人に伝え済み、分岐セッション）。PRM-68 について人の申告「実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある」。転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った）。
+  disposition: answered
+- id: DEC-193
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: PRM-39（cmd_vel の正規化に用いる最大並進速度。倒し切ったときの前進の速度）を DEC-166 の 1.111 m/s（4 km/h）から変えるか
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\nD11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n"
+  affected_refs:
+  - PRM-39
+  - ND-11
+  resulting_refs:
+  - PRM-39
+  note: PRM-39＝1.25 m/s（4.5 km/h）。DEC-166 は書き換えず、この決定で PRM-39 の値だけを置き換える（CLAUDE.md 1.5）。影響：motion_controller の前進の正規化（倒し量＝linear.x／1.25）、不感帯の補償（DEC-171、倒し量に掛かる）、承認値を読む試験（値を固定した試験はない：第90便で確認）。SR-06（6 km/h 以下）の範囲内。前進の最高速の実測（Q-06）は残る。
+  disposition: answered
+- id: DEC-194
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: PRM-18＝9999999 で振る舞いが変わること：Nav2 の BT がほぼ失敗を返さなくなり、計画の失敗による一時停止（TR-07、intent.md:15 の「Nav2のBTが後退も再計画もできず失敗を返した場合、Goudaは一時停止モードに入り」）がほぼ起きない。recovery（回転・後退・待機）を続ける。PRM-10 の 50 回ごとの記録はモードの層の復帰（TR-13〜16）の数え方で、BT の recovery は数えていない。案：9999999 で設定し、BT の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足す（G-RECOVERY-COUNT と一緒に、工程 5-7 で）
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\nD11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n"
+  affected_refs:
+  - PRM-18
+  - ND-10
+  - ND-03
+  - TR-07
+  - G-RECOVERY-COUNT
+  resulting_refs:
+  - PRM-18
+  - G-RECOVERY-COUNT
+  note: intent.md:15 の文（BT が失敗を返した場合は一時停止）とは食い違わない：失敗を返したときの振る舞いは変わらず、失敗を返すまでの回数が非常に多くなるだけ。ただし実際には「失敗を返して一時停止」がほぼ起きなくなり、経路の閉塞の間は recovery を続ける。人の原文「recoveryの後退は自由に使って良い。」（intent.md:15「blocked時を含め、後退しても良い」と同じ向き）。BT の number_of_retries は int で、9999999 は 32 bit の範囲内。
+  disposition: answered
+- id: DEC-195
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】intent.md の改訂案（人が編集する。案は design/proposals/intent_edit_requests.md §4）：(1) intent.md:100「車体は全長 1,010 mm × 全幅 598 mm × 全高 950 mmの直方体の中にあるとする」を、足置きを外した今の車体（後輪軸から前端 550 mm・後端 240 mm＝全長 790 mm、全幅 600 mm、車輪の間隔 530 mm）に改めるか。(2) 「電動車椅子に人は乗らない（乗るスペースもない）」を前提として書き足すか
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-01
+  - PRM-02
+  - PRM-69
+  - RQ-I074
+  resulting_refs: []
+  note: 人の申告（DEC-192・DEC-193 の原文）：「電動車椅子に人は絶対に乗らないし乗るスペースもない」「足置きは邪魔なので取り外した。」。PRM-01（1.01 m）・PRM-02（0.598 m）は intent.md:100 の写しなので、この改訂の前には変えない（チャットの指示が上位の要求と食い違うため、黙って適用しない：CLAUDE.md 1.1）。改訂の後に、PRM-01＝0.79 m、PRM-02＝0.60 m に変える変更セットを出す。PRM-69（footprint）は人の答えた値（DEC-192）で、intent.md:100 の直方体（1,010×598 mm）より小さい。幅は 2 mm 大きい。決まらない場合に止まる作業：PRM-01・02 の更新（Nav2 は PRM-69 を使うので止まらない）。
+  disposition: open_human
+entities: []
+modifications:
+- id: PRM-11
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 0.7
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「11: 0.7mとする。」。測定値ではない'
+  interpretation_append: 'REV-122: DEC-192 で 0.7 を承認。'
+- id: PRM-17
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 20.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「17: 20hzでよい。」'
+  interpretation_append: 'REV-122: DEC-192 で 20 Hz を承認。'
+- id: PRM-18
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 9999999
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「18: recoveryの回数は9999999回とする。」。振る舞いの変化（計画の失敗による一時停止がほぼ起きない）は DEC-194 で承認'
+  interpretation_append: 'REV-122: DEC-192・DEC-194 で 9999999 を承認。BT の recovery の回数と理由の 50 回ごとの記録は G-RECOVERY-COUNT（工程 5-7）。'
+- id: PRM-66
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 1.25
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「66: 前進の最高速は4.5km/hとする。」（4500/3600＝1.25 m/s）。実測ではない（Q-06）'
+  interpretation_append: 'REV-122: DEC-192 で 1.25 m/s を承認。'
+- id: PRM-67
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 1.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「67: 最大の角速度は1.0rad/sとする。」。PRM-40（0.97 rad/s）を少し超え、motion_controller で頭打ちになる'
+  interpretation_append: 'REV-122: DEC-192 で 1.0 rad/s を承認。'
+- id: PRM-68
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 1.2
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「68: 加速度上限は1.2m/s^2とするが、実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある。」'
+  interpretation_append: 'REV-122: DEC-192 で 1.2 m/s² を承認。'
+- id: PRM-69
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: '[[0.55, 0.30], [0.55, -0.30], [-0.24, -0.30], [-0.24, 0.30]]'
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: 人の決定（DEC-192）：「69:後輪車軸から前端まで55cm, 後端まで24cm。横幅は60cm」。base_link（後輪軸の中央）基準の長方形
+  interpretation_append: 'REV-122: DEC-192 で承認。足置きを外した車体（人の申告）。intent.md:100 の直方体（1,010×598 mm）との差は DEC-195。車輪の間隔 530 mm（人の申告）は記録だけ（使う設定はない）。'
+- id: PRM-70
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: -0.065
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「70: -0.065mでよい。」（base_link 基準。地面から 0.10 m）'
+  interpretation_append: 'REV-122: DEC-192 で −0.065 m を承認。'
+- id: PRM-71
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 1.185
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「71: 障害物の高さ上限は地面から135cmでよい。」。base_link 基準へ換算：1.35 − PRM-05（0.165 m）＝1.185 m。PRM-05 は記載値（実測していない）で、変わればこの換算も変わる。地図の上限 PRM-36（地面から 1.35 m）とそろえた（DEC-098 の回答）'
+  interpretation_append: 'REV-122: DEC-192 で 1.185 m（地面から 1.35 m）を承認。'
+- id: PRM-72
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 0.5
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「72: 0.5mでよい。」'
+  interpretation_append: 'REV-122: DEC-192 で 0.5 m を承認。'
+- id: PRM-73
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-192
+  set_nested:
+    parameter.value: 2.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-192）
+    parameter.measurement: '人の決定（DEC-192）：「73: 2.0rad/sとする。」（角加速度の上限、rad/s²）'
+  interpretation_append: 'REV-122: DEC-192 で 2.0 rad/s² を承認。'
+- id: PRM-39
+  set:
+    approval_decision_ref: DEC-193
+  set_nested:
+    parameter.value: 1.25
+    parameter.decision_deadline: 決定済み（DEC-193。DEC-166 の 1.111 を置き換え）
+    parameter.measurement: 人の決定（DEC-193）：「最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。」（4500/3600＝1.25 m/s）。測定値ではない。実車の速度の確認（Q-06・Q-03）は残る
+  interpretation_append: 'REV-122: DEC-193 で 1.111 m/s（DEC-166）を 1.25 m/s に置き換えた。'
+- id: PRM-33
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 0.1
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 0.1 を承認（推奨値）。'
+- id: PRM-34
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 0.1
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 0.1 を承認（推奨値）。'
+- id: PRM-35
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 0.15
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 0.15 を承認（推奨値）。'
+- id: PRM-38
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 1.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 1.0 を承認（推奨値）。'
+- id: PRM-62
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 0.5
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 0.5 を承認（推奨値）。'
+- id: PRM-63
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 10.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 10.0 を承認（推奨値）。'
+- id: PRM-64
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 1.0
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+  interpretation_append: 'REV-122: DEC-098 で 1.0 を承認（推奨値）。'
+- id: PRM-36
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-098
+  set_nested:
+    parameter.value: 1.35
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-098）
+    parameter.measurement: 人の決定（DEC-098）：推奨 1.2 m から人の指定「1.35mに統一する。」に変更。地面から 1.35 m で、走行中の上限 PRM-71（地面から 1.35 m）とそろえた。注（推測）：推奨の根拠（全高 0.95 m＋0.25 m）より高いので、地面から 1.2〜1.35 m の枝などが地図の障害物に入り、その下を通る経路が引かれない場合がある
+  interpretation_append: 'REV-122: DEC-098 で 1.35 m を承認（人の指定）。'
+- id: G-RECOVERY-COUNT
+  set_nested:
+    issue.affected_refs:
+    - ND-03
+    - PRM-10
+    - H-006
+    - TR-13
+    - TR-14
+    - TR-15
+    - TR-16
+    - TS-06
+    - TS-09
+    - PRM-18
+    - TR-07
+    - ND-10
+    issue.next_action: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 回ごとの記録の中身、復帰の間隔。いずれも承認事項。あわせて、Nav2 の BT の recovery の回数と理由も 50 回ごとに記録する仕組みを設計に足す（DEC-194、人が採用。PRM-18＝9999999 で BT がほぼ失敗を返さないため）。
+  interpretation_append: REV-122（DEC-194）：PRM-18＝9999999 により、計画の失敗による一時停止（TR-07）がほぼ起きなくなった。BT の recovery の数え方と記録をこの issue で扱う。
+decision_updates:
+- id: DEC-098
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\nD11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n（分岐セッションが「PRM-36（地図の上限 1.2 m）と PRM-71（走行中の上限、地面から 1.35 m）の差で、1.2〜1.35 m の物は地図に描かれないが走行中は障害物に見える」と説明したことに対して）「1.35mに統一する。プロンプトを書き直せ」\n"
+    disposition: answered

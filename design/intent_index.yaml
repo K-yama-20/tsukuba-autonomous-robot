@@ -40,8 +40,11 @@ authority:
     role: authority_superseded
   FILE-INTENT-V13:
     sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    role: authority_superseded
+  FILE-INTENT-V14:
+    sha256: 9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4
     role: authority
-line_count: 79
+line_count: 80
 lines:
   - line: 1
     requirement_id: RQ-I001
@@ -1141,16 +1144,17 @@ lines:
       - TS-40
     issue_refs: []
   - line: 100
-    requirement_id: RQ-I074
-    text: ・車体は全長 1,010 mm × 全幅 598 mm × 全高 950 
+    requirement_id: RQ-I087
+    text: ・車体は全長 800 mm × 全幅 600 mm × 全高 1200 
       mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
       は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 
       mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
-    source_id: SRC-I100-V3
-    authority_file: FILE-INTENT-V3
+    source_id: SRC-I100-V14
+    authority_file: FILE-INTENT-V14
     referenced_by:
       - C-018
       - C-021
+      - C-029
       - H-005
       - IFD-20
       - ND-13
@@ -1293,4 +1297,13 @@ lines:
     authority_file: FILE-INTENT-V12
     referenced_by:
       - ND-17
+    issue_refs: []
+  - line: 108
+    requirement_id: RQ-I088
+    text: ・電動車椅子に人は乗らない。
+    source_id: SRC-I108-V14
+    authority_file: FILE-INTENT-V14
+    referenced_by:
+      - PRM-66
+      - PRM-68
     issue_refs: []

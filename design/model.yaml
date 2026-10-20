@@ -1,12 +1,12 @@
 schema_version: '1.1'
 metadata:
-  authority_ref: FILE-INTENT-V13
+  authority_ref: FILE-INTENT-V14
   scope: スキーマ・既存資料移行・出典・矛盾整理・移行検査のみ。新規下位設計、ROS実装、完成図表は対象外。
   id_policy: 既存IDを保持。新IDは今回割当てたregistryを固定し、位置変更や名称変更で再採番しない。
   extraction_verification_ref: FILE-EXTRACT-VERIFY
   design_validity: 未判定
   vehicle_verification: 未実施
-  model_revision: REV-116
+  model_revision: REV-123
 files:
   - id: FILE-INTENT
     path: design/intent.md
@@ -367,6 +367,12 @@ files:
   - id: FILE-INTENT-V13
     path: design/intent.md
     sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    role: authority_superseded
+    superseded_by: FILE-INTENT-V14
+    archived_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+  - id: FILE-INTENT-V14
+    path: design/intent.md
+    sha256: 9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4
     role: authority
 sources:
   - id: SRC-I001
@@ -12859,6 +12865,37 @@ sources:
       basis: intent.md 新版 AR-013（DEC-179 の回答）を上位要求とする
       locations:
         - intent.md:16
+  - id: SRC-I100-V14
+    file_ref: FILE-INTENT-V14
+    kind: intent_lines
+    locator:
+      line_start: 100
+      line_end: 100
+    raw_fields:
+      text: ・車体は全長 800 mm × 全幅 600 mm × 全高 1200 
+        mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
+        は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 
+        mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-014（DEC-196 の回答）を上位要求とする
+      locations:
+        - intent.md:100
+  - id: SRC-I108-V14
+    file_ref: FILE-INTENT-V14
+    kind: intent_lines
+    locator:
+      line_start: 108
+      line_end: 108
+    raw_fields:
+      text: ・電動車椅子に人は乗らない。
+    original_status:
+      classification: 上位要求
+      raw: ''
+      basis: intent.md 新版 AR-014（DEC-196 の回答）を上位要求とする
+      locations:
+        - intent.md:108
 entities:
   - id: RQ-I001
     kind: requirement
@@ -33949,12 +33986,12 @@ entities:
       - safety
       - intent
     requirement_refs:
-      - RQ-I074
+      - RQ-I087
       - RQ-I055
       - RQ-I056
       - RQ-I083
       - RQ-I053
-    revision_ref: REV-055
+    revision_ref: REV-123
     reconciliation:
       state: resolved_by_decision
       affected_refs:
@@ -34258,12 +34295,12 @@ entities:
       - safety
       - intent
     requirement_refs:
-      - RQ-I074
+      - RQ-I087
       - RQ-I055
       - RQ-I056
       - RQ-I083
       - RQ-I053
-    revision_ref: REV-055
+    revision_ref: REV-123
     issue:
       category: human
       state: resolved
@@ -35159,7 +35196,7 @@ entities:
       - G-NAV2-FIRST-GOAL
     interpretation: 'REV-061（DEC-122）: Nav2 は lifecycle_manager の autostart を false にし、ND-03 が自律走行の開始（TR-05）で起動、手動走行への遷移（TR-11・TR-12）で停止する（IFD-36）。手動走行・地図作成では
       inactive（map→odom の持ち主がない）。 REV-119（DEC-183、A2 の (4)）：起動する server の名前（smoother_server・filter_mask_server・costmap_filter_info_server・lifecycle_manager_navigation
-      を含む）を責務に補った。振る舞いは変えていない。'
+      を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。'
     sensitivity:
       - safety
       - operation
@@ -35171,7 +35208,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-119
+    revision_ref: REV-124
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35192,6 +35229,9 @@ entities:
         - 起動する server（gouda_nav2.launch.py。DEC-183 で名前を補足）：map_server（静的地図、IFD-24）、filter_mask_server（速度マスク用の 
           map_server、IFD-42）、costmap_filter_info_server（IFD-42）、controller_server、smoother_server、planner_server、behavior_server、bt_navigator、velocity_smoother、lifecycle_manager_navigation（autostart
           false。ND-03 が IFD-36 で起動・停止）
+        - velocity_smoother の後退の速度の上限（min_velocity の x）は PRM-78（車椅子の後退の上限、倒し切ったときの後退の速さ）。前進の上限は 
+          PRM-66。後退の倒し量と速度の傾きは前進より小さく（DEC-197）、Nav2 が倒し切りより速い後退を指令しないようにする（DEC-198 案 
+          A。回転と組み合わせたときの範囲は倒し量の円で決まり、Nav2 は知らない：reports/reverse_limit_study_2026-10-21.md）
       absorbs_module_refs:
         - M-011
       active_in_mode_refs:
@@ -35392,10 +35432,10 @@ entities:
       - safety
     requirement_refs:
       - RQ-I070
-      - RQ-I074
+      - RQ-I087
       - RQ-I058
       - RQ-I076
-    revision_ref: REV-061
+    revision_ref: REV-123
     ros_node:
       node_name: gouda_static_tf
       responsibilities:
@@ -36868,9 +36908,9 @@ entities:
       - safety
     requirement_refs:
       - RQ-I070
-      - RQ-I074
+      - RQ-I087
       - RQ-I058
-    revision_ref: REV-061
+    revision_ref: REV-123
     designed_interface:
       transport: tf
       name: /tf_static
@@ -38354,7 +38394,7 @@ entities:
     kind: parameter
     name: 車体全長（直方体近似）
     source_refs:
-      - SRC-I099
+      - SRC-I100-V14
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -38363,22 +38403,23 @@ entities:
     issue_refs:
       - H-005
       - Q-06
-    interpretation: intent.md:99「全長 1,010 mm」の転記。Nav2 footprint へ使う前に軸定義（H-005）と実測（Q-06）を確認する。
+    interpretation: 'intent.md:99「全長 1,010 mm」の転記。Nav2 footprint へ使う前に軸定義（H-005）と実測（Q-06）を確認する。 REV-123: intent.md
+      第14版 100 行「全長 800 mm」に置き換えた（第13版は 1,010 mm。足置きを外した：DEC-196）。'
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
-      value: 1.01
+      value: 0.8
       value_state: source_value
       unit: m
       stage: 自律走行の為の最小構成
       purpose: Nav2 footprint・衝突判定の車体外形
       measurement: 実車の外形寸法の実測（突起物を含む）
       decision_deadline: Nav2 設定の作成前
-      software_trial_value: 1.01
+      software_trial_value: 0.8
       software_trial_basis: intent.md:100 の記載値。実測値ではない
       declaration: model_declared
       target: 車体モデル（footprint は生成時に導出）
@@ -38389,7 +38430,7 @@ entities:
     kind: parameter
     name: 車体全幅（直方体近似）
     source_refs:
-      - SRC-I099
+      - SRC-I100-V14
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -38398,22 +38439,22 @@ entities:
     issue_refs:
       - H-005
       - Q-06
-    interpretation: intent.md:99「全幅 598 mm」の転記。
+    interpretation: 'intent.md:99「全幅 598 mm」の転記。 REV-123: intent.md 第14版 100 行「全幅 600 mm」に置き換えた（第13版は 598 mm）。'
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
-      value: 0.598
+      value: 0.6
       value_state: source_value
       unit: m
       stage: 自律走行の為の最小構成
       purpose: Nav2 footprint の幅
       measurement: 実車の外形寸法の実測
       decision_deadline: Nav2 設定の作成前
-      software_trial_value: 0.598
+      software_trial_value: 0.6
       software_trial_basis: intent.md:100 の記載値
       declaration: model_declared
       target: 車体モデル（footprint は生成時に導出）
@@ -38424,7 +38465,7 @@ entities:
     kind: parameter
     name: 車体全高（直方体近似）
     source_refs:
-      - SRC-I099
+      - SRC-I100-V14
     design_status: 案
     adoption: designed_proposal
     field_bindings: {}
@@ -38433,21 +38474,22 @@ entities:
     issue_refs:
       - Q-06
       - H-005
-    interpretation: intent.md:99「全高 950 mm」の転記。
+    interpretation: 'intent.md:99「全高 950 mm」の転記。 REV-123: intent.md 第14版 100 行「全高 1200 mm」に置き換えた（第13版は 950 mm。途中の版の
+      120 mm は人が誤りと確認：DEC-196）。'
     sensitivity: []
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
-      value: 0.95
+      value: 1.2
       value_state: source_value
       unit: m
       stage: 自律走行の為の最小構成
       purpose: 障害物フィルタの高さ範囲・costmap の高さ条件
       measurement: 実車の全高の実測
       decision_deadline: 障害物フィルタ設定の前
-      software_trial_value: 0.95
+      software_trial_value: 1.2
       software_trial_basis: intent.md:100 の記載値
       declaration: model_declared
       target: 車体モデル
@@ -38470,8 +38512,8 @@ entities:
     interpretation: intent.md:99「後輪径は330 mm」の転記。
     sensitivity: []
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
       value: 0.33
@@ -38504,8 +38546,8 @@ entities:
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
       value: 0.165
@@ -38538,8 +38580,8 @@ entities:
     interpretation: intent.md:99「ホイールベースは415 mm」の転記。前キャスタ位置の符号・軸は H-005 の回答で決まる（原文は y = -0.415 m）。
     sensitivity: []
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
       value: 0.415
@@ -38575,8 +38617,8 @@ entities:
       - safety
       - intent
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-006
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-13
       value: 原点=左右後輪の駆動軸中央の地面投影点（RQ-I071）。軸=REP-103（x前方・y左方・z上方）。LiDAR・IMU の座標方向は gouda_monitor の /config で指定し
@@ -38713,30 +38755,31 @@ entities:
     name: Nav2 RemovePassedGoals の radius（waypoint 通過判定半径）
     source_refs:
       - SRC-I014
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-12
       - Q-06
-    interpretation: 上流 jazzy の既定 BT では radius=0.7。旧資料の 5 m は流用しない。値は Q-12／Q-06 の回答後に人が決める。
+    interpretation: '上流 jazzy の既定 BT では radius=0.7。旧資料の 5 m は流用しない。値は Q-12／Q-06 の回答後に人が決める。 REV-122: DEC-192 で 0.7
+      を承認。'
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
-    revision_ref: REV-059
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 0.7
+      value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: Nav2 RemovePassedGoals の通過判定半径
-      measurement: 実車の到達精度（推定誤差・停止精度）の実測
-      decision_deadline: Nav2 BT の作成前
+      measurement: '人の決定（DEC-192）：「11: 0.7mとする。」。測定値ではない'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 0.7
       software_trial_basis: 上流 jazzy 既定 BT の値。旧 5 m は不採用（DEC-016）。実車採用値ではない
       declaration: bt_xml
@@ -38744,6 +38787,7 @@ entities:
       param_key: remove_passed_goals_radius_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-12
     kind: parameter
     name: Nav2 enable_stamped_cmd_vel
@@ -38802,10 +38846,10 @@ entities:
     sensitivity:
       - intent
     requirement_refs:
-      - RQ-I074
+      - RQ-I087
       - RQ-I055
       - RQ-I002
-    revision_ref: REV-004
+    revision_ref: REV-123
     issue:
       category: human
       state: resolved
@@ -38854,12 +38898,13 @@ entities:
       statement:
         source_ref: SRC-I100-V3
         field: text
-    related_refs: []
+    related_refs:
+      - C-029
     issue_refs: []
     interpretation: ''
     sensitivity:
       - intent
-    revision_ref: REV-004
+    revision_ref: REV-123
   - id: RQ-I075
     kind: requirement
     name: intent.md:102（FILE-INTENT-V3）
@@ -38936,8 +38981,8 @@ entities:
     sensitivity:
       - intent
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-004
+      - RQ-I087
+    revision_ref: REV-123
     reconciliation:
       state: resolved_by_intent
       affected_refs:
@@ -39742,30 +39787,30 @@ entities:
     source_refs:
       - SRC-I024
       - SRC-I025
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-05
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 20 Hz を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I018
       - RQ-I019
-    revision_ref: REV-006
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 20.0
+      value_state: approved
       unit: Hz
       stage: 自律走行の為の最小構成
       purpose: cmd_vel の発行周期。PRM-08（PC 指令 timeout）の根拠になる
-      measurement: 実車PC での制御ループ処理時間の実測
-      decision_deadline: Nav2 設定の作成前
+      measurement: '人の決定（DEC-192）：「17: 20hzでよい。」'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 20.0
       software_trial_basis: 上流 jazzy controller_server の既定値。ソフト試験用で実車採用値ではない
       declaration: ros_parameter
@@ -39773,35 +39818,37 @@ entities:
       param_key: controller_frequency
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-18
     kind: parameter
     name: Nav2 BT の recovery 回数（RecoveryNode number_of_retries）
     source_refs:
       - SRC-I015
       - SRC-I024
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192・DEC-194 で 9999999 を承認。BT の recovery の回数と理由の 50 回ごとの記録は G-RECOVERY-COUNT（工程
+      5-7）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
       - RQ-I018
-    revision_ref: REV-006
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 9999999
+      value_state: approved
       unit: 回
       stage: 自律走行の為の最小構成
       purpose: BT が失敗を返すまでの後退・再計画の試行回数（RQ-I012）
-      measurement: 実車での閉塞試験
-      decision_deadline: Nav2 BT の作成前
+      measurement: '人の決定（DEC-192）：「18: recoveryの回数は9999999回とする。」。振る舞いの変化（計画の失敗による一時停止がほぼ起きない）は DEC-194 で承認'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 6
       software_trial_basis: 上流 jazzy 既定 BT の値。ソフト試験用で実車採用値ではない
       declaration: bt_xml
@@ -39809,6 +39856,7 @@ entities:
       param_key: recovery_number_of_retries
       value_type: int
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: RQ-I076
     kind: requirement
     name: intent.md:103（FILE-INTENT-V4）
@@ -41656,30 +41704,30 @@ entities:
       - SRC-I012
       - SRC-I100-V3
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 0.1 を承認（推奨値）。'
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I009
-      - RQ-I074
+      - RQ-I087
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 0.1
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: GLIM 原図から作る Nav2 2D 地図（occupancy grid）の 1 cell の大きさ。Nav2 の costmap 
         解像度・footprint（PRM-01〜06）と整合させる
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34、DEC-100）の後に人が既定値を再指定する
-      decision_deadline: 実車で自律走行の最小構成（5-6）を試す前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 0.05
       software_trial_basis: Nav2 上流（nav2_bringup の例の地図）の解像度と同じ値。合成データの単体試験と stub 試験用。実車採用値ではない
       declaration: ros_parameter
@@ -41687,6 +41735,7 @@ entities:
       param_key: map_resolution_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-34
     kind: parameter
     name: 地面とみなす高さの上限（変換）
@@ -41694,31 +41743,31 @@ entities:
       - SRC-I012
       - SRC-I100-V3
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
       - G-FLOOR-REFLECTION
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 0.1 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
-      - RQ-I074
+      - RQ-I087
       - RQ-I082
-    revision_ref: REV-046
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 0.1
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 推定した地面からの高さがこの値以下の点を地面とみなし、そのセルを空きにする（DEC-093。地面の推定は PRM-62〜64、docs/map_conversion.md 
         §2）。坂で格子の中の高さが変わる分と点の誤差を含む必要がある
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 0.1
       software_trial_basis: 合成データの単体試験用（地面 z=0 の点群）。実車採用値ではない
       declaration: ros_parameter
@@ -41726,6 +41775,7 @@ entities:
       param_key: ground_band_max_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-35
     kind: parameter
     name: 障害物とみなす高さの下限（変換）
@@ -41733,30 +41783,30 @@ entities:
       - SRC-I012
       - SRC-I100-V3
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
       - G-FLOOR-REFLECTION
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 0.15 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
-      - RQ-I074
+      - RQ-I087
       - RQ-I082
-    revision_ref: REV-046
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 0.15
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 推定した地面からの高さがこの値以上（かつ PRM-36 以下）の点を障害物とみなす（DEC-093）。段差・縁石をどう扱うかの運用判断を含む。表示用の段差の図の目盛りの上限
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 0.3
       software_trial_basis: 合成データの単体試験用。実車採用値ではない
       declaration: ros_parameter
@@ -41764,6 +41814,7 @@ entities:
       param_key: obstacle_band_min_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-36
     kind: parameter
     name: 障害物とみなす高さの上限（変換）
@@ -41771,29 +41822,30 @@ entities:
       - SRC-I012
       - SRC-I100-V3
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 1.35 m を承認（人の指定）。 REV-123: 第14版の全高 1.2 m（PRM-03）に 0.15 m の余裕を足した値になる。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
-      - RQ-I074
+      - RQ-I087
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 1.35
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 推定した地面からの高さがこの値より上の点（樹木の枝など）を障害物に含めない上限（DEC-093）。車体の全高（PRM-03）に余裕を足す。高さの図の目盛りの上限
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: 人の決定（DEC-098）：推奨 1.2 m から人の指定「1.35mに統一する。」に変更。地面から 1.35 m で、走行中の上限 PRM-71（地面から 1.35 
+        m）とそろえた。注（推測）：推奨の根拠（全高 0.95 m＋0.25 m）より高いので、地面から 1.2〜1.35 m の枝などが地図の障害物に入り、その下を通る経路が引かれない場合がある
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 1.5
       software_trial_basis: 合成データの単体試験用。実車採用値ではない
       declaration: ros_parameter
@@ -41801,6 +41853,7 @@ entities:
       param_key: obstacle_band_max_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-37
     kind: parameter
     name: GLIM 停止後に dump 完了を待つ時間
@@ -41844,28 +41897,28 @@ entities:
     source_refs:
       - SRC-I012
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 1.0 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-042
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: 点
       stage: 地図作成と変換
       purpose: 1 cell 内の障害物点がこの数以上なら占有。点群の密度（解像度・走行速度）に依存する
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34、DEC-100）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 2.0
       software_trial_basis: 合成データの単体試験用。実車採用値ではない。宣言型 double に合わせ 2.0 と書く（REV-022）
       declaration: ros_parameter
@@ -41873,6 +41926,7 @@ entities:
       param_key: occupied_min_points
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: TS-27
     kind: test
     name: 地図作成の開始・終了、原図の登録、変換（stub・単体）
@@ -41977,24 +42031,24 @@ entities:
     related_refs: []
     issue_refs:
       - Q-06
-    interpretation: 'REV-103: DEC-166 で 1.111 を承認。'
+    interpretation: 'REV-103: DEC-166 で 1.111 を承認。 REV-122: DEC-193 で 1.111 m/s（DEC-166）を 1.25 m/s に置き換えた。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-103
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-11
-      value: 1.111
+      value: 1.25
       value_state: approved
       unit: m/s
       stage: 車体出力
       purpose: cmd_vel の linear.x をこの値で割って正規化操作値（前後）にする。Nav2 controller 
         の最大速度（Q-06）と同じ値にして、ジョイスティック全開がこの速度に対応するようにする
-      measurement: 人の決定（DEC-166）：人の指定 4 km/h（4000/3600＝1.111 
-        m/s）。人の注記「但しこれは振れがある」。測定値ではない。実車の速度の確認（Q-06・Q-03）は残る
-      decision_deadline: 決定済み（DEC-166）
+      measurement: 人の決定（DEC-193）：「最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。」（4500/3600＝1.25 
+        m/s）。測定値ではない。実車の速度の確認（Q-06・Q-03）は残る
+      decision_deadline: 決定済み（DEC-193。DEC-166 の 1.111 を置き換え）
       software_trial_value: 0.26
       software_trial_basis: Nav2 上流（nav2_bringup の例の nav2_params）の max_vel_x と同じ値。stub 
         試験で非零の正規化値を得るための仮値。実車採用値ではない
@@ -42003,7 +42057,7 @@ entities:
       param_key: max_linear_speed_mps
       value_type: double
       apply_timing: launch
-    approval_decision_ref: DEC-166
+    approval_decision_ref: DEC-193
   - id: PRM-40
     kind: parameter
     name: cmd_vel の正規化に用いる最大角速度
@@ -43127,8 +43181,8 @@ entities:
     name: 地面を推定する格子の大きさ（変換）
     source_refs:
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - PRM-63
@@ -43136,23 +43190,23 @@ entities:
     issue_refs:
       - Q-06
       - G-FLOOR-REFLECTION
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 0.5 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-046
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 0.5
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 地面の高さを推定する水平の格子の大きさ。格子ごとに最も低い点を取り、傾きを制限した下側の包絡を地面とする（DEC-093、docs/map_conversion.md 
         §2）。表示用の傾き・段差の図もこの格子
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34、DEC-099）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 0.5
       software_trial_basis: 合成データの単体試験と試験スタック用。実車採用値ではない
       declaration: ros_parameter
@@ -43160,13 +43214,14 @@ entities:
       param_key: ground_cell_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-63
     kind: parameter
     name: 地面とみなす傾きの上限（変換）
     source_refs:
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - PRM-62
@@ -43174,23 +43229,23 @@ entities:
     issue_refs:
       - Q-06
       - G-FLOOR-REFLECTION
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 10.0 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-046
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 10.0
+      value_state: approved
       unit: 度
       stage: 地図作成と変換
       purpose: 
         地面の推定で、隣の格子の地面からこの傾きを超えて高くならないようにする。大きいと急な坂も地面になるが縁石の上面などが地面に吸収されやすく、小さいと急な坂の上の方が地面より高いと判定される。表示用の傾きの図の目盛りの上限
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34、DEC-099）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 10.0
       software_trial_basis: 合成データの単体試験と試験スタック用。実車採用値ではない
       declaration: ros_parameter
@@ -43198,13 +43253,14 @@ entities:
       param_key: ground_max_slope_deg
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: PRM-64
     kind: parameter
     name: 点のない所に地面を補う距離（変換）
     source_refs:
       - SRC-I106-V9
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - PRM-62
@@ -43212,22 +43268,22 @@ entities:
     issue_refs:
       - Q-06
       - G-FLOOR-REFLECTION
-    interpretation: ''
+    interpretation: 'REV-122: DEC-098 で 1.0 を承認（推奨値）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-046
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 点のない格子に、点のある格子からこの距離以内に限って地面を補う。それより遠い所は地面が不明で、そこの点は分類しない。0 は補わない
-      measurement: 地図タブで人が調整する（RQ-I082）。暫定の既定値は推奨値（DEC-098 の承認後に設定）。実機検証（TS-34、DEC-099）の後に人が既定値を再指定する
-      decision_deadline: 実車で最初の原図を作った後、5-6 の前
+      measurement: '人の決定（DEC-098、推奨値で承認）：「D11: 全て推奨値で良い。」。高さは推定した地面から。実機検証（TS-34）の後に人が再指定する（intent.md:106）'
+      decision_deadline: 決定済み（DEC-098）
       software_trial_value: 1.0
       software_trial_basis: 合成データの単体試験と試験スタック用。実車採用値ではない
       declaration: ros_parameter
@@ -43235,6 +43291,7 @@ entities:
       param_key: ground_fill_radius_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-098
   - id: TS-34
     kind: test
     name: 移動しての地図作成の実機試験（地面の見え方・点の密度・GLIM の処理周期・変換の設定）
@@ -43944,29 +44001,30 @@ entities:
     source_refs:
       - SRC-I014-V11
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 1.25 m/s を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+      - RQ-I088
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 1.25
+      value_state: approved
       unit: m/s
       stage: 自律走行の為の最小構成
       purpose: RPP の desired_linear_vel と velocity_smoother の max_velocity（x）。区間の速度上限（IFD-14）はこれより低い値だけが効く
-      measurement: 人の決定（Q-06、車体の性能と運用）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「66: 前進の最高速は4.5km/hとする。」（4500/3600＝1.25 m/s）。実測ではない（Q-06）'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 0.5
       software_trial_basis: 上流 jazzy の nav2_params.yaml（1.3.13 と同一）の velocity_smoother の max_velocity（x 
         0.5）。VM の模擬の試験用で実車採用値ではない
@@ -43975,36 +44033,37 @@ entities:
       param_key: max_linear_velocity_mps
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-67
     kind: parameter
     name: Nav2 の最大の角速度
     source_refs:
       - SRC-I014-V11
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 1.0 rad/s を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: rad/s
       stage: 自律走行の為の最小構成
       purpose: velocity_smoother の max_velocity（yaw）、RPP の rotate_to_heading_angular_vel、behavior_server の 
         max_rotational_vel
-      measurement: 人の決定（Q-06）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「67: 最大の角速度は1.0rad/sとする。」。PRM-40（0.97 rad/s）を少し超え、motion_controller で頭打ちになる'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 1.0
       software_trial_basis: 上流 jazzy の nav2_params.yaml の behavior_server の max_rotational_vel（1.0）。同じ雛形の 
         velocity_smoother の max_velocity（yaw）は 2.0 で、3 か所に一つの値を使うため低い方にした。試験用
@@ -44013,35 +44072,37 @@ entities:
       param_key: max_angular_velocity_radps
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-68
     kind: parameter
     name: Nav2 の前進の加速度・減速度の上限
     source_refs:
       - SRC-I014-V11
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 1.2 m/s² を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+      - RQ-I088
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 1.2
+      value_state: approved
       unit: m/s²
       stage: 自律走行の為の最小構成
       purpose: velocity_smoother の max_accel（x）と max_decel（x、符号を反転）
-      measurement: 実車の加減速の実測と人の決定（Q-06）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「68: 加速度上限は1.2m/s^2とするが、実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある。」'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 2.5
       software_trial_basis: 上流 jazzy の nav2_params.yaml の velocity_smoother の max_accel（x）。試験用
       declaration: ros_parameter
@@ -44049,35 +44110,36 @@ entities:
       param_key: linear_accel_limit_mps2
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-73
     kind: parameter
     name: Nav2 の旋回の角加速度・角減速度の上限
     source_refs:
       - SRC-I014-V11
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 2.0 rad/s² を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 2.0
+      value_state: approved
       unit: rad/s²
       stage: 自律走行の為の最小構成
       purpose: velocity_smoother の max_accel（yaw）と max_decel（yaw、符号を反転）
-      measurement: 実車の旋回の実測と人の決定（Q-06）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「73: 2.0rad/sとする。」（角加速度の上限、rad/s²）'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 3.2
       software_trial_basis: 上流 jazzy の nav2_params.yaml の velocity_smoother の max_accel（yaw）。試験用
       declaration: ros_parameter
@@ -44085,35 +44147,37 @@ entities:
       param_key: angular_accel_limit_radps2
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-69
     kind: parameter
     name: Nav2 の footprint（base_link 基準の多角形）
     source_refs:
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
       - H-005
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で承認。足置きを外した車体（人の申告）。intent.md:100 の直方体（1,010×598 mm）との差は DEC-195。車輪の間隔 530
+      mm（人の申告）は記録だけ（使う設定はない）。 REV-123: intent.md 第14版の直方体（800×600 mm）の中にある（前 0.55＋後 0.24＝0.79 m、幅 0.60 m）。'
     sensitivity:
       - safety
     requirement_refs:
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: '[[0.55, 0.30], [0.55, -0.30], [-0.24, -0.30], [-0.24, 0.30]]'
+      value_state: approved
       unit: m（Nav2 の footprint の文字列「[[x1, y1], [x2, y2], ...]」）
       stage: 自律走行の為の最小構成
       purpose: local・global の costmap の footprint。intent.md:100 は外形 1,010×598 mm 
         と原点（後輪の駆動軸の中央）を与えるが、直方体の前後の位置は与えていない
-      measurement: 車体の前端・後端の後輪軸からの距離の実測（Q-06）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: 人の決定（DEC-192）：「69:後輪車軸から前端まで55cm, 後端まで24cm。横幅は60cm」。base_link（後輪軸の中央）基準の長方形
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: '[[0.505, 0.299], [0.505, -0.299], [-0.505, -0.299], [-0.505, 0.299]]'
       software_trial_basis: 外形 1,010×598 mm（PRM-01・02）を base_link の中心に置いた長方形。前後の位置は仮（実車の位置ではない）。試験用
       declaration: ros_parameter
@@ -44121,36 +44185,37 @@ entities:
       param_key: footprint
       value_type: string
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-70
     kind: parameter
     name: 障害物とみなす点の高さの下限（base_link 基準）
     source_refs:
       - SRC-I015
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-04
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で −0.065 m を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: -0.065
+      value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: costmap の VoxelLayer・ObstacleLayer の 
         min_obstacle_height。これより低い点（地面）は障害物にしない。坂では地面が帯に入りうる（DEC-122 の注意）
-      measurement: 実車の地図・走行の記録での確認（Q-04）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「70: -0.065mでよい。」（base_link 基準。地面から 0.10 m）'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 0.1
       software_trial_basis: 仮値（VM の試験用。base_link の高さ PRM-05 0.165 m より地面側の点を除く程度）。実車採用値ではない
       declaration: ros_parameter
@@ -44158,35 +44223,37 @@ entities:
       param_key: obstacle_min_height_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-71
     kind: parameter
     name: 障害物とみなす点の高さの上限（base_link 基準）
     source_refs:
       - SRC-I015
       - SRC-I100-V3
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-04
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 1.185 m（地面から 1.35 m）を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
-      - RQ-I074
-    revision_ref: REV-061
+      - RQ-I087
+    revision_ref: REV-123
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 1.185
+      value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: costmap の VoxelLayer・ObstacleLayer の max_obstacle_height。車体より高い点（木の枝など）を障害物にしない
-      measurement: 車高（PRM-03）と実車の記録での確認（Q-04）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「71: 障害物の高さ上限は地面から135cmでよい。」。base_link 基準へ換算：1.35 − PRM-05（0.165 m）＝1.185 m。PRM-05
+        は記載値（実測していない）で、変わればこの換算も変わる。地図の上限 PRM-36（地面から 1.35 m）とそろえた（DEC-098 の回答）'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 0.95
       software_trial_basis: 車高 PRM-03（intent.md:100 の 950 mm）。base_link の高さとの差は考えていない仮値。試験用
       declaration: ros_parameter
@@ -44194,33 +44261,34 @@ entities:
       param_key: obstacle_max_height_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: PRM-72
     kind: parameter
     name: costmap の膨張半径
     source_refs:
       - SRC-I015
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: ''
+    interpretation: 'REV-122: DEC-192 で 0.5 m を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
-    revision_ref: REV-061
+    revision_ref: REV-122
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 0.5
+      value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: local・global の costmap の InflationLayer の inflation_radius（障害物からどれだけ離れて計画するか）
-      measurement: 人の決定（Q-06、歩道の幅と車幅）
-      decision_deadline: 実車での自律走行の前（未確定の間、実車では Nav2 を起動しない）
+      measurement: '人の決定（DEC-192）：「72: 0.5mでよい。」'
+      decision_deadline: 決定済み（DEC-192）
       software_trial_value: 0.7
       software_trial_basis: 上流 jazzy の nav2_params.yaml の local_costmap と global_costmap の 
         inflation_radius（0.7）。試験用
@@ -44229,6 +44297,7 @@ entities:
       param_key: inflation_radius_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-192
   - id: TS-35
     kind: test
     name: GNSS の取込み（ドライバの起動、記録、表示）
@@ -44289,9 +44358,9 @@ entities:
       - safety
     requirement_refs:
       - RQ-I070
-      - RQ-I074
+      - RQ-I087
       - RQ-I081
-    revision_ref: REV-062
+    revision_ref: REV-123
     test:
       execution_status: 未実行
       stage: 自律走行の為の最小構成
@@ -44816,13 +44885,14 @@ entities:
     field_bindings: {}
     related_refs: []
     issue_refs: []
-    interpretation: ''
+    interpretation: REV-122（DEC-194）：PRM-18＝9999999 により、計画の失敗による一時停止（TR-07）がほぼ起きなくなった。BT の recovery の数え方と記録をこの
+      issue で扱う。
     sensitivity:
       - safety
       - operation
       - intent
     requirement_refs: []
-    revision_ref: REV-116
+    revision_ref: REV-122
     issue:
       category: technical
       state: open
@@ -44836,12 +44906,16 @@ entities:
         - TR-16
         - TS-06
         - TS-09
+        - PRM-18
+        - TR-07
+        - ND-10
       resolution_refs: []
       question: intent 第13版 16 行（DEC-179）：自動復帰は回数の上限なく続き、50 
         回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03
         の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。
       next_action: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 
-        回ごとの記録の中身、復帰の間隔。いずれも承認事項。
+        回ごとの記録の中身、復帰の間隔。いずれも承認事項。あわせて、Nav2 の BT の recovery の回数と理由も 50 
+        回ごとに記録する仕組みを設計に足す（DEC-194、人が採用。PRM-18＝9999999 で BT がほぼ失敗を返さないため）。
   - id: PRM-78
     kind: parameter
     name: cmd_vel の正規化に用いる最大後退速度
@@ -44853,16 +44927,18 @@ entities:
     field_bindings: {}
     related_refs:
       - PRM-39
+      - PRM-66
     issue_refs:
       - Q-06
     interpretation: 'REV-116: DEC-172 で人が 1.7 km/h を指定（1700/3600＝0.472 m/s）。REV-118（DEC-180）：motion_controller が
-      linear.x の負の値をこの値で割る。'
+      linear.x の負の値をこの値で割る。 REV-124（DEC-198）：nav2_config が velocity_smoother の min_velocity の x（−PRM-78）にも使う。宣言は
+      gouda_motion_controller の生成物のまま（値は一か所）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-118
+    revision_ref: REV-124
     parameter:
       owner_ref: ND-11
       value: 0.472
@@ -44870,7 +44946,7 @@ entities:
       unit: m/s
       stage: 車体出力
       purpose: cmd_vel の linear.x が負（後退）のとき、この値で割って正規化操作値（前後）にする。車椅子側の制御で後退は 1.7 km/h 
-        に制限される（人の申告、DEC-171）ため、前進の PRM-39 と分ける
+        に制限される（人の申告、DEC-171）ため、前進の PRM-39 と分ける。あわせて Nav2 の velocity_smoother の後退の速度の上限にも使う（DEC-198）
       measurement: 人の指定（DEC-172）：1.7 km/h（1700/3600＝0.472 m/s）。車椅子側の制限の値（人の申告）で、測定値ではない。実車の速度の確認（Q-06）は残る
       decision_deadline: 決定済み（DEC-172）
       software_trial_value:
@@ -44963,6 +45039,74 @@ entities:
         の単体（test_monitor_core.py）：設定の保存・再読込・範囲外の拒否。ROS の上で monitor の保存から motion_controller の出力が変わること（VM）。
       observe: joystick_command の値、DecisionEvent（補償の設定の受信、出力の理由）
       expected: 未設定では今の正規化と同じ値。設定した向きだけが式どおりに変わり、倒し量の大きさは 1 を超えない。中立の条件では補償の設定に関係なく中立。
+  - id: RQ-I087
+    kind: requirement
+    name: intent.md:100（FILE-INTENT-V14）
+    source_refs:
+      - SRC-I100-V14
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I100-V14
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-123
+  - id: RQ-I088
+    kind: requirement
+    name: intent.md:108（FILE-INTENT-V14）
+    source_refs:
+      - SRC-I108-V14
+    design_status: 未設計
+    adoption: upper_requirement
+    field_bindings:
+      statement:
+        source_ref: SRC-I108-V14
+        field: text
+    related_refs: []
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+    revision_ref: REV-123
+  - id: C-029
+    kind: reconciliation
+    name: 車体の寸法（intent.md 第13版 100 行 → 第14版 100 行）
+    source_refs:
+      - SRC-I100-V14
+      - SRC-I100-V3
+    design_status: 未設計
+    adoption: reference_only
+    field_bindings: {}
+    related_refs:
+      - DEC-196
+      - AR-014
+      - DEC-195
+      - PRM-69
+    issue_refs: []
+    interpretation: ''
+    sensitivity:
+      - intent
+      - safety
+    requirement_refs:
+      - RQ-I087
+    revision_ref: REV-123
+    reconciliation:
+      state: resolved_by_intent
+      affected_refs:
+        - RQ-I074
+      adopted_requirement_refs:
+        - RQ-I087
+      scope: 第13版 100 行の車体の直方体「全長 1,010 mm × 全幅 598 mm × 全高 950 mm」を「全長 800 mm × 全幅 600 mm × 全高 1200 
+        mm」に置換した第14版 100 行（人の編集、足置きを外した）。
+      retained_scope: 車体座標系の原点、点群の座標系の変換、base_footprint・base_link の置き方、後輪径 330 mm、base_link の高さ 0.165 
+        m、ホイールベース 415 mm、センサの取付の静的 TF は同一。
+      rationale: 人が intent.md を編集（DEC-196）。PRM-01・02・03 を第14版の記載値に置き換えた。
+      issue_refs: []
 migration:
   baseline_definition_count: 198
   id_map:
@@ -52775,6 +52919,38 @@ authority_revisions:
       - RQ-I086
     note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 03:47）。16 行の置換だけ（107 
       行のまま）。人がチャットで「intent.mdを再度更新したので確認せよ。」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+  - id: AR-014
+    file_ref: FILE-INTENT-V14
+    previous_file_ref: FILE-INTENT-V13
+    sha256: 9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4
+    previous_sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    archived_previous_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+    added_lines:
+      - line: 100
+        text: ・車体は全長 800 mm × 全幅 600 mm × 全高 1200 
+          mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
+          は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` 
+          とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 
+          前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
+      - line: 108
+        text: ・電動車椅子に人は乗らない。
+    removed_lines:
+      - line: 100
+        text: ・車体は全長 1,010 mm × 全幅 598 mm × 全高 950 
+          mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
+          は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` 
+          とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 
+          前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
+    changed_lines: []
+    instruction_expected_added_lines: 1
+    observed_added_lines: 2
+    decision_ref: DEC-196
+    requirement_refs:
+      - RQ-I087
+      - RQ-I088
+    note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 06:05 の後、全高を直した版。SHA-256 9bf08d3e…、108 行）。100 行の置換と 108 
+      行の追記だけ。途中の版（全高 120 mm、SHA-256 6af20a12…）は記録していない（人に確かめ、人が「1200mmの誤りであった。intent.mdは修正した」と直した）。AI は 
+      intent.md を編集していない（current_copy は一字も変えない写し）。
 decisions:
   - id: DEC-001
     kind: approval
@@ -54795,9 +54971,9 @@ decisions:
     disposition: answered
   - id: DEC-098
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-14'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: '【承認】地図の変換の暫定の既定値（intent.md 106 行「既定値は推奨値」。実機検証の後に人が再指定する）。高さはすべて推定した地面から。 推奨: 2D 地図の解像度 PRM-33 =
       0.1 m（GLIM の原図の点は submap ごとに 0.3 m の格子で間引かれるため、Nav2 でよく使う 0.05 m では未知のセルが増える）。 地面の帯の上限 PRM-34 = 0.1 m（坂で格子の中の高さが変わる分
@@ -54806,7 +54982,10 @@ decisions:
       地面を推定する格子 PRM-62 = 0.5 m（点の間隔 0.3 m より大きくし、点のない格子を減らす）。 地面とみなす傾きの上限 PRM-63 = 10 度（車いす用の斜路の上限 1/12 ≈ 4.8 度や一般の坂を含む。大きくすると縁石の上面が地面に吸収されやすい）。
       地面を補う距離 PRM-64 = 1.0 m（車の下など 1 m 程度の見えない所を地面で補う。それより遠い所は地面が不明）。 代替: PRM-35 を 0.1〜0.12 m にして低い縁石も障害物にする（地面の誤差で偽の障害物が増える）、PRM-38
       を 2 点にする（偽の障害物は減るが細い物を落とす）。'
-    answer_verbatim: ''
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT
+      の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\n\
+      D11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n（分岐セッションが「PRM-36（地図の上限 1.2 m）と PRM-71（走行中の上限、地面から 1.35 m）の差で、1.2〜1.35
+      m の物は地図に描かれないが走行中は障害物に見える」と説明したことに対して）「1.35mに統一する。プロンプトを書き直せ」\n"
     affected_refs:
       - PRM-33
       - PRM-34
@@ -54822,7 +55001,7 @@ decisions:
     note: 決まらない場合に止まる作業：実車の設定（gouda.sh）での地図作成終了時の自動変換（設定が未確定のため失敗し、原図は残る）と、地図タブの既定値の表示（空欄）。 
       地図タブで値を手で入れれば再変換はできる。PRM-34・35・36・38・62〜64 は安全の印（静的な地図の障害物の判定）を持つため、値は承認を経て入れる。 
       2026-10-17、人の指示（DEC-109）により map_creator の改良は保留。自己位置推定の方式の選定（DEC-021）の結果で、2D 地図に要る精度と変換の設定を見直す。
-    disposition: open_human
+    disposition: answered
   - id: DEC-099
     kind: measurement
     status: pending
@@ -56893,6 +57072,200 @@ decisions:
       の差そのもの）。今の出力（x の振れ幅が 1 mV 小さい）は合格し、差が 2 mV 以上に広がったら不合格になる。試験は 
       gouda_core/test/test_vehicle_core.py（Python の模型）と 
       firmware/gouda_esp32_v4/test/host/test_core.cpp（firmware の中核）。
+    disposition: answered
+  - id: DEC-192
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: D10：Nav2 の実車の値（PRM-11・17・18・66〜73）。未確定の間、実車では Nav2 を起動しない（intent.md:85）
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「D10: 全体的に安全思想に偏りすぎ。また、電動車椅子に人は絶対に乗らないし乗るスペースもない。以下の値を設定せよ。\n69:後輪車軸から前端まで55cm,
+      後端まで24cm。横幅は60cm, 車輪間の距離は530mm。\n66: 前進の最高速は4.5km/hとする。\n67: 最大の角速度は1.0rad/sとする。\n68: 加速度上限は1.2m/s^2とするが、実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある。\n\
+      73: 2.0rad/sとする。\n17: 20hzでよい。\n70: -0.065mでよい。\n71: 障害物の高さ上限は地面から135cmでよい。\n72: 0.5mでよい。\n11: 0.7mとする。\n\
+      18: recoveryの回数は9999999回とする。」\n"
+    affected_refs:
+      - PRM-11
+      - PRM-17
+      - PRM-18
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - PRM-73
+      - ND-10
+    resulting_refs:
+      - PRM-11
+      - PRM-17
+      - PRM-18
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - PRM-73
+    note: 換算：PRM-69 は base_link（後輪軸の中央）基準で、前端 0.55 m、後端 0.24 m、横幅 0.60 m の長方形 [[0.55, 0.30], [0.55, -0.30], 
+      [-0.24, -0.30], [-0.24, 0.30]]。PRM-66＝4.5 km/h＝1.25 m/s。PRM-71＝地面から 1.35 m − PRM-05（base_link の高さ 0.165 
+      m、記載値）＝1.185 m（base_link 基準）。PRM-70＝−0.065 m（base_link 基準。地面から 0.10 m）。人の申告（事実として記録）：車輪の間隔 530 
+      mm、足置きは取り外した、人は乗らない。注：PRM-67 の 1.0 rad/s は、倒し切ったときの旋回 PRM-40（0.97 rad/s）を少し超えるので、motion_controller 
+      で頭打ちになる（人に伝え済み、分岐セッション）。PRM-68 について人の申告「実際に車椅子が出せる最大前進加速度はこれよりも低い可能性がある」。転記の出所は分岐セッション（人が 2026-10-21 
+      にこのメインのチャットへ貼った）。
+    disposition: answered
+  - id: DEC-193
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: PRM-39（cmd_vel の正規化に用いる最大並進速度。倒し切ったときの前進の速度）を DEC-166 の 1.111 m/s（4 km/h）から変えるか
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT
+      の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\n\
+      D11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n"
+    affected_refs:
+      - PRM-39
+      - ND-11
+    resulting_refs:
+      - PRM-39
+    note: PRM-39＝1.25 m/s（4.5 km/h）。DEC-166 は書き換えず、この決定で PRM-39 の値だけを置き換える（CLAUDE.md 1.5）。影響：motion_controller
+      の前進の正規化（倒し量＝linear.x／1.25）、不感帯の補償（DEC-171、倒し量に掛かる）、承認値を読む試験（値を固定した試験はない：第90便で確認）。SR-06（6 km/h 
+      以下）の範囲内。前進の最高速の実測（Q-06）は残る。
+    disposition: answered
+  - id: DEC-194
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: PRM-18＝9999999 で振る舞いが変わること：Nav2 の BT がほぼ失敗を返さなくなり、計画の失敗による一時停止（TR-07、intent.md:15 
+      の「Nav2のBTが後退も再計画もできず失敗を返した場合、Goudaは一時停止モードに入り」）がほぼ起きない。recovery（回転・後退・待機）を続ける。PRM-10 の 50 
+      回ごとの記録はモードの層の復帰（TR-13〜16）の数え方で、BT の recovery は数えていない。案：9999999 で設定し、BT の recovery の回数と理由も 50 
+      回ごとに記録する仕組みを、後で設計に足す（G-RECOVERY-COUNT と一緒に、工程 5-7 で）
+    answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「足置きは邪魔なので取り外した。最高速度は4.5km/hであるから、DEC-166を少し変える必要がある。\"9999999 で設定し、BT
+      の recovery の回数と理由も 50 回ごとに記録する仕組みを、後で設計に足します（G-RECOVERY-COUNT と一緒に、工程 5-7 で）。\"も採用する。recoveryの後退は自由に使って良い。\n\
+      D11: 全て推奨値で良い。（prm-36の上限とはどういう意味か説明せよ）」\n"
+    affected_refs:
+      - PRM-18
+      - ND-10
+      - ND-03
+      - TR-07
+      - G-RECOVERY-COUNT
+    resulting_refs:
+      - PRM-18
+      - G-RECOVERY-COUNT
+    note: intent.md:15 の文（BT 
+      が失敗を返した場合は一時停止）とは食い違わない：失敗を返したときの振る舞いは変わらず、失敗を返すまでの回数が非常に多くなるだけ。ただし実際には「失敗を返して一時停止」がほぼ起きなくなり、経路の閉塞の間は 
+      recovery を続ける。人の原文「recoveryの後退は自由に使って良い。」（intent.md:15「blocked時を含め、後退しても良い」と同じ向き）。BT の number_of_retries
+      は int で、9999999 は 32 bit の範囲内。
+    disposition: answered
+  - id: DEC-195
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】intent.md の改訂案（人が編集する。案は design/proposals/intent_edit_requests.md §4）：(1) 
+      intent.md:100「車体は全長 1,010 mm × 全幅 598 mm × 全高 950 mmの直方体の中にあるとする」を、足置きを外した今の車体（後輪軸から前端 550 mm・後端 240 
+      mm＝全長 790 mm、全幅 600 mm、車輪の間隔 530 mm）に改めるか。(2) 「電動車椅子に人は乗らない（乗るスペースもない）」を前提として書き足すか
+    answer_verbatim: "intent.mdは更新した\n（全高について）1200mmの誤りであった。intent.mdは修正した\n（人は乗らないについて）intent.mdに、人が乗らない旨を書き足した。\n"
+    affected_refs:
+      - PRM-01
+      - PRM-02
+      - PRM-69
+      - RQ-I074
+    resulting_refs: []
+    note: 人の申告（DEC-192・DEC-193 の原文）：「電動車椅子に人は絶対に乗らないし乗るスペースもない」「足置きは邪魔なので取り外した。」。PRM-01（1.01 m）・PRM-02（0.598 
+      m）は intent.md:100 の写しなので、この改訂の前には変えない（チャットの指示が上位の要求と食い違うため、黙って適用しない：CLAUDE.md 1.1）。改訂の後に、PRM-01＝0.79 
+      m、PRM-02＝0.60 m に変える変更セットを出す。PRM-69（footprint）は人の答えた値（DEC-192）で、intent.md:100 の直方体（1,010×598 mm）より小さい。幅は
+      2 mm 大きい。決まらない場合に止まる作業：PRM-01・02 の更新（Nav2 は PRM-69 を使うので止まらない）。
+    disposition: answered
+  - id: DEC-196
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-21'
+    channel: chat + intent.md
+    question: intent.md 第14版（人の編集。100 行の置換：車体の寸法、108 行の追記：人は乗らない）
+    answer_verbatim: "intent.mdは更新した\n（選択式の質問「intent.md:100 の「全高 120 mm」は、どの値のつもりですか？」への回答）1200mmの誤りであった。intent.mdは修正した\n\
+      （選択式の質問「「電動車椅子に人は乗らない」の追記の案（DEC-195 の (2)）はどうしますか？」への回答）intent.mdに、人が乗らない旨を書き足した。\n\n（intent.md 第14版 100 行）・車体は全長
+      800 mm × 全幅 600 mm × 全高 1200 mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
+      は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約
+      `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。\n（intent.md 第14版 108 行）・電動車椅子に人は乗らない。\n"
+    affected_refs:
+      - FILE-INTENT-V13
+      - RQ-I074
+      - PRM-01
+      - PRM-02
+      - PRM-03
+      - PRM-69
+      - PRM-36
+      - PRM-71
+    resulting_refs:
+      - AR-014
+      - RQ-I087
+      - RQ-I088
+      - C-029
+    note: 第13版 100 行の「全長 1,010 mm × 全幅 598 mm × 全高 950 mm」を「全長 800 mm × 全幅 600 mm × 全高 1200 
+      mm」に置換（ほかの文は同一）。108 行「・電動車椅子に人は乗らない。」を追記。DEC-195 の案（全長 790 mm）と違い、全長は 800 mm（footprint PRM-69 の前 0.55＋後 
+      0.24＝0.79 m は、この直方体の中にある）。全高 1200 mm は以前の 950 mm より高い。地図の障害物の上限 PRM-36・走行中の上限 PRM-71（地面から 1.35 m）は全高に 
+      0.15 m の余裕を足した値になる。
+    disposition: answered
+  - id: DEC-197
+    kind: confirmation
+    status: recorded
+    asked_on:
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 後退の倒し量と速度の関係（人の説明）
+    answer_verbatim: "後退の速度上限が前進速度上限よりも遅いのは、車椅子側の内部制御のせいである。また、100%倒したときに後退速度上限に当たってしまうと考えよ。つまり、倒し量-速度のグラフの傾きが小さくなったと考えよ。\n"
+    affected_refs:
+      - PRM-78
+      - PRM-39
+      - ND-11
+    resulting_refs: []
+    note: 意味：EMC-270 は後退の側の倒し量と速度の傾きが前進より小さく、後退に倒し切ったときの速度が後退の上限（1.7 km/h＝0.472 
+      m/s、PRM-78）になる。motion_controller の正規化（後退は PRM-78 で割る、DEC-172・REV-118）はこの関係と同じ。旋回の成分が後退のときにどう変わるか（EMC-270
+      の内部の混合）は、この説明の範囲の外で未確認。
+    disposition: answered
+  - id: DEC-198
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】Nav2 の後退の速度の上限（velocity_smoother の min_velocity の x）を PRM-78（0.472 m/s）にするか（案 A、nav2_config 
+      の変更）、今のまま前進と同じ PRM-66（1.25 m/s）にするか（案 B）。判断の材料は design/reports/reverse_limit_study_2026-10-21.md
+    answer_verbatim: "DEC-198 は案 A。nav2_config で velocity_smoother の後退の上限を PRM-78 にする実装を許可する。\n"
+    affected_refs:
+      - PRM-78
+      - PRM-66
+      - PRM-67
+      - PRM-40
+      - ND-10
+      - ND-11
+    resulting_refs: []
+    note: 
+      人の指示（原文）：「それぞれの実装のメリデメを詳細に検討せよ。特に、回転と後退が組み合わさった機動をする際の境界条件について考えよ」。検討の報告を第91便で作った。決まらない場合に止まる作業：なし（今の設定のままでも、motion_controller
+      が倒し切りで頭打ちにする）。
+    disposition: answered
+  - id: DEC-199
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 試験 test_nav2_config.py の test_vehicle_files_alone_do_not_build の修正（第90便で Nav2 
+      の実車の値が承認され、「本物の生成物では Nav2 を組まない」という試験の前提が崩れた。原因の分類は試験の基盤）
+    answer_verbatim: "test_nav2_config の test_vehicle_files_alone_do_not_build を、生成物の写しから実車の値を 1 つ消して「組まない」を確かめ、本物の生成物では「組める」を確かめる形に直してよい。\n"
+    affected_refs:
+      - ND-10
+      - TS-37
+    resulting_refs: []
+    note: 期待値の変更ではなく、試験の入力（生成物の今の状態に頼っていた）を写しに替える修正。合否の基準は変えない。
     disposition: answered
 revisions:
   - id: REV-002
@@ -59625,6 +59998,114 @@ revisions:
     basis_refs:
       - DEC-191
       - DEC-186
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-122
+    date: '2026-10-21'
+    summary: 分岐セッションで人が答えた D10・D11（転記、DEC-192〜194、DEC-098）を記録する。Nav2 の実車の値 PRM-11・17・18・66〜73 
+      を承認値にする（footprint は足置きを外した車体、障害物の上限は地面から 1.35 m）。PRM-39 を 1.25 m/s（4.5 km/h）にする（DEC-166 
+      の値を置き換え）。PRM-18＝9999999 の振る舞いの変化を承認し、G-RECOVERY-COUNT に BT の recovery の記録を足す。地図の変換の値 PRM-33〜36・38・62〜64 
+      を承認値にする（PRM-36 は 1.35 m）。intent.md:100 の車体の寸法と「人は乗らない」の追記案は DEC-195（pending）。
+    basis_refs:
+      - DEC-192
+      - DEC-193
+      - DEC-194
+      - DEC-098
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-11
+      - PRM-17
+      - PRM-18
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-38
+      - PRM-39
+      - PRM-62
+      - PRM-63
+      - PRM-64
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-73
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - G-RECOVERY-COUNT
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-123
+    date: '2026-10-21'
+    summary: intent.md 第14版（人の編集。100 行の置換：車体は全長 800 mm × 全幅 600 mm × 全高 1200 mm、108 
+      行の追記：電動車椅子に人は乗らない）を記録（AR-014、RQ-I087・RQ-I088、DEC-196、C-029）。DEC-195 を解消し、PRM-01・02・03 
+      を第14版の記載値に。後退の倒し量と速度の関係の人の説明を DEC-197 に記録し、Nav2 の後退の上限の扱いを DEC-198（検討の報告の後に人が決める）で登録。
+    basis_refs:
+      - DEC-196
+      - DEC-195
+      - DEC-197
+    added_entity_ids:
+      - RQ-I087
+      - RQ-I088
+      - C-029
+    modified_entity_ids:
+      - C-018
+      - H-005
+      - ND-13
+      - IFD-20
+      - PRM-01
+      - PRM-02
+      - PRM-03
+      - PRM-04
+      - PRM-05
+      - PRM-06
+      - PRM-07
+      - P-001
+      - RQ-I074
+      - C-021
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-73
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - TS-36
+    added_source_ids:
+      - SRC-I100-V14
+      - SRC-I108-V14
+    added_file_ids:
+      - FILE-INTENT-V14
+    removed_entity_ids: []
+  - id: REV-124
+    date: '2026-10-21'
+    summary: 人の決定（DEC-198 案 A、原文）：Nav2 の velocity_smoother の後退の速度の上限を PRM-78（0.472 m/s）にする。nav2_config が 
+      gouda_motion_controller の生成物から PRM-78 を読み、未確定なら Nav2 を組まない値に加える。ND-10 の責務と PRM-78 の解釈を更新。
+    basis_refs:
+      - DEC-198
+      - DEC-197
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-10
+      - PRM-78
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-125
+    date: '2026-10-21'
+    summary: 人の許可（DEC-199、原文）で、試験 test_nav2_config の test_vehicle_files_alone_do_not_build を直す。生成物の写しから実車の値を 1
+      つ消して「組まない」を確かめ、本物の生成物では「組める」を確かめる。合否の基準（実車の値が 1 つでも未確定なら Nav2 を組まない、intent.md:85）は変えない。正本の要素は変えない。
+    basis_refs:
+      - DEC-199
     added_entity_ids: []
     modified_entity_ids: []
     added_source_ids: []

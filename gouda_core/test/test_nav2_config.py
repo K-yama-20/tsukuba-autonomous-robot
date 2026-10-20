@@ -3,10 +3,12 @@
 Checked against the saved upstream template (design/research/upstream_jazzy, identical to the installed 1.3.13): only the listed
 keys change; collision_monitor and the unused servers are not run; RPP / NavFn / spin-backup-wait / velocity_smoother; TwistStamped
 everywhere a cmd_vel is published; the design's frames and topics; the obstacle height band and track_unknown_space; the
-SpeedFilter; the BT gets PRM-11 / PRM-18 and nothing else; and with the vehicle files only (no trial) nothing is built because the
-vehicle values are unresolved (Nav2 is not started rather than run with general values)."""
+SpeedFilter; the BT gets PRM-11 / PRM-18 and nothing else; and with the vehicle files only (no trial) Nav2 is built only when every
+vehicle value is decided: a copy of the generated files with one vehicle value removed builds nothing (Nav2 is not started rather
+than run with general values, intent.md:85), the real generated files (all decided since REV-122) build (REV-125, DEC-199)."""
 import copy
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -36,12 +38,29 @@ class Nav2ConfigTests(unittest.TestCase):
         self.p = nc.nav2_parameters(template(), self.values, '/x/bt.xml')
 
     def test_vehicle_files_alone_do_not_build(self):
-        miss = nc.missing(nc.read_values(PARAMS, trial=False))
-        self.assertIn('max_linear_velocity_mps (PRM-66)', miss); self.assertIn('footprint (PRM-69)', miss)
-        self.assertNotIn('enable_stamped_cmd_vel (PRM-12)', miss, 'PRM-12 is approved')
+        """A copy of the generated files with one vehicle value (PRM-66) removed: it is reported missing and nothing is built.
+        The real generated files are not changed (REV-125, DEC-199)."""
+        with tempfile.TemporaryDirectory() as d:
+            params = os.path.join(d, 'params'); shutil.copytree(PARAMS, params)
+            nav2 = os.path.join(params, 'gouda_nav2.yaml')
+            with open(nav2, encoding='utf-8') as f:
+                lines = f.read().splitlines(keepends=True)
+            kept = [ln for ln in lines if not ln.lstrip().startswith('max_linear_velocity_mps:')]
+            self.assertEqual(len(lines) - len(kept), 1, 'the generated gouda_nav2.yaml declares PRM-66 once')
+            with open(nav2, 'w', encoding='utf-8') as f:
+                f.writelines(kept)
+            miss = nc.missing(nc.read_values(params, trial=False))
+            self.assertEqual(miss, ['max_linear_velocity_mps (PRM-66)'])
+            out = os.path.join(d, 'out')
+            r = nc.write(params, False, str(NAV2_TEMPLATE), str(BT_TEMPLATE), out)
+            self.assertEqual(r['missing'], miss); self.assertIsNone(r['params']); self.assertIsNone(r['bt']); self.assertFalse(os.path.exists(out))
+
+    def test_vehicle_files_alone_build_when_all_decided(self):
+        """The real generated files (every vehicle value decided, REV-122 / REV-124) build without the trial files."""
+        self.assertEqual(nc.missing(nc.read_values(PARAMS, trial=False)), [])
         with tempfile.TemporaryDirectory() as d:
             r = nc.write(PARAMS, False, str(NAV2_TEMPLATE), str(BT_TEMPLATE), d)
-            self.assertIsNone(r['params']); self.assertEqual(os.listdir(d), [])
+            self.assertEqual(r['missing'], []); self.assertTrue(os.path.isfile(r['params'])); self.assertTrue(os.path.isfile(r['bt']))
 
     def test_trial_values_build(self):
         self.assertEqual(nc.missing(self.values), [])
@@ -65,6 +84,13 @@ class Nav2ConfigTests(unittest.TestCase):
         self.assertEqual(self.p['behavior_server']['ros__parameters']['behavior_plugins'], ['spin', 'backup', 'wait'])
         vs = self.p['velocity_smoother']['ros__parameters']
         self.assertEqual(vs['max_velocity'][0], v['max_linear_velocity_mps']); self.assertEqual(vs['max_decel'][2], -v['angular_accel_limit_radps2'])
+        # DEC-198 plan A: reverse is limited by PRM-78 (full-deflection reverse speed), not by the forward limit PRM-66
+        self.assertEqual(vs['min_velocity'][0], -v['max_reverse_speed_mps']); self.assertEqual(vs['min_velocity'][2], -v['max_angular_velocity_radps'])
+
+    def test_reverse_limit_is_required(self):
+        """PRM-78 is a vehicle value Nav2 needs (DEC-198): without it nothing is built."""
+        values = dict(self.values); values[('gouda_motion_controller', 'max_reverse_speed_mps')] = None
+        self.assertIn('max_reverse_speed_mps (PRM-78)', nc.missing(values))
         self.assertEqual(self.p['bt_navigator']['ros__parameters']['odom_topic'], nc.ODOM_TOPIC)
 
     def test_costmaps(self):

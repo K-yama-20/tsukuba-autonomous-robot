@@ -1,8 +1,22 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-121、第89便）。
+最終更新：2026-10-21（REV-125、第93便）。
 
 **引き継ぎ: `reports/handover_2026-10-21.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-17.md`、その §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第93便: 試験 test_nav2_config の修正（REV-125、DEC-199）**（作業記録 `reports/worklog/2026-10-21_rev125_test_nav2_config_fix.md`）。
+- 人の許可で、test_vehicle_files_alone_do_not_build を、生成物の写しから PRM-66 を消して「組まない」を確かめる形に直し、本物の生成物で「組める」を確かめる試験を足した。合否の基準は変えていない。Mac 223 合格・不合格 0。規則を壊した写しでは不合格になることを確認。設計検査は違反 0・未判定 5。
+
+**第92便: Nav2 の後退の速度の上限を PRM-78 に（REV-124、DEC-198 案 A）**（作業記録 `reports/worklog/2026-10-21_rev124_dec198_reverse_limit.md`）。
+- 人の許可で、nav2_config が velocity_smoother の後退の上限（min_velocity の x）に PRM-78（0.472 m/s）を使うようにした。PRM-78 は gouda_motion_controller の生成物から読み、未確定なら Nav2 を組まない値に加えた。実車の値だけで組んだ設定は min_velocity [−0.472, 0, −1.0]。試験 2 件を追加（合格）。Mac 221 合格・1 不合格（既知の test_nav2_config、許可待ち）。設計検査は違反 0・未判定 5。
+
+**第91便: intent.md 第14版、PRM-01〜03、後退の上限の検討（REV-123、DEC-195〜198）**（作業記録 `reports/worklog/2026-10-21_rev123_intent_v14_reverse_study.md`、報告 `reports/reverse_limit_study_2026-10-21.md`）。
+- intent.md 第14版（100 行：車体は全長 800 mm × 全幅 600 mm × 全高 1200 mm、108 行：電動車椅子に人は乗らない）を記録した（AR-014、RQ-I087・RQ-I088、C-029）。途中の版の「全高 120 mm」は、人に確かめて 1200 mm の誤りと分かった。PRM-01 0.80 m、PRM-02 0.60 m、PRM-03 1.2 m。DEC-195 は解消。
+- 後退の倒し量と速度の関係（人の説明、DEC-197）と、Nav2 の後退の上限の案 A・B（・C）の検討を報告した。今の設定（RPP は後退しない、BackUp は 0.15 m/s）では、A と B で動きは同じ。推奨は A（予防）。判断は DEC-198（pending）。設計検査は違反 0・未判定 5。
+
+**第90便: 分岐セッションの D10・D11 の回答（転記）の反映：Nav2 の実車の値、PRM-39、地図の変換の値（REV-122、DEC-192〜195、DEC-098）**（作業記録 `reports/worklog/2026-10-21_rev122_d10_d11_transcribed.md`）。
+- Nav2 の実車の値 PRM-11・17・18・66〜73 を承認値にした（footprint は足置きを外した車体、前 0.55・後 0.24・幅 0.60 m。前進 1.25 m/s。障害物は地面から 0.10〜1.35 m。recovery 9999999 回）。Nav2 の設定は実車の値だけで組めるようになった（nav2_config.missing が空）。PRM-39 は 1.25 m/s（DEC-166 の 1.111 を DEC-193 で置き換え）。地図の変換の値 PRM-33〜36・38・62〜64 を承認（DEC-098。PRM-36 は 1.35 m）。
+- PRM-01・02（intent.md:100 の写し）は変えていない。intent.md の改訂案（車体の寸法、人は乗らない）は DEC-195（pending）。試験 test_nav2_config の 1 件が不合格（「本物の生成物では Nav2 を組まない」前提が崩れた。試験の基盤の問題。修正は許可待ち）。設計検査は違反 0・未判定 5（DR-11 は 49 → 30）。
 
 **第89便: VL-02 の試験の追加（REV-121、DEC-191）**（作業記録 `reports/worklog/2026-10-21_rev121_vl02_test.md`）。
 - 人の許可で、承認値で斜めに倒し切ったときの x と y の振れ幅の差が 1 mV 以内であることを確かめる試験を、Python の模型（test_vehicle_core.py）と firmware のホスト試験（test_core.cpp）に追加した。firmware と模型の処理は変えていない（DEC-186 の保留のまま）。Mac 221 合格、ホスト試験 OK 282。差を 2 mV にした写しでは両方が不合格になることを確認。設計検査は違反 0・未判定 5。
@@ -358,7 +372,7 @@
 
 第87便（REV-119、2026-10-21）で書き直した（DEC-185、人の許可の転記）。件数は `design/reports/design_check.txt` の要約行と、各便の作業記録から取った。
 
-- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第13版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
+- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第14版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
 - **設計検査に合格**: 未判定。17 ルールのうち合格 12・違反 0・未判定 5。未判定の内訳は、DR-04 が 5 件、DR-05 が 2 件、DR-10 が 2 件（版の照合）、DR-11 が 49 件（未確定の値）、DR-15 が 30 件（コードの中の数値。偶然の一致を含む、`reports/dr15_literal_audit_2026-10-21.md`）。違反 0 件は、未判定の解消や実車への適合の証明ではない。
 - **ソフト試験**:
   - 工程 5-1〜5-5 は合格（stub・Ubuntu・VM。ESP32 の実機・ゲームパッド・車体なし）。
@@ -368,29 +382,29 @@
 - **実車検証済み／実車投入可能**: 人の判断待ち。判断の材料は次のとおり。
   - 実車試験は未実施。
   - ESP32 の firmware（設定値 PRM-43〜49 はすべて承認済み）は人が書き込み済み（人の申告、2026-10-21）。卓上の TS-17〜19・VL-01、DEC-050 の実機照合は未実施。
-  - 自律走行は、ND-07 が未実装で、Nav2 の実車の値も未確定なので、まだ開始できない（`reports/autonomy_readiness_2026-10-21.md`）。
+  - 自律走行は、ND-07 が未実装で、Nav2 で使える 2D 地図もまだないので、開始できない（`reports/autonomy_readiness_2026-10-21.md`）。Nav2 の実車の値は第90便で承認値になった。地図の変換の値も承認されたが、実データの 2D 変換は TS-34 で不合格（床の反射、DEC-107）。
 
 ## 検査結果の件数
 
 | 検査 | 合格 | 違反 | 未判定 | 時点・出所 |
 |---|---|---|---|---|
-| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-120 の後、`reports/input_integrity.json` |
-| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 49、DR-15 30） | REV-120 の後、`reports/design_check.txt` の要約行 |
+| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-125 の後、`reports/input_integrity.json` |
+| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 30、DR-15 30） | REV-125 の後、`reports/design_check.txt` の要約行 |
 | 検査器の試験（`design/rules`） | 82 | 1（実モデルの移行の照合。上の drawio と .DS_Store と同じ原因） | 0 | 第88便（`test_apply_revision.py` 4 件を追加）、`reports/migration_tests.txt` |
-| gouda_core の単体試験 | Mac 221（8 skip）、VM 228 | 0 | 0 | Mac は第89便、VM は第86便（コミット 0f40106 の内容。第89便の 1 件の追加は VM では未実行） |
+| gouda_core の単体試験 | Mac 223（8 skip） | 0 | 0 | Mac は第93便。VM は第86便の 228 合格のまま（その後は未実行） |
 | firmware 中核のホスト試験（g++） | OK 282 | 0 | 0（実機は未実行） | 第89便（VL-02 の 4 チェックを追加） |
 | firmware のビルド（esp32dev） | 成功 | 0 | 0 | 第67・72便。書き込みは人（2026-10-21、申告） |
-| 判断台帳 | 189 件（answered 114、recorded 54） | — | pending 21（下の一覧） | REV-121 の後 |
+| 判断台帳 | 197 件（answered 121、recorded 56） | — | pending 20（下の一覧） | REV-125 の後 |
 
 `run_checks.py` の終了コードは 1。原因は、上の入力の完全性の 3 件だけ。
 
 ## 承認待ち・実測待ち・人の作業・提案
 
-判断台帳の pending（21 件）:
+判断台帳の pending（20 件）:
 
 - 方式・照合: DEC-021（Q-02 自己位置推定の方式）、DEC-022（Q-03 車両通信と制御の校正）、DEC-024（Q-09 Bluetooth 切断時の P 状態）、DEC-050（配線・firmware・操作結果の実機照合）。
 - 自己位置・GNSS: DEC-115（方式の第一候補 A3。ND-07 が止まっている）、DEC-127（GNSS と地図の対応）、DEC-129（再起動後の初期位置の画面）、DEC-134（発散の監視と再初期化）、DEC-148（intent.md への運用の条件の追記）、DEC-152（NTRIP の検査ルール）。
-- 地図: DEC-098（変換の暫定の既定値）、DEC-107（地面の推定の修正）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
+- 地図: DEC-107（地面の推定の修正）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
 - 運用・環境: DEC-101（旧実装のファイルの扱い）、DEC-104（スリープの抑止）、DEC-138（VM の Fast DDS の設定）。
 - 構成: DEC-184（Hokuyo を今年使うか。第87便で登録）。
 - 検査: DEC-189（DR-15 の許容の一覧の案 28 件と、走査器の修正）、DEC-190（gouda.sh の PRM-77 の写しの扱い）。第88便で登録。
@@ -403,7 +417,6 @@
 
 - G-RECOVERY-COUNT（復旧できないときの扱い。工程 5-7 の設計のとき）。
 - 「まず Nav2 で自律走行させてみよう」（DEC-171 の人の発言）を、ND-07 と Nav2 の値を決めて進めるか、試験用の構成で進めるか。後者は TR-05 の契約の外になる。
-- Nav2 の実車の値 PRM-11・17・18・66〜73（Q-04・Q-06）。
 
 人の作業:
 
@@ -423,21 +436,21 @@
 ## 次の作業
 
 - 人の指示を待つ。候補は上の承認待ち・決定待ちと、「Global_localization または Navigation のノードの実装の検討」（`reports/handover_2026-10-17.md` §5）。
-- 止まっている: ND-07（DEC-115）、Nav2 の実車での起動（PRM 未確定）、実車試験。
+- 止まっている: ND-07（DEC-115）、Nav2 で使える 2D 地図（DEC-107・TS-34）、実車試験。
 
 ## 主要ファイルの場所（CLAUDE.md 1.9 の対応表。パスはリポジトリ `tsukuba-autonomous-robot/` 相対）
 
 | 役割 | 場所 | 備考 |
 |---|---|---|
-| 設計意図（人が所有） | `design/intent.md` | 第13版（SHA c4d1a69a…）。写し `baselines/intent_history/`（`intent_v13_c4d1a69aee5f.md` など） |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-121。番号は `tools/reserve_ids.py` で予約する |
+| 設計意図（人が所有） | `design/intent.md` | 第14版（SHA 9bf08d3e…、108 行）。写し `baselines/intent_history/`（`intent_v14_9bf08d3ebe24.md` など） |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-125。番号は `tools/reserve_ids.py` で予約する |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`、`vehicle_output_timing.md`、`speed_filter_design.md`、`map_conversion.md`、`sensor_supervision.md`、`regulations_2026.md`、`git_management_plan.md`、`deferred_verification.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜191） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜199） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`、`render_migration_review.py`、`apply_revision.py`、`reserve_ids.py`、`hardcode_scan.py` |
 | 生成物（手で編集しない） | `generated/`（`params/` に node ごとの設定、`firmware_config.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時のヘッダはビルドのときに生成する（コミットしない） |
 | 提案 | `proposals/` | 承認済みの仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（試験の記録、DAC の実測と配線）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21.md`。最新の作業記録 `2026-10-21_rev121_vl02_test.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21.md`。最新の作業記録 `2026-10-21_rev125_test_nav2_config_fix.md` |
 | ロボットの実装 | `gouda_interfaces/`、`gouda_core/`、`gouda.sh`、`setup.sh`、`update.sh`、`third_party/drivers.repos`、試験用 `gouda_core/test/stack.sh` | 起動は `bash gouda.sh start` だけ |
 | firmware | `firmware/gouda_esp32_v4/` | 旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換えの対象 |

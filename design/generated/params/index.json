@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "0af5a3d6ae189a5c3ab13bca8e5ae1933fe3aa8023f81a71f9a5b6ec2ce1b57e",
+  "model_entities_sha256": "437777e29c18a8211e70562901a291306d97c07042369f1f62845a40fc8ed8a4",
   "parameters": [
     {
       "id": "PRM-54",
@@ -33,8 +33,8 @@
       "declaration": "bt_xml",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.7,
       "unit": "m"
     },
     {
@@ -45,8 +45,8 @@
       "declaration": "bt_xml",
       "apply_timing": "launch",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 9999999,
       "unit": "回"
     },
     {
@@ -69,8 +69,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 20.0,
       "unit": "Hz"
     },
     {
@@ -201,8 +201,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.1,
       "unit": "m"
     },
     {
@@ -213,8 +213,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.1,
       "unit": "m"
     },
     {
@@ -225,8 +225,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.15,
       "unit": "m"
     },
     {
@@ -237,8 +237,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.35,
       "unit": "m"
     },
     {
@@ -249,8 +249,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.0,
       "unit": "点"
     },
     {
@@ -261,8 +261,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.5,
       "unit": "m"
     },
     {
@@ -273,8 +273,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 10.0,
       "unit": "度"
     },
     {
@@ -285,8 +285,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.0,
       "unit": "m"
     },
     {
@@ -490,7 +490,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 1.111,
+      "value": 1.25,
       "unit": "m/s"
     },
     {
@@ -549,8 +549,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.25,
       "unit": "m/s"
     },
     {
@@ -561,8 +561,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.0,
       "unit": "rad/s"
     },
     {
@@ -573,8 +573,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.2,
       "unit": "m/s²"
     },
     {
@@ -585,8 +585,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "string",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": "[[0.55, 0.30], [0.55, -0.30], [-0.24, -0.30], [-0.24, 0.30]]",
       "unit": "m（Nav2 の footprint の文字列「[[x1, y1], [x2, y2], ...]」）"
     },
     {
@@ -597,8 +597,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": -0.065,
       "unit": "m"
     },
     {
@@ -609,8 +609,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.185,
       "unit": "m"
     },
     {
@@ -621,8 +621,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 0.5,
       "unit": "m"
     },
     {
@@ -633,8 +633,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 2.0,
       "unit": "rad/s²"
     },
     {

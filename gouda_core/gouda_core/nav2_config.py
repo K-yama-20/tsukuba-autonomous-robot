@@ -12,7 +12,10 @@ design/research/upstream_jazzy/nav2_bringup/params/nav2_params.yaml for 1.3.13) 
   (RQ-I012), the SpeedFilter on the global costmap (IFD-14 / IFD-42, DEC-031), the navigate-through-poses BT built from the
   upstream BT with PRM-11 (RemovePassedGoals radius) and PRM-18 (outer RecoveryNode retries);
 - vehicle values PRM-17, PRM-66..73 (speeds, accelerations, footprint, obstacle heights, inflation); the local VoxelLayer's
-  z_resolution is derived so that its column reaches PRM-71 (the template's 16 x 0.05 m would cut it at 0.8 m).
+  z_resolution is derived so that its column reaches PRM-71 (the template's 16 x 0.05 m would cut it at 0.8 m);
+- the velocity_smoother's reverse limit is PRM-78 (the wheelchair's reverse speed at full deflection, read from the
+  gouda_motion_controller file where it is declared), not -PRM-66: reversing has a smaller deflection-to-speed slope (DEC-197),
+  so Nav2 never commands a reverse faster than full deflection (DEC-198 plan A).
 When a vehicle value is unresolved (the generated file has no value and no trial file is used), nothing is built and the
 missing keys are returned: Nav2 is not started rather than run with a general value (intent.md:85, RQ-I076).
 """
@@ -48,7 +51,8 @@ REQUIRED = {  # key in the generated files -> PRM (vehicle values that must be d
     ('gouda_nav2', 'footprint'): 'PRM-69', ('gouda_nav2', 'obstacle_min_height_m'): 'PRM-70', ('gouda_nav2', 'obstacle_max_height_m'): 'PRM-71',
     ('gouda_nav2', 'inflation_radius_m'): 'PRM-72', ('controller_server', 'controller_frequency'): 'PRM-17',
     ('controller_server', 'enable_stamped_cmd_vel'): 'PRM-12',
-    ('bt_params', 'remove_passed_goals_radius_m'): 'PRM-11', ('bt_params', 'recovery_number_of_retries'): 'PRM-18'}
+    ('bt_params', 'remove_passed_goals_radius_m'): 'PRM-11', ('bt_params', 'recovery_number_of_retries'): 'PRM-18',
+    ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78'}
 
 
 def read_bt_params(params_dir: str, trial: bool) -> dict:
@@ -65,7 +69,8 @@ def read_values(params_dir: str, trial: bool) -> dict:
     """{(file, key): value} of every key Nav2 needs, from the generated files (trial files only when trial)."""
     files = {'gouda_nav2': sc.read_node_params(params_dir, 'gouda_nav2', trial),
              'controller_server': sc.read_node_params(params_dir, 'controller_server', trial),
-             'bt_params': read_bt_params(params_dir, trial)}
+             'bt_params': read_bt_params(params_dir, trial),
+             'gouda_motion_controller': sc.read_node_params(params_dir, 'gouda_motion_controller', trial)}   # PRM-78 (DEC-198)
     return {(f, k): files[f].get(k) for (f, k) in REQUIRED}
 
 
@@ -83,6 +88,7 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
     v = {k: val for (_, k), val in values.items()}
     p = {k: copy.deepcopy(template[k]) for k in KEPT}
     vmax, wmax = float(v['max_linear_velocity_mps']), float(v['max_angular_velocity_radps'])
+    vrev = float(v['max_reverse_speed_mps'])   # PRM-78: reverse at full deflection (DEC-197, DEC-198)
     acc, wacc = float(v['linear_accel_limit_mps2']), float(v['angular_accel_limit_radps2'])
     hmin, hmax = float(v['obstacle_min_height_m']), float(v['obstacle_max_height_m'])
     infl, footprint = float(v['inflation_radius_m']), str(v['footprint'])
@@ -125,7 +131,7 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
     bs.update({'max_rotational_vel': wmax, 'rotational_acc_lim': wacc, 'enable_stamped_cmd_vel': stamped})
 
     vs = p['velocity_smoother']['ros__parameters']
-    vs.update({'max_velocity': [vmax, 0.0, wmax], 'min_velocity': [-vmax, 0.0, -wmax], 'max_accel': [acc, 0.0, wacc], 'max_decel': [-acc, 0.0, -wacc],
+    vs.update({'max_velocity': [vmax, 0.0, wmax], 'min_velocity': [-vrev, 0.0, -wmax], 'max_accel': [acc, 0.0, wacc], 'max_decel': [-acc, 0.0, -wacc],
                'odom_topic': ODOM_TOPIC, 'enable_stamped_cmd_vel': stamped})
 
     p['map_server'] = {'ros__parameters': {'yaml_filename': ''}}             # set by ND-03 before the lifecycle start (TR-05)

@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 21
+pending_decision_count: 20
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -982,7 +982,8 @@ issues:
       回ごとに理由を記録する。旧文の「復旧できない場合…は一時停止モードに入り理由を記録する」も無くなった。設計は上限と一時停止を前提にしている：DEC-008・H-006（復旧不能時、自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持）、ND-03
       の責務、TR-13〜16、TS-06・09、PRM-10（試行回数上限）。
     next_action: 工程 5-7（自動復帰）の設計のときに決める。候補：復旧できないと判断する条件（例：同じ段階で毎回失敗）をなくし再試行を続けるか、DEC-008 の扱いを残すか、50 
-      回ごとの記録の中身、復帰の間隔。いずれも承認事項。
+      回ごとの記録の中身、復帰の間隔。いずれも承認事項。あわせて、Nav2 の BT の recovery の回数と理由も 50 
+      回ごとに記録する仕組みを設計に足す（DEC-194、人が採用。PRM-18＝9999999 で BT がほぼ失敗を返さないため）。
     intent_lines: []
     affected_refs:
       - ND-03
@@ -994,10 +995,14 @@ issues:
       - TR-16
       - TS-06
       - TS-09
+      - PRM-18
+      - TR-07
+      - ND-10
     options:
     recommendation:
     decision_refs:
       - DEC-179
+      - DEC-194
 pending_decisions:
   - id: DEC-021
     kind: question
@@ -1019,17 +1024,6 @@ pending_decisions:
     kind: question
     status: pending
     question: 【実機照合】実際の配線、書き込まれた firmware、操作結果が設計前提（Bluetooth ゲームパッド→ESP32→DAC、手動操作優先、リレー不使用）と一致するか
-    resulting_refs: []
-  - id: DEC-098
-    kind: approval
-    status: pending
-    question: '【承認】地図の変換の暫定の既定値（intent.md 106 行「既定値は推奨値」。実機検証の後に人が再指定する）。高さはすべて推定した地面から。 推奨: 2D 地図の解像度 PRM-33 =
-      0.1 m（GLIM の原図の点は submap ごとに 0.3 m の格子で間引かれるため、Nav2 でよく使う 0.05 m では未知のセルが増える）。 地面の帯の上限 PRM-34 = 0.1 m（坂で格子の中の高さが変わる分
-      0.5 m の半分 × tan 10 度 ≈ 0.044 m と点の誤差を含む）。 障害物の下限 PRM-35 = 0.15 m（地面の帯との間に 0.05 m の隙間。これより低い縁石や段差は 2D 地図の障害物にならず、段差の図で見る）。
-      障害物の上限 PRM-36 = 1.2 m（車体の全高 PRM-03 の 0.95 m に 0.25 m の余裕。これより上の枝などは障害物にしない）。 占有とみなす点数 PRM-38 = 1 点（点が疎なため。細い柱を落とさない。地図作成中の歩行者も障害物として残る）。
-      地面を推定する格子 PRM-62 = 0.5 m（点の間隔 0.3 m より大きくし、点のない格子を減らす）。 地面とみなす傾きの上限 PRM-63 = 10 度（車いす用の斜路の上限 1/12 ≈ 4.8 度や一般の坂を含む。大きくすると縁石の上面が地面に吸収されやすい）。
-      地面を補う距離 PRM-64 = 1.0 m（車の下など 1 m 程度の見えない所を地面で補う。それより遠い所は地面が不明）。 代替: PRM-35 を 0.1〜0.12 m にして低い縁石も障害物にする（地面の誤差で偽の障害物が増える）、PRM-38
-      を 2 点にする（偽の障害物は減るが細い物を落とす）。'
     resulting_refs: []
   - id: DEC-099
     kind: measurement

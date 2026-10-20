@@ -1,0 +1,27 @@
+# 変更セット REV-125（2026-10-21 第93便: DEC-199、試験 test_nav2_config の修正の許可）
+# 適用: design/tools/apply_revision.py REV-125
+id: REV-125
+date: '2026-10-21'
+summary: 人の許可（DEC-199、原文）で、試験 test_nav2_config の test_vehicle_files_alone_do_not_build を直す。生成物の写しから実車の値を 1 つ消して「組まない」を確かめ、本物の生成物では「組める」を確かめる。合否の基準（実車の値が 1 つでも未確定なら Nav2 を組まない、intent.md:85）は変えない。正本の要素は変えない。
+basis_refs:
+- DEC-199
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-199
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 試験 test_nav2_config.py の test_vehicle_files_alone_do_not_build の修正（第90便で Nav2 の実車の値が承認され、「本物の生成物では Nav2 を組まない」という試験の前提が崩れた。原因の分類は試験の基盤）
+  answer_verbatim: "test_nav2_config の test_vehicle_files_alone_do_not_build を、生成物の写しから実車の値を 1 つ消して「組まない」を確かめ、本物の生成物では「組める」を確かめる形に直してよい。\n"
+  affected_refs:
+  - ND-10
+  - TS-37
+  resulting_refs: []
+  note: 期待値の変更ではなく、試験の入力（生成物の今の状態に頼っていた）を写しに替える修正。合否の基準は変えない。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

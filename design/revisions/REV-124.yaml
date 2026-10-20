@@ -1,0 +1,42 @@
+# 変更セット REV-124（2026-10-21 第92便: DEC-198 案 A、Nav2 の後退の速度の上限を PRM-78 に）
+# 適用: design/tools/apply_revision.py REV-124
+id: REV-124
+date: '2026-10-21'
+summary: 人の決定（DEC-198 案 A、原文）：Nav2 の velocity_smoother の後退の速度の上限を PRM-78（0.472 m/s）にする。nav2_config が gouda_motion_controller の生成物から PRM-78 を読み、未確定なら Nav2 を組まない値に加える。ND-10 の責務と PRM-78 の解釈を更新。
+basis_refs:
+- DEC-198
+- DEC-197
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-10
+  set_nested:
+    ros_node.responsibilities:
+    - 経路計画・追従・後退・再計画・通過／到達判定（RQ-I011・RQ-I018・RQ-I019）
+    - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15。velocity_smoother を経た後の値）
+    - costmap の SpeedFilter による SpeedLimit の発行と controller への適用（IFD-14、DEC-031）。mask・filter info は標準 server で配信（IFD-42）
+    - map_server による静的地図の提供（IFD-24）
+    - 設定・プラグイン・BT で拡張し本体は改変しない（RQ-I056・RQ-I057）
+    - '構成（DEC-122）: controller は Regulated Pure Pursuit、planner は NavFn、BT は上流の navigate_through_poses_w_replanning_and_recovery.xml の写しに PRM-11・PRM-18 を入れたもの、behaviors は spin・backup・wait、velocity_smoother を使う、collision_monitor は使わない（RQ-I072）、cmd_vel は TwistStamped（PRM-12）'
+    - 障害物は XT-32 の点群（IFD-21）を local の VoxelLayer・global の ObstacleLayer に直接入れ、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。track_unknown_space を true にして観測していない所を空きとみなさない（RQ-I012、DEC-122）
+    - 設定は上流の nav2_bringup の nav2_params.yaml を雛形に、plugin の選択、frame・topic（IF の名前）と PRM の値だけを差し込んで起動時に作る。雛形のその他の値は変えない。実車の設定（trial なし）で PRM-11・17・18・66〜73 のどれかが未確定なら Nav2 を起動せず理由を記録する（RQ-I076、intent.md:85）
+    - 起動する server（gouda_nav2.launch.py。DEC-183 で名前を補足）：map_server（静的地図、IFD-24）、filter_mask_server（速度マスク用の map_server、IFD-42）、costmap_filter_info_server（IFD-42）、controller_server、smoother_server、planner_server、behavior_server、bt_navigator、velocity_smoother、lifecycle_manager_navigation（autostart false。ND-03 が IFD-36 で起動・停止）
+    - velocity_smoother の後退の速度の上限（min_velocity の x）は PRM-78（車椅子の後退の上限、倒し切ったときの後退の速さ）。前進の上限は PRM-66。後退の倒し量と速度の傾きは前進より小さく（DEC-197）、Nav2 が倒し切りより速い後退を指令しないようにする（DEC-198 案 A。回転と組み合わせたときの範囲は倒し量の円で決まり、Nav2 は知らない：reports/reverse_limit_study_2026-10-21.md）
+  interpretation_append: REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。
+- id: PRM-78
+  set_nested:
+    parameter.purpose: cmd_vel の linear.x が負（後退）のとき、この値で割って正規化操作値（前後）にする。車椅子側の制御で後退は 1.7 km/h に制限される（人の申告、DEC-171）ため、前進の PRM-39 と分ける。あわせて Nav2 の velocity_smoother の後退の速度の上限にも使う（DEC-198）
+  set:
+    related_refs:
+    - PRM-39
+    - PRM-66
+  interpretation_append: REV-124（DEC-198）：nav2_config が velocity_smoother の min_velocity の x（−PRM-78）にも使う。宣言は gouda_motion_controller の生成物のまま（値は一か所）。
+decision_updates:
+- id: DEC-198
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: "DEC-198 は案 A。nav2_config で velocity_smoother の後退の上限を PRM-78 にする実装を許可する。\n"
