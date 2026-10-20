@@ -1,0 +1,21 @@
+# 変更セット REV-102（2026-10-21 第69便: DEC-164 の回答、firmware のコメントの修正）
+# 適用: design/tools/apply_revision.py REV-102
+id: REV-102
+date: '2026-10-21'
+summary: '人の回答（DEC-164、原文）で、firmware/gouda_esp32_v4/src/main.cpp の writeDac の A チャンネルのコメント「gain 1x」を「gain 2x (GA=0)」に直した。コメントだけで、コマンド値 0x1000・0x9000 と動作は変えていない。'
+basis_refs:
+- DEC-164
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-17
+  interpretation_append: 'REV-102（DEC-164）：main.cpp の writeDac のコメントを「gain 2x (GA=0)」に直した（動作は変わらない）。'
+decision_updates:
+- id: DEC-164
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "DEC-164の修正を許可する\n"
+    disposition: answered

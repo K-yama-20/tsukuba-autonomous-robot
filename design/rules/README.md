@@ -55,6 +55,8 @@
 
 `test_check_design.py`: 実モデルの複製に1件ずつ違反を注入（参照切れ、所有者欠落、同一モードでの二重発行、第5モード、自動での自律開始、必須イベント欠落、要求の対応漏れ、非常停止語、未確認要素の使用、契約の置換、人の承認の追加、版依存IFの確定扱い、一般値の記入、行全体の破棄、旧候補の承認、5 m流用）し、該当ルールが違反を返すことを確認。
 
+`test_apply_revision.py`（REV-120、DEC-187）: `apply_revision.py --dry-run --check` の試験。一時ディレクトリの変更セットで、正しい変更セットは新しい指摘なしで model.yaml・schema.json を書かないこと、空の source_refs と recorded の決定を承認の根拠にする誤り（第70〜82便の記録の誤りの代表）が新しい違反として出ること、既存の未判定と generated/params のハッシュの差を数えないこと、未判定だけでは失敗にしないことを確認。
+
 baseline は `../baselines/migration_v1/`（凍結）。`build_migration.py` は初回移行専用で既存正本を上書きしない。モデルの変更は `revisions/REV-xxx.yaml` を `tools/apply_revision.py` で適用する。検査を通すための baseline 再生成・条件緩和は禁止。
 
 | DR-14 | 判断台帳の項目がある | RQ-I073 |
@@ -70,5 +72,5 @@ baseline は `../baselines/migration_v1/`（凍結）。`build_migration.py` は
 | 宣言先・キー・型・適用時期の欠落 | declaration が ros_parameter／bt_xml／firmware_config 等で `target`・`param_key`・`value_type`・`apply_timing` のいずれかが空 | （上と同じ経路。`test_parameter_without_declaration` で検出） |
 | 重複宣言 | 同じ `(target, param_key)` が 2 件以上 | `test_duplicate_parameter_declaration` |
 | 生成物と正本の不一致 | `generated/params/*.yaml` が `generate_params.render(model)` の出力と一致しない | `test_generated_params_must_match_model` |
-| ハードコード | 承認値（approved）と一致する数値リテラルが実装リポジトリの Gouda パッケージの `.py` にあり、同じファイルに `param_key` が無い → 未判定として報告 | 実装が無いため現在は対象 0 件（検査は実行される） |
+| ハードコード（DEC-175 で改訂、`tools/hardcode_scan.py`） | コメント・docstring・文字列を除いたコードだけを走査。対象は `tools/hardcode_scan_roots.json`（Python のパッケージ、web の JavaScript・HTML の script、firmware の C++、gouda.sh・setup.sh・update.sh）。(1) 承認値と同じ数のリテラル（小数は全言語、10 以上の整数は宣言の言語だけ）、(2) 待ち・期限・周期・再試行の行にある 0 以外の数（承認値でなくても）→ 未判定として報告。人が許容したものは `tools/hardcode_allowlist.json`（ファイル・行の文字列・数・理由・判断）で除き、何にも一致しない許容の項目は報告する | `HardcodeScanV2Tests`（文章を見ない、各言語の時間の値、添字・enum 名・HTML の本文を見ない、整数の言語、許容の一覧と古い項目）、`HardcodeScanTests` |
 | 正当な設定の非検出 | 別 target の同じキーは重複としない。実モデルは違反 0 | `test_legitimate_settings_not_flagged`、`test_real_model_has_no_violations` |

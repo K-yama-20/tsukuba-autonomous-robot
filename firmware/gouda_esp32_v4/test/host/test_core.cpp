@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <string>
 #include "gouda_v4/control.hpp"
 #include "build_config_trial.hpp"
@@ -84,6 +85,14 @@ int main() {
         c.btReport(6000, 0, t); step(c, t); CHECK(!c.centered()); c.btReport(0, 0, t + 1); CHECK(c.centered());
     }
 
+    // manual still passes after the PC source went stale and was disabled (PRM-13): manual does not depend on the PC state
+    { Core c(TOKEN, &cfg, false, 0); c.btConnect(0); c.btReport(0, 0, 0); cmd(c, 0, 0, 0); step(c, 0); cmd(c, 10, 5000, 0); CHECK(step(c, 10).source == SRC_PC);
+      uint32_t t = 20;
+      while (t < 10 + W + 100) { c.btReport(0, 0, t); step(c, t); t += 50; }   // gamepad connected and centred, no PC frames
+      CHECK(!c.pcEnabled() && hasEvent(c, E_PC_DISABLED_STALE) && c.applied().source == SRC_NONE);
+      c.btReport(0, 8000, t); Applied a = step(c, t); CHECK(a.source == SRC_MANUAL && a.target_x_mv == N && a.target_y_mv > N);
+      c.btReport(0, 0, t + 10); a = step(c, t + 10); CHECK(a.source == SRC_NONE && a.target_x_mv == N && a.target_y_mv == N); }
+
     // BT disconnect -> neutral; SET_CONFIG validation / generation; HELLO reply; periodic STATUS
     { Core c(TOKEN, &cfg, false, 0); c.btConnect(0); c.btReport(0, 0, 0); c.btReport(0, 9000, 10); CHECK(step(c, 10).source == SRC_MANUAL);
       c.btDisconnect(20); Applied a = step(c, 20); CHECK(a.source == SRC_NONE && a.target_x_mv == N && a.target_y_mv == N);
@@ -99,6 +108,12 @@ int main() {
           for (size_t i = 0; i < c.txSize(); i++) if (pr2.feed(c.txData()[i], fr) && fr.kind == STATUS) { statuses++; CHECK(fr.length == kStatusPayload && (fr.payload[2] & F_CONFIG_VALID)); }
           c.txClear(); }
       CHECK(statuses == int(1000 / cfg.status_period_ms)); }
+
+    // VL-02 (REV-121, DEC-191): a diagonal at full deflection with the configured DAC values moves x and y away from the
+    // neutral by amounts that differ by at most 1 mV (x is 1 mV short today; DEC-186 keeps it). A wider gap fails.
+    { const float d[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+      for (const auto& v : d) { uint16_t ox = 0, oy = 0; mapVoltage(v[0], v[1], cfg.dac_neutral_mv, cfg.dac_min_mv, cfg.dac_max_mv, ox, oy);
+          int ex = std::abs(int(ox) - int(cfg.dac_neutral_mv)), ey = std::abs(int(oy) - int(cfg.dac_neutral_mv)); CHECK(std::abs(ex - ey) <= 1); } }
 
     std::printf("OK: %d checks\n", checks);
     return 0;

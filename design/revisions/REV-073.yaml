@@ -1,0 +1,38 @@
+# 変更セット REV-073（2026-10-19 第40便: GNSS のドライバの最初の起動と、起動の後の記録、測位と方位の確認）
+# 適用: design/tools/apply_revision.py REV-073
+id: REV-073
+date: '2026-10-19'
+summary: '人の指示「VMは更新した。次に進め」により、VM（コミット 3341602）で gouda.sh start をし、GNSS のドライバが初めて起動した（FILE-GNSS-FIRST-START）。ドライバは USB1 で接続し設定を終えたが、受信機は sntp, on（雛形の ntp_server true）を Invalid command で拒否した。起動の後の gso: Stream1（USB1、状態の block、msec500）と Stream3（USB1、PVT・方位など 10 block、msec100）、ほかは off。getDataInOut は起動の前と同じ。USB2 の NMEA は止まった。屋内で、単独測位（mode 1、衛星 13〜17、水平精度 約 11 m）、方位は出ない（AttEuler mode 0、error 1、heading NaN）。手順 4 は屋外での確認が残る。'
+basis_refs:
+- DEC-140
+- DEC-142
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-FIRST-START
+  path: design/research/vehicle_pc/2026-10-19_gnss_first_start.txt
+  role: evidence
+decisions: []
+entities:
+- id: G-GNSS-NO-HEADING
+  kind: issue
+  source_from_affected: true
+  name: デュアルアンテナの方位が出ない（2026-10-19、屋内、最初の起動）
+  sensitivity:
+  - operation
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-19
+    - IFD-49
+    - IFD-50
+    resolution_refs: []
+    question: '最初の起動（FILE-GNSS-FIRST-START）で、AttEuler は 249 回すべて mode 0・error 1、heading と cov_headhead は NaN。位置は単独測位で水平精度 約 11 m と受信が弱い。error 1 の意味（SBF の定義）は原本未照合。候補: 副アンテナが空を見ていない・つながっていない、屋内で衛星が足りない、受信機の設定（sga, MultiAntenna が入ったか。ドライバは受信機の能力の照会の結果が heading 対応のときだけ送る）。'
+    next_action: '人の手順 4: 屋外で両方のアンテナに空を見せて、方位が出るかを確かめる。出なければ、受信機の設定（ReceiverSetup の block、sga の状態）を記録から確かめる。'
+modifications:
+- id: ND-19
+  interpretation_append: 'REV-073: 最初の起動（2026-10-19、VM）。受信機は sntp, on を拒否した（ファームウェア 1.1.1。Gouda は受信機の NTP を使わない。雛形の ntp_server を変えるかは承認事項）。起動の後の受信機の SBF の出力は Stream1・Stream3（USB1）。'
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。 2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。 2026-10-19 追加（REV-069・071）: by-id の名前だけを受け付ける検査と IMU・GNSS の同時接続の取り違えがないこと（test_serial_by_id.py 3 件、test_gnss_config.py）、最初の起動の前後の記録の道具（test_septentrio_query.py 3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。 2026-10-19 実機（VM、屋内、FILE-GNSS-FIRST-START）: ドライバが by-id の名前（USB1）で起動、IFD-47〜50 が出る。単独測位は出たが方位は出ない（G-GNSS-NO-HEADING）。屋外の確認は未実行。'
+decision_updates: []

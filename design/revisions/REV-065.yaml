@@ -1,0 +1,118 @@
+# 変更セット REV-065（2026-10-18 第34便: DEC-128・131〜134 の回答の記録、DEC-132 の再検討（ソフトウェアの較正の試算）、承認事項 DEC-135・136、確認 DEC-137）
+# 適用: design/tools/apply_revision.py REV-065
+id: REV-065
+date: '2026-10-18'
+summary: '人の回答（原文）: DEC-131 承認、DEC-132 は調査結果を添えてソフトウェアの較正の再検討を指示、DEC-133 は条件付きで承認（条件の記載なし。DEC-137 で確認）、DEC-128 は許可の取消、DEC-134 は保留（過剰な安全策の可能性）。DEC-132 の再検討として、合成のデータで同時推定（T1・レバーアーム・取付 Yaw・遅延）の試算をした（FILE-GNSS-CALIB-FEASIBILITY）。較正の走行ならレバーアーム 1〜2 mm、取付 Yaw 0.02 度、遅延 5 ms の誤差、ant_z は平地で決まらない、直線だけでは遅延を誤り標準偏差でも見抜けない、方位の定義の取り違えは残差で分かる。提案を第3版にし、DEC-135（ソフトウェアの較正。DEC-127・DEC-132 の置き換え）と DEC-136（較正の走行）を登録した。実装はしていない。'
+basis_refs:
+- DEC-131
+- DEC-132
+- DEC-133
+- DEC-134
+- DEC-128
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-CALIB-RESEARCH
+  path: design/research/gnss_calibration_research_2026-10-18.md
+  role: evidence
+- id: FILE-GNSS-CALIB-FEASIBILITY
+  path: design/research/vehicle_pc/2026-10-18_gnss_calib_feasibility/result.txt
+  role: evidence
+- id: FILE-GNSS-CALIB-FEASIBILITY-SCRIPT
+  path: design/research/vehicle_pc/2026-10-18_gnss_calib_feasibility/calib_sim.py
+  role: evidence
+decisions:
+- id: DEC-135
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: '【承認】ソフトウェアでの較正（提案 design/proposals/gnss_initial_pose_design.md §11.3）: 地図作成の走行の記録（gnss.jsonl と GLIM の補正後の軌跡、その時の /config）から、map→ENU（θ, t）・主アンテナの水平位置・取付 Yaw・時刻遅延を一回のバッチの最小二乗で同時に推定し（ant_z は /config の値に固定、事前の値は /config）、結果を変換後地図の manifest に保存し、enu→map の TF（DEC-131）に使う。DEC-127（T1 だけ）と DEC-132 の手での校正を置き換える。判定の値は tbd。'
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - ND-05
+  - IFD-29
+  - DEC-127
+  - DEC-131
+  resulting_refs: []
+  note: 推奨は承認。根拠 FILE-GNSS-CALIB-FEASIBILITY（合成のデータ）。可観測性は標準偏差だけでなく走行の内容でも判定する。決まらない場合に止まる作業：GNSS と地図の対応、enu→map の TF、GNSS による初期位置。
+  disposition: open_human
+- id: DEC-136
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: 【承認】次の実機試験の地図作成の走行に、較正の動き（上空の開けた所で、8 の字、その場旋回の両方向、前進と後退、複数の向きで静止）を入れる（人の操作。提案 §11.3）。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - TS-34
+  resulting_refs: []
+  note: '推奨は承認（直線だけの走行ではレバーアームと遅延が決まらない: FILE-GNSS-CALIB-FEASIBILITY の S1）。決まらない場合に止まる作業：実データでの較正。'
+  disposition: open_human
+- id: DEC-137
+  kind: question
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: 【確認】DEC-133（初期化を貼られた仕様 T3 の形にする）を「条件付きで承認」とのことだが、条件の内容を教えていただきたい。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-133
+  - G-INIT-POSE-GNSS
+  resulting_refs: []
+  note: 条件が分かるまで DEC-133 に基づく実装はしない（ND-07 の実装も前提）。
+  disposition: open_human
+entities: []
+modifications:
+- id: G-INIT-POSE-GNSS
+  set_nested:
+    issue.next_action: '2026-10-17 人が方針（DEC-124）を許可した: 地図作成の時に GNSS と GLIM の軌跡を記録して重ね合わせ、GNSS の座標から地図の座標への変換を原図と一緒に保存する。開始の準備で GNSS の姿勢を自己位置推定の初期値にし、 monitor に重ねて表示し人が確認してから開始する。GNSS が使えないときは人の指定（IFD-39）。PC 再起動後は「GNSS で取り直して人が確認、または人が指定」（DEC-009 は書き換えず、DEC-124 を新しい判断として扱う）。 詳細の設計は提案として出してから実装する（DEC-124 の推奨のとおり）。GNSS の取込み（受信・記録・表示）は ND-19・IFD-47〜49（DEC-123）。 2026-10-18（REV-063・065）: 地図作成の間の GNSS の記録は実装済み（DEC-126）。DEC-131（enu→map の TF）承認、DEC-133（仕様 T3 の形の初期化）条件付き承認（条件は DEC-137 で確認中）、DEC-128 取消、DEC-134 保留。較正はソフトウェアでの同時推定を提案（DEC-135、提案 §11）。'
+decision_updates:
+- id: DEC-131
+  set:
+    status: answered
+    answered_on: '2026-10-18'
+    answer_verbatim: 'DEC-131：承認
+
+      '
+    disposition: answered
+    note: 推奨は承認（記録の再生・可視化で GNSS と地図を重ねられる）。決まらない場合に止まる作業：GNSS と地図の重ね合わせの TF での表現。 2026-10-18 承認。実装は対応の計算（DEC-135）の後（対応がない間は出す値がない）。
+- id: DEC-132
+  set:
+    status: answered
+    answered_on: '2026-10-18'
+    answer_verbatim: "DEC-132：次の調査結果が出ていることから、再検討してソフトウェア較正の可能性を探れ\"## 結論\n\n- **ほぼすべてソフトウェアで推定（校正）できます。** 実測値を初期値（事前情報）とし、NDTの自己位置を基準にしたバッチ最小二乗で補正するのが標準的な方法です。\n- 問題の構造はハンドアイキャリブレーションと同じです。「NDTで求めた`base_link`の姿勢」と「GNSSの観測値」を対応付けて、外部パラメータを解きます。\n- ただし、**パラメータごとに推定に必要なロボットの運動が違います。** 必要な運動をしていないデータでは、そのパラメータは推定できません（他の量と区別できず、吸収されてしまう）。\n- 以下の名称・数値はすべて参考値です。\n\n## パラメータごとの推定可否\n\n| パラメータ | 推定できるか | 必要な運動・観測 | 区別しにくい相手 |\n|---|---|---|---|\n| 主アンテナの水平位置（`ant_x`, `ant_y`） | ○ | Yawを大きく変える（8の字走行、左右両方向の旋回、その場旋回） | 直進だけだとT1の平行移動に吸収される |\n| 主アンテナの高さ（`ant_z`） | △ | roll/pitchが変わる走行（傾斜区間） | 平地ではT1のzオフセットと区別できない |\n| 取付Yaw（`mount_yaw_offset`） | ○ | GNSS方位とNDTのYawの比較（静止でも可） | T1のyaw（位置データから別に決めれば分離できる） |\n| 基線のpitch/rollのずれ | ○ | 基線方向の傾きとIMUの傾きの比較 | IMUの取付誤差 |\n| アンテナ間隔（基線長） | ○（受信機が推定） | 受信機がFix解から基線ベクトルを直接求める | ― |\n| 時刻遅延（GNSSの遅れ） | ○ | 前進と後退、速度の変化 | 一方向に一定速度で走るだけだと`ant_x`と区別できない |\n\n- **基線長**\n  - アンテナ間の基線長は、受信機が搬送波位相からmm単位で求めています。巻尺による実測値より正確なことが多いです。\n  - Fix中の基線長の長期平均を設定値として使い、実測値は初期値と誤Fix判定の基準にします。\n  - 位相中心のずれは、同じ型番のアンテナをコネクタの向きを揃えて取り付ければ相殺されます。\n- **高さ（`ant_z`）の影響は小さい**\n  - 平地では推定できませんが、誤差はT1のzに吸収されるため実害はほとんどありません。\n  - 例：高さに5cmの誤差があっても、5°の傾斜で生じる水平誤差は約4mmです。\n- **基準になるのはNDTが出す`base_link`**\n  - 推定されるのは「NDTが出力する`base_link`」から見たアンテナ位置です。\n  - `base_link`→LiDARの外部パラメータに誤差があっても、その分も含めて吸収されます。\n  - したがって、TFを変えたら校正をやり直します。\n\n## 定式化（T1とT2を統合した同時推定）\n\n- 推定する変数：( \\theta, t ) （T1）、( l ) （レバーアーム）、( \\psi_m ) （取付Yaw）、必要なら ( \\Delta t ) （時刻遅延）\n- 位置の残差\n  [\n  r^{pos}_i = R_z(\\theta)\\left(p^{map}_{base,i} + R^{map}_{base,i}\\, l\\right) + t - p^{enu}_{ant,i}\n  ]\n- 方位の残差\n  [\n  r^{yaw}_i = \\mathrm{wrap}\\left(\\psi^{enu}_{gnss,i} - \\psi^{map}_{base,i} - \\theta - \\psi_m\\right)\n  ]\n- 事前情報（実測値）の残差\n  [\n  r^{prior} = \\left( l - l_{meas},\\ \\psi_m - \\psi_{m,meas} \\right)\n  ]\n- 各残差をそれぞれの標準偏差で割って重みを揃え、Huber損失などのロバスト最小二乗で解きます。\n- 事前情報を入れる効果\n  - 観測できない方向（例：平地での`ant_z`）は実測値のまま残る\n  - 推定結果が数値的に安定する\n- **推定後の標準偏差を事前の標準偏差と比べる**と、データからその値がどれだけ決まったか（可観測性）を判定できます。\n\n## データ取得の走行パターン（参考）\n\n- 上空が開けた場所で、RTK Fixが続く状態で行います。\n- 8の字走行（左右両方向の旋回を含む）：水平レバーアーム用\n- その場旋回（差動駆動の場合）：水平レバーアームを効率よく推定できる\n- 前進と後退、低速と高速：時刻遅延と`ant_x`を分けるため\n- 静止区間を複数のYawで取る：取付Yaw用\n- 傾斜区間（あれば）：`ant_z`用\n- サンプル間の相関を抑えるため、一定距離ごと・一定時間ごとに間引きます（例：0.2s間隔、0.5m間隔）。\n\n## 実装例（オフラインのバッチ校正）\n\n- 入力は、時刻同期とRTK Fix・NDTスコアによる選別が済んだ配列を想定しています。\n- `psi_enu`はENU定義（東を0、反時計回りが正）に変換済みの方位です。\n- `th0`, `t0`には、前回のSVD位置合わせ（T1）の結果を初期値として与えます。\n\n```python\n# File: calib_gnss_extrinsics.py\nimport numpy as np\nfrom scipy.optimize import least_squares\nfrom scipy.spatial.transform import Rotation as Rot\n\nNAMES = [\"theta\", \"tx\", \"ty\", \"tz\", \"ant_x\", \"ant_y\", \"ant_z\", \"mount_yaw\"]\n\n\ndef rz(th):\n    c, s = np.cos(th), np.sin(th)\n    return np.array([[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]])\n\n\ndef wrap(a):\n    return np.arctan2(np.sin(a), np.cos(a))\n\n\ndef calibrate(p_base, R_base, p_enu, psi_enu,\n              th0, t0, l_meas, psi_m_meas,\n              sig_pos=0.02,\n              sig_yaw=np.radians(0.3),\n              sig_l_prior=(0.02, 0.02, 0.02),\n              sig_psi_prior=np.radians(2.0)):\n    \"\"\"\n    p_base : (N,3) NDTによるbase_link位置 [map]\n    R_base : (N,3,3) NDTによるbase_link姿勢 [map]\n    p_enu  : (N,3) 主アンテナ位置 [enu]\n    psi_enu: (N,) GNSS方位（ENU定義）[rad]\n    \"\"\"\n    yaw_base = Rot.from_matrix(R_base).as_euler(\"zyx\")[:, 0]\n    l_meas = np.asarray(l_meas, dtype=float)\n    sig_l_prior = np.asarray(sig_l_prior, dtype=float)\n\n    def fun(x):\n        th, t, l, psi_m = x[0], x[1:4], x[4:7], x[7]\n        p_ant_map = p_base + np.einsum(\"nij,j->ni\", R_base, l)\n        pred = p_ant_map @ rz(th).T + t\n        r_pos = ((pred - p_enu) / sig_pos).ravel()\n        r_yaw = wrap(psi_enu - yaw_base - th - psi_m) / sig_yaw\n        r_prior = np.concatenate([\n            (l - l_meas) / sig_l_prior,\n            [wrap(psi_m - psi_m_meas) / sig_psi_prior],\n        ])\n        return np.concatenate([r_pos, r_yaw, r_prior])\n\n    x0 = np.concatenate([[th0], t0, l_meas, [psi_m_meas]])\n    res = least_squares(fun, x0, loss=\"huber\", f_scale=3.0)\n\n    # 残差を標準偏差で正規化しているため、(J^T J)^-1 を共分散の近似とする\n    cov = np.linalg.inv(res.jac.T @ res.jac)\n    std = np.sqrt(np.diag(cov))\n\n    prior_std = {\"ant_x\": sig_l_prior[0], \"ant_y\": sig_l_prior[1],\n                 \"ant_z\": sig_l_prior[2], \"mount_yaw\": sig_psi_prior}\n    for name, val, s in zip(NAMES, res.x, std):\n        note = \"\"\n        if name in prior_std and s > 0.8 * prior_std[name]:\n            note = \"  <- データからほぼ決まっていない（運動不足の可能性）\"\n        if name in (\"theta\", \"mount_yaw\"):\n            print(f\"{name:10s} = {np.degrees(val):9.4f} deg  (std {np.degrees(s):.4f}){note}\")\n        else:\n            print(f\"{name:10s} = {val:9.4f} m    (std {s:.4f}){note}\")\n\n    return res.x, cov\n```\n\n- 拡張\n  - 時刻遅延 ( \\Delta t ) を変数に加え、NDTの姿勢を ( t_{gnss} - \\Delta t ) で補間して評価します。前進と後退の両方のデータが必要です。\n  - 基線のpitchのずれは、別の1次元問題として「GNSSが出す基線の傾き − IMUのpitch」の平均で求められます。\n- サンプルどうしに相関が残っていると、標準偏差は実際より小さく出ます。判定にはある程度の余裕を持たせてください。\n\n## 結果の検証\n\n- **車体座標系で残差を見る**\n  - 校正前の位置残差を`base_link`座標系に変換して平均すると、レバーアームの誤差がそのまま見えます。\n  - 校正後にこの平均がほぼ0になれば合格です。\n- **Yawに依存するパターンを見る**\n  - 横軸をYawにして`enu`系の残差をプロットし、正弦波状のパターンが消えているかを確認します。\n- **速度に依存するパターンを見る**\n  - 進行方向の残差が速度に比例していれば、時刻遅延が残っています。\n- **別の日のデータで検証する**\n  - 校正に使っていない走行データで、残差のRMSが改善しているかを確認します。\n- **実測値との差を確認する**\n  - 推定値と実測値が、実測誤差よりはるかに大きく食い違う場合（例：5cm以上、5°以上）は、TFの定義（符号・軸・フレームの取り違え）を疑います。\n\n## 注意点\n\n- **NDT自体の誤差がそのまま混入する**\n  - 特徴の少ない区間や、NDTのスコアが悪い区間は使いません。\n  - 推定できる精度の目安：レバーアームは1cm程度、取付Yawは0.1°程度（参考値。環境とデータ量に依存）。\n- **オンライン推定について**\n  - EKFや因子グラフの状態にレバーアームを加えて逐次推定することもできます。\n  - ただし、運動が足りない区間では推定値がふらつきます。オフラインのバッチ校正で値を確定させ、走行中は残差の監視だけにする方が安全です。\n- **管理方法**\n  - 校正結果は地図ファイル・TFと同じバージョンで管理します。\n  - アンテナやLiDARを付け直したら、校正をやり直します。\"\n"
+    resulting_refs:
+    - DEC-135
+    - DEC-136
+    - FILE-GNSS-CALIB-RESEARCH
+    - FILE-GNSS-CALIB-FEASIBILITY
+    disposition: answered
+    note: 推奨は承認。上流ドライバが TF から att_offset を計算するかは README に明記がない（提案 §10）。決まらない場合に止まる作業：GNSS の方位の残りのずれの補正。 2026-10-18 人の指示でソフトウェアの較正を再検討した（提案 §11、FILE-GNSS-CALIB-FEASIBILITY）。手での校正ではなく同時推定にする案を DEC-135 とした。調査結果の写しは FILE-GNSS-CALIB-RESEARCH。
+- id: DEC-133
+  set:
+    status: answered
+    answered_on: '2026-10-18'
+    answer_verbatim: 'DEC-133：条件付きで承認。
+
+      '
+    resulting_refs:
+    - DEC-137
+    disposition: answered
+    note: 推奨は承認（intent 体験 9 の「取得されて表示され、人が収束と正しさを確認する」に近い）。ND-07 の実装（DEC-115）が前提。判定の値（サンプル数・静止の判定など）は tbd。決まらない場合に止まる作業：GNSS による初期位置の実装。 2026-10-18「条件付きで承認」。条件の記載がないため DEC-137 で確認する。条件が分かるまで、この項目に基づく実装はしない。
+- id: DEC-128
+  set:
+    status: answered
+    answered_on: '2026-10-18'
+    answer_verbatim: 'DEC-128は許可を取り消す。
+
+      '
+    disposition: answered
+    note: '推奨は承認。振る舞いの違い：人が数値を打つ代わりに GNSS の値を確かめて押せる。誤った fix の危険は品質と照合の結果の表示で人が見分ける。決まらない場合に止まる作業：GNSS による初期位置（体験 9）。 2026-10-18 第2版: 代わりの案 DEC-133（貼られた仕様 T3 の形）を推奨し、本項目は取り下げを推奨。 2026-10-18 人の回答「DEC-128は許可を取り消す。」。DEC-128 はそれまで承認待ち（許可の記録はなかった）で、AI は取り下げを推奨していた。不採用として扱う（GNSS の値を開始の要求の欄に既定で入れる形は作らない）。'
+- id: DEC-134
+  set:
+    note: 推奨は承認。新しい保護に当たるため（intent 38 行）提案として出す。値（差・継続時間・スコア）は tbd。決まらない場合に止まる作業：走行中の再初期化。 2026-10-18 人の回答「DEC-134：保留。過剰過ぎる安全策の可能性がある。」。保留のまま。詳細の設計も出さない（人の再開の指示まで）。

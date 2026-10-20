@@ -1,0 +1,32 @@
+# 2026-10-14 VM での二重起動の防止（G-DUP-START、commit caf4ee8）の試験（原文の出力）。別のワークスペース /tmp/ws_dup。残っている起動は、gouda_core の launch と同じ引数の文字列を持つ待つだけの python で模擬した（センサーは繋いでいない）。
+commit caf4ee8
+== 1. nothing running
+not running
+data_root=/tmp/ws_dup/gouda_data
+== 2. a robot launch left running elsewhere (its pid file is not here)
+REFUSED: not started.
+another Gouda is running that this gouda.sh did not start (its pid file is not in /tmp/ws_dup/gouda_data/run):
+  process group 16405 (launch pid 16435, folder /tmp/ws_dup/src/tsukuba-autonomous-robot)
+stop it with: kill -INT -- -<process group>   (e.g. kill -INT -- -16405)
+exit=1
+-- status:
+not running
+another Gouda is running that this gouda.sh did not start (its pid file is not in /tmp/ws_dup/gouda_data/run):
+  process group 16405 (launch pid 16435, folder /tmp/ws_dup/src/tsukuba-autonomous-robot)
+stop it with: kill -INT -- -<process group>   (e.g. kill -INT -- -16405)
+-- stop:
+not running
+another Gouda is running that this gouda.sh did not start (its pid file is not in /tmp/ws_dup/gouda_data/run):
+  process group 16405 (launch pid 16435, folder /tmp/ws_dup/src/tsukuba-autonomous-robot)
+stop it with: kill -INT -- -<process group>   (e.g. kill -INT -- -16405)
+exit=0
+== 3. a test stack (trial:=true) is not counted
+not running
+data_root=/tmp/ws_dup/gouda_data
+== 4. device_watch on Linux /proc: a pty and a UDP port held by other processes
+tty /dev/pts/0 users: [16517, 16518] (child 16518 ; this process 16517 also holds it)
+tty excluding this process: [16518]
+udp port 44039 users: [16522] (child 16522 )
+udp port 44038 users: []
+
+未実行: センサーを繋いだ状態で Gouda を 2 つ起動したときの supervisor の device_in_use（実機の協力が要る）。

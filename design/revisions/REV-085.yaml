@@ -1,0 +1,53 @@
+# 変更セット REV-085（2026-10-20 第51便: DEC-139 の回答（案 B1）と秘密の扱い）
+# 適用: design/tools/apply_revision.py REV-085
+id: REV-085
+date: '2026-10-20'
+summary: '人が DEC-139 で案 B1 を採用（原文）。同じ回答の条件（NTRIP の認証などをリモート・git・ログ・rosbag・記録文書に載せない）に沿う B1 の設計の案（DEC-151）と、検査ルールの案（DEC-152）を提案 design/proposals/ntrip_gga_proposal.md 第3版 §5・§6 に書いた。漏れうる経路（中継の引数、supervisor の cmdline の記録、str2str の状態の出力、ドライバの params）をソースで確かめた。実装はしていない（DEC-106）。'
+basis_refs:
+- DEC-139
+- DEC-106
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-151
+  kind: approval
+  status: pending
+  asked_on: '2026-10-20'
+  answered_on: null
+  channel: chat
+  question: '【承認】案 B1 の実装の案（提案 ntrip_gga_proposal.md 第3版 §5）。(1) gnss_rtk.yaml を ntrip の節（caster・port・mountpoint・user・password、中継だけが読む）と、ドライバに渡す rtk_settings.serial_1（USB2、秘密を含まない）に分け、rtk_settings に認証の項目があれば起動を拒否する。(2) supervisor がドライバの後に str2str を子プロセスとして起動し、USB2 の by-id で見張る。(3) cmdline の記録は伏せ字にし、中継の command と状態の msg の欄は記録しない。(4) setup.sh の apt に rtklib を足す。(5) monitor に中継の状態と補正の年齢を出す。(6) 引数が同じ PC の ps で見える残るリスクを受け入れる（受け入れない場合は B3）。'
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - DEC-139
+  - G-INIT-POSE-GNSS
+  resulting_refs: []
+  note: 推奨は承認。(1)〜(5) はそれぞれ実装の許可が要る（DEC-106）。rtk_standard（RTCM の版）・ポート・マウントポイント・GGA の要否は Point One の契約の資料で人が確かめる（原本未照合）。apt の str2str がポートを raw にするかは導入の前にソースで確かめる。決まらない場合に止まる作業：RTK fix の確認（手順 5）と、較正（DEC-135）の実データでの検証。
+  disposition: open_human
+- id: DEC-152
+  kind: approval
+  status: pending
+  asked_on: '2026-10-20'
+  answered_on: null
+  channel: chat
+  question: '【承認】新しい検査ルールの案（提案 ntrip_gga_proposal.md 第3版 §6）: 検査を実行する機械に <data_root>/config/gnss_rtk.yaml があれば、その ntrip の節の値がリポジトリの作業ツリー・design/generated・<data_root>/run のログと params に現れないことを調べる。ファイルがなければ未判定。あわせて伏せ字・読み方・記録の単体の試験を足す。'
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-139
+  resulting_refs: []
+  note: 人の指摘（DEC-139 の回答の条件）を検査ルールにする案（CLAUDE.md 1.2）。推奨は承認。代替案：単体の試験だけにする（実の秘密の値は調べない）。決まらない場合に止まる作業：なし（DEC-151 の実装の中の単体の試験は進められる）。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-139
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: 'B1を採用する。NRTKのパスワード、ユーザー名等はリモート、git, ログ、rosbag, 記録文書にも載せてはならない。
+
+      '
+    disposition: answered
+    resulting_refs:
+    - DEC-151
+    - DEC-152

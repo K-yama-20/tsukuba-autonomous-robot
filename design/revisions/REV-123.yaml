@@ -1,0 +1,159 @@
+# 変更セット REV-123（2026-10-21 第91便: intent.md 第14版、DEC-195〜198、PRM-01〜03）
+# 適用: design/tools/apply_revision.py REV-123
+id: REV-123
+date: '2026-10-21'
+summary: intent.md 第14版（人の編集。100 行の置換：車体は全長 800 mm × 全幅 600 mm × 全高 1200 mm、108 行の追記：電動車椅子に人は乗らない）を記録（AR-014、RQ-I087・RQ-I088、DEC-196、C-029）。DEC-195 を解消し、PRM-01・02・03 を第14版の記載値に。後退の倒し量と速度の関係の人の説明を DEC-197 に記録し、Nav2 の後退の上限の扱いを DEC-198（検討の報告の後に人が決める）で登録。
+basis_refs:
+- DEC-196
+- DEC-195
+- DEC-197
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+authority_revision:
+  id: AR-014
+  file_id: FILE-INTENT-V14
+  previous_file_id: FILE-INTENT-V13
+  archived_previous_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+  current_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+  allow_non_append: true
+  instruction_expected_added_lines: 1
+  new_requirement_lines:
+    100: RQ-I087
+    108: RQ-I088
+  decision_ref: DEC-196
+  note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 06:05 の後、全高を直した版。SHA-256 9bf08d3e…、108 行）。100 行の置換と 108 行の追記だけ。途中の版（全高 120 mm、SHA-256 6af20a12…）は記録していない（人に確かめ、人が「1200mmの誤りであった。intent.mdは修正した」と直した）。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+requirement_ref_replacements:
+  RQ-I074: RQ-I087
+files: []
+decisions:
+- id: DEC-196
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-21'
+  channel: chat + intent.md
+  question: intent.md 第14版（人の編集。100 行の置換：車体の寸法、108 行の追記：人は乗らない）
+  answer_verbatim: "intent.mdは更新した\n（選択式の質問「intent.md:100 の「全高 120 mm」は、どの値のつもりですか？」への回答）1200mmの誤りであった。intent.mdは修正した\n（選択式の質問「「電動車椅子に人は乗らない」の追記の案（DEC-195 の (2)）はどうしますか？」への回答）intent.mdに、人が乗らない旨を書き足した。\n\n（intent.md 第14版 100 行）・車体は全長 800 mm × 全幅 600 mm × 全高 1200 mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint` は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。\n（intent.md 第14版 108 行）・電動車椅子に人は乗らない。\n"
+  affected_refs:
+  - FILE-INTENT-V13
+  - RQ-I074
+  - PRM-01
+  - PRM-02
+  - PRM-03
+  - PRM-69
+  - PRM-36
+  - PRM-71
+  resulting_refs:
+  - AR-014
+  - RQ-I087
+  - RQ-I088
+  - C-029
+  note: 第13版 100 行の「全長 1,010 mm × 全幅 598 mm × 全高 950 mm」を「全長 800 mm × 全幅 600 mm × 全高 1200 mm」に置換（ほかの文は同一）。108 行「・電動車椅子に人は乗らない。」を追記。DEC-195 の案（全長 790 mm）と違い、全長は 800 mm（footprint PRM-69 の前 0.55＋後 0.24＝0.79 m は、この直方体の中にある）。全高 1200 mm は以前の 950 mm より高い。地図の障害物の上限 PRM-36・走行中の上限 PRM-71（地面から 1.35 m）は全高に 0.15 m の余裕を足した値になる。
+  disposition: answered
+- id: DEC-197
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 後退の倒し量と速度の関係（人の説明）
+  answer_verbatim: "後退の速度上限が前進速度上限よりも遅いのは、車椅子側の内部制御のせいである。また、100%倒したときに後退速度上限に当たってしまうと考えよ。つまり、倒し量-速度のグラフの傾きが小さくなったと考えよ。\n"
+  affected_refs:
+  - PRM-78
+  - PRM-39
+  - ND-11
+  resulting_refs: []
+  note: 意味：EMC-270 は後退の側の倒し量と速度の傾きが前進より小さく、後退に倒し切ったときの速度が後退の上限（1.7 km/h＝0.472 m/s、PRM-78）になる。motion_controller の正規化（後退は PRM-78 で割る、DEC-172・REV-118）はこの関係と同じ。旋回の成分が後退のときにどう変わるか（EMC-270 の内部の混合）は、この説明の範囲の外で未確認。
+  disposition: answered
+- id: DEC-198
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】Nav2 の後退の速度の上限（velocity_smoother の min_velocity の x）を PRM-78（0.472 m/s）にするか（案 A、nav2_config の変更）、今のまま前進と同じ PRM-66（1.25 m/s）にするか（案 B）。判断の材料は design/reports/reverse_limit_study_2026-10-21.md
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-78
+  - PRM-66
+  - PRM-67
+  - PRM-40
+  - ND-10
+  - ND-11
+  resulting_refs: []
+  note: 人の指示（原文）：「それぞれの実装のメリデメを詳細に検討せよ。特に、回転と後退が組み合わさった機動をする際の境界条件について考えよ」。検討の報告を第91便で作った。決まらない場合に止まる作業：なし（今の設定のままでも、motion_controller が倒し切りで頭打ちにする）。
+  disposition: open_human
+entities:
+- id: C-029
+  kind: reconciliation
+  name: 車体の寸法（intent.md 第13版 100 行 → 第14版 100 行）
+  intent_lines:
+  - 100
+  source_from_affected: true
+  related_refs:
+  - DEC-196
+  - AR-014
+  - DEC-195
+  - PRM-69
+  sensitivity:
+  - intent
+  - safety
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs:
+    - RQ-I074
+    adopted_requirement_refs:
+    - RQ-I087
+    scope: 第13版 100 行の車体の直方体「全長 1,010 mm × 全幅 598 mm × 全高 950 mm」を「全長 800 mm × 全幅 600 mm × 全高 1200 mm」に置換した第14版 100 行（人の編集、足置きを外した）。
+    retained_scope: 車体座標系の原点、点群の座標系の変換、base_footprint・base_link の置き方、後輪径 330 mm、base_link の高さ 0.165 m、ホイールベース 415 mm、センサの取付の静的 TF は同一。
+    rationale: 人が intent.md を編集（DEC-196）。PRM-01・02・03 を第14版の記載値に置き換えた。
+    issue_refs: []
+modifications:
+- id: PRM-01
+  set:
+    source_refs:
+    - SRC-I100-V14
+  set_nested:
+    parameter.value: 0.8
+    parameter.software_trial_value: 0.8
+  interpretation_append: 'REV-123: intent.md 第14版 100 行「全長 800 mm」に置き換えた（第13版は 1,010 mm。足置きを外した：DEC-196）。'
+- id: PRM-02
+  set:
+    source_refs:
+    - SRC-I100-V14
+  set_nested:
+    parameter.value: 0.6
+    parameter.software_trial_value: 0.6
+  interpretation_append: 'REV-123: intent.md 第14版 100 行「全幅 600 mm」に置き換えた（第13版は 598 mm）。'
+- id: PRM-03
+  set:
+    source_refs:
+    - SRC-I100-V14
+  set_nested:
+    parameter.value: 1.2
+    parameter.software_trial_value: 1.2
+  interpretation_append: 'REV-123: intent.md 第14版 100 行「全高 1200 mm」に置き換えた（第13版は 950 mm。途中の版の 120 mm は人が誤りと確認：DEC-196）。'
+- id: PRM-69
+  interpretation_append: 'REV-123: intent.md 第14版の直方体（800×600 mm）の中にある（前 0.55＋後 0.24＝0.79 m、幅 0.60 m）。'
+- id: PRM-36
+  interpretation_append: 'REV-123: 第14版の全高 1.2 m（PRM-03）に 0.15 m の余裕を足した値になる。'
+- id: PRM-66
+  set:
+    requirement_refs:
+    - RQ-I084
+    - RQ-I087
+    - RQ-I088
+- id: PRM-68
+  set:
+    requirement_refs:
+    - RQ-I084
+    - RQ-I087
+    - RQ-I088
+decision_updates:
+- id: DEC-195
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: "intent.mdは更新した\n（全高について）1200mmの誤りであった。intent.mdは修正した\n（人は乗らないについて）intent.mdに、人が乗らない旨を書き足した。\n"

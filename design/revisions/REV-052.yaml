@@ -1,0 +1,37 @@
+# 変更セット REV-052（2026-10-17 第28便の続き: 人の指示「Cartographer も検討」を原文で記録。選定の提案に案 C を追加。実装はしていない）
+# 適用: design/tools/apply_revision.py REV-052
+id: REV-052
+date: '2026-10-17'
+summary: >-
+  人が Google の Cartographer も検討するよう指示した（DEC-110、原文）。上流の事実（保守の状況、Jazzy のバイナリ、pure localization、3D の IMU の要否、TF、点の時刻の形式）を確かめ、
+  design/proposals/localization_selection.md に案 C（Cartographer で地図作成と自己位置推定）を加えた。AI の評価は「成り立つが、地図作成の置き換え・保守の停止・品質の出力がない点で案 A より不利。第一候補にしない」。
+  評価に加えるかは人の判断。実装・設定の変更は人の個別の許可（DEC-106）まで行わない。
+basis_refs: [DEC-110, DEC-109, DEC-021]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+decisions:
+  - id: DEC-110
+    kind: confirmation
+    status: recorded
+    asked_on: null
+    answered_on: '2026-10-17'
+    channel: chat
+    question: 自己位置推定の方式の選定の提案（REV-051）への人の追加の指示
+    answer_verbatim: |
+      googleのcartographerも検討してほしい。
+    affected_refs: [DEC-021, Q-02, ND-06, ND-07, ND-08]
+    resulting_refs: []
+    note: >-
+      design/proposals/localization_selection.md §3 の表と §4 の案 C に Cartographer を加えた。Cartographer の自己位置推定は自身の地図（.pbstream）でしか動かないため、
+      使うなら地図作成も Cartographer にする（GLIM の置き換え）。上流は活発な保守を終えている（README）。推定の品質の出力がない。点の時刻の項目（Cartographer は time、
+      Hesai のドライバは timestamp の絶対時刻）が合わない。評価に加えるかは提案 §8 の 6 で人に確認する。
+    disposition: answered
+
+decision_updates:
+  - id: DEC-021
+    set:
+      note: >-
+        Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。
+        2026-10-17 に人が選定に進むよう指示した（DEC-109）。提案 design/proposals/localization_selection.md（推奨は 3D 照合。odometry は GLIM を odometry だけで、
+        map→odom は lidar_localization_ros2 の NDT_OMP。比較に Nav2 AMCL）。人の指示（DEC-110）で Cartographer を案 C として加えた（第一候補にはしない）。
+        外から見た振る舞いに関わるため、方式の採用は人の承認を得てから行う。

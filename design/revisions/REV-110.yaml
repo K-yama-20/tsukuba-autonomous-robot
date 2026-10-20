@@ -1,0 +1,26 @@
+# 変更セット REV-110（2026-10-21 第77便: DEC-175、DR-15 の走査の改訂）
+# 適用: design/tools/apply_revision.py REV-110
+id: REV-110
+date: '2026-10-21'
+summary: 人の承認（DEC-175）で DR-15 のハードコードの走査を改訂。コードだけ（コメント・docstring・文字列を除く）を Python・web・firmware・シェルで走査し、承認値と同じ数に加えて、待ち・期限・周期・再試行の行の 0 以外の数を未判定として報告する。人が許容したものは許容の一覧で除く。
+basis_refs:
+- DEC-175
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-175
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 検査器 DR-15 の走査の範囲が狭い件（整数・firmware の C++・シェル・JavaScript を調べない、文章の中の数を拾う、承認値と同じ数しか探さない。報告 reports/dr15_literal_audit_2026-10-21.md §3）を直すか
+  answer_verbatim: "・usbを差し直したときにvehicle_bridgeがesp32を認識できないのは大問題なので、改善策を考えてほしい。\n・esp32のuptime_ms が STATUS を作った瞬間の値であるかどうかを確かめてほしい。\n・検査器（DR-15）の調べる範囲が狭い件は修正してほしい。本番に謎の原因でgoudaが停止して、完走失敗となることが最も怖い。\n"
+  affected_refs:
+  - RQ-I076
+  resulting_refs: []
+  note: 検査ルールの改訂（新しい制約の追加と既存の例外の廃止）の人の承認。実施は第77便：tools/hardcode_scan.py（新規）、check_design.py の DR-15 の走査を置き換え、hardcode_scan_roots.json に scan・exclude を追加、hardcode_allowlist.json（新規、空）。旧来の「同じファイルに param_key があれば報告しない」例外は廃止。許容の一覧への項目の追加は人の判断。回答の前の 2 点（USB の差し直し、uptime_ms）は同じ便で調査・提案。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

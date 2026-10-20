@@ -1,0 +1,19 @@
+# 2026-10-19 屋外での測位と方位の確認（人の連絡「アンテナを屋外で空が開けた場所に出した。測位と方位をもう一度確かめて」）。VM、コミット 3341602 の Gouda（第40便から動いたまま）。
+# GNSS のドライバは同じプロセス（pid 159612、ttyACM0 = by-id の if00 = USB1）。受信機のポートには触っていない（ROS の topic だけを読んだ）。位置は出力していない。
+
+===== 1. 測位と方位（60 秒。gnss_check_probe_outdoor）
+pvt samples 600 mode counts Counter({1: 600}) nr_sv (16, 21)
+h_accuracy [cm] min/median/max (520, 641, 1401)
+att samples 599 mode counts Counter({0: 599}) error counts Counter({1: 599}) att nr_sv [(255, 599)]
+valid headings 0
+heading std deg (from cov_headhead) median None n 0
+last 5 att: [(59.6, 0, 1), (59.7, 0, 1), (59.8, 0, 1), (59.9, 0, 1), (60.0, 0, 1)]
+
+===== 2. アンテナごとの観測（10 秒。/sensors/gnss/measepoch。type の bit 5〜7 をアンテナの番号とした: SBF の定義、原本未照合）
+epochs 100
+type1 channels by antenna id (bits 5-7 of type): {0: 3460}
+type2 sub-blocks by antenna id: {0: 5569}
+antenna 0 C/N0 median approx [dB-Hz] 41.5
+
+===== 3. ドライバのログ
+"Multi antenna requested but Rx does not support it." の警告はない（ドライバは受信機の能力の照会の結果が heading 対応のときだけ sga, MultiAntenna を送り、そうでなければこの警告を出す: communication_core.cpp 549〜561 行）。受信機が拒否したコマンドは sntp, on だけ（FILE-GNSS-FIRST-START）。

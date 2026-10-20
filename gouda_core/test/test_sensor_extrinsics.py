@@ -32,7 +32,7 @@ class ExtrinsicsTests(unittest.TestCase):
     def test_all_unknown_is_neutral_and_listed(self):
         r = se.t_lidar_imu(ALL_UNKNOWN)
         self.assertEqual(r['T_lidar_imu'], [0, 0, 0, 0, 0, 0, 1]); self.assertFalse(r['complete'])
-        self.assertEqual(len(r['defaulted_fields']), len(CONFIG_FIELDS)); self.assertEqual(r['problems'], [])
+        self.assertEqual(len(r['defaulted_fields']), len([k for k in CONFIG_FIELDS if k.startswith(('lidar_', 'imu_'))])); self.assertEqual(r['problems'], [])   # T_lidar_imu uses the LiDAR and IMU fields (the GNSS antenna fields of REV-061 are not part of it)
 
     def test_axis_mapping_parse(self):
         self.assertEqual(se.parse_axis_mapping('+x forward, +y left, +z up'), se.IDENTITY)
@@ -89,6 +89,34 @@ class GlimRunnerChangeTests(unittest.TestCase):
             (Path(d) / 'dump').mkdir(); (Path(d) / 'dump' / 'graph.txt').write_text('g'); (Path(d) / 'dump' / 'values.bin').write_bytes(b'v')
             run = runner.stop(wait_s=None)
             self.assertTrue(run.dump_ok); self.assertEqual(run.save_duration_s, 0); self.assertNotIn('SIGTERM', run.note)
+
+
+class StaticTransformTests(unittest.TestCase):
+    """ND-13 (REV-061, DEC-122): one list of static transforms; UNKNOWN fields are neutral and listed, never a stop."""
+
+    def test_all_unknown_gives_neutral_transforms(self):
+        r = se.static_transforms({}, 0.165)
+        frames = [(t['parent'], t['child']) for t in r['transforms']]
+        self.assertEqual(frames, [('base_link', 'base_footprint'), ('base_link', 'xt32_link'), ('base_link', 'imu_link'),
+                                  ('base_link', 'gnss_link'), ('base_link', 'gnss_aux1_link')])
+        self.assertEqual(r['transforms'][0]['translation'], (0, 0, -0.165))
+        for t in r['transforms'][1:]:
+            self.assertEqual(tuple(t['translation']), (0, 0, 0)); self.assertEqual(tuple(t['rotation']), (0, 0, 0, 1))
+        self.assertIn('gnss_main_mount_x_m', r['defaulted_fields']); self.assertIn('lidar_axis_mapping', r['defaulted_fields'])
+
+    def test_values_are_used_and_children_are_unique(self):
+        v = {'lidar_mount_x_m': 0.3, 'lidar_mount_z_m': 0.8, 'lidar_axis_mapping': '+x left, +y back, +z up',
+             'gnss_main_mount_x_m': 0.1, 'gnss_main_mount_y_m': 0.2, 'gnss_main_mount_z_m': 1.0,
+             'gnss_aux1_mount_x_m': -0.4, 'gnss_aux1_mount_y_m': 0.2, 'gnss_aux1_mount_z_m': 1.0}
+        r = se.static_transforms(v, 0.165)
+        by = {t['child']: t for t in r['transforms']}
+        self.assertEqual(len(by), len(r['transforms']), 'each child frame has one parent (one TF owner)')
+        self.assertEqual(tuple(by['gnss_link']['translation']), (0.1, 0.2, 1.0))
+        self.assertEqual(tuple(by['gnss_aux1_link']['translation']), (-0.4, 0.2, 1.0))
+        self.assertEqual(tuple(by['xt32_link']['translation']), (0.3, 0, 0.8))
+        q = by['xt32_link']['rotation']   # sensor x -> base_link left: a +90 degree yaw
+        self.assertAlmostEqual(q[2], q[3], places=6); self.assertGreater(abs(q[2]), 0.7)
+        self.assertNotIn('gnss_main_mount_x_m', r['defaulted_fields']); self.assertEqual(r['problems'], [])
 
 
 if __name__ == '__main__':

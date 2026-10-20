@@ -1,0 +1,54 @@
+mosaic-go G5 P6: MRTKLIB での照会の続き（FILE-MOSAIC-MRTK-QUERY と FILE-MOSAIC-DUAL-ANTENNA-NOTE の後の記録）
+REV-082 で分けた。REV-076〜078 の要約や作業記録が「FILE-MOSAIC-MRTK-QUERY の追記」と呼ぶ内容は、このファイルの第 1 部にある。
+登録済みの 2 つのファイルは登録の時の内容（SHA-256）に戻した。
+
+== 第 1 部: 2026-10-19_mosaic_mrtk_query.txt の後の追記（DEC-144・145・146）==
+追記: 値の一覧の照会（DEC-144 (a)、人の承認の後。同じ道具・同じ USB2・fuser で空きを確認）
+- ~/gnss_records/mrtk_help_20261018T132946/ cmds: !HEX 0d / !WAIT 500 / help, setFrontendMode / !WAIT 3000
+  usb2_reply.log sha256 71c17441e594ead70a40116cb0f152f6b95f358efb23a10aeae4d7e3790b9fc7
+  返答:
+    USB2>$R; help, setFrontendMode
+      setFrontendMode (=sfm), fmMode
+      getFrontendMode (=gfm)
+    "Operating mode of the frontend"
+  → 引数の名前（fmMode）だけで、値の一覧は出ない。
+- ~/gnss_records/mrtk_help2_20261018T133017/ cmds: !HEX 0d / !WAIT 500 / help, fmMode / !WAIT 3000
+  usb2_reply.log sha256 735d6a0097bc28ff7cc55d81db7014bff801ca9688f971493dfe582e32a62b70
+  返答: USB2>$R? lstCommandHelp: Argument 'Action' is invalid!   （エラー。設定は変わらない）
+- firmware 1.1.x の mosaic-G5 P 系の Reference Guide は Web で見つからなかった（検索で見つかるのは 1.0.1 と G5 T の 1.1.0）。
+  firmware 1.1.1 の fmMode の値（Nominal 以外に DualAnt があるか）は未確認。
+
+追記: sfm, DualAnt を Current にだけ送った（DEC-145、人の許可の後。Boot 保存・再起動はしていない）
+- ~/gnss_records/mrtk_sfm_20261018T133616/ cmds: !HEX 0d / !WAIT 500 / gfm / !WAIT 1500 / sfm, DualAnt / !WAIT 2000 / gfm / !WAIT 2000
+  usb2_reply.log sha256 ad71c4d360b64011e9c2e7faeed9e733d4b7267b81b41673d1eb01bf773144d5
+  cmds.txt sha256 b1908c2346a09672ff8f494e63df517781b979c41a376b2934ebfc4d62ed4657
+  返答:
+    USB2>$R: gfm
+      FrontendMode, Nominal
+    USB2>$R: sfm, DualAnt
+      FrontendMode, DualAnt
+    USB2>$R: gfm
+      FrontendMode, DualAnt
+- DualAnt は firmware 1.1.1 で有効な値（受理 $R:）。Current の値は DualAnt。Reference Guide 1.0.1 では、この設定は次の reset・再起動から効く。
+  Boot は変えていない。ただしドライバ（configure_rx true）は起動のたびに eccf, Current, Boot を送るので、次にドライバが起動すると DualAnt が Boot に保存される。
+
+追記: Boot 保存と受信機の reset（DEC-146、人の許可の後）
+- Gouda を止めた（~/gouda_ws/src/tsukuba-autonomous-robot で bash gouda.sh stop。「stopped (no process of group 159455 remains: yes)」）。
+  その後 fuser で ttyACM0・ttyACM1 を誰も開いていないことを確かめた。
+- ~/gnss_records/mrtk_boot_reset_20261018T134643/ cmds: !HEX 0d / !WAIT 500 / gfm / !WAIT 1500 / eccf, Current, Boot / !WAIT 3000 / exeResetReceiver, Hard, none / !WAIT 3000
+  cmds.txt sha256 4fac8ac2a58bf8d13b7994fabe753cfb41f8a6ef5cde95b5aaa3b2a26f8f3f7e
+  usb2_reply.log は 0 bytes（返答を一つも記録できなかった。reset で USB が切れたためと推測。各コマンドの応答は未確認）。
+  /dev/serial/by-id の 2 つの名前は 13:46（VM の時計）に作り直され、if02 は ttyACM1 から ttyACM2 に変わった（受信機の reset による USB の再接続と見る）。
+- reset の後の照会 ~/gnss_records/mrtk_after_reset_20261018T134717/ cmds: !HEX 0d / !WAIT 500 / gfm / !WAIT 1500 / gga / !WAIT 1500
+  usb2_reply.log 95 bytes sha256 c41aa8b66e047db0eadc816b25337d7486e74330de78cf910510c4701b26f0ef
+  返答:
+    USB2>$R: gfm
+      FrontendMode, DualAnt
+    USB2>$R: gga
+      GNSSAttitude, MultiAntenna, Fixed
+- 読み取り: reset の後も DualAnt なので、Boot への保存と reset は効いた（eccf と reset の応答そのものは未記録）。副アンテナの観測と方位は未確認（屋外で Gouda を起動して確かめる）。
+
+== 第 2 部: gnss_mosaic_g5_dual_antenna_2026-10-19.md の後の追記 ==
+## 6. 追記（2026-10-20）: Nominal の意味
+
+- 別のセッションの調査（`gnss_mosaic_g5_p6_dual_antenna_survey_2026-10-19.md` §7、まとめ `mosaic_go_g5_p6_usage_guide_2026-10-20.md`）が Reference Guide v1.1.1 §3.2.4 を読み、P6 の出荷時の値 Nominal は単一アンテナの意味としている。本書 §5 の「Nominal の意味は原本未照合」は、その調査で照合された（このセッションでは v1.1.1 を直接読んでいない）。

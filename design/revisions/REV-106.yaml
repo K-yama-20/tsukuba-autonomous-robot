@@ -1,0 +1,63 @@
+# 変更セット REV-106（2026-10-21 第74便: 転送された人の発言 DEC-170・171、DEC-172 の登録）
+# 適用: design/tools/apply_revision.py REV-106
+id: REV-106
+date: '2026-10-21'
+summary: 分岐セッションからの人の発言の転送を記録。DEC-170（最高速度の規則は車椅子側の速度上限で守る。人の確定）、DEC-171（不感帯の補償 案 A を方針として承認。実装は許可待ち。後退 1.7 km/h・前進仕様 4.5 km/h の申告）、DEC-172（後退の正規化。承認待ち）。
+basis_refs:
+- DEC-170
+- DEC-171
+- DEC-172
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-170
+  kind: confirmation
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 大会の最高速度の規則（SR-06 最高 6 km/h、SR-07 誤動作しても超えない。保証する層は Q-G5）をどの層で守るか
+  answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「最高速度の規則は気にしなくてよい。これは車椅子自体に速度上限設定があるためである。これは反論を許さない。低速での動き出しについては、最低倒し量を決めれば良いのでは。」\n"
+  affected_refs:
+  - ND-11
+  - ND-17
+  - PRM-39
+  resulting_refs: []
+  note: 人の確定事項（反論を許さない）。SR-06・07（docs/regulations_2026.md）と Q-G5 は、ソフトではなく車椅子（EMC-270）自体の速度上限の設定で守る。安全の根拠になる前提として、重大な前提の一覧に載せる（CLAUDE.md 1.4）：EMC-270 の速度上限の設定が 6 km/h 以下であること（設定値は原本未照合・未確認）。後半（最低倒し量）は DEC-171。
+  disposition: answered
+- id: DEC-171
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 低速での動き出しのための不感帯の補償（案 A：motion_controller で、倒し量 r＞0 のとき 出力＝最低倒し量＋(1−最低倒し量)×r、小さなしきい値より下は中立のまま。自律走行の指令だけにかかり手動には影響しない。最低倒し量は前進・後退・旋回で実測。案 B：Nav2 の設定で代用、は不採用）
+  answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「案Aで良いと思う。後退時は車椅子側の制御の関係で1.7km/hに制限される。前進は仕様上は4.5km/hだったが、実際は分からない。後で検証すれば良いのだが、まずnav2で自律走行させてみよう。そうすれば未設定でのnav2の性能も分かるし、操作ログからいくらか情報が取れるんじゃないかな」\n"
+  affected_refs:
+  - ND-11
+  - RQ-I020
+  - PRM-39
+  - PRM-40
+  resulting_refs:
+  - DEC-172
+  note: 案 A を方針として承認（設計の方向）。実装（motion_core の変更）と新しい設定（最低倒し量・しきい値、値は実測）の追加は、人の許可を改めて求める（DEC-106）。人の申告（事実）：後退は車椅子側の制御で 1.7 km/h（0.47 m/s）に制限、前進は仕様上 4.5 km/h（1.25 m/s）で実際は未確認。「まずnav2で自律走行させてみよう」は、今の構成では開始できない（ND-07 がなく TR-05 で拒否、Nav2 の実車の値 PRM-11・17・18・66〜73 が未確定で Nav2 が起動しない）と分岐セッションで人に説明済み、人の判断待ち。
+  disposition: answered
+- id: DEC-172
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】後退の正規化の値を前進と別に持つか。motion_controller は前後とも PRM-39（1.111 m/s）で割るが、後退は車椅子側で 0.47 m/s（1.7 km/h、人の申告）に制限されるため、後退では倒し量と実速度の比が前進と違う（倒し切っても 0.47 m/s）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-11
+  - PRM-39
+  resulting_refs: []
+  note: 推奨：後退用の正規化の値（例：PRM-39 と別の PRM、値は実測）を持つ。Nav2 の後退の上限（min_vel_x などの PRM-66〜73 の該当項目）もこれに合わせる。代替：今のまま（後退は遅くなるだけで、cmd_vel より遅い向きのずれ。RQ-I020 の例外の扱いになる）。前進の PRM-39（人の指定 4 km/h）と仕様 4.5 km/h の差は実測（Q-06）で確かめる。決まらない場合に止まる作業：後退を含む自律走行の速度の検証。
+  disposition: open_human
+entities: []
+modifications:
+- id: ND-11
+  interpretation_append: REV-106：DEC-171 で不感帯の補償（案 A）を方針として承認（実装は許可待ち）。後退の正規化は DEC-172。最高速度の規則（SR-06・07）は車椅子側の速度上限で守る（DEC-170、人の確定）。
+decision_updates: []

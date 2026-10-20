@@ -1,0 +1,201 @@
+# 変更セット REV-063（2026-10-18 第33便: DEC-126 の許可と実装（地図作成の間の GNSS の記録）、貼られた仕様の記録 DEC-130、承認事項 DEC-131〜134）
+# 適用: design/tools/apply_revision.py REV-063
+id: REV-063
+date: '2026-10-18'
+summary: '人が DEC-126 を許可した（原文）。同じメッセージで GNSS の活用の実装仕様の文書を貼った（扱いの指示なし。DEC-130 に原文、design/research/gnss_reference_spec_2026-10-18.md に写し）。DEC-126 を実装: 地図作成の間、mode_manager が GNSS（IFD-47〜50。方位の共分散 AttCovEuler を IFD-50 として追加）を作業フォルダの gnss.jsonl に全項目のまま書き、原図の登録で原図の横に置いて SHA-256 と行数を source_manifest.json に記録する（GLIM の dump の内容ハッシュは変えない）。Mac の単体は合格。VM が停止していて ROS 上の試験は未実行。提案 gnss_initial_pose_design.md を第2版にし（貼られた仕様との照合、上流 README の確認）、承認事項 DEC-131〜134 を登録した。'
+basis_refs:
+- DEC-126
+- DEC-130
+- DEC-124
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-REF-SPEC
+  path: design/research/gnss_reference_spec_2026-10-18.md
+  role: evidence
+decisions:
+- id: DEC-130
+  kind: confirmation
+  status: recorded
+  asked_on: null
+  answered_on: '2026-10-18'
+  channel: chat（DEC-126 の許可と同じメッセージに貼られた文書）
+  question: GNSS（デュアルアンテナ・ネットワーク RTK）活用 実装仕様まとめ（人が貼った文書。扱いの指示なし）
+  answer_verbatim: "# GNSS（デュアルアンテナ・ネットワークRTK）活用 実装仕様まとめ\n\n## 0. 本書の扱い\n\n- 本書に出てくる名称と数値は、**すべて参考値**です。実装する環境やパッケージに合わせて決めてください。\n  - 名称：座標系名、TFフレーム名、パラメータ名、トピック名、ノード名、サービス名、状態名\n  - 数値：閾値、監視時間、サンプル数、許容誤差、精度の目安、受け入れ基準\n- 表中の「（参考）」は、上記の扱いをあらためて示すための表記です。\n- 実機の仕様（アンテナ間隔0.6mなど）は実測値です。ただし、それをもとに決める判定の閾値は参考値です。\n\n## 1. 目的\n\n- LiDAR事前地図の座標系と、GNSSの絶対座標系（局所ENU）を対応付ける\n- GNSSの位置と方位から初期姿勢を自動で与え、NDTの初期収束の失敗をなくす\n- 走行中にNDTが発散していないかを監視し、発散したら再初期化する\n\n## 2. 前提\n\n- 事前地図：IMUと3D LiDARで作成する（Z軸は重力方向に揃っている前提）\n- 自己位置推定：NDT系（ROS 2）\n- GNSS：ネットワークRTK、デュアルアンテナ（アンテナ間隔0.6m、実測値）\n  - 方位精度の目安：0.2〜0.5°（参考）\n  - 静止状態で方位を取得できる\n\n## 3. 座標系とTF構成\n\n| 親 → 子（名称は参考） | 種別 | 発行元 |\n|---|---|---|\n| `enu` → `map` | static TF | オフライン校正の結果（T1） |\n| `map` → `odom` | 動的 | NDT |\n| `odom` → `base_link` | 動的 | オドメトリまたはEKF |\n| `base_link` → `gnss_main` / `gnss_sub` | static TF | 実測したアンテナ取付位置 |\n\n- 局所ENUは、基準点（緯度・経度・高さ）を原点とし、東・北・上を軸とする接平面座標系です。\n- 平面直角座標系やUTMは原則として使いません。使う場合は子午線収差の補正が必要です。\n\n## 4. パラメータ（地図ファイルとまとめてバージョン管理する）\n\n| パラメータ名（参考） | 内容 |\n|---|---|\n| `lat0`, `lon0`, `h0` | 局所ENUの基準点 |\n| `map_to_enu_x/y/z/yaw` | T1で求める変換。p_enu = R·p_map + t |\n| `ant_x/y/z` | `base_link`から見た主アンテナの位相中心の位置 |\n| `mount_yaw_offset` | `base_link`のx軸から見た「主→副アンテナ」方向の角度（T2で求める） |\n| `heading_frame` | 受信機が出力する方位の定義（北0・時計回り、または東0・反時計回り） |\n| 品質判定・監視の閾値 | 7章・8章を参照 |\n\n- 地図を作り直したら、T1とT2もやり直します。\n\n## 5. 方位の変換手順\n\n1. 受信機の出力：ψ_NED（真北から時計回り）\n2. ENUへの変換：ψ_ENU = π/2 − ψ_NED\n3. 地図座標系への変換：ψ_map = ψ_ENU − map_to_enu_yaw\n4. 車体座標系への変換：ψ_base = ψ_map − mount_yaw_offset\n\n- 方位は真北基準なので、磁気偏角は補正しません。\n- 受信機やドライバがすでにENU定義で方位を出力している場合は、手順2を省きます。\n\n## 6. 実装タスク\n\n### T1：地図座標系とENUの変換推定（オフライン、地図ごとに1回）\n\n1. 事前地図上で初期姿勢を手動で与え、NDTが収束したことを目視で確認する\n2. コース全体を曲がり角も含めて走行し、以下を記録する\n   - NDTの姿勢\n   - GNSSの位置\n   - GNSSの方位\n   - TF\n3. 次の条件をすべて満たす時刻のデータだけを、対応点として抽出する\n   - GNSSがRTK Fixである\n   - NDTのスコアが良好である\n   - 特徴が少なくNDTが退化しやすい区間ではない\n4. NDTの姿勢をGNSSの時刻に補間し、レバーアーム補正でアンテナ位置に換算する\n   - p_ant_map = p_base_map + R_base_map · l_ant\n5. RANSACで外れ値を除き、最小二乗法（SVD）で4自由度（x, y, z, yaw）を推定する\n   - 縮尺は1に固定する\n   - yawは位置の対応だけから推定する（方位データは使わない）\n6. 出力\n   - 変換パラメータ\n   - ENU→地図座標系のstatic TF\n\n### T2：アンテナ取付オフセットの校正\n\n- NDTが収束している区間で、「GNSS方位から求めた地図座標系のYaw」から「NDTのYaw」を引き、その円周平均をとる\n- T1で求めたyawを固定してから行う（T1とT2の誤差を区別するため）\n- ハードウェア側で確認すること\n  - 2本のアンテナが同じ型番で、コネクタの向きが揃っている\n  - グランドプレートが付いている\n  - 受信機にアンテナ間隔（基線長）を設定してある\n\n### T3：初期姿勢ノード（ノード名は参考：`dual_antenna_initial_pose`）\n\n- 入力（トピック名・型は参考）\n  - GNSS位置：`/fix`（`NavSatFix`）\n  - GNSS方位：`/gnss/heading`（`Imu`型。独自メッセージの場合は変換ノードを用意する）\n- 出力（トピック名は参考）\n  - `/initialpose`（`PoseWithCovarianceStamped`）\n  - 使うNDTパッケージが初期姿勢を受け取る方法に合わせる\n- 状態遷移（状態名は参考）\n  1. WAIT_FIX：位置と方位の両方がFixになるまで待つ\n  2. SAMPLE：静止状態でN個のサンプルを集める\n     - 方位は円周平均、位置は平均をとる\n  3. PUBLISH：レバーアーム補正をしてから、共分散を付けて配信する\n  4. VERIFY：一定時間、8章の判定基準を満たすか確認する\n  5. TRACKING：通常走行に移る\n     - VERIFYで失敗した場合はSAMPLEに戻る\n- 再初期化用のサービスを用意する（名称の参考：`~/reinitialize`、型：`std_srvs/Trigger`）\n- 傾斜地向けの拡張：roll/pitchをIMUで埋め、3Dのレバーアーム補正にする\n\n### T4：走行中の監視と再初期化\n\n- 発散の判定：以下の(1)または(2)が一定時間続き、**かつ**(3)が成り立つ場合に発散とみなす\n  1. NDTの位置とGNSS位置の差が閾値を超える\n  2. NDTのYawとGNSS方位の差が閾値を超える\n  3. NDTのスコアが劣化している\n- (3)を必須にする理由：GNSS側の誤Fixだけで自己位置がリセットされるのを防ぐため\n- 発散時の動作：停止 → 再初期化サービスを呼ぶ → T3の手順で初期化する\n\n### T5（任意）：EKFでの融合\n\n- `robot_localization`などのEKFに、次の3つを入力する\n  - NDTの姿勢\n  - RTKの位置\n  - GNSS方位（絶対Yaw）\n- 位置と方位は別々に品質判定し、それぞれ独立に融合をオン・オフする\n\n## 7. 品質判定（数値はすべて参考）\n\n| 対象 | 採用条件 | 参考値 |\n|---|---|---|\n| 位置 | RTK Fix、かつ水平方向の標準偏差が閾値以下 | 3cm |\n| 方位 | 方位の解がFix、かつ標準偏差が閾値以下 | 1° |\n| 方位（誤Fix対策） | 受信機が算出した基線長と実測値との差が閾値以内 | 数cm |\n| 方位（整合性） | 基線方向の傾きとIMUの傾きの差が閾値以内 | 数度 |\n| 静止判定（方位） | サンプル間のばらつきが閾値以内 | 0.5° |\n| 静止判定（位置） | サンプル間のばらつきが閾値以内 | 3cm |\n| 時刻同期 | 位置と方位のタイムスタンプの差が閾値以内 | 0.1s |\n| サンプル数 | SAMPLE状態で集める数 | 20 |\n\n- `NavSatFix`のステータスだけではFixとFloatを区別できないことが多いため、ドライバ固有のRTK状態を使います。\n\n## 8. 監視・判定の閾値（数値はすべて参考）\n\n| 項目 | 参考値 |\n|---|---|\n| 発散判定：位置の差 | 1.0m |\n| 発散判定：Yawの差 | 3° |\n| 発散判定：継続時間 | 3s |\n| VERIFY：GNSS位置との差 | 0.3m |\n| VERIFY：GNSS方位との差 | 3° |\n| VERIFY：確認時間 | 数秒 |\n| NDTスコアの閾値 | 使うパッケージの指標に合わせて決める |\n\n## 9. 受け入れ基準（数値はすべて参考）\n\n| 項目 | 参考基準 |\n|---|---|\n| T1の水平残差 | RMSが数cm〜十数cmで、場所による偏りがない |\n| 方位の残差（GNSS方位 − NDTのYaw − 取付オフセット） | 1°未満で安定している |\n| 初期化 | スタート地点で静止した状態から自動で収束する（成功率を記録する） |\n| 検証方法 | T1とは別の日の走行データで残差を確認する |\n\n- 残差が走行距離とともに増える場合や、特定の区間に偏る場合\n  - 地図のゆがみ、またはNDTの退化を疑う\n  - 必要なら、GNSSを拘束に加えて地図を作り直す\n\n## 10. 注意事項\n\n- 測地系\n  - ネットワークRTKの座標はJGD2011基準です。\n  - 外部の座標と比べる場合は、ITRFとの差（1m以上になることがある）に注意します。\n- 高さ：楕円体高と標高のどちらを使うかを統一します。\n- 時刻同期\n  - GNSSとROSの時刻を同期させます（PPS/NTPなど）。\n  - 例：1m/sで走行中に0.1sずれると、10cmの位置誤差になります。\n- バージョン管理：地図ファイルと変換パラメータは、必ず同じバージョンとして扱います。\n\n## 11. 実装前に確認する事項\n\n- ドライバが方位をどの形式で出力するか（メッセージ型、NEDかENUか）\n- 2本のアンテナの配置（前後か左右か）\n- NDTパッケージが初期姿勢をどのように受け取るか（トピックかサービスか、その名称）\n- ドライバが基線長とRTK状態を出力しているか\n- 各名称と各閾値を、実際の環境に合わせて確定すること\n"
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - ND-19
+  - ND-07
+  - DEC-124
+  - DEC-127
+  - DEC-128
+  resulting_refs:
+  - DEC-131
+  - DEC-132
+  - DEC-133
+  - DEC-134
+  note: 扱いの指示がないため参考の資料として扱い、提案 design/proposals/gnss_initial_pose_design.md §9・§10 で照合した。文書は名称と数値をすべて参考値としている（数値は採らない）。アンテナ間隔 0.6 m は文書の中で実測値とされている（人の実測値として記録。設計の値にはまだ使っていない）。同じメッセージの人の言葉は「DEC-126は許可。」だけ。
+  disposition: answered
+- id: DEC-131
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: 【承認】enu→map の static TF を出す（貼られた仕様 §3）。発行元は選んだ地図を知る node（TR-05 の時の ND-03 か、初期位置の node）。frame 名は Gouda の IF の名前に合わせる（提案 §9）。
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - IFD-20
+  - ND-03
+  resulting_refs: []
+  note: 推奨は承認（記録の再生・可視化で GNSS と地図を重ねられる）。決まらない場合に止まる作業：GNSS と地図の重ね合わせの TF での表現。
+  disposition: open_human
+- id: DEC-132
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: '【承認】アンテナの取付の方位オフセットの校正（貼られた仕様 T2）を加え、結果を人が確かめて /config に保存する形にする（取付値は人が monitor で設定: RQ-I081）。'
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - IFD-26
+  - ND-19
+  resulting_refs: []
+  note: 推奨は承認。上流ドライバが TF から att_offset を計算するかは README に明記がない（提案 §10）。決まらない場合に止まる作業：GNSS の方位の残りのずれの補正。
+  disposition: open_human
+- id: DEC-133
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: '【承認】初期化を貼られた仕様 T3 の形にする: 初期位置の node が静止中の GNSS の位置・方位を集めて平均し、ND-07 に送り、収束を確かめ、monitor に表示する。人は表示を見て開始ボタンを押す。開始の要求（IFD-02）は「GNSS で初期化済みの推定を使う」か「人の指定」を選ぶ形に変える。DEC-128 の代わり（推奨は DEC-128 を取り下げ）。'
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - IFD-02
+  - IFD-34
+  - ND-07
+  - ND-02
+  - RQ-I084
+  resulting_refs: []
+  note: 推奨は承認（intent 体験 9 の「取得されて表示され、人が収束と正しさを確認する」に近い）。ND-07 の実装（DEC-115）が前提。判定の値（サンプル数・静止の判定など）は tbd。決まらない場合に止まる作業：GNSS による初期位置の実装。
+  disposition: open_human
+- id: DEC-134
+  kind: approval
+  status: pending
+  asked_on: '2026-10-18'
+  answered_on: null
+  channel: chat
+  question: '【承認】走行中の発散の監視と再初期化（貼られた仕様 T4: NDT と GNSS の差が続き、かつ NDT のスコアが劣化したら、停止して再初期化）を、推定不能からの自動復帰（TR-13）の具体化として設計する。詳細の設計は ND-07 の後に出し、それまで実装しない。'
+  answer_verbatim: ''
+  affected_refs:
+  - G-INIT-POSE-GNSS
+  - TR-13
+  - ND-07
+  - RQ-I013
+  resulting_refs: []
+  note: 推奨は承認。新しい保護に当たるため（intent 38 行）提案として出す。値（差・継続時間・スコア）は tbd。決まらない場合に止まる作業：走行中の再初期化。
+  disposition: open_human
+entities:
+- id: IFD-50
+  kind: designed_interface
+  intent_lines:
+  - 14
+  name: sensors/gnss/attcoveuler（デュアルアンテナの向きの共分散）
+  issue_refs:
+  - G-INIT-POSE-GNSS
+  sensitivity:
+  - operation
+  designed_interface:
+    transport: topic
+    name: sensors/gnss/attcoveuler
+    message_type: septentrio_gnss_driver/msg/AttCovEuler
+    standard_type: false
+    custom_type_reason: 上流ドライバの型（SBF の AttCovEuler）。向きの分散を標準型で表せない。Gouda は型を定義しない
+    purpose: diagnostic
+    owner_ref: ND-19
+    publisher_refs:
+    - ND-19
+    consumer_refs:
+    - ND-03
+    - ND-04
+    unit: 度²（上流の定義。原本未照合）
+    frame: null
+    time_semantics: header.stamp は PC の時刻。地図作成の間の記録（DEC-126）と、方位の品質の判定（tbd）に使う
+    qos:
+      reliability: reliable
+      durability: volatile
+      history_depth: null
+    version_dependency:
+      status: none
+      evidence: []
+      note: 上流 septentrio_gnss_driver 1.4.8 の gnss.yaml で publish.attcoveuler=true
+    legacy_refs: []
+modifications:
+- id: ND-19
+  set_nested:
+    ros_node.publishes_refs:
+    - IFD-47
+    - IFD-48
+    - IFD-49
+    - IFD-50
+- id: ND-03
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-12
+    - IFD-25
+    - IFD-33
+    - IFD-39
+    - IFD-14
+    - IFD-42
+    - IFD-47
+    - IFD-48
+    - IFD-49
+    - IFD-50
+  interpretation_append: 'REV-063（DEC-126）: 地図作成の間（TR-03〜TR-04）、IFD-47〜50 を全項目のまま作業フォルダの gnss.jsonl に書き、原図の登録（IFD-29）で原図の横に置き、SHA-256 と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。'
+- id: IFD-47
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-02
+    - ND-04
+    - ND-03
+- id: IFD-48
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-02
+    - ND-04
+    - ND-03
+- id: IFD-49
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-02
+    - ND-04
+    - ND-03
+- id: IFD-29
+  interpretation_append: 'REV-063（DEC-126）: 原図の横に gnss.jsonl（地図作成の間の GNSS の記録）を置き、source_manifest.json の gnss に SHA-256 と行数を書く。原図（source/）の content_hash には含めない。'
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。 2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は Mac で合格。ROS 上（地図作成の開始・終了での記録）は未実行（VM が停止中）。'
+decision_updates:
+- id: DEC-126
+  set:
+    status: answered
+    answered_on: '2026-10-18'
+    answer_verbatim: 'DEC-126は許可。
+
+      '
+    resulting_refs:
+    - IFD-50
+    - ND-03
+    - IFD-29
+    - TS-35
+    disposition: answered
+- id: DEC-127
+  set:
+    note: '推奨は承認。決まらない場合に止まる作業：GNSS の値の地図の座標への変換（DEC-128）。 2026-10-18 第2版（提案 §9）: 貼られた仕様（DEC-130）に合わせ、T1 を 4 自由度（x, y, z, yaw）＋RANSAC にし、地図作成の時の記録（DEC-126）で行う読み替えを推奨。'
+- id: DEC-128
+  set:
+    note: '推奨は承認。振る舞いの違い：人が数値を打つ代わりに GNSS の値を確かめて押せる。誤った fix の危険は品質と照合の結果の表示で人が見分ける。決まらない場合に止まる作業：GNSS による初期位置（体験 9）。 2026-10-18 第2版: 代わりの案 DEC-133（貼られた仕様 T3 の形）を推奨し、本項目は取り下げを推奨。'

@@ -28,8 +28,23 @@ authority:
     role: authority_superseded
   FILE-INTENT-V9:
     sha256: 183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed
+    role: authority_superseded
+  FILE-INTENT-V10:
+    sha256: 4bc97d43f7571d73fdeb41846564019c0302115c535d140a4fd83690caa698d5
+    role: authority_superseded
+  FILE-INTENT-V11:
+    sha256: 7040ff7a86db81754b5ccec29806b7dcdac914183619fa3d0c65ec9b45133646
+    role: authority_superseded
+  FILE-INTENT-V12:
+    sha256: 2427bc6a5456143b9f99589824000aa1d91b451b770f59d568c6532078aa8383
+    role: authority_superseded
+  FILE-INTENT-V13:
+    sha256: c4d1a69aee5fad33357287f48ae81346b581c0fc85894ea17c2aff5bb8fa987f
+    role: authority_superseded
+  FILE-INTENT-V14:
+    sha256: 9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4
     role: authority
-line_count: 78
+line_count: 80
 lines:
   - line: 1
     requirement_id: RQ-I001
@@ -91,6 +106,7 @@ lines:
       - TR-05
       - TS-31
       - TS-32
+      - TS-38
     issue_refs: []
   - line: 8
     requirement_id: RQ-I005
@@ -233,15 +249,16 @@ lines:
     issue_refs:
       - H-013
   - line: 14
-    requirement_id: RQ-I011
+    requirement_id: RQ-I084
     text: 9. 
-      ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次に初期位置と向きを人間がある程度指定し、自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
-    source_id: SRC-I014
-    authority_file: FILE-INTENT
+      ここから自律走行開始の準備をする。waypoint_managerでwaypointのファイルと地図の組を選択する。地図とwaypointは重ねた状態でプレビューが表示される。次にGNSSにより初期位置と向きが取得されて地図にoverlayしてgouda_monitorに表示される。位置の収束や正しさを人間が確認する。また、人が初期位置や向きを設定することも可能。自律走行開始ボタンを一回押すと、自己位置推定しながら、nav2によってナビゲーションが開始される。自律走行開始ボタンを押した後は、追加の承認を挟まない。waypointの通過や到達の判定はNav2が行う。
+    source_id: SRC-I014-V11
+    authority_file: FILE-INTENT-V11
     referenced_by:
       - C-004
       - C-010
       - C-012
+      - C-027
       - H-007
       - IFD-02
       - IFD-13
@@ -251,18 +268,34 @@ lines:
       - IFD-33
       - IFD-34
       - IFD-39
+      - IFD-47
+      - IFD-48
+      - IFD-49
+      - IFD-50
       - ND-02
       - ND-03
       - ND-07
       - ND-08
       - ND-10
       - ND-16
+      - ND-19
       - PRM-11
+      - PRM-65
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-73
+      - PRM-74
+      - PRM-75
+      - PRM-76
       - SO-03
       - SO-05
       - SO-06
       - TR-05
       - TS-02
+      - TS-35
+      - TS-37
+      - TS-39
     issue_refs: []
   - line: 15
     requirement_id: RQ-I012
@@ -280,23 +313,25 @@ lines:
       - ND-09
       - ND-10
       - PRM-18
+      - PRM-70
+      - PRM-71
+      - PRM-72
       - TR-07
       - TS-05
     issue_refs: []
   - line: 16
-    requirement_id: RQ-I013
+    requirement_id: RQ-I086
     text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
-      自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。
-    source_id: SRC-I016
-    authority_file: FILE-INTENT
+      自律走行指令の再許可]の順である。復旧に人の追加承認は求めない。各段階の成否をログに記録する。復旧回数が50回ごとに、理由を記録する。（50回、100回、150回、、と続く。）
+    source_id: SRC-I016-V13
+    authority_file: FILE-INTENT-V13
     referenced_by:
       - C-006
       - C-019
-      - G-RECOVERY
+      - C-028
       - H-006
       - ND-03
       - PRM-10
-      - Q-05
       - SO-01
       - TR-02
       - TR-09
@@ -305,10 +340,7 @@ lines:
       - TR-15
       - TR-16
       - TS-09
-    issue_refs:
-      - Q-05
-      - G-RECOVERY
-      - H-006
+    issue_refs: []
   - line: 17
     requirement_id: RQ-I014
     text: ・一時停止モードにおいて、gouda_monitorの再開ボタンを押すと自己位置推定をしながら自律走行を再開する。再開する地点の再設定は必須ではない。
@@ -455,6 +487,7 @@ lines:
       - IFD-15
       - IFD-41
       - IFD-42
+      - IFD-52
       - ND-03
       - ND-10
       - ND-11
@@ -463,6 +496,7 @@ lines:
       - TS-04
       - TS-06
       - TS-16
+      - TS-40
     issue_refs:
       - H-001
   - line: 27
@@ -653,6 +687,7 @@ lines:
       - IFD-27
       - IFD-38
       - IFD-43
+      - IFD-51
       - ND-02
       - PRM-15
       - PRM-16
@@ -857,18 +892,21 @@ lines:
       - ND-10
     issue_refs: []
   - line: 82
-    requirement_id: RQ-I057
-    text: ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。
-    source_id: SRC-I082
-    authority_file: FILE-INTENT
+    requirement_id: RQ-I083
+    text: 
+      ・Navigationに関しては、なるべくNav2に機能を持たせ、Nav2に含まれる機能を独自プログラムで実装しない。OSSとして公開されており使用実績の豊富なものについては、Nav2に追加しても良い。
+    source_id: SRC-I082-V10
+    authority_file: FILE-INTENT-V10
     referenced_by:
       - C-004
       - C-012
       - C-018
       - C-020
+      - C-026
       - H-003
       - H-005
       - ND-10
+      - TS-37
     issue_refs: []
   - line: 83
     requirement_id: RQ-I058
@@ -883,6 +921,7 @@ lines:
       - IFD-36
       - ND-01
       - ND-13
+      - TS-38
     issue_refs: []
   - line: 84
     requirement_id: RQ-I059
@@ -896,7 +935,8 @@ lines:
     text: ・人の判断が必要な未決事項は、選択肢・推奨案・影響範囲を付けてまとめて報告する。それに依存しない作業は継続する。未確定の実車値を、一般論による値で補わない。
     source_id: SRC-I085
     authority_file: FILE-INTENT
-    referenced_by: []
+    referenced_by:
+      - TS-37
     issue_refs: []
   - line: 86
     requirement_id: RQ-I061
@@ -951,6 +991,7 @@ lines:
       - PRM-40
       - PRM-41
       - PRM-42
+      - PRM-78
       - SO-08
       - SO-09
       - TR-06
@@ -1093,23 +1134,27 @@ lines:
     referenced_by:
       - IFD-20
       - IFD-26
+      - IFD-52
       - ND-02
       - ND-13
       - SO-03
       - SO-10
       - TS-25
+      - TS-36
+      - TS-40
     issue_refs: []
   - line: 100
-    requirement_id: RQ-I074
-    text: ・車体は全長 1,010 mm × 全幅 598 mm × 全高 950 
+    requirement_id: RQ-I087
+    text: ・車体は全長 800 mm × 全幅 600 mm × 全高 1200 
       mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint`
       は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 
       mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
-    source_id: SRC-I100-V3
-    authority_file: FILE-INTENT-V3
+    source_id: SRC-I100-V14
+    authority_file: FILE-INTENT-V14
     referenced_by:
       - C-018
       - C-021
+      - C-029
       - H-005
       - IFD-20
       - ND-13
@@ -1125,6 +1170,14 @@ lines:
       - PRM-34
       - PRM-35
       - PRM-36
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-73
+      - TS-36
     issue_refs: []
   - line: 101
     requirement_id: RQ-I072
@@ -1150,6 +1203,7 @@ lines:
       - PRM-39
       - PRM-40
       - PRM-41
+      - PRM-78
     issue_refs:
       - H-009
   - line: 103
@@ -1159,6 +1213,7 @@ lines:
     authority_file: FILE-INTENT-V4
     referenced_by:
       - IFD-26
+      - IFD-52
       - ND-11
       - ND-12
       - ND-13
@@ -1187,6 +1242,11 @@ lines:
       - PRM-59
       - PRM-60
       - PRM-61
+      - PRM-65
+      - PRM-74
+      - PRM-75
+      - PRM-76
+      - PRM-77
       - TS-29
     issue_refs: []
   - line: 104
@@ -1208,6 +1268,7 @@ lines:
       - IFD-26
       - ND-06
       - TR-03
+      - TS-36
     issue_refs: []
   - line: 106
     requirement_id: RQ-I082
@@ -1228,4 +1289,21 @@ lines:
       - PRM-64
       - TS-33
       - TS-34
+    issue_refs: []
+  - line: 107
+    requirement_id: RQ-I085
+    text: ・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。
+    source_id: SRC-I107-V12
+    authority_file: FILE-INTENT-V12
+    referenced_by:
+      - ND-17
+    issue_refs: []
+  - line: 108
+    requirement_id: RQ-I088
+    text: ・電動車椅子に人は乗らない。
+    source_id: SRC-I108-V14
+    authority_file: FILE-INTENT-V14
+    referenced_by:
+      - PRM-66
+      - PRM-68
     issue_refs: []

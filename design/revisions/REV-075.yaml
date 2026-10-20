@@ -1,0 +1,55 @@
+# 変更セット REV-075（2026-10-19 第41便: 副アンテナの確認。マニュアルと MRTKLIB での照会）
+# 適用: design/tools/apply_revision.py REV-075
+id: REV-075
+date: '2026-10-19'
+summary: 人が main と aux のアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。Septentrio の Reference Guide 1.0.1 と Hardware Manual 1.1.1 を読み（FILE-MOSAIC-DUAL-ANTENNA-NOTE）、人の許可（DEC-143）で MRTKLIB の mrtk relay から USB2 に照会だけを送った（FILE-MOSAIC-MRTK-QUERY）。能力は Main+Aux1、許可は 2 本のアンテナと方位、方位の計算は MultiAntenna, Fixed。frontend mode は Nominal（マニュアル 1.0.1 の値 SingleAnt・DualAnt にない。意味は原本未照合）。2 本で動かすには setFrontendMode DualAnt を Boot に保存して再起動する（Hardware Manual §4.2.3.2）。その変更を承認事項 DEC-144 にした。
+basis_refs:
+- DEC-143
+- DEC-140
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-MOSAIC-DUAL-ANTENNA-NOTE
+  path: design/research/gnss_mosaic_g5_dual_antenna_2026-10-19.md
+  role: evidence
+- id: FILE-MOSAIC-MRTK-QUERY
+  path: design/research/vehicle_pc/2026-10-19_mosaic_mrtk_query.txt
+  role: evidence
+decisions:
+- id: DEC-143
+  kind: approval
+  status: answered
+  asked_on: '2026-10-19'
+  answered_on: '2026-10-19'
+  channel: chat
+  question: 受信機の USB2（if02）で、MRTKLIB の mrtk relay を使い、読むだけの照会（grc・gfm・gga・lif,Permissions）を送ってよいか
+  answer_verbatim: '許可する。USB2（if02）で mrtk relay を使い、grc・gfm・gga・lif,Permissions の照会だけを送ってよい。設定は変えないこと。
+
+    '
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  resulting_refs:
+  - FILE-MOSAIC-MRTK-QUERY
+  note: 指示の原文（前のメッセージ）「mainとauxのアンテナを入れ替えたところ、mainのみ受信できた。よって、アンテナやケーヴル自体に問題は無いと考えられる。mosaic-go g5 p6のマニュアルを参照して、mrtklibを使って動作確認をせよ。mrtklibはvmにいれてある」。送ったのは 4 つの照会と最初の CR だけ。生の記録は VM の ~/gnss_records/ にだけ置いた。
+  disposition: answered
+- id: DEC-144
+  kind: approval
+  status: pending
+  asked_on: '2026-10-19'
+  answered_on: null
+  channel: chat
+  question: '【承認】受信機を 2 本のアンテナで動かす設定。(a) まず読むだけの照会 help, setFrontendMode で firmware 1.1.1 の値の一覧を確かめる（USB2、mrtk relay）。(b) 一覧に DualAnt があれば、Gouda を止めてから sfm, DualAnt → exeCopyConfigFile, Current, Boot → exeResetReceiver, Hard, none を送る（設定の変更・Boot 保存・受信機の再起動）。(c) 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり、AttEuler の mode が 0 でないことを確かめる。'
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  - DEC-140
+  resulting_refs: []
+  note: 推奨は (a) の後に (b)（Hardware Manual §4.2.3.2 の手順そのもの）。振る舞いの違い：DualAnt では副アンテナの入力を使い、方位（IFD-49・50）が出うる。Hardware Manual は DualAnt で副アンテナを開放にしないこと、前置増幅の利得の上限と 2 本の差 5 dB 以内を求める（今のアンテナの利得は原本未照合）。人の資料 §6 の Boot 保存の別工程に当たる。ドライバ（configure_rx true）は起動のたびに eccf, Current, Boot を送るので、Current の値はいずれ Boot に入る。代替案：Nominal のまま（方位は出ない。較正 DEC-135 の取付 Yaw・方位の観測が使えない）。決まらない場合に止まる作業：方位の確認、方位を使う較正の検証。
+  disposition: open_human
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal。原因の候補は frontend mode（2 本の動作には DualAnt を Boot に保存して再起動。Hardware Manual §4.2.3.2）。次: DEC-144。'
+decision_updates: []

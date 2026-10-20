@@ -116,3 +116,79 @@ class BridgeCore:
         for k, v in status.items():
             out.append((k, '' if v is None else (str(v).lower() if isinstance(v, bool) else str(v))))
         return out
+
+
+# ---- USB link counting (DEC-177) ----
+MODE_MANUAL, MODE_MAPPING, MODE_AUTONOMY, MODE_PAUSE = 1, 2, 3, 4   # gouda_interfaces/msg/SoftwareMode
+LINK_NOT_OPEN, LINK_UP, LINK_DOWN = 'not_open', 'up', 'down'
+
+
+class LinkCounter:
+    """ESP32 USB link state and the disconnect / reconnect counts of the current session (DEC-177).
+
+    A session is a 事前地図作成 or a 自律走行: it starts when the mode leaves 手動走行 for 事前地図作成 or 自律走行, goes on
+    through 一時停止 and its resume (the counts continue), and ends when the mode returns to 手動走行. Outside a session the
+    link state is still shown but nothing is counted. Entering 一時停止 directly (after a PC restart) starts an autonomy
+    session. Times are wall-clock seconds (the monitor on the same PC shows the time since a disconnect)."""
+
+    def __init__(self):
+        self.link = LINK_NOT_OPEN
+        self.session_kind = ''          # '' | 'mapping' | 'autonomy'
+        self.session_started_at: Optional[float] = None
+        self.disconnects = 0
+        self.reconnects = 0
+        self.last_down_at: Optional[float] = None
+        self.last_up_at: Optional[float] = None
+        self.down_since: Optional[float] = None   # within the session: when the current outage began (or the session began)
+        self.down_total_s = 0.0
+        self.last_session: Optional[dict] = None
+        self.revision = 0
+
+    def _summary(self, now: float) -> dict:
+        down = self.down_total_s + (now - self.down_since if self.down_since is not None else 0.0)
+        return {'kind': self.session_kind, 'started_at': self.session_started_at, 'ended_at': now, 'disconnects': self.disconnects,
+                'reconnects': self.reconnects, 'down_total_s': round(down, 3)}
+
+    def on_mode(self, mode: int, now: float) -> Optional[tuple]:
+        """Returns ('session_started', kind) / ('session_ended', summary) when the session changes, else None."""
+        in_session = mode in (MODE_MAPPING, MODE_AUTONOMY, MODE_PAUSE)
+        if in_session and not self.session_kind:
+            self.session_kind = 'mapping' if mode == MODE_MAPPING else 'autonomy'
+            self.session_started_at = now; self.disconnects = self.reconnects = 0
+            self.last_down_at = self.last_up_at = None; self.down_total_s = 0.0
+            self.down_since = now if self.link == LINK_DOWN else None
+            self.revision += 1
+            return ('session_started', self.session_kind)
+        if not in_session and self.session_kind:
+            summary = self._summary(now)
+            self.last_session = summary; self.session_kind = ''; self.session_started_at = None; self.down_since = None
+            self.revision += 1
+            return ('session_ended', summary)
+        return None
+
+    def on_link(self, state: str, now: float) -> bool:
+        """The link state changed (up / down / not_open). Returns True when something changed."""
+        if state == self.link:
+            return False
+        was_down = self.link == LINK_DOWN
+        self.link = state
+        if self.session_kind:
+            if state == LINK_DOWN:
+                self.disconnects += 1; self.last_down_at = now; self.down_since = now
+            elif was_down:
+                if state == LINK_UP and self.last_down_at is not None:   # a return from an outage counted in this session
+                    self.reconnects += 1; self.last_up_at = now
+                if self.down_since is not None:
+                    self.down_total_s += now - self.down_since
+                self.down_since = None
+        self.revision += 1
+        return True
+
+    def status(self, now: float) -> dict:
+        in_session = bool(self.session_kind)
+        down_total = self.down_total_s + (now - self.down_since if in_session and self.down_since is not None else 0.0)
+        return {'link': self.link, 'session': self.session_kind, 'session_started_at': self.session_started_at,
+                'disconnects': self.disconnects if in_session else None, 'reconnects': self.reconnects if in_session else None,
+                'last_down_at': self.last_down_at if in_session else None, 'last_up_at': self.last_up_at if in_session else None,
+                'down_since': self.down_since if in_session else None, 'down_total_s': round(down_total, 3) if in_session else None,
+                'last_session': self.last_session, 'revision': self.revision}

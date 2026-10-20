@@ -1,0 +1,23 @@
+# 2026-10-14 地面の推定の設計（design/proposals/ground_estimation_design.md）の前に確かめたこと（AI。原文の出力）。GLIM 1.2.2 の上流ソース global_mapping.cpp 596〜632 行と、VM の 2 回目の原図・x86 の屋外の原図。
+
+===== (1) GLIM の dump での軌跡の書き方（global_mapping.cpp save()）
+    const Eigen::Isometry3d T_world_endpoint_L = submaps[i]->T_world_origin * submaps[i]->T_origin_endpoint_L;
+    const Eigen::Isometry3d T_odom_lidar0 = submaps[i]->frames.front()->T_world_lidar;
+    const Eigen::Isometry3d T_odom_imu0 = submaps[i]->frames.front()->T_world_imu;
+
+    for (const auto& frame : submaps[i]->frames) {
+      const Eigen::Isometry3d T_world_imu = T_world_endpoint_L * T_odom_imu0.inverse() * frame->T_world_imu;
+      const Eigen::Isometry3d T_world_lidar = T_world_imu * frame->T_lidar_imu.inverse();
+
+      write_tum_frame(traj_imu_ofs, frame->stamp, T_world_imu);
+      write_tum_frame(traj_lidar_ofs, frame->stamp, T_world_lidar);
+    }
+# odom_lidar.txt は odometry のまま。traj_lidar.txt は T_world_origin（loop closure 後）× T_origin_endpoint_L × (最初の frame の odom 姿勢)^-1 × 各 frame の odom 姿勢。点は submap の原点座標で保存され、T_world_origin で地図座標へ移す。
+
+===== (2) submap の data.txt の frame の姿勢は odometry か、補正後か
+map = VM の 2 回目（20261014_054556_fbd0a733）
+map: frames matched 609; |data.txt T_world_lidar - traj_lidar| median 0.008 max 0.101 m; vs odom_lidar median 0.000 max 0.000 m
+   submap time span [s]: median 55.5, max 56.0; overlaps between consecutive submaps: 0
+20261014_063433_60417bca: frames matched 6149; |data.txt T_world_lidar - traj_lidar| median 1.655 max 6.675 m; vs odom_lidar median 0.000 max 0.000 m
+   submap time span [s]: median 2.2, max 18.5; overlaps between consecutive submaps: 0
+# 結論: data.txt の frame の姿勢は odometry（補正なし）。軌跡は traj_lidar.txt（stamp で対応）を使う。点と軌跡は同じ T_world_origin で補正されている。

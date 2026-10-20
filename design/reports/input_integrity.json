@@ -1,11 +1,11 @@
 {
-  "result": "合格",
+  "result": "違反",
   "note": "原資料・抽出結果・初回移行baselineは変更されていないこと。intent.md は人が編集した新版で、差分は authority_revisions で機械検証する。",
   "files": [
     {
       "path": "design/intent.md",
       "baseline_sha256": "a571d3401e023b31352e540d4a3a7fa239f0120b4a1f1e164c4dbd681ea9c4a9",
-      "current_sha256": "183f8ee16455d44927144f6f4ff4c4100897a07dbd2edae196c9806ce0ce99ed",
+      "current_sha256": "9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4",
       "status": "intent新版（AR-002として記録・検証）"
     },
     {
@@ -17,14 +17,14 @@
     {
       "path": "design/docs/SystemArchitecture.drawio",
       "baseline_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
-      "current_sha256": "f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4",
-      "status": "一致"
+      "current_sha256": "6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7",
+      "status": "不一致"
     },
     {
       "path": "design/docs/extraction_20261008_01a11af4/.DS_Store",
       "baseline_sha256": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf",
-      "current_sha256": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf",
-      "status": "一致"
+      "current_sha256": "62d89055ffb52281e0146fc7c19596cee58a80e32d53a8581660d86d8755c2bf",
+      "status": "不一致"
     },
     {
       "path": "design/docs/extraction_20261008_01a11af4/README.md",
@@ -113,8 +113,8 @@
     {
       "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/.DS_Store",
       "baseline_sha256": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574",
-      "current_sha256": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574",
-      "status": "一致"
+      "current_sha256": "fbd69bd928c62c91b1e5cc1d69a413ac0aaf475e89b4b22138571fb54750a9d1",
+      "status": "不一致"
     },
     {
       "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/[Content_Types].xml",

@@ -1,0 +1,74 @@
+# 変更セット REV-045（2026-10-14 第26便: 実機の地図作成の試験（廊下、二往復）の AI による判定の記録）
+# 適用: design/tools/apply_revision.py REV-045
+id: REV-045
+date: '2026-10-14'
+summary: >-
+  人が実機で地図作成の試験をした（長い廊下、途中にゴミ箱など、二往復）。AI の判定は「地図は正しく作成されていない（不合格）」。
+  軌跡は開始 5〜15 s で約 21 m 沈み、合計 34 m 下がった（平らな廊下）。連続する frame の間で 4.9 m 跳び、四つの区間の長さ（31〜41 m）と折り返し点（片側で 8 m）がそろわず、
+  廊下が高さの違う複数の層に分かれて写っている。GLIM が処理した周期は 3.76 Hz（欠け 0.5 s 超が 115 回）、点と IMU の時刻の差は 1.0〜2.0 s、IMU の時刻の逆行 5 回。
+  試験の間、Gouda が 2 つ同時に動いていた（ワークスペースとデータの置き場をごみ箱へ移した後も古い起動が残り、pid ファイルが移ったため gouda.sh が気づかずに 2 つ目を起動）。
+  同じ IMU のシリアルポートを 2 つのドライバが、同じ LiDAR を 2 つのドライバが読み、GLIM も 2 つ動いた（一方は例外で終了）。この起動の重複を問題 G-DUP-START として登録。
+  /config がなかったため T_lidar_imu は中立だった。rosbag は記録されていない（自動開始は log だけ）ため、この走行は再処理できない。DEC-099・DEC-100 の計測には使えない。
+basis_refs: [DEC-099, DEC-100]
+intent_version_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
+
+files:
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-1
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor.txt
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-1-TOP
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_top.png
+    role: evidence
+  - id: FILE-VEHICLE-PC-FIELD-MAPPING-1-SIDE
+    path: design/research/vehicle_pc/2026-10-14_field_mapping_corridor_side.png
+    role: evidence
+
+entities:
+  - id: G-DUP-START
+    kind: issue
+    source_from_affected: true
+    name: Gouda が 2 つ同時に起動できてしまう（gouda.sh の二重起動の検出が data_root の pid ファイルだけに依存）
+    sensitivity: [safety, operation]
+    issue:
+      category: technical
+      state: open
+      affected_refs: [ND-01, ND-18, ND-14, ND-15, ND-06, ND-12]
+      resolution_refs: []
+      question: >-
+        2026-10-14 04:32 に起動した Gouda が、ワークスペースとデータの置き場をごみ箱へ移した後も動き続けた。pid ファイルもごみ箱へ移ったため、04:39 の bash gouda.sh start は起動中と判定できず、
+        2 つ目を起動した。2 つ目の monitor はポート 8080 が使用中で終了し、人は 1 つ目の monitor で地図作成を開始した。開始の要求は同じ ROS ドメインの 2 つの mode_manager に届き、GLIM が 2 つ起動した。
+        各起動の sensor supervisor がそれぞれドライバを起動し、同じ IMU のシリアルポートと同じ LiDAR を 2 つずつのドライバが読んだ（IMU の時刻の逆行、frame の欠け、GLIM の遅れ）。
+        ESP32 が接続されていれば vehicle_bridge も 2 つになる。FILE-VEHICLE-PC-FIELD-MAPPING-1。
+      next_action: >-
+        gouda.sh が、pid ファイルに頼らずに、同じ利用者の gouda_core の起動（ros2 launch gouda_core）が動いていれば起動を拒む（実装。起動の方法は変えない）。
+        sensor supervisor が、デバイスを別のプロセスが開いている場合にドライバを起動せず記録する（実装）。どちらも単体試験と VM での再現試験で確かめる。
+
+modifications:
+  - id: TS-34
+    set_nested:
+      test.procedure: >-
+        docs/map_conversion.md §5。センサーの受信を確かめてから地図作成を開始し、車体を歩く速さで 50〜100 m 動かす（平らな所・坂・縁石・壁・木・駐車中の物を含め、できれば出発点に戻る）。
+        地図作成を終了し、地図タブで設定を変えて再変換する。原図を python3 -m gouda_core.map_inspect で解析する。
+        実行記録: 2026-10-14 の 1 回目（廊下、二往復）は research/vehicle_pc/2026-10-14_field_mapping_corridor.txt。Gouda が 2 つ同時に動いていたため（G-DUP-START）試験の条件を満たさず、地図は不合格、計測には使えない。
+        再試験の前に、Gouda が 1 つだけ動いていること（ps で ros2 launch gouda_core が 1 つ）を確かめる。
+  - id: G-DDS
+    set_nested:
+      issue.next_action: >-
+        GLIM が処理した周期は、静止して作った原図 3 件で 8.09・7.97・4.41 Hz（traj_lidar.txt の行数と時刻。FILE-VEHICLE-PC-SOURCE-MAPS）。monitor（Python）の約 2 Hz より多いが 10 Hz に届かない。
+        2026-10-14 の移動しての試験では 3.76 Hz だったが、Gouda が 2 つ動いていた（ドライバと GLIM が 2 つずつ）ため、この値は G-DDS の計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1）。
+        移動しての実機試験（TS-34、DEC-100）で map_inspect により測る。欠落が地図に効くなら、RMW の設定（共有メモリ転送の容量、受信バッファ）・購読の QoS・RMW の種類を候補として比較する。
+        上流ソフトは改変しない。monitor の表示は「別プロセスの購読者が受け取った周期」であることを画面に明記済み（表示のみ）。
+
+decision_updates:
+  - id: DEC-099
+    set:
+      note: >-
+        手順と解析: docs/map_conversion.md §5、gouda_core/gouda_core/map_inspect.py。AI は手順・解析スクリプト・設定への反映を担当。
+        人に依頼すること: 移動しての地図作成（経路と途中の物の記録）。これまでの原図は静止して作られていたため未計測（FILE-VEHICLE-PC-SOURCE-MAPS）。
+        2026-10-14 の移動しての試験（廊下、二往復）は、Gouda が 2 つ同時に動いていて地図が壊れたため、計測に使えない（FILE-VEHICLE-PC-FIELD-MAPPING-1、G-DUP-START）。未計測のまま。
+  - id: DEC-100
+    set:
+      note: >-
+        これまでの静止した原図 3 件で GLIM が処理した周期は 8.09・7.97・4.41 Hz、最長の欠け 0.40・0.70・0.60 s（FILE-VEHICLE-PC-SOURCE-MAPS）。
+        monitor（Python）の受信 約 2 Hz より多いが 10 Hz に届かない。手順と解析: docs/map_conversion.md §5、map_inspect。
+        2026-10-14 の移動しての試験は、Gouda が 2 つ同時に動いていた（ドライバと GLIM が 2 つずつ）ため計測に使えない（処理周期 3.76 Hz は条件の外の値。FILE-VEHICLE-PC-FIELD-MAPPING-1）。未計測のまま。

@@ -1,0 +1,18 @@
+# 変更セット REV-084（2026-10-20 第50便: DEC-139 に案 B3 を追加）
+# 適用: design/tools/apply_revision.py REV-084
+id: REV-084
+date: '2026-10-20'
+summary: '人の指示で、DEC-139（NTRIP の補正の受け方）の選択肢に案 B3（Gouda の専用 node が NTRIP と受信機の USB2 を中継）を足し、提案 design/proposals/ntrip_gga_proposal.md を第2版にした（B1 との比較と共通の注意）。推奨は変えない（まず B1 で RTK fix を確かめ、必要なら後で B3）。実装はしていない（DEC-106）。'
+basis_refs:
+- DEC-139
+- DEC-140
+- DEC-125
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-139
+  set:
+    note: '推奨は案 A（ドライバと受信機の機能だけで済み、GGA の送信も受信機がする）。Point One の接続先のポート・mountpoint・GGA の要否は**原本未照合**（人の契約の情報で確かめる）。決まらない場合に止まる作業：RTK fix での記録（補正なしでは単独測位で、較正 DEC-135 の検証に使えない）。 2026-10-19 見直し: mosaic-go は USB のシリアル 2 本だけで USB イーサネットがなく、案 A はできない。DEC-140（configure_rx true）を受けて、推奨を案 B1 に変える（ドライバの rtk_settings.serial_1 で受信機の USB2 を補正の入力と GGA の出力にし、PC の RTKLIB str2str が NTRIP と USB2 を中継。GGA は受信機が 1 秒ごとに出す）。提案 design/proposals/ntrip_gga_proposal.md。 2026-10-20 第2版（人の指示、分岐したチャットでの検討の共有。原文の抜粋「DEC-139 の選択肢に「案 B3」を足して提案を更新し、承認事項として私に示すこと。実装はまだしない（DEC-106）。」）：案 B3 を追加＝Gouda の中の専用の node が caster に HTTP でつなぎ（認証・マウントポイント）、RTCM をそのまま USB2 に書き、USB2 の GGA を caster に返す（中身は解釈しない）。B3 は状態（補正の量・最後に届いてからの時間・接続）を topic・monitor に出せ、パスワードがプロセスの一覧に出ないが、NTRIP の接続・再接続・途切れの検出・シリアルの読み書きを自作して試験する必要がある。B1 は起動と見張りだけで実績があるが、状態は標準出力だけで、パスワードが引数に入る。中継には VM の MRTKLIB の mrtk relay も使える。推奨：まず B1 で RTK fix を確かめ、必要なら後で B3 に置き換える（最初から自作すると、fix が出ないときに補正の契約・受信機の設定・自作のコードの切り分けが難しい）。案 A・案 C は今の接続ではできない。提案 design/proposals/ntrip_gga_proposal.md 第2版 §2・§2.1〜2.3。'

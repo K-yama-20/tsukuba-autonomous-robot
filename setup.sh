@@ -4,8 +4,10 @@
 #
 #   bash setup.sh
 #
-#   1. system packages: ROS 2 Jazzy (desktop, as on the verified VM), build tools, Python modules, and GLIM 1.2.2 from the
-#      GLIM PPA (the version the design was checked with: DEC-062, IFD-35)
+#   1. system packages: ROS 2 Jazzy (desktop, as on the verified VM), build tools, Python modules, GLIM 1.2.2 from the
+#      GLIM PPA (the version the design was checked with: DEC-062, IFD-35), the Nav2 packages Gouda uses (DEC-121, DEC-122)
+#      and the GNSS driver septentrio_gnss_driver (ND-19, DEC-123) from the ROS 2 apt repository, and rtklib (Ubuntu universe)
+#      for str2str, the NTRIP relay the sensor supervisor starts (DEC-139 option B1, DEC-151 step 4)
 #   2. the sensor drivers at the commits in third_party/drivers.repos, unmodified (DEC-075). A clean checkout is moved to
 #      the pinned commit; a checkout with local changes or another origin is never touched (setup stops and says why)
 #   3. rosdep for gouda_core, gouda_interfaces and the drivers
@@ -58,7 +60,13 @@ if ! grep -Rqs 'koide3.github.io/ppa/ubuntu2404' /etc/apt/sources.list.d; then
   echo 'deb [signed-by=/usr/share/keyrings/gouda-koide3.gpg] https://koide3.github.io/ppa/ubuntu2404 ./' | sudo tee /etc/apt/sources.list.d/gouda-koide3.list >/dev/null
 fi
 wanted=(git curl ros-jazzy-desktop ros-dev-tools python3-colcon-common-extensions python3-rosdep python3-vcstool
-        python3-numpy python3-serial python3-yaml libpcap-dev libyaml-cpp-dev libboost-all-dev network-manager iproute2 udev)
+        python3-numpy python3-serial python3-yaml libpcap-dev libyaml-cpp-dev libboost-all-dev network-manager iproute2 udev
+        # Nav2 (ND-10, DEC-121 / DEC-122): bringup (the parameter template), the servers and the chosen plugins
+        ros-jazzy-nav2-bringup ros-jazzy-nav2-lifecycle-manager ros-jazzy-nav2-bt-navigator ros-jazzy-nav2-planner ros-jazzy-nav2-navfn-planner
+        ros-jazzy-nav2-controller ros-jazzy-nav2-regulated-pure-pursuit-controller ros-jazzy-nav2-behaviors ros-jazzy-nav2-smoother
+        ros-jazzy-nav2-velocity-smoother ros-jazzy-nav2-costmap-2d ros-jazzy-nav2-map-server
+        # GNSS driver (ND-19, DEC-123) and the NTRIP relay str2str (DEC-139 option B1, DEC-151 step 4)
+        ros-jazzy-septentrio-gnss-driver rtklib)
 missing=(); for p in "${wanted[@]}"; do installed "$p" || missing+=("$p"); done
 for p in ros-jazzy-glim ros-jazzy-glim-ros; do
   v="$(version_of "$p")"

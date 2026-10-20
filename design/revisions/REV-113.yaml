@@ -1,0 +1,19 @@
+# 変更セット REV-113（2026-10-21 第80便: IFD-51 の版依存を none に）
+# 適用: design/tools/apply_revision.py REV-113
+id: REV-113
+date: '2026-10-21'
+summary: 'REV-112 で足した IFD-51 の version_dependency を unconfirmed にしたため DR-10（版未照合の IF は未解決の問題を参照する）に違反した。IFD-51 は Gouda 内の topic で標準の型だけを使い、版に依存しないので none にする（他の内部 IF と同じ）。'
+basis_refs:
+- DEC-177
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: IFD-51
+  set_nested:
+    designed_interface.version_dependency:
+      status: none
+      evidence: []
+      note: ''
+decision_updates: []

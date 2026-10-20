@@ -1,0 +1,36 @@
+# 変更セット REV-072（2026-10-19 第39便: 最初の起動の前の受信機の記録、DEC-142）
+# 適用: design/tools/apply_revision.py REV-072
+id: REV-072
+date: '2026-10-19'
+summary: '人の許可（DEC-142、原文）で、最初の起動の前の受信機の記録を USB2（if02）で取った（FILE-MOSAIC-BEFORE-FIRST-START。照会 3 件とも受理、送る前に raw・エコー無効を読み直し）。gso: Stream1（COM1）・Stream2（COM2）・Stream3（USB2）に block の組があるが off、Stream4〜10 と Res1〜4 は none・off（2026-10-17 の人の調査の Stream4 は残っていない）。getDataInOut: COM1・COM2・USB1・USB2 は入力 auto・出力 SBF+NMEA。最初の CR に対し、受信機の入力に残っていた GGA の断片が「Invalid command」になった（以前に NMEA が受信機へ送り返されていたことを示す。2026-10-19 の AI の raw でない読み出しと整合するが断定できない）。USB2 の NMEA では単独測位（品質 1）だった。'
+basis_refs:
+- DEC-142
+- DEC-140
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-MOSAIC-BEFORE-FIRST-START
+  path: design/research/vehicle_pc/2026-10-19_mosaic_before_first_start.txt
+  role: evidence
+decisions:
+- id: DEC-142
+  kind: approval
+  status: answered
+  asked_on: '2026-10-19'
+  answered_on: '2026-10-19'
+  channel: chat
+  question: 起動の前の記録（gso・getDataInOut）を受信機の USB2 で取ってよいか（待ち時間）
+  answer_verbatim: '起動の前の記録を USB2（if02）で取ってよい。待ち時間は 1 秒とする
+
+    '
+  affected_refs:
+  - ND-19
+  - DEC-140
+  resulting_refs:
+  - FILE-MOSAIC-BEFORE-FIRST-START
+  note: 許可は起動の前の 1 回の照会（lif,Identification・gso・getDataInOut）だけ。起動の後の記録は、最初の起動の時に改めて許可を得る。生の記録（位置を含む）は VM の ~/gnss_records/ にだけ置いた。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-19
+  interpretation_append: 'REV-072: 最初の起動の前の受信機の状態（FILE-MOSAIC-BEFORE-FIRST-START）: SBF の Stream1〜3 は block の組があり off、Stream4〜10・Res1〜4 は none・off。全接続先の入力 auto・出力 SBF+NMEA。ファームウェア 1.1.1。'
+decision_updates: []

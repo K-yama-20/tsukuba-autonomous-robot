@@ -1,0 +1,66 @@
+# 2026-10-19 最初の起動の前の受信機の記録（DEC-140 の回答の指示。人の許可: 「起動の前の記録を USB2（if02）で取ってよい。待ち時間は 1 秒とする」）
+# 道具: python3 -m gouda_core.septentrio_query --port /dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02 --label before_first_start --reply-wait-s 1（VM、~/gouda_fix_ws の作業ツリー）
+# 実行の前: Gouda・ドライバ・launch のプロセスなし、fuser で ttyACM0/1 の使用者なし。ポートの端末設定は既定（icrnl ixon など）だったが、道具が raw にしてから送った
+# この写しは NMEA の文（位置を含む）と受信機の応答以外を除いた。生の記録は VM の ~/gnss_records/ にだけ置く（位置を含むため公開のリポジトリに入れない）。生の記録の SHA-256: 19002cccff6cfdd97e29dfd229a9daf4416f027ccaad25f9600af4386c2f35c3
+# 受信したバイト数: 11073  端末の設定（読み直し）: {'echo': False, 'icanon': False, 'icrnl': False, 'ixon': False, 'ixoff': False, 'opost': False}
+
+===== 送信: 'CR のみ'  判定: ['error']  受信 6357 bytes
+$R? GNGGA,(位置を含む NMEA の断片。除いた): Invalid command!
+
+===== 送信: 'lif,Identification'  判定: ['accepted']  受信 1306 bytes
+$R; lif,Identification
+---->
+$-- BLOCK 1 / 5
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rxproduct xmlns="http://septentrio.com/ns/ProductDescription/2.9">
+---->
+$-- BLOCK 2 / 5
+    <hwplatform product="mosaic-G5 P6"
+                name="GRB0060" serialnr="0100012541"
+                rxfullid="SN25410100012541">
+        <mainboard type="GRB00601000AA0401"/>
+    </hwplatform>
+---->
+$-- BLOCK 3 / 5
+    <firmware version="1.1.1" date="260612" rev="g9c1909">
+        <bootloader version="2025.04.1-g2b4d387" date="250730"/>
+        <os version="plp-2025.12.2-g6827116" date="260612" type="ssn-plp" model="KORE" upgradebaud="scs" sufformat="signed"> 
+        </os> 
+        <gnssfw version="2026.01.3-g68271162d8" date="260612" type="std">
+        </gnssfw>
+        <failsafe version="2025.10.1-gfd8b4fc" date="251028" type="ssn-plp"/>
+    </firmware>
+---->
+$-- BLOCK 4 / 5
+    <files>
+        <permfile permid="20251234h-100012541-1"/>
+        <antinfo  version="26.1.0" format="antex 1.4" ngs2bin="2.1" antcount="1118" antwnc="2412" date="260401"/>
+    </files>
+---->
+$-- BLOCK 5 / 5
+</rxproduct>
+
+===== 送信: 'gso'  判定: ['accepted']  受信 2116 bytes
+$R: gso
+  SBFOutput, Stream1, COM1, MeasEpoch+MeasExtra+EndOfMeas+OutputLink+GALAuthStatus+ReceiverTime+xPPSOffset+InputLink+SatVisibility+ChannelStatus+ReceiverStatus+QualityInd+DiskStatus+RFStatus+QZSRawL1S, off
+  SBFOutput, Stream2, COM2, MeasEpoch+MeasExtra+EndOfMeas+OutputLink+GALAuthStatus+ReceiverTime+xPPSOffset+InputLink+SatVisibility+ChannelStatus+ReceiverStatus+QualityInd+DiskStatus+RFStatus+QZSRawL1S, off
+  SBFOutput, Stream3, USB2, MeasEpoch+MeasExtra+EndOfMeas+OutputLink+GALAuthStatus+ReceiverTime+xPPSOffset+InputLink+SatVisibility+ChannelStatus+ReceiverStatus+QualityInd+DiskStatus+RFStatus+QZSRawL1S, off
+  SBFOutput, Stream4, none, none, off
+  SBFOutput, Stream5, none, none, off
+  SBFOutput, Stream6, none, none, off
+  SBFOutput, Stream7, none, none, off
+  SBFOutput, Stream8, none, none, off
+  SBFOutput, Stream9, none, none, off
+  SBFOutput, Stream10, none, none, off
+  SBFOutput, Res1, none, none, off
+  SBFOutput, Res2, none, none, off
+  SBFOutput, Res3, none, none, off
+  SBFOutput, Res4, none, none, off
+
+===== 送信: 'getDataInOut'  判定: ['accepted']  受信 1294 bytes
+$R: getDataInOut
+  DataInOut, DSK1, auto, SBF+NMEA, (off)
+  DataInOut, COM1, auto, SBF+NMEA, (on)
+  DataInOut, COM2, auto, SBF+NMEA, (on)
+  DataInOut, USB1, auto, SBF+NMEA, (on)
+  DataInOut, USB2, auto, SBF+NMEA, (on)

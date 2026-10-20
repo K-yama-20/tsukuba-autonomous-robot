@@ -1,0 +1,19 @@
+# 変更セット REV-071（2026-10-19 第38便の続き: 起動の前後の記録の道具、DEC-139 と GGA の提案）
+# 適用: design/tools/apply_revision.py REV-071
+id: REV-071
+date: '2026-10-19'
+summary: 'DEC-140 の回答の指示に沿って、最初の起動の前後で受信機の gso と getDataInOut を記録する道具 gouda_core/gouda_core/septentrio_query.py（照会だけ、by-id の名前だけ、他のプロセスが開いていれば送らない、raw・エコー無効を読み直してから送る）と単体試験を作った（受信機には触っていない）。DEC-139 と GGA の出し方を提案した（design/proposals/ntrip_gga_proposal.md）: USB だけの接続では受信機の中の NTRIP は使えないので、ドライバが USB2 を補正の入力と GGA の出力にし、PC の RTKLIB str2str が NTRIP と USB2 を中継する案 B1 を推奨。'
+basis_refs:
+- DEC-140
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+decisions: []
+entities: []
+modifications:
+- id: TS-35
+  set_nested:
+    test.procedure: '単体: ドライバの設定の生成（雛形の値を変えない、接続先・frame の差し込み、接続先が未確定なら起動しない、RTK の設定ファイルの有無）、接続先の機器の見張り（serial と tcp）。 実機（x86 機、人）: mosaic-go をつないで gouda.sh start、monitor の GNSS の欄、Record の rosbag に sensors/gnss/* が入ること、USB の抜き差しでの作り直し。 単体（test_gnss_config.py 5 件、test_monitor_core.py の GNSS 3 件）は合格（Mac・VM）。VM の試験スタックで、ドライバ未導入のとき driver_not_started と接続先未確定（PRM-65）が記録されることを確認（FILE-STAGE56-VM-TEST）。実機（x86 機と mosaic-go）は未実行（DEC-125 の回答待ち）。 2026-10-18 追加（DEC-126）: 地図作成の間の GNSS の記録（test_gnss_log.py 2 件: 行・件数・SHA-256、原図の横への登録で GLIM の dump のハッシュが変わらない）は Mac で合格。ROS 上は 2026-10-18 に VM の試験スタックで合格（FILE-GNSS-MAPPING-RECORD-VM-TEST。合成の GNSS 4 種類 × 20 通が gnss.jsonl に 80 行、原図の横に置かれ manifest の SHA-256 と一致。GNSS がない地図作成では空の記録と「対応を作れない」の記録、地図作成は止まらない）。 2026-10-19 追加（REV-069・071）: by-id の名前だけを受け付ける検査と IMU・GNSS の同時接続の取り違えがないこと（test_serial_by_id.py 3 件、test_gnss_config.py）、最初の起動の前後の記録の道具（test_septentrio_query.py 3 件、疑似端末）は Mac で合格。実機での記録は未実行（人の許可の後）。'
+decision_updates:
+- id: DEC-139
+  set:
+    note: '推奨は案 A（ドライバと受信機の機能だけで済み、GGA の送信も受信機がする）。Point One の接続先のポート・mountpoint・GGA の要否は**原本未照合**（人の契約の情報で確かめる）。決まらない場合に止まる作業：RTK fix での記録（補正なしでは単独測位で、較正 DEC-135 の検証に使えない）。 2026-10-19 見直し: mosaic-go は USB のシリアル 2 本だけで USB イーサネットがなく、案 A はできない。DEC-140（configure_rx true）を受けて、推奨を案 B1 に変える（ドライバの rtk_settings.serial_1 で受信機の USB2 を補正の入力と GGA の出力にし、PC の RTKLIB str2str が NTRIP と USB2 を中継。GGA は受信機が 1 秒ごとに出す）。提案 design/proposals/ntrip_gga_proposal.md。'

@@ -1,0 +1,24 @@
+# 変更セット REV-115（2026-10-21 第81便: RQ-I085 を ND-17 に対応付け）
+# 適用: design/tools/apply_revision.py REV-115
+id: REV-115
+date: '2026-10-21'
+summary: REV-114 で足した RQ-I085（intent.md 第12版 107 行：車体の電源を先に切ってから基板の電源を切る運用）が設計要素に対応付いておらず DR-05 に違反した。基板（ESP32・DAC）の電圧出力の扱いなので ND-17 の requirement_refs に加える（意味は変えない対応付け）。
+basis_refs:
+- DEC-178
+- DEC-162
+intent_version_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-17
+  set:
+    requirement_refs:
+    - RQ-I023
+    - RQ-I024
+    - RQ-I068
+    - RQ-I075
+    - RQ-I076
+    - RQ-I077
+    - RQ-I085
+decision_updates: []

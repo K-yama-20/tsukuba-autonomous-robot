@@ -9,6 +9,7 @@
 | glim_v1.2.2/ | https://github.com/koide3/glim | tag v1.2.2（実車PC の ros-jazzy-glim 1.2.2-0noble と同じ版番号。DEC-062） |
 | glim_ros2_v1.2.2/ | https://github.com/koide3/glim_ros2 | tag v1.2.2 |
 | adi_imu_742b7ba/ | https://github.com/technoroad/ADI_IMU_TR_Driver_ROS2 | commit 742b7babec7e7a20937d4e8be0df77a771a1294a（2026-07-29） |
+| septentrio_gnss_driver_1.4.8/ | ROS 2 の apt（packages.ros.org）の ros-jazzy-septentrio-gnss-driver 1.4.8-2noble.20260916.090359（arm64）を VM で apt-get download して展開した share/septentrio_gnss_driver/config/gnss.yaml（2026-10-17。BSD-3-Clause）。gouda_core.gnss_config の雛形と単体試験に使う |
 
 照合した事実（ファイルと行）:
 - Hesai SDK `udp6_1_parser.h`（XT の UDP 6.1）: use_timestamp_type が 0 以外のとき、各 packet の sensor_timestamp に受信時刻 recv_timestamp を入れる（259〜263 行）。点の `timestamp` は packet の sensor_timestamp（177 行。firetime 補正は timeSecond/timeNanosecond だけに入る、158〜161 行）。frame_start_timestamp は最初の packet の値（264 行）。

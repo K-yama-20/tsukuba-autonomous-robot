@@ -1,0 +1,17 @@
+# 変更セット REV-109（2026-10-21 第76便: REV-108 の PRM-77 に出典を入れる）
+# 適用: design/tools/apply_revision.py REV-109
+id: REV-109
+date: '2026-10-21'
+summary: 'REV-108 で足した PRM-77 の source_refs が空で、スキーマ（空でないこと）に違反した（DR-01、他のルールが連鎖して未判定）。出典を intent.md:103（実測値・設定はハードコードせず宣言的に書く、RQ-I076）に。値と意味は変えていない。'
+basis_refs:
+- DEC-174
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-77
+  set:
+    source_refs:
+    - SRC-I103-V4
+decision_updates: []

@@ -1,0 +1,32 @@
+# 変更セット REV-080（2026-10-20 第46便: GNSS のアンテナ間隔の人の確認の記録）
+# 適用: design/tools/apply_revision.py REV-080
+id: REV-080
+date: '2026-10-20'
+summary: 人の確認（原文）を記録した（DEC-149）。今の車体の GNSS のアンテナ間隔は 0.34 m で、/config（VM の sensor_config.json、config_revision 18。main (0.45, 0.17, 0.77)、aux1 (0.45, -0.17, 0.77) m）の値が正しい。DEC-130 の仕様の「アンテナ間隔 0.6 m（実測値）」は古い値。DEC-130 は書き換えない。
+basis_refs:
+- DEC-149
+- DEC-130
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-149
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: '【確認】今の車体の GNSS のアンテナ間隔は、/config の 0.34 m（main と aux1 が左右）か、DEC-130 の仕様の 0.6 m か'
+  answer_verbatim: '現在の車体のアンテナ間隔は 0.34 m で、config の値が正しい。DEC-130 の 0.6 m は古い値。
+
+    '
+  affected_refs:
+  - DEC-130
+  - ND-19
+  - ND-13
+  - G-GNSS-NO-HEADING
+  resulting_refs: []
+  note: 回答は AI が示した選択肢の文（ボタン）を人が選んだもの。影響（AI の整理）。(1) 方位のオフセットは /config の TF から計算され、ドライバは sto, 90, 0 を送るはず（推測。Reference Guide v1.1.1 §1.11 の aux1 が main の右なら 90 と合う。この配置では受信機の pitch は roll として読む）。(2) 方位の精度はデータシートの 1 m で 0.15 度より悪くなる（推測）。精度の実測は屋外の確認で行う。(3) DEC-130 の仕様のほかの参考値は変えない。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

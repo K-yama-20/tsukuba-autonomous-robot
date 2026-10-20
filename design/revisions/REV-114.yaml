@@ -1,0 +1,45 @@
+# 変更セット REV-114（2026-10-21 第81便: intent.md 第12版、rosbag のポップアップ、12 件の試験の修正）
+# 適用: design/tools/apply_revision.py REV-114
+id: REV-114
+date: '2026-10-21'
+summary: 人の指示（DEC-178）：intent.md 第12版（107 行の追記、SHA 2427bc6a…、AR-012、RQ-I085）を記録。rosbag の保存のポップアップは確認ボタンで閉じる今の方式のまま。既知の 12 件の試験を修正（試験の基盤 10 件、期待値 2 件と旧 firmware の表の固定 1 件）。
+basis_refs:
+- DEC-178
+- DEC-162
+intent_version_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+authority_revision:
+  id: AR-012
+  file_id: FILE-INTENT-V12
+  previous_file_id: FILE-INTENT-V11
+  archived_previous_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+  current_copy: design/baselines/intent_history/intent_v12_2427bc6a5456.md
+  instruction_expected_added_lines: 1
+  new_requirement_lines:
+    107: RQ-I085
+  decision_ref: DEC-178
+  note: 人の編集（リポジトリ側の design/intent.md、更新 2026-10-21 00:16）。機械比較で末尾 1 行（107 行）の追加のみ（106 行は末尾改行の付加だけで文は同一）。人がチャットで「intent.md の変更は12版として保存せよ」と指示。AI は intent.md を編集していない（current_copy は一字も変えない写し）。
+files: []
+decisions:
+- id: DEC-178
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-21'
+  channel: chat + intent.md
+  question: intent.md 第12版の記録、rosbag の保存のポップアップの閉じ方、既知の 12 件の試験の修正（人の指示）
+  answer_verbatim: "rosbagの保存のポップアップは自分でボタンを押して消す方式にする。\n12県の試験の修正を行え。intent.md の変更は12版として保存せよ\n\n（intent.md 第12版 107 行）・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。\n"
+  affected_refs:
+  - FILE-INTENT-V11
+  - ND-02
+  - DEC-162
+  - DEC-174
+  resulting_refs:
+  - AR-012
+  - RQ-I085
+  note: intent.md 第12版：人が 107 行を追記（リポジトリ側の design/intent.md、更新 2026-10-21 00:16。DEC-162 の回答と同じ運用）。106 行は末尾改行の付加だけで文は同一。rosbag の保存のポップアップ：今の実装（完了・失敗の後に確認ボタンで人が閉じる、DEC-174）のまま。変更なし。12 件の試験の修正（第81便）：test_motion_core.py（9 件）は trial ファイルが無いとき承認値だけを読む（A9 と同じ。stage55_probe.py も）。test_vehicle_core.py の 2 件は「DAC の値が未確定」の頃の期待値を、全項目が承認値になった今の状態に合わせ、不完全な設定（DAC の値を除いたもの）が不正で DAC に書かないことは引き続き確かめる。対角の 1 mV の 1 件は、試験の名前どおり旧 firmware の表（中立 2500、230〜4700 mV、フルスケール 4700。firmware/gouda_dualsense_usb/include/control.hpp:11・12）を試験の中に固定して確かめる形にした（期待値の変更。人の指示「12県の試験の修正を行え」による）。承認値（280〜4720 mV）で斜めに倒し切ると x 4069・y 4070 と 1 mV 非対称になる実装の振る舞い（Python の模型と firmware の mapVoltage の円の内側への寄せ）は直していない（実装の修正の要否は人の判断）。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-17
+  interpretation_append: REV-114：電源を切る順番（車体の電源→基板の電源）の運用は intent.md 第12版 107 行（RQ-I085）に人が書いた（DEC-162 と同じ）。
+decision_updates: []

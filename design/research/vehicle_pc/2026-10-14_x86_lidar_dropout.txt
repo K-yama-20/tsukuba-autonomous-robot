@@ -1,0 +1,79 @@
+# 2026-10-14 x86 機（Dell G15 5515、Ubuntu）の屋外の地図作成（06:34〜06:45）で LiDAR の frame が途切れた原因の調査（AI）。人から受け取ったカーネルのログ（journalctl -k、06:34〜06:46）と launch のログ（gouda_core.launch.log）と記録のセッション（records/20261014_062036）から、関係する行だけを抜き出した（Wi-Fi の行・IP アドレスを含む行は除いた）。
+
+===== (1) カーネルのログ: LiDAR を繋いだ有線 LAN（enp2s0、r8169、本体内蔵）のリンクと ACPI の行
+10月 14 06:34:04 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:34:11 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:34:14 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:34:22 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:34:27 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:36:45 kernel: pcieport 0000:00:01.1: PME: Spurious native interrupt!
+10月 14 06:36:45 kernel: pcieport 0000:00:01.1: PME: Spurious native interrupt!
+10月 14 06:36:45 kernel: workqueue: acpi_os_execute_deferred hogged CPU for >10000us 4 times, consider switching to WQ_UNBOUND
+10月 14 06:37:09 kernel: workqueue: acpi_os_execute_deferred hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+10月 14 06:38:34 kernel: workqueue: acpi_os_execute_deferred hogged CPU for >10000us 7 times, consider switching to WQ_UNBOUND
+10月 14 06:38:35 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:38:37 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:40:29 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:40:29 kernel: workqueue: acpi_os_execute_deferred hogged CPU for >10000us 11 times, consider switching to WQ_UNBOUND
+10月 14 06:40:31 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:44:22 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:44:25 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+10月 14 06:45:44 kernel: r8169 0000:02:00.0 enp2s0: Link is Down
+10月 14 06:45:46 kernel: r8169 0000:02:00.0 enp2s0: Link is Up - 100Mbps/Full - flow control off
+
+===== (2) GLIM のログ: LiDAR の frame の途切れ（mapping/20261014_063433_60417bca/glim.log）
+2026-10-14 06:38:38.807 frame gap 3.530554 s
+2026-10-14 06:40:31.800 frame gap 2.741679 s
+2026-10-14 06:44:25.890 frame gap 3.201118 s
+
+===== (3) launch のログ: gouda_sensor_supervisor の判断（全件）
+06:15:29 settings: sensor supervisor configured
+06:15:29 device_absent: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears)
+06:15:29 device_absent: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> absent (the driver is started when it appears)
+06:16:19 device_present: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 1-4
+06:16:19 driver_started: IMU (ND-15): started (pid 5789) for ttyACM0 usb 1-4 (device present)
+06:16:38 device_present: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enp2s0 #2
+06:16:38 driver_started: XT-32 (ND-14): started (pid 5923) for enp2s0 #2 (device present)
+06:31:36 device_absent: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears)
+06:31:36 driver_stopped: XT-32 (ND-14): device absent; the driver is started again when the device re-appears
+06:34:04 device_present: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> enp2s0 #2
+06:34:04 driver_started: XT-32 (ND-14): started (pid 11614) for enp2s0 #2 (device present)
+06:47:59 device_absent: IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> absent (the driver is started when it appears)
+06:47:59 driver_stopped: IMU (ND-15): device absent; the driver is started again when the device re-appears
+06:48:00 device_absent: XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears)
+06:48:01 driver_stopped: XT-32 (ND-14): device absent; the driver is started again when the device re-appears
+
+===== (4) 記録のセッション records/20261014_062036/session.json（rosbag は空）
+{
+ "session_id": "20261014_062036",
+ "log_active": false,
+ "log_started_by": "",
+ "rosbag_active": false,
+ "rosbag_started_by": "",
+ "gaps": [
+  {
+   "start": 1791926585.0030553,
+   "end": 1791926869.7693982,
+   "kind": "stopped",
+   "detail": "stopped by auto:stop"
+  },
+  {
+   "start": 1791927040.5574024,
+   "end": 1791927273.1915436,
+   "kind": "stopped",
+   "detail": "stopped by auto:stop"
+  }
+ ],
+ "failures": [],
+ "updated": 1791927906.495979
+}
+
+drwxrwxr-x@ 2 AYARyoya  staff   64 Oct 13 16:15 .
+drwxr-xr-x@ 6 AYARyoya  staff  192 Oct 14 08:16 ..
+
+===== 読み取り
+- 3 回の途切れ（06:38:35、06:40:29、06:44:22）は、どれも同じ秒に enp2s0 の Link is Down、2〜3 s 後に Link is Up。物理層（ケーブル側・NIC）でリンクが切れた。
+- サスペンドの行（PM: suspend など）はない。GLIM は動き続けた（スリープはしていない）。
+- ACPI の行（acpi_os_execute_deferred）は 06:38:34 と 06:40:29 の 2 回がリンク断と同じ頃。06:44:22 にはない。06:36:45・06:37:09 は ACPI の行だけでリンク断なし。蓋の開閉は systemd-logind の journal（カーネルのログではない）に出るため、この記録では確かめられない。
+- supervisor はリンク断に反応していない（IP アドレスが残ったため device_absent にならず、ドライバは作り直されていない）。リンクが戻ると点群も戻った。
+- 地図作成の前（06:34:11、06:34:22）と後（06:45:44）にもリンク断がある。

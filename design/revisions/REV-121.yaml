@@ -1,0 +1,27 @@
+# 変更セット REV-121（2026-10-21 第89便: DEC-191、VL-02 の試験の追加の許可）
+# 適用: design/tools/apply_revision.py REV-121
+id: REV-121
+date: '2026-10-21'
+summary: 人の許可（DEC-191、原文）で、VL-02 の試験（承認値で斜めに倒し切ったときの x と y の出力の差が 1 mV 以内であること）を Python の模型の試験と firmware のホスト試験に追加する。期待値の変更ではなく試験の追加。firmware と模型の処理は変えない（DEC-186 の保留のまま）。正本の要素は変えない。
+basis_refs:
+- DEC-191
+- DEC-186
+intent_version_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+files: []
+decisions:
+- id: DEC-191
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: DEC-186（B4）の「案Aを採用」は、VL-02 の試験の追加（承認値で斜めの出力の x と y の差が 1 mV 以内であることを確かめる。期待値の変更ではない）の許可に当たるか
+  answer_verbatim: "VL-02 の試験（承認値で斜めの出力の x と y の差が 1 mV 以内であることを確かめる）を追加してよい。\n"
+  affected_refs:
+  - ND-17
+  resulting_refs: []
+  note: 斜めの 4 方向（(1,1)・(1,−1)・(−1,1)・(−1,−1)）で、中立からの x の振れ幅と y の振れ幅の差が 1 mV 以内であることを確かめる（(1,1) では x と y の差そのもの）。今の出力（x の振れ幅が 1 mV 小さい）は合格し、差が 2 mV 以上に広がったら不合格になる。試験は gouda_core/test/test_vehicle_core.py（Python の模型）と firmware/gouda_esp32_v4/test/host/test_core.cpp（firmware の中核）。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

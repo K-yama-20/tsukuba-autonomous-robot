@@ -163,8 +163,31 @@ def request_transition(event: str, state: ModeState, implemented: frozenset = fr
     new = ModeState(**{**state.as_dict(), 'mode': to_mode, 'previous_mode': from_mode, 'state_revision': state.state_revision + 1})
     if to_mode in (MODE_MAPPING, MODE_AUTONOMY):
         new = ModeState(**{**new.as_dict(), 'stop_reason': ''})   # a new activity starts: the previous stop reason no longer applies
+    if event == 'pause':
+        # TR-06: a human pause. Persisted so that no restart resumes driving without a human operation (RQ-I025).
+        new = ModeState(**{**new.as_dict(), 'human_pause_or_end_recorded': True, 'stop_reason': 'human'})
+    if event in ('start_autonomy', 'resume'):
+        # TR-05 / TR-10: the human start / resume operation itself; the earlier human pause/end no longer holds (TR-10 action).
+        new = ModeState(**{**new.as_dict(), 'human_pause_or_end_recorded': False, 'stop_reason': ''})
     if event == 'end_autonomy':
         # TR-11 / TR-12: a human end. The flag is persisted so that no restart resumes driving (RQ-I025); the mission ends and
         # the initial-pose requirement of a resumed pause no longer applies in manual.
         new = ModeState(**{**new.as_dict(), 'human_pause_or_end_recorded': True, 'initial_pose_required': False, 'run_id': '', 'stop_reason': 'human'})
     return RequestResult(True, tid, f'{tid}: {from_mode} -> {to_mode}', new)
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Automatic transitions from the Nav2 result (stage 5-6): TR-07 (BT failure) and TR-08 (last waypoint reached). Both go to
+# 一時停止 without a human flag (RQ-I017, RQ-I012); resuming needs the human resume (TR-10, RQ-I025).
+# ---------------------------------------------------------------------------------------------------------------------
+STOP_REASON_PLAN_FAILURE = 'plan_failure'       # 計画の失敗／blocked (Nav2 BT failed after its own recovery: RQ-I012)
+STOP_REASON_NODE_FAILURE = 'node_failure'       # node の異常 (the autonomy start failed: Nav2 / vehicle output / goal)
+STOP_REASON_GOAL_REACHED = 'goal_reached'       # 最終 waypoint 到達 (TR-08)
+
+
+def automatic_pause(state: ModeState, transition_id: str, stop_reason: str, remaining_waypoints: int) -> Optional[ModeState]:
+    """The 一時停止 state after TR-07 / TR-08, or None when the mode is not 自律走行 (then nothing happens)."""
+    if state.mode != MODE_AUTONOMY or transition_id not in ('TR-07', 'TR-08'):
+        return None
+    return ModeState(**{**state.as_dict(), 'mode': MODE_PAUSE, 'previous_mode': MODE_AUTONOMY, 'stop_reason': stop_reason,
+                        'remaining_waypoints': remaining_waypoints, 'state_revision': state.state_revision + 1})

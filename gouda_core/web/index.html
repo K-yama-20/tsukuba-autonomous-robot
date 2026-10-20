@@ -32,6 +32,7 @@
         <span class="k">LINK</span><span class="v amber" id="link-state">CONNECTING</span>
         <span class="k">NODES</span><span class="v" id="node-count">—</span>
         <span class="k">REC</span><span class="v" id="rec-short">NOT_RECEIVED</span>
+        <span class="k">USB</span><span class="v" id="usb-short">—</span>
       </div>
     </div>
     <div class="hdr-right ops" id="ops">
@@ -73,6 +74,7 @@
         </div>
         <div class="panel bottom" id="esp32">
           <div class="panel-title"><span class="code">ESP32</span>ESP32 CONTROLLER <span class="status amber" id="esp32-status">NOT_RECEIVED</span></div>
+          <table class="kv" id="usb-table"></table>
           <table class="kv" id="esp32-table"></table>
           <div class="note" id="esp32-note"></div>
         </div>
@@ -162,6 +164,18 @@
           <div class="events" id="wp-warnings"></div>
           <div class="panel-title" style="margin-top:8px"><span class="code">SAVED</span>保存済み waypoint セット</div>
           <table class="kv" id="wp-routes"></table>
+          <div class="panel-title" style="margin-top:8px"><span class="code">AUTO</span>自律走行の準備（体験 9: waypoint と地図の組の選択、プレビュー、初期位置）</div>
+          <div class="btnrow">
+            <label class="dim">waypoint セット <select id="auto-set"></select></label>
+            <button class="op" id="auto-preview" type="button">プレビュー<small>PREVIEW</small></button>
+          </div>
+          <div class="btnrow">
+            <label class="dim">初期位置 x m <input id="auto-x" class="num"></label>
+            <label class="dim">y m <input id="auto-y" class="num"></label>
+            <label class="dim">向き 度 <input id="auto-yaw-deg" class="num"></label>
+            <label class="dim"><input type="checkbox" id="auto-click-pose"> 地図のクリックで初期位置を置く</label>
+          </div>
+          <div class="note" id="auto-msg">セットを選んでプレビューし、初期位置（map frame）を入れてから上の「自律走行」を押す。GNSS による初期位置（DEC-124）は未実装。</div>
         </div>
       </div>
     </section>
@@ -188,7 +202,11 @@
     </section>
 
     <section class="tabpane" data-pane="config">
-      <div class="panel full">
+      <nav class="subtabs" id="config-subtabs">
+        <button class="subtab active" type="button" data-subtab="sensors">センサ取付・座標方向<small>SENSORS</small></button>
+        <button class="subtab" type="button" data-subtab="motion">自律走行の出力<small>DRIVE OUTPUT</small></button>
+      </nav>
+      <div class="panel full subpane active" data-subpane="sensors">
         <div class="panel-title"><span class="code">CFG</span>/config センサ取付・座標方向（RQ-I070） <span class="dim" id="config-rev"></span></div>
         <div class="note">値は実測で決める。未入力は UNKNOWN のまま保存される（推測で埋めない）。保存はサーバ側のファイルに永続化し、タブ遷移や再読込で消えない。座標方向の文字列は静的TF発行（工程5-6）が読む。</div>
         <form id="config-form" class="cfg"></form>
@@ -197,6 +215,16 @@
         <div class="btnrow">
           <button class="op" id="config-save" type="button">保存<small>SAVE CONFIG</small></button>
           <span class="dim" id="config-msg"></span>
+        </div>
+      </div>
+      <div class="panel full subpane" data-subpane="motion">
+        <div class="panel-title"><span class="code">MC</span>不感帯の補償（gouda_motion_controller、DEC-171 案 A） <span class="dim" id="mc-rev"></span></div>
+        <div class="note">自律走行の指令（Nav2 の cmd_vel を正規化した倒し量 r）だけにかかる。手動（ゲームパッド）には影響しない。向きごとに、r がしきい値未満なら中立のまま、しきい値以上なら 最低倒し量＋(1−最低倒し量)×r を出す。値は 0 以上 1 未満の倒し量（1 が倒し切り）。前進・後退は前後の軸、旋回は左右とも同じ値。</div>
+        <div class="note amber">保存するとすぐに反映する（自律走行中も、次の指令から）。最低倒し量としきい値のどちらかが UNKNOWN の向きは補償しない（倒し量をそのまま出す）。値は実測で決める（推測で埋めない）。</div>
+        <form id="mc-form" class="cfg mc"></form>
+        <div class="btnrow">
+          <button class="op" id="mc-save" type="button">保存<small>SAVE</small></button>
+          <span class="dim" id="mc-msg"></span>
         </div>
       </div>
     </section>
@@ -208,6 +236,7 @@
     <span class="dim">表示断は停止契機ではない（DEC-014）。</span>
   </footer>
 </div>
+<div id="bagsave" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">ROSBAG</span><span id="bagsave-title">rosbag を保存中</span></div><div class="bagbar"><div class="bagbar-run" id="bagsave-bar"></div></div><div class="popup-body" id="bagsave-body"></div><div class="btnrow"><button class="op" id="bagsave-ack" type="button" hidden>確認<small>ACK</small></button></div></div></div>
 <div id="popup" class="popup" hidden><div class="popup-box"><div class="popup-title"><span class="code">WARNING</span><span id="popup-title">記録の自動開始に失敗</span></div><div class="popup-body" id="popup-body"></div><div class="btnrow"><button class="op" id="popup-ack" type="button">確認<small>ACK</small></button></div></div></div>
 <script src="/static/app.js"></script>
 </body>

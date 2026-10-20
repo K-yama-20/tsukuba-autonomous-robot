@@ -14,8 +14,8 @@
 | node 異常・推定不能・通信途絶 | node 異常・推定不能・通信途絶の検出（ND-03） | ・motion_hold=true を維持（IFD-40）。中立化の担当は ND-11（ND-11 自身の再起動時は起動直後 hold 扱い：SO-08）、最終段は ESP32（RQ-I068）<br>・必要な場合だけプロセス再起動<br>・一時停止への復帰に必要な状態だけを復元（mission_context・remaining_waypoints・stop_reason・previous_mode_record）<br>・旧 Nav2 goal が終了または破棄済みであることを再確認（残っていれば取消し、取消結果の受信で終了を確認）<br>・直前モード記録（人の一時停止／終了操作の有無を含む）は保持したまま。自律走行指令の再許可は行わない（一時停止のまま：RQ-I069。再開は人の操作 TR-10 のみ：RQ-I025）<br>・各段階の成否を記録<br>・復旧不能・試行上限のときは一時停止を維持し理由を記録（RQ-I013） | TR-15 → 一時停止 | （なし） | PRM-10（試行上限、未確定） | なし |
 | node 異常・推定不能・通信途絶 | node 異常・通信途絶の検出（手動走行では PC の自律系は非活性のため対象は monitor・recorder 等）（ND-03） | ・必要な場合だけプロセス再起動<br>・手動走行に必要な状態だけを復元<br>・旧 Nav2 goal は残っていない（手動走行では自律走行系 ND-07〜ND-12 が非活性）。自律走行指令の再許可は行わない（RQ-I069）<br>・中立化の担当は ESP32。PC は指令を送らない（ND-11・ND-12 非活性）。手動操作は ESP32 で優先され、PC 指令の途絶時は ESP32 が中立（RQ-I023・RQ-I068）<br>・直前モード記録は MODE-MANUAL のまま（人の操作なし）<br>・各段階の成否を記録<br>・復旧不能・試行上限のときは手動走行モードを維持し、理由と失敗段階を記録して monitor に表示（DEC-008） | TR-16 → 手動走行 | `TS-09`, `TS-10` | PRM-10（試行上限、未確定） | なし |
 | cmd_vel の途絶（Nav2→motion_controller） | ND-11 が最終受信時刻で判定（SO-08） | 正規化操作値を中立にして発行を続ける（RQ-I063） | TR-06・TR-13 と独立（常時） | `TS-07`, `TS-13` | PRM-08=0.7 s（approved） | なし |
-| motion_hold の途絶（mode_manager→motion_controller） | ND-11 が周期発行の期限で判定 | hold 扱い＝中立（DEC-004） | — | `TS-07` | PRM-16=None s（unresolved） | なし |
-| joystick_command の期限切れ（motion_controller→bridge） | ND-12 が header.stamp で判定 | 中立の COMMAND を送り続ける。古い指令を再送しない | — | `TS-13` | PRM-09=None s（unresolved） | なし |
+| motion_hold の途絶（mode_manager→motion_controller） | ND-11 が周期発行の期限で判定 | hold 扱い＝中立（DEC-004） | — | `TS-07` | PRM-16=0.2 s（approved） | なし |
+| joystick_command の期限切れ（motion_controller→bridge） | ND-12 が header.stamp で判定 | 中立の COMMAND を送り続ける。古い指令を再送しない | — | `TS-13` | PRM-09=0.35 s（approved） | なし |
 | 有効な PC 指令フレームの途絶（bridge→ESP32） | ND-17 が最後の有効指令の受信時刻で判定（SO-11） | DAC を中立にする。リレー解除はしない（RQ-I068・RQ-I077） | — | （新 firmware 試験、車体出力工程で追加） | PRM-13=1.0 s（approved） | なし |
 | Bluetooth ゲームパッド報告の途絶 | ND-17 が報告の受信時刻で判定 | 手動入力を無効にし中立（RQ-I024。既存動作を維持、DEC-048） | — | （新 firmware 試験、車体出力工程で追加） | PRM-21=0.25 s（approved） | なし |
 

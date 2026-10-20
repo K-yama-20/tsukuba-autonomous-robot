@@ -68,6 +68,23 @@ class GlimRunnerTests(unittest.TestCase):
             (Path(d) / 'dump').mkdir(); (Path(d) / 'dump' / 'graph.txt').write_text('g'); (Path(d) / 'dump' / 'values.bin').write_bytes(b'v')
             run = runner.stop(wait_s=5)
             self.assertTrue(run.dump_ok); self.assertEqual(run.submaps, 0); self.assertIn('no sensor data', run.note)
+            self.assertIsNone(gr.unexpected_exit_report(run, 0, 130.0))   # ended by the stop request: not reported
+            self.assertIsNone(run.exited_unexpectedly_at)
+
+    def test_unexpected_exit_is_reported_with_exit_code_and_log_tail(self):
+        # G-GLIM-EXIT: on 2026-10-14 (origin 175310) GLIM died and the mapping went on for 2 minutes unnoticed.
+        with tempfile.TemporaryDirectory() as d:
+            tpl = Path(d) / 'tpl'; make_template(tpl)
+            runner = gr.GlimRunner(settings(tpl), clock=lambda: 100.0, popen=FakeProc)
+            log = Path(d) / 'glim.log'
+            run = runner.start(Path(d) / 'work', Path(d) / 'dump', log)
+            self.assertEqual(run.log_file, log)
+            log.write_text("info\nterminate called after throwing an instance of 'gtsam::IndeterminantLinearSystemException'\n  what():\n\n")
+            reason, details = gr.unexpected_exit_report(run, -6, 250.0)
+            self.assertIn('exit code -6', reason); self.assertIn('150 s', reason); self.assertIn('地図作成終了', reason)
+            self.assertEqual(details['exit_code'], -6); self.assertEqual(details['exited_at'], 250.0); self.assertEqual(details['glim_log'], str(log))
+            self.assertIn('IndeterminantLinearSystemException', ' '.join(details['log_tail']))
+            self.assertEqual(run.exited_unexpectedly_at, 250.0)
 
 
 def make_dump(root: Path, submaps):

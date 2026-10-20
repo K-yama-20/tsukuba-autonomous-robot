@@ -1,0 +1,30 @@
+# 変更セット REV-082（2026-10-20 第48便の続き: 登録済みの証拠のファイルへの追記を分けた）
+# 適用: design/tools/apply_revision.py REV-082
+id: REV-082
+date: '2026-10-20'
+summary: 'REV-075 で登録した 2 つの証拠のファイル（FILE-MOSAIC-MRTK-QUERY、FILE-MOSAIC-DUAL-ANTENNA-NOTE）に、登録の後で AI が追記していたため、記録の SHA-256 と合わず移行の検査が違反になっていた（REV-076 以降。AI の誤り。分類: 実装（記録の手順））。2 つのファイルを登録の時の内容に戻し（SHA-256 が記録と一致することを確かめた）、追記の部分を新しいファイル FILE-MOSAIC-MRTK-QUERY-FOLLOWUP に移して登録した。内容は変えていない。REV-076〜078 の「FILE-MOSAIC-MRTK-QUERY の追記」は、この新しいファイルの第 1 部を指す。'
+basis_refs:
+- DEC-144
+- DEC-145
+- DEC-146
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+  path: design/research/vehicle_pc/2026-10-19_mosaic_mrtk_query_followup.txt
+  role: evidence
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-144
+  set:
+    resulting_refs:
+    - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+- id: DEC-145
+  set:
+    resulting_refs:
+    - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP
+- id: DEC-146
+  set:
+    resulting_refs:
+    - FILE-MOSAIC-MRTK-QUERY-FOLLOWUP

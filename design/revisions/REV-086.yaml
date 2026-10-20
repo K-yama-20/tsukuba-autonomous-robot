@@ -1,0 +1,22 @@
+# 変更セット REV-086（2026-10-20 第52便: DEC-151 の回答と実装の段）
+# 適用: design/tools/apply_revision.py REV-086
+id: REV-086
+date: '2026-10-20'
+summary: 人が DEC-151（案 B1 の実装の案）を承認（原文）。実装の段を 6 つに分け（提案 ntrip_gga_proposal.md 第3版 §7）、段ごとに許可を求める。最初の段は記録の伏せ字（秘密の対策の前提）。実装はしていない。
+basis_refs:
+- DEC-151
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-151
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: 'DEC-151 を承認する。実装の各段はそれぞれ許可を求めること。
+
+      '
+    disposition: answered

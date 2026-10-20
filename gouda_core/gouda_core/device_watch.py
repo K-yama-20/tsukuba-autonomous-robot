@@ -14,8 +14,23 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from typing import Optional
+
+BY_ID_DIR = '/dev/serial/by-id/'   # serial devices are named only by their by-id link (DEC-081, DEC-141)
+
+
+def by_id_problem(path: str) -> Optional[str]:
+    """None when path is a /dev/serial/by-id/<name> link name; otherwise why it is refused. ttyACM / ttyUSB numbers swap with
+    the plug order and on re-connection (the IMU and the mosaic-go are both ttyACM), so they are never accepted (DEC-141)."""
+    if not isinstance(path, str) or not path.startswith(BY_ID_DIR):
+        return f'{path!r} is not a {BY_ID_DIR} name (ttyACM numbers swap with the plug order; DEC-141)'
+    name = path[len(BY_ID_DIR):]
+    if not name or '/' in name or name in ('.', '..'):
+        return f'{path!r} does not name one device under {BY_ID_DIR}'
+    return None
+
 
 ACTION_NONE = 'none'
 ACTION_START = 'start'        # device appeared (first time, or after being absent)
@@ -81,6 +96,78 @@ class WatchedDevice:
             self.identity = observed
         elif action == ACTION_STOP:
             self.identity = None
+
+
+def _fd_targets(proc_root: str, exclude: tuple):
+    """(pid, link target) of every open file descriptor readable in proc_root, except the excluded pids."""
+    try:
+        names = os.listdir(proc_root)
+    except OSError:
+        return
+    for name in names:
+        if not name.isdigit() or int(name) in exclude:
+            continue
+        fd_dir = os.path.join(proc_root, name, 'fd')
+        try:
+            fds = os.listdir(fd_dir)
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                yield int(name), os.readlink(os.path.join(fd_dir, fd))
+            except OSError:
+                continue
+
+
+def tty_users(device_path: str, proc_root: str = '/proc', exclude: tuple = ()) -> list:
+    """PIDs that have the serial device open (by-id names are resolved), except the excluded ones (G-DUP-START: a second
+    driver on the same IMU port splits its bytes)."""
+    target = os.path.realpath(device_path)
+    return sorted({pid for pid, link in _fd_targets(proc_root, exclude) if link.startswith('/') and os.path.realpath(link) == target})
+
+
+# NTRIP connection data is secret (DEC-139: never in logs, rosbag or records). A command line of another process (e.g. the
+# str2str relay, DEC-151) can hold it, so every command line is redacted before it is recorded: ntrip URLs entirely (caster,
+# port and mountpoint are contract data too), and the user:password part of any other URL (an '@' later in the path also hides
+# the host: over-redaction is accepted).
+REDACTED = '<redacted>'
+_NTRIP_URL = re.compile(r'\b(ntrip[sc]?)://\S*', re.IGNORECASE)
+_USERINFO = re.compile(r'\b([A-Za-z][A-Za-z0-9+.-]*://)\S*@')   # up to the LAST '@' of the token: a password may hold '/' or '@'
+
+
+def redact_command(text: str) -> str:
+    """The command line with ntrip URLs and URL user info replaced by <redacted>."""
+    return _USERINFO.sub(lambda m: m.group(1) + REDACTED + '@', _NTRIP_URL.sub(lambda m: m.group(1) + '://' + REDACTED, text))
+
+
+def command_lines(pids, proc_root: str = '/proc', limit: int = 200) -> dict:
+    """{pid: redacted command line} ('?' when unreadable). Redacted before it is shortened, so a cut never keeps a partial secret."""
+    out = {}
+    for pid in pids:
+        try:
+            with open(os.path.join(proc_root, str(pid), 'cmdline'), 'rb') as f:
+                raw = f.read().replace(b'\0', b' ').decode(errors='replace').strip()
+        except OSError:
+            out[pid] = '?'
+            continue
+        out[pid] = redact_command(raw)[:limit]
+    return out
+
+
+def udp_port_users(port: int, proc_root: str = '/proc', exclude: tuple = ()) -> list:
+    """PIDs holding a UDP socket bound to the local port (from <proc_root>/net/udp and udp6), except the excluded ones
+    (G-DUP-START: a second LiDAR driver on the same port)."""
+    inodes = set()
+    for table in ('net/udp', 'net/udp6'):
+        text = _read(os.path.join(proc_root, table))
+        for line in (text or '').splitlines()[1:]:
+            f = line.split()
+            if len(f) > 9 and ':' in f[1] and int(f[1].rsplit(':', 1)[1], 16) == int(port):
+                inodes.add(f[9])
+    if not inodes:
+        return []
+    sockets = {f'socket:[{i}]' for i in inodes}
+    return sorted({pid for pid, link in _fd_targets(proc_root, exclude) if link in sockets})
 
 
 def merge_opened(previous: dict, current: dict) -> dict:

@@ -18,6 +18,7 @@ DESIGN = ROOT / 'design'
 sys.path.insert(0, str(DESIGN / 'tools'))
 import model_schema  # noqa: E402
 from validate_model import current_line_map, is_requirement_line  # noqa: E402
+from reserve_ids import is_reservation_only  # noqa: E402
 
 ENTITY_KEYS = ['id', 'kind', 'name', 'source_refs', 'design_status', 'adoption', 'field_bindings', 'related_refs', 'issue_refs', 'interpretation', 'sensitivity', 'requirement_refs', 'revision_ref']
 PAYLOADS = ['module', 'interface', 'diagram', 'issue', 'reconciliation', 'mode', 'state_owner', 'execution', 'parameter', 'failure_mode', 'test', 'ros_node', 'designed_interface', 'transition', 'boundary', 'approval_source_ref', 'approval_decision_ref']
@@ -89,8 +90,13 @@ def intent_diff(prev_lines, cur_lines):
     return added, removed, changed
 
 
-def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migration_manifest.json', dry_run=False):
-    cs = YAML(typ='safe').load((DESIGN / 'revisions' / f'{rev_id}.yaml').read_text())
+def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migration_manifest.json', dry_run=False, check=False,
+          revisions_dir=DESIGN / 'revisions'):
+    """revisions_dir: where <rev_id>.yaml is read from (the unit tests of --dry-run --check use a temporary directory)."""
+    text = (Path(revisions_dir) / f'{rev_id}.yaml').read_text()
+    if is_reservation_only(text):
+        raise SystemExit(f'{rev_id} is only reserved (reserve_ids.py); write the change set into it first')
+    cs = YAML(typ='safe').load(text)
     if cs['id'] != rev_id:
         raise SystemExit('change set id mismatch')
     y = yaml_rt()
@@ -278,7 +284,10 @@ def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migr
     summary = {'revision': rev_id, 'added_entities': len(new_entity_ids), 'modified_entities': len(modified), 'added_sources': len(record['added_source_ids']),
                'added_files': record['added_file_ids'], 'intent_added_lines': [a['line'] for a in added], 'intent_expected_by_instruction': ar.get('instruction_expected_added_lines') if ar else None}
     if dry_run:
-        print(json.dumps(summary, ensure_ascii=False)); return summary
+        print(json.dumps(summary, ensure_ascii=False))
+        if check:
+            summary['new_findings'] = trial_check(model, model_path, manifest_path)
+        return summary
     with model_path.open('w') as f:
         y.dump(model, f)
     model_schema.write()
@@ -286,6 +295,46 @@ def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migr
     return summary
 
 
+def trial_check(model, model_path, manifest_path):
+    """Run the design checks (check_design.run) on the model as it would be after the change set, without writing it, and
+    report only the violations and undetermined items that the current model does not already have. The model, the schema
+    and the reports are not changed."""
+    import io, tempfile
+    import check_design
+    from validate_model import load_yaml
+    schema = json.loads((DESIGN / 'schema.json').read_text()); manifest = json.loads(Path(manifest_path).read_text())
+    buf = io.StringIO(); yaml_rt().dump(model, buf)
+    with tempfile.NamedTemporaryFile('w', suffix='.yaml', delete=False) as t:
+        t.write(buf.getvalue()); trial_path = Path(t.name)
+    try:
+        after = check_design.run(load_yaml(trial_path), schema, manifest)
+    finally:
+        trial_path.unlink(missing_ok=True)
+    before = check_design.run(load_yaml(model_path), schema, manifest)
+    new = {}
+    for rule, r in after.items():
+        old = before.get(rule, {'violations': [], 'undetermined': []})
+        # generated/params embed the model hash, so they always differ until generate_params.py runs after the real apply
+        nv = [x for x in r['violations'] if x not in old['violations'] and '再生成した内容と一致しない' not in x]
+        nu = [x for x in r['undetermined'] if x not in old['undetermined']]
+        if nv or nu: new[rule] = {'violations': nv, 'undetermined': nu}
+    n_v = sum(len(x['violations']) for x in new.values())
+    print('trial check: generated/params mismatches are not counted (regenerated after the real apply)')
+    print(f'trial check: {n_v} new violations, {sum(len(x["undetermined"]) for x in new.values())} new undetermined (model not written)')
+    for rule, x in sorted(new.items()):
+        for v in x['violations']: print(f'  {rule} 違反: {v}')
+        for u in x['undetermined']: print(f'  {rule} 未判定: {u}')
+    return new
+
+
+def has_new_violations(summary) -> bool:
+    """The exit decision of --dry-run --check: a new violation (not an undetermined item) fails."""
+    return any(x['violations'] for x in summary.get('new_findings', {}).values())
+
+
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(); p.add_argument('revision'); p.add_argument('--dry-run', action='store_true'); a = p.parse_args()
-    apply(a.revision, dry_run=a.dry_run)
+    p = argparse.ArgumentParser(); p.add_argument('revision'); p.add_argument('--dry-run', action='store_true')
+    p.add_argument('--check', action='store_true', help='with --dry-run: run the design checks on the result and list only new findings; exit 1 on a new violation')
+    a = p.parse_args()
+    s = apply(a.revision, dry_run=a.dry_run, check=a.check)
+    if a.dry_run and a.check and has_new_violations(s): sys.exit(1)

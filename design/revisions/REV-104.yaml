@@ -1,0 +1,65 @@
+# 変更セット REV-104（2026-10-21 第71便: DEC-167・078・163 の回答、DEC-168 の登録）
+# 適用: design/tools/apply_revision.py REV-104
+id: REV-104
+date: '2026-10-21'
+summary: 人の回答の記録：DEC-167（A9・A10 の許可）、DEC-078（方針11 ＝ 5-5 の完了条件に基本契約 5 件の stub 試験を含める、を許可）、DEC-163（分岐セッションでの回答の転記。RQ-I020 の補足を詳しく書く）。人の指示「PRM-10 は無制限」は intent.md:16 と食い違うため DEC-168（承認待ち）に登録。
+basis_refs:
+- DEC-167
+- DEC-078
+- DEC-163
+- DEC-168
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-167
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 作業の許可（分岐セッションの表）：A9 test_vehicle_core.py の修正（仮値のファイルがないときは、承認値のファイルだけを読む）、A10 試験の追加（PC 指令が途絶して無効になった後でも、ゲームパッドが通ること）
+  answer_verbatim: "0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する\n"
+  affected_refs:
+  - TS-17
+  - TS-18
+  - TS-19
+  - ND-17
+  resulting_refs: []
+  note: 'A9・A10 の文面は分岐セッション（local_d45b61f7…）から原文の転送で確かめた。回答の前半（PRM-40）は DEC-166、方針11 は DEC-078 に記録。実施は第71便（A9: gouda_core/test/test_vehicle_core.py の load_yaml_flat、A10: firmware/gouda_esp32_v4/test/host/test_core.cpp）。'
+  disposition: answered
+- id: DEC-168
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認・intent との矛盾】人の指示「PRM-10に関して、回数制限は設けない。無制限とする。」は intent.md:16「復旧できない場合、または復旧の試行回数が上限に達した場合は、一時停止モードに入り理由を記録する。」と食い違う。(1) intent.md:16 の「または復旧の試行回数が上限に達した場合」を人が削るか、(2) PRM-10 をどう表すか（推奨：PRM-10 を「上限なし（no_limit）」と記録し、mode_manager の parameter として宣言しない。未確定（tbd）のままにはしない）。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-10
+  - RQ-I013
+  - ND-03
+  resulting_refs: []
+  note: 人の指示（原文、2026-10-21）「PRM-10に関して、回数制限は設けない。無制限とする。」。intent.md は人が所有するため AI は編集しない（CLAUDE.md 1.5）。振る舞いの違い：上限なしでは、異常終了と自動復帰を繰り返す場合に、一時停止へ入らず復帰（自律走行指令の再許可を含む）を続ける。「復旧できない場合」の一時停止は残る。影響：PRM-10、RQ-I013、ND-03、TS-06。決まらない場合に止まる作業：工程 5-7（自動復帰）の実装。それ以外は止まらない。
+  disposition: open_human
+entities: []
+modifications:
+- id: RQ-I020
+  interpretation_append: REV-104：RQ-I020 の補足（DEC-163）：ESP32 の firmware は、純正のジョイスティックを模倣するため、出力電圧をスティックの可動範囲と同じ円の中に限る。motion_controller の出力（前後＝linear.x÷PRM-39、旋回＝angular.z÷PRM-40、各 −1〜1 に切り詰め）の倒し量 √(前後²＋旋回²) が 1 を超えると、firmware（control.hpp の mapVoltage）は前後と旋回の比を保ったまま倒し量 1 まで縮める。例：前後 1.0・旋回 1.0（倒し量 1.41）は前後 0.71・旋回 0.71 になり、速度・角速度とも 71 % になる。曲がる半径（速度÷角速度）は変わらず、経路の形はずれずに遅くなるだけ。倒し量が 1 以下なら縮めない。これは車体の物理的な制約で、motion_controller が速度を下げるものではないが、cmd_vel より遅くなる唯一の例外として扱う。起きないように、Nav2 の最高速度・最高角速度（PRM-66・67）は (PRM-66÷PRM-39)²＋(PRM-67÷PRM-40)² ≦ 1 を満たす組で決める。
+- id: PRM-10
+  interpretation_append: REV-104：人の指示（DEC-168、原文）「PRM-10に関して、回数制限は設けない。無制限とする。」。intent.md:16 と食い違うため値の記録は DEC-168 の回答の後。
+- id: ND-17
+  interpretation_append: REV-104（DEC-167 A10）：PC 指令が途絶して pc_enabled が false になった後でも、ゲームパッドの手動操作が SRC_MANUAL で出ることをホスト試験に加えた。
+decision_updates:
+- id: DEC-078
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "0.97rad/sで設定せよ。A9, A10は許可する。方針11は許可する\n"
+    disposition: answered
+- id: DEC-163
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    answer_verbatim: "（分岐セッション local_d45b61f7… からの転送。原文の転記）「では、そのように書け。詳しく書かないと意味不明である」\n"
+    disposition: answered

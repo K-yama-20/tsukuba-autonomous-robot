@@ -1,0 +1,31 @@
+# 変更セット REV-087（2026-10-20 第53便: B1 の段 1、記録の伏せ字）
+# 適用: design/tools/apply_revision.py REV-087
+id: REV-087
+date: '2026-10-20'
+summary: '人の許可（DEC-153、原文）で、案 B1 の段 1 を実装した。sensor supervisor（ND-18）が他のプロセスの command line を device_in_use の記録に書く前に、ntrip の URL は全体を、ほかの URL は user:password の部分を <redacted> にする（device_watch.redact_command・command_lines。伏せ字の後で 200 文字に切る）。ほかの振る舞いは変えていない。単体の試験 5 件を追加（test_redact_command.py）。Mac・VM とも 184 件合格・1 件 skip。'
+basis_refs:
+- DEC-153
+- DEC-151
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-153
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: 案 B1 の段 1（sensor supervisor の記録の伏せ字）を実装してよいか（提案 ntrip_gga_proposal.md §7）
+  answer_verbatim: '段 1（記録の伏せ字）の実装を許可する。
+
+    '
+  affected_refs:
+  - ND-18
+  - DEC-151
+  resulting_refs: []
+  note: 変えたファイル：gouda_core/gouda_core/device_watch.py（redact_command・command_lines）、gouda_core/gouda_core/sensor_supervisor_node.py（_start の cmdline の読み取りを command_lines に置き換え）、gouda_core/test/test_redact_command.py（新規、偽の値だけ）。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

@@ -1,0 +1,30 @@
+# 変更セット REV-111（2026-10-21 第79便: DEC-176、vehicle_bridge の USB 再接続）
+# 適用: design/tools/apply_revision.py REV-111
+id: REV-111
+date: '2026-10-21'
+summary: 人の承認（DEC-176）で vehicle_bridge の USB 再接続を実装。案 6 は「自律走行中に切断しても一時停止に入れず続行」。
+basis_refs:
+- DEC-176
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-176
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: USB を差し直したときの vehicle_bridge の再接続（第77便の作業記録 §3 の案 1〜5）の実装と、案 6（自律走行中の切断で一時停止に入れるか）
+  answer_verbatim: "USB を差し直したときの改善案を実装せよ。\n1~5は承認する。（btコントローラからの指令はusb接続断の際も常に受入可能にしておくこと。現在外部給電は考えていないが、将来的に外部給電する可能性もあるので、念のために指示しておく）\n6については、自律走行中に切断したとしても一時停止には入れず、続行させる設定とする。\n"
+  affected_refs:
+  - ND-12
+  - ND-17
+  - ND-03
+  resulting_refs: []
+  note: 実施は第79便（gouda_core/gouda_core/vehicle_bridge_node.py の SerialTransport、試験 gouda_core/test/test_serial_reconnect.py）。BT コントローラの指令の受け入れは firmware の手動の判定が PC・USB の状態を見ないことで成り立つ（control.hpp の applied()、ホスト試験 DEC-167 A10）。firmware は変えていない。案 6：mode_manager は vehicle_bridge の切断を見ず、自律走行は続く。切断中は COMMAND が届かず、firmware が PRM-13（1.0 s）で PC 指令を中立にするため、車体は止まり、再接続後に HELLO の返事の boot_token で COMMAND が再開する（Nav2 の goal は続く）。USB 給電では差し直しで ESP32 が再起動し、PC の有効化に中立の COMMAND が要る。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-12
+  interpretation_append: REV-111（DEC-176）：USB の差し直しで、読み出しの失敗を切断として記録（serial_disconnected）し、ポートを閉じる。udevadm monitor の tty のイベント（周期なし）で同じ by-id の名前の再出現を確かめて開き直し（serial_reconnected）、HELLO からセッションを始める（設定の登録は HELLO_REPLY が新しい boot_token か設定が無効のとき）。lifecycle の状態は変えない。切断中の書き込みは記録なしで捨てる。自律走行は切断で一時停止にしない（人の決定）。
+decision_updates: []

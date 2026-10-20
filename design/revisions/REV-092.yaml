@@ -1,0 +1,22 @@
+# 変更セット REV-092（2026-10-20 第59便: DEC-156 の回答）
+# 適用: design/tools/apply_revision.py REV-092
+id: REV-092
+date: '2026-10-20'
+summary: 人が DEC-156（案 B1 の段 3 の設計、提案 ntrip_gga_proposal.md §9）を承認（原文）。中継の終了の扱いは案 A（同じ同一性では作り直さない）。段 3 の実装はまだしていない（許可を改めて求める）。
+basis_refs:
+- DEC-156
+- DEC-151
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-156
+  set:
+    status: answered
+    answered_on: '2026-10-20'
+    answer_verbatim: 'DEC-156 を承認する。
+
+      '
+    disposition: answered

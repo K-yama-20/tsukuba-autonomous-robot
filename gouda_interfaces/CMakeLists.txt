@@ -10,6 +10,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SoftwareMode.msg"
   "msg/DecisionEvent.msg"
   "msg/MotionHold.msg"
+  "msg/MotionCompensation.msg"
   "srv/StartAutonomy.srv"
   "action/ConvertMap.action"
   DEPENDENCIES std_msgs builtin_interfaces geometry_msgs action_msgs)

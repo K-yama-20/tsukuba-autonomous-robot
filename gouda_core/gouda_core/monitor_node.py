@@ -4,6 +4,9 @@ Subscribes mode/state (IFD-01, transient_local), record/status (IFD-12, transien
 reads the node names on the graph periodically (RQ-I033). Calls the mode services of gouda_mode_manager (IFD-02..07)
 and the record services of gouda_recorder (IFD-08..11) when a button is pressed; it holds no mission state of its own
 (SO-03: only the sensor /config, the selection inputs and unsaved edits).
+/config 「自律走行の出力」 tab (REV-118, DEC-181): the dead-band compensation values of gouda_motion_controller are kept in
+<data_root>/config/motion_compensation.json and published on config/motion_compensation (IFD-52, transient_local) at start-up
+and on every save; gouda_motion_controller uses them from its next output on.
 
 The page is served on 127.0.0.1 by MonitorServer (no screen forwarding, RQ-I044). A display interruption is not a stop
 trigger; after a reconnect the page fetches the current latched state (DEC-014, TS-10).
@@ -17,8 +20,10 @@ as a DecisionEvent (event=settings) at start-up and on every /config save. No nu
 from __future__ import annotations
 
 import json
+import math
 import os
 import threading
+import time
 from pathlib import Path
 
 import rclpy
@@ -27,14 +32,15 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.parameter import Parameter
-from sensor_msgs.msg import PointCloud2, Imu
-from gouda_interfaces.msg import SoftwareMode, DecisionEvent
+from sensor_msgs.msg import PointCloud2, Imu, NavSatFix
+from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionCompensation
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
 from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
-from gouda_core.monitor_core import MonitorCore, SensorConfig
+from gouda_core.monitor_core import MonitorCore, SensorConfig, MOTION_COMPENSATION_FIELDS, UNKNOWN
+from gouda_core import monitor_core
 from gouda_core.monitor_server import MonitorServer
 from gouda_core.map_database import MapDatabase
 from gouda_core import waypoints as wpmod
@@ -100,6 +106,8 @@ class MonitorNode(Node):
         self.core = MonitorCore(clock=self._now)
         self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
+        self.motion_comp = SensorConfig(data_root / 'config' / 'motion_compensation.json', MOTION_COMPENSATION_FIELDS)   # IFD-52
+        self.motion_comp_pub = self.create_publisher(MotionCompensation, 'config/motion_compensation', LATCHED)
         self.maps_index_path = data_root / 'maps' / 'index.json'   # IFD-29 (read-only view of the map database)
         self.map_db = MapDatabase(data_root / 'maps')
         self.routes = wpmod.RouteDatabase(data_root / 'routes')    # IFD-30 / IFD-41 (waypoint_manager, stage 5-4)
@@ -111,6 +119,7 @@ class MonitorNode(Node):
         # threshold is PRM-15 (unresolved; trial file in stub tests). Without it, STALE is never shown (freshness verdict says so).
         self.declare_parameter('esp32_status_stale_s', Parameter.Type.DOUBLE)
         self.core.stale_after_esp32_s = optional_double(self, 'esp32_status_stale_s')
+        self.create_subscription(DiagnosticArray, 'vehicle/link_status', self._on_usb_link, LATCHED)   # DEC-177
         self.create_subscription(DiagnosticArray, '/esp32/status', self._on_esp32, QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10))
         # IFD-21 / IFD-22 reception (DEC-088): display and the mapping-start warning only, never a stop condition. Raw (serialized)
         # messages: the monitor only counts arrivals and reads header.stamp, so the 64000-point clouds are not deserialized.
@@ -121,6 +130,8 @@ class MonitorNode(Node):
         sensor_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=5)
         self.create_subscription(PointCloud2, 'sensors/xt32/points', lambda b: self._on_sensor('points', b), sensor_qos, raw=True)
         self.create_subscription(Imu, 'sensors/imu/data', lambda b: self._on_sensor('imu', b), sensor_qos, raw=True)
+        self.create_subscription(NavSatFix, 'sensors/gnss/navsatfix', lambda b: self._on_sensor('gnss', b), sensor_qos, raw=True)   # IFD-47
+        self._subscribe_gnss_detail(sensor_qos)
         self.cmd_clients = {name: self.create_client(Trigger, srv) for name, srv in TRIGGER_COMMANDS.items()}
         self.start_client = self.create_client(StartAutonomy, 'mode/start_autonomy')
         # 地図 tab (intent.md:106): re-conversion through IFD-37 map/convert with the settings typed in the tab; the defaults
@@ -136,9 +147,12 @@ class MonitorNode(Node):
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
-                                                '/api/map_settings': self._get_map_settings},
-                                    post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert})
+                                                '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving,
+                                                '/api/motion_compensation': self._get_motion_comp},
+                                    post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert,
+                                                 '/api/motion_compensation': self._save_motion_comp})
         url = self.server.start()
+        self._publish_motion_comp()
         self._publish_settings('startup')
         self.get_logger().info(f'gouda_monitor page: {url} (127.0.0.1 only; open it on this PC desktop)')
 
@@ -162,6 +176,22 @@ class MonitorNode(Node):
                     self.core.on_record({kv.key: kv.value for kv in st.values} | {'level': int.from_bytes(st.level, 'big') if isinstance(st.level, bytes) else int(st.level), 'message': st.message})
         self.server.notify(self.core.connection_revision)
 
+    def _subscribe_gnss_detail(self, qos):
+        """IFD-48 / IFD-49 use the driver's own types; without the driver package the monitor says so instead of failing."""
+        try:
+            from septentrio_gnss_driver.msg import PVTGeodetic, AttEuler
+        except ImportError:
+            self.core.on_gnss_detail('note', 'septentrio_gnss_driver の型がない（ドライバ未導入）: 品質と向きは表示しない')
+            return
+        def quality(m):
+            with self._lock:
+                self.core.on_gnss_detail('quality', monitor_core.gnss_quality_text(int(m.mode), int(m.nr_sv), int(m.h_accuracy)))
+        def attitude(m):
+            with self._lock:
+                self.core.on_gnss_detail('attitude', monitor_core.gnss_attitude_text(int(m.mode), float(m.heading)))
+        self.create_subscription(PVTGeodetic, 'sensors/gnss/pvtgeodetic', quality, qos)
+        self.create_subscription(AttEuler, 'sensors/gnss/atteuler', attitude, qos)
+
     def _on_sensor(self, key: str, raw: bytes):
         with self._lock:
             self.core.on_sensor(key, self._now(), header_stamp(raw))
@@ -171,6 +201,13 @@ class MonitorNode(Node):
             if st.name == 'esp32':
                 with self._lock:
                     self.core.on_esp32({kv.key: kv.value for kv in st.values} | {'message': st.message, 'hardware_id': st.hardware_id})
+        self.server.notify(self.core.connection_revision)
+
+    def _on_usb_link(self, arr: DiagnosticArray):
+        for st in arr.status:
+            if st.name == 'esp32_usb_link':
+                with self._lock:
+                    self.core.on_usb_link({kv.key: kv.value for kv in st.values})
         self.server.notify(self.core.connection_revision)
 
     def _on_decision(self, d: DecisionEvent):
@@ -207,6 +244,15 @@ class MonitorNode(Node):
         return snap
 
     # ---- 地図 tab (intent.md:106, RQ-I082) ----
+    def _get_rosbag_saving(self, rest, query):
+        """Progress of the rosbag save after a stop request (DEC-174): the folder named in record/status and its size on disk.
+        The total is not known (ros2 bag record does not report it), so the page shows elapsed time, size and growth."""
+        fields = self.core.record.data if self.core.record else {}
+        out = fields.get('rosbag_saving_output', '')
+        return {'ok': True, 'saving': fields.get('rosbag_saving') == 'True', 'output': out,
+                'started_at': fields.get('rosbag_saving_started_at', ''), 'bytes': monitor_core.folder_bytes(out) if out else None,
+                'last_save': fields.get('rosbag_last_save', ''), 'now': time.time()}
+
     def _get_map_settings(self, rest, query):
         """The conversion settings with gouda_map_creator's current values as defaults (None when it has no value)."""
         values = {}
@@ -336,13 +382,39 @@ class MonitorNode(Node):
         if ok: self._publish_settings('config_saved')
         return {'ok': ok, 'message': msg, 'config': self._config_snapshot()}
 
+    # ---- /config 「自律走行の出力」 (IFD-52, DEC-181) ----
+    def _get_motion_comp(self, rest, query):
+        with self._lock:
+            return self.motion_comp.snapshot()
+
+    def _save_motion_comp(self, rest, body):
+        with self._lock:
+            ok, msg = self.motion_comp.update(body, self._now())
+            self.core.on_command_result('motion_compensation_update', ok, msg)
+        self.server.notify(self.core.connection_revision)
+        if ok:
+            self._publish_motion_comp()
+            self._publish_settings('motion_compensation_saved')
+        return {'ok': ok, 'message': msg, 'config': self._get_motion_comp('', '')}
+
+    def _publish_motion_comp(self):
+        """IFD-52: every field; UNKNOWN goes out as NaN (that direction is not compensated by gouda_motion_controller)."""
+        with self._lock:
+            snap = self.motion_comp.snapshot()
+        m = MotionCompensation(); m.header.stamp = self.get_clock().now().to_msg(); m.config_revision = int(snap['config_revision'])
+        for k in MOTION_COMPENSATION_FIELDS:
+            v = snap['values'][k]
+            setattr(m, k, math.nan if v == UNKNOWN else float(v))
+        self.motion_comp_pub.publish(m)
+
     def _publish_settings(self, reason: str):
         """Record the effective settings (UI parameters and /config revision) as a DecisionEvent (RQ-I015, DEC-073)."""
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
         d.event = 'settings'; d.transition_id = ''; d.reason = f'settings recorded ({reason})'; d.run_id = ''; d.section_id = -1
         with self._lock:
-            cfg = self.config.snapshot()
-        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'], 'reason': reason}, ensure_ascii=False)
+            cfg = self.config.snapshot(); mc = self.motion_comp.snapshot()
+        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'],
+                                'motion_compensation_revision': mc['config_revision'], 'motion_compensation_values': mc['values'], 'reason': reason}, ensure_ascii=False)
         self.decision_pub.publish(d)
 
     def _command(self, name: str, body: dict) -> dict:
@@ -350,6 +422,15 @@ class MonitorNode(Node):
             req = StartAutonomy.Request(); req.request_id = str(body.get('request_id', ''))
             for k in ('map_id', 'map_revision', 'map_hash', 'waypoint_set_id', 'waypoint_set_revision', 'waypoint_set_hash'):
                 setattr(req, k, str(body.get(k, '')))
+            ip = body.get('initial_pose')   # the human's initial pose (体験 9); without it frame_id stays empty and ND-03 refuses
+            if isinstance(ip, dict):
+                try:
+                    x, y, yaw = float(ip['x']), float(ip['y']), float(ip['yaw'])
+                    req.initial_pose.header.frame_id = 'map'; req.initial_pose.header.stamp = self.get_clock().now().to_msg()
+                    req.initial_pose.pose.pose.position.x, req.initial_pose.pose.pose.position.y = x, y
+                    req.initial_pose.pose.pose.orientation.z, req.initial_pose.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
+                except (KeyError, TypeError, ValueError):
+                    pass
             ok, msg = self._call(self.start_client, req, lambda r: (bool(r.accepted), r.message), self.ui['ui_service_ready_wait_s'], self.ui['ui_service_response_wait_s'])
         elif name == 'pause':   # the pause button has its own waits (PRM-31 / PRM-32, DEC-073)
             ok, msg = self._call(self.cmd_clients[name], Trigger.Request(), lambda r: (bool(r.success), r.message), self.ui['ui_pause_service_ready_wait_s'], self.ui['ui_pause_service_response_wait_s'])

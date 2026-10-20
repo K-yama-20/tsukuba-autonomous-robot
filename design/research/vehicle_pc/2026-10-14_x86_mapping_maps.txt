@@ -1,0 +1,68 @@
+# 2026-10-14 x86 機（人が実施）の原図 2 件の AI による解析（原文の出力）。人から受け取った maps/<id>（source_manifest.json と source/）を scratch から参照して解析し、元のファイルは変えていない。生のデータはリポジトリに入れていない。
+# 20261014_062749_aafe17ca: 1〜2 回目と同じ廊下（二往復と推定）。20261014_063433_60417bca: 屋外（経路は人に確認中）。分析用の 2D 変換は DEC-098 の推奨値（承認待ち）による分析専用。
+# 図: 2026-10-14_x86_corridor_side.png・_walls.png（廊下）、2026-10-14_x86_outdoor_top.png（上から。点の色は submap の順で青→緑→赤、白は軌跡、紫は開始点、黄は LiDAR の frame が 2.7〜3.5 s 途切れた所）・_height.png（軌跡の高さと時間。黄の縦線が途切れた時刻、横線 2 m ごと、縦線 60 s ごと）
+
+===== 廊下（x86）
+source/000000 16120 pts, 475 frames
+source/000001 14195 pts, 633 frames
+source/000002 11390 pts, 493 frames
+source/000003 1589 pts, 70 frames
+GLIM processed frames 1667 over 166.6 s = 10.00 Hz; gaps >0.15 s: 0, >0.5 s: 0, max 0.10 s
+trajectory: frames 1667, span 167 s
+extent along axis 35.09 m (u -17.77..17.32), lateral std 0.18 m (range -0.50..0.57), z range 0.06..2.75 m
+path length 137.0 m; start-end distance 0.27 m; max step 0.13 m (at t=9.7 s)
+legs (time s, along-axis u m): [(np.float64(0.0), np.float64(17.06)), (np.float64(46.3), np.float64(-17.74)), (np.float64(92.5), np.float64(17.05)), (np.float64(126.1), np.float64(-14.59)), (np.float64(158.4), np.float64(16.75)), (np.float64(166.6), np.float64(17.32))]
+  leg   0.0- 46.3 s: u  17.06 -> -17.74 (34.8 m), lateral mean 0.03 std 0.23, z mean 1.67
+  leg  46.3- 92.5 s: u -17.74 ->  17.05 (34.8 m), lateral mean -0.13 std 0.13, z mean 1.47
+  leg  92.5-126.1 s: u  17.05 -> -14.59 (31.6 m), lateral mean 0.02 std 0.10, z mean 1.44
+  leg 126.1-158.4 s: u -14.59 ->  16.75 (31.3 m), lateral mean 0.14 std 0.11, z mean 1.24
+  leg 158.4-166.6 s: u  16.75 ->  17.32 (0.6 m), lateral mean -0.06 std 0.10, z mean 0.09
+points 43294; along -107.0..59.9, lateral -45.5..37.2, z -6.20..20.83
+submap 0 origin z 1.83: floor-like plane tilt 2.9 deg (from 605 low points within 6 m); submap frame tilt 3.9 deg
+submap 1 origin z 0.75: floor-like plane tilt 1.0 deg (from 757 low points within 6 m); submap frame tilt 2.1 deg
+submap 2 origin z 1.80: floor-like plane tilt 5.5 deg (from 793 low points within 6 m); submap frame tilt 2.4 deg
+submap 3 origin z -0.01: floor-like plane tilt 8.0 deg (from 143 low points within 6 m); submap frame tilt 4.3 deg
+largest step 0.13 m between t=9.60 and 9.70 s (gap 0.10 s)
+trajectory height along the corridor: slope -0.077 (-4.40 deg), residual std 0.021 m, max |res| 0.055 m
+submap 0: walls at lateral -1.13 / 0.82 m (width 1.95 m); floor points near path 901, floor height above est. -0.143 +- 0.157 m
+submap 1: walls at lateral -1.13 / 0.82 m (width 1.95 m); floor points near path 594, floor height above est. -0.156 +- 0.144 m
+submap 2: walls at lateral -1.13 / 0.82 m (width 1.95 m); floor points near path 684, floor height above est. -0.142 +- 0.149 m
+submap 3: walls at lateral -1.08 / 0.67 m (width 1.75 m); floor points near path 167, floor height above est. -0.194 +- 0.175 m
+points inside the corridor section: 9513
+estimated ground inside the corridor relative to the sensor line: median -3.19 m, p10 -4.57, p90 -1.79
+inner object cells: 1202, seen in >=2 submaps: 192
+  object u -18.3..-17.7 m (0.7 m long), lateral -0.9..0.4 m, 24 cells
+  object u -13.6..-10.5 m (3.2 m long), lateral -0.9..0.4 m, 30 cells
+  object u -9.9..-9.8 m (0.2 m long), lateral -0.7..-0.2 m, 2 cells
+  object u -8.9..-7.2 m (1.8 m long), lateral -0.8..0.3 m, 16 cells
+  object u -5.9..-4.4 m (1.6 m long), lateral -0.9..0.4 m, 13 cells
+  object u -3.7..-2.8 m (1.0 m long), lateral -0.8..0.4 m, 10 cells
+  object u -1.9..1.3 m (3.3 m long), lateral -0.9..0.4 m, 45 cells
+  object u 3.1..3.2 m (0.2 m long), lateral -0.8..0.2 m, 2 cells
+  object u 4.1..4.2 m (0.2 m long), lateral -0.8..0.0 m, 2 cells
+  object u 9.2..9.2 m (0.1 m long), lateral -0.3..0.1 m, 2 cells
+  object u 10.2..11.0 m (0.9 m long), lateral -0.8..0.4 m, 10 cells
+  object u 11.6..11.7 m (0.2 m long), lateral -0.6..-0.3 m, 2 cells
+  object u 12.7..14.9 m (2.3 m long), lateral -0.9..0.0 m, 16 cells
+  object u 15.6..15.6 m (0.1 m long), lateral -0.9..-0.2 m, 3 cells
+  object u 17.4..17.8 m (0.5 m long), lateral -0.2..0.4 m, 13 cells
+image 1905 150
+analysis conversion stats (conv/terrain.json): {'ground_cells_observed': 2194, 'ground_cells_ground_like': 239, 'ground_cells_filled': 2451, 'slope_max_deg': 22.975919902357756, 'step_max_m': 0.17588978425717272}
+
+===== 屋外（x86）
+session 632.8 s, submaps 217
+frames 6177 over 627.4 s = 9.84 Hz; gaps >0.15 s: 10, >0.5 s: 3, max 3.53 s
+path 579.6 m; z -0.20..11.76; start-end distance xy 12.68 m, z +6.41 m
+step 12.61 m in 3.20 s at t=586.2 s (06:44:22)
+step 3.02 m in 2.74 s at t=352.6 s (06:40:28)
+step 2.72 m in 3.53 s at t=238.8 s (06:38:35)
+revisits (xy < 1.5 m, > 60 s apart): 6029 pairs; |dz| median 1.82 p95 2.29 max 2.45 m
+2026-10-14 06:38:38.807 gap 3.530554
+2026-10-14 06:40:31.800 gap 2.741679
+2026-10-14 06:44:25.890 gap 3.201118
+time-diff warnings per minute:  270 06:38  180 06:40  240 06:44 
+small-overlap submaps per minute:    1 06:34    1 06:35   11 06:36    7 06:37    3 06:38    9 06:39   10 06:41    9 06:42   12 06:43    8 06:44    1 06:45 
+map_inspect {"glim_frames": {"frames": 6177, "duration_s": 627.3616209030151, "rate_hz": 9.844402007107728, "max_gap_s": 3.5305540561676025}, "path": {"length_m": 566.5584968465864, "max_distance_from_start_m": 120.56956670091056}, "cell_m": 0.5, "band_m": 0.1, "submaps": 217, "points_total": 9846361, "near_path": [{"radius_m": 1.0, "cells": 4593, "cells_with_points": 4593, "cells_with_low_points": 1843, "share_with_points": 1.0, "share_with_low_points": 0.4012627912040061, "points": 888460, "points_per_m2": 773.7513607663836}, {"radius_m": 2.0, "cells": 7871, "cells_with_points": 7867, "cells_with_low_points": 2997, "share_with_points": 0.9994918053614534, "share_with_low_points": 0.3807648329310126, "points": 1720343, "points_per_m2": 874.2690890611104}, {"radius_m": 3.0, "cells": 10890, "cells_with_points": 10862, "cells_with_low_points": 3975, "share_with_points": 0.9974288337924702, "share_with_low_points": 0.3650137741046832, "points": 2576207, "points_per_m2": 946.2651974288337}, {"radius_m": 5.0, "cells": 16499, "cells_with_points": 16315, "cells_with_low_points": 5549, "share_with_points": 0.9888478089581186, "share_with_low_points": 0.33632341354021456, "points": 4172871, "points_per_m2": 1011.6664040244864}]}
+analysis conversion stats (conv/terrain.json): {'ground_cells_observed': 60088, 'ground_cells_ground_like': 3907, 'ground_cells_filled': 18911, 'slope_max_deg': 26.59444163167131, 'step_max_m': 0.18784007977163775}
+analysis conversion: points 9846361, ground 10894, obstacle 288429, between 5482, above 9541556; cells occupied 111354, free 3595, unknown 6897045 (output of map_convert.convert in this session)
+point heights near the path relative to (trajectory height - 1.015 m), every 3rd point within 2 m: first 120 s below -0.5 m 3.2 % (one ground peak near -0.25..0); last 147 s below -0.5 m 8.7 % and a second peak at +1.75..+2.0 m (the ground of an earlier pass recorded 1.8 m higher)

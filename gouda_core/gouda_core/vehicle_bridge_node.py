@@ -8,6 +8,11 @@ Session: on configure the port is opened, HELLO is sent, the HELLO_REPLY gives t
 configuration from design/generated/params/firmware_config.yaml (plus firmware_config.trial.yaml when trial:=true; stub
 tests only) is registered with SET_CONFIG. A rejected or missing ACK is recorded and never stops anything. A reboot of the
 ESP32 (uptime going backwards / new boot token) repeats the session start.
+USB re-plug (DEC-176): a lost link is reported and the same by-id name is reopened on the next device event; the session then
+restarts with HELLO. The lifecycle state does not change and autonomy is not paused by a lost link (人の決定).
+Link counts (DEC-177): vehicle/link_status (diagnostic_msgs/DiagnosticArray, reliable, transient_local, depth 1) carries the link
+state and the disconnect / reconnect counts of the current 事前地図作成 or 自律走行 session (from mode/state, IFD-01; pause and
+resume continue the count), published on every change; each disconnect / reconnect / session end is also a DecisionEvent.
 While ACTIVE a COMMAND (flags bit0 = pc_enable_request) is sent every send_period_s (PRM-14): the last joystick_command if it
 is younger than joystick_timeout_s (PRM-09), else neutral. While inactive no COMMAND is sent (the firmware's PC source expires
 and goes neutral); STATUS keeps being received and published. Manual priority and the ESP32-side neutralisation are the
@@ -29,11 +34,12 @@ from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Joy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
-from gouda_interfaces.msg import DecisionEvent
+from gouda_interfaces.msg import DecisionEvent, SoftwareMode
 
 from gouda_core import esp32_protocol as proto
-from gouda_core.vehicle_core import BridgeCore, BridgeSettings
+from gouda_core.vehicle_core import BridgeCore, BridgeSettings, LinkCounter, LINK_UP, LINK_DOWN, LINK_NOT_OPEN
 
+LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 COMMAND_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=1)
 STATUS_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)   # IFD-38
@@ -61,34 +67,109 @@ def load_firmware_config(params_dir: str, trial: bool) -> dict:
 
 
 class SerialTransport:
-    """pyserial wrapper with a reader thread. Replaceable by a stub in tests."""
+    """pyserial wrapper with a reader thread that survives a USB re-plug (DEC-176). Replaceable by a stub in tests.
 
-    def __init__(self, port: str, on_bytes, on_error):
+    Connected: the reader thread reads; a read error (the USB link went away) closes the port and reports
+    on_link(False, reason) once. Disconnected: writes are dropped without a report per frame (the link-down decision is
+    the report), and the thread waits for a device event (`udevadm monitor`, tty add/remove; event driven, no polling
+    period) and then tries to open the same by-id name again; success reports on_link(True, ''). The ESP32's own
+    behaviour does not depend on this link: the gamepad keeps driving through the firmware while the USB link is down.
+    """
+
+    WATCH = ['udevadm', 'monitor', '--udev', '--subsystem-match=tty']
+
+    def __init__(self, port: str, on_bytes, on_error, on_link=None, watch_cmd=WATCH):
         import serial
-        self.ser = serial.Serial(port, SERIAL_BAUD, timeout=0.05, write_timeout=0.2, exclusive=True)
-        self.ser.reset_input_buffer()
-        self.on_bytes = on_bytes; self.on_error = on_error
-        self._stop = threading.Event()
+        self._serial = serial
+        self.port = port; self.on_bytes = on_bytes; self.on_error = on_error; self.on_link = on_link or (lambda up, why: None)
+        self._stop = threading.Event(); self._wake = threading.Event(); self._io = threading.Lock()
+        self.ser = None; self._watch_proc = None
+        self._open()   # the first open raises: configure fails exactly as before when the device is absent
+        if watch_cmd:
+            threading.Thread(target=self._watch, args=(watch_cmd,), name='vehicle_bridge_watch', daemon=True).start()
         self.thread = threading.Thread(target=self._run, name='vehicle_bridge_serial', daemon=True); self.thread.start()
+
+    @property
+    def connected(self) -> bool:
+        return self.ser is not None
+
+    def _open(self):
+        ser = self._serial.Serial(self.port, SERIAL_BAUD, timeout=0.05, exclusive=True)   # writes do not use pyserial (see write)
+        ser.reset_input_buffer()
+        with self._io: self.ser = ser
+
+    def _drop(self, reason: str):
+        with self._io:
+            ser, self.ser = self.ser, None
+        if ser is None: return
+        try: ser.close()
+        except Exception: pass
+        self.on_link(False, reason)
+
+    def wake(self):
+        """A device event (or a test) asks the disconnected reader to try the by-id name again."""
+        self._wake.set()
+
+    def _watch(self, cmd):
+        import subprocess
+        try:
+            self._watch_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        except OSError as e:
+            self.on_error(f'device watch could not be started ({cmd[0]}: {e}); a re-plugged ESP32 is not reopened'); return
+        for _ in self._watch_proc.stdout:
+            if self._stop.is_set(): break
+            self._wake.set()
 
     def _run(self):
         while not self._stop.is_set():
+            ser = self.ser
+            if ser is None:
+                self._wake.wait(); self._wake.clear()
+                if self._stop.is_set(): break
+                if not os.path.exists(self.port): continue
+                try:
+                    self._open()
+                except Exception as e:   # e.g. the node exists before udev finished; the next device event tries again
+                    self.on_error(f'serial reopen failed: {e}'); continue
+                self.on_link(True, '')
+                continue
             try:
-                data = self.ser.read(256)
+                data = ser.read(256)
             except Exception as e:
-                self.on_error(f'serial read failed: {e}'); time.sleep(0.5); continue
+                self._drop(f'serial read failed: {e}'); continue
             if data: self.on_bytes(data)
 
     def write(self, data: bytes):
-        try:
-            self.ser.write(data)
-        except Exception as e:
-            self.on_error(f'serial write failed: {e}')
+        """Non-blocking (DEC-174): the executor never waits for the port. pyserial opens the port O_NONBLOCK; what the OS
+        buffer does not take now is dropped, and the next period sends a fresh frame (a cut frame fails the firmware CRC).
+        pyserial's own write is not used: with write_timeout=0 it retries EAGAIN in a busy loop (pyserial 3.5).
+        While the link is down the frame is dropped silently (the link-down decision already reports it)."""
+        with self._io:
+            ser = self.ser
+            if ser is None: return
+            n, err = 0, None
+            try:
+                n = os.write(ser.fileno(), data)
+            except BlockingIOError:
+                n = 0
+            except Exception as e:
+                err = e
+        if err is not None:
+            self._drop(f'serial write failed: {err}'); return
+        if n < len(data):   # one fixed reason so that the monitor aggregates repeats into one line (×count)
+            self.on_error('serial write incomplete: the OS buffer was full; the frame was dropped (the next period sends a fresh one)')
 
     def close(self):
-        self._stop.set(); self.thread.join(timeout=1)
-        try: self.ser.close()
-        except Exception: pass
+        self._stop.set(); self._wake.set()
+        if self._watch_proc:   # SIGKILL cannot be ignored, so the wait returns
+            try: self._watch_proc.kill(); self._watch_proc.wait(); self._watch_proc.stdout.close()
+            except Exception: pass
+        self.thread.join(timeout=1)
+        with self._io:
+            ser, self.ser = self.ser, None
+        if ser:
+            try: ser.close()
+            except Exception: pass
 
 
 class VehicleBridgeNode(LifecycleNode):
@@ -104,6 +185,11 @@ class VehicleBridgeNode(LifecycleNode):
         self.timer = None; self.joy_sub = None
         self.status_pub = self.create_publisher(DiagnosticArray, '/esp32/status', STATUS_QOS)
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)
+        # DEC-177: link state and per-session counts; mode/state decides the session (works in every lifecycle state)
+        self.link = LinkCounter()
+        self.link_pub = self.create_publisher(DiagnosticArray, 'vehicle/link_status', LATCHED)
+        self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
+        self._publish_link()
         self.session_id = int(time.time()) & 0xFFFFFFFF
         self.firmware_config = {}
         self.last_sent_reason = None
@@ -122,12 +208,13 @@ class VehicleBridgeNode(LifecycleNode):
         try:
             self.core = BridgeCore(BridgeSettings(values['joystick_timeout_s'], values['send_period_s']))
             self.firmware_config = load_firmware_config(params_dir, trial) if params_dir else {}
-            self.transport = SerialTransport(port, self._on_bytes, lambda m: self._decision('serial_error', m, {}))
+            self.transport = SerialTransport(port, self._on_bytes, lambda m: self._decision('serial_error', m, {}), self._on_link)
         except Exception as e:
             self._decision('configure_refused', f'cannot open serial port {port}: {e}', values); self.core = None
             return TransitionCallbackReturn.FAILURE
         self.joy_sub = self.create_subscription(Joy, 'vehicle/joystick_command', self._on_joy, COMMAND_QOS)
         self._decision('settings', 'configured', dict(values, serial_port=port, firmware_config=self.firmware_config, trial=trial))
+        self._set_link(LINK_UP)
         self._start_session()
         return TransitionCallbackReturn.SUCCESS
 
@@ -146,6 +233,7 @@ class VehicleBridgeNode(LifecycleNode):
         if self.joy_sub: self.destroy_subscription(self.joy_sub); self.joy_sub = None
         if self.transport: self.transport.close(); self.transport = None
         self.core = None
+        self._set_link(LINK_NOT_OPEN)
         return TransitionCallbackReturn.SUCCESS
 
     def on_shutdown(self, state) -> TransitionCallbackReturn:
@@ -168,6 +256,57 @@ class VehicleBridgeNode(LifecycleNode):
         self.transport.write(proto.encode_set_config(self.core.next_seq(), self._ms(), self.core.boot_token, self.firmware_config))
         self.pending_ack = proto.SET_CONFIG
         self._decision('config_sent', 'SET_CONFIG sent (apply_timing=runtime_set)', {'config': self.firmware_config})
+
+    def _on_link(self, up: bool, reason: str):
+        """USB link down / back (DEC-176). Nothing else changes: the lifecycle state stays, autonomy is not paused (人の
+        決定), and while the link is down the firmware's PC source expires (PRM-13) and goes neutral while the gamepad keeps
+        working. Back: HELLO again; the HELLO_REPLY decides whether the configuration is registered (new boot_token or
+        config not valid), and COMMAND resumes with the reply's boot_token."""
+        with self._lock:
+            if not self.core: return
+            now = time.time()
+            if not up:
+                self.link.on_link(LINK_DOWN, now); counts = self._counts(now)
+                # fixed reason (DEC-177): the monitor aggregates repeats into one line, and its ×count is the number of losses
+                self._decision('serial_disconnected', 'ESP32 USB link lost: no COMMAND reaches the ESP32, which neutralises the PC source after PRM-13, so the vehicle stops; the mode is unchanged (autonomy continues, DEC-176); the gamepad still works; waiting for the by-id device to come back', {'cause': reason, 'vehicle': 'stopped by the firmware PC-source expiry (PRM-13)', 'mode': 'unchanged', **counts})
+                self._publish_link()
+                return
+            self.link.on_link(LINK_UP, now); counts = self._counts(now)
+            self.parser = proto.Parser()
+            self._decision('serial_reconnected', 'ESP32 USB link back (same by-id name); restarting the session with HELLO', counts)
+            self._publish_link()
+            self._start_session()
+
+    # ---- link counts (DEC-177) ----
+    def _counts(self, now: float) -> dict:
+        st = self.link.status(now)
+        return {k: st[k] for k in ('session', 'disconnects', 'reconnects', 'down_total_s')}
+
+    def _set_link(self, state: str):
+        if self.link.on_link(state, time.time()):
+            self._publish_link()
+
+    def _on_mode(self, msg: SoftwareMode):
+        with self._lock:
+            now = time.time()
+            change = self.link.on_mode(int(msg.mode), now)
+            if change is None:
+                return
+            kind, data = change
+            if kind == 'session_started':
+                self._decision('link_count_started', f'USB link counting started for the {data} session (DEC-177)', self._counts(now))
+            else:
+                self._decision('link_count_ended', f"USB link counts of the {data['kind']} session: {data['disconnects']} disconnects", data)
+            self._publish_link()
+
+    def _publish_link(self):
+        st = self.link.status(time.time())
+        arr = DiagnosticArray(); arr.header.stamp = self.get_clock().now().to_msg()
+        d = DiagnosticStatus(); d.name = 'esp32_usb_link'; d.hardware_id = ''
+        d.level = DiagnosticStatus.WARN if st['link'] == LINK_DOWN else DiagnosticStatus.OK
+        d.message = f"link {st['link']}" + (f", {st['session']} session: {st['disconnects']} disconnects" if st['session'] else ', no session')
+        d.values = [KeyValue(key=k, value='' if v is None else (json.dumps(v, ensure_ascii=False) if isinstance(v, dict) else str(v))) for k, v in st.items()]
+        arr.status = [d]; self.link_pub.publish(arr)
 
     # ---- serial input ----
     def _on_bytes(self, data: bytes):

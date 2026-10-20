@@ -1,0 +1,36 @@
+# 変更セット REV-078（2026-10-19 第44便: DualAnt の Boot 保存と受信機の reset）
+# 適用: design/tools/apply_revision.py REV-078
+id: REV-078
+date: '2026-10-19'
+summary: 人の許可（DEC-146、原文）で Gouda を止め、USB2 から eccf, Current, Boot と exeResetReceiver, Hard, none を送った（FILE-MOSAIC-MRTK-QUERY の追記）。reset で USB が切れ、返答は記録できなかった。by-id の名前は作り直された（if02 は ttyACM2 に）。reset の後の gfm は DualAnt、gga は MultiAntenna, Fixed。Boot 保存と reset は効いた。副アンテナの観測と方位は未確認。Gouda は止めたまま。
+basis_refs:
+- DEC-146
+- DEC-145
+- DEC-144
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-146
+  kind: approval
+  status: answered
+  asked_on: '2026-10-19'
+  answered_on: '2026-10-19'
+  channel: chat
+  question: Gouda を止め、受信機に eccf, Current, Boot と exeResetReceiver, Hard, none を送ってよいか（DualAnt を Boot に保存して効かせる）
+  answer_verbatim: 'Gouda を止め、eccf, Current, Boot と exeResetReceiver, Hard, none を送ってよい。再起動の後に gfm を確かめて報告すること。
+
+    '
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  - DEC-144
+  resulting_refs:
+  - FILE-MOSAIC-MRTK-QUERY
+  note: Boot 保存は人の資料 §6 の別工程に当たり、人が明示して許可した。reset で USB が切れたため eccf と reset の応答は記録できず、reset の後の gfm（DualAnt）で効いたことを確かめた。
+  disposition: answered
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。次: Gouda を起動し、屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないことを確かめる。DualAnt では副アンテナを外さないこと、2 本の利得の差 5 dB 以内（Hardware Manual §4.2.3.2）。'
+decision_updates: []

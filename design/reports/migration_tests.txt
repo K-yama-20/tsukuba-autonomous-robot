@@ -1,3 +1,7 @@
+test_correct_change_set_has_no_new_finding (test_apply_revision.DryRunCheckTests.test_correct_change_set_has_no_new_finding) ... ok
+test_empty_source_refs_is_a_new_violation (test_apply_revision.DryRunCheckTests.test_empty_source_refs_is_a_new_violation) ... ok
+test_recorded_decision_as_approval_basis_is_a_new_violation (test_apply_revision.DryRunCheckTests.test_recorded_decision_as_approval_basis_is_a_new_violation) ... ok
+test_undetermined_alone_does_not_fail (test_apply_revision.DryRunCheckTests.test_undetermined_alone_does_not_fail) ... ok
 test_monitor_calling_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_monitor_calling_auto_start_is_flagged) ... ok
 test_real_model_passes_dr16 (test_check_design.AutoRecordAndQosRuleTests.test_real_model_passes_dr16) ... ok
 test_recovery_transition_referencing_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_recovery_transition_referencing_auto_start_is_flagged) ... ok
@@ -30,8 +34,19 @@ test_version_dependent_if_approved (test_check_design.DesignRuleTests.test_versi
 test_whole_row_superseded (test_check_design.DesignRuleTests.test_whole_row_superseded) ... ok
 test_bare_integer_one_is_not_flagged_as_approved_one_second (test_check_design.HardcodeScanTests.test_bare_integer_one_is_not_flagged_as_approved_one_second) ... ok
 test_float_literal_of_approved_value_is_flagged (test_check_design.HardcodeScanTests.test_float_literal_of_approved_value_is_flagged) ... ok
+test_allowlist_accepts_and_stale_entry_is_reported (test_check_design.HardcodeScanV2Tests.test_allowlist_accepts_and_stale_entry_is_reported) ... ok
+test_approved_value_in_python_code_is_reported (test_check_design.HardcodeScanV2Tests.test_approved_value_in_python_code_is_reported) ... ok
+test_comments_docstrings_and_strings_are_not_scanned (test_check_design.HardcodeScanV2Tests.test_comments_docstrings_and_strings_are_not_scanned) ... ok
+test_indexes_enum_names_and_html_text_are_not_reported (test_check_design.HardcodeScanV2Tests.test_indexes_enum_names_and_html_text_are_not_reported) ... ok
+test_integer_approved_value_only_in_its_declaration_language (test_check_design.HardcodeScanV2Tests.test_integer_approved_value_only_in_its_declaration_language) ... ok
+test_time_values_are_reported_in_every_language (test_check_design.HardcodeScanV2Tests.test_time_values_are_reported_in_every_language) ... ok
 test_current_intent_passes (test_check_intent_identity.IntentIdentityTests.test_current_intent_passes) ... ok
 test_unrecorded_contract_change_fails (test_check_intent_identity.IntentIdentityTests.test_unrecorded_contract_change_fails) ... ok
+test_concurrent_reservations_are_distinct (test_reserve_ids.ReserveIdsTests.test_concurrent_reservations_are_distinct) ... ok
+test_next_numbers (test_reserve_ids.ReserveIdsTests.test_next_numbers) ... ok
+test_second_session_gets_the_following_numbers (test_reserve_ids.ReserveIdsTests.test_second_session_gets_the_following_numbers) ... ok
+test_without_revision (test_reserve_ids.ReserveIdsTests.test_without_revision) ... ok
+test_written_change_set_is_not_a_reservation (test_reserve_ids.ReserveIdsTests.test_written_change_set_is_not_a_reservation) ... ok
 test_answered_decision_needs_verbatim (test_validate_model.CoreTests.test_answered_decision_needs_verbatim) ... ok
 test_approved_without_evidence (test_validate_model.CoreTests.test_approved_without_evidence) ... ok
 test_bad_fixture_cases (test_validate_model.CoreTests.test_bad_fixture_cases) ... ok
@@ -61,13 +76,28 @@ test_intent_revision_hiding_removed_line_detected (test_validate_model.Migration
 test_intent_revision_tampering_detected (test_validate_model.MigrationTests.test_intent_revision_tampering_detected) ... ok
 test_lost_known_issue (test_validate_model.MigrationTests.test_lost_known_issue) ... ok
 test_raw_source_change (test_validate_model.MigrationTests.test_raw_source_change) ... ok
-test_real_model (test_validate_model.MigrationTests.test_real_model) ... ok
+test_real_model (test_validate_model.MigrationTests.test_real_model) ... FAIL
 test_silent_modification_of_baseline_entity_detected (test_validate_model.MigrationTests.test_silent_modification_of_baseline_entity_detected) ... ok
 test_stale_modification_record_detected (test_validate_model.MigrationTests.test_stale_modification_record_detected) ... ok
 test_superseded_requirement_needs_intent_justification (test_validate_model.MigrationTests.test_superseded_requirement_needs_intent_justification) ... ok
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
+======================================================================
+FAIL: test_real_model (test_validate_model.MigrationTests.test_real_model)
 ----------------------------------------------------------------------
-Ran 68 tests in 42.035s
+Traceback (most recent call last):
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/rules/test_validate_model.py", line 103, in test_real_model
+    def test_real_model(self): self.assertEqual(self.errors(self.m), [])
+                               ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'unchanged [1811 chars]4'}}] != []
 
-OK
+First list contains 6 additional elements.
+First extra element 0:
+{'code': 'MIGRATION', 'path': 'unchanged design/docs/SystemArchitecture.drawio', 'detail': {'actual': '6569ddc8344c0b094a5c9192f7ddf41f5bafbf808c42b9d4be21ce1f044acdd7', 'expected': 'f185b6c78cfdb360c4c5c4806986e342fbf8b7c1b14b3c4c341c60ad0de49fa4'}}
+
+Diff is 2194 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 83 tests in 71.639s
+
+FAILED (failures=1)

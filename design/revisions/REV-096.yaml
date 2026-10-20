@@ -1,0 +1,84 @@
+# 変更セット REV-096（2026-10-20 第64便: DAC の最小・最大の変更と STATUS 周期の決定 DEC-159、フルスケールの問い DEC-160）
+# 適用: design/tools/apply_revision.py REV-096
+id: REV-096
+date: '2026-10-20'
+summary: '人の指示（DEC-159、原文）：中立 2500 mV（変わらず）、最大 4800 mV、最小 200 mV に変更、STATUS は 500 ms。PRM-44＝200、PRM-45＝4800、PRM-49＝500 を承認値にした（DEC-077 の値は台帳に残し、PRM-44・45 だけ DEC-159 で置き換え）。フルスケール（PRM-46＝4700 mV）は回答に無く、最大 4800 mV がフルスケールを超えるため firmware の設定の検査（dac_max_mv ≤ dac_full_scale_mv）が不合格になり、firmware は DAC に書かない。フルスケールの値と「x,y軸の合計値」の意味を DEC-160 で問う。'
+basis_refs:
+- DEC-159
+- DEC-160
+- DEC-077
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-159
+  kind: approval
+  status: answered
+  asked_on: null
+  answered_on: '2026-10-20'
+  channel: chat
+  question: DAC の中立・最大・最小の電圧と STATUS の周期（DEC-077 の回答の後の人の指示。第63便の報告の問い 2 への回答を含む）
+  answer_verbatim: "中立2500mv, 最大4800mv最小200mvに変更する。\nstatusは500msとする。\n"
+  affected_refs:
+  - PRM-43
+  - PRM-44
+  - PRM-45
+  - PRM-49
+  - DEC-077
+  resulting_refs:
+  - PRM-44
+  - PRM-45
+  - PRM-49
+  - DEC-160
+  note: 'DEC-077 の回答（PRM-44＝230、PRM-45＝4700）を置き換える新しい項目（DEC-077 は書き換えない）。PRM-43 は 2500 mV のまま。フルスケールには触れていないため PRM-46 は 4700 mV のまま。最大 4800 mV ＞ フルスケール 4700 mV となり、firmware の Config::valid（config.hpp、dac_max_mv ≤ dac_full_scale_mv）が不合格で config_valid=0、DAC に書かない（安全側）。DEC-160 で問う。PRM-49＝500 ms により monitor の stale 閾値 PRM-15（未確定）は 500 ms より長くする必要がある（PRM-49 の purpose）。PRM-15 の stub 試験の仮値 0.25 s はこの関係を満たさないが、stub 試験は firmware の仮値 50 ms で動くため、仮値は変えていない。'
+  disposition: answered
+- id: DEC-160
+  kind: question
+  status: pending
+  asked_on: '2026-10-20'
+  answered_on: null
+  channel: chat
+  question: '【承認】DAC のフルスケール電圧（PRM-46。12 bit コード 4095 に対応する電圧）を何 mV にするか。最大 4800 mV（DEC-159）は今の 4700 mV を超えるため、firmware は設定を不正として DAC に書かない。あわせて DEC-077 の回答の「フルスケール4700mv（x,y軸の合計値）」の意味（firmware は x・y の各チャンネルで、コード 4095 に対応する電圧として使う）を確かめたい。'
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-46
+  - PRM-45
+  - ND-17
+  - DEC-077
+  - DEC-159
+  resulting_refs: []
+  note: '推奨：基板の MCP4922 の VREF（とゲイン）の実際の値にする。VREF が 4800 mV 以上なら、その値を PRM-46 にする。VREF が 4800 mV 未満なら、DAC は 4800 mV を出せないので、最大を下げる（DEC-159 の見直し）。代替：測るまで 4800 mV 以上の仮の値にする（mV→コードの換算がずれ、全電圧が比例してずれるので推奨しない）。決まらない場合に止まる作業：実車向け firmware の書き込み（設定が不正のため DAC に書かない）。'
+  disposition: open_human
+entities: []
+modifications:
+- id: PRM-44
+  set:
+    approval_decision_ref: DEC-159
+  set_nested:
+    parameter.value: 200
+    parameter.decision_deadline: 決定済み（DEC-159。DEC-077 の 230 mV を置き換え）
+    parameter.measurement: '人の指示の値（DEC-159）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-096: DEC-159 で 230 mV から 200 mV に変更。'
+- id: PRM-45
+  set:
+    approval_decision_ref: DEC-159
+  set_nested:
+    parameter.value: 4800
+    parameter.decision_deadline: 決定済み（DEC-159。DEC-077 の 4700 mV を置き換え）
+    parameter.measurement: '人の指示の値（DEC-159）。電圧の測定値ではない。実車の端点の確認（Q-03）は残る'
+  interpretation_append: 'REV-096: DEC-159 で 4700 mV から 4800 mV に変更。PRM-46（4700 mV）を超えるため、DEC-160 の回答まで firmware の設定は不正（DAC に書かない）。'
+- id: PRM-43
+  interpretation_append: 'REV-096: DEC-159 で 2500 mV のままと確認。'
+- id: PRM-46
+  interpretation_append: 'REV-096: PRM-45＝4800 mV（DEC-159）がこの値を超える。値と「x,y軸の合計値」の意味を DEC-160 で問う。'
+- id: PRM-49
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-159
+  set_nested:
+    parameter.value: 500
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-159）
+    parameter.measurement: 人の指示の値（DEC-159）。PRM-15（monitor の stale 閾値、未確定）は 500 ms より長くする
+  interpretation_append: 'REV-096: DEC-159 で 500 ms を承認。'
+decision_updates: []

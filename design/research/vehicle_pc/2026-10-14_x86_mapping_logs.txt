@@ -1,0 +1,46 @@
+# 2026-10-14 x86 機（人が実施）の地図作成 2 件の GLIM のログと設定の解析（AI。原文の出力）。人から受け取ったのは各地図作成の作業フォルダ（gouda_data/mapping/<id>/ の glim.log と glim_config）だけで、原図（gouda_data/maps/<id>/source の submap と軌跡）は含まれていない。
+# 20261014_062749_aafe17ca: 1〜2 回目と同じ廊下。20261014_063433_60417bca: 屋外。比較に VM の 2 回目（20261014_054556_fbd0a733）のログも並べた。生のログはリポジトリに入れていない（解析の数値だけ）。
+
+===== 設定（x86。廊下と屋外で同一）
+modules config_odometry_cpu.json config_sub_mapping_cpu.json config_global_mapping_cpu.json
+topics/frames sensors/xt32/points sensors/imu/data xt32_link imu_link base_link
+T_lidar_imu [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]
+preprocess {'distance_near_thresh': 0.5, 'downsample_resolution': 1.0, 'random_downsample_target': 10000}
+sub_mapping {'max_num_keyframes': 15, 'keyframe_update_strategy': 'OVERLAP', 'max_keyframe_overlap': 0.6, 'submap_downsample_resolution': 0.3}
+(corridor and outdoor glim_config identical)
+
+===== ログ
+-- 20261014_062749_aafe17ca: 2026-10-14 06:27:49.870 .. 2026-10-14 06:30:40.258, last line: [global] [info] saved
+   9 [odom] [warning] num_validations=N
+   9 [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+   9 [odom] [warning] No-IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   9 [odom] [warning] IMU validation results:
+   9 [odom] [warning] IMU prediction is not good.
+   9 [odom] [warning] IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+   9 [odom] [warning] IMU better ratios rot=N, trans=N, vel=N
+   3 [glim] [warning] use default_value=N
+   1 [glim] [warning] use default_value=-N
+   1 [glim] [warning] param sub_mapping/submap_target_num_points not found
+   1 [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+   1 [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+-- 20261014_063433_60417bca: 2026-10-14 06:34:33.293 .. 2026-10-14 06:45:05.232, last line: [global] [info] saved
+ 690 [glim] [warning] points=N imu=N diff=N
+ 690 [glim] [warning] large time difference between points and imu!!
+  91 [odom] [warning] num_validations=N
+  91 [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+  91 [odom] [warning] No-IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+  91 [odom] [warning] IMU validation results:
+  91 [odom] [warning] IMU prediction is not good.
+  91 [odom] [warning] IMU errors rot=N +- N deg, trans=N +- N m, vel=N +- N m/s
+  91 [odom] [warning] IMU better ratios rot=N, trans=N, vel=N
+  72 [global] [warning] previous submap has only a small overlap with the current submap (N)
+  72 [global] [warning] create a between factor to prevent the submap from being isolated
+   3 [glim] [warning] use default_value=N
+
+===== 数値
+x86 corridor: points-imu diff warnings 0; frame gap warnings 0; small-overlap submaps 0
+   IMU validation 9: with IMU rot 0.07 deg / trans 0.027 m; without IMU rot 1.15 deg / trans 0.025 m (medians)
+x86 outdoor: points-imu diff warnings 690 (1.00..3.62 s, median 2.15); frame gap warnings 3 (max 3.53 s); small-overlap submaps 72 (overlap 0.046..0.249)
+   IMU validation 91: with IMU rot 0.07 deg / trans 0.031 m; without IMU rot 1.33 deg / trans 0.028 m (medians)
+VM corridor (2nd): points-imu diff warnings 30 (1.00..1.29 s, median 1.15); frame gap warnings 38 (max 1.20 s); small-overlap submaps 0
+   IMU validation 1: with IMU rot 0.37 deg / trans 0.053 m; without IMU rot 1.87 deg / trans 0.044 m (medians)

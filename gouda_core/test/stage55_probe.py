@@ -18,7 +18,7 @@ from pathlib import Path
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped   # IFD-15 type since PRM-12 = true (DEC-122)
 from sensor_msgs.msg import Joy
 from diagnostic_msgs.msg import DiagnosticArray
 from gouda_interfaces.msg import MotionHold, DecisionEvent
@@ -30,6 +30,8 @@ VOL1 = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityP
 
 def load_flat(path):
     vals = {}
+    if path.endswith('.trial.yaml') and not Path(path).is_file():   # no trial file once every value is approved
+        return vals
     for line in Path(path).read_text().splitlines():
         m = re.match(r'\s*(\w+): ([-\d.]+)', line)
         if m: vals[m.group(1)] = float(m.group(2))
@@ -44,7 +46,7 @@ class Probe(Node):
         self.vmax = mc['max_linear_speed_mps']
         self.out = open(out, 'w'); self.t0 = time.monotonic()
         self.hold_pub = self.create_publisher(MotionHold, 'control/motion_hold', LATCHED)
-        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', VOL1)
+        self.cmd_pub = self.create_publisher(TwistStamped, 'cmd_vel', VOL1)
         self.create_subscription(Joy, 'vehicle/joystick_command', self.on_joy, VOL1)
         self.create_subscription(DiagnosticArray, '/esp32/status', self.on_status, QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10))
         self.create_subscription(DecisionEvent, 'log/decision', self.on_decision, DECISION_QOS)
@@ -61,7 +63,7 @@ class Probe(Node):
 
     def tick(self):
         if self.send_cmd:
-            m = Twist(); m.linear.x = self.vmax / 2; m.angular.z = 0.0; self.cmd_pub.publish(m)
+            m = TwistStamped(); m.header.stamp = self.get_clock().now().to_msg(); m.twist.linear.x = self.vmax / 2; m.twist.angular.z = 0.0; self.cmd_pub.publish(m)
 
     def hold_tick(self):
         if self.send_hold:

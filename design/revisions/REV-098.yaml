@@ -1,0 +1,36 @@
+# 変更セット REV-098（2026-10-20 第66便: B1 の段 4、setup.sh に rtklib、apt の str2str の確認）
+# 適用: design/tools/apply_revision.py REV-098
+id: REV-098
+date: '2026-10-20'
+summary: '人の許可（DEC-165、原文）で案 B1 の段 4 を行った。setup.sh の apt の一覧に rtklib（Ubuntu universe、str2str）を足した。apt の rtklib 2.4.3.b34 のソースを読み（FILE-RTKLIB-STR2STR-REVIEW）、シリアルは raw・エコー無効、URL のデコードはしない（gnss_config の文字の検証は必要）、状態の表示の形は ntrip_relay と同じ、SIGINT で止まる、trace は既定で無し、NTRIP v1（HTTP/1.0、Basic 認証）で TLS がないことを確かめた。Point One が v1・TLS なしを受け付けるかは原本未照合。VM への導入は人（sudo）。'
+basis_refs:
+- DEC-165
+- DEC-151
+- DEC-156
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-RTKLIB-STR2STR-REVIEW
+  path: design/research/upstream_sensors/rtklib_2.4.3b34_str2str_review_2026-10-20.md
+  role: evidence
+decisions:
+- id: DEC-165
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: 案 B1 の段 4（setup.sh に rtklib を足す、apt の str2str のソースを確かめる）を行ってよいか
+  answer_verbatim: '段 4（setup.sh に rtklib、apt の str2str のソースの確認）を許可する。
+
+    '
+  affected_refs:
+  - ND-18
+  - DEC-151
+  - DEC-156
+  resulting_refs:
+  - FILE-RTKLIB-STR2STR-REVIEW
+  note: 変えたファイル：setup.sh（apt の一覧と説明）。gnss_config の文字の検証は緩めない（apt の str2str は URL のデコードをしない）。残る確認：Point One の接続の版（NTRIP v1 を受け付けるか）と TLS の要否、認証が暗号化されずに流れることの受け入れ。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

@@ -1,0 +1,27 @@
+# 変更セット REV-081（2026-10-20 第48便: 複数のセッションの番号の重なりの解消）
+# 適用: design/tools/apply_revision.py REV-081
+id: REV-081
+date: '2026-10-20'
+summary: 二つのセッションが status.md に同じ「第45便」を書いていた。時系列に並べ直した（第45便 P6 の調査、第46便 運用の条件 REV-079、第47便 ガイドとアンテナ間隔 REV-080）。番号を取り合わないように、REV・DEC・便の番号を排他的なファイルの作成で予約する道具 design/tools/reserve_ids.py（単体の試験 5 件）を足し、apply_revision.py は予約だけの REV を適用しないようにした（DEC-150）。
+basis_refs:
+- DEC-150
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-150
+  kind: approval
+  status: answered
+  asked_on: '2026-10-20'
+  answered_on: '2026-10-20'
+  channel: chat
+  question: 二つのセッションが status.md の便の番号を重ねて書き、REV の番号も同じ作業ツリーで取り合いうる問題を解決するか（AI の報告を引用した指示）
+  answer_verbatim: 'この問題を解決せよ
+
+    '
+  affected_refs: []
+  resulting_refs: []
+  note: 人が引用した AI の報告は、status.md の第45便の重なりと、REV の番号の取り合いの 2 点。対応：(1) status.md の便を時系列に並べ直した（第46便→第47便、AI の第45便→第46便）。作業記録の見出しも直した。(2) 道具 reserve_ids.py：REV は design/revisions/REV-NNN.yaml を、DEC・便は design/reports/reservations/ の印のファイルを O_CREAT|O_EXCL で作って番号を取る。次の番号は使用中の最大＋1（REV のファイル、model.yaml と REV のファイルの DEC、status.md の便、印）。(3) apply_revision.py は中身が予約の印だけの REV を拒否する。設計の正本の内容は変えていない（基盤の作業）。もう一つのセッション（gnss_localization_submodule 責務設計）に使い方を知らせる。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []
