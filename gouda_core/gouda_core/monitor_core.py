@@ -45,6 +45,15 @@ CONFIG_FIELDS = OrderedDict([
     ('gnss_main_mount_x_m', 'number'), ('gnss_main_mount_y_m', 'number'), ('gnss_main_mount_z_m', 'number'),
     ('gnss_aux1_mount_x_m', 'number'), ('gnss_aux1_mount_y_m', 'number'), ('gnss_aux1_mount_z_m', 'number'),
 ])
+# /config 「自律走行の出力」 tab (REV-118, DEC-181, IFD-52): the dead-band compensation of gouda_motion_controller (DEC-171
+# plan A), a minimum stick amount and a threshold per direction. 'fraction' = a stick amount in [0, 1). Kept in its own file
+# (motion_compensation.json) so that the sensor /config copied with each map does not change.
+MOTION_COMPENSATION_FIELDS = OrderedDict([
+    ('forward_min', 'fraction'), ('forward_threshold', 'fraction'),
+    ('reverse_min', 'fraction'), ('reverse_threshold', 'fraction'),
+    ('turn_min', 'fraction'), ('turn_threshold', 'fraction'),
+])
+NUMERIC_KINDS = ('number', 'fraction')
 
 
 @dataclass
@@ -257,11 +266,13 @@ class MonitorCore:
 
 
 class SensorConfig:
-    """/config (IFD-26): persisted JSON, fields UNKNOWN until a measured value is entered (RQ-I070)."""
+    """/config (IFD-26; with fields=MOTION_COMPENSATION_FIELDS the 「自律走行の出力」 tab, IFD-52): persisted JSON, fields UNKNOWN
+    until a value is entered (RQ-I070)."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, fields: Optional[OrderedDict] = None):
         self.path = Path(path)
-        self.values = OrderedDict((k, UNKNOWN) for k in CONFIG_FIELDS)
+        self.fields = fields if fields is not None else CONFIG_FIELDS
+        self.values = OrderedDict((k, UNKNOWN) for k in self.fields)
         self.config_revision = 0
         self.updated_at: Optional[float] = None
         self.load()
@@ -273,16 +284,17 @@ class SensorConfig:
             return False
         if not isinstance(raw, dict): return False
         vals = raw.get('values', {})
-        for k in CONFIG_FIELDS:
+        for k in self.fields:
             v = vals.get(k, UNKNOWN)
             self.values[k] = v if self._valid(k, v) else UNKNOWN
         self.config_revision = int(raw.get('config_revision', 0)); self.updated_at = raw.get('updated_at')
         return True
 
     def _valid(self, key: str, value) -> bool:
-        kind = CONFIG_FIELDS[key]
+        kind = self.fields[key]
         if value == UNKNOWN: return True
         if kind == 'number': return isinstance(value, (int, float)) and not isinstance(value, bool)
+        if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
         if kind == 'axes': return isinstance(value, str) and sensor_extrinsics.validate_axis_mapping(value) is None
         return isinstance(value, str) and value != ''
 
@@ -290,13 +302,15 @@ class SensorConfig:
         """Apply validated changes and persist atomically. Unknown keys or invalid values are refused as a whole."""
         parsed = {}
         for k, v in changes.items():
-            if k not in CONFIG_FIELDS: return False, f'unknown config field {k!r}'
-            if CONFIG_FIELDS[k] == 'number' and isinstance(v, str) and v.strip() not in ('', UNKNOWN):
+            if k not in self.fields: return False, f'unknown config field {k!r}'
+            if self.fields[k] in NUMERIC_KINDS and isinstance(v, str) and v.strip() not in ('', UNKNOWN):
                 try: v = float(v)
                 except ValueError: return False, f'{k}: not a number ({v!r})'
             if isinstance(v, str) and v.strip() in ('', UNKNOWN): v = UNKNOWN
-            if CONFIG_FIELDS[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.validate_axis_mapping(v):
+            if self.fields[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.validate_axis_mapping(v):
                 return False, f'{k}: {sensor_extrinsics.validate_axis_mapping(v)}'
+            if self.fields[k] == 'fraction' and v != UNKNOWN and not self._valid(k, v):
+                return False, f'{k}: {v!r} is outside [0, 1) (a stick amount)'
             if not self._valid(k, v): return False, f'{k}: invalid value {v!r}'
             parsed[k] = v
         if not parsed: return True, 'no change'
@@ -309,9 +323,9 @@ class SensorConfig:
         except OSError as e:
             return False, f'saved in memory but writing {self.path} failed: {e}'
         notes = [f'{k} is left-handed (not a rotation; base_link axes are used for it)' for k, v in parsed.items()
-                 if CONFIG_FIELDS[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.determinant(sensor_extrinsics.parse_axis_mapping(v)) < 0]
+                 if self.fields[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.determinant(sensor_extrinsics.parse_axis_mapping(v)) < 0]
         return True, f'config revision {self.config_revision} saved ({len(parsed)} field(s))' + ('. WARNING: ' + '; '.join(notes) if notes else '')
 
     def snapshot(self) -> dict:
-        return {'values': dict(self.values), 'kinds': dict(CONFIG_FIELDS), 'config_revision': self.config_revision, 'updated_at': self.updated_at,
+        return {'values': dict(self.values), 'kinds': dict(self.fields), 'config_revision': self.config_revision, 'updated_at': self.updated_at,
                 'path': str(self.path), 'unknown_count': sum(1 for v in self.values.values() if v == UNKNOWN)}

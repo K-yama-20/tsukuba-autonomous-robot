@@ -4,6 +4,9 @@ Subscribes mode/state (IFD-01, transient_local), record/status (IFD-12, transien
 reads the node names on the graph periodically (RQ-I033). Calls the mode services of gouda_mode_manager (IFD-02..07)
 and the record services of gouda_recorder (IFD-08..11) when a button is pressed; it holds no mission state of its own
 (SO-03: only the sensor /config, the selection inputs and unsaved edits).
+/config 「自律走行の出力」 tab (REV-118, DEC-181): the dead-band compensation values of gouda_motion_controller are kept in
+<data_root>/config/motion_compensation.json and published on config/motion_compensation (IFD-52, transient_local) at start-up
+and on every save; gouda_motion_controller uses them from its next output on.
 
 The page is served on 127.0.0.1 by MonitorServer (no screen forwarding, RQ-I044). A display interruption is not a stop
 trigger; after a reconnect the page fetches the current latched state (DEC-014, TS-10).
@@ -30,13 +33,13 @@ from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import PointCloud2, Imu, NavSatFix
-from gouda_interfaces.msg import SoftwareMode, DecisionEvent
+from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionCompensation
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
 from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
-from gouda_core.monitor_core import MonitorCore, SensorConfig
+from gouda_core.monitor_core import MonitorCore, SensorConfig, MOTION_COMPENSATION_FIELDS, UNKNOWN
 from gouda_core import monitor_core
 from gouda_core.monitor_server import MonitorServer
 from gouda_core.map_database import MapDatabase
@@ -103,6 +106,8 @@ class MonitorNode(Node):
         self.core = MonitorCore(clock=self._now)
         self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
+        self.motion_comp = SensorConfig(data_root / 'config' / 'motion_compensation.json', MOTION_COMPENSATION_FIELDS)   # IFD-52
+        self.motion_comp_pub = self.create_publisher(MotionCompensation, 'config/motion_compensation', LATCHED)
         self.maps_index_path = data_root / 'maps' / 'index.json'   # IFD-29 (read-only view of the map database)
         self.map_db = MapDatabase(data_root / 'maps')
         self.routes = wpmod.RouteDatabase(data_root / 'routes')    # IFD-30 / IFD-41 (waypoint_manager, stage 5-4)
@@ -142,9 +147,12 @@ class MonitorNode(Node):
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
-                                                '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving},
-                                    post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert})
+                                                '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving,
+                                                '/api/motion_compensation': self._get_motion_comp},
+                                    post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert,
+                                                 '/api/motion_compensation': self._save_motion_comp})
         url = self.server.start()
+        self._publish_motion_comp()
         self._publish_settings('startup')
         self.get_logger().info(f'gouda_monitor page: {url} (127.0.0.1 only; open it on this PC desktop)')
 
@@ -374,13 +382,39 @@ class MonitorNode(Node):
         if ok: self._publish_settings('config_saved')
         return {'ok': ok, 'message': msg, 'config': self._config_snapshot()}
 
+    # ---- /config 「自律走行の出力」 (IFD-52, DEC-181) ----
+    def _get_motion_comp(self, rest, query):
+        with self._lock:
+            return self.motion_comp.snapshot()
+
+    def _save_motion_comp(self, rest, body):
+        with self._lock:
+            ok, msg = self.motion_comp.update(body, self._now())
+            self.core.on_command_result('motion_compensation_update', ok, msg)
+        self.server.notify(self.core.connection_revision)
+        if ok:
+            self._publish_motion_comp()
+            self._publish_settings('motion_compensation_saved')
+        return {'ok': ok, 'message': msg, 'config': self._get_motion_comp('', '')}
+
+    def _publish_motion_comp(self):
+        """IFD-52: every field; UNKNOWN goes out as NaN (that direction is not compensated by gouda_motion_controller)."""
+        with self._lock:
+            snap = self.motion_comp.snapshot()
+        m = MotionCompensation(); m.header.stamp = self.get_clock().now().to_msg(); m.config_revision = int(snap['config_revision'])
+        for k in MOTION_COMPENSATION_FIELDS:
+            v = snap['values'][k]
+            setattr(m, k, math.nan if v == UNKNOWN else float(v))
+        self.motion_comp_pub.publish(m)
+
     def _publish_settings(self, reason: str):
         """Record the effective settings (UI parameters and /config revision) as a DecisionEvent (RQ-I015, DEC-073)."""
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
         d.event = 'settings'; d.transition_id = ''; d.reason = f'settings recorded ({reason})'; d.run_id = ''; d.section_id = -1
         with self._lock:
-            cfg = self.config.snapshot()
-        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'], 'reason': reason}, ensure_ascii=False)
+            cfg = self.config.snapshot(); mc = self.motion_comp.snapshot()
+        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'],
+                                'motion_compensation_revision': mc['config_revision'], 'motion_compensation_values': mc['values'], 'reason': reason}, ensure_ascii=False)
         self.decision_pub.publish(d)
 
     def _command(self, name: str, body: dict) -> dict:

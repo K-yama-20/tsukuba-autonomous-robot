@@ -5,7 +5,9 @@ What it talks to (all names from the design):
 - Nav2 (ND-10): lifecycle_manager_navigation/manage_nodes (STARTUP at TR-05, RESET at TR-11 / TR-12; IFD-36), the parameters
   of map_server (map, IFD-24), filter_mask_server and costmap_filter_info_server (the waypoint set's mask, IFD-41 / IFD-42) set
   before STARTUP, and navigate_through_poses (IFD-13: goal, feedback, result, cancel).
-- the vehicle output ND-11 / ND-12: lifecycle configure + activate at TR-05, deactivate at TR-11 / TR-12 (IFD-36).
+- the vehicle output ND-11 / ND-12: lifecycle configure + activate at TR-05, deactivate at TR-11 / TR-12 (IFD-36). vehicle_bridge
+  (ND-12) alone is also configured (not activated: no COMMAND) after TR-03, so that the ESP32 STATUS with the gamepad input is
+  published and recorded while mapping (DEC-169, DEC-180); it stays configured after TR-04.
 - localization/initial_pose (IFD-34): the human's initial pose, sent once at TR-05.
 - speed_limit (IFD-14), costmap_filter_info / speed_filter_mask (IFD-42): observed only, for speed_limit_application_state.
 Waiting: a service or action server that is not there makes the step fail at once (recorded). A started call is waited for
@@ -93,7 +95,7 @@ class AutonomyClient:
             return self._token
 
     def _check(self, token):
-        if token != self._token:
+        if token is not None and token != self._token:   # None: a call that no pause / end abandons (TR-03's bridge configure)
             raise Abandoned()
 
     def _call(self, client, request, what, token):
@@ -127,6 +129,21 @@ class AutonomyClient:
             if st != State.PRIMARY_STATE_ACTIVE:
                 raise StepFailed(f'{n} is in lifecycle state {st}, not active')
         return steps
+
+    def configure_bridge(self, record: Callable) -> None:
+        """After TR-03 (DEC-169, DEC-180): configure vehicle_bridge when it is unconfigured; never activate it. A failure is
+        recorded and never stops mapping."""
+        n = 'vehicle_bridge'
+        try:
+            st = self._call(self.get[n], GetState.Request(), f'{n} get_state', None).current_state.id
+            if st != State.PRIMARY_STATE_UNCONFIGURED:
+                record('vehicle_bridge_configure_skipped', f'{n} is already configured (lifecycle state {st}); nothing to do', {'state': st}); return
+            req = ChangeState.Request(); req.transition.id = Transition.TRANSITION_CONFIGURE
+            if not self._call(self.change[n], req, f'{n} configure', None).success:
+                raise StepFailed(f'{n}: configure failed (see its log/decision: configure_refused)')
+            record('vehicle_bridge_configured', f'{n} configured for mapping: ESP32 STATUS (gamepad input) is published and recorded; no COMMAND is sent (not activated)', {})
+        except StepFailed as e:
+            record('vehicle_bridge_configure_failed', f'{e}; mapping continues without the ESP32 STATUS', {'error': str(e)})
 
     # ---- TR-05 / TR-10 / TR-11 / TR-12 steps ----
     def start(self, token, mission: ac.Mission, initial_pose: PoseWithCovarianceStamped, record: Callable) -> None:

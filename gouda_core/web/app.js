@@ -13,7 +13,7 @@
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === b));
     document.querySelectorAll('.tabpane').forEach((p) => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
-    if (b.dataset.tab === 'config') loadConfig();
+    if (b.dataset.tab === 'config') { loadConfig(); loadMotionComp(); }
     if (b.dataset.tab === 'maps') loadMapSettings();
   }));
 
@@ -302,6 +302,40 @@
       return `<label>${esc(k)} <span class="dim">(${esc(c.kinds[k])})</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;
     }).join('');
   }
+  // ---- /config sub-tabs (REV-118): the page keeps only which one is open; the values live on the server ----
+  document.querySelectorAll('.subtab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.subtab').forEach((x) => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.subpane').forEach((p) => p.classList.toggle('active', p.dataset.subpane === b.dataset.subtab));
+    if (b.dataset.subtab === 'motion') loadMotionComp(); else loadConfig();
+  }));
+
+  // ---- /config 自律走行の出力: dead-band compensation (IFD-52, DEC-181) ----
+  const MC_LABELS = {
+    forward_min: '前進 最低倒し量', forward_threshold: '前進 しきい値',
+    reverse_min: '後退 最低倒し量', reverse_threshold: '後退 しきい値',
+    turn_min: '旋回 最低倒し量', turn_threshold: '旋回 しきい値',
+  };
+  async function loadMotionComp() {
+    const r = await fetch('/api/motion_compensation'); renderMotionComp(await r.json());
+  }
+  function renderMotionComp(c) {
+    const dirs = ['forward', 'reverse', 'turn'].filter((d) => c.values[d + '_min'] !== 'UNKNOWN' && c.values[d + '_threshold'] !== 'UNKNOWN');
+    const names = { forward: '前進', reverse: '後退', turn: '旋回' };
+    $('mc-rev').textContent = `revision ${c.config_revision} / 補償する向き: ${dirs.length ? dirs.map((d) => names[d]).join('・') : 'なし'} / ${c.path}`;
+    $('mc-form').innerHTML = Object.keys(c.values).map((k) => {
+      const v = c.values[k]; const unknown = v === 'UNKNOWN';
+      return `<label><span>${esc(MC_LABELS[k] || k)} <span class="dim">(${esc(k)})</span></span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;
+    }).join('');
+  }
+  $('mc-save').addEventListener('click', async () => {
+    const data = {}; new FormData($('mc-form')).forEach((v, k) => { data[k] = v; });
+    try {
+      const r = await fetch('/api/motion_compensation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const j = await r.json(); $('mc-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('mc-msg').className = j.ok ? 'cyan' : 'amber';
+      if (j.config) renderMotionComp(j.config);
+    } catch (err) { $('mc-msg').textContent = 'request failed: ' + err; $('mc-msg').className = 'amber'; }
+  });
+
   $('config-save').addEventListener('click', async () => {
     const data = {}; new FormData($('config-form')).forEach((v, k) => { data[k] = v; });
     const r = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });

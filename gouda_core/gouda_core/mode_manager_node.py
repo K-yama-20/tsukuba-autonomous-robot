@@ -19,7 +19,8 @@ sends the initial pose (IFD-34), starts Nav2 (IFD-36), activates ND-11 / ND-12 a
 (stop_reason node_failure, recorded with TR-07). TR-06 一時停止 (hold, goal cancel), TR-10 再開 in the same process (a new goal
 from the first waypoint not yet passed; after a PC restart the resume is refused: 5-7), TR-11 / TR-12 終了 (cancel, ND-11 /
 ND-12 deactivate, Nav2 RESET, auto log stop), TR-07 (Nav2 failed) and TR-08 (last waypoint reached) from the result.
-TR-05 starts ND-08 (GLIM odometry only, before Nav2) and needs the ND-07 node; in this build ND-07 does not exist, so on the
+TR-03 also configures vehicle_bridge (ND-12; not activated, no COMMAND) after the transition so that the ESP32 STATUS is recorded
+while mapping (DEC-169, DEC-180); it stays configured after TR-04. TR-05 starts ND-08 (GLIM odometry only, before Nav2) and needs the ND-07 node; in this build ND-07 does not exist, so on the
 vehicle the start is refused (no self-localisation, no driving). Recovery (TR-13..16) is stage 5-7.
 
 Settings: state_root (PRM-25) launch argument; params_dir / trial (launch: Nav2 readiness); state_publish_period_s (PRM-16, unresolved -> publish on change);
@@ -286,6 +287,8 @@ class ModeManagerNode(Node):
                                {'origin_id': origin_id, 'config_dir': str(run.config_dir), 'dump_dir': str(run.dump_dir), 'points_topic': GLIM_POINTS_TOPIC, 'imu_topic': GLIM_IMU_TOPIC, 'frames': GLIM_FRAMES,
                                 'T_lidar_imu': ext['T_lidar_imu'], 'config_revision': cfg.config_revision})
         self.request_auto_record('map_start', 'TR-03')   # asynchronous; a failure never stops mapping (DEC-071)
+        # DEC-169 / DEC-180: connect vehicle_bridge (configure only, no COMMAND) after the transition; a failure never stops mapping
+        self._after_transition = lambda: self.auto.configure_bridge(self._rec('TR-03'))
         return True, 'mapping started'
 
     def _watch_glim(self, proc, run, origin_id):

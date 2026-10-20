@@ -484,6 +484,7 @@ lines:
       - IFD-15
       - IFD-41
       - IFD-42
+      - IFD-52
       - ND-03
       - ND-10
       - ND-11
@@ -492,6 +493,7 @@ lines:
       - TS-04
       - TS-06
       - TS-16
+      - TS-40
     issue_refs:
       - H-001
   - line: 27
@@ -1129,12 +1131,14 @@ lines:
     referenced_by:
       - IFD-20
       - IFD-26
+      - IFD-52
       - ND-02
       - ND-13
       - SO-03
       - SO-10
       - TS-25
       - TS-36
+      - TS-40
     issue_refs: []
   - line: 100
     requirement_id: RQ-I074
@@ -1205,6 +1209,7 @@ lines:
     authority_file: FILE-INTENT-V4
     referenced_by:
       - IFD-26
+      - IFD-52
       - ND-11
       - ND-12
       - ND-13

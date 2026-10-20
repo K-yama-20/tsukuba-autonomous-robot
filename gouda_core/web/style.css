@@ -142,3 +142,12 @@ input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px s
 .bagbar-run.done { width: 100%; animation: none; }
 .bagbar-run.fail { width: 100%; animation: none; background: var(--red, #c33); }
 @keyframes bagrun { from { left: 0; } to { left: 70%; } }
+/* /config sub-tabs (REV-118): センサ取付・座標方向 / 自律走行の出力 */
+.subtabs { display: flex; gap: 4px; margin-bottom: 6px; }
+.subtab { background: transparent; color: var(--fg-dim); border: 1px solid var(--line); padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.subtab small { margin-left: 6px; font-family: var(--mono); font-size: 9px; }
+.subtab.active { color: var(--bg); background: var(--cyan); border-color: var(--cyan); }
+.subpane { display: none; }
+.subpane.active { display: block; }
+.note.amber { color: var(--amber); }
+.cfg.mc { margin-top: 8px; }

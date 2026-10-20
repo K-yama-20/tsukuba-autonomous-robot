@@ -34562,7 +34562,10 @@ entities:
       - G-INIT-POSE-GNSS
     interpretation: REV-108（DEC-174）：rosbag 
       の保存の始まりと同時にポップアップで進捗（往復するバー、経過時間、書き出したファイルの大きさと増え方）を示し、終わったら完了・失敗を示す。 REV-112（DEC-177）：画面上部の USB 
-      の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。
+      の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。 
+      REV-118（DEC-181）：/config の中をタブに分け、センサの取付の設定に加えて「自律走行の出力」タブで不感帯の補償の最低倒し量としきい値（前進・後退・旋回）を入力・保存する。保存先は 
+      <data_root>/config/motion_compensation.json（UNKNOWN は推測で埋めない）。起動時と保存のたびに IFD-52 
+      を発行し、DecisionEvent（event=settings）に残す。
     sensitivity:
       - operation
     requirement_refs:
@@ -34575,7 +34578,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-112
+    revision_ref: REV-118
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34619,6 +34622,7 @@ entities:
         - IFD-39
         - IFD-41
         - IFD-28
+        - IFD-52
       subscribes_refs:
         - IFD-01
         - IFD-12
@@ -34686,7 +34690,9 @@ entities:
       - G-RECOVERY-COUNT
     interpretation: 'REV-062: 工程 5-6 で TR-05・06・07・08・10（同じプロセスの中だけ）・11・12 を実装（autonomy_core・autonomy_client）。PC
       再起動後の再開と自動復帰（TR-13〜16）は 5-7。 REV-063（DEC-126）: 地図作成の間（TR-03〜TR-04）、IFD-47〜50 を全項目のまま作業フォルダの gnss.jsonl に書き、原図の登録（IFD-29）で原図の横に置き、SHA-256
-      と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。'
+      と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。 REV-118（DEC-169・DEC-180）：TR-03 の後に、IFD-36
+      で vehicle_bridge（ND-12）を configure する（非同期、activate はしない）。失敗は DecisionEvent（vehicle_bridge_configure_failed）に残し、地図作成は止めない。TR-04
+      では何もしない（接続したまま）。'
     sensitivity:
       - safety
       - operation
@@ -34707,7 +34713,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-116
+    revision_ref: REV-118
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -35226,7 +35232,9 @@ entities:
       - H-003
       - H-009
     interpretation: REV-106：DEC-171 で不感帯の補償（案 A）を方針として承認（実装は許可待ち）。後退の正規化は 
-      DEC-172。最高速度の規則（SR-06・07）は車椅子側の速度上限で守る（DEC-170、人の確定）。
+      DEC-172。最高速度の規則（SR-06・07）は車椅子側の速度上限で守る（DEC-170、人の確定）。 
+      REV-118（DEC-180・181）：後退の正規化（PRM-78）と不感帯の補償（IFD-52）を実装。補償の値は monitor の /config 
+      の「自律走行の出力」タブで人が入れ、保存したらすぐ使う。未設定の向きは補償しない。
     sensitivity:
       - safety
       - operation
@@ -35236,7 +35244,7 @@ entities:
       - RQ-I044
       - RQ-I036
       - RQ-I076
-    revision_ref: REV-106
+    revision_ref: REV-118
     ros_node:
       node_name: gouda_motion_controller
       responsibilities:
@@ -35244,12 +35252,14 @@ entities:
         - motion_hold=true、motion_hold の期限切れ、または cmd_vel の途絶 700 
           ms（PRM-08、DEC-048）・非有限値で中立を出す（DEC-004、RQ-I063）
         - 中立を含む操作値を一定周期で発行し続ける（bridge の送信継続の入力）
-        - cmd_vel の後段で独自に速度を抑える処理は加えない（RQ-I020）
+        - cmd_vel の後段で独自に速度を抑える処理は加えない（RQ-I020）。例外は不感帯の補償のしきい値未満を中立にすること（DEC-171 案 A、人の承認）
         - lifecycle node。活性（active）の間だけ IFD-16 を PRM-41 の周期で発行し、非活性では発行しない（手動走行・事前地図作成では非中立を送らない）
-        - cmd_vel の正規化は linear.x／PRM-39、angular.z／PRM-40 を [-1, 1] に飽和したもの。cmd_vel 
-          の後段で速度を抑えない（RQ-I020）。motion_hold の期限切れは最後の受信から PRM-42
+        - cmd_vel の正規化は linear.x が 0 以上なら PRM-39、負なら PRM-78 で割り（DEC-172）、angular.z は PRM-40 で割って、[-1, 1] 
+          に飽和したもの。motion_hold の期限切れは最後の受信から PRM-42
+        - 不感帯の補償（DEC-171 案 A、DEC-181）：IFD-52 の前進・後退・旋回の最低倒し量としきい値で、正規化した倒し量を補償する。受け取ったらすぐ使い、受け取るたびに 
+          DecisionEvent に残す。未設定の向きは補償しない。中立の条件は補償より先に効く
         - 設定はすべて generated/params/gouda_motion_controller.yaml（未確定値は trial 
-          ファイル）から読み、数値をハードコードしない（RQ-I076、DR-15）
+          ファイル）から読み、数値をハードコードしない（RQ-I076、DR-15）。補償の値は人が monitor の /config で入れる（IFD-52）
       absorbs_module_refs:
         - M-012
       active_in_mode_refs:
@@ -35264,6 +35274,7 @@ entities:
         - IFD-15
         - IFD-25
         - IFD-40
+        - IFD-52
       serves_refs: []
       calls_refs: []
       owned_state_refs:
@@ -35299,7 +35310,9 @@ entities:
       boot_token か設定が無効のとき）。lifecycle の状態は変えない。切断中の書き込みは記録なしで捨てる。自律走行は切断で一時停止にしない（人の決定）。 
       REV-112（DEC-177）：ESP32 の USB の切断・再接続を、事前地図作成と自律走行のセッションの中だけ数え（一時停止と再開では続ける）、IFD-51 
       に出す。切断の記録（serial_disconnected）の理由の文は固定にし、原因と回数は details に入れる（monitor の 
-      ×回数が切断回数になる）。セッションの始まりと終わりも記録する（link_count_started・link_count_ended）。
+      ×回数が切断回数になる）。セッションの始まりと終わりも記録する（link_count_started・link_count_ended）。 
+      REV-118（DEC-169・DEC-180）：事前地図作成の開始で configure される。目的は、事前地図作成中のゲームパッドの指令（/esp32/status の 
+      manual_x・manual_y など）を rosbag に記録すること（人の発言）。あわせて事前地図作成のセッションの USB の切断回数（IFD-51）を数えられる。
     sensitivity:
       - safety
       - operation
@@ -35310,7 +35323,7 @@ entities:
       - RQ-I068
       - RQ-I036
       - RQ-I076
-    revision_ref: REV-112
+    revision_ref: REV-118
     ros_node:
       node_name: vehicle_bridge
       responsibilities:
@@ -35346,7 +35359,8 @@ entities:
       calls_refs: []
       owned_state_refs:
         - SO-09
-      placement_rationale: 手動走行・事前地図作成では非活性（非中立を送らない）。ESP32 からの STATUS の利用は H-004 の回答まで設計に含めない。
+      placement_rationale: 手動走行・事前地図作成では非活性（非中立を送らない）。事前地図作成の開始（TR-03）で mode_manager が configure 
+        する（DEC-169・DEC-180。接続・設定の登録・STATUS の受信と発行まで、COMMAND は送らない）。事前地図作成の終了後と自律走行の終了後は inactive のまま接続を保つ。
   - id: ND-13
     kind: ros_node
     name: 静的TF発行（車体・センサ取付、robot_state_publisher 等）
@@ -37788,7 +37802,7 @@ entities:
       - RQ-I004
       - RQ-I015
       - RQ-I081
-    revision_ref: REV-032
+    revision_ref: REV-118
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-MAP
@@ -37806,6 +37820,8 @@ entities:
           record/log/start_pre_mapping。契機は人の地図作成開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも地図作成の開始を止めない。失敗は DecisionEvent と
           monitor のポップアップ
         - 設定状況を記録（地図作成前：RQ-I015。GLIM の topic／frame・設定ディレクトリを DecisionEvent に残す）
+        - vehicle_bridge（ND-12）を configure する（IFD-36、DEC-169・DEC-180）。遷移の後に非同期で行い、activate はしない（COMMAND 
+          を送らない）。既に configure 済みなら何もしない。失敗は DecisionEvent（vehicle_bridge_configure_failed）に残し、地図作成の開始を止めない
   - id: TR-04
     kind: transition
     name: 事前地図作成 → 手動走行（地図作成終了ボタン。遷移先は H-008 の案）
@@ -44830,13 +44846,14 @@ entities:
       - PRM-39
     issue_refs:
       - Q-06
-    interpretation: 'REV-116: DEC-172 で人が 1.7 km/h を指定（1700/3600＝0.472 m/s）。motion_controller はまだこの値を読まない（後退の正規化の実装は許可待ち）。'
+    interpretation: 'REV-116: DEC-172 で人が 1.7 km/h を指定（1700/3600＝0.472 m/s）。REV-118（DEC-180）：motion_controller が
+      linear.x の負の値をこの値で割る。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I063
       - RQ-I075
-    revision_ref: REV-116
+    revision_ref: REV-118
     parameter:
       owner_ref: ND-11
       value: 0.472
@@ -44855,6 +44872,88 @@ entities:
       value_type: double
       apply_timing: launch
     approval_decision_ref: DEC-172
+  - id: IFD-52
+    kind: designed_interface
+    name: config/motion_compensation（不感帯の補償の設定。monitor の /config「自律走行の出力」タブ → motion_controller）
+    source_refs:
+      - SRC-I098
+      - SRC-I026
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-26
+      - IFD-16
+    issue_refs: []
+    interpretation: REV-118（DEC-181、DEC-171 案 A）で追加。保存先は <data_root>/config/motion_compensation.json（センサの取付の 
+      sensor_config.json とは別のファイル。地図に添える /config の写しを変えないため）。しきい値より下を中立にするのは DEC-171 案 
+      A（人の承認）による。補償しない（未設定）ときは今の正規化のまま。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I070
+      - RQ-I076
+      - RQ-I020
+    revision_ref: REV-118
+    designed_interface:
+      transport: topic
+      name: config/motion_compensation
+      message_type: gouda_interfaces/msg/MotionCompensation（header, uint32 config_revision, float64 
+        forward_min, forward_threshold, reverse_min, reverse_threshold, turn_min, turn_threshold。未設定は NaN）
+      standard_type: false
+      custom_type_reason: 前進・後退・旋回の最低倒し量としきい値と設定版を、未設定を区別して一つにまとめる標準型がない。
+      purpose: configuration
+      owner_ref: ND-02
+      publisher_refs:
+        - ND-02
+      consumer_refs:
+        - ND-11
+        - ND-04
+      unit: 倒し量（正規化操作値の大きさ、0 以上 1 未満）
+      frame:
+      time_semantics: monitor の起動時と /config の保存のたびに発行（周期の値は持たない）。transient_local により ND-11 
+        の再起動後も最新の値を受け取る。ND-11 は受け取ったらすぐ次の出力から使う（走行中も。DEC-181）。受け取っていない間・未設定の向きは補償しない。補償の式（DEC-171 案 
+        A）：その向きの倒し量の大きさ r がしきい値未満なら 0、しきい値以上なら 最低倒し量＋(1−最低倒し量)×r（符号は元のまま）。前進・後退は前後の軸の符号で、旋回は左右とも同じ値。
+      qos:
+        reliability: reliable
+        durability: transient_local
+        history_depth: 1
+      version_dependency:
+        status: none
+        evidence: []
+        note: ''
+      legacy_refs: []
+  - id: TS-40
+    kind: test
+    name: 後退の正規化と不感帯の補償（motion_controller）
+    source_refs:
+      - SRC-I026
+      - SRC-I098
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-52
+      - PRM-78
+      - TS-07
+    issue_refs:
+      - Q-06
+    interpretation: REV-118（DEC-172、DEC-181）で追加。
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I020
+      - RQ-I070
+    revision_ref: REV-118
+    test:
+      execution_status: 未実行
+      stage: 車体出力
+      procedure: motion_controller の単体（test_motion_core.py）：後退の cmd_vel を PRM-78 で、前進を PRM-39 
+        で割ること。補償の設定を与えて、しきい値の前後・最低倒し量・頭打ち・符号・前進と後退と旋回の別・未設定の向きは補償しないこと・設定の差し替えがすぐ効くこと・中立の条件（TS-07）は補償より先に効くこと。monitor
+        の単体（test_monitor_core.py）：設定の保存・再読込・範囲外の拒否。ROS の上で monitor の保存から motion_controller の出力が変わること（VM）。
+      observe: joystick_command の値、DecisionEvent（補償の設定の受信、出力の理由）
+      expected: 未設定では今の正規化と同じ値。設定した向きだけが式どおりに変わり、倒し量の大きさは 1 を超えない。中立の条件では補償の設定に関係なく中立。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -56563,6 +56662,54 @@ decisions:
       の記載値）に置き換える。設計への影響（復旧できないときの扱い、DEC-008・H-006、TR-13〜16、TS-06・09）は G-RECOVERY-COUNT に一覧した。設計の変更は工程 5-7 
       の設計のときに行う。
     disposition: answered
+  - id: DEC-180
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 実装の許可（handover_2026-10-21.md §5 の 1：vehicle_bridge を事前地図作成でも configure する（DEC-169）、§5 の 
+      3：後退の正規化で PRM-78 を motion_controller で使う（DEC-172））。あわせて、事前地図作成の終了後の vehicle_bridge 
+      の扱い（選択肢：接続したまま（推奨）／切断する）
+    answer_verbatim: "DEC-169, DEC-172を許可する。\n（選択式の質問「DEC-169 の vehicle_bridge は、地図作成の開始で接続します（PC の指令は送らず、接続に失敗しても地図作成は止めない）。地図作成の終了後はどうしますか？」への回答）「接続したまま
+      (Recommended)」\n"
+    affected_refs:
+      - ND-12
+      - ND-11
+      - ND-03
+      - TR-03
+      - PRM-78
+    resulting_refs:
+      - TR-03
+      - ND-11
+    note: DEC-169 の実装（第72便の案）：mode_manager が TR-03 の後に vehicle_bridge を configure する（非同期、activate はしないので 
+      COMMAND は送らない）。失敗は DecisionEvent に残し、地図作成は止めない。TR-04 の後も configure のまま（自律走行の終了 TR-11・12 
+      の後と同じ、inactive）。目的は人の発言（原文、DEC-169 の前）「事前地図作製中に、btコントローラからの司令をrosbagに記録する」で、/esp32/status（IFD-38）が 
+      rosbag（-a）に入る。DEC-172 の実装：linear.x が負のときは PRM-78 で割る。
+    disposition: answered
+  - id: DEC-181
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 不感帯の補償（DEC-171 案 A）の最低倒し量としきい値の設定の場所（人の要望）と、その作りの 3 点（選択式）：設定の項目、未設定のときの動き、保存したときの反映の時期
+    answer_verbatim: "DEC-171について追加の要望がある。最低倒し量としきい値はmonitorで設定できるようにしてほしい。/configの中に新しいタブを作って、そこで設定できるようにせよ。\n\
+      （選択式の質問への回答）「不感帯の補償で、/config の新しいタブに置く値はどれにしますか？」→「最低倒し量3つ＋しきい値3つ」。「値がまだ入っていない（UNKNOWN の）ときは、どう動かしますか？」→「補償しない（今の動き）
+      (Recommended)」。「/config で値を保存したら、いつ反映しますか？」→「保存したらすぐ」\n"
+    affected_refs:
+      - ND-11
+      - ND-02
+      - IFD-26
+      - RQ-I020
+    resulting_refs:
+      - IFD-52
+      - TS-40
+    note: 選択肢の説明（AI が示したもの）：「最低倒し量3つ＋しきい値3つ」＝しきい値も前進・後退・旋回で別々に持つ（設定は 6 
+      つ）。「補償しない（今の動き）」＝倒し量をそのまま出し、未設定だったことを記録に残す。「保存したらすぐ」＝走行中でも、保存した直後の指令から新しい値を使う。値は人が monitor 
+      で入れる運用値で、generated/params の PRM にはしない（センサの取付値の /config と同じ扱い。人の要望）。値の範囲は 0 以上 1 未満（倒し量の正規化の範囲 [-1, 1] 
+      の内側）。ある向きの最低倒し量としきい値のどちらかが未設定なら、その向きは補償しない。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -59229,6 +59376,30 @@ revisions:
     added_entity_ids: []
     modified_entity_ids:
       - PRM-10
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-118
+    date: '2026-10-21'
+    summary: 人の許可（DEC-180、原文）で、後退の正規化（DEC-172、PRM-78 を ND-11 で使う）と、事前地図作成の開始での vehicle_bridge の 
+      configure（DEC-169。PC 指令は送らない、失敗しても地図作成は止めない、終了後も接続したまま）を実装する。人の要望（DEC-181、原文）で、不感帯の補償（DEC-171 案 
+      A）の最低倒し量としきい値を前進・後退・旋回ごとに monitor の /config の新しいタブで設定し、保存したらすぐ ND-11 に反映する（IFD-52 を追加）。未設定の向きは補償しない。
+    basis_refs:
+      - DEC-180
+      - DEC-181
+      - DEC-169
+      - DEC-171
+      - DEC-172
+    added_entity_ids:
+      - IFD-52
+      - TS-40
+    modified_entity_ids:
+      - ND-02
+      - ND-03
+      - ND-11
+      - ND-12
+      - TR-03
+      - PRM-78
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

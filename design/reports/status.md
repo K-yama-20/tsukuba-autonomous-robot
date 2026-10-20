@@ -1,8 +1,15 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-117、第84便）。
+最終更新：2026-10-21（REV-118、第86便）。
 
 **引き継ぎ: `reports/handover_2026-10-21.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-17.md`、その §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第86便: 後退の正規化、不感帯の補償と /config のタブ、事前地図作成での vehicle_bridge の configure（REV-118、DEC-180・181）**（作業記録 `reports/worklog/2026-10-21_rev118_dec180_181_motion_bridge.md`）。
+- 人の許可で実装した。motion_controller は後退を PRM-78 で割る。不感帯の補償（前進・後退・旋回の最低倒し量としきい値）は、monitor の /config の新しいタブ「自律走行の出力」で入れ、保存したらすぐ使う（IFD-52）。未設定の向きは補償しない。事前地図作成の開始で vehicle_bridge を configure する（COMMAND は送らず、終了後も接続したまま）。
+- 試験: Mac 220 合格、VM 228 合格。VM の結合（地図作成で configure、STATUS あり・COMMAND 0 件、補償の保存から出力まで 8 項目 PASS）も合格。設計検査は違反 0・未判定 5。実機は未試験、VL-01（ポートを開くと ESP32 がリセットされるか）は未検証。commit はしていない。
+
+**第85便: 自律走行に向けた不足と完了の一覧（調査のみ）**（作業記録 `reports/worklog/2026-10-21_bin085_autonomy_readiness.md`、報告 `reports/autonomy_readiness_2026-10-21.md`）。
+- 実車での自律走行を止めているもの: ND-07 未実装（DEC-115）、Nav2 の実車の値（PRM-11・17・18・66〜73）未確定、Nav2 で使える 2D 地図がない（DEC-098・107）。vehicle_bridge・motion_controller は工程 5-5 のソフトウェアとして実装済みで、設定値はすべて承認済み。実機は未試験。改良（DEC-169・171・172）は許可待ち。変更なし。
 
 **第84便: 次のチャットへの引き継ぎ**（`reports/handover_2026-10-21.md`）。
 - 第60〜83便の状態、守ること、人の判断待ち（実装の許可 6 件、決定待ち）、人の作業（ESP32 の書き込みなど）をまとめた。人の指示で a9554a1 に commit し origin に push（main は未 merge、人の drawio・xlsx・*.bkp は含めない）。人の申告（2026-10-21）: ESP32 に firmware を書き込み済み。

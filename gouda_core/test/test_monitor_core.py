@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from gouda_core.monitor_core import MonitorCore, SensorConfig, freshness, Received, CONFIG_FIELDS  # noqa: E402
+from gouda_core.monitor_core import MOTION_COMPENSATION_FIELDS, MonitorCore, SensorConfig, freshness, Received, CONFIG_FIELDS  # noqa: E402
 from gouda_core import monitor_core  # noqa: E402
 
 
@@ -107,6 +107,36 @@ class SensorConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / 'cfg.json'; p.write_text('{broken')
             c = SensorConfig(p); self.assertEqual(c.config_revision, 0); self.assertTrue(all(v == 'UNKNOWN' for v in c.values.values()))
+
+
+class MotionCompensationConfigTests(unittest.TestCase):
+    """/config 「自律走行の出力」 (REV-118, DEC-181, IFD-52, TS-40): its own file, values are stick amounts in [0, 1)."""
+
+    def test_saved_values_persist_in_their_own_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'config' / 'motion_compensation.json'
+            c = SensorConfig(p, MOTION_COMPENSATION_FIELDS)
+            self.assertEqual(list(c.values), list(MOTION_COMPENSATION_FIELDS)); self.assertTrue(all(v == 'UNKNOWN' for v in c.values.values()))
+            ok, msg = c.update({'forward_min': '0.2', 'forward_threshold': '0'}, 5.0); self.assertTrue(ok, msg)
+            c2 = SensorConfig(p, MOTION_COMPENSATION_FIELDS)
+            self.assertEqual((c2.values['forward_min'], c2.values['forward_threshold'], c2.values['turn_min']), (0.2, 0.0, 'UNKNOWN'))
+            self.assertEqual(c2.config_revision, 1)
+            self.assertFalse((Path(d) / 'config' / 'sensor_config.json').exists(), 'the sensor /config is not touched')
+
+    def test_out_of_range_and_sensor_fields_are_refused(self):
+        with tempfile.TemporaryDirectory() as d:
+            c = SensorConfig(Path(d) / 'mc.json', MOTION_COMPENSATION_FIELDS)
+            for bad in ('1', '1.5', '-0.1', 'nan', 'inf'):
+                ok, msg = c.update({'reverse_min': bad}, 1.0); self.assertFalse(ok, bad)
+            self.assertEqual(c.config_revision, 0)
+            ok, msg = c.update({'lidar_mount_x_m': '0.1'}, 1.0); self.assertFalse(ok); self.assertIn('unknown config field', msg)
+            ok, msg = c.update({'turn_threshold': '0.05', 'turn_min': ''}, 2.0); self.assertTrue(ok, msg); self.assertEqual(c.values['turn_min'], 'UNKNOWN')
+
+    def test_out_of_range_value_on_disk_is_unknown(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'mc.json'; p.write_text('{"values": {"forward_min": 2, "turn_min": 0.3}, "config_revision": 7}')
+            c = SensorConfig(p, MOTION_COMPENSATION_FIELDS)
+            self.assertEqual(c.values['forward_min'], 'UNKNOWN', 'out of range on disk -> UNKNOWN'); self.assertEqual(c.values['turn_min'], 0.3)
 
 
 if __name__ == '__main__': unittest.main()
