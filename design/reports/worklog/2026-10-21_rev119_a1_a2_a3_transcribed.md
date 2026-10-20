@@ -48,3 +48,7 @@
 
 - 人の作業: シートの修正（変更案）、DEC-184 の回答。
 - 止まっている: ND-07（DEC-115）、Nav2 の実車の値。commit・push は人の指示を待つ。
+
+## 訂正（第88便、2026-10-21）
+
+- 「終了コード 1 の原因は入力の照合の不一致 2 件（drawio、.DS_Store。以前から）」と、status.md の「不一致は 2 件」は誤り。`reports/input_integrity.json`（コミット 8f50ef5 の時点）の不一致は 3 件で、`design/docs/SystemArchitecture.drawio`、`design/docs/extraction_20261008_01a11af4/.DS_Store`、同じ場所の `raw_xlsx/.DS_Store`。不一致の一覧を数えるときに `raw_xlsx/.DS_Store` を見落とした。status.md は第88便で直した。

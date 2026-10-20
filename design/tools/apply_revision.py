@@ -90,8 +90,10 @@ def intent_diff(prev_lines, cur_lines):
     return added, removed, changed
 
 
-def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migration_manifest.json', dry_run=False, check=False):
-    text = (DESIGN / 'revisions' / f'{rev_id}.yaml').read_text()
+def apply(rev_id, model_path=DESIGN / 'model.yaml', manifest_path=DESIGN / 'migration_manifest.json', dry_run=False, check=False,
+          revisions_dir=DESIGN / 'revisions'):
+    """revisions_dir: where <rev_id>.yaml is read from (the unit tests of --dry-run --check use a temporary directory)."""
+    text = (Path(revisions_dir) / f'{rev_id}.yaml').read_text()
     if is_reservation_only(text):
         raise SystemExit(f'{rev_id} is only reserved (reserve_ids.py); write the change set into it first')
     cs = YAML(typ='safe').load(text)
@@ -325,9 +327,14 @@ def trial_check(model, model_path, manifest_path):
     return new
 
 
+def has_new_violations(summary) -> bool:
+    """The exit decision of --dry-run --check: a new violation (not an undetermined item) fails."""
+    return any(x['violations'] for x in summary.get('new_findings', {}).values())
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(); p.add_argument('revision'); p.add_argument('--dry-run', action='store_true')
     p.add_argument('--check', action='store_true', help='with --dry-run: run the design checks on the result and list only new findings; exit 1 on a new violation')
     a = p.parse_args()
     s = apply(a.revision, dry_run=a.dry_run, check=a.check)
-    if a.dry_run and a.check and any(x['violations'] for x in s.get('new_findings', {}).values()): sys.exit(1)
+    if a.dry_run and a.check and has_new_violations(s): sys.exit(1)

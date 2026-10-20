@@ -55,6 +55,8 @@
 
 `test_check_design.py`: 実モデルの複製に1件ずつ違反を注入（参照切れ、所有者欠落、同一モードでの二重発行、第5モード、自動での自律開始、必須イベント欠落、要求の対応漏れ、非常停止語、未確認要素の使用、契約の置換、人の承認の追加、版依存IFの確定扱い、一般値の記入、行全体の破棄、旧候補の承認、5 m流用）し、該当ルールが違反を返すことを確認。
 
+`test_apply_revision.py`（REV-120、DEC-187）: `apply_revision.py --dry-run --check` の試験。一時ディレクトリの変更セットで、正しい変更セットは新しい指摘なしで model.yaml・schema.json を書かないこと、空の source_refs と recorded の決定を承認の根拠にする誤り（第70〜82便の記録の誤りの代表）が新しい違反として出ること、既存の未判定と generated/params のハッシュの差を数えないこと、未判定だけでは失敗にしないことを確認。
+
 baseline は `../baselines/migration_v1/`（凍結）。`build_migration.py` は初回移行専用で既存正本を上書きしない。モデルの変更は `revisions/REV-xxx.yaml` を `tools/apply_revision.py` で適用する。検査を通すための baseline 再生成・条件緩和は禁止。
 
 | DR-14 | 判断台帳の項目がある | RQ-I073 |

@@ -262,6 +262,15 @@ class FirmwareModelTests(unittest.TestCase):
         x, y = sim.map_voltage(1, 1, n, lo, hi); self.assertTrue(sim.inside_circle(x, y, lo, hi)); self.assertEqual(x, y)
         self.assertEqual(sim.dac_code(4700, 4700), 4095)
 
+    def test_diagonal_deflection_is_symmetric_within_1_mv(self):
+        """VL-02 (REV-121, DEC-191): with the approved DAC values, a diagonal at full deflection moves x and y away from the
+        neutral by amounts that differ by at most 1 mV (today x is 1 mV short: DEC-186 keeps it). A wider gap fails."""
+        c = firmware_config(); n, lo, hi = c['dac_neutral_mv'], c['dac_min_mv'], c['dac_max_mv']
+        for vx, vy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+            x, y = sim.map_voltage(vx, vy, n, lo, hi)
+            self.assertTrue(sim.inside_circle(x, y, lo, hi))
+            self.assertLessEqual(abs(abs(x - n) - abs(y - n)), 1, f'diagonal ({vx}, {vy}) -> ({x}, {y}) mV')
+
 
 if __name__ == '__main__':
     unittest.main()

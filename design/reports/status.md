@@ -1,8 +1,15 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-119、第87便）。
+最終更新：2026-10-21（REV-121、第89便）。
 
 **引き継ぎ: `reports/handover_2026-10-21.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-17.md`、その §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第89便: VL-02 の試験の追加（REV-121、DEC-191）**（作業記録 `reports/worklog/2026-10-21_rev121_vl02_test.md`）。
+- 人の許可で、承認値で斜めに倒し切ったときの x と y の振れ幅の差が 1 mV 以内であることを確かめる試験を、Python の模型（test_vehicle_core.py）と firmware のホスト試験（test_core.cpp）に追加した。firmware と模型の処理は変えていない（DEC-186 の保留のまま）。Mac 221 合格、ホスト試験 OK 282。差を 2 mV にした写しでは両方が不合格になることを確認。設計検査は違反 0・未判定 5。
+
+**第88便: 分岐セッションの B4〜B6 の回答（転記）の反映（REV-120、DEC-186〜190）**（作業記録 `reports/worklog/2026-10-21_rev120_b4_b5_b6_transcribed.md`）。
+- B4: 斜めに倒し切ったときの 1 mV の非対称は直さずに保留し、`docs/deferred_verification.md` の VL-02 にした。B5: `--dry-run --check` の単体試験 `design/rules/test_apply_revision.py`（4 件、合格）を追加した。B6: DR-15 の 30 件を分類し（時間の値 9、偶然の一致 18、PRM の写し 1、8 項目にない値 1、走査器の誤検出 1）、許容の一覧の案（28 件）を `proposals/dr15_allowlist_proposal_2026-10-21.md` に書いた。一覧の本体には書いていない（承認待ち DEC-189）。gouda.sh の PRM-77 の写しは DEC-190 で質問。
+- 第87便の「入力の照合の不一致 2 件」は誤りで、正しくは 3 件（drawio と .DS_Store 2 つ。第87便の時点でも同じ）。下の表を直した。設計検査は違反 0・未判定 5。
 
 **第87便: 分岐セッションの A1〜A3 の回答（転記）の反映（REV-119、DEC-182〜185）**（作業記録 `reports/worklog/2026-10-21_rev119_a1_a2_a3_transcribed.md`）。
 - A1: ND-08 の lifecycle・process_group・作り方を実装に合わせた（案 1）。A2: ND-10 に起動する server の名前を補い、詳細設計書の変更案（`proposals/spreadsheet_change_requests_2026-10-21.md`、M-039 の GNSS は M-040 にする案）を作った。Hokuyo を使うかは DEC-184（pending）。A3: この文書の後半（三つの状態・検査結果の件数・承認待ち・場所）を今の状態に書き直した。設計検査は違反 0・未判定 5。コードは変えていない。
@@ -351,7 +358,7 @@
 
 第87便（REV-119、2026-10-21）で書き直した（DEC-185、人の許可の転記）。件数は `design/reports/design_check.txt` の要約行と、各便の作業記録から取った。
 
-- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 2 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、`design/docs/extraction_20261008_01a11af4/.DS_Store`（Finder が作るファイル）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第13版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
+- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第13版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
 - **設計検査に合格**: 未判定。17 ルールのうち合格 12・違反 0・未判定 5。未判定の内訳は、DR-04 が 5 件、DR-05 が 2 件、DR-10 が 2 件（版の照合）、DR-11 が 49 件（未確定の値）、DR-15 が 30 件（コードの中の数値。偶然の一致を含む、`reports/dr15_literal_audit_2026-10-21.md`）。違反 0 件は、未判定の解消や実車への適合の証明ではない。
 - **ソフト試験**:
   - 工程 5-1〜5-5 は合格（stub・Ubuntu・VM。ESP32 の実機・ゲームパッド・車体なし）。
@@ -367,31 +374,30 @@
 
 | 検査 | 合格 | 違反 | 未判定 | 時点・出所 |
 |---|---|---|---|---|
-| 入力の完全性（原資料・抽出・baseline・intent） | 74 | 2（drawio、.DS_Store） | 0 | REV-119 の後、`reports/input_integrity.json` |
-| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 49、DR-15 30） | REV-119 の後、`reports/design_check.txt` の要約行 |
-| 検査器の試験（`design/rules`） | 78 | 1（実モデルの移行の照合。上の drawio と .DS_Store と同じ原因） | 0 | 第86便、`reports/migration_tests.txt` |
-| gouda_core の単体試験 | Mac 220（8 skip）、VM 228 | 0 | 0 | 第86便（コミット 0f40106 の内容） |
-| firmware 中核のホスト試験（g++） | OK 278 | 0 | 0（実機は未実行） | 第72便 |
+| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-120 の後、`reports/input_integrity.json` |
+| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 49、DR-15 30） | REV-120 の後、`reports/design_check.txt` の要約行 |
+| 検査器の試験（`design/rules`） | 82 | 1（実モデルの移行の照合。上の drawio と .DS_Store と同じ原因） | 0 | 第88便（`test_apply_revision.py` 4 件を追加）、`reports/migration_tests.txt` |
+| gouda_core の単体試験 | Mac 221（8 skip）、VM 228 | 0 | 0 | Mac は第89便、VM は第86便（コミット 0f40106 の内容。第89便の 1 件の追加は VM では未実行） |
+| firmware 中核のホスト試験（g++） | OK 282 | 0 | 0（実機は未実行） | 第89便（VL-02 の 4 チェックを追加） |
 | firmware のビルド（esp32dev） | 成功 | 0 | 0 | 第67・72便。書き込みは人（2026-10-21、申告） |
-| 判断台帳 | 183 件（answered 110、recorded 54） | — | pending 19（下の一覧） | REV-119 の後 |
+| 判断台帳 | 189 件（answered 114、recorded 54） | — | pending 21（下の一覧） | REV-121 の後 |
 
-`run_checks.py` の終了コードは 1。原因は、上の入力の完全性の 2 件だけ。
+`run_checks.py` の終了コードは 1。原因は、上の入力の完全性の 3 件だけ。
 
 ## 承認待ち・実測待ち・人の作業・提案
 
-判断台帳の pending（19 件）:
+判断台帳の pending（21 件）:
 
 - 方式・照合: DEC-021（Q-02 自己位置推定の方式）、DEC-022（Q-03 車両通信と制御の校正）、DEC-024（Q-09 Bluetooth 切断時の P 状態）、DEC-050（配線・firmware・操作結果の実機照合）。
 - 自己位置・GNSS: DEC-115（方式の第一候補 A3。ND-07 が止まっている）、DEC-127（GNSS と地図の対応）、DEC-129（再起動後の初期位置の画面）、DEC-134（発散の監視と再初期化）、DEC-148（intent.md への運用の条件の追記）、DEC-152（NTRIP の検査ルール）。
 - 地図: DEC-098（変換の暫定の既定値）、DEC-107（地面の推定の修正）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
 - 運用・環境: DEC-101（旧実装のファイルの扱い）、DEC-104（スリープの抑止）、DEC-138（VM の Fast DDS の設定）。
 - 構成: DEC-184（Hokuyo を今年使うか。第87便で登録）。
+- 検査: DEC-189（DR-15 の許容の一覧の案 28 件と、走査器の修正）、DEC-190（gouda.sh の PRM-77 の写しの扱い）。第88便で登録。
 
 実装の許可待ち（`reports/handover_2026-10-21.md` §5 のうち残るもの）:
 
-- 斜めに倒し切ったときの 1 mV の非対称（mapVoltage）を直すか。
-- DR-15 の時間の値を許容の一覧に入れるか（`reports/dr15_literal_audit_2026-10-21.md` §4）。
-- `--dry-run --check` 自体の単体試験。
+- なし（1 mV の非対称は DEC-186 で直さずに保留し、VL-02 の試験は第89便で追加。DR-15 は DEC-189、`--dry-run --check` の試験は第88便で済み）。
 
 決定待ち（台帳の外）:
 
@@ -406,7 +412,7 @@
 - 詳細設計書（スプレッドシート）の修正（`proposals/spreadsheet_change_requests_2026-10-21.md`、DEC-183）。
 - VM の `~/gouda_ws` と x86 機への反映（ブランチ design/field-mapping-2026-10-14。main には未 merge）。
 
-提案（承認済みの仕様ではない）: `proposals/` の各ファイル（最新は `spreadsheet_change_requests_2026-10-21.md`）。
+提案（承認済みの仕様ではない）: `proposals/` の各ファイル（最新は `dr15_allowlist_proposal_2026-10-21.md`、`spreadsheet_change_requests_2026-10-21.md`）。
 
 ## 原本未照合
 
@@ -424,14 +430,14 @@
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第13版（SHA c4d1a69a…）。写し `baselines/intent_history/`（`intent_v13_c4d1a69aee5f.md` など） |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-119。番号は `tools/reserve_ids.py` で予約する |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-121。番号は `tools/reserve_ids.py` で予約する |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`、`vehicle_output_timing.md`、`speed_filter_design.md`、`map_conversion.md`、`sensor_supervision.md`、`regulations_2026.md`、`git_management_plan.md`、`deferred_verification.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜185） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜191） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`、`render_migration_review.py`、`apply_revision.py`、`reserve_ids.py`、`hardcode_scan.py` |
 | 生成物（手で編集しない） | `generated/`（`params/` に node ごとの設定、`firmware_config.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時のヘッダはビルドのときに生成する（コミットしない） |
 | 提案 | `proposals/` | 承認済みの仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（試験の記録、DAC の実測と配線）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21.md`。最新の作業記録 `2026-10-21_rev119_a1_a2_a3_transcribed.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21.md`。最新の作業記録 `2026-10-21_rev121_vl02_test.md` |
 | ロボットの実装 | `gouda_interfaces/`、`gouda_core/`、`gouda.sh`、`setup.sh`、`update.sh`、`third_party/drivers.repos`、試験用 `gouda_core/test/stack.sh` | 起動は `bash gouda.sh start` だけ |
 | firmware | `firmware/gouda_esp32_v4/` | 旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換えの対象 |

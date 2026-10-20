@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 19
+pending_decision_count: 21
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1126,4 +1126,20 @@ pending_decisions:
     question: A2 の (5)：Hokuyo の LiDAR（詳細設計書の M-021 urg_node2・M-033 Hokuyo LiDAR。シートでは自律走行・実装中）を今年使うか。正本には ND 
       も扱いの解釈もない。推奨：今年の実車の構成に入れる予定がなければ「使わない（行は旧資料の記録として残す）」と記録し、使うなら 
       ND・IF・取付（/config）・障害物の層（ND-09）の設計を追加する。決まらない場合に止まる作業：なし（今の構成は XT-32 だけで障害物を扱う）。
+    resulting_refs: []
+  - id: DEC-189
+    kind: approval
+    status: pending
+    question: 【承認】DR-15 の許容の一覧（design/tools/hardcode_allowlist.json）に、提案 
+      design/proposals/dr15_allowlist_proposal_2026-10-21.md の 28 件を書いてよいか。内訳：時間の値 9 件（B6 の 8 項目）、偶然の一致 18 
+      件（DecisionEvent などの QoS の depth 50、格子の中心の 0.5、進捗の 0.1 など）、setup.sh の curl --retry 3 の 1 件（8 
+      項目に入っていない。インストールの道具の再試行回数）。あわせて、setup.sh:148 の誤検出（シェルの文字列の取り除き方の誤りで、文字列の中の PRM-50 
+      を拾う）を、許容でなく走査器の修正で直してよいか。推奨：両方とも承認。
+    resulting_refs: []
+  - id: DEC-190
+    kind: approval
+    status: pending
+    question: '【承認】gouda.sh:119 の「sleep 1   # PRM-77」は、PRM-77（gouda.sh stop の保存の進捗の表示の間隔 1 s、declaration model_declared）の値を手で書き写したもの（PRM
+      の写し）。案 A（推奨）：generate_params.py が model_declared の PRM-77 を gouda.sh 用の生成物に出し、gouda.sh がそれを読む（値は正本の一か所）。案
+      B：今のまま写しとして許容の一覧に入れ、正本の値を変えたら手で直す。'
     resulting_refs: []

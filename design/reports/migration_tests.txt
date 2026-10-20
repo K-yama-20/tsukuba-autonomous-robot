@@ -1,3 +1,7 @@
+test_correct_change_set_has_no_new_finding (test_apply_revision.DryRunCheckTests.test_correct_change_set_has_no_new_finding) ... ok
+test_empty_source_refs_is_a_new_violation (test_apply_revision.DryRunCheckTests.test_empty_source_refs_is_a_new_violation) ... ok
+test_recorded_decision_as_approval_basis_is_a_new_violation (test_apply_revision.DryRunCheckTests.test_recorded_decision_as_approval_basis_is_a_new_violation) ... ok
+test_undetermined_alone_does_not_fail (test_apply_revision.DryRunCheckTests.test_undetermined_alone_does_not_fail) ... ok
 test_monitor_calling_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_monitor_calling_auto_start_is_flagged) ... ok
 test_real_model_passes_dr16 (test_check_design.AutoRecordAndQosRuleTests.test_real_model_passes_dr16) ... ok
 test_recovery_transition_referencing_auto_start_is_flagged (test_check_design.AutoRecordAndQosRuleTests.test_recovery_transition_referencing_auto_start_is_flagged) ... ok
@@ -94,6 +98,6 @@ First extra element 0:
 Diff is 1508 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 79 tests in 45.848s
+Ran 83 tests in 72.025s
 
 FAILED (failures=1)

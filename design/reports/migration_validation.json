@@ -8913,6 +8913,26 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-120",
+      "date": "2026-10-21",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-121",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -9144,11 +9164,11 @@
     }
   ],
   "decisions": {
-    "count": 183,
+    "count": 189,
     "by_status": {
-      "answered": 110,
+      "answered": 114,
       "recorded": 54,
-      "pending": 19
+      "pending": 21
     },
     "pending": [
       "DEC-021",
@@ -9169,7 +9189,9 @@
       "DEC-138",
       "DEC-148",
       "DEC-152",
-      "DEC-184"
+      "DEC-184",
+      "DEC-189",
+      "DEC-190"
     ]
   },
   "vehicle_verification": {

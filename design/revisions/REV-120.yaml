@@ -1,0 +1,78 @@
+# 変更セット REV-120（2026-10-21 第88便: DEC-186〜190、B4〜B6 の回答の記録と、DR-15 の許容の一覧・PRM-77 の写しの質問）
+# 適用: design/tools/apply_revision.py REV-120
+id: REV-120
+date: '2026-10-21'
+summary: 分岐セッションで人が答えた B4〜B6（転記、DEC-186〜188）を記録する。B4：斜めに倒し切ったときの 1 mV の非対称は直さずに保留し、後で検証する項目 VL-02 にする。B5：--dry-run --check 自体の単体試験を作る。B6：DR-15 の時間の値 8 項目を許容する方針と、30 件の分類。許容の一覧の具体案の承認（DEC-189）と、gouda.sh の PRM-77 の写しの扱い（DEC-190）を質問として登録する。正本の要素は変えない。
+basis_refs:
+- DEC-186
+- DEC-187
+- DEC-188
+intent_version_copy: design/baselines/intent_history/intent_v13_c4d1a69aee5f.md
+files: []
+decisions:
+- id: DEC-186
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: B4：斜めに倒し切ったときの 1 mV の非対称（(1,1) の出力が x 4069・y 4070 mV。mapVoltage が円の外から内へ 1 mV ずつ寄せる処理で、|dx|=|dy| のとき x だけを動かす。firmware と Python の模型で同じ。承認値 280／4720 mV で初めて現れた）。案 A：直さない。案 B：x と y を同じだけ寄せるように firmware と模型を直す
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「B4: さしあたっては案Aを採用し、保留とする。これは後の試験事項としてしかるべき文書に保存せよ。どの文書に保存したか報告せよ。」\n"
+  affected_refs:
+  - ND-17
+  resulting_refs: []
+  note: '保存先は design/docs/deferred_verification.md の VL-02（第88便で追加、人に報告する）。大きさ 1 mV は中立から端までの約 2220 mV の 0.05%。実車での影響は未測定（推測で小さい）。今の試験 gouda_core/test/test_vehicle_core.py の test_voltage_mapping_matches_previous_firmware_table は旧 firmware の値（230／4700）で x==y を確かめていて、承認値での非対称は試験していない。承認値で「x と y の差が 1 mV 以内」を確かめる試験の追加はコードの変更なので、「案Aを採用」がその許可に当たるかを人に確認する（DEC-106）。'
+  disposition: answered
+- id: DEC-187
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: B5：第83便で追加した apply_revision.py --dry-run --check に自動の試験がない。案 A：検査器の試験の置き場所（design/rules）に単体試験を作る（正常な変更セットは新しい違反なしで正本が変わらない、過去の誤りの代表は新しい違反として出る、既存の違反は数えない）
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「B5: A案を採用」\n"
+  affected_refs: []
+  resulting_refs: []
+  note: 基盤作業（CLAUDE.md 1.7）。走行・設計の中身は変えない。第88便で design/rules/test_apply_revision.py を追加した。
+  disposition: answered
+- id: DEC-188
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: B6：DR-15 の時間の値。消えた 4 件（書き込みの上限 0.2 s、再試行 0.5 s、recorder 30 s、gouda.sh 30・10 s）と、残る 8 項目（vehicle_bridge_node.py の timeout=0.05 と join(timeout=1)、glim_runner.py の sleep(0.2)、monitor_server.py の join(timeout=5)、septentrio_query の 0.01 s、gouda.sh の 20 回×1 s、firmware main.cpp の 5 ms と delay(1)）。案 A：8 項目を許容し、DR-15 の未判定 30 件を分類して許容の一覧の案を作る
+  answer_verbatim: "（分岐セッションからの転記。人の発言の原文）「B6: A案を採用」\n"
+  affected_refs: []
+  resulting_refs: []
+  note: 許容の一覧（design/tools/hardcode_allowlist.json）への追加は承認事項（DEC-175）。具体の一覧の案は design/proposals/dr15_allowlist_proposal_2026-10-21.md で、承認は DEC-189（pending）。承認の前に一覧へ書かない。分類の結果、PRM の写し 1 件（gouda.sh:119 の sleep 1 ＝ PRM-77）は許容せず DEC-190 で質問する。
+  disposition: answered
+- id: DEC-189
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: '【承認】DR-15 の許容の一覧（design/tools/hardcode_allowlist.json）に、提案 design/proposals/dr15_allowlist_proposal_2026-10-21.md の 28 件を書いてよいか。内訳：時間の値 9 件（B6 の 8 項目）、偶然の一致 18 件（DecisionEvent などの QoS の depth 50、格子の中心の 0.5、進捗の 0.1 など）、setup.sh の curl --retry 3 の 1 件（8 項目に入っていない。インストールの道具の再試行回数）。あわせて、setup.sh:148 の誤検出（シェルの文字列の取り除き方の誤りで、文字列の中の PRM-50 を拾う）を、許容でなく走査器の修正で直してよいか。推奨：両方とも承認。'
+  answer_verbatim: ''
+  affected_refs: []
+  resulting_refs: []
+  note: 決まらない場合に止まる作業：DR-15 を合格にすること（設計検査は未判定のまま）。走行・安全には影響しない。
+  disposition: open_human
+- id: DEC-190
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: '【承認】gouda.sh:119 の「sleep 1   # PRM-77」は、PRM-77（gouda.sh stop の保存の進捗の表示の間隔 1 s、declaration model_declared）の値を手で書き写したもの（PRM の写し）。案 A（推奨）：generate_params.py が model_declared の PRM-77 を gouda.sh 用の生成物に出し、gouda.sh がそれを読む（値は正本の一か所）。案 B：今のまま写しとして許容の一覧に入れ、正本の値を変えたら手で直す。'
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-77
+  - ND-01
+  resulting_refs: []
+  note: 停止の上限ではなく表示の間隔なので、走行・安全には影響しない。案 A はコードと生成の道具の変更なので、人の許可の後（DEC-106）。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

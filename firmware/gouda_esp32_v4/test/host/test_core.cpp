@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <string>
 #include "gouda_v4/control.hpp"
 #include "build_config_trial.hpp"
@@ -107,6 +108,12 @@ int main() {
           for (size_t i = 0; i < c.txSize(); i++) if (pr2.feed(c.txData()[i], fr) && fr.kind == STATUS) { statuses++; CHECK(fr.length == kStatusPayload && (fr.payload[2] & F_CONFIG_VALID)); }
           c.txClear(); }
       CHECK(statuses == int(1000 / cfg.status_period_ms)); }
+
+    // VL-02 (REV-121, DEC-191): a diagonal at full deflection with the configured DAC values moves x and y away from the
+    // neutral by amounts that differ by at most 1 mV (x is 1 mV short today; DEC-186 keeps it). A wider gap fails.
+    { const float d[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+      for (const auto& v : d) { uint16_t ox = 0, oy = 0; mapVoltage(v[0], v[1], cfg.dac_neutral_mv, cfg.dac_min_mv, cfg.dac_max_mv, ox, oy);
+          int ex = std::abs(int(ox) - int(cfg.dac_neutral_mv)), ey = std::abs(int(oy) - int(cfg.dac_neutral_mv)); CHECK(std::abs(ex - ey) <= 1); } }
 
     std::printf("OK: %d checks\n", checks);
     return 0;
