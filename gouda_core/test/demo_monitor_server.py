@@ -21,7 +21,8 @@ DEMO_ORIGIN = 'DEMO-NOT-REAL_origin'
 
 # DEMO conversion: a synthetic scene converted by the real converter (not a robot map; the settings are DEMO values)
 DEMO_SETTINGS = {'map_resolution_m': 0.1, 'ground_band_max_m': 0.1, 'obstacle_band_min_m': 0.15, 'obstacle_band_max_m': 1.2, 'occupied_min_points': 1,
-                 'ground_cell_m': 0.5, 'ground_max_slope_deg': 10, 'ground_fill_radius_m': 1}
+                 'ground_cell_m': 0.5, 'ground_max_slope_deg': 10, 'ground_fill_radius_m': 1,
+                 'corridor_half_width_m': 1.0, 'corridor_gap_m': 1.0}   # demo only (plan C, DEC-211)
 
 
 def demo_conversion() -> tuple:
@@ -38,7 +39,8 @@ def demo_conversion() -> tuple:
     pts = np.concatenate([np.c_[x, y, z], box, wall, tree]).astype(np.float32)
     sub = root / 'dump' / '000000'; sub.mkdir(parents=True)
     (sub / 'data.txt').write_text('id: 0\nT_world_origin:\n1 0 0 0\n0 1 0 0\n0 0 1 0\n0 0 0 1\n'); (sub / 'points_compact.bin').write_bytes(pts.tobytes())
-    stats = mc.convert(root / 'dump', root / 'out', DEMO_SETTINGS)
+    (root / 'dump' / 'traj_imu.txt').write_text(''.join(f'{i * 0.1:.1f} {i * 0.12:.2f} 3.0 0 0 0 0 1\n' for i in range(100)))   # plan C needs a walk
+    stats = mc.convert(root / 'dump', root / 'out', DEMO_SETTINGS, {'values': {}, 'source': 'demo'})
     return root / 'out', stats
 
 

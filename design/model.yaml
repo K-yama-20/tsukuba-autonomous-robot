@@ -34603,7 +34603,8 @@ entities:
       の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。 
       REV-118（DEC-181）：/config の中をタブに分け、センサの取付の設定に加えて「自律走行の出力」タブで不感帯の補償の最低倒し量としきい値（前進・後退・旋回）を入力・保存する。保存先は 
       <data_root>/config/motion_compensation.json（UNKNOWN は推測で埋めない）。起動時と保存のたびに IFD-52 
-      を発行し、DecisionEvent（event=settings）に残す。 REV-132（DEC-209）：「Nav2」タブを足した。
+      を発行し、DecisionEvent（event=settings）に残す。 REV-132（DEC-209）：「Nav2」タブを足した。 REV-134（DEC-211・215・217）：waypoint 
+      の警告、重ね図、Nav2 タブの真偽の項目。 REV-137（DEC-220〜223）：人が描く範囲。
     sensitivity:
       - operation
     requirement_refs:
@@ -34616,7 +34617,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-132
+    revision_ref: REV-137
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34646,6 +34647,14 @@ entities:
         - /config の「Nav2」タブ（DEC-201・DEC-207 (a)・DEC-209）：Nav2 BT の recovery の回数を入力し IFD-54 に保存する（1 以上 PRM-18 
           以下の整数）。保存した値、次の gouda.sh start で使う値とその出所（monitor の値か PRM-18 
           か）、今の起動で使っている値（<data_root>/run/nav2/recovery.json）を表示する。保存を DecisionEvent に残す
+        - 案 C（DEC-215・DEC-211・DEC-217）：waypoint の保存のときに、各 waypoint 
+          が帯の地図（map.yaml）の空きの格子にあるかを確かめ、外にあれば警告を出して保存する（拒否しない）。地図タブに、帯と 3D 
+          点群の重ね図（corridor_overlay.png）と今の分類の地図（ground_band.png）を表示する。「Nav2」タブに inflate_around_unknown（PRM-98 
+          の上書き）を足す
+        - 人が描く範囲（DEC-220〜223）：waypoint タブの地図（帯と 3D 点群の重ね図）の上に、多角形で「走行禁止」「走行可」を描き、waypoint 
+          セットと一緒に保存する（内容ハッシュに入る）。保存のとき、速度マスクと同じ格子で keepout 
+          のマスク（keepout_mask.pgm・.yaml、keepout_filter_info.yaml。禁止 100、走行可 0、指定なし -1。禁止が走行可より強い）を作り、map_server 
+          が読む値の内容ハッシュを manifest に記録する。禁止の範囲を広げる幅はない（人が車体のはみ出しの余裕を取って描く：DEC-223）。走行禁止の中の waypoint は警告して保存する
       absorbs_module_refs:
         - M-002
         - M-003
@@ -34736,7 +34745,7 @@ entities:
       再起動後の再開と自動復帰（TR-13〜16）は 5-7。 REV-063（DEC-126）: 地図作成の間（TR-03〜TR-04）、IFD-47〜50 を全項目のまま作業フォルダの gnss.jsonl に書き、原図の登録（IFD-29）で原図の横に置き、SHA-256
       と topic ごとの行数を source_manifest.json の gnss に記録する。GNSS がなくても地図作成は止めない。 REV-118（DEC-169・DEC-180）：TR-03 の後に、IFD-36
       で vehicle_bridge（ND-12）を configure する（非同期、activate はしない）。失敗は DecisionEvent（vehicle_bridge_configure_failed）に残し、地図作成は止めない。TR-04
-      では何もしない（接続したまま）。 REV-128（DEC-200・DEC-203）：ND-07 の有効化と推定不能での一時停止を足した。'
+      では何もしない（接続したまま）。 REV-128（DEC-200・DEC-203）：ND-07 の有効化と推定不能での一時停止を足した。 REV-137（DEC-224）：keepout の (a) の確認。'
     sensitivity:
       - safety
       - operation
@@ -34757,7 +34766,7 @@ entities:
       - RQ-I080
       - RQ-I067
       - RQ-I069
-    revision_ref: REV-128
+    revision_ref: REV-137
     ros_node:
       node_name: gouda_mode_manager
       responsibilities:
@@ -34789,6 +34798,8 @@ entities:
           を起動する（推定不能なら TR-07、estimator_unavailable）。自律走行の間、IFD-53 が推定不能になるか PRM-93 の間届かなければ、motion_hold=true →
           goal の取消 → TR-07（stop_reason estimator_unavailable。plan_failure・node_failure と区別）。再開（TR-10）は IFD-53 
           が正常のときだけ。TR-11・TR-12 で ND-07 を deactivate・cleanup。地図作成（TR-03）は ND-07 が有効な間は拒否（RQ-I004）
+        - 人が描く範囲（DEC-224）：TR-05 で keepout のマスクを Nav2 に読み込ませ、マスクの受信と内容のハッシュの一致、filter info の受信（(a)）を確かめるまで 
+          motion_hold を解かない。確かめた結果を DecisionEvent に残す。costmap の上で禁止の格子が通れない値になったか（(b)）は DEC-226
       absorbs_module_refs:
         - M-037
       active_in_mode_refs:
@@ -34815,6 +34826,7 @@ entities:
         - IFD-49
         - IFD-50
         - IFD-53
+        - IFD-55
       serves_refs:
         - IFD-02
         - IFD-03
@@ -34936,14 +34948,14 @@ entities:
       - G-FLOOR-REFLECTION
       - G-MAP-TILT
     interpretation: REV-128（DEC-203）：自己位置推定（A3）用の 20 m 格子の PCD と軌跡の写しを足した。 REV-131（DEC-210）：案 C の帯の 2D 
-      地図を、走行には使わない追加の成果物として足した（DEC-211 の答えまで）。
+      地図を、走行には使わない追加の成果物として足した（DEC-211 の答えまで）。 REV-134（DEC-211・DEC-212）：帯の地図を走行に使う map.yaml にし、作れなければ変換を失敗にする。
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I008
       - RQ-I009
       - RQ-I082
-    revision_ref: REV-131
+    revision_ref: REV-134
     ros_node:
       node_name: gouda_map_creator
       responsibilities:
@@ -34957,10 +34969,12 @@ entities:
         - 自己位置推定（A3）用に、変換の rev に pointcloud_map/（PRM-94 で間引き、PRM-95 の正方形の格子の PCD と autoware_map_loader の 
           metadata.yaml）と trajectory_imu.txt（原図の traj_imu.txt の写し。初期の高さに使う）を加える。PRM-94・95 が未確定なら作らない（2D 
           地図は作る。ND-07 はその地図では開始しない）。REV-128（DEC-203）
-        - 案 C（DEC-107・DEC-210）：原図の traj_imu.txt と、原図の横の /config の写しの IMU の取付から base_link の通り道を出し、PRM-96 
-          以内の格子だけを空き、ほかを不明にした帯の 2D 地図 map_swept_corridor.yaml・.pgm と記録 swept_corridor.json を変換の rev 
-          に加える。地面は推定せず占有の格子は作らない。PRM-97 を超える軌跡の跳びはつながない。走行に使う map.yaml を帯の地図に替えるかは DEC-211（今は替えない）。/config 
-          の写しがない原図では作らない（DEC-212 の答えまで）。PRM-96・97 が未確定なら作らない。REV-131
+        - 案 C（DEC-107・DEC-210・DEC-211・DEC-212）：走行に使う 2D 地図 map.yaml・.pgm は、通った帯の地図（原図の traj_imu.txt と、原図の横の 
+          /config の写しの IMU の取付から出した base_link の通り道から PRM-96 以内を空き、ほかを不明。地面は推定せず占有の格子は作らない。PRM-97 
+          を超える軌跡の跳びはつながない）。記録 swept_corridor.json。今の分類の 2D 地図は表示用の 
+          map_ground_band.yaml・.pgm・ground_band.png。帯の地図と 3D 点群の密度の重ね図 corridor_overlay.png（表示用、DEC-211 
+          の人の要望）。軌跡・/config の写し（DEC-212 の案 B）・PRM-96・97 
+          のどれかがなければ、変換を失敗にして理由を残す（今の分類の地図に黙って戻さない。原図は保持）。REV-131・REV-134
       absorbs_module_refs:
         - M-005
         - M-006
@@ -35244,7 +35258,8 @@ entities:
     interpretation: 'REV-061（DEC-122）: Nav2 は lifecycle_manager の autostart を false にし、ND-03 が自律走行の開始（TR-05）で起動、手動走行への遷移（TR-11・TR-12）で停止する（IFD-36）。手動走行・地図作成では
       inactive（map→odom の持ち主がない）。 REV-119（DEC-183、A2 の (4)）：起動する server の名前（smoother_server・filter_mask_server・costmap_filter_info_server・lifecycle_manager_navigation
       を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。
-      REV-132（DEC-209）：recovery の回数を IFD-54 から読む。'
+      REV-132（DEC-209）：recovery の回数を IFD-54 から読む。 REV-134（DEC-214・216〜218）：costmap の合成と膨らませの設定。 REV-137（DEC-222）：keepout
+      の server と filter。 REV-140（DEC-227 案 A）：global costmap に keepout_layer（StaticLayer、inflation の前）。'
     sensitivity:
       - safety
       - operation
@@ -35256,7 +35271,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-132
+    revision_ref: REV-140
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35282,6 +35297,14 @@ entities:
           A。回転と組み合わせたときの範囲は倒し量の円で決まり、Nav2 は知らない：reports/reverse_limit_study_2026-10-21.md）
         - BT の recovery の回数は、起動のときに IFD-54（monitor で保存した値）があればその値、なければ PRM-18（DEC-207 (a)・DEC-209）。使った値と出所を 
           <data_root>/run/nav2/recovery.json と起動の記録に残す。値の範囲は 1 以上 PRM-18 以下で、外れていれば PRM-18 を使い理由を残す
+        - 案 C（DEC-214・DEC-216・DEC-217・DEC-218）：経路の計画（NavFn）の allow_unknown は上流の既定 true 
+          のまま（帯の外は「通れるが高い費用」）。global costmap の obstacle_layer の combination_method は 
+          2（走行中に見えた所でも、帯の外の「不明」を「空き」に上書きしない。上流の既定は 1）。local・global の inflation_layer の inflation_radius は 
+          PRM-72、inflate_around_unknown は PRM-98（IFD-54 に値があればその値）
+        - 人が描く範囲（DEC-222）：keepout_mask_server（map_server）と 
+          keepout_filter_info_server（costmap_filter_info_server、type 0、base 0、multiplier 1）を足し、global と local 
+          の costmap の両方に KeepoutFilter（override_lethal_cost true）を置く。global は SpeedFilter と KeepoutFilter の二つの
+          filter
       absorbs_module_refs:
         - M-011
       active_in_mode_refs:
@@ -35295,6 +35318,7 @@ entities:
         - IFD-24
         - IFD-32
         - IFD-42
+        - IFD-55
       subscribes_refs:
         - IFD-14
         - IFD-23
@@ -37982,7 +38006,8 @@ entities:
     interpretation: 'REV-062: 実装（工程 5-6）。guard は、Nav2 の設定がそろっている（nav2_config で未確定の値がない）、waypoint セット・速度マスク・変換後地図のハッシュの一致、地図の座標の初期姿勢、ND-07
       の node（gouda_global_localization）があること。ND-08（GLIM の odometry だけ）は TR-05 の中で起動する。開始の手順の失敗は TR-07（stop_reason
       node_failure）で一時停止。 REV-128（DEC-203）：ND-07 の configure・activate と、IFD-53 が正常になるまで Nav2 を起動しないことを足した。地図に pointcloud_map/
-      がなければ開始を拒否する。'
+      がなければ開始を拒否する。 REV-137（DEC-221・DEC-224）：速度マスクと一緒に keepout のマスクも読み込ませ、(a) を確かめるまで motion_hold を解かない。keepout
+      のファイルがない waypoint セット（REV-137 より前に保存）では開始しない（保存し直す）。'
     sensitivity:
       - safety
       - operation
@@ -37992,7 +38017,7 @@ entities:
       - RQ-I015
       - RQ-I004
       - RQ-I078
-    revision_ref: REV-128
+    revision_ref: REV-137
     transition:
       from_mode_ref: MODE-MANUAL
       to_mode_ref: MODE-AUTO
@@ -40203,7 +40228,7 @@ entities:
           restore_scope: 起動直後は中立・PC 指令源無効・centered 未観測
   - id: IFD-41
     kind: designed_interface
-    name: 速度マスク（waypoint セットから生成する Speed Filter 用 mask と filter info のファイル契約）
+    name: 速度マスクと keepout のマスク（waypoint セットから生成する Speed Filter・Keepout Filter 用 mask と filter info のファイル契約）
     source_refs:
       - SRC-I013
       - SRC-I026
@@ -40217,14 +40242,15 @@ entities:
       - H-011
       - Q-06
       - H-013
-    interpretation: ''
+    interpretation: REV-137（DEC-221）：waypoint セットの areas（多角形の走行禁止・走行可）から keepout_mask.pgm・.yaml（trinary）と 
+      keepout_filter_info.yaml（type 0）も作る。範囲のない waypoint セットの内容ハッシュは前と同じ（areas は空なら入れない）。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I078
       - RQ-I020
-    revision_ref: REV-024
+    revision_ref: REV-137
     designed_interface:
       transport: file
       name: <data_root>/routes/{set_id}/{revision}/speed_mask.pgm・speed_mask.yaml（map_server raw 
@@ -44336,21 +44362,22 @@ entities:
       - C-018
     issue_refs:
       - Q-06
-    interpretation: 'REV-122: DEC-192 で 0.5 m を承認。'
+    interpretation: 'REV-122: DEC-192 で 0.5 m を承認。 REV-134：DEC-218 で 1.0 を承認。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
-    revision_ref: REV-122
+    revision_ref: REV-134
     parameter:
       owner_ref: ND-10
-      value: 0.5
+      value: 1.0
       value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: local・global の costmap の InflationLayer の inflation_radius（障害物からどれだけ離れて計画するか）
-      measurement: '人の決定（DEC-192）：「72: 0.5mでよい。」'
-      decision_deadline: 決定済み（DEC-192）
+      measurement: 人の決定（DEC-218、転記、第104便でメインのチャットで確認）：「膨らませの半径は1mに変更したい。」（DEC-192 の 0.5 m 
+        を置き換える）。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-218）
       software_trial_value: 0.7
       software_trial_basis: 上流 jazzy の nav2_params.yaml の local_costmap と global_costmap の 
         inflation_radius（0.7）。試験用
@@ -44359,7 +44386,7 @@ entities:
       param_key: inflation_radius_m
       value_type: double
       apply_timing: launch
-    approval_decision_ref: DEC-192
+    approval_decision_ref: DEC-218
   - id: TS-35
     kind: test
     name: GNSS の取込み（ドライバの起動、記録、表示）
@@ -45997,31 +46024,32 @@ entities:
     source_refs:
       - SRC-I014
       - SRC-I024
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - PRM-33
       - PRM-69
     issue_refs:
       - G-FLOOR-REFLECTION
-    interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。
+    interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。 REV-134：DEC-213 
+      で 1.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I009
       - RQ-I012
-    revision_ref: REV-131
+    revision_ref: REV-134
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 地図作成の base_link の通り道（折れ線）からこの距離以内の格子を帯の地図の空きにする（提案 §3.2 の 3、§4 の A）。候補 0.3／0.5／1.0 m
-      measurement: 値は人が決める（DEC-213。推奨は置いていない）。分析用の再変換で帯の地図を人に示して決める
-      decision_deadline: 案 C の帯の地図を走行に使う前（DEC-211・DEC-213）
+      measurement: 人の決定（DEC-213、転記、第104便でメインのチャットで確認）：「DEC-213は1.0mとする。」と、選択式の回答の「A を 1.0 m」。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-213）
       software_trial_value: 0.5
       software_trial_basis: ソフト試験用（提案の候補の真ん中）。実車採用値ではない。値は DEC-213
       declaration: ros_parameter
@@ -46029,37 +46057,40 @@ entities:
       param_key: corridor_half_width_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-213
   - id: PRM-97
     kind: parameter
     name: 案 C：軌跡をつながないとみなす距離（変換）
     source_refs:
       - SRC-I014
       - SRC-I024
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - PRM-33
       - PRM-69
     issue_refs:
       - G-FLOOR-REFLECTION
-    interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。
+    interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。 REV-134：値は 
+      DEC-213 で人が決めたが、検査ルール DR-13（旧値の流用の禁止）が単位 m のこの値を機械的に違反とするため、DR-13 の扱い（DEC-225）が決まるまで値を入れない。 
+      REV-135：DEC-225 で 5.1 を承認（DR-13 は変えない）。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I009
       - RQ-I012
-    revision_ref: REV-131
+    revision_ref: REV-135
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 5.1
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 隣り合う軌跡の点の水平の距離がこれを超えたら、その間を帯にしない（LiDAR の途切れで跳んだ所を空きにしない。提案 §3.2 の 2、§4 の B）
-      measurement: 値は人が決める（DEC-213。推奨は置いていない）。分析用の再変換で帯の地図を人に示して決める
-      decision_deadline: 案 C の帯の地図を走行に使う前（DEC-211・DEC-213）
+      measurement: '人の決定（DEC-225）：「DEC-225: B = 5.1にしよう。」。測定値ではない。実走の地図で確かめる'
+      decision_deadline: 決定済み（DEC-225）
       software_trial_value: 1.0
       software_trial_basis: ソフト試験用（提案の例。通常の点の間隔は約 0.1 m、途切れのとき 2.7〜12.6 m）。実車採用値ではない。値は DEC-213
       declaration: ros_parameter
@@ -46067,6 +46098,7 @@ entities:
       param_key: corridor_gap_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-225
   - id: TS-44
     kind: test
     name: 案 C：通った帯の 2D 地図（地図の変換）
@@ -46113,19 +46145,19 @@ entities:
       - IFD-52
     issue_refs:
       - G-RECOVERY-COUNT
-    interpretation: REV-132（DEC-201・DEC-207 (a)・DEC-209）で追加。
+    interpretation: REV-132（DEC-201・DEC-207 (a)・DEC-209）で追加。 REV-134（DEC-217）：inflate_around_unknown を足した。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I012
       - RQ-I070
-    revision_ref: REV-132
+    revision_ref: REV-134
     designed_interface:
       transport: file
       name: <data_root>/config/nav2_recovery.json（monitor の /config「Nav2」タブ → gouda_nav2.launch.py）
-      message_type: "JSON {values: {recovery_number_of_retries: 整数 or 'UNKNOWN'}, config_revision, updated_at}（SensorConfig
-        と同じ形）"
+      message_type: "JSON {values: {recovery_number_of_retries: 整数 or 'UNKNOWN', inflate_around_unknown: true／false
+        or 'UNKNOWN'}, config_revision, updated_at}（SensorConfig と同じ形）"
       standard_type: false
       custom_type_reason: monitor の /config の他のタブ（IFD-26・IFD-52）と同じ保存の形にそろえる。
       purpose: configuration
@@ -46138,7 +46170,8 @@ entities:
       frame:
       time_semantics: 人が「Nav2」タブで保存したときに書く（1 以上 PRM-18 以下の整数。それ以外は保存を拒否）。gouda.sh start のときに 
         gouda_nav2.launch.py が読み、値があればその回数で BT を作る（なければ・読めない・範囲外なら PRM-18。読み方と出所は 
-        <data_root>/run/nav2/recovery.json と起動の記録に残す）。走行中・同じ起動の中の次の走行には効かない（DEC-201・DEC-207 (a)）
+        <data_root>/run/nav2/recovery.json と起動の記録に残す）。走行中・同じ起動の中の次の走行には効かない（DEC-201・DEC-207 
+        (a)）。inflate_around_unknown（REV-134、DEC-217）も同じ：値があれば次の gouda.sh start からその値、UNKNOWN なら PRM-98
       qos:
         reliability: not_applicable
         durability: not_applicable
@@ -46181,6 +46214,217 @@ entities:
       observe: 
         <data_root>/config/nav2_recovery.json、<data_root>/run/nav2/navigate_through_poses.xml・recovery.json
       expected: 保存した値は次の起動から BT に入る。値がない・範囲外なら PRM-18。
+  - id: PRM-98
+    kind: parameter
+    name: Nav2 の inflate_around_unknown（不明の格子の周りを膨らませるか）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - PRM-72
+      - IFD-54
+      - C-018
+    issue_refs:
+      - G-FLOOR-REFLECTION
+    interpretation: REV-134（DEC-217）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I012
+    revision_ref: REV-134
+    parameter:
+      owner_ref: ND-10
+      value: false
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: local・global の costmap の InflationLayer の inflate_around_unknown。false 
+        では不明の格子の周りを膨らませない（allow_unknown＝true で帯の外を「通れるが高い費用」にするため：DEC-214・DEC-217）。monitor の 
+        /config「Nav2」タブ（IFD-54）に値があれば、次の gouda.sh start からその値
+      measurement: 人の決定（DEC-217、転記、第104便で確認）：「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。」
+      decision_deadline: 決定済み（DEC-217）
+      software_trial_value:
+      software_trial_basis: 承認済みの設定選択のため仮値なし
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: inflate_around_unknown
+      value_type: bool
+      apply_timing: launch
+    approval_decision_ref: DEC-217
+  - id: TS-46
+    kind: test
+    name: 案 C の走行への切り替えと Nav2 の設定（DEC-211・213〜218）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - PRM-72
+      - PRM-96
+      - PRM-97
+      - PRM-98
+      - IFD-54
+      - ND-05
+      - ND-10
+    issue_refs:
+      - G-FLOOR-REFLECTION
+    interpretation: REV-134 で追加。
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I009
+      - RQ-I012
+    revision_ref: REV-134
+    test:
+      execution_status: 未実行
+      stage: 自律走行
+      procedure: 単体（test_nav2_config.py）：global の obstacle_layer の combination_method が 2、local と global の 
+        inflation_layer の inflation_radius が PRM-72・inflate_around_unknown が PRM-98（Nav2 
+        タブの値があればその値）、ほかの雛形の値は変わらないこと。単体（test_monitor_core.py）：Nav2 
+        タブの真偽の項目の保存と拒否。単体（test_mapping_core.py）：map.yaml が帯の地図、今の分類の地図は 
+        map_ground_band、帯が作れない原図は変換を失敗にすること、重ね図。単体：帯の外の waypoint の警告。VM：試験スタックで Nav2 
+        タブの値が次の起動から入ること、帯の地図の上を走ること
+      observe: run/nav2/nav2_params.yaml・recovery.json（Nav2 タブの値の出所）、変換の rev の成果物、waypoint の保存の応答
+      expected: 決まった値と選択のとおり。帯の外の waypoint は警告つきで保存される。
+  - id: IFD-55
+    kind: designed_interface
+    name: keepout_costmap_filter_info と keepout_filter_mask（人が描く範囲。Nav2 標準 server の配信）
+    source_refs:
+      - SRC-I026
+      - SRC-I081
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-42
+      - IFD-41
+    issue_refs:
+      - G-FLOOR-REFLECTION
+    interpretation: REV-137（DEC-220〜224）で追加。 REV-140（DEC-227 案 A）：keepout_filter_mask は global costmap の 
+      keepout_layer（StaticLayer）も読む。
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I012
+      - RQ-I056
+    revision_ref: REV-140
+    designed_interface:
+      transport: topic
+      name: keepout_costmap_filter_info, keepout_filter_mask
+      message_type: nav2_msgs/msg/CostmapFilterInfo（type 0、base 0、multiplier 1）, 
+        nav_msgs/msg/OccupancyGrid（100 走行禁止、0 走行可、-1 指定なし）
+      standard_type: true
+      custom_type_reason:
+      purpose: configuration
+      owner_ref: ND-10
+      publisher_refs:
+        - ND-10
+      consumer_refs:
+        - ND-10
+        - ND-03
+      unit: —
+      frame: map
+      time_semantics: 自律走行開始（TR-05）で ND-03 が選んだ waypoint セットの keepout のマスクを keepout_mask_server 
+        に読み込ませ、keepout_filter_info_server が filter info を出す。transient_local keep_last 1。ND-03 
+        はマスクの受信と内容のハッシュ（waypoint セットの manifest に記録）の一致、filter info の受信を確かめるまで motion_hold を解かない（DEC-224 の 
+        (a)）。KeepoutFilter の適用の結果は topic に出ない（(b) は DEC-226）
+      qos:
+        reliability: reliable
+        durability: transient_local
+        history_depth: 1
+      version_dependency:
+        status: confirmed_upstream
+        evidence:
+          - design/proposals/drawn_areas_2026-10-21.md
+        note: KeepoutFilter の挙動（不明の格子だけを書き換える、override_lethal_cost）は分岐先が Nav2 jazzy 
+          の上流のソースで読んだ（design/proposals/drawn_areas_2026-10-21.md §2）。実車 PC の版での照合と試験はまだ
+      legacy_refs: []
+  - id: TS-47
+    kind: test
+    name: 人が描く範囲（KeepoutFilter、DEC-220〜224）
+    source_refs:
+      - SRC-I026
+      - SRC-I081
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-55
+      - IFD-41
+      - ND-02
+      - ND-03
+      - ND-10
+    issue_refs:
+      - G-FLOOR-REFLECTION
+    interpretation: REV-137 で追加。 REV-140（DEC-227）：案 A の迂回と隙間の試験を追加。
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I012
+    revision_ref: REV-140
+    test:
+      execution_status: 未実行
+      stage: 自律走行
+      procedure: 単体（test_keepout_mask.py）：多角形からマスクへの変換（禁止 100、走行可 0、指定なし -1、禁止が走行可より強い、地図と同じ格子）、map_server 
+        が読む値の内容ハッシュ、走行禁止の中の waypoint の警告、範囲のない waypoint セットのハッシュが前と変わらないこと。単体（test_nav2_config.py）：keepout 
+        の二つの server、global・local の KeepoutFilter と override_lethal_cost。単体（test_autonomy_core.py）：keepout 
+        のファイルのない waypoint セットでは開始しない。VM（試験の基盤）：開始でマスクを確かめてから motion_hold を解くこと、帯の外の走行可・帯の中の禁止の範囲で Nav2 
+        の経路が変わること。REV-140（DEC-227）：単体（test_nav2_config.py）：global costmap の keepout_layer（StaticLayer、マスクの 
+        topic、inflation の前、use_maximum true）、local 
+        には置かないこと。単体（test_keepout_mask.py）：禁止の範囲どうしの隙間（接する・重なる・中にある・第三の禁止の範囲の中の隙間は出さない）。VM：禁止の範囲が経路をふさぐとき、膨らみを避けて迂回し最後まで着くこと。禁止の範囲どうしの隙間（まっすぐ）を通れるか。monitor
+        の保存で狭い隙間の警告が出ること
+      observe: 
+        routes/<set>/<rev>/keepout_mask.*・manifest、DecisionEvent（keepout_mask_confirmed）、control/motion_hold、Nav2
+        の経路、/global_costmap/costmap の禁止の範囲のまわりの値、保存の応答の warnings（keepout_gap_narrow・keepout_gap_unchecked）
+      expected: 描いた範囲のとおりのマスク。確かめられない間は hold=true。 禁止の範囲のまわりは global costmap 
+        で膨らみ、経路は縁に沿わない。禁止の範囲どうしの間で、車体が通れる隙間が経路から消えないこと（DEC-227）。PRM-99 未満の隙間は保存のとき警告される（保存はする）
+  - id: PRM-99
+    kind: parameter
+    name: 走行禁止の範囲どうしの隙間の警告のしきい値
+    source_refs:
+      - SRC-I026
+      - SRC-I081
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - PRM-69
+      - PRM-72
+      - IFD-41
+      - IFD-55
+    issue_refs:
+      - G-TUNING
+    interpretation: REV-140（DEC-227・229）で追加。 REV-142：DEC-278 で、DEC-229 が決まるまで実車でも仮に 1.0 m。
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I012
+    revision_ref: REV-142
+    parameter:
+      owner_ref: ND-02
+      value: 1.0
+      value_state: approved
+      unit: m
+      stage: 自律走行
+      purpose: waypoint セットの保存のとき、走行禁止の範囲どうしの隙間（0 より大きく、この値より小さいもの）を警告し、地図に示す（保存は拒まない。DEC-215 と同じ）。global 
+        costmap では禁止の範囲が壁と同じに膨らむ（DEC-227 案 A）ので、狭い隙間は車体が通れないことがある。未確定の間は確かめず、「確かめていない」と警告に出す（値を補わない）
+      measurement: 人の決定（DEC-278）：「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」。測定値ではない。DEC-229 
+        の実測で見直す
+      decision_deadline: DEC-229 が決まるまでの仮の値（DEC-278）。DEC-229 で見直す
+      software_trial_value:
+      software_trial_basis: 人の決定（DEC-278）で実車の値があるため仮値なし
+      declaration: ros_parameter
+      target: gouda_monitor
+      param_key: keepout_gap_warn_m
+      value_type: double
+      apply_timing: launch
+    approval_decision_ref: DEC-278
 migration:
   baseline_definition_count: 198
   id_map:
@@ -58649,13 +58893,16 @@ decisions:
     disposition: answered
   - id: DEC-211
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】走行に使う 2D 地図（変換の map.yaml）を通った帯の地図に替え、今の分類の 2D 地図（PRM-34〜36・38・62〜64、DEC-098）を表示用の 
       map_ground_band にすること（design/proposals/swept_corridor_map_2026-10-21.md §3.3・§4、§9 の 2）
-    answer_verbatim: ''
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな\n\
+      DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。\nDEC-212:
+      今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」\n7.「1. /configのNav2タブに設定を置くので良い。\n\
+      2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」\n"
     affected_refs:
       - ND-05
       - PRM-34
@@ -58667,69 +58914,457 @@ decisions:
       - PRM-64
       - DEC-098
     resulting_refs: []
-    note: 振る舞いの違い：走行の経路は地図作成で通った帯の中だけになる。DEC-098 の分類の設定は走行に使われなくなる（役割の変更）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。
-    disposition: open_human
+    note: 振る舞いの違い：走行の経路は地図作成で通った帯の中だけになる。DEC-098 の分類の設定は走行に使われなくなる（役割の変更）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。 
+      REV-133（第103便）：分岐先の読み：承認（走行に使う map.yaml を帯の地図に替え、今の分類の地図は表示用の map_ground_band）。そのうえで、人が帯と 3D 
+      点群の重ね図の上に描く「走行禁止」「走行可」の範囲を Nav2 の KeepoutFilter で重ねる（提案 design/proposals/drawn_areas_2026-10-21.md、承認事項は
+      DEC-220〜224）。重ね図は原文 6 の要望。転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
   - id: DEC-212
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】/config の写しがない古い原図（2026-10-19 より前、例 10-14 のもの）で、変換のときの 
       /config（imu_mount_*）を使って帯を作ってよいか（manifest 
       に記録）。代わり：写しのない原図は変換しない（design/proposals/swept_corridor_map_2026-10-21.md §3.1・§7、§9 の 3）
-    answer_verbatim: ''
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな\n\
+      DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。\nDEC-212:
+      今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」\n7.「1. /configのNav2タブに設定を置くので良い。\n\
+      2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」\n"
     affected_refs:
       - ND-05
     resulting_refs: []
-    note: 決まらない場合に止まる作業：古い原図からの帯の地図だけ（新しい原図は止まらない）。
-    disposition: open_human
+    note: 決まらない場合に止まる作業：古い原図からの帯の地図だけ（新しい原図は止まらない）。 REV-133（第103便）：採用は代わりの案 B（/config 
+      の写しがない原図からは帯を作らない。今の実装のまま）と、外付けのドライブの rosbag から製品の手順で地図を作り直すこと（原文 6・7、分岐先の推奨「B＋作り直し」）。人の申告（事実として記録）：VM 
+      に入っている地図は古い。外付け /Volumes/Crucial_4TB/Gouda に rosbag が数件ある。転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
   - id: DEC-213
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】案 C の新しい設定値：A 帯の半分の幅（候補 0.3／0.5／1.0 m。推奨は置いていない）、B 軌跡をつながないとみなす距離（例 1 m：通常の点の間隔は約 0.1 
       m、途切れのとき 2.7〜12.6 m 跳んだ）（design/proposals/swept_corridor_map_2026-10-21.md §4、§9 の 4）
-    answer_verbatim: ''
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」\n\
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存
+      (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211
+      と DEC-212 はどうしますか？」→「後で答える」」\n"
     affected_refs:
       - ND-05
     resulting_refs: []
-    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。試験は試行の値で進められる。
-    disposition: open_human
+    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。試験は試行の値で進められる。 REV-133（第103便）：PRM-96（帯の半分の幅 A）＝1.0
+      m、PRM-97（つながない距離 B）＝5 m。値の変更は人の確認の後に変更セットで入れる。転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
   - id: DEC-214
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】経路の計画（NavFn）の allow_unknown を false にすること（今は上流の既定の 
       true）（design/proposals/swept_corridor_map_2026-10-21.md §5、§9 の 5）。§5 の 3 の (a)・(b)（走行中に見えた所への迂回を許すか）は 
       VM の確認の後に改めて示す
-    answer_verbatim: ''
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」\n\
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存
+      (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211
+      と DEC-212 はどうしますか？」→「後で答える」」\n"
     affected_refs:
       - ND-10
       - RQ-I012
     resulting_refs: []
     note: 振る舞いの違い：不明な所を通る経路を引かない（intent.md:15「観測外を安全とみなさない」）。経路が引けないときは recovery の後に 
       TR-07（計画の失敗）。未確認：obstacle_layer の clearing が static の「不明」を「空き」に上書きするか（AI の推測、上流のソースは未確認）。決まらない場合に止まる作業：案
-      C の 2D 地図での走行。
-    disposition: open_human
+      C の 2D 地図での走行。 REV-133（第103便）：不採用：allow_unknown は true（上流の既定のまま）。帯の外は「通れるが高い費用」（NavFn：不明は 
+      COST_OBS−1。分岐先が上流のソースで確認、試験はしていない）。見えた所の扱いは DEC-216。転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
   - id: DEC-215
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】waypoint 
+      が帯の地図の空きの格子の外にあるとき、保存を拒否するか（案）、警告だけにして保存するか（design/proposals/swept_corridor_map_2026-10-21.md §6、§9 の 6）
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」\n\
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存
+      (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211
+      と DEC-212 はどうしますか？」→「後で答える」」\n"
+    affected_refs:
+      - ND-02
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：保存のときの確認だけ（走り出してからの計画の失敗で分かる）。 REV-133（第103便）：採用：帯の外の waypoint 
+      は、保存のときに警告だけ出して保存する（拒否しない）。転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
+  - id: DEC-216
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱うか（global costmap の obstacle_layer の 
+      combination_method）
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A
+      を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存 (Recommended)」／「allow_unknown＝true
+      のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211 と DEC-212 はどうしますか？」→「後で答える」」\n"
+    affected_refs:
+      - ND-10
+    resulting_refs: []
+    note: 採用：「帯の外は通れるが高い費用」。global costmap の obstacle_layer の combination_method を 
+      2（MaxWithoutUnknownOverwrite：層の空きが不明を上書きしない）にする。上流の既定は 
+      1（updateWithMax：空きが不明を上書きする）。根拠は分岐先が読んだ上流のソース（costmap_layer.cpp）、試験はしていない。 
+      転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
+  - id: DEC-217
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: inflation_layer の inflate_around_unknown をどうするか。monitor で変えられるようにするか
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n5.「inflate_around_unknown=falseにすると、base_link（車両の座標の原点）が帯の端を通りうるということか？」\n\
+      6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな\n\
+      DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。\nDEC-212:
+      今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」\n7.「1. /configのNav2タブに設定を置くので良い。\n\
+      2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」\n"
+    affected_refs:
+      - ND-10
+      - ND-02
+      - IFD-54
+    resulting_refs: []
+    note: 採用：inflate_around_unknown＝false（上流の既定のまま。true だと不明の格子に通れない値が書かれ allow_unknown＝true 
+      の意味がなくなる：分岐先が上流のソースで確認）。原文 5 の問い（base_link が帯の端を通りうるか）への分岐先の答えは提案に。monitor の 
+      /config「Nav2」タブで変えられるようにする（原文 6・7）。 転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
+  - id: DEC-218
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 膨らませの半径（PRM-72、DEC-192 で 0.5 m を承認）を 1 m に変えるか
+    answer_verbatim: "（分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」\n"
+    affected_refs:
+      - PRM-72
+      - ND-10
+      - DEC-192
+    resulting_refs: []
+    note: 採用：PRM-72 を 1.0 m にする（DEC-192 は書き換えず、この決定で値を置き換える）。nav2_config は同じ値を local・global の両方の inflation 
+      に入れる。値の変更は人の確認の後に変更セットで入れる。 転記の出所は分岐セッション（local_11a193cd…「Side 
+      chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag 
+      からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。 
+      REV-134（第104便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。PRM-72・96・97 の値の変更、DEC-211・213〜218 の実装、外付けの 
+      rosbag からの地図の作り直し（VM、読むだけ）に着手して。」）。
+    disposition: answered
+  - id: DEC-219
     kind: approval
     status: pending
     asked_on: '2026-10-21'
     answered_on:
     channel: chat
-    question: 【承認】waypoint 
-      が帯の地図の空きの格子の外にあるとき、保存を拒否するか（案）、警告だけにして保存するか（design/proposals/swept_corridor_map_2026-10-21.md §6、§9 の 6）
+    question: 【確認】/config の「Nav2」タブに置く設定の範囲と形：人が明示したのは 
+      inflate_around_unknown。allow_unknown（DEC-214）・combination_method（DEC-216）・膨らませの半径（PRM-72、DEC-218）も同じタブに置くか。置く場合、正本の値（PRM）を既定にして
+      monitor の値で上書きし、次の gouda.sh start で反映する形（DEC-207 (a)・DEC-209 と同じ）でよいか
     answer_verbatim: ''
     affected_refs:
       - ND-02
+      - ND-10
+      - IFD-54
+      - PRM-72
     resulting_refs: []
-    note: 決まらない場合に止まる作業：保存のときの確認だけ（走り出してからの計画の失敗で分かる）。
+    note: 原文 6・7 からは、inflate_around_unknown 以外の範囲と、上書きの形が決まらない（分岐先の読み）。決まらない場合に止まる作業：Nav2 タブの追加の項目だけ（正本の値で 
+      Nav2 は組める）。
     disposition: open_human
+  - id: DEC-220
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】人が描く「走行禁止」「走行可」の範囲（design/proposals/drawn_areas_2026-10-21.md）の設計で実装を始めてよいか（monitor 
+      の描画と保存、マスクの生成、Nav2 の設定、TR-05 の読み込み、VM の試験まで）。提案 §8 の 1
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-220: 実装開始を許可する。\nDEC-221: 範囲をwaypointセットと一緒に保存する案を採用\n\
+      DEC-222: KeepoutFilterはtrueに設定せよ。\nDEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。\nDEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。\n\
+      \n以上で問題ないか？」\n"
+    affected_refs:
+      - ND-02
+      - ND-10
+      - ND-03
+      - DEC-211
+    resulting_refs: []
+    note: 推奨は提案に。決まらない場合に止まる作業：範囲を描く機能全体（帯の地図だけで走ることはできる）。 REV-136（第106便）：採用：提案 
+      design/proposals/drawn_areas_2026-10-21.md の設計で実装を始める（monitor の描画と保存、マスクの生成、Nav2 の設定、TR-05 の読み込み、VM 
+      の試験まで）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 
+      REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。
+    disposition: answered
+  - id: DEC-221
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】範囲の保存先：waypoint セットと一緒（推奨、提案 §3.1）か、地図の rev（§3.2）か。提案 §8 の 2
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-220: 実装開始を許可する。\nDEC-221: 範囲をwaypointセットと一緒に保存する案を採用\n\
+      DEC-222: KeepoutFilterはtrueに設定せよ。\nDEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。\nDEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。\n\
+      \n以上で問題ないか？」\n"
+    affected_refs:
+      - ND-02
+      - IFD-41
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：範囲を描く機能全体。 REV-136（第106便）：採用：範囲は waypoint セットと一緒に保存する（提案 
+      §3.1。速度マスクと同じ流れで、内容ハッシュに範囲も入る）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 
+      REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。
+    disposition: answered
+  - id: DEC-222
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】KeepoutFilter を global と local の両方に置くこと（提案 §5）。override_lethal_cost は false（推奨）か true か。提案 
+      §8 の 3
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-220: 実装開始を許可する。\nDEC-221: 範囲をwaypointセットと一緒に保存する案を採用\n\
+      DEC-222: KeepoutFilterはtrueに設定せよ。\nDEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。\nDEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。\n\
+      \n以上で問題ないか？」\n3.（分岐側の確認「DEC-222 の true は override_lethal_cost で、global・local の両方に置くか」「DEC-223 は広げる幅の設定値を作らず、人が余裕を持って描く運用か」への回答）「DEC-222:
+      global, localの両方trueとする。反論は認めない。\nDEC-223: 人が余裕を持って描く為問題ない。」\n"
+    affected_refs:
+      - ND-10
+    resulting_refs: []
+    note: 未確認（分岐先）：filter が inflation の後にかかるか、一つの costmap に速度と keepout の二つの filter 
+      を置けるか。決まらない場合に止まる作業：範囲を描く機能全体。 REV-136（第106便）：採用：KeepoutFilter を global と local の両方の costmap 
+      に置き、override_lethal_cost は両方 true（禁止の範囲の中にいるとき、外へ出る経路を許す）。分岐先は「true は失敗が外から見えにくくなり、DEC-200 
+      の理由と向きが違う」と伝えたうえで、人が「反論は認めない」と決めた。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 
+      REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。 
+      REV-138（第107便）：VM で確認（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 
+      の結合試験 KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) 
+      をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）：一つの global costmap 
+      に SpeedFilter と KeepoutFilter の二つを置けた（速度の上限が届き、禁止の格子は 100）。filter は inflation 
+      の後にかかる（禁止の範囲のまわりは膨らまない）。経路が縁に沿うと RPP が止まる件は DEC-227。local の KeepoutFilter で「failed to get costmap frame 
+      (odom) transformation to mask frame (map)」が 1 回の走行で 4 回出た。ソースでは、これは override_lethal_cost 
+      の判定（車体が禁止の範囲の中か）だけが失敗するもので、禁止の格子は TimePointZero の変換で書かれる。
+    disposition: answered
+  - id: DEC-223
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】禁止の範囲を車体の半分の幅だけ広げてマスクに書くこと（提案 §5）と、その幅の値。提案 §8 の 4
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n2.「DEC-220: 実装開始を許可する。\nDEC-221: 範囲をwaypointセットと一緒に保存する案を採用\n\
+      DEC-222: KeepoutFilterはtrueに設定せよ。\nDEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。\nDEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。\n\
+      \n以上で問題ないか？」\n3.（分岐側の確認「DEC-222 の true は override_lethal_cost で、global・local の両方に置くか」「DEC-223 は広げる幅の設定値を作らず、人が余裕を持って描く運用か」への回答）「DEC-222:
+      global, localの両方trueとする。反論は認めない。\nDEC-223: 人が余裕を持って描く為問題ない。」\n"
+    affected_refs:
+      - ND-02
+      - PRM-69
+    resulting_refs: []
+    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：縁の扱いだけ。 REV-136（第106便）：採用：禁止の範囲を広げる幅の設定値は作らない。base_link 
+      は禁止の範囲の縁まで来てよく、人が車体のはみ出し（PRM-69：横 0.30 m・前 0.55 m）の分の余裕を取って描く。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 
+      2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 
+      REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。 
+      REV-138（第107便）：VM で、base_link が縁まで来る経路では車体が local の禁止の格子に重なり、RPP が止まることを確認（DEC-227）。
+    disposition: answered
+  - id: DEC-224
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】自律走行の開始のとき、keepout のマスクの適用を確かめられない間は motion_hold を解かないか（提案 §6）。提案 §8 の 5
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n1.「DEC-224について、詳細に判断材料を提示せよ」\n2.「DEC-220:
+      実装開始を許可する。\nDEC-221: 範囲をwaypointセットと一緒に保存する案を採用\nDEC-222: KeepoutFilterはtrueに設定せよ。\nDEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。\n\
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。\n\n以上で問題ないか？」\n"
+    affected_refs:
+      - ND-03
+      - TR-05
+    resulting_refs: []
+    note: 決まらない場合に止まる作業：開始の確認だけ。 REV-136（第106便）：採用：開始のときは (a)（keepout のマスクと filter info 
+      の受信、マスクのハッシュの一致）だけを確かめ、確かめられない間は motion_hold を解かない。(b)（global costmap の topic 
+      で、禁止の格子が通れない値になっていること）を確かめるかは未決事項（DEC-226）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 
+      REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。
+    disposition: answered
+  - id: DEC-225
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】検査ルール DR-13（「旧値の5 mを流用していない」、依頼4）は、単位が m の設定値に 5.0 があると意味にかかわらず違反にする。DEC-213 で人が決めた 
+      B（PRM-97、軌跡をつながないとみなす距離）＝5 m がこれに当たる。案：DR-13 の対象を、旧値の出所である waypoint の半径（Q-12・PRM-11・IFD-30、旧 
+      waypoint_radius_default_m、DEC-016）に関係する設定に限る（PRM-97 は対象外）。代わり：PRM-97 だけを DR-13 の例外として名前で挙げる。代わり：B の値を見直す
+    answer_verbatim: "「DEC-225: B = 5.1にしよう。\nVMのメモリは12GBに増強した。\n\n作り直した地図はgouda_wsに入れよ。」\n"
+    affected_refs:
+      - PRM-97
+      - DEC-213
+      - Q-12
+      - PRM-11
+    resulting_refs:
+      - PRM-97
+    note: 検査ルールの緩和にあたるので承認事項（CLAUDE.md 1.2）。単位や書き方を変えて検査を通すことはしない（CLAUDE.md 1.5）。決まらない場合に止まる作業：PRM-97 
+      の値の記録（帯の地図の変換は、正本では値が未確定なので製品の手順では作られない。試験の基盤は試験用の値で動く）。第104便で登録。 REV-135（第105便）：人の回答（このメインのチャット）は「B = 
+      5.1」。示した案（DR-13 を限る・例外にする・B を見直す）のうち、B の値を 5.1 m にした（三つ目の案に近い）。DR-13 は変えない。同じ発言の人の申告（事実として記録）：VM のメモリを 
+      12 GB に増やした。同じ発言の指示：作り直した地図を VM の ~/gouda_ws に入れる。
+    disposition: answered
+  - id: DEC-226
+    kind: approval
+    status: pending
+    asked_on: '2026-10-21'
+    answered_on:
+    channel: chat
+    question: 【未決】自律走行の開始のとき、(b) global costmap の topic で禁止の範囲の格子が通れない値になっていることも確かめてから motion_hold 
+      を解くか（DEC-224 で (a) だけを確かめると決めた後の残り）
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-224
+      - ND-03
+      - TR-05
+      - ND-10
+    resulting_refs: []
+    note: 人の発言（DEC-224 の転記）：「(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。」。分岐先が示した事実：KeepoutFilter は結果を 
+      topic に出さない（SpeedFilter の /speed_limit にあたるものがない）。判断の材料（実装の後に VM で測る）：global costmap 
+      の更新にかかる時間、判定する格子がないとき（禁止の範囲がない、地図の外）の扱い。決まらない場合に止まる作業：開始のときの (b) の確認だけ（(a) は実装する）。第106便で登録。 
+      REV-138（第107便）：材料（VM）：開始の 20 秒後の /global_costmap/costmap（transient_local）で、禁止の四角の中は 100、外は 0 
+      と読めた（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 
+      KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) 
+      をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）。更新にかかる時間は未測定。
+    disposition: open_human
+  - id: DEC-227
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】禁止の範囲の縁に沿って引かれた経路で車体が禁止の範囲にはみ出し、RPP が「前方に衝突」として止まる（VM で確認）。global costmap 
+      で禁止の範囲を壁と同じように膨らませて経路を離すか（案 A）、ほかの案にするか
+    answer_verbatim: "（分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）\n1.「DEC-227はAを基本とするが､条件を加える。\n禁止範囲同士が近接していて、膨らんだ部分との間に車体が通れる隙間がない場合は、車体が通れるだけの隙間をcostmapに作る。\n\
+      \nこれで意図は伝わるかな？検討せよ」\n2.「では私の改修案は筋が悪いということかな？どうしたらいいかな」\n3.「最低どのくらいの隙間をとおれるようになる見込みでしょうか」\n4.「”確定するまでは、禁止の範囲どうしの隙間を「1.0
+      m 以上空けるか、完全にふさぐ」と決めておくのが安全\"とあるが、これはソフトウェア的にではなく、人間が気をつける話？」\n5.「ではDEC-277は禁止の範囲を壁と同じように膨らませる（禁止範囲周辺のボクセルもコストを高くする）ということか？」（DEC-277
+      は DEC-227 の書き誤り：分岐先の注）\n6.「DEC-227の回答として記録し、メインのチャットに指示せよ」\n"
+    affected_refs:
+      - DEC-222
+      - DEC-223
+      - IFD-55
+      - IFD-41
+      - ND-02
+      - ND-03
+      - PRM-69
+      - PRM-72
+      - TS-47
+    resulting_refs:
+      - DEC-229
+      - PRM-99
+    note: 事実（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 
+      KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) 
+      をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）：global costmap 
+      は四角の中が 100、四角の外の 0.1〜0.4 m（y 0.6〜0.9）と手前 0.2〜0.5 m（x 2.3〜2.6）は 0（inflation_radius 1.0 m 
+      なのに膨らまない）。経路は四角のそばで |y| が最大 0.50 m（縁そのもの）。車体は横に 0.30 m（PRM-69）出るので、経路の上の車体は禁止の範囲に重なり、local 
+      の禁止の格子（DEC-222）で RPP が「collision ahead」を 815〜907 回、Controller patience exceeded、spin・backup も失敗。車体は x 約 
+      2.05 m（四角の 0.76 m 手前）で止まり、禁止の範囲には入らなかったが、PAUSE（最後の waypoint）に着かなかった。同じ試験で範囲を描かないときは最後まで走り、collision 
+      ahead は 0 回。Nav2 1.3.13 のソース（keepout_filter.cpp）：KeepoutFilter は layer の後にマスクの値を master に書く（大きいときだけ）。提案 
+      §2 の未確認 1（filter は inflation の後か）は「後」と確認。DEC-223 の前提（base_link が縁まで来て、車体がはみ出してよい）は、local 
+      にも禁止の格子がある（DEC-222）ので成り立たない：はみ出す代わりに止まる。案 A（推奨）：global costmap に keepout 
+      のマスクを読む層（StaticLayer、/keepout_filter_mask、use_maximum true）を inflation 
+      の前に足し、禁止の範囲を壁と同じく膨らませる。KeepoutFilter（global・local、override_lethal_cost 
+      true）はそのまま。振る舞い：経路が禁止の範囲から壁と同じだけ離れる（base_link が縁まで来ることはなくなる。DEC-223 
+      は「来てもよい」なので反しない）。禁止の範囲と壁の間の狭い所は通れなくなりうる。禁止の範囲の中にいるとき、global の層は 254 のまま残るので外への経路が引けず Nav2 
+      が失敗しうる（override は local だけに効く。結果は TR-07 の一時停止）。StaticLayer が −1 の格子を飛ばすか、マスクの大きさで costmap 
+      を作り直さないかは推測で、VM で確かめる。案 B：保存のときに禁止の範囲を広げる（提案 §5。DEC-223 では不採用）。広げた縁に経路が沿うのは同じで、前に 0.55 m 出る車体では 0.30 m 
+      では足りない。案 C：今のまま（人が描く場所で避ける）。経路が禁止の範囲のそばを通るときは、いつも止まって recovery をくり返す。案 D：車体の形を考える planner（Smac 
+      Hybrid・Lattice）に替える（大きな変更）。影響を受けるもの：Nav2 の設定（gouda_nav2.yaml、nav2_config.py）、TS-47 
+      の期待（迂回して最後まで着くこと）。決まらない場合に止まる作業：禁止の範囲のそばを走る経路（範囲を描かない走行と、描いた範囲の保存・開始の確認は止まらない）。第107便で登録。 
+      REV-139（第108便）：採用（人が 6 で記録を指示した、分岐側の整理）：案 A。global costmap に keepout のマスクを読む層（StaticLayer、use_maximum 
+      true）を inflation の前に足し、禁止の範囲を壁と同じに膨らませる（2D の格子。ボクセルではない）。禁止の範囲そのもの（DEC-223）と local 
+      costmap（禁止の格子だけ、DEC-222）は変えない。人の条件（1：禁止の範囲どうしが近く、膨らみとの間に車体の通れる隙間がないときは、通れるだけの隙間を costmap 
+      に作る）の扱い（分岐側の説明）：NavFn が通れなくするのは inscribed（縁から約 0.24 m）までで、その外の 1.0 m（PRM-72）は高いコストでも通れる。経路がふさがるのは隙間が約 
+      0.48 m 未満のときだけで、車幅 0.60 m 
+      では元々通れない。そのため、条件つきで膨らみを削る仕組みはすぐには作らない。条件の意図は受入の条件「禁止の範囲どうしの間で、車体が通れる隙間が経路から消えないこと」（TS-47）として残し、VM 
+      で困ることが分かったときだけ作る。追加：保存のときに、禁止の範囲どうしの隙間がしきい値未満の所を警告し地図に示す（保存は拒まない。DEC-215 と同じ）。しきい値は実測 DEC-229（仮の値 1.0 
+      m、確定は tbd）。見込み（推測、未測定）：まっすぐ通れる最小の隙間は約 0.8〜0.9 m（車幅 0.60 m＋格子の丸め＋追従の誤差）、曲がるなら約 1.3 m 以上（旋回の直径は約 1.24 
+      m）。分岐側が示した確認点で、人が個別には答えていないもの：狭い所で禁止の格子は削らない、対象は禁止の範囲どうし、作った隙間のコストの扱い（実装の前に人に確かめる）。TS-47 
+      の期待：迂回して最後まで着くこと、狭い隙間の試験の追加。転記の出所は分岐セッション（local_1a9b7863…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（DEC-106）。 
+      REV-140（第109便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。DEC-227 案 A の Nav2 の設定と、保存のときの隙間の警告の実装（VM 
+      の試験まで）に着手して。」）。分岐側が示した確認点 3 つ（狭い所で禁止の格子は削らない、対象は禁止の範囲どうし、作った隙間のコストの扱い）は、隙間を作る仕組みを作らないので、この実装では生じない。
+    disposition: answered
+  - id: DEC-229
+    kind: measurement
+    status: pending
+    asked_on: '2026-10-21'
+    answered_on:
+    channel: chat
+    question: 【実測】禁止の範囲どうしの隙間の警告のしきい値（DEC-227 の追加）。車体（PRM-69）が、案 A の設定の Nav2 で通れる最小の隙間。まっすぐ通る場合と曲がる場合
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-227
+      - PRM-69
+      - PRM-72
+      - TS-47
+      - IFD-41
+      - PRM-99
+    resulting_refs: []
+    note: 手順の案（分岐側）：VM の試験の基盤で、禁止の範囲どうしの隙間 0.7・0.8・0.9・1.0・1.3 m を、まっすぐと曲がる場合で走らせ、通れたか・止まったか・最も近づいた距離を記録する。仮の値
+      1.0 m（確定は実測。値は tbd）。見込み（推測、未測定）：まっすぐ約 0.8〜0.9 m、曲がるなら約 1.3 m 以上。VM の結果は loopback_sim 
+      の上のもので、実車の追従の誤差は含まない。案 A 
+      の実装の後に測る。決まらない場合に止まる作業：警告のしきい値の確定だけ（警告は仮の値で出せる）。転記の出所は分岐セッション（local_1a9b7863…「引き継ぎ 2026-10-21 
+      その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（DEC-106）。 第108便で登録。 
+      REV-140（第109便）：しきい値は PRM-99（unresolved、試験用の仮の値 1.0 m は実車では読み込まない）。未確定の間、保存のときは「確かめていない」と警告する。 
+      REV-141（第109便）：材料（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の 
+      ND-07）、2026-10-21、REV-140 の設定（global の keepout_layer）、空きの地図に、x 2.8〜3.4 m の走行禁止の帯を 2 本、経路 (1,0)→(4,0) 
+      の上に隙間を空けて置いた（まっすぐ通る場合だけ）。記録：VM の /tmp/st56_rev140_gap<隙間>.log・_stack.log。結果：0.7 m 
+      は隙間の手前で止まり最後まで着かない（collision ahead 550 回、禁止の範囲に入らない）。0.8 m は着いた（collision ahead 28 回）。0.9・1.0・1.3 m 
+      は着いた（0 回）。loopback_sim は指令どおりに動くので、実車の追従の誤差は含まない。曲がる場合は未測定。monitor の保存の警告（PRM-99 の試験用の値 1.0 m）は 
+      0.7・0.8・0.9 m で出て、1.0・1.3 m では出なかった。） REV-142（第110便）：DEC-278 で、決まるまで実車でも PRM-99＝1.0 m を仮に使う。
+    disposition: open_human
+  - id: DEC-278
+    kind: approval
+    status: answered
+    asked_on: '2026-10-21'
+    answered_on: '2026-10-21'
+    channel: chat
+    question: 【承認】PRM-99（禁止の範囲どうしの隙間の警告のしきい値）を、DEC-229 が決まるまで実車でも仮に 1.0 m で使うか（第109便の報告で質問）
+    answer_verbatim: 「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」
+    affected_refs:
+      - PRM-99
+      - DEC-229
+      - DEC-227
+    resulting_refs:
+      - PRM-99
+    note: 人の決定。測定値ではない（VM のまっすぐの隙間では 0.7 m で止まり、0.8 m はぎりぎり、0.9 m 以上は通れた：DEC-229 の note）。DEC-229 は pending 
+      のまま、決まったら PRM-99 を見直す。警告だけの値で、保存も走行も止めない。第110便で登録。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -61730,6 +62365,170 @@ revisions:
       - PRM-93
       - PRM-94
       - PRM-95
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-133
+    date: '2026-10-21'
+    summary: 分岐セッション「Side chat」からの転記で、DEC-211〜215 への人の回答（帯の地図を走行に使い人が描く範囲を重ねる、/config の写しがない原図は帯を作らず rosbag 
+      から作り直す、A 1.0 m・B 5 m、allow_unknown は true、帯の外の waypoint は警告だけ）と、新しい決定 DEC-216（combination_method 
+      2）・DEC-217（inflate_around_unknown false、Nav2 タブで変える）・DEC-218（PRM-72 を 1 m に）を記録する。確認事項 DEC-219、提案 
+      drawn_areas の承認事項 DEC-220〜224（pending）。値の変更・実装・作り直しは人の確認の後。
+    basis_refs:
+      - DEC-211
+      - DEC-212
+      - DEC-213
+      - DEC-214
+      - DEC-215
+      - DEC-216
+      - DEC-217
+      - DEC-218
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-134
+    date: '2026-10-21'
+    summary: 人の確認（このチャット、原文）で、DEC-211〜218 の転記を確かめ着手。PRM-72 を 1.0 m（DEC-218）、PRM-96 を 1.0 m（DEC-213）に承認。PRM-97 
+      は DR-13 との関係の確認（DEC-225）まで値を入れない。PRM-98（inflate_around_unknown＝false、DEC-217）を追加。帯の地図を走行用の map.yaml 
+      にし今の分類の地図を表示用の map_ground_band に（DEC-211）、作れない原図は変換を失敗に（DEC-212 の案 B）。global の obstacle_layer の 
+      combination_method を 2（DEC-216）。帯の外の waypoint は警告つきで保存（DEC-215）。Nav2 タブに 
+      inflate_around_unknown（IFD-54）。試験 TS-46。
+    basis_refs:
+      - DEC-211
+      - DEC-212
+      - DEC-213
+      - DEC-214
+      - DEC-215
+      - DEC-216
+      - DEC-217
+      - DEC-218
+    added_entity_ids:
+      - PRM-98
+      - TS-46
+    modified_entity_ids:
+      - ND-02
+      - ND-05
+      - ND-10
+      - PRM-72
+      - PRM-96
+      - PRM-97
+      - IFD-54
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-135
+    date: '2026-10-21'
+    summary: 人の回答（このチャット、原文）：DEC-225 で B（PRM-97）を 5.1 m に承認（DR-13 は変えない）。人の申告：VM のメモリを 12 GB に増やした。指示：作り直した地図を
+      VM の ~/gouda_ws に入れる。
+    basis_refs:
+      - DEC-225
+      - DEC-213
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-97
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-136
+    date: '2026-10-21'
+    summary: 分岐セッション「引き継ぎ 2026-10-21 その2」からの転記で、DEC-220〜224 への人の回答（人が描く範囲の実装を始める、waypoint 
+      セットと一緒に保存、KeepoutFilter を global・local に置き override_lethal_cost は true、広げる幅は作らず人が余裕を取って描く、開始のときは (a) 
+      だけ確かめる）を記録する。(b) を確かめるかは DEC-226（pending）。実装は人の確認の後。
+    basis_refs:
+      - DEC-220
+      - DEC-221
+      - DEC-222
+      - DEC-223
+      - DEC-224
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-137
+    date: '2026-10-21'
+    summary: 人の確認（このチャット、原文）で、人が描く範囲（DEC-220〜224）に着手。waypoint セットの areas（走行禁止・走行可の多角形）と keepout 
+      のマスク（IFD-41）、keepout の server と topic（IFD-55）、global・local の KeepoutFilter（override_lethal_cost 
+      true）、TR-05 での読み込みと (a) の確認。試験 TS-47。
+    basis_refs:
+      - DEC-220
+      - DEC-221
+      - DEC-222
+      - DEC-223
+      - DEC-224
+    added_entity_ids:
+      - IFD-55
+      - TS-47
+    modified_entity_ids:
+      - ND-02
+      - ND-03
+      - ND-10
+      - TR-05
+      - IFD-41
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-138
+    date: '2026-10-21'
+    summary: 第107便：人が描く範囲の VM の結合試験（TS-47）で、禁止の範囲の縁に沿う経路で車体がはみ出し RPP が止まることを確認。対応の案を 
+      DEC-227（pending）に登録。DEC-222・223・226 に VM の事実を書き足す。コードと設定は変えない。
+    basis_refs:
+      - DEC-222
+      - DEC-223
+      - DEC-226
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-139
+    date: '2026-10-21'
+    summary: 第108便：分岐セッション「引き継ぎ 2026-10-21 その2」からの転記で、DEC-227 への人の回答（案 A 
+      を基本とし、禁止の範囲どうしの隙間の条件は受入の条件と保存のときの警告で扱う）を記録する。警告のしきい値は実測 DEC-229（pending、tbd）。実装は人の確認の後。
+    basis_refs:
+      - DEC-227
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-140
+    date: '2026-10-21'
+    summary: 人の確認（このチャット、原文）で、DEC-227 案 A に着手。global costmap に keepout のマスクを読む 
+      StaticLayer（keepout_layer、inflation の前、use_maximum true）を足し、禁止の範囲を壁と同じに膨らませる。waypoint 
+      セットの保存のとき、走行禁止の範囲どうしの狭い隙間を警告し地図に示す（しきい値 PRM-99、未確定、試験用の仮の値 1.0 m）。TS-47 の手順と期待を更新。
+    basis_refs:
+      - DEC-227
+      - DEC-229
+    added_entity_ids:
+      - PRM-99
+    modified_entity_ids:
+      - ND-10
+      - IFD-55
+      - TS-47
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-141
+    date: '2026-10-21'
+    summary: 第109便：DEC-229 の材料として、VM で測った禁止の範囲どうしの隙間（まっすぐ）の結果を書き足す。値は決めない。
+    basis_refs:
+      - DEC-229
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-142
+    date: '2026-10-21'
+    summary: 人の決定（このチャット、原文）で、PRM-99 を DEC-229 が決まるまで実車でも仮に 1.0 m にする（DEC-278）。
+    basis_refs:
+      - DEC-278
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-99
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

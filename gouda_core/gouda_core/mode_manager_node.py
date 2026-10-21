@@ -130,7 +130,7 @@ class ModeManagerNode(Node):
         self.goal_active = False
         self._pending_start = None
         from gouda_core.autonomy_client import AutonomyClient
-        self.auto = AutonomyClient(self, self._on_nav_feedback, self._on_nav_result, self._on_speed_state)
+        self.auto = AutonomyClient(self, self._on_nav_feedback, self._on_nav_result, self._on_speed_state, self._on_keepout)
         # ND-07's state (IFD-53, REV-128): fed to the start, and watched while driving
         self.estimator_rx = None   # receive time of the last IFD-53 (node clock)
         self.create_subscription(EstimatorStatus, 'localization/status', self._on_estimator_status, LATCHED)
@@ -520,10 +520,29 @@ class ModeManagerNode(Node):
             if state != self.state.speed_limit_application_state:
                 self._publish_decision('speed_limit_application_state', 'TR-05', f'{state} ({ac.SL_LABELS.get(state, state)})', details)
                 self._update_fields({'speed_limit_application_state': state})
-            if state == ac.SL_APPLIED and self.goal_active and not self.drive_released:
-                self.drive_released = True
-                self._publish_decision('motion_hold_released', 'TR-05', 'speed limit applied (適用中): motion_hold=false (DEC-056)', details)
-                self._publish_state()
+            self._try_release(details)
+
+    def _try_release(self, details):
+        """motion_hold=false only when the speed limit is applied (DEC-056) and the drawn areas' mask is confirmed (DEC-224 (a))."""
+        if self.state.mode != mode_core.MODE_AUTONOMY or not self.goal_active or self.drive_released:
+            return
+        if self.state.speed_limit_application_state != ac.SL_APPLIED or not self.auto.keepout_confirmed:
+            return
+        self.drive_released = True
+        self._publish_decision('motion_hold_released', 'TR-05', 'speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224)', details)
+        self._publish_state()
+
+    def _on_keepout(self, confirmed, details):
+        """The keepout mask / filter info received after STARTUP (IFD-55): recorded on every change; may release the hold."""
+        with self._lock:
+            if self.state.mode != mode_core.MODE_AUTONOMY: return
+            key = (confirmed, details.get('mask_state'), details.get('info_received'))
+            if key != getattr(self, '_keepout_last', None):
+                self._keepout_last = key
+                self._publish_decision('keepout_mask_confirmed' if confirmed else 'keepout_mask_not_confirmed', 'TR-05',
+                                       'keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a))' if confirmed
+                                       else f"keepout mask not confirmed yet: {details.get('mask_state') or 'mask not received'}, filter info {'received' if details.get('info_received') else 'not received'}; motion_hold stays true", details)
+            self._try_release(details)
 
     def _update_fields(self, fields):
         self.state = mode_core.ModeState(**{**self.state.as_dict(), **fields, 'state_revision': self.state.state_revision + 1})

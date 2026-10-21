@@ -13,15 +13,28 @@ design/research/upstream_jazzy/nav2_bringup/params/nav2_params.yaml for 1.3.13) 
   upstream BT with PRM-11 (RemovePassedGoals radius) and PRM-18 (outer RecoveryNode retries);
 - vehicle values PRM-17, PRM-66..73 (speeds, accelerations, footprint, obstacle heights, inflation); the local VoxelLayer's
   z_resolution is derived so that its column reaches PRM-71 (the template's 16 x 0.05 m would cut it at 0.8 m);
+- plan C (REV-134): the global costmap's obstacle_layer combination_method is 2 (MaxWithoutUnknownOverwrite: what the LiDAR sees
+  while driving never turns an unknown cell outside the swept corridor into free; DEC-216; upstream default 1), and both
+  inflation layers get inflate_around_unknown = PRM-98 (false: unknown cells are not inflated, so allow_unknown, left at the
+  upstream true, keeps the outside of the corridor passable at a high cost; DEC-214, DEC-217). The inflation radius is PRM-72.
+- the human-drawn areas (REV-137, DEC-220..224): keepout_mask_server / keepout_filter_info_server (type 0) and a KeepoutFilter on
+  both costmaps with override_lethal_cost true (DEC-222). The mask is the waypoint set's (IFD-41), set by ND-03 at TR-05.
+  The filters are applied after the layers, so a keepout area is not inflated and NavFn plans along its edge, where the footprint
+  overlaps the local keepout cells and RPP stops (VM, REV-138). So the global costmap also reads the same mask in keepout_layer,
+  a StaticLayer before the inflation layer (DEC-227 plan A, REV-140): keepout areas are inflated like walls. use_maximum true
+  (a costmap-wide parameter of the StaticLayer): the -1 cells of the mask leave the map as it is; for the first static layer the
+  maximum gives the same result as the overwrite (the master starts as unknown). The mask has the map's geometry (keepout_mask),
+  or the StaticLayer would resize the costmap.
 - the velocity_smoother's reverse limit is PRM-78 (the wheelchair's reverse speed at full deflection, read from the
   gouda_motion_controller file where it is declared), not -PRM-66: reversing has a smaller deflection-to-speed slope (DEC-197),
   so Nav2 never commands a reverse faster than full deflection (DEC-198 plan A).
 When a vehicle value is unresolved (the generated file has no value and no trial file is used), nothing is built and the
 missing keys are returned: Nav2 is not started rather than run with a general value (intent.md:85, RQ-I076).
-The BT's recovery count is PRM-18 unless the human saved another count in the monitor's /config 「Nav2」 tab
-(<data_root>/config/nav2_recovery.json, IFD-54; REV-132, DEC-207 (a), DEC-209): a whole number from 1 to PRM-18 is used from
-this start on; a missing, unreadable or out-of-range value falls back to PRM-18 with the reason. The count used and where it
-came from are written to <out_dir>/recovery.json (shown by the monitor) and returned.
+The BT's recovery count is PRM-18 and inflate_around_unknown is PRM-98 unless the human saved another value in the monitor's
+/config 「Nav2」 tab (<data_root>/config/nav2_recovery.json, IFD-54; REV-132 / REV-134, DEC-207 (a), DEC-209, DEC-217): a valid
+value is used from this start on (the count: a whole number from 1 to PRM-18; the flag: true or false); a missing, unreadable or
+invalid value falls back to the PRM with the reason. The values used and where they came from are written to
+<out_dir>/overrides.json (and the count also to recovery.json) and returned.
 """
 from __future__ import annotations
 
@@ -44,10 +57,14 @@ POINTS_TOPIC = '/sensors/xt32/points'          # IFD-21
 SPEED_LIMIT_TOPIC = '/speed_limit'             # IFD-14
 FILTER_INFO_TOPIC = '/costmap_filter_info'     # IFD-42
 FILTER_MASK_TOPIC = '/speed_filter_mask'       # IFD-42
+KEEPOUT_INFO_TOPIC = '/keepout_costmap_filter_info'   # IFD-55 (REV-137): the human-drawn areas (KeepoutFilter)
+KEEPOUT_MASK_TOPIC = '/keepout_filter_mask'           # IFD-55
+KEEPOUT_OVERRIDE_LETHAL = True   # DEC-222 (a design choice): inside a keepout area the robot may plan its way out
+KEEPOUT_LAYER = 'keepout_layer'   # DEC-227 plan A (REV-140): the keepout mask as a global StaticLayer before the inflation layer
 KEPT = ('bt_navigator', 'controller_server', 'local_costmap', 'global_costmap', 'planner_server', 'smoother_server', 'behavior_server',
         'velocity_smoother')
 # Lifecycle order of upstream navigation_launch.py, without the servers Gouda does not run; plus the map servers (IFD-24, IFD-42).
-LIFECYCLE_NODES = ['map_server', 'filter_mask_server', 'costmap_filter_info_server', 'controller_server', 'smoother_server', 'planner_server',
+LIFECYCLE_NODES = ['map_server', 'filter_mask_server', 'costmap_filter_info_server', 'keepout_mask_server', 'keepout_filter_info_server', 'controller_server', 'smoother_server', 'planner_server',
                    'behavior_server', 'velocity_smoother', 'bt_navigator']
 BEHAVIORS = ['spin', 'backup', 'wait']
 REQUIRED = {  # key in the generated files -> PRM (vehicle values that must be decided before Nav2 runs on the vehicle)
@@ -57,7 +74,8 @@ REQUIRED = {  # key in the generated files -> PRM (vehicle values that must be d
     ('gouda_nav2', 'inflation_radius_m'): 'PRM-72', ('controller_server', 'controller_frequency'): 'PRM-17',
     ('controller_server', 'enable_stamped_cmd_vel'): 'PRM-12',
     ('bt_params', 'remove_passed_goals_radius_m'): 'PRM-11', ('bt_params', 'recovery_number_of_retries'): 'PRM-18',
-    ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78'}
+    ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78', ('gouda_nav2', 'inflate_around_unknown'): 'PRM-98'}
+OBSTACLE_COMBINATION_GLOBAL = 2   # DEC-216 (a design choice like DEC-122, not a vehicle value): MaxWithoutUnknownOverwrite
 
 
 def read_bt_params(params_dir: str, trial: bool) -> dict:
@@ -115,6 +133,7 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
         c.pop('robot_radius', None)
         c.update({'global_frame': frame, 'robot_base_frame': BASE_FRAME, 'footprint': footprint, 'track_unknown_space': True})
         c['inflation_layer']['inflation_radius'] = infl
+        c['inflation_layer']['inflate_around_unknown'] = bool(v['inflate_around_unknown'])   # PRM-98 (DEC-217)
     lc = p['local_costmap']['local_costmap']['ros__parameters']
     vl = lc['voxel_layer']
     vl.update({'observation_sources': 'points', 'max_obstacle_height': hmax, 'min_obstacle_height': hmin, 'points': _observation(hmin, hmax),
@@ -123,11 +142,23 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
     vl.pop('scan', None)
     gc = p['global_costmap']['global_costmap']['ros__parameters']
     ol = gc['obstacle_layer']
-    ol.update({'observation_sources': 'points', 'max_obstacle_height': hmax, 'min_obstacle_height': hmin, 'points': _observation(hmin, hmax)})
+    ol.update({'observation_sources': 'points', 'max_obstacle_height': hmax, 'min_obstacle_height': hmin, 'points': _observation(hmin, hmax),
+               'combination_method': OBSTACLE_COMBINATION_GLOBAL})
     ol.pop('scan', None)
-    gc['filters'] = ['speed_filter']
+    plugins = list(gc['plugins'])
+    plugins.insert(plugins.index('inflation_layer'), KEEPOUT_LAYER)
+    gc['plugins'] = plugins
+    gc[KEEPOUT_LAYER] = {'plugin': 'nav2_costmap_2d::StaticLayer', 'enabled': True, 'map_topic': KEEPOUT_MASK_TOPIC,
+                         'map_subscribe_transient_local': True, 'subscribe_to_updates': False, 'footprint_clearing_enabled': False}
+    gc['use_maximum'] = True
+    gc['filters'] = ['speed_filter', 'keepout_filter']
     gc['speed_filter'] = {'plugin': 'nav2_costmap_2d::SpeedFilter', 'enabled': True, 'filter_info_topic': FILTER_INFO_TOPIC,
                           'speed_limit_topic': SPEED_LIMIT_TOPIC}
+    keepout = {'plugin': 'nav2_costmap_2d::KeepoutFilter', 'enabled': True, 'filter_info_topic': KEEPOUT_INFO_TOPIC,
+               'override_lethal_cost': KEEPOUT_OVERRIDE_LETHAL}   # global and local (DEC-222)
+    gc['keepout_filter'] = dict(keepout)
+    lc['filters'] = ['keepout_filter']
+    lc['keepout_filter'] = dict(keepout)
 
     bs = p['behavior_server']['ros__parameters']
     bs['behavior_plugins'] = list(BEHAVIORS)
@@ -143,6 +174,10 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
     p['filter_mask_server'] = {'ros__parameters': {'yaml_filename': '', 'topic_name': FILTER_MASK_TOPIC}}
     p['costmap_filter_info_server'] = {'ros__parameters': {'type': 2, 'filter_info_topic': FILTER_INFO_TOPIC, 'mask_topic': FILTER_MASK_TOPIC,
                                                            'base': 0.0, 'multiplier': 0.0}}   # base / multiplier from the waypoint set (IFD-41) at TR-05
+    # the human-drawn areas (REV-137, IFD-55): type 0 keepout with the base 0 / multiplier 1 KeepoutFilter requires
+    p['keepout_mask_server'] = {'ros__parameters': {'yaml_filename': '', 'topic_name': KEEPOUT_MASK_TOPIC}}   # set by ND-03 at TR-05
+    p['keepout_filter_info_server'] = {'ros__parameters': {'type': 0, 'filter_info_topic': KEEPOUT_INFO_TOPIC, 'mask_topic': KEEPOUT_MASK_TOPIC,
+                                                           'base': 0.0, 'multiplier': 1.0}}
     p['lifecycle_manager_navigation'] = {'ros__parameters': {'autostart': False, 'node_names': list(LIFECYCLE_NODES)}}
     for sec in p.values():
         params = sec.get('ros__parameters') if 'ros__parameters' in sec else next(iter(sec.values()))['ros__parameters']
@@ -154,25 +189,47 @@ RECOVERY_CONFIG = 'nav2_recovery.json'      # IFD-54, in <data_root>/config
 RECOVERY_KEY = 'recovery_number_of_retries'
 
 
-def recovery_from_config(config_dir: Optional[str], prm18) -> dict:
-    """{'value', 'source', 'note'}: the count saved in the monitor (IFD-54) when it is a whole number from 1 to PRM-18, else PRM-18."""
-    base = {'value': prm18, 'source': 'PRM-18 (generated parameter file)', 'note': ''}
+INFLATE_KEY = 'inflate_around_unknown'
+
+
+def _saved(config_dir: Optional[str], key: str) -> tuple:
+    """(value or None, config_revision, note) of one key saved in the monitor's Nav2 tab file (IFD-54)."""
     if not config_dir:
-        return dict(base, note='no config directory given')
+        return None, None, 'no config directory given'
     path = os.path.join(config_dir, RECOVERY_CONFIG)
     if not os.path.isfile(path):
-        return dict(base, note=f'{path} does not exist (nothing saved in the monitor)')
+        return None, None, f'{path} does not exist (nothing saved in the monitor)'
     try:
         with open(path, encoding='utf-8') as f:
             doc = json.load(f)
-        v = (doc.get('values') or {}).get(RECOVERY_KEY)
+        v = (doc.get('values') or {}).get(key)
     except (OSError, ValueError, AttributeError) as e:
-        return dict(base, note=f'{path} could not be read ({type(e).__name__})')
+        return None, None, f'{path} could not be read ({type(e).__name__})'
     if v is None or v == 'UNKNOWN':
-        return dict(base, note='no count saved in the monitor')
+        return None, None, f'no {key} saved in the monitor'
+    return v, doc.get('config_revision'), ''
+
+
+def recovery_from_config(config_dir: Optional[str], prm18) -> dict:
+    """{'value', 'source', 'note'}: the count saved in the monitor (IFD-54) when it is a whole number from 1 to PRM-18, else PRM-18."""
+    base = {'value': prm18, 'source': 'PRM-18 (generated parameter file)', 'note': ''}
+    v, rev, note = _saved(config_dir, RECOVERY_KEY)
+    if v is None:
+        return dict(base, note=note)
     if isinstance(v, int) and not isinstance(v, bool) and 1 <= v <= prm18:
-        return {'value': v, 'source': f'monitor /config Nav2 tab (IFD-54, config_revision {doc.get("config_revision")})', 'note': ''}
+        return {'value': v, 'source': f'monitor /config Nav2 tab (IFD-54, config_revision {rev})', 'note': ''}
     return dict(base, note=f'the saved count {v!r} is not a whole number from 1 to PRM-18 ({prm18}): PRM-18 used')
+
+
+def inflate_from_config(config_dir: Optional[str], prm98) -> dict:
+    """{'value', 'source', 'note'}: inflate_around_unknown saved in the monitor (IFD-54) when it is true / false, else PRM-98."""
+    base = {'value': prm98, 'source': 'PRM-98 (generated parameter file)', 'note': ''}
+    v, rev, note = _saved(config_dir, INFLATE_KEY)
+    if v is None:
+        return dict(base, note=note)
+    if isinstance(v, bool):
+        return {'value': v, 'source': f'monitor /config Nav2 tab (IFD-54, config_revision {rev})', 'note': ''}
+    return dict(base, note=f'the saved {INFLATE_KEY} {v!r} is not true / false: PRM-98 used')
 
 
 def build_bt(template_xml: str, values: dict) -> str:
@@ -197,9 +254,12 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
         return {'missing': miss, 'params': None, 'bt': None, 'recovery': None}
     os.makedirs(out_dir, exist_ok=True)
     recovery = recovery_from_config(config_dir, values[('bt_params', RECOVERY_KEY)])
-    values = dict(values); values[('bt_params', RECOVERY_KEY)] = recovery['value']
+    inflate = inflate_from_config(config_dir, values[('gouda_nav2', INFLATE_KEY)])
+    values = dict(values); values[('bt_params', RECOVERY_KEY)] = recovery['value']; values[('gouda_nav2', INFLATE_KEY)] = inflate['value']
     with open(os.path.join(out_dir, 'recovery.json'), 'w', encoding='utf-8') as f:
         json.dump(recovery, f, ensure_ascii=False, indent=1)
+    with open(os.path.join(out_dir, 'overrides.json'), 'w', encoding='utf-8') as f:
+        json.dump({RECOVERY_KEY: recovery, INFLATE_KEY: inflate}, f, ensure_ascii=False, indent=1)
     with open(bt_template_path, encoding='utf-8') as f:
         bt = build_bt(f.read(), values)
     bt_path = os.path.join(out_dir, 'navigate_through_poses.xml')
@@ -212,7 +272,7 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
     with open(params_path, 'w', encoding='utf-8') as f:
         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')
         yaml.safe_dump(params, f, sort_keys=False, allow_unicode=True)
-    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery}
+    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate}
 
 
 def find_templates(bringup_share: Optional[str], bt_navigator_share: Optional[str]) -> tuple:

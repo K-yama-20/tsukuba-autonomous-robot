@@ -1,0 +1,113 @@
+# 変更セット REV-136（2026-10-21 第106便: DEC-220〜224 の回答の転記、DEC-226）
+# 適用: design/tools/apply_revision.py REV-136
+id: REV-136
+date: '2026-10-21'
+summary: 分岐セッション「引き継ぎ 2026-10-21 その2」からの転記で、DEC-220〜224 への人の回答（人が描く範囲の実装を始める、waypoint セットと一緒に保存、KeepoutFilter を global・local に置き override_lethal_cost は true、広げる幅は作らず人が余裕を取って描く、開始のときは (a) だけ確かめる）を記録する。(b) を確かめるかは DEC-226（pending）。実装は人の確認の後。
+basis_refs:
+- DEC-220
+- DEC-221
+- DEC-222
+- DEC-223
+- DEC-224
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-226
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【未決】自律走行の開始のとき、(b) global costmap の topic で禁止の範囲の格子が通れない値になっていることも確かめてから motion_hold を解くか（DEC-224 で (a) だけを確かめると決めた後の残り）
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-224
+  - ND-03
+  - TR-05
+  - ND-10
+  resulting_refs: []
+  note: 人の発言（DEC-224 の転記）：「(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。」。分岐先が示した事実：KeepoutFilter は結果を topic に出さない（SpeedFilter の /speed_limit にあたるものがない）。判断の材料（実装の後に VM で測る）：global costmap の更新にかかる時間、判定する格子がないとき（禁止の範囲がない、地図の外）の扱い。決まらない場合に止まる作業：開始のときの (b) の確認だけ（(a) は実装する）。第106便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-220
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-220: 実装開始を許可する。
+      DEC-221: 範囲をwaypointセットと一緒に保存する案を採用
+      DEC-222: KeepoutFilterはtrueに設定せよ。
+      DEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。
+
+      以上で問題ないか？」
+    note: 推奨は提案に。決まらない場合に止まる作業：範囲を描く機能全体（帯の地図だけで走ることはできる）。 REV-136（第106便）：採用：提案 design/proposals/drawn_areas_2026-10-21.md の設計で実装を始める（monitor の描画と保存、マスクの生成、Nav2 の設定、TR-05 の読み込み、VM の試験まで）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。
+- id: DEC-221
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-220: 実装開始を許可する。
+      DEC-221: 範囲をwaypointセットと一緒に保存する案を採用
+      DEC-222: KeepoutFilterはtrueに設定せよ。
+      DEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。
+
+      以上で問題ないか？」
+    note: 決まらない場合に止まる作業：範囲を描く機能全体。 REV-136（第106便）：採用：範囲は waypoint セットと一緒に保存する（提案 §3.1。速度マスクと同じ流れで、内容ハッシュに範囲も入る）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。
+- id: DEC-222
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-220: 実装開始を許可する。
+      DEC-221: 範囲をwaypointセットと一緒に保存する案を採用
+      DEC-222: KeepoutFilterはtrueに設定せよ。
+      DEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。
+
+      以上で問題ないか？」
+      3.（分岐側の確認「DEC-222 の true は override_lethal_cost で、global・local の両方に置くか」「DEC-223 は広げる幅の設定値を作らず、人が余裕を持って描く運用か」への回答）「DEC-222: global, localの両方trueとする。反論は認めない。
+      DEC-223: 人が余裕を持って描く為問題ない。」
+    note: 未確認（分岐先）：filter が inflation の後にかかるか、一つの costmap に速度と keepout の二つの filter を置けるか。決まらない場合に止まる作業：範囲を描く機能全体。 REV-136（第106便）：採用：KeepoutFilter を global と local の両方の costmap に置き、override_lethal_cost は両方 true（禁止の範囲の中にいるとき、外へ出る経路を許す）。分岐先は「true は失敗が外から見えにくくなり、DEC-200 の理由と向きが違う」と伝えたうえで、人が「反論は認めない」と決めた。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。
+- id: DEC-223
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-220: 実装開始を許可する。
+      DEC-221: 範囲をwaypointセットと一緒に保存する案を採用
+      DEC-222: KeepoutFilterはtrueに設定せよ。
+      DEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。
+
+      以上で問題ないか？」
+      3.（分岐側の確認「DEC-222 の true は override_lethal_cost で、global・local の両方に置くか」「DEC-223 は広げる幅の設定値を作らず、人が余裕を持って描く運用か」への回答）「DEC-222: global, localの両方trueとする。反論は認めない。
+      DEC-223: 人が余裕を持って描く為問題ない。」
+    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：縁の扱いだけ。 REV-136（第106便）：採用：禁止の範囲を広げる幅の設定値は作らない。base_link は禁止の範囲の縁まで来てよく、人が車体のはみ出し（PRM-69：横 0.30 m・前 0.55 m）の分の余裕を取って描く。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。
+- id: DEC-224
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）
+      1.「DEC-224について、詳細に判断材料を提示せよ」
+      2.「DEC-220: 実装開始を許可する。
+      DEC-221: 範囲をwaypointセットと一緒に保存する案を採用
+      DEC-222: KeepoutFilterはtrueに設定せよ。
+      DEC-223: 禁止の範囲は人間が定める。禁止範囲の縁までbase_linkが来ても良い。
+      DEC-224: 一旦(a)だけ確認する。一方で、(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。
+
+      以上で問題ないか？」
+    note: 決まらない場合に止まる作業：開始の確認だけ。 REV-136（第106便）：採用：開始のときは (a)（keepout のマスクと filter info の受信、マスクのハッシュの一致）だけを確かめ、確かめられない間は motion_hold を解かない。(b)（global costmap の topic で、禁止の格子が通れない値になっていること）を確かめるかは未決事項（DEC-226）。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。

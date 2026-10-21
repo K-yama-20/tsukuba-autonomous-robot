@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 23
+pending_decision_count: 21
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1122,35 +1122,21 @@ pending_decisions:
       の写し）。案 A（推奨）：generate_params.py が model_declared の PRM-77 を gouda.sh 用の生成物に出し、gouda.sh がそれを読む（値は正本の一か所）。案
       B：今のまま写しとして許容の一覧に入れ、正本の値を変えたら手で直す。'
     resulting_refs: []
-  - id: DEC-211
+  - id: DEC-219
     kind: approval
     status: pending
-    question: 【承認】走行に使う 2D 地図（変換の map.yaml）を通った帯の地図に替え、今の分類の 2D 地図（PRM-34〜36・38・62〜64、DEC-098）を表示用の 
-      map_ground_band にすること（design/proposals/swept_corridor_map_2026-10-21.md §3.3・§4、§9 の 2）
+    question: 【確認】/config の「Nav2」タブに置く設定の範囲と形：人が明示したのは 
+      inflate_around_unknown。allow_unknown（DEC-214）・combination_method（DEC-216）・膨らませの半径（PRM-72、DEC-218）も同じタブに置くか。置く場合、正本の値（PRM）を既定にして
+      monitor の値で上書きし、次の gouda.sh start で反映する形（DEC-207 (a)・DEC-209 と同じ）でよいか
     resulting_refs: []
-  - id: DEC-212
+  - id: DEC-226
     kind: approval
     status: pending
-    question: 【承認】/config の写しがない古い原図（2026-10-19 より前、例 10-14 のもの）で、変換のときの 
-      /config（imu_mount_*）を使って帯を作ってよいか（manifest 
-      に記録）。代わり：写しのない原図は変換しない（design/proposals/swept_corridor_map_2026-10-21.md §3.1・§7、§9 の 3）
+    question: 【未決】自律走行の開始のとき、(b) global costmap の topic で禁止の範囲の格子が通れない値になっていることも確かめてから motion_hold 
+      を解くか（DEC-224 で (a) だけを確かめると決めた後の残り）
     resulting_refs: []
-  - id: DEC-213
-    kind: approval
+  - id: DEC-229
+    kind: measurement
     status: pending
-    question: 【承認】案 C の新しい設定値：A 帯の半分の幅（候補 0.3／0.5／1.0 m。推奨は置いていない）、B 軌跡をつながないとみなす距離（例 1 m：通常の点の間隔は約 0.1 
-      m、途切れのとき 2.7〜12.6 m 跳んだ）（design/proposals/swept_corridor_map_2026-10-21.md §4、§9 の 4）
-    resulting_refs: []
-  - id: DEC-214
-    kind: approval
-    status: pending
-    question: 【承認】経路の計画（NavFn）の allow_unknown を false にすること（今は上流の既定の 
-      true）（design/proposals/swept_corridor_map_2026-10-21.md §5、§9 の 5）。§5 の 3 の (a)・(b)（走行中に見えた所への迂回を許すか）は 
-      VM の確認の後に改めて示す
-    resulting_refs: []
-  - id: DEC-215
-    kind: approval
-    status: pending
-    question: 【承認】waypoint 
-      が帯の地図の空きの格子の外にあるとき、保存を拒否するか（案）、警告だけにして保存するか（design/proposals/swept_corridor_map_2026-10-21.md §6、§9 の 6）
+    question: 【実測】禁止の範囲どうしの隙間の警告のしきい値（DEC-227 の追加）。車体（PRM-69）が、案 A の設定の Nav2 で通れる最小の隙間。まっすぐ通る場合と曲がる場合
     resulting_refs: []

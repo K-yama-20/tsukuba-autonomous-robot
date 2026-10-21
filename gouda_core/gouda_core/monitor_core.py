@@ -55,7 +55,8 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
 ])
 # /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the Nav2 BT recovery count used from the next gouda.sh start (DEC-207 (a)).
 # 'count' = an integer from 1 to the upper limit given by the caller (PRM-18, read from the generated parameter file).
-NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count')])
+# REV-134 (DEC-217): inflate_around_unknown ('boolean': true / false) overrides PRM-98 the same way.
+NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count'), ('inflate_around_unknown', 'boolean')])
 NUMERIC_KINDS = ('number', 'fraction', 'count')
 
 
@@ -299,6 +300,7 @@ class SensorConfig:
         if value == UNKNOWN: return True
         if kind == 'number': return isinstance(value, (int, float)) and not isinstance(value, bool)
         if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
+        if kind == 'boolean': return isinstance(value, bool)
         if kind == 'count':
             lim = self.limits.get(key)
             return lim is not None and isinstance(value, int) and not isinstance(value, bool) and lim[0] <= value <= lim[1]
@@ -314,6 +316,9 @@ class SensorConfig:
                 try: v = float(v)
                 except ValueError: return False, f'{k}: not a number ({v!r})'
             if isinstance(v, str) and v.strip() in ('', UNKNOWN): v = UNKNOWN
+            if self.fields[k] == 'boolean' and isinstance(v, str) and v != UNKNOWN:
+                if v.strip().lower() not in ('true', 'false'): return False, f'{k}: {v!r} is not true / false'
+                v = v.strip().lower() == 'true'
             if self.fields[k] == 'count' and isinstance(v, float):
                 if not v.is_integer(): return False, f'{k}: {v!r} is not a whole number'
                 v = int(v)

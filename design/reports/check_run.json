@@ -1,6 +1,6 @@
 {
-  "run_time_utc": "2026-10-21T02:31:14.262311+00:00",
-  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+  "run_time_utc": "2026-10-21T14:02:33.628113+00:00",
+  "python": "/opt/anaconda3/bin/python3",
   "PYTHONPATH": "",
   "runs": [
     {
@@ -11,7 +11,7 @@
     {
       "step": "generate params",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/opt/anaconda3/bin/python3",
         "design/tools/generate_params.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -21,7 +21,7 @@
     {
       "step": "intent identity",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/opt/anaconda3/bin/python3",
         "design/tools/check_intent_identity.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -31,7 +31,7 @@
     {
       "step": "fidelity validator",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/opt/anaconda3/bin/python3",
         "design/tools/validate_model.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -41,7 +41,7 @@
     {
       "step": "design consistency",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/opt/anaconda3/bin/python3",
         "design/tools/check_design.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -51,7 +51,7 @@
     {
       "step": "unit tests",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/opt/anaconda3/bin/python3",
         "-m",
         "unittest",
         "discover",
@@ -67,7 +67,7 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "2702defaf8e52598d60ba0ce364057d33e378db3f3c66e8ac806ff8223d06141",
+    "design/model.yaml": "b2514e0540ac02b0bc3f07ceeacb0fe3d744c6064ebd3e7b732d2080e3ea78cb",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4",
@@ -224,7 +224,17 @@
     "design/revisions/REV-129.yaml": "d26717d724de6a0917bd05da064c1e16e31b92c836482b6d3c7e91c99508e363",
     "design/revisions/REV-130.yaml": "86d2d70edad994fc415aac32a6f6e9483ae28f783ba90d1b44b887f9da3ad324",
     "design/revisions/REV-131.yaml": "ea2380b69a7314a4e693e1b0beeed733823ba5a77ff714274b0602c83cff6908",
-    "design/revisions/REV-132.yaml": "a21dad2866e07eb4bd36539310e00a4a3d82f41cf099993a7215cfa3b1e766c5"
+    "design/revisions/REV-132.yaml": "a21dad2866e07eb4bd36539310e00a4a3d82f41cf099993a7215cfa3b1e766c5",
+    "design/revisions/REV-133.yaml": "33eeaf5790c1b9c5dadb87277216edee4a3c4bac63ea937fb3ad29a602d390ef",
+    "design/revisions/REV-134.yaml": "bbc7b571b8a9eb643370948f817f031b7b1d90e2ade710b9bc4c3808eb38177f",
+    "design/revisions/REV-135.yaml": "9cef898cf2f6d02f5d57690a4d477a3e4c2b851a1f47675de90396bcd5f00c6f",
+    "design/revisions/REV-136.yaml": "a56c0c87ff909f76c92f6c2fa789d8faf27bb56018c588e82f5a27e23a7a6105",
+    "design/revisions/REV-137.yaml": "d62a345ed9008ea789a5be13ba618800c346d3d840c86740a7bc188b38b709c3",
+    "design/revisions/REV-138.yaml": "502af8b5b0bb95ed476d53000265dcfba6f9eb380f76aa74152f2b2f267084cb",
+    "design/revisions/REV-139.yaml": "9f40d32321345b17a9208476f12a515df4748e03a7d4ba03b15c7a0626964f1b",
+    "design/revisions/REV-140.yaml": "7b4f6972a98fd936bd8028dd1015001d59ad380ccfbec9e6004b5b0b3e03981c",
+    "design/revisions/REV-141.yaml": "6982fa81325fed377c7cc6cceda3de7179fbb294885b598ca312984a1b243f57",
+    "design/revisions/REV-142.yaml": "ab472a809c3d9c9ed92d854d09790d8b539e5acf33f736feca3ed61b6a0274d9"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }

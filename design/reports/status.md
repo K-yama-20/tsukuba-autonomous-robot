@@ -1,8 +1,36 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-132、第102便）。
+最終更新：2026-10-21（REV-142、第110便）。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第110便: PRM-99 を実車でも仮に 1.0 m に（REV-142、DEC-278）**（作業記録 `reports/worklog/2026-10-21_rev142_prm99_interim.md`）。
+- 人の決定（原文）で、DEC-229 が決まるまで実車でも PRM-99＝1.0 m を使う。gouda_monitor.yaml に反映した。設計検査は違反 0・未判定 5（DR-11 30）。Mac 258 合格。VM（人が再開した後）で、承認値だけで隙間 0.8 m の保存の警告が出ることを確認した。
+
+**第109便: DEC-227 案 A の Nav2 の設定と、禁止の範囲どうしの隙間の警告（REV-140・141、PRM-99）**（作業記録 `reports/worklog/2026-10-21_rev140_141_dec227_plan_a.md`）。
+- 人の確認（原文）で着手。global costmap に keepout_layer（StaticLayer、inflation の前）を足し、禁止の範囲を壁と同じに膨らませる。保存のとき、禁止の範囲どうしの狭い隙間を警告し地図に示す（しきい値 PRM-99 は未確定、試験用の仮の値 1.0 m。実車では「確かめていない」と出る）。
+- 試験：Mac 258 合格（10 skip）、VM 268 合格、不合格 0。VM の 5-6（全段）で、禁止の範囲を迂回して最後まで着いた（collision ahead 0 回）。まっすぐの隙間：0.7 m は手前で止まり、0.8 m はぎりぎりで着き、0.9 m 以上は問題なく通れた。曲がる場合は未測定（DEC-229）。設計検査は違反 0・未判定 5。
+
+**第108便: DEC-227 への人の回答（転記）と DEC-229 の記録（REV-139）**（作業記録 `reports/worklog/2026-10-21_rev139_dec227_transcribed.md`）。
+- 分岐セッションからの転記：案 A を採用（global で禁止の範囲を壁と同じに膨らませる）。禁止の範囲どうしの隙間の条件は、受入の条件と保存のときの警告で扱う。警告のしきい値は実測 DEC-229（仮 1.0 m、tbd）。実装は人の確認の後。設計検査は違反 0・未判定 5。
+
+**第107便: 人が描く範囲の実装（REV-137）と、禁止の範囲の縁で RPP が止まる件（REV-138、DEC-227）**（作業記録 `reports/worklog/2026-10-21_rev137_138_drawn_areas.md`）。
+- 人の確認（原文）で着手。waypoint セットの範囲（走行禁止・走行可）、keepout のマスク（広げない）、keepout の server と global・local の KeepoutFilter（override_lethal_cost true）、開始のときのマスクの確認（(a)）を実装した。
+- 試験：Mac 256 合格（8 skip）、VM 264＋2 合格、不合格 0。VM の 5-6 で、マスクを確かめてから motion_hold が解け、車体は禁止の範囲に入らなかった。ただし経路が禁止の範囲の縁に沿い、車体がはみ出すので RPP が止まり、最後まで着かなかった（範囲なしでは着く）。filter は inflation の後にかかることを確認。対応の案は DEC-227（pending、推奨は案 A：global で禁止の範囲を壁と同じに膨らませる）。コードと設定は変えていない。
+- 別の不具合：試験の基盤で sensor_supervisor が host_ip の AttributeError で落ちる（未修正、人の許可待ち）。設計検査は違反 0・未判定 5。
+
+**第106便: DEC-220〜224 への人の回答（転記）と DEC-226 の記録（REV-136）**（作業記録 `reports/worklog/2026-10-21_rev136_dec220_224_transcribed.md`）。
+- 分岐セッションからのメッセージで届いた回答を転記として記録：人が描く範囲の実装を始める、waypoint セットと一緒に保存、KeepoutFilter を global・local に置き override_lethal_cost は true、広げる幅は作らない、開始のときは (a) だけ確かめる。(b) は DEC-226（pending）。実装は人の確認の後。
+
+**第105便: DEC-225（B＝5.1 m）と、作り直した地図の ~/gouda_ws への取り込み（REV-135）**（作業記録 `reports/worklog/2026-10-21_rev135_dec225_map_into_gouda_ws.md`）。
+- 人の回答（原文）：B（PRM-97）＝5.1 m（DR-13 は変えない）。VM のメモリは 12 GB（人の申告、確認）。作り直した原図を承認値だけで変換し直し（rev 2、帯は 1 区間）、VM の `~/gouda_ws/gouda_data/maps/` に原図と rev 2 を入れた（ハッシュ一致）。175847 は人の指示で作り直さない。VM の再起動で `~/gouda_ws` の Gouda は止まっている。`~/gouda_ws` のコードは古い（3341602）。設計検査は違反 0・未判定 5。
+
+**第104便: 帯の地図を走行用に、Nav2 の設定、外付けの rosbag からの地図の作り直し（REV-134、DEC-225）**（作業記録 `reports/worklog/2026-10-21_rev134_plan_c_driving_nav2.md`、記録 `research/vehicle_pc/2026-10-21_rosbag_rebuild/`）。
+- 人の確認（原文）で着手。走行用の map.yaml を帯の地図に（今の分類の地図は表示用、帯が作れない原図は変換を失敗に）、地図タブに帯と点群の重ね図、帯の外の waypoint は警告つきで保存、global の obstacle_layer の combination_method 2、inflate_around_unknown（PRM-98、false、Nav2 タブで上書き）、PRM-72＝1.0 m、PRM-96＝1.0 m。PRM-97（B＝5 m）は検査ルール DR-13（旧値 5 m の流用の禁止）に機械的に当たるので値を入れず、DEC-225 で承認を求める。
+- 試験：Mac 248、VM 256 合格、不合格 0。VM の Nav2 タブと 5-6 の結合試験（帯の地図）。5-6 の 1 回目に一度だけ Nav2 の goal の受け付けの時間切れで TR-07（再現せず、未解決）。外付けの rosbag 20261014_173522 から原図（/config の写しつき）と変換を作り直した。20261014_175847 は VM のメモリ不足で GLIM が止められ、作れなかった。今の分類の地図は帯の中の 51000／57931 格子を占有にしていた。設計検査は違反 0・未判定 5。
+
+**第103便: DEC-211〜215 への人の回答（転記）と DEC-216〜224 の記録（REV-133）**（作業記録 `reports/worklog/2026-10-21_rev133_dec211_215_transcribed.md`）。
+- 分岐セッション「Side chat」からのメッセージで届いた人の回答を転記として記録：帯の地図を走行に使い人が描く範囲を重ねる（DEC-211）、写しのない原図は帯を作らず外付けの rosbag から作り直す（DEC-212）、A 1.0 m・B 5 m（DEC-213）、allow_unknown は true（DEC-214 不採用）、帯の外の waypoint は警告だけ（DEC-215）、combination_method 2（DEC-216）、inflate_around_unknown false を Nav2 タブで（DEC-217）、PRM-72 を 1 m（DEC-218）。確認・承認待ちは DEC-219〜224。値の変更・実装・作り直しは人の確認の後。status.md の後半の古い記述を直した。
 
 **第102便: DEC-208・209 の回答と monitor の「Nav2」タブ（REV-132）**（作業記録 `reports/worklog/2026-10-21_rev132_dec208_209_nav2_tab.md`）。
 - 人の回答（原文）：DEC-208 は全て既定値（PRM-79〜95 を推奨の値で承認。ND-07 は実車でも設定値がそろった）、DEC-209 は承認。monitor の /config に「Nav2」タブ（recovery の回数、1〜PRM-18）を足し、次の gouda.sh start で BT に入れる（IFD-54）。
@@ -414,48 +442,48 @@
 - **実車検証済み／実車投入可能**: 人の判断待ち。判断の材料は次のとおり。
   - 実車試験は未実施。
   - ESP32 の firmware（設定値 PRM-43〜49 はすべて承認済み）は人が書き込み済み（人の申告、2026-10-21）。卓上の TS-17〜19・VL-01、DEC-050 の実機照合は未実施。
-  - 自律走行は、ND-07 が未実装で、Nav2 で使える 2D 地図もまだないので、開始できない（`reports/autonomy_readiness_2026-10-21.md`）。Nav2 の実車の値は第90便で承認値になった。地図の変換の値も承認されたが、実データの 2D 変換は TS-34 で不合格（床の反射、DEC-107）。
+  - ND-07（案 A3）は実装済みで設定値も承認済み（第99・102便）。VM では模擬の点群で正常になったが、rosbag の再生と実車では未確認。Nav2 で使う 2D 地図は帯の地図に切り替えた（第104便。B＝5.1 m は DEC-225 で承認、第105便）。人が描く範囲は実装した（第107便）。禁止の範囲は global で膨らみ、VM では迂回して着く（第109便、DEC-227 案 A）。外付けの rosbag から原図と変換を作り直した（VM の `~/gouda_rebuild_2026-10-21/`）。
 
 ## 検査結果の件数
 
 | 検査 | 合格 | 違反 | 未判定 | 時点・出所 |
 |---|---|---|---|---|
-| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-132 の後、`reports/input_integrity.json` |
-| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 32、DR-15 31） | REV-132 の後、`reports/design_check.txt` の要約行 |
+| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-142 の後、`reports/input_integrity.json` |
+| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 3、DR-11 30、DR-15 34） | REV-142 の後、`reports/design_check.txt` の要約行 |
 | 検査器の試験（`design/rules`） | 82 | 1（実モデルの移行の照合。上の drawio と .DS_Store と同じ原因） | 0 | 第88便（`test_apply_revision.py` 4 件を追加）、`reports/migration_tests.txt` |
-| gouda_core の単体試験 | Mac 246（8 skip）、VM 254 | 0 | 0 | 第102便（作業ツリー、b2cb71d の上の未 commit の変更）。VM は `~/gouda_rev128_ws` |
+| gouda_core の単体試験 | Mac 258（10 skip）、VM 268 | 0 | 0 | 第109便（作業ツリー、3b4fb53 の上の未 commit の変更）。VM は `~/gouda_rev128_ws` |
 | firmware 中核のホスト試験（g++） | OK 282 | 0 | 0（実機は未実行） | 第89便（VL-02 の 4 チェックを追加） |
 | firmware のビルド（esp32dev） | 成功 | 0 | 0 | 第67・72便。書き込みは人（2026-10-21、申告） |
-| 判断台帳 | 213 件（answered 134、recorded 56） | — | pending 23（下の一覧） | REV-132 の後 |
+| 判断台帳 | 227 件（answered 150、recorded 56） | — | pending 21（下の一覧） | REV-142 の後 |
 
 `run_checks.py` の終了コードは 1。原因は、上の入力の完全性の 3 件だけ。
 
 ## 承認待ち・実測待ち・人の作業・提案
 
-判断台帳の pending（23 件）:
+判断台帳の pending（21 件）:
 
 - 方式・照合: DEC-021（Q-02 自己位置推定の方式）、DEC-022（Q-03 車両通信と制御の校正）、DEC-024（Q-09 Bluetooth 切断時の P 状態）、DEC-050（配線・firmware・操作結果の実機照合）。
 - 自己位置・GNSS: DEC-127（GNSS と地図の対応）、DEC-129（再起動後の初期位置の画面）、DEC-134（発散の監視と再初期化）、DEC-148（intent.md への運用の条件の追記）、DEC-152（NTRIP の検査ルール）。
-- 地図: DEC-211〜215（案 C：走行用の 2D 地図を帯の地図に、古い原図の /config、設定 A・B の値、allow_unknown、帯の外の waypoint。第100便で登録）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
+- 地図: DEC-219（Nav2 タブに置く設定の範囲）、DEC-226（人が描く範囲の開始のときの (b) の確認。第106便で登録）、実測 DEC-229（禁止の範囲どうしの隙間の警告のしきい値 PRM-99。第108便で登録、VM のまっすぐの場合は第109便で測定）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
 - 運用・環境: DEC-101（旧実装のファイルの扱い）、DEC-104（スリープの抑止）、DEC-138（VM の Fast DDS の設定）。
 - 構成: DEC-184（Hokuyo を今年使うか。第87便で登録）。
 - 検査: DEC-189（DR-15 の許容の一覧の案 28 件と、走査器の修正）、DEC-190（gouda.sh の PRM-77 の写しの扱い）。第88便で登録。
 
 実装の許可待ち（`reports/handover_2026-10-21.md` §5 のうち残るもの）:
 
-- なし（1 mV の非対称は DEC-186 で直さずに保留し、VL-02 の試験は第89便で追加。DR-15 は DEC-189、`--dry-run --check` の試験は第88便で済み）。
+- sensor_supervisor の host_ip の AttributeError の修正（第107便で発見、試験の基盤で落ちる）。
+- 以前からのもの：なし（1 mV の非対称は DEC-186 で直さずに保留し、VL-02 の試験は第89便で追加。DR-15 は DEC-189、`--dry-run --check` の試験は第88便で済み）。
 
 決定待ち（台帳の外）:
 
-- G-RECOVERY-COUNT（復旧できないときの扱い。工程 5-7 の設計のとき）。
-- 「まず Nav2 で自律走行させてみよう」（DEC-171 の人の発言）を、ND-07 と Nav2 の値を決めて進めるか、試験用の構成で進めるか。後者は TR-05 の契約の外になる。
+- G-RECOVERY-COUNT（復旧できないときの扱い。工程 5-7 の設計のとき。最初の自律走行の後：DEC-206 の (3)）。
 
 人の作業:
 
 - 卓上の TS-17〜19、VL-01（ポートを開くと ESP32 がリセットされるか）、DEC-050。
 - 不感帯の補償の最低倒し量・しきい値の実測と、monitor の /config「自律走行の出力」タブへの入力（第86便）。
 - 詳細設計書（スプレッドシート）の修正（`proposals/spreadsheet_change_requests_2026-10-21.md`、DEC-183）。
-- VM の `~/gouda_ws` と x86 機への反映（ブランチ design/field-mapping-2026-10-14。main には未 merge）。
+- VM の `~/gouda_ws` と x86 機への反映（main を update.sh で取り込む。第97〜101便は main に入った：PR #13。第102便は PR #14）。
 
 提案（承認済みの仕様ではない）: `proposals/` の各ファイル（最新は `dr15_allowlist_proposal_2026-10-21.md`、`spreadsheet_change_requests_2026-10-21.md`）。
 
@@ -467,22 +495,23 @@
 
 ## 次の作業
 
-- 人の指示を待つ。候補は上の承認待ち・決定待ちと、「Global_localization または Navigation のノードの実装の検討」（`reports/handover_2026-10-17.md` §5）。
-- 止まっている: Nav2 で使える 2D 地図（案 C、DEC-210 の確認と DEC-211〜215）、実車試験。
+- 人の指示を待つ。候補は上の承認待ち・決定待ち。
+- 人の確認待ち：DEC-220〜224 の転記の確認と、人が描く範囲の実装への着手。
+- 止まっている: 実車試験。VM の `~/gouda_ws` のコードの更新（main に入った後に update.sh：人）と Gouda の起動。
 
 ## 主要ファイルの場所（CLAUDE.md 1.9 の対応表。パスはリポジトリ `tsukuba-autonomous-robot/` 相対）
 
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第14版（SHA 9bf08d3e…、108 行）。写し `baselines/intent_history/`（`intent_v14_9bf08d3ebe24.md` など） |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-132。番号は `tools/reserve_ids.py` で予約する |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-136。番号は `tools/reserve_ids.py` で予約する |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`、`vehicle_output_timing.md`、`speed_filter_design.md`、`map_conversion.md`、`sensor_supervision.md`、`regulations_2026.md`、`git_management_plan.md`、`deferred_verification.md` |
-| 判断台帳 | `model.yaml: decisions`（DEC-001〜215） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
+| 判断台帳 | `model.yaml: decisions`（DEC-001〜226） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`、`render_migration_review.py`、`apply_revision.py`、`reserve_ids.py`、`hardcode_scan.py` |
 | 生成物（手で編集しない） | `generated/`（`params/` に node ごとの設定、`firmware_config.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時のヘッダはビルドのときに生成する（コミットしない） |
 | 提案 | `proposals/` | 承認済みの仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（試験の記録、DAC の実測と配線）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21_2.md`。最新の作業記録 `2026-10-21_rev132_dec208_209_nav2_tab.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21_2.md`。最新の作業記録 `2026-10-21_rev136_dec220_224_transcribed.md` |
 | ロボットの実装 | `gouda_interfaces/`、`gouda_core/`、`gouda.sh`、`setup.sh`、`update.sh`、`third_party/drivers.repos`、試験用 `gouda_core/test/stack.sh` | 起動は `bash gouda.sh start` だけ |
 | firmware | `firmware/gouda_esp32_v4/` | 旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換えの対象 |

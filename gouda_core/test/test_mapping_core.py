@@ -88,8 +88,14 @@ class GlimRunnerTests(unittest.TestCase):
             self.assertEqual(run.exited_unexpectedly_at, 250.0)
 
 
-def make_dump(root: Path, submaps):
+DEFAULT_TRAJ = ''.join(f'{i * 0.1:.1f} {i * 0.1:.1f} 0 0.3 0 0 0 1\n' for i in range(16))   # a 1.5 m walk along x (plan C needs one)
+MOUNT = {'values': {}, 'source': 'test'}   # the /config snapshot of the mapping run (UNKNOWN mounting -> neutral, recorded)
+
+
+def make_dump(root: Path, submaps, traj: str = DEFAULT_TRAJ):
     root.mkdir(parents=True)
+    if traj is not None:
+        (root / 'traj_imu.txt').write_text(traj)
     (root / 'graph.txt').write_text('g'); (root / 'values.bin').write_bytes(b'v')
     for i, (T, pts) in enumerate(submaps):
         d = root / f'{i:06d}'; d.mkdir()
@@ -100,7 +106,8 @@ def make_dump(root: Path, submaps):
 
 def grid_settings():
     return {'map_resolution_m': 0.5, 'ground_band_max_m': 0.1, 'obstacle_band_min_m': 0.3, 'obstacle_band_max_m': 1.5, 'occupied_min_points': 2,
-            'ground_cell_m': 0.5, 'ground_max_slope_deg': 10.0, 'ground_fill_radius_m': 1.0}
+            'ground_cell_m': 0.5, 'ground_max_slope_deg': 10.0, 'ground_fill_radius_m': 1.0,
+            'corridor_half_width_m': 0.5, 'corridor_gap_m': 1.0}   # plan C (PRM-96, PRM-97), required since DEC-211
 
 
 def read_pcd(path):
@@ -120,14 +127,16 @@ class MapConvertTests(unittest.TestCase):
             ground = [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)]
             wall = [[1.0, 1.0, 0.5], [1.0, 1.0, 0.8], [1.0, 1.0, 1.2]]
             make_dump(Path(d) / 'dump', [(I, ground + wall), (T2, ground)])
-            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', grid_settings())
-            self.assertEqual(stats['submaps'], 2); self.assertGreaterEqual(stats['occupied'], 1); self.assertGreater(stats['free'], 10)
-            self.assertEqual(stats['points_obstacle'], 3)
-            yaml = (Path(d) / 'out' / 'map.yaml').read_text(); self.assertIn('resolution: 0.5', yaml); self.assertIn('image: map.pgm', yaml)
-            pgm = (Path(d) / 'out' / 'map.pgm').read_bytes(); self.assertTrue(pgm.startswith(b'P5\n'))
+            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', grid_settings(), MOUNT)
+            gb = stats['ground_band']   # the classification grid, display only since DEC-211
+            self.assertEqual(stats['submaps'], 2); self.assertGreaterEqual(gb['occupied'], 1); self.assertGreater(gb['free'], 10)
+            self.assertEqual(gb['points_obstacle'], 3)
+            yaml = (Path(d) / 'out' / 'map_ground_band.yaml').read_text(); self.assertIn('resolution: 0.5', yaml); self.assertIn('image: map_ground_band.pgm', yaml)
+            self.assertIn('image: map.pgm', (Path(d) / 'out' / 'map.yaml').read_text())   # map.yaml is the swept corridor (DEC-211)
+            pgm = (Path(d) / 'out' / 'map_ground_band.pgm').read_bytes(); self.assertTrue(pgm.startswith(b'P5\n'))
             w, h = [int(x) for x in pgm.split(b'\n')[1].split()]; self.assertEqual(len(pgm.split(b'\n', 3)[3]), w * h)
             # every product is written; the 3D point map holds all points in the map frame
-            self.assertEqual(stats['files'], mc.PRODUCT_FILES)
+            self.assertEqual(stats['files'], mc.PRODUCT_FILES + [mc.TRAJECTORY_FILE])
             for f in mc.PRODUCT_FILES: self.assertGreater((Path(d) / 'out' / f).stat().st_size, 0, f)
             fields, pcd = read_pcd(Path(d) / 'out' / 'pointmap.pcd')
             self.assertEqual(fields['FIELDS'], 'x y z'); self.assertEqual(int(fields['POINTS']), len(ground) * 2 + len(wall)); self.assertEqual(pcd.shape[0], int(fields['POINTS']))
@@ -191,7 +200,7 @@ class MapConvertTests(unittest.TestCase):
             make_dump(Path(d) / 'dump', [(np.eye(4), ground + dup)])
             (Path(d) / 'dump' / 'traj_imu.txt').write_text('1.0 0 0 1.2 0 0 0 1\n')
             s = dict(grid_settings(), pointmap_voxel_m=0.2, pointmap_tile_m=20.0)
-            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', s)
+            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', s, MOUNT)
             pm = stats['pointcloud_map']; self.assertTrue(pm['made']); self.assertEqual(pm['points'], len(ground))
             out = Path(d) / 'out' / mc.POINTCLOUD_MAP_DIR
             meta = (out / 'metadata.yaml').read_text().splitlines()
@@ -215,7 +224,7 @@ class MapConvertTests(unittest.TestCase):
     def test_no_tiles_without_their_settings(self):
         with tempfile.TemporaryDirectory() as d:
             make_dump(Path(d) / 'dump', [(np.eye(4), [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)])])
-            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', dict(grid_settings(), pointmap_voxel_m=0.2))   # tile size unresolved
+            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', dict(grid_settings(), pointmap_voxel_m=0.2), MOUNT)   # tile size unresolved
             self.assertFalse(stats['pointcloud_map']['made']); self.assertIn('PRM-95', stats['pointcloud_map']['reason'])
             self.assertFalse((Path(d) / 'out' / mc.POINTCLOUD_MAP_DIR).exists()); self.assertTrue((Path(d) / 'out' / 'map.yaml').is_file())
 
@@ -226,16 +235,15 @@ class MapConvertTests(unittest.TestCase):
         return ''.join(f'{i * 0.1:.1f} {x} {y} 0.3 {q[0]} {q[1]} {q[2]} {q[3]}\n' for i, (x, y) in enumerate(points))
 
     def _corridor(self, d, traj_text, mount_values, half=0.5, gap=1.0):
-        make_dump(Path(d) / 'dump', [(np.eye(4), [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)])])
-        (Path(d) / 'dump' / 'traj_imu.txt').write_text(traj_text)
+        make_dump(Path(d) / 'dump', [(np.eye(4), [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)])], traj_text)
         s = dict(grid_settings(), map_resolution_m=0.1, corridor_half_width_m=half, corridor_gap_m=gap)
         stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', s, {'values': mount_values, 'source': 'test'} if mount_values is not None else None)
         return stats
 
     def _free_centres(self, d):
-        out = Path(d) / 'out'; meta = (out / 'map_swept_corridor.yaml').read_text()
+        out = Path(d) / 'out'; meta = (out / 'map.yaml').read_text()   # the swept corridor is map.yaml (DEC-211)
         res = float(meta.split('resolution: ')[1].split()[0]); ox, oy = [float(v) for v in meta.split('origin: [')[1].split(',')[:2]]
-        pgm = (out / 'map_swept_corridor.pgm').read_bytes(); w, h = [int(v) for v in pgm.split(b'\n')[1].split()]
+        pgm = (out / 'map.pgm').read_bytes(); w, h = [int(v) for v in pgm.split(b'\n')[1].split()]
         img = np.frombuffer(pgm.split(b'\n', 3)[3], dtype=np.uint8).reshape(h, w)[::-1, :]   # row 0 = lowest y
         self.assertTrue(set(np.unique(img)) <= {254, 205}, 'only free and unknown, no occupied cell')
         j, i = np.nonzero(img == 254)
@@ -245,7 +253,8 @@ class MapConvertTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path = [(x * 0.1, 0.0) for x in range(51)] + [(5.0, y * 0.1) for y in range(1, 31)]   # straight, then a corner
             stats = self._corridor(d, self._traj(path), {})
-            self.assertTrue(stats['swept_corridor']['made']); self.assertIn('map_swept_corridor.yaml', stats['files'])
+            self.assertTrue(stats['swept_corridor']['made']); self.assertIn('map.yaml', stats['files']); self.assertIn('corridor_overlay.png', stats['files'])
+            self.assertEqual(png_size(Path(d) / 'out' / 'corridor_overlay.png'), tuple(int(v) for v in (Path(d) / 'out' / 'map.pgm').read_bytes().split(b'\n')[1].split()))
             c = self._free_centres(d)
             def dist(p):   # distance to the polyline (two segments)
                 a = np.clip(p[:, 0], 0, 5); d1 = np.hypot(p[:, 0] - a, p[:, 1])
@@ -274,18 +283,28 @@ class MapConvertTests(unittest.TestCase):
             c = self._free_centres(d)
             self.assertAlmostEqual(float(c[:, 0].min()), -0.3 - 0.2, delta=0.1); self.assertAlmostEqual(float(c[:, 0].max()), 3.0 - 0.3 + 0.2, delta=0.1)
 
-    def test_corridor_needs_trajectory_mounting_and_settings(self):
+    def test_conversion_fails_without_trajectory_mounting_or_settings(self):
+        """DEC-211 / DEC-212 plan B (REV-134): without the corridor there is no 2D map for driving: the conversion fails with the
+        reason (no silent fall-back to the classification grid; the caller keeps the source)."""
         with tempfile.TemporaryDirectory() as d:
-            st = self._corridor(d, '', {})
-            self.assertFalse(st['swept_corridor']['made']); self.assertIn('traj_imu.txt', st['swept_corridor']['reason'])
+            with self.assertRaises(ValueError) as cm: self._corridor(d, '', {})
+            self.assertIn('traj_imu.txt', str(cm.exception))
         with tempfile.TemporaryDirectory() as d:
-            st = self._corridor(d, self._traj([(0, 0), (1, 0)]), None)
-            self.assertFalse(st['swept_corridor']['made']); self.assertIn('DEC-212', st['swept_corridor']['reason'])
-            self.assertTrue((Path(d) / 'out' / 'map.yaml').is_file(), 'the 2D map used for driving is still made (DEC-211)')
+            with self.assertRaises(ValueError) as cm: self._corridor(d, self._traj([(0, 0), (1, 0)]), None)
+            self.assertIn('DEC-212', str(cm.exception))
         with tempfile.TemporaryDirectory() as d:
             make_dump(Path(d) / 'dump', [(np.eye(4), [[0, 0, 0], [1, 1, 0]])])
-            st = mc.convert(Path(d) / 'dump', Path(d) / 'out', grid_settings(), {'values': {}, 'source': 'test'})
-            self.assertFalse(st['swept_corridor']['made']); self.assertIn('PRM-96', st['swept_corridor']['reason'])
+            s = {k: v for k, v in grid_settings().items() if k != 'corridor_gap_m'}
+            with self.assertRaises(ValueError) as cm: mc.convert(Path(d) / 'dump', Path(d) / 'out', s, MOUNT)
+            self.assertIn('PRM-96', str(cm.exception))
+
+    def test_waypoints_outside_the_corridor(self):
+        """DEC-215: the check behind the warning when a waypoint set is saved (warn, never refuse)."""
+        with tempfile.TemporaryDirectory() as d:
+            self._corridor(d, self._traj([(x * 0.1, 0.0) for x in range(31)]), {})
+            # (1.0, 0.57): inside the grid (half width 0.5 plus one 0.1 m cell) but on an unknown cell; (50, 0): outside the grid
+            out = mc.outside_free(Path(d) / 'out', [(1.0, 0.0), (1.0, 0.4), (1.0, 0.57), (50.0, 0.0)])
+            self.assertEqual([i for i, _, _ in out], [2, 3])
 
     def test_refuses_without_submaps_or_settings(self):
         with tempfile.TemporaryDirectory() as d:
@@ -346,7 +365,7 @@ class MapDatabaseTests(unittest.TestCase):
             tmp = db.begin_conversion('o1')
             ok, msg, _ = db.finish_conversion('o1', tmp, {'version': 'v'}, {}, {}); self.assertFalse(ok); self.assertIn('discarded', msg); self.assertFalse(tmp.exists())
             tmp = db.begin_conversion('o1')
-            stats = mc.convert(db.source_dir('o1'), tmp, grid_settings())
+            stats = mc.convert(db.source_dir('o1'), tmp, grid_settings(), MOUNT)
             ok, msg, man = db.finish_conversion('o1', tmp, {'version': mc.CONVERTER_VERSION}, grid_settings(), stats)
             self.assertTrue(ok, msg); self.assertEqual(man['revision'], 1); self.assertEqual(man['source_content_hash'], db.source_manifest('o1')['content_hash'])
             self.assertTrue((db.root / 'o1' / 'converted' / '001' / 'map.yaml').is_file())

@@ -217,6 +217,7 @@ lines:
       - TS-27
       - TS-43
       - TS-44
+      - TS-46
     issue_refs: []
   - line: 13
     requirement_id: RQ-I078
@@ -338,6 +339,7 @@ lines:
       - IFD-23
       - IFD-53
       - IFD-54
+      - IFD-55
       - ND-03
       - ND-09
       - ND-10
@@ -347,11 +349,15 @@ lines:
       - PRM-72
       - PRM-96
       - PRM-97
+      - PRM-98
+      - PRM-99
       - TR-07
       - TS-05
       - TS-42
       - TS-44
       - TS-45
+      - TS-46
+      - TS-47
     issue_refs: []
   - line: 16
     requirement_id: RQ-I086
@@ -926,6 +932,7 @@ lines:
       - C-018
       - H-005
       - IFD-42
+      - IFD-55
       - ND-10
     issue_refs: []
   - line: 82

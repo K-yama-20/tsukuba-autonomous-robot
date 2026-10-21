@@ -37,8 +37,9 @@ def _nodes(context, *args, **kwargs):
     r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'), config_dir or None)
     if r['missing']:
         return [LogInfo(msg=f"[gouda_nav2] unresolved vehicle values {r['missing']}: Nav2 is not started (no general values: intent.md:85)")]
-    rec = r['recovery']
-    recovery_log = LogInfo(msg=f"[gouda_nav2] BT recovery count {rec['value']} from {rec['source']}" + (f" ({rec['note']})" if rec['note'] else ''))
+    rec, inf = r['recovery'], r['inflate_around_unknown']
+    recovery_log = LogInfo(msg=f"[gouda_nav2] BT recovery count {rec['value']} from {rec['source']}" + (f" ({rec['note']})" if rec['note'] else '')
+                           + f"; inflate_around_unknown {inf['value']} from {inf['source']}" + (f" ({inf['note']})" if inf['note'] else ''))
     p = [r['params']]
     out = 'screen'
     return [
@@ -46,6 +47,9 @@ def _nodes(context, *args, **kwargs):
         Node(package='nav2_map_server', executable='map_server', name='map_server', output=out, parameters=p),
         Node(package='nav2_map_server', executable='map_server', name='filter_mask_server', output=out, parameters=p),
         Node(package='nav2_map_server', executable='costmap_filter_info_server', name='costmap_filter_info_server', output=out, parameters=p),
+        # the human-drawn areas (REV-137, IFD-55): the keepout mask and its filter info (type 0)
+        Node(package='nav2_map_server', executable='map_server', name='keepout_mask_server', output=out, parameters=p),
+        Node(package='nav2_map_server', executable='costmap_filter_info_server', name='keepout_filter_info_server', output=out, parameters=p),
         Node(package='nav2_controller', executable='controller_server', name='controller_server', output=out, parameters=p,
              remappings=[('cmd_vel', 'cmd_vel_nav')]),
         Node(package='nav2_smoother', executable='smoother_server', name='smoother_server', output=out, parameters=p),

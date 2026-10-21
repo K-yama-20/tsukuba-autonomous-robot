@@ -1,0 +1,46 @@
+# 変更セット REV-142（2026-10-21 第110便: PRM-99 を実車でも仮に 1.0 m、DEC-278）
+# 適用: design/tools/apply_revision.py REV-142
+id: REV-142
+date: '2026-10-21'
+summary: 人の決定（このチャット、原文）で、PRM-99 を DEC-229 が決まるまで実車でも仮に 1.0 m にする（DEC-278）。
+basis_refs:
+- DEC-278
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-278
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 【承認】PRM-99（禁止の範囲どうしの隙間の警告のしきい値）を、DEC-229 が決まるまで実車でも仮に 1.0 m で使うか（第109便の報告で質問）
+  answer_verbatim: 「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」
+  affected_refs:
+  - PRM-99
+  - DEC-229
+  - DEC-227
+  resulting_refs:
+  - PRM-99
+  note: 人の決定。測定値ではない（VM のまっすぐの隙間では 0.7 m で止まり、0.8 m はぎりぎり、0.9 m 以上は通れた：DEC-229 の note）。DEC-229 は pending のまま、決まったら PRM-99 を見直す。警告だけの値で、保存も走行も止めない。第110便で登録。
+  disposition: answered
+entities: []
+modifications:
+- id: PRM-99
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-278
+  set_nested:
+    parameter.value: 1.0
+    parameter.value_state: approved
+    parameter.decision_deadline: DEC-229 が決まるまでの仮の値（DEC-278）。DEC-229 で見直す
+    parameter.measurement: 人の決定（DEC-278）：「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」。測定値ではない。DEC-229 の実測で見直す
+    parameter.software_trial_value: null
+    parameter.software_trial_basis: 人の決定（DEC-278）で実車の値があるため仮値なし
+  interpretation_append: REV-142：DEC-278 で、DEC-229 が決まるまで実車でも仮に 1.0 m。
+decision_updates:
+- id: DEC-229
+  set:
+    note: 手順の案（分岐側）：VM の試験の基盤で、禁止の範囲どうしの隙間 0.7・0.8・0.9・1.0・1.3 m を、まっすぐと曲がる場合で走らせ、通れたか・止まったか・最も近づいた距離を記録する。仮の値 1.0 m（確定は実測。値は tbd）。見込み（推測、未測定）：まっすぐ約 0.8〜0.9 m、曲がるなら約 1.3 m 以上。VM の結果は loopback_sim の上のもので、実車の追従の誤差は含まない。案 A の実装の後に測る。決まらない場合に止まる作業：警告のしきい値の確定だけ（警告は仮の値で出せる）。転記の出所は分岐セッション（local_1a9b7863…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（DEC-106）。 第108便で登録。 REV-140（第109便）：しきい値は PRM-99（unresolved、試験用の仮の値 1.0 m は実車では読み込まない）。未確定の間、保存のときは「確かめていない」と警告する。 REV-141（第109便）：材料（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）、2026-10-21、REV-140 の設定（global の keepout_layer）、空きの地図に、x 2.8〜3.4 m の走行禁止の帯を 2 本、経路 (1,0)→(4,0) の上に隙間を空けて置いた（まっすぐ通る場合だけ）。記録：VM の /tmp/st56_rev140_gap<隙間>.log・_stack.log。結果：0.7 m は隙間の手前で止まり最後まで着かない（collision ahead 550 回、禁止の範囲に入らない）。0.8 m は着いた（collision ahead 28 回）。0.9・1.0・1.3 m は着いた（0 回）。loopback_sim は指令どおりに動くので、実車の追従の誤差は含まない。曲がる場合は未測定。monitor の保存の警告（PRM-99 の試験用の値 1.0 m）は 0.7・0.8・0.9 m で出て、1.0・1.3 m では出なかった。）
+      REV-142（第110便）：DEC-278 で、決まるまで実車でも PRM-99＝1.0 m を仮に使う。

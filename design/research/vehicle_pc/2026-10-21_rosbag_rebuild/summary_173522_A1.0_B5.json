@@ -1,0 +1,49 @@
+{
+ "source": "/home/aya/gouda_rebuild_2026-10-21/173522/maps/20261019_123731_dc7b4c8a/source",
+ "corridor": {
+  "made": true,
+  "use": "plan C (DEC-107 / DEC-210 / DEC-211): map.yaml, the 2D map used for driving",
+  "trajectory": {
+   "file": "traj_imu.txt",
+   "points": 4679,
+   "pieces": 1,
+   "not_joined": []
+  },
+  "mounting": {
+   "source": "/home/aya/gouda_rebuild_2026-10-21/173522/maps/20261019_123731_dc7b4c8a/sensor_config.json (config_revision 2; analysis)",
+   "imu_translation_m": [
+    -0.07,
+    0.14,
+    0.935
+   ],
+   "defaulted_fields": [],
+   "problems": []
+  },
+  "settings": {
+   "corridor_half_width_m": 1.0,
+   "corridor_gap_m": 5.0,
+   "map_resolution_m": 0.1
+  },
+  "grid": {
+   "width": 754,
+   "height": 692,
+   "origin_x": -43.710851729375186,
+   "origin_y": -65.50577475376855,
+   "free_cells": 57931
+  }
+ },
+ "settings_used": {
+  "corridor_half_width_m": 1.0,
+  "corridor_gap_m": 5.0,
+  "map_resolution_m": 0.1
+ },
+ "overrides": {
+  "corridor_gap_m": 5.0
+ },
+ "cells": {
+  "corridor_free": 57931,
+  "band_occupied_inside_corridor": 51000,
+  "band_free_outside_corridor": 1001,
+  "band_occupied_outside_corridor": 142036
+ }
+}

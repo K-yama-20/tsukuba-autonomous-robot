@@ -4,6 +4,8 @@
 #   N1 first start: nothing saved -> the BT has PRM-18, run/nav2/recovery.json says so
 #   N2 save 0 (refused) and 3 (accepted); the running Nav2 keeps PRM-18, the next start will use 3
 #   N3 restart: the BT has 3, the monitor shows 3 in use
+# REV-134 (DEC-217): the same for inflate_around_unknown (PRM-98 false; the tab's true reaches both inflation layers after a restart),
+# and the global obstacle_layer's combination_method is 2 (DEC-216)
 set -o pipefail
 WS=${WS:-~/gouda_rev128_ws}; REPO=$WS/src/tsukuba-autonomous-robot; ROOT=/tmp/nav2rec
 export ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-78}
@@ -14,13 +16,18 @@ bt() { grep -o 'NavigateRecovery"[^>]*number_of_retries="[0-9]*"\|number_of_retr
 api() { curl -s "$(cat $ROOT/run/monitor.url)/api/nav2_recovery" | python3 -c "
 import json,sys; c=json.load(sys.stdin); n=c.get('next_start') or {}; u=c.get('in_use') or {}
 print('  saved', c['values'], 'limits', c.get('limits'), '| next start', n.get('value'), n.get('source'), '| in use', u.get('value'), u.get('source'))"; }
-save() { curl -s -X POST -H 'Content-Type: application/json' -d "{\"recovery_number_of_retries\": \"$1\"}" "$(cat $ROOT/run/monitor.url)/api/nav2_recovery" | python3 -c "import json,sys; j=json.load(sys.stdin); print('  save $1: ok=%s %s' % (j['ok'], j['message']))"; }
+save() { curl -s -X POST -H 'Content-Type: application/json' -d "{\"${2:-recovery_number_of_retries}\": \"$1\"}" "$(cat $ROOT/run/monitor.url)/api/nav2_recovery" | python3 -c "import json,sys; j=json.load(sys.stdin); print('  save ${2:-recovery_number_of_retries}=$1: ok=%s %s' % (j['ok'], j['message']))"; }
+costmaps() { python3 -c "
+import yaml; d=yaml.safe_load(open('$ROOT/run/nav2/nav2_params.yaml'))
+g=d['global_costmap']['global_costmap']['ros__parameters']; l=d['local_costmap']['local_costmap']['ros__parameters']
+print('  inflate_around_unknown local/global:', l['inflation_layer'].get('inflate_around_unknown'), g['inflation_layer'].get('inflate_around_unknown'),
+      '| inflation_radius:', l['inflation_layer']['inflation_radius'], g['inflation_layer']['inflation_radius'], '| global combination_method:', g['obstacle_layer'].get('combination_method'))"; }
 echo "=== N1 first start"
 stack start || exit 1; sleep 3
-echo "  BT: $(bt)"; echo "  recovery.json: $(cat $ROOT/run/nav2/recovery.json | tr -d '\n')"; api
+echo "  BT: $(bt)"; echo "  recovery.json: $(cat $ROOT/run/nav2/recovery.json | tr -d '\n')"; api; costmaps
 echo "=== N2 save"
-save 0; save 3; api; echo "  BT of the running Nav2: $(bt)"
+save 0; save 3; save yes inflate_around_unknown; save true inflate_around_unknown; api; echo "  BT of the running Nav2: $(bt)"; costmaps
 echo "=== N3 restart"
 stack stop; stack start || exit 1; sleep 3
-echo "  BT: $(bt)"; echo "  recovery.json: $(cat $ROOT/run/nav2/recovery.json | tr -d '\n')"; api
-grep -E "gouda_nav2.*recovery count" $ROOT/run/stack.launch.log | cut -c1-200
+echo "  BT: $(bt)"; echo "  recovery.json: $(cat $ROOT/run/nav2/recovery.json | tr -d '\n')"; api; costmaps
+grep -E "gouda_nav2.*recovery count" $ROOT/run/stack.launch.log | cut -c1-260

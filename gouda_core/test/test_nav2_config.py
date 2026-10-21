@@ -73,6 +73,33 @@ class Nav2ConfigTests(unittest.TestCase):
         self.assertEqual(self.p['lifecycle_manager_navigation']['ros__parameters']['autostart'], False)
         self.assertNotIn('collision_monitor', self.p['lifecycle_manager_navigation']['ros__parameters']['node_names'])
 
+    def test_keepout_servers_and_filters(self):
+        """REV-137 (DEC-220..222): keepout mask / info servers (type 0, base 0, multiplier 1) and a KeepoutFilter on both costmaps
+        with override_lethal_cost true; the global costmap keeps the SpeedFilter too."""
+        names = self.p['lifecycle_manager_navigation']['ros__parameters']['node_names']
+        for n in ('keepout_mask_server', 'keepout_filter_info_server'): self.assertIn(n, names)
+        info = self.p['keepout_filter_info_server']['ros__parameters']
+        self.assertEqual((info['type'], info['base'], info['multiplier'], info['mask_topic']), (0, 0.0, 1.0, nc.KEEPOUT_MASK_TOPIC))
+        self.assertEqual(self.p['keepout_mask_server']['ros__parameters']['topic_name'], nc.KEEPOUT_MASK_TOPIC)
+        g = self.p['global_costmap']['global_costmap']['ros__parameters']; l = self.p['local_costmap']['local_costmap']['ros__parameters']
+        self.assertEqual(g['filters'], ['speed_filter', 'keepout_filter']); self.assertEqual(l['filters'], ['keepout_filter'])
+        for c in (g, l):
+            k = c['keepout_filter']
+            self.assertEqual((k['plugin'], k['filter_info_topic'], k['override_lethal_cost']), ('nav2_costmap_2d::KeepoutFilter', nc.KEEPOUT_INFO_TOPIC, True))
+            self.assertTrue(k['filter_info_topic'].startswith('/'))   # absolute: the filters live in the costmap namespaces
+
+    def test_keepout_layer_before_inflation(self):
+        """DEC-227 plan A (REV-140): the global costmap reads the keepout mask in a StaticLayer before the inflation layer (keepout
+        areas are inflated like walls); the local costmap has only the filter (DEC-222). The other layers keep their template order."""
+        g = self.p['global_costmap']['global_costmap']['ros__parameters']; l = self.p['local_costmap']['local_costmap']['ros__parameters']
+        self.assertEqual(g['plugins'], ['static_layer', 'obstacle_layer', nc.KEEPOUT_LAYER, 'inflation_layer'])
+        k = g[nc.KEEPOUT_LAYER]
+        self.assertEqual((k['plugin'], k['map_topic'], k['map_subscribe_transient_local'], k['subscribe_to_updates']),
+                         ('nav2_costmap_2d::StaticLayer', nc.KEEPOUT_MASK_TOPIC, True, False))
+        self.assertTrue(g['use_maximum'])            # the -1 cells of the mask leave the map as it is
+        self.assertNotIn('map_topic', g['static_layer'])   # the map's own layer still reads /map
+        self.assertNotIn(nc.KEEPOUT_LAYER, l['plugins']); self.assertNotIn('use_maximum', l)
+
     def test_choices_and_values(self):
         v = {k: x for (_, k), x in self.values.items()}
         cs = self.p['controller_server']['ros__parameters']
@@ -100,12 +127,16 @@ class Nav2ConfigTests(unittest.TestCase):
             c = self.p[name][name]['ros__parameters']
             self.assertEqual(c['global_frame'], frame); self.assertTrue(c['track_unknown_space']); self.assertNotIn('robot_radius', c)
             self.assertEqual(c['footprint'], v['footprint']); self.assertEqual(c['inflation_layer']['inflation_radius'], v['inflation_radius_m'])
+            self.assertIs(c['inflation_layer']['inflate_around_unknown'], bool(v['inflate_around_unknown']))   # PRM-98 (DEC-217)
         vl = self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer']
         self.assertEqual(vl['points']['topic'], nc.POINTS_TOPIC); self.assertNotIn('scan', vl)
         self.assertEqual((vl['points']['min_obstacle_height'], vl['points']['max_obstacle_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))
         self.assertAlmostEqual(vl['origin_z'] + vl['z_voxels'] * vl['z_resolution'], v['obstacle_max_height_m'])
         g = self.p['global_costmap']['global_costmap']['ros__parameters']
-        self.assertEqual(g['filters'], ['speed_filter']); self.assertEqual(g['speed_filter']['plugin'], 'nav2_costmap_2d::SpeedFilter')
+        # DEC-216: what the LiDAR sees never turns the unknown outside of the swept corridor into free (global only)
+        self.assertEqual(g['obstacle_layer']['combination_method'], 2)
+        self.assertNotIn('combination_method', self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer'])
+        self.assertEqual(g['filters'], ['speed_filter', 'keepout_filter']); self.assertEqual(g['speed_filter']['plugin'], 'nav2_costmap_2d::SpeedFilter')   # keepout: DEC-222 (REV-137)
         # the filter lives in the global_costmap namespace: its topics must be absolute to meet the servers and the controller
         self.assertTrue(g['speed_filter']['filter_info_topic'].startswith('/')); self.assertTrue(g['speed_filter']['speed_limit_topic'].startswith('/'))
         self.assertEqual(self.p['costmap_filter_info_server']['ros__parameters']['mask_topic'], self.p['filter_mask_server']['ros__parameters']['topic_name'])
@@ -157,6 +188,18 @@ class Nav2ConfigTests(unittest.TestCase):
                     json.dump({'values': {'recovery_number_of_retries': bad}}, f)
                 r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'c'), cfg)
                 self.assertEqual(bt_count(r), str(prm18), repr(bad)); self.assertTrue(r['recovery']['note'], repr(bad))
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': {'recovery_number_of_retries': 'UNKNOWN', 'inflate_around_unknown': True}, 'config_revision': 6}, f)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'f'), cfg)   # DEC-217: the tab overrides PRM-98
+            with open(r['params']) as f: doc = yaml.safe_load(f)
+            for name in ('local_costmap', 'global_costmap'):
+                self.assertIs(doc[name][name]['ros__parameters']['inflation_layer']['inflate_around_unknown'], True)
+            self.assertIn('config_revision 6', r['inflate_around_unknown']['source']); self.assertEqual(bt_count(r), str(prm18))
+            with open(os.path.join(d, 'f', 'overrides.json')) as f: self.assertIs(json.load(f)['inflate_around_unknown']['value'], True)
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': {'inflate_around_unknown': 'yes'}}, f)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'g'), cfg)
+            self.assertEqual(r['inflate_around_unknown']['value'], self.values[('gouda_nav2', 'inflate_around_unknown')]); self.assertIn('not true / false', r['inflate_around_unknown']['note'])
             with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f: f.write('{broken')
             r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'e'), cfg)
             self.assertEqual(bt_count(r), str(prm18)); self.assertIn('could not be read', r['recovery']['note'])

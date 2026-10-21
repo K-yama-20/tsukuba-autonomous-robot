@@ -1,0 +1,80 @@
+# 変更セット REV-140（2026-10-21 第109便: DEC-227 案 A の Nav2 の設定と、禁止の範囲どうしの隙間の警告、PRM-99）
+# 適用: design/tools/apply_revision.py REV-140
+id: REV-140
+date: '2026-10-21'
+summary: 人の確認（このチャット、原文）で、DEC-227 案 A に着手。global costmap に keepout のマスクを読む StaticLayer（keepout_layer、inflation の前、use_maximum true）を足し、禁止の範囲を壁と同じに膨らませる。waypoint セットの保存のとき、走行禁止の範囲どうしの狭い隙間を警告し地図に示す（しきい値 PRM-99、未確定、試験用の仮の値 1.0 m）。TS-47 の手順と期待を更新。
+basis_refs:
+- DEC-227
+- DEC-229
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities:
+- id: PRM-99
+  kind: parameter
+  name: 走行禁止の範囲どうしの隙間の警告のしきい値
+  source_refs:
+  - SRC-I026
+  - SRC-I081
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - PRM-69
+  - PRM-72
+  - IFD-41
+  - IFD-55
+  issue_refs:
+  - G-TUNING
+  interpretation: REV-140（DEC-227・229）で追加。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I012
+  revision_ref: REV-140
+  parameter:
+    owner_ref: ND-02
+    value: null
+    value_state: unresolved
+    unit: m
+    stage: 自律走行
+    purpose: waypoint セットの保存のとき、走行禁止の範囲どうしの隙間（0 より大きく、この値より小さいもの）を警告し、地図に示す（保存は拒まない。DEC-215 と同じ）。global costmap では禁止の範囲が壁と同じに膨らむ（DEC-227 案 A）ので、狭い隙間は車体が通れないことがある。未確定の間は確かめず、「確かめていない」と警告に出す（値を補わない）
+    measurement: DEC-229（VM で隙間 0.7・0.8・0.9・1.0・1.3 m、まっすぐと曲がる場合）
+    decision_deadline: 実車で走行禁止の範囲を二つ以上描いて走る前（DEC-229）
+    software_trial_value: 1.0
+    software_trial_basis: DEC-227 の回答（転記、人がこのチャットで確認）で仮の値とした 1.0 m。実測ではない。実車では読み込まない
+    declaration: ros_parameter
+    target: gouda_monitor
+    param_key: keepout_gap_warn_m
+    value_type: double
+    apply_timing: launch
+modifications:
+- id: TS-47
+  set_nested:
+    test.procedure: 単体（test_keepout_mask.py）：多角形からマスクへの変換（禁止 100、走行可 0、指定なし -1、禁止が走行可より強い、地図と同じ格子）、map_server が読む値の内容ハッシュ、走行禁止の中の waypoint の警告、範囲のない waypoint セットのハッシュが前と変わらないこと。単体（test_nav2_config.py）：keepout の二つの server、global・local の KeepoutFilter と override_lethal_cost。単体（test_autonomy_core.py）：keepout のファイルのない waypoint セットでは開始しない。VM（試験の基盤）：開始でマスクを確かめてから motion_hold を解くこと、帯の外の走行可・帯の中の禁止の範囲で Nav2 の経路が変わること。REV-140（DEC-227）：単体（test_nav2_config.py）：global costmap の keepout_layer（StaticLayer、マスクの topic、inflation の前、use_maximum true）、local には置かないこと。単体（test_keepout_mask.py）：禁止の範囲どうしの隙間（接する・重なる・中にある・第三の禁止の範囲の中の隙間は出さない）。VM：禁止の範囲が経路をふさぐとき、膨らみを避けて迂回し最後まで着くこと。禁止の範囲どうしの隙間（まっすぐ）を通れるか。monitor の保存で狭い隙間の警告が出ること
+    test.observe: routes/<set>/<rev>/keepout_mask.*・manifest、DecisionEvent（keepout_mask_confirmed）、control/motion_hold、Nav2 の経路、/global_costmap/costmap の禁止の範囲のまわりの値、保存の応答の warnings（keepout_gap_narrow・keepout_gap_unchecked）
+    test.expected: 描いた範囲のとおりのマスク。確かめられない間は hold=true。 禁止の範囲のまわりは global costmap で膨らみ、経路は縁に沿わない。禁止の範囲どうしの間で、車体が通れる隙間が経路から消えないこと（DEC-227）。PRM-99 未満の隙間は保存のとき警告される（保存はする）
+  interpretation_append: REV-140（DEC-227）：案 A の迂回と隙間の試験を追加。
+- id: IFD-55
+  interpretation_append: REV-140（DEC-227 案 A）：keepout_filter_mask は global costmap の keepout_layer（StaticLayer）も読む。
+- id: ND-10
+  interpretation_append: REV-140（DEC-227 案 A）：global costmap に keepout_layer（StaticLayer、inflation の前）。
+decision_updates:
+- id: DEC-227
+  set:
+    resulting_refs:
+    - DEC-229
+    - PRM-99
+    note: 事実（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）：global costmap は四角の中が 100、四角の外の 0.1〜0.4 m（y 0.6〜0.9）と手前 0.2〜0.5 m（x 2.3〜2.6）は 0（inflation_radius 1.0 m なのに膨らまない）。経路は四角のそばで |y| が最大 0.50 m（縁そのもの）。車体は横に 0.30 m（PRM-69）出るので、経路の上の車体は禁止の範囲に重なり、local の禁止の格子（DEC-222）で RPP が「collision ahead」を 815〜907 回、Controller patience exceeded、spin・backup も失敗。車体は x 約 2.05 m（四角の 0.76 m 手前）で止まり、禁止の範囲には入らなかったが、PAUSE（最後の waypoint）に着かなかった。同じ試験で範囲を描かないときは最後まで走り、collision ahead は 0 回。Nav2 1.3.13 のソース（keepout_filter.cpp）：KeepoutFilter は layer の後にマスクの値を master に書く（大きいときだけ）。提案 §2 の未確認 1（filter は inflation の後か）は「後」と確認。DEC-223 の前提（base_link が縁まで来て、車体がはみ出してよい）は、local にも禁止の格子がある（DEC-222）ので成り立たない：はみ出す代わりに止まる。案 A（推奨）：global costmap に keepout のマスクを読む層（StaticLayer、/keepout_filter_mask、use_maximum true）を
+      inflation の前に足し、禁止の範囲を壁と同じく膨らませる。KeepoutFilter（global・local、override_lethal_cost true）はそのまま。振る舞い：経路が禁止の範囲から壁と同じだけ離れる（base_link が縁まで来ることはなくなる。DEC-223 は「来てもよい」なので反しない）。禁止の範囲と壁の間の狭い所は通れなくなりうる。禁止の範囲の中にいるとき、global の層は 254 のまま残るので外への経路が引けず Nav2 が失敗しうる（override は local だけに効く。結果は TR-07 の一時停止）。StaticLayer が −1 の格子を飛ばすか、マスクの大きさで costmap を作り直さないかは推測で、VM で確かめる。案 B：保存のときに禁止の範囲を広げる（提案 §5。DEC-223 では不採用）。広げた縁に経路が沿うのは同じで、前に 0.55 m 出る車体では 0.30 m では足りない。案 C：今のまま（人が描く場所で避ける）。経路が禁止の範囲のそばを通るときは、いつも止まって recovery をくり返す。案 D：車体の形を考える planner（Smac Hybrid・Lattice）に替える（大きな変更）。影響を受けるもの：Nav2 の設定（gouda_nav2.yaml、nav2_config.py）、TS-47 の期待（迂回して最後まで着くこと）。決まらない場合に止まる作業：禁止の範囲のそばを走る経路（範囲を描かない走行と、描いた範囲の保存・開始の確認は止まらない）。第107便で登録。 REV-139（第108便）：採用（人が 6 で記録を指示した、分岐側の整理）：案 A。global costmap に keepout のマスクを読む層（StaticLayer、use_maximum true）を inflation の前に足し、禁止の範囲を壁と同じに膨らませる（2D の格子。ボクセルではない）。禁止の範囲そのもの（DEC-223）と local costmap（禁止の格子だけ、DEC-222）は変えない。人の条件（1：禁止の範囲どうしが近く、膨らみとの間に車体の通れる隙間がないときは、通れるだけの隙間を costmap に作る）の扱い（分岐側の説明）：NavFn が通れなくするのは
+      inscribed（縁から約 0.24 m）までで、その外の 1.0 m（PRM-72）は高いコストでも通れる。経路がふさがるのは隙間が約 0.48 m 未満のときだけで、車幅 0.60 m では元々通れない。そのため、条件つきで膨らみを削る仕組みはすぐには作らない。条件の意図は受入の条件「禁止の範囲どうしの間で、車体が通れる隙間が経路から消えないこと」（TS-47）として残し、VM で困ることが分かったときだけ作る。追加：保存のときに、禁止の範囲どうしの隙間がしきい値未満の所を警告し地図に示す（保存は拒まない。DEC-215 と同じ）。しきい値は実測 DEC-229（仮の値 1.0 m、確定は tbd）。見込み（推測、未測定）：まっすぐ通れる最小の隙間は約 0.8〜0.9 m（車幅 0.60 m＋格子の丸め＋追従の誤差）、曲がるなら約 1.3 m 以上（旋回の直径は約 1.24 m）。分岐側が示した確認点で、人が個別には答えていないもの：狭い所で禁止の格子は削らない、対象は禁止の範囲どうし、作った隙間のコストの扱い（実装の前に人に確かめる）。TS-47 の期待：迂回して最後まで着くこと、狭い隙間の試験の追加。転記の出所は分岐セッション（local_1a9b7863…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（DEC-106）。 REV-140（第109便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。DEC-227 案 A の Nav2 の設定と、保存のときの隙間の警告の実装（VM の試験まで）に着手して。」）。分岐側が示した確認点 3 つ（狭い所で禁止の格子は削らない、対象は禁止の範囲どうし、作った隙間のコストの扱い）は、隙間を作る仕組みを作らないので、この実装では生じない。
+- id: DEC-229
+  set:
+    affected_refs:
+    - DEC-227
+    - PRM-69
+    - PRM-72
+    - TS-47
+    - IFD-41
+    - PRM-99
+    note: 手順の案（分岐側）：VM の試験の基盤で、禁止の範囲どうしの隙間 0.7・0.8・0.9・1.0・1.3 m を、まっすぐと曲がる場合で走らせ、通れたか・止まったか・最も近づいた距離を記録する。仮の値 1.0 m（確定は実測。値は tbd）。見込み（推測、未測定）：まっすぐ約 0.8〜0.9 m、曲がるなら約 1.3 m 以上。VM の結果は loopback_sim の上のもので、実車の追従の誤差は含まない。案 A の実装の後に測る。決まらない場合に止まる作業：警告のしきい値の確定だけ（警告は仮の値で出せる）。転記の出所は分岐セッション（local_1a9b7863…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（DEC-106）。 第108便で登録。 REV-140（第109便）：しきい値は PRM-99（unresolved、試験用の仮の値 1.0 m は実車では読み込まない）。未確定の間、保存のときは「確かめていない」と警告する。
