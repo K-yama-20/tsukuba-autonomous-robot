@@ -131,6 +131,19 @@ class InitAndCovarianceTests(unittest.TestCase):
                                  ('ekf_localizer: ekf', {'pose_no_update_count': '3'}), ('other', {'pose_no_update_count': 'n/a'})])
         self.assertEqual(d, {'nearest_voxel_transformation_likelihood': 2.71, 'pose_no_update_count': 3})
 
+    def test_ndt_points_kept_only_with_the_upstream_key(self):
+        # DEC-280: autoware_ndt_scan_matcher 1.9.0 adds is_activated only after it keeps the cloud for ndt_align_srv
+        name = 'ndt_scan_matcher: scan_matching_status'
+        self.assertIsNone(lc.read_ndt_points([('ekf_localizer: ekf', '', {'pose_no_update_count': '0'})]))
+        dropped = 'Max distance of sensor points = 7.123 [m] < 10.000 [m]'
+        self.assertEqual(lc.read_ndt_points([(name, dropped, {'sensor_points_max_distance': '7.123'})]), (False, dropped))
+        self.assertEqual(lc.read_ndt_points([(name, 'Node is not activated.', {'is_activated': 'False'})]), (True, 'Node is not activated.'))
+        self.assertEqual(lc.read_ndt_points([(name, dropped, {}), (name, '', {'is_activated': 'True'})]), (True, ''))   # the newest counts
+        self.assertIn('no scan status', lc.points_wait_detail(None))
+        self.assertIn(dropped, lc.points_wait_detail((False, dropped)))
+        self.assertEqual(lc.evaluate(0.0, lc.Inputs(phase='initializing', localizer_running=True, phase_detail=lc.points_wait_detail(None)), settings())[:2],
+                         (lc.STATE_INITIALIZING, 'initializing'))   # waiting for a cloud is 初期化中, never 推定不能
+
     def test_settings_are_required_and_checked(self):
         with self.assertRaises(ValueError): lc.Settings.from_values({})
         with self.assertRaises(ValueError): settings(stale_timeout_s=0.0)

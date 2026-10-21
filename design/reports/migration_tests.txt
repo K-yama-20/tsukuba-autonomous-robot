@@ -98,6 +98,6 @@ First extra element 0:
 Diff is 2194 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 83 tests in 39.864s
+Ran 83 tests in 122.599s
 
 FAILED (failures=1)

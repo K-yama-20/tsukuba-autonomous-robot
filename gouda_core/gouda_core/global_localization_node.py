@@ -10,7 +10,10 @@ Lifecycle (driven by gouda_mode_manager, IFD-36):
   mapping trajectory and the covariance PRM-84..87 -> ndt_align_srv (Monte Carlo search) -> the EKF's initial pose -> the
   EKF's and the NDT's trigger_node true. Each step is a DecisionEvent; a failure leaves the state 推定不能 (init_failed) and
   publishes no map->odom. A service that is not there yet is waited for without a time limit (the child launch is starting;
-  the human can always pause or end, and the mode manager's start waits for this node's state).
+  the human can always pause or end, and the mode manager's start waits for this node's state). Before ndt_align_srv the
+  NDT must hold a point cloud: its scan status in /diagnostics shows that a cloud was kept (REV-144, DEC-280). This is also
+  waited for without a time limit; meanwhile the detail of IFD-53 says so and gives the NDT's reason for the last dropped
+  cloud (e.g. the max distance below its required_distance), so the wait is never mistaken for 推定不能.
 - deactivate: the EKF and the NDT are triggered false and map->odom is no longer published. cleanup: the child launch is stopped.
 While running: IFD-25 (localization/odometry) -> the EKF's twist (variances PRM-82, PRM-83) and the odometry buffer; the EKF pose
 -> map->odom (localization_core.MapOdomEstimator) and localization/pose (IFD-33); /tf map->odom (IFD-18) is published with the
@@ -86,6 +89,9 @@ class GlobalLocalizationNode(LifecycleNode):
         self.map_dir = ''
         self.initial_pose = None
         self._pose_event = threading.Event()
+        self._points_event = threading.Event()   # the NDT holds a cloud (DEC-280); per child launch
+        self._points_last = None                  # (kept, message) of the NDT's newest scan status
+        self._points_waiting = False
         self._token = 0
         self.last_state = None
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)
@@ -123,6 +129,7 @@ class GlobalLocalizationNode(LifecycleNode):
         except OSError as e:
             return self._refuse(f'the A3 launch could not be started: {e}', {'command': cmd})
         with self._lock:
+            self._points_event.clear(); self._points_last = None   # a new NDT: nothing kept yet
             self.settings, self.map_dir, self.trajectory = s, str(map_dir), trajectory
             self.imu_height = float(imu_z) if imu_z_known else 0.0
             self.estimator = lc.MapOdomEstimator(s.stale_timeout_s)
@@ -157,7 +164,7 @@ class GlobalLocalizationNode(LifecycleNode):
 
     def on_deactivate(self, state) -> TransitionCallbackReturn:
         with self._lock:
-            self._token += 1
+            self._token += 1; self._points_waiting = False
             self.inputs.phase, self.inputs.phase_detail = 'waiting', ''
             self.estimator.reset(); self.initial_pose = None; self._pose_event.clear()
         for name, cli in self.triggers.items():   # best effort; the result is recorded
@@ -176,6 +183,7 @@ class GlobalLocalizationNode(LifecycleNode):
         self._subs, self._pubs, self.timer = [], [], None
         with self._lock:
             self.settings = None; self.map_dir = ''; self.inputs = lc.Inputs()
+            self._points_event.clear(); self._points_last = None; self._points_waiting = False
         self._decision('cleaned_up', 'A3 launch stopped', {})
         self._publish_status()
         return TransitionCallbackReturn.SUCCESS
@@ -243,6 +251,15 @@ class GlobalLocalizationNode(LifecycleNode):
         step('waiting for ndt_align_srv (the A3 launch is starting)')
         self.align.wait_for_service()   # no time limit (see the module docstring)
         if not alive(): return
+        with self._lock:
+            self._points_waiting = True; kept, last = self._points_event.is_set(), self._points_last
+        if not kept:
+            step(lc.points_wait_detail(last))
+            self._decision('ndt_points_waiting', lc.points_wait_detail(last), {})
+        self._points_event.wait()   # no time limit (DEC-280; see the module docstring)
+        with self._lock:
+            if not alive(): return
+            self._points_waiting = False
         step('Monte Carlo search of the initial pose (ndt_align_srv)')
         req = self.align.srv_type.Request(); req.pose_with_covariance = req_pose
         res = self._call(self.align, req)
@@ -311,7 +328,11 @@ class GlobalLocalizationNode(LifecycleNode):
         self.pose_pub.publish(msg)
 
     def _on_diagnostics(self, msg: DiagnosticArray):
-        found = lc.read_diagnostics([(st.name, {kv.key: kv.value for kv in st.values}) for st in msg.status])
+        statuses = [(st.name, st.message, {kv.key: kv.value for kv in st.values}) for st in msg.status]
+        points = lc.read_ndt_points(statuses)
+        if points is not None:
+            self._on_ndt_points(points)
+        found = lc.read_diagnostics([(name, values) for name, _message, values in statuses])
         if not found: return
         with self._lock:
             now = self._now()
@@ -319,6 +340,20 @@ class GlobalLocalizationNode(LifecycleNode):
                 self.inputs.ndt_nvtl = found[lc.NDT_SCORE_KEY]; self.inputs.last_ndt_score = now
             if lc.EKF_NO_UPDATE_KEY in found:
                 self.inputs.ekf_pose_no_update_count = found[lc.EKF_NO_UPDATE_KEY]; self.inputs.last_ekf_diag = now
+
+    def _on_ndt_points(self, points):
+        with self._lock:
+            if self.settings is None: return
+            prev, self._points_last = self._points_last, points
+            first_kept = points[0] and not self._points_event.is_set()
+            if points[0]: self._points_event.set()
+            dropped = not points[0] and (prev is None or prev[0])   # recorded when dropping starts, not for every cloud
+            if self._points_waiting and self.inputs.phase == 'initializing':
+                self.inputs.phase_detail = lc.points_wait_detail(points)
+        if first_kept:
+            self._decision('ndt_points_kept', 'the NDT holds a point cloud; ndt_align_srv can be called', {})
+        elif dropped:
+            self._decision('ndt_points_dropped', f'the NDT dropped a point cloud: {points[1]}', {'message': points[1]})
 
     # ---- outputs ----
     def _publish_status(self):

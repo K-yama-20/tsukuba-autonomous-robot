@@ -4,7 +4,9 @@ The robot stands still at one pose of the mapping trajectory (trajectory_imu.txt
 map's tiles within <radius> m of that pose, seen from it, are published as sensors/xt32/points (frame xt32_link); base_link ->
 xt32_link is the identity (static TF), so base_link is that pose. localization/odometry (IFD-25) is the identity pose with
 zero velocity. Then the NDT must converge to the pose, the EKF must follow and ND-07 must report 正常 with map->odom = the pose.
-usage: python3 a3_synthetic_feed.py <map_directory> <trajectory row> <radius_m> <period_s>
+usage: python3 a3_synthetic_feed.py <map_directory> <trajectory row> <radius_m> <period_s> [3d]
+  3d: the radius is the 3-D distance (every point nearer than radius_m; default: the horizontal distance). Used to give the
+  NDT clouds whose max distance is below its required_distance (ubuntu_nd07_wait_points.sh, DEC-280).
 Prints the pose (x y z qx qy qz qw) on stdout first.
 """
 import math
@@ -34,13 +36,14 @@ def rot(q):
 
 
 class Feed(Node):
-    def __init__(self, map_dir, row, radius, period):
+    def __init__(self, map_dir, row, radius, period, sphere=False):
         super().__init__('a3_synthetic_feed')
         traj = [l.split() for l in (Path(map_dir) / 'trajectory_imu.txt').read_text().splitlines() if len(l.split()) == 8]
         r = [float(v) for v in traj[row]]
         self.t, self.q = np.array(r[1:4]), r[4:8]
         pts = np.concatenate([read_pcd(p) for p in sorted((Path(map_dir) / 'pointcloud_map').glob('*.pcd'))]).astype(np.float64)
-        near = pts[np.linalg.norm(pts[:, :2] - self.t[:2], axis=1) < radius]
+        dims = 3 if sphere else 2
+        near = pts[np.linalg.norm(pts[:, :dims] - self.t[:dims], axis=1) < radius]
         self.local = ((near - self.t) @ rot(self.q)).astype('<f4')   # p_sensor = R^T (p_map - t)
         print(' '.join(f'{v:.6f}' for v in list(self.t) + list(self.q)), flush=True)
         self.get_logger().info(f'{len(self.local)} points within {radius} m of trajectory row {row}')
@@ -63,7 +66,7 @@ class Feed(Node):
 
 def main():
     a = sys.argv[1:]
-    rclpy.init(); n = Feed(a[0], int(a[1]), float(a[2]), float(a[3]))
+    rclpy.init(); n = Feed(a[0], int(a[1]), float(a[2]), float(a[3]), sphere=a[4:5] == ['3d'])
     try: rclpy.spin(n)
     except KeyboardInterrupt: pass
 

@@ -11,6 +11,7 @@
 #   data        <workspace>/gouda_data (PRM-25): records/, state/, config/, run/ (monitor URL, launch log, sensor state)
 #   settings    design/generated/params next to this script; ROS 2 Jazzy from /opt/ros/jazzy (the design's distribution)
 #   sensors     always started; a missing device is simply waited for (gouda_sensor_supervisor, DEC-088)
+#   DDS         Fast DDS profile written to <data>/run/fastdds_profile.xml from PRM-100 and given to every process (DEC-279)
 # Software trial values (<node>.trial.yaml) are never loaded by this script; only the test scripts in gouda_core/test do.
 # This script publishes nothing and never requests driving (M-001 K2). Mode-dependent nodes are activated through
 # lifecycle transitions (IFD-36). The legacy launchers scripts/gouda.sh and scripts/gouda_gui.sh were removed (DEC-068).
@@ -24,6 +25,7 @@ url_file="$data_root/run/monitor.url"
 run_dir="$data_root/run"
 pid_file="$run_dir/gouda_core.pid"
 log_file="$run_dir/gouda_core.launch.log"
+dds_profile="$run_dir/fastdds_profile.xml"            # written at start by gouda_core.dds_profile (PRM-100)
 
 usage() { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -90,10 +92,12 @@ case "${1:-}" in
     mkdir -p "$run_dir" "$data_root/records" "$data_root/state"
     # shellcheck disable=SC1090
     source "$ros_setup"; source "$workspace/install/setup.bash"
+    # Fast DDS profile of every process of this start (PRM-100, DEC-279): written from the generated settings each time
+    python3 -m gouda_core.dds_profile "$params_dir" "$dds_profile" || { echo "REFUSED: not started (Fast DDS profile)"; exit 1; }
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling
     rm -f "$url_file"
     launch_args=("params_dir:=$params_dir" "data_root:=$data_root")
-    ros2 launch gouda_core gouda_core.launch.py "${launch_args[@]}" >"$log_file" 2>&1 &
+    FASTRTPS_DEFAULT_PROFILES_FILE="$dds_profile" ros2 launch gouda_core gouda_core.launch.py "${launch_args[@]}" >"$log_file" 2>&1 &
     launch_pid=$!
     set +m
     echo "$launch_pid" >"$pid_file"   # with job control on, the job's pgid equals the launch pid

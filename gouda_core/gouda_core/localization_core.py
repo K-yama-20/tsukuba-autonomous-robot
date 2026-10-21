@@ -41,6 +41,11 @@ DOUBLE_SETTINGS = ['points_near_crop_m', 'points_far_crop_m', 'points_voxel_leaf
 INT_SETTINGS = ['ekf_pose_no_update_max']                                                         # PRM-91
 NDT_SCORE_KEY = 'nearest_voxel_transformation_likelihood'
 EKF_NO_UPDATE_KEY = 'pose_no_update_count'
+# The NDT's status of each received cloud (autoware_ndt_scan_matcher 1.9.0, "<node name>: scan_matching_status"). The key
+# is_activated is added only after the cloud is kept for ndt_align_srv; before that the cloud was dropped and the message says
+# why (empty, TF, max distance below required_distance). Names of the upstream interface, not settings (REV-144, DEC-280).
+NDT_SCAN_STATUS_SUFFIX = ': scan_matching_status'
+NDT_POINTS_KEPT_KEY = 'is_activated'
 
 
 @dataclass(frozen=True)
@@ -222,6 +227,24 @@ def read_diagnostics(statuses: list) -> dict:
             try: out[EKF_NO_UPDATE_KEY] = int(float(values[EKF_NO_UPDATE_KEY]))
             except (TypeError, ValueError): pass
     return out
+
+
+def read_ndt_points(statuses: list) -> Optional[tuple]:
+    """(kept, message) of the NDT's newest scan status in a list of (name, message, {key: value}), or None when absent.
+    kept: the NDT holds a cloud for ndt_align_srv (DEC-280); message: the NDT's reason when it dropped the cloud."""
+    out = None
+    for name, message, values in statuses:
+        if name.endswith(NDT_SCAN_STATUS_SUFFIX):
+            out = (NDT_POINTS_KEPT_KEY in values, message)
+    return out
+
+
+def points_wait_detail(last: Optional[tuple]) -> str:
+    """phase_detail of IFD-53 while the initialization waits for the NDT's first kept cloud."""
+    base = 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv'
+    if last is None:
+        return f'{base}: no scan status from the NDT yet'
+    return f'{base}: last cloud dropped: {last[1]}' if last[1] else base
 
 
 @dataclass

@@ -171,7 +171,8 @@
       "violations": [],
       "undetermined": [
         "gouda_core/gouda_core/glim_runner.py:146: 0.2 — 承認値と同じ数（PRM-16・PRM-94）。`time.sleep(0.2)`",
-        "gouda_core/gouda_core/global_localization_node.py:47: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
+        "gouda_core/gouda_core/global_localization_node.py:50: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
+        "gouda_core/gouda_core/global_localization_node.py:167: 1 — 時間の値（待ち・期限・周期）。`self._token+=1;self._points_waiting=False`",
         "gouda_core/gouda_core/gnss_calibration.py:140: 50 — 承認値と同じ数（PRM-10・PRM-91）。`max_iter:int=50`",
         "gouda_core/gouda_core/gnss_calibration.py:180: 2 — 時間の値（待ち・期限・周期）。`grid=np.arange(-s.delay_search_s,s.delay_search_s+s.delay_step_s/2,s.delay_step_s)`",
         "gouda_core/gouda_core/keepout_mask.py:101: 1.0 — 承認値と同じ数（PRM-13・PRM-29・PRM-31・PRM-38・PRM-57・PRM-58・PRM-64・PRM-67・PRM-72・PRM-79・PRM-89・PRM-93・PRM-96・PRM-99）。`info={:{:{:0,:filter_info_topic,:mask_topic,:0.0,:1.0}}}`",
@@ -199,9 +200,9 @@
         "gouda_core/gouda_core/vehicle_bridge_node.py:167: 1 — 時間の値（待ち・期限・周期）。`self.thread.join(timeout=1)`",
         "firmware/gouda_esp32_v4/src/main.cpp:20: 5 — 時間の値（待ち・期限・周期）。`constexpr uint32_t kControlPeriodMs = 5;`",
         "firmware/gouda_esp32_v4/src/main.cpp:98: 1 — 時間の値（待ち・期限・周期）。`delay(1);`",
-        "gouda.sh:101: 1 — 時間の値（待ち・期限・周期）。`for _ in $(seq 1 20); do [[ -s \"\" ]] && break; running || break; sleep 1; done`",
-        "gouda.sh:101: 20 — 時間の値（待ち・期限・周期）。`for _ in $(seq 1 20); do [[ -s \"\" ]] && break; running || break; sleep 1; done`",
-        "gouda.sh:119: 1 — 時間の値（待ち・期限・周期）。`sleep 1`",
+        "gouda.sh:105: 1 — 時間の値（待ち・期限・周期）。`for _ in $(seq 1 20); do [[ -s \"\" ]] && break; running || break; sleep 1; done`",
+        "gouda.sh:105: 20 — 時間の値（待ち・期限・周期）。`for _ in $(seq 1 20); do [[ -s \"\" ]] && break; running || break; sleep 1; done`",
+        "gouda.sh:123: 1 — 時間の値（待ち・期限・周期）。`sleep 1`",
         "setup.sh:55: 3 — 時間の値（待ち・期限・周期）。`curl -fL --retry 3 -o \"\" \"\"`",
         "setup.sh:152: 50 — 承認値と同じ数（PRM-10・PRM-91）。`lidar_ip=\"\"value\"\"parameters\"\"id\"\"PRM-50\"\"$params_index\"\"`"
       ]
