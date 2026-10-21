@@ -25,6 +25,7 @@ import os
 import threading
 import time
 from pathlib import Path
+from typing import Optional
 
 import rclpy
 from rclpy.node import Node
@@ -39,7 +40,8 @@ from gouda_interfaces.action import ConvertMap
 from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
-from gouda_core.monitor_core import MonitorCore, SensorConfig, MOTION_COMPENSATION_FIELDS, UNKNOWN
+from gouda_core.monitor_core import MonitorCore, SensorConfig, MOTION_COMPENSATION_FIELDS, NAV2_RECOVERY_FIELDS, UNKNOWN
+from gouda_core import nav2_config
 from gouda_core import monitor_core
 from gouda_core.monitor_server import MonitorServer
 from gouda_core.map_database import MapDatabase
@@ -108,6 +110,15 @@ class MonitorNode(Node):
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
         self.motion_comp = SensorConfig(data_root / 'config' / 'motion_compensation.json', MOTION_COMPENSATION_FIELDS)   # IFD-52
         self.motion_comp_pub = self.create_publisher(MotionCompensation, 'config/motion_compensation', LATCHED)
+        # /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the recovery count read by Nav2 at the next gouda.sh start. Its range is 1 to
+        # PRM-18 (read from the generated bt_params.yaml; while PRM-18 is unresolved nothing can be saved).
+        self.declare_parameter('params_dir', ''); self.declare_parameter('trial', False)
+        bt = nav2_config.read_bt_params(self.get_parameter('params_dir').get_parameter_value().string_value,
+                                        self.get_parameter('trial').get_parameter_value().bool_value)
+        self.prm18 = bt.get(nav2_config.RECOVERY_KEY)
+        self.config_dir, self.run_dir = data_root / 'config', data_root / 'run'
+        self.nav2_recovery = SensorConfig(self.config_dir / nav2_config.RECOVERY_CONFIG, NAV2_RECOVERY_FIELDS,
+                                          {nav2_config.RECOVERY_KEY: (1, int(self.prm18))} if self.prm18 else {})
         self.maps_index_path = data_root / 'maps' / 'index.json'   # IFD-29 (read-only view of the map database)
         self.map_db = MapDatabase(data_root / 'maps')
         self.routes = wpmod.RouteDatabase(data_root / 'routes')    # IFD-30 / IFD-41 (waypoint_manager, stage 5-4)
@@ -148,9 +159,9 @@ class MonitorNode(Node):
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
                                                 '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving,
-                                                '/api/motion_compensation': self._get_motion_comp},
+                                                '/api/motion_compensation': self._get_motion_comp, '/api/nav2_recovery': self._get_nav2_recovery},
                                     post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert,
-                                                 '/api/motion_compensation': self._save_motion_comp})
+                                                 '/api/motion_compensation': self._save_motion_comp, '/api/nav2_recovery': self._save_nav2_recovery})
         url = self.server.start()
         self._publish_motion_comp()
         self._publish_settings('startup')
@@ -397,6 +408,28 @@ class MonitorNode(Node):
             self._publish_settings('motion_compensation_saved')
         return {'ok': ok, 'message': msg, 'config': self._get_motion_comp('', '')}
 
+    # ---- /config 「Nav2」 (IFD-54, DEC-209) ----
+    def _get_nav2_recovery(self, rest, query):
+        with self._lock:
+            snap = self.nav2_recovery.snapshot()
+        snap['prm18'] = self.prm18
+        snap['next_start'] = nav2_config.recovery_from_config(str(self.config_dir), self.prm18) if self.prm18 else None
+        try:   # what the running Nav2 was built with (written at this gouda.sh start)
+            snap['in_use'] = json.loads((self.run_dir / 'nav2' / 'recovery.json').read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            snap['in_use'] = None
+        return snap
+
+    def _save_nav2_recovery(self, rest, body):
+        with self._lock:
+            before = dict(self.nav2_recovery.values)
+            ok, msg = self.nav2_recovery.update(body, self._now())
+            self.core.on_command_result('nav2_recovery_update', ok, msg)
+        self.server.notify(self.core.connection_revision)
+        if ok:
+            self._publish_settings('nav2_recovery_saved', {'before': before})
+        return {'ok': ok, 'message': msg + (' (used from the next gouda.sh start)' if ok else ''), 'config': self._get_nav2_recovery('', '')}
+
     def _publish_motion_comp(self):
         """IFD-52: every field; UNKNOWN goes out as NaN (that direction is not compensated by gouda_motion_controller)."""
         with self._lock:
@@ -407,14 +440,16 @@ class MonitorNode(Node):
             setattr(m, k, math.nan if v == UNKNOWN else float(v))
         self.motion_comp_pub.publish(m)
 
-    def _publish_settings(self, reason: str):
+    def _publish_settings(self, reason: str, extra: Optional[dict] = None):
         """Record the effective settings (UI parameters and /config revision) as a DecisionEvent (RQ-I015, DEC-073)."""
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_monitor'
         d.event = 'settings'; d.transition_id = ''; d.reason = f'settings recorded ({reason})'; d.run_id = ''; d.section_id = -1
         with self._lock:
-            cfg = self.config.snapshot(); mc = self.motion_comp.snapshot()
-        d.details = json.dumps({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'],
-                                'motion_compensation_revision': mc['config_revision'], 'motion_compensation_values': mc['values'], 'reason': reason}, ensure_ascii=False)
+            cfg = self.config.snapshot(); mc = self.motion_comp.snapshot(); nr = self.nav2_recovery.snapshot()
+        d.details = json.dumps(dict({'ui_parameters': self.ui, 'config_revision': cfg['config_revision'], 'config_values': cfg['values'],
+                                     'motion_compensation_revision': mc['config_revision'], 'motion_compensation_values': mc['values'],
+                                     'nav2_recovery_revision': nr['config_revision'], 'nav2_recovery_values': nr['values'], 'prm18': self.prm18, 'reason': reason},
+                                    **(extra or {})), ensure_ascii=False)
         self.decision_pub.publish(d)
 
     def _command(self, name: str, body: dict) -> dict:

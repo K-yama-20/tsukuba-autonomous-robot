@@ -1,6 +1,6 @@
 #!/bin/bash
 # ND-07 (gouda_global_localization, trial A3; REV-128, TS-41 part) VM check without sensors: the real A3 parts are started and
-# stopped by the node's lifecycle, the TF ownership, and the state without sensor points. Test only; trial values.
+# stopped by the node's lifecycle, the TF ownership, and the state without sensor points. Test only; the generated values (approved by DEC-208, REV-132), plus the trial file when one exists.
 #   S1 a real source map is converted with the trial settings (the source is only read)
 #   S2 configure: the child launch starts the pcl_ros filters, the map loader, the NDT and the EKF in localization/a3
 #   S3 activate with an initial pose: without sensor points the initialization cannot succeed -> never 正常
@@ -25,7 +25,7 @@ for f in ('gouda_map_creator.yaml', 'gouda_map_creator.trial.yaml'):
 st = mc.convert(Path(sys.argv[1]), Path(sys.argv[2]), s)
 print('  pointcloud_map:', st['pointcloud_map'], 'files', len(st['files']))
 PY
-$WS/install/gouda_core/lib/gouda_core/gouda_global_localization --ros-args --params-file $P/gouda_global_localization.trial.yaml -p data_root:=$ROOT -p map_directory:=$ROOT/map > $ROOT/node.out 2>&1 &
+$WS/install/gouda_core/lib/gouda_core/gouda_global_localization --ros-args --params-file $P/gouda_global_localization.yaml $( [ -f $P/gouda_global_localization.trial.yaml ] && echo --params-file $P/gouda_global_localization.trial.yaml ) -p data_root:=$ROOT -p map_directory:=$ROOT/map > $ROOT/node.out 2>&1 &
 NODE=$!
 cleanup() { kill -INT $NODE 2>/dev/null; [ -n "$POSE" ] && kill $POSE 2>/dev/null; wait $NODE 2>/dev/null; }
 trap cleanup EXIT

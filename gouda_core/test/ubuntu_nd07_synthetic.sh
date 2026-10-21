@@ -1,6 +1,6 @@
 #!/bin/bash
 # ND-07 (trial A3; REV-128, TS-41 VM part) with synthetic sensor input (a3_synthetic_feed.py): the robot stands still at one pose
-# of the mapping trajectory and sees the map's points from there. Test only; trial values.
+# of the mapping trajectory and sees the map's points from there. Test only; the generated values (approved by DEC-208, REV-132), plus the trial file when one exists.
 #   Y1 the initial pose is given with an offset (dx m, dyaw deg): the Monte Carlo search, the EKF and the NDT come up
 #   Y2 the state becomes 正常 (the diagnostics keys are found), map->odom equals the true pose (odometry is the identity)
 #   Y3 the feed stops -> 推定不能 (input_stale) within stale_timeout_s (PRM-89, trial)
@@ -11,7 +11,7 @@ WS=${WS:-~/gouda_rev128_ws}; REPO=$WS/src/tsukuba-autonomous-robot; ROOT=/tmp/nd
 export ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-79}
 source /opt/ros/jazzy/setup.bash; source $WS/install/setup.bash
 rm -rf $ROOT; mkdir -p $ROOT
-$WS/install/gouda_core/lib/gouda_core/gouda_global_localization --ros-args --params-file $P/gouda_global_localization.trial.yaml -p data_root:=$ROOT -p map_directory:=$MAP > $ROOT/node.out 2>&1 &
+$WS/install/gouda_core/lib/gouda_core/gouda_global_localization --ros-args --params-file $P/gouda_global_localization.yaml $( [ -f $P/gouda_global_localization.trial.yaml ] && echo --params-file $P/gouda_global_localization.trial.yaml ) -p data_root:=$ROOT -p map_directory:=$MAP > $ROOT/node.out 2>&1 &
 NODE=$!
 python3 $REPO/gouda_core/test/a3_synthetic_feed.py $MAP $ROW 60 0.1 > $ROOT/feed.out 2>&1 &
 FEED=$!

@@ -47,7 +47,8 @@ def _nodes(context, *args, **kwargs):
                                                           'trial': 'true' if trial else 'false'}.items())]
     # ND-10 Nav2: started inactive; ND-03 activates it at TR-05 (REV-061). Not started while a vehicle value is unresolved.
     nav2 = [IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gouda_nav2.launch.py')),
-                                     launch_arguments={'params_dir': params_dir, 'run_dir': os.path.join(data_root, 'run'), 'trial': 'true' if trial else 'false'}.items())]
+                                     launch_arguments={'params_dir': params_dir, 'run_dir': os.path.join(data_root, 'run'), 'config_dir': os.path.join(data_root, 'config'),
+                                                       'trial': 'true' if trial else 'false'}.items())]
     return sensors + nav2 + [
         Node(package='gouda_core', executable='gouda_mode_manager', name='gouda_mode_manager', output='screen',
              parameters=params('gouda_mode_manager', {'state_root': os.path.join(data_root, 'state'), 'data_root': data_root,
@@ -57,7 +58,7 @@ def _nodes(context, *args, **kwargs):
         Node(package='gouda_core', executable='gouda_map_creator', name='gouda_map_creator', output='screen',
              parameters=params('gouda_map_creator', {'data_root': data_root})),
         Node(package='gouda_core', executable='gouda_monitor', name='gouda_monitor', output='screen',
-             parameters=params('gouda_monitor', {'data_root': data_root})),   # monitor_port: PRM-26 in the generated file
+             parameters=params('gouda_monitor', {'data_root': data_root, 'params_dir': params_dir, 'trial': trial})),   # monitor_port: PRM-26; params_dir: PRM-18 (Nav2 tab)
         # ND-08 relay: localization/odometry from GLIM's odometry-only TF (publishes only while ND-03 runs GLIM in autonomy)
         Node(package='gouda_core', executable='gouda_local_odometry', name='gouda_local_odometry', output='screen'),
         # ND-07 (trial A3, REV-128): lifecycle node, started UNCONFIGURED; ND-03 sets map_directory and configures / activates it at

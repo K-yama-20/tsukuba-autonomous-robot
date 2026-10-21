@@ -9,7 +9,10 @@ started and the reason is logged; ND-03 records it and refuses 自律走行開�
 Wiring as upstream navigation_launch.py without collision_monitor (RQ-I072): controller_server and behavior_server publish
 cmd_vel_nav; velocity_smoother reads cmd_vel_nav and publishes cmd_vel (IFD-15, TwistStamped PRM-12) for ND-11.
 
-Arguments: params_dir, run_dir (<data_root>/run; the built files go to run_dir/nav2), trial (TEST SCRIPTS ONLY).
+The BT's recovery count is the one saved in the monitor's /config 「Nav2」 tab (config_dir/nav2_recovery.json, IFD-54) when it is
+valid, else PRM-18 (REV-132, DEC-207 (a)); the count used and its source are logged and written to run_dir/nav2/recovery.json.
+Arguments: params_dir, run_dir (<data_root>/run; the built files go to run_dir/nav2), config_dir (<data_root>/config),
+trial (TEST SCRIPTS ONLY).
 """
 import os
 from launch import LaunchDescription
@@ -24,18 +27,22 @@ def _nodes(context, *args, **kwargs):
     params_dir = LaunchConfiguration('params_dir').perform(context)
     run_dir = os.path.expanduser(LaunchConfiguration('run_dir').perform(context))
     trial = LaunchConfiguration('trial').perform(context).lower() in ('1', 'true', 'yes')
+    config_dir = os.path.expanduser(LaunchConfiguration('config_dir').perform(context))
     try:
         tpl, bt = nc.find_templates(get_package_share_directory('nav2_bringup'), get_package_share_directory('nav2_bt_navigator'))
     except PackageNotFoundError:
         tpl, bt = None, None
     if tpl is None or bt is None:
         return [LogInfo(msg='[gouda_nav2] Nav2 is not installed (nav2_bringup / nav2_bt_navigator): Nav2 is not started (setup.sh installs it)')]
-    r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'))
+    r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'), config_dir or None)
     if r['missing']:
         return [LogInfo(msg=f"[gouda_nav2] unresolved vehicle values {r['missing']}: Nav2 is not started (no general values: intent.md:85)")]
+    rec = r['recovery']
+    recovery_log = LogInfo(msg=f"[gouda_nav2] BT recovery count {rec['value']} from {rec['source']}" + (f" ({rec['note']})" if rec['note'] else ''))
     p = [r['params']]
     out = 'screen'
     return [
+        recovery_log,
         Node(package='nav2_map_server', executable='map_server', name='map_server', output=out, parameters=p),
         Node(package='nav2_map_server', executable='map_server', name='filter_mask_server', output=out, parameters=p),
         Node(package='nav2_map_server', executable='costmap_filter_info_server', name='costmap_filter_info_server', output=out, parameters=p),
@@ -56,6 +63,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('params_dir', description='design/generated/params directory'),
         DeclareLaunchArgument('run_dir', description='<data_root>/run (the built Nav2 files go to run_dir/nav2)'),
+        DeclareLaunchArgument('config_dir', default_value='', description='<data_root>/config (the monitor Nav2 tab file, IFD-54)'),
         DeclareLaunchArgument('trial', default_value='false', description='TEST SCRIPTS ONLY: also load the trial values'),
         OpaqueFunction(function=_nodes),
     ])
