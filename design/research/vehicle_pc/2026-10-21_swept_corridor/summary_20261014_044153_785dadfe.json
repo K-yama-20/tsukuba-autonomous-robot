@@ -1,0 +1,87 @@
+{
+ "source": "/home/aya/gouda_ws/gouda_data/maps/20261014_044153_785dadfe/source",
+ "corridor": {
+  "made": true,
+  "use": "plan C (DEC-107 / DEC-210). Not the map used for driving until DEC-211.",
+  "trajectory": {
+   "file": "traj_imu.txt",
+   "points": 897,
+   "pieces": 11,
+   "not_joined": [
+    {
+     "after_time": 1791920525.187795,
+     "distance_m": 1.136759582007124
+    },
+    {
+     "after_time": 1791920548.38762,
+     "distance_m": 1.0303128589696244
+    },
+    {
+     "after_time": 1791920595.988084,
+     "distance_m": 1.9763786524653655
+    },
+    {
+     "after_time": 1791920606.087881,
+     "distance_m": 3.509927212740611
+    },
+    {
+     "after_time": 1791920607.887244,
+     "distance_m": 2.468634747079321
+    },
+    {
+     "after_time": 1791920631.288078,
+     "distance_m": 1.4276205461083746
+    },
+    {
+     "after_time": 1791920658.087549,
+     "distance_m": 1.3935547291393202
+    },
+    {
+     "after_time": 1791920689.187475,
+     "distance_m": 1.0032934008060463
+    },
+    {
+     "after_time": 1791920726.588042,
+     "distance_m": 1.3801344181629362
+    },
+    {
+     "after_time": 1791920727.387108,
+     "distance_m": 1.1364942448679272
+    }
+   ]
+  },
+  "mounting": {
+   "source": "/home/aya/gouda_ws/gouda_data/config/sensor_config.json (config_revision 18; analysis only, not the mapping run snapshot)",
+   "imu_translation_m": [
+    -0.07,
+    0.14,
+    0.935
+   ],
+   "defaulted_fields": [],
+   "problems": []
+  },
+  "settings": {
+   "corridor_half_width_m": 0.5,
+   "corridor_gap_m": 1.0,
+   "map_resolution_m": 0.1
+  },
+  "grid": {
+   "width": 85,
+   "height": 432,
+   "origin_x": -8.08617173762804,
+   "origin_y": -32.22115370990152,
+   "free_cells": 9098
+  }
+ },
+ "settings_used": {
+  "corridor_half_width_m": 0.5,
+  "corridor_gap_m": 1.0,
+  "map_resolution_m": 0.1
+ },
+ "cells": {
+  "corridor_free": 9098,
+  "band_occupied_inside_corridor": 570,
+  "band_free_outside_corridor": 38,
+  "band_occupied_outside_corridor": 380
+ }
+}

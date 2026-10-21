@@ -29,6 +29,12 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>ros2bag</exec_depend>
+  <!-- gouda_global_localization (ND-07, trial A3: REV-128, DEC-202 / DEC-205): run unmodified from its child launch -->
+  <exec_depend>pcl_ros</exec_depend>
+  <exec_depend>autoware_map_loader</exec_depend>
+  <exec_depend>autoware_ndt_scan_matcher</exec_depend>
+  <exec_depend>autoware_ekf_localizer</exec_depend>
+  <exec_depend>autoware_internal_localization_msgs</exec_depend>
   <test_depend>python3-pytest</test_depend>
   <export><build_type>ament_python</build_type></export>
 </package>

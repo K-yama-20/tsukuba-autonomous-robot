@@ -1,0 +1,173 @@
+# 変更セット REV-126（2026-10-21 第97便: E 項目の転記、DEC-200〜206、DEC-115）
+# 適用: design/tools/apply_revision.py REV-126
+id: REV-126
+date: '2026-10-21'
+summary: 分岐セッションで人が答えた E 項目（転記）を記録する。DEC-200：推定不能か Nav2 の失敗で一時停止する（停止の原因を区別）。DEC-201：recovery の回数（PRM-18）を monitor で変え、次の走行から反映。DEC-202：setup.sh に A3 のパッケージを入れる。DEC-115：ND-07 は案 A3 を試す。設計の案と実装の許可は DEC-203〜205、解釈の確認は DEC-206（pending）。正本の構成（ND-07 の部品、IF、PRM）はまだ変えない。
+basis_refs:
+- DEC-200
+- DEC-201
+- DEC-202
+- DEC-115
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-200
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: E-1：自己位置を推定できなくなったとき（推定不能）、または Nav2 が失敗したときに、一時停止する設計にするか（分岐先の材料：今の実装は Nav2 の goal の失敗と開始の手順の失敗だけを TR-07 で一時停止し、推定不能を見るコードはない。PRM-18＝9999999 で BT はほぼ失敗を返さないので、推定が狂ったときに一時停止する経路が実質ない）
+  answer_verbatim: |
+    （分岐セッションからの転記。人の発言の原文）「あとはEを解決したら、自律走行に進めるという認識で良いか？Eの判断に必要な情報を詳しく提示せよ」
+    「推定できなくなったときや Nav2 が失敗したときに安全に一時停止する、という設計で良い。理由は、Nav2が失敗しないようにシステムを調整・修正していかなければならないので、実験走行中にNav2の失敗が外部から見て明らかであると都合が良いからだ。ただ、recovery回数の上限設定値は9999999野間まで良い。その上で、recoveryの回数はgouda_monitorで変更できるようにしなければならないと思う。
+    E12のND-07については、取りあえず案3を試す。ダメなら他を試します。」
+  affected_refs:
+  - TR-07
+  - ND-07
+  - ND-03
+  - IF-010
+  - D-13
+  - RQ-I029
+  - PRM-18
+  resulting_refs:
+  - TR-07
+  - ND-07
+  - ND-03
+  note: 採用：推定不能か Nav2 の失敗で一時停止し、停止の原因を「推定不能」と「計画の失敗」で区別して記録・表示する（RQ-I029、intent.md:15「経路閉塞と、推定不能・通信異常は区別する」）。人の理由（原文）：Nav2 の失敗が実験走行中に外から見て明らかであると都合が良い。推定不能の判定は EKF の診断（マハラノビス距離・共分散）を使う（DEC-115 の問い 2 の案 (b)。分岐先の推奨を人が採ったと分岐先が解釈。DEC-206 で確認）。しきい値は新しい PRM で値は tbd。stale・未初期化を正常にしない。原文 1 は質問で、分岐先の答え（事実）：開始に必須で残るのは ND-07（TR-05 の guard）、ほかに 2D 地図（DEC-107、TS-34 不合格）と、反映・地図・waypoint の作業。工程 5-7 は最初の走行に必須でない。原文 2 の「9999999野間まで良い」は「9999999のままで良い」の誤変換と分岐先が解釈し、人に示して否定されなかった（DEC-206 で確認）。設計の案と実装は DEC-203（design/proposals/nd07_a3_trial_design_2026-10-21.md）。転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った。分岐先はコミット 34bc9e0 を読んで判断材料を示した）。
+  disposition: answered
+- id: DEC-201
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: E-2：Nav2 BT の recovery の回数（PRM-18）を gouda_monitor で変えられるようにするか。反映の時期（走行中の goal に効くか、次の走行からか）
+  answer_verbatim: |
+    （分岐セッションからの転記。人の発言の原文）「推定できなくなったときや Nav2 が失敗したときに安全に一時停止する、という設計で良い。理由は、Nav2が失敗しないようにシステムを調整・修正していかなければならないので、実験走行中にNav2の失敗が外部から見て明らかであると都合が良いからだ。ただ、recovery回数の上限設定値は9999999野間まで良い。その上で、recoveryの回数はgouda_monitorで変更できるようにしなければならないと思う。
+    E12のND-07については、取りあえず案3を試す。ダメなら他を試します。」
+    「monitor で変えた recovery の回数は、次の走行の時に反映されるので良い。
+    setup.shは改修する必要があるとの意見に賛成。」
+  affected_refs:
+  - PRM-18
+  - ND-02
+  - ND-03
+  - ND-10
+  resulting_refs:
+  - PRM-18
+  note: 採用：既定値は PRM-18（9999999）のまま。gouda_monitor から変えられるようにする。反映は次に自律走行を開始したとき（TR-05）で、走行中の goal には効かない（原文 3）。注（事実、第97便で確かめた）：今の実装は Nav2 の設定と BT を gouda.sh start のときに一度だけ作り、TR-05 では作り直さない。案は NavigateThroughPoses の goal の behavior_tree（上流の機能）で走行ごとに渡す。DEC-181 では monitor の値を generated/params の PRM にしなかったが、PRM-18 は承認済みの PRM なので、どちらが効くかを DEC-204 で決める。実装は人の個別の許可の後（DEC-106。DEC-204）。転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った。分岐先はコミット 34bc9e0 を読んで判断材料を示した）。
+  disposition: answered
+- id: DEC-202
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: E-4：setup.sh を改修して、案 A3 のパッケージ（autoware_ndt_scan_matcher・autoware_ekf_localizer・autoware_map_loader と依存）を入れるか（VM には人が apt で 1.9.0 を入れた。x86 機は未導入）
+  answer_verbatim: |
+    （分岐セッションからの転記。人の発言の原文）「monitor で変えた recovery の回数は、次の走行の時に反映されるので良い。
+    setup.shは改修する必要があるとの意見に賛成。」
+  affected_refs:
+  - ND-07
+  - DEC-121
+  resulting_refs:
+  - ND-07
+  note: 採用（方針）：setup.sh で A3 のパッケージを入れる。事実（第97便、4b44f75）：setup.sh は Nav2 をすでに入れている（DEC-121）ので、足すのは Autoware の 3 つ。ROS の apt は最新の build だけを置くため、版の固定の仕方は DEC-205 で決める。実装は人の許可の後（DEC-106）。x86 機での実行は人。転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った。分岐先はコミット 34bc9e0 を読んで判断材料を示した）。
+  disposition: answered
+- id: DEC-203
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】ND-07 を案 A3 で試す構成（design/proposals/nd07_a3_trial_design_2026-10-21.md §2：上流の map_loader・ndt_scan_matcher・ekf_localizer・pcl_ros の間引きと、Gouda の lifecycle node 1 つ（速度の中継、map→odom の中継、初期化の手順、EstimatorStatus）。ND-03 が TR-05 で configure・activate、TR-11・12 で止める。地図の変換で 20 m 格子を作る）と、推定不能の判定と一時停止の経路（§3：新しい IF localization/status と型 EstimatorStatus、しきい値は新しい PRM で tbd、ND-03 が hold→goal の取消→TR-07、stop_reason estimator_unavailable、再開の guard に正常）を正本に入れ、段 2〜4 を実装してよいか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - ND-03
+  - ND-05
+  - TR-05
+  - TR-07
+  - IF-010
+  - D-13
+  - SO-05
+  - IFD-18
+  - IFD-34
+  resulting_refs: []
+  note: 推奨は承認。根拠：DEC-200・DEC-115（人の回答の転記）、design/proposals/nd07_a3_trial_design_2026-10-21.md。代わり：EstimatorStatus を NDT の診断だけで作る（EKF の診断を使わない、DEC-115 の問い 2 の (a)）。振る舞いの違い：承認すると、自律走行の中で推定不能を検出したら一時停止する（今は推定不能を見ない）。決まらない場合に止まる作業：ND-07 の実装と自律走行の開始（TR-05 は ND-07 がないと拒否のまま）。安全の注意：一時停止は PC 出力の中立化で車体の停止の保証ではない。推定不能の判定は誤った姿勢を正常とみなすことを防げない（評価の 0.546 m の例）。
+  disposition: open_human
+- id: DEC-204
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】recovery の回数の monitor での変更の作り（design/proposals/nd07_a3_trial_design_2026-10-21.md §4）：置き場所は /config の新しいタブ「Nav2」（代わり：今の「自律走行の出力」タブに足す）、保存先は <data_root>/config/nav2_recovery.json、範囲は 1 以上 9999999 以下の整数（0 を受け付けるかも）、monitor に値がなければ PRM-18 を使い、あれば monitor の値を使う、TR-05 で回数を入れた BT を書いて goal の behavior_tree で渡し、同じ走行の再開（TR-10）は同じ値。段 5 を実装してよいか
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-18
+  - ND-02
+  - ND-03
+  - ND-10
+  - IFD-52
+  resulting_refs: []
+  note: 推奨は承認（置き場所は新しいタブ、範囲は 1〜9999999）。根拠：DEC-201。DEC-181 の扱い（monitor の値は PRM にしない）と合わない点：PRM-18 は承認済みの PRM で、monitor の値はその上書きになる。振る舞いの違い：回数を小さくすると、BT が早く失敗を返して一時停止しやすくなる（実験で Nav2 の失敗を見やすくする人の理由に合う）。決まらない場合に止まる作業：monitor での変更だけ（PRM-18 の 9999999 のまま走れる）。
+  disposition: open_human
+- id: DEC-205
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】setup.sh の改修（design/proposals/nd07_a3_trial_design_2026-10-21.md §5）：wanted に ros-jazzy-autoware-ndt-scan-matcher・ros-jazzy-autoware-ekf-localizer・ros-jazzy-autoware-map-loader を足し、上流の版が 1.9.0 でなければ止まって理由を言う（GLIM の DEC-062 と同じ扱い。代わり：版を見ない）。段 1 を実装してよいか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - DEC-121
+  - DEC-202
+  resulting_refs: []
+  note: 推奨は承認。根拠：DEC-202、VM の版（1.9.0、2026-10-21 に dpkg で確認）。ROS の apt は最新の build だけを置くので、apt に 1.10 が来ると 1.9.0 は入れられない（推測を含む。x86 機の apt の版は未確認で、実装の前に確かめる）。そのとき止まるか入れるかが振る舞いの違い。決まらない場合に止まる作業：x86 機での A3 の起動。
+  disposition: open_human
+- id: DEC-206
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【確認】E の転記の解釈：(1) 原文「ただ、recovery回数の上限設定値は9999999野間まで良い。」は「9999999 のままで良い」か、(2) 推定不能の判定に EKF の診断（マハラノビス距離・共分散）を使う（DEC-115 の問い 2 の案 (b)）でよいか、(3) 工程 5-7（自動の復帰 TR-09・TR-13〜16、G-RECOVERY-COUNT、BT の recovery の 50 回ごとの記録）は最初の自律走行の後に回してよいか
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-18
+  - DEC-200
+  - DEC-115
+  - G-RECOVERY-COUNT
+  resulting_refs: []
+  note: (1)(2) は分岐先の解釈で、人に示して否定されなかったもの。(3) は分岐先の推奨で、人は DEC-200 で推定不能の一時停止を採ったが、後回しを明示した原文はない。決まらない場合に止まる作業：記録の確定だけ（(2) が違えば DEC-203 の §3.1 を作り直す）。
+  disposition: open_human
+entities: []
+modifications:
+- id: ND-07
+  set:
+    name: gouda_global_localization（map→odom、案 A3 を試行中）
+  interpretation_append: REV-126（DEC-115・DEC-200）：方式は案 A3（Autoware Core の NDT＋EKF）を試す（試行の決定、DEC-115）。推定不能を判定して EstimatorStatus を出し、ND-03 が一時停止する経路を ND-07 と一緒に設計する（DEC-200）。構成の案は design/proposals/nd07_a3_trial_design_2026-10-21.md（DEC-203、承認待ち）。
+- id: TR-07
+  interpretation_append: REV-126（DEC-200）：人の決定で、推定不能でも一時停止する（Nav2 の失敗と同じ TR-07 で、停止の原因を区別する）。推定不能のときは goal がまだ動いているので取消が要る。trigger と actions の改訂は DEC-203 の後。
+- id: PRM-18
+  interpretation_append: REV-126（DEC-201）：既定値は 9999999 のまま、gouda_monitor から変えられるようにする（次の走行の開始から反映、走行中の goal には効かない）。monitor の値との優先と反映の仕組みは DEC-204（承認待ち）。
+- id: G-RECOVERY-COUNT
+  interpretation_append: REV-126：推定不能の一時停止（DEC-200）を先に作る。工程 5-7 の設計（この issue）は最初の自律走行の後に回す案（分岐先の推奨。DEC-206 で確認）。事実：NavigateThroughPoses の feedback の number_of_recoveries は int16。
+- id: Q-02
+  interpretation_append: REV-126（DEC-115）：案 A3 を試す（試行の決定）。最終の採用は DEC-021。
+decision_updates:
+- id: DEC-115
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッションからの転記。人の発言の原文）「推定できなくなったときや Nav2 が失敗したときに安全に一時停止する、という設計で良い。理由は、Nav2が失敗しないようにシステムを調整・修正していかなければならないので、実験走行中にNav2の失敗が外部から見て明らかであると都合が良いからだ。ただ、recovery回数の上限設定値は9999999野間まで良い。その上で、recoveryの回数はgouda_monitorで変更できるようにしなければならないと思う。
+      E12のND-07については、取りあえず案3を試す。ダメなら他を試します。」
+    note: '根拠: FILE-LOCALIZATION-EVAL、FILE-LOCALIZATION-EVAL-FIG、提案 design/proposals/localization_selection.md §6.1・§7。推奨は承認。 振る舞いの違い: A3 は初期姿勢のずれが大きいとき姿勢を出さないか探索で戻る。A は誤った姿勢を正常として出し続けうる。 決まらない場合に止まる作業：自己位置推定の実装の設計（ND-07・ND-08 の構成、中継の node、地図の変換の 20 m 格子）。地図作成と記録は止まらない。 2026-10-17、人の指示（DEC-117）により保留。GNSS 受信機（Septentrio mosaic-go G5 P6、ネットワーク RTK）の搭載を踏まえて見直す。 REV-126（第97便）：人の回答（転記）「E12のND-07については、取りあえず案3を試す。ダメなら他を試します。」により、案 A3 を試すことに決まった（最終の採用ではなく試行の決定）。評価の試験（同じ場所を 2 回、出発前に 10 s 以上停止）を待たずに設計・実装に進み、評価は並行して行う（分岐先の整理）。問い 2 は DEC-200（推定不能で一時停止、EKF の診断を使う案 (b)。DEC-206 で確認）。問い 3 の段取りは localization_selection §9 の 3 のまま。「駄目」の判断の材料は design/proposals/nd07_a3_trial_design_2026-10-21.md §7（基準値は tbd）。転記の出所は分岐セッション（人が 2026-10-21 にこのメインのチャットへ貼った。分岐先はコミット 34bc9e0 を読んで判断材料を示した）。'
+- id: DEC-021
+  set:
+    note: Q-02（自己位置推定の方式）は AI の技術選定（候補比較を提示）。ゲート3では「方式未定のまま IF（TF・Odometry・pose）を固定する」案として提示。 2026-10-17 に人が選定に進むよう指示した（DEC-109）。候補の調査は Cartographer（DEC-110）、LeGO-LOAM・Autoware の ndt_matching（DEC-111）まで広げた。 人の回答（DEC-112）で検討の範囲は案 A・A3・B。intent.md 第10版（DEC-113）で OSS の追加の扱いが明記された。人の回答（DEC-114）で案 A・A3 を重点的に検証した（FILE-LOCALIZATION-EVAL）。 第一候補を A3 に変える案は承認事項 DEC-115。提案は design/proposals/localization_selection.md。方式の採用は人の承認を得てから行う。 REV-126（第97便）：DEC-115 で人が「取りあえず案3を試す。ダメなら他を試します。」と答えた（転記）。方式の最終の採用ではないので、この問いは pending のまま。試行の結果（design/proposals/nd07_a3_trial_design_2026-10-21.md §7 の観測）で採用か他の案かを決める。

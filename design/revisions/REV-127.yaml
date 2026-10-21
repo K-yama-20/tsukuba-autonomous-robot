@@ -1,0 +1,83 @@
+# 変更セット REV-127（2026-10-21 第98便: DEC-203〜206 の回答の転記、DEC-207）
+# 適用: design/tools/apply_revision.py REV-127
+id: REV-127
+date: '2026-10-21'
+summary: 分岐セッションからの転記（セッション間のメッセージ）で、DEC-203〜206 への人の回答を記録する。DEC-203 許可、DEC-204 は Nav2 の設定と BT を gouda.sh start で一度だけ作る今の実装のまま（monitor での変更の作りは DEC-207 で確認）、DEC-205 は版の確認なしで setup.sh に Autoware の 3 つ・試験は VM だけ、DEC-206 は解釈 3 つを確定。正本の構成はまだ変えない。
+basis_refs:
+- DEC-203
+- DEC-204
+- DEC-205
+- DEC-206
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-207
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【確認】DEC-204 の回答「"Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。」の意味：(a) monitor のタブを作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT を作る。反映は次の gouda.sh start（走行中・同じ起動の中の次の走行には効かない）。(b) monitor のタブは作らず、回数は PRM-18（変えるときは変更セット）のまま。(c) その他
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-201
+  - DEC-204
+  - PRM-18
+  - ND-02
+  - ND-10
+  resulting_refs: []
+  note: 推奨は (a)：DEC-201 の「gouda_monitor で変更できるように」を満たし、Nav2 の作りは今のまま。DEC-201 の「次の走行の時に反映」は「次の gouda.sh start の後の走行から」に読み替わる（承認事項）。振る舞いの違い：(a) は monitor で保存しても、gouda.sh を起動し直すまで効かない。(b) は monitor では変えられない（DEC-201 と食い違う）。決まらない場合に止まる作業：段 5（monitor のタブ）だけ。ND-07（段 2〜4）と setup.sh（段 1）は止まらない。
+  disposition: open_human
+entities: []
+modifications:
+- id: PRM-18
+  interpretation_append: REV-127（DEC-204、転記）：Nav2 の設定と BT は gouda.sh start のときに一度だけ作る今の実装のまま。monitor での変更の作りは DEC-207（pending）。
+- id: G-RECOVERY-COUNT
+  interpretation_append: REV-127（DEC-206、転記）：工程 5-7 の設計は最初の自律走行の後（人が確定）。
+- id: ND-07
+  interpretation_append: REV-127（DEC-203、転記）：構成の案（design/proposals/nd07_a3_trial_design_2026-10-21.md §2・§3）の正本への取込みと実装を人が許可。取込みは別の変更セット。
+decision_updates:
+- id: DEC-203
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッションからの転記。人の発言の原文。4 つの DEC への一つの発言）「DEC-203: 許可する
+      DEC-204: "Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。
+      DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！
+      DEC-206: 全部あなたの推測通り。許可する」
+    note: '推奨は承認。根拠：DEC-200・DEC-115（人の回答の転記）、design/proposals/nd07_a3_trial_design_2026-10-21.md。代わり：EstimatorStatus を NDT の診断だけで作る（EKF の診断を使わない、DEC-115 の問い 2 の (a)）。振る舞いの違い：承認すると、自律走行の中で推定不能を検出したら一時停止する（今は推定不能を見ない）。決まらない場合に止まる作業：ND-07 の実装と自律走行の開始（TR-05 は ND-07 がないと拒否のまま）。安全の注意：一時停止は PC 出力の中立化で車体の停止の保証ではない。推定不能の判定は誤った姿勢を正常とみなすことを防げない（評価の 0.546 m の例）。 REV-127（第98便）：人の回答「DEC-203: 許可する」（転記）。ND-07 の構成（design/proposals/nd07_a3_trial_design_2026-10-21.md §2）と推定不能の判定・一時停止の経路（§3）を正本に入れ、段 2〜4 を実装することへの許可。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。'
+- id: DEC-204
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッションからの転記。人の発言の原文。4 つの DEC への一つの発言）「DEC-203: 許可する
+      DEC-204: "Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。
+      DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！
+      DEC-206: 全部あなたの推測通り。許可する」
+    note: '推奨は承認（置き場所は新しいタブ、範囲は 1〜9999999）。根拠：DEC-201。DEC-181 の扱い（monitor の値は PRM にしない）と合わない点：PRM-18 は承認済みの PRM で、monitor の値はその上書きになる。振る舞いの違い：回数を小さくすると、BT が早く失敗を返して一時停止しやすくなる（実験で Nav2 の失敗を見やすくする人の理由に合う）。決まらない場合に止まる作業：monitor での変更だけ（PRM-18 の 9999999 のまま走れる）。 REV-127（第98便）：人の回答「DEC-204: "Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。」（転記）。読み（分岐先と同じ。確定ではない）：goal の behavior_tree で走行ごとに渡す案は採らず、今の実装（gouda.sh start で一度だけ作る）のままでよい。この読みでは monitor で変えた回数の反映は「次の gouda.sh start」になり、DEC-201 の「次の走行」と意味が変わる。monitor のタブ（段 5）を作るか、作るなら値を起動時に PRM-18 の代わりに読むかは原文から決まらないので DEC-207（pending）で確かめる。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。'
+- id: DEC-205
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッションからの転記。人の発言の原文。4 つの DEC への一つの発言）「DEC-203: 許可する
+      DEC-204: "Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。
+      DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！
+      DEC-206: 全部あなたの推測通り。許可する」
+    note: '推奨は承認。根拠：DEC-202、VM の版（1.9.0、2026-10-21 に dpkg で確認）。ROS の apt は最新の build だけを置くので、apt に 1.10 が来ると 1.9.0 は入れられない（推測を含む。x86 機の apt の版は未確認で、実装の前に確かめる）。そのとき止まるか入れるかが振る舞いの違い。決まらない場合に止まる作業：x86 機での A3 の起動。 REV-127（第98便）：人の回答「DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！」（転記）。推奨案（1.9.0 でなければ止まる）ではなく代わりの案：setup.sh に Autoware の 3 つを版の確認なしで足す。x86 機での実行はしない。試験は VM だけ（VM は 1.9.0 が導入済み）。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。'
+- id: DEC-206
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッションからの転記。人の発言の原文。4 つの DEC への一つの発言）「DEC-203: 許可する
+      DEC-204: "Nav2 の設定と BT を gouda.sh start のときに一度だけ作る”実装で問題ない。
+      DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！
+      DEC-206: 全部あなたの推測通り。許可する」
+    note: '(1)(2) は分岐先の解釈で、人に示して否定されなかったもの。(3) は分岐先の推奨で、人は DEC-200 で推定不能の一時停止を採ったが、後回しを明示した原文はない。決まらない場合に止まる作業：記録の確定だけ（(2) が違えば DEC-203 の §3.1 を作り直す）。 REV-127（第98便）：人の回答「DEC-206: 全部あなたの推測通り。許可する」（転記）。(1) 原文の「9999999野間まで良い」は「9999999 のままで良い」、(2) 推定不能の判定に EKF の診断を使う（DEC-115 の問い 2 の (b)）、(3) 工程 5-7 は最初の自律走行の後、の 3 つを確定。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。'

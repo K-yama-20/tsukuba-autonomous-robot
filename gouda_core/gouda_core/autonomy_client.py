@@ -8,7 +8,11 @@ What it talks to (all names from the design):
 - the vehicle output ND-11 / ND-12: lifecycle configure + activate at TR-05, deactivate at TR-11 / TR-12 (IFD-36). vehicle_bridge
   (ND-12) alone is also configured (not activated: no COMMAND) after TR-03, so that the ESP32 STATUS with the gamepad input is
   published and recorded while mapping (DEC-169, DEC-180); it stays configured after TR-04.
-- localization/initial_pose (IFD-34): the human's initial pose, sent once at TR-05.
+- localization/initial_pose (IFD-34, transient_local: REV-128): the human's initial pose, sent once at TR-05 before ND-07 is
+  configured (it subscribes on configure and still gets it).
+- the global localization ND-07 (REV-128, DEC-203): map_directory set, then configure + activate at TR-05; its state
+  (localization/status, IFD-53, fed in by the node through on_estimator_status) must become 正常 before Nav2 is started;
+  推定不能 there fails the start as EstimatorUnavailable (TR-07, estimator_unavailable). Deactivate + cleanup at TR-11 / TR-12.
 - speed_limit (IFD-14), costmap_filter_info / speed_filter_mask (IFD-42): observed only, for speed_limit_application_state.
 Waiting: a service or action server that is not there makes the step fail at once (recorded). A started call is waited for
 without an upper limit (no time value is invented); the human can always pause or end, which abandons the start.
@@ -34,9 +38,10 @@ from gouda_core import autonomy_core as ac
 from gouda_core import nav2_config as nc
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
-VOLATILE1 = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=1)
 SPEED_LIMIT_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)  # IFD-14
 VEHICLE_NODES = ('gouda_motion_controller', 'vehicle_bridge')   # ND-11, ND-12
+LOCALIZATION_NODE = 'gouda_global_localization'                  # ND-07
+STATE_NORMAL, STATE_UNAVAILABLE = 2, 3                           # gouda_interfaces/EstimatorStatus
 
 
 class StepFailed(Exception):
@@ -47,6 +52,10 @@ class Abandoned(Exception):
     pass
 
 
+class EstimatorUnavailable(StepFailed):
+    """The start failed because ND-07 reported 推定不能 (stop reason estimator_unavailable, not node_failure)."""
+
+
 class AutonomyClient:
     def __init__(self, node, on_feedback: Callable, on_result: Callable, on_speed_state: Callable):
         self.node = node
@@ -54,9 +63,10 @@ class AutonomyClient:
         self.nav = ActionClient(node, NavigateThroughPoses, 'navigate_through_poses')
         self.manage = node.create_client(ManageLifecycleNodes, 'lifecycle_manager_navigation/manage_nodes')
         self.set_params = {n: node.create_client(SetParameters, f'{n}/set_parameters') for n in ('map_server', 'filter_mask_server', 'costmap_filter_info_server')}
-        self.change = {n: node.create_client(ChangeState, f'{n}/change_state') for n in VEHICLE_NODES}
-        self.get = {n: node.create_client(GetState, f'{n}/get_state') for n in VEHICLE_NODES}
-        self.initial_pose_pub = node.create_publisher(PoseWithCovarianceStamped, 'localization/initial_pose', VOLATILE1)   # IFD-34
+        self.change = {n: node.create_client(ChangeState, f'{n}/change_state') for n in VEHICLE_NODES + (LOCALIZATION_NODE,)}
+        self.get = {n: node.create_client(GetState, f'{n}/get_state') for n in VEHICLE_NODES + (LOCALIZATION_NODE,)}
+        self.set_params[LOCALIZATION_NODE] = node.create_client(SetParameters, f'{LOCALIZATION_NODE}/set_parameters')
+        self.initial_pose_pub = node.create_publisher(PoseWithCovarianceStamped, 'localization/initial_pose', LATCHED)   # IFD-34 (REV-128)
         node.create_subscription(SpeedLimit, nc.SPEED_LIMIT_TOPIC, self._on_speed_limit, SPEED_LIMIT_QOS)
         node.create_subscription(OccupancyGrid, nc.FILTER_MASK_TOPIC, self._on_mask, LATCHED)
         node.create_subscription(CostmapFilterInfo, nc.FILTER_INFO_TOPIC, self._on_info, LATCHED)
@@ -67,6 +77,10 @@ class AutonomyClient:
         self.goal_handle = None
         self.goal_offset, self.goal_poses = 0, 0
         self.nav2_active = False
+        self.localization_configured = False   # ND-07 configured by this client (TR-03 refuses mapping meanwhile: RQ-I004)
+        self.localization_running = False      # ND-07 reached 正常 in this start; from then 推定不能 pauses (mode manager)
+        self.estimator = None                  # (state, reason, detail, stamp_s) of the last IFD-53
+        self._estimator_changed = threading.Event()
         self._token = 0
         self._lock = threading.Lock()
 
@@ -92,7 +106,12 @@ class AutonomyClient:
     def new_token(self) -> int:
         with self._lock:
             self._token += 1
+            self._estimator_changed.set()   # wakes a start waiting for ND-07 so that it sees it was abandoned
             return self._token
+
+    def on_estimator_status(self, state: int, reason: str, detail: str, stamp_s: float) -> None:
+        self.estimator = (state, reason, detail, stamp_s)
+        self._estimator_changed.set()
 
     def _check(self, token):
         if token is not None and token != self._token:   # None: a call that no pause / end abandons (TR-03's bridge configure)
@@ -146,14 +165,63 @@ class AutonomyClient:
             record('vehicle_bridge_configure_failed', f'{e}; mapping continues without the ESP32 STATUS', {'error': str(e)})
 
     # ---- TR-05 / TR-10 / TR-11 / TR-12 steps ----
+    def _lifecycle(self, n, transition_id, what, token):
+        req = ChangeState.Request(); req.transition.id = transition_id
+        if not self._call(self.change[n], req, f'{n} {what}', token).success:
+            raise StepFailed(f'{n}: lifecycle {what} failed (see its log/decision)')
+
+    def localize(self, token, mission: ac.Mission, initial_pose: PoseWithCovarianceStamped, record: Callable) -> None:
+        """TR-05: the initial pose (latched), ND-07 configured with the mission's map and activated, then wait until its state is
+        正常 (no time limit: the human can pause or end, which abandons the start). 推定不能 raises EstimatorUnavailable."""
+        n = LOCALIZATION_NODE
+        self.initial_pose_pub.publish(initial_pose)
+        record('initial_pose_sent', 'IFD-34 localization/initial_pose sent once (transient_local)', {'x': initial_pose.pose.pose.position.x, 'y': initial_pose.pose.pose.position.y})
+        st = self._call(self.get[n], GetState.Request(), f'{n} get_state', token).current_state.id
+        if st != State.PRIMARY_STATE_UNCONFIGURED:
+            raise StepFailed(f'{n} is in lifecycle state {st}, not unconfigured (a previous run was not cleaned up)')
+        self._set(n, {'map_directory': mission.map_directory}, f'{n} map_directory', token)
+        self._lifecycle(n, Transition.TRANSITION_CONFIGURE, 'configure', token)
+        self.localization_configured = True
+        since = self.node.get_clock().now().nanoseconds * 1e-9
+        self._lifecycle(n, Transition.TRANSITION_ACTIVATE, 'activate', token)
+        record('localization_activated', f'{n} configured with {mission.map_directory} and activated; waiting for 正常 (IFD-53)', {'map_directory': mission.map_directory})
+        while True:
+            self._estimator_changed.wait(); self._estimator_changed.clear()
+            self._check(token)
+            e = self.estimator
+            if e is None or e[3] < since:
+                continue   # a state from before this activation
+            if e[0] == STATE_NORMAL:
+                self.localization_running = True
+                record('localization_normal', f'{n}: 正常; Nav2 is started next', {}); return
+            if e[0] == STATE_UNAVAILABLE:
+                raise EstimatorUnavailable(f'{n}: 推定不能 ({e[1]}: {e[2]})')
+
+    def stop_localization(self, token, record: Callable) -> None:
+        """TR-11 / TR-12: deactivate and clean up ND-07 (its A3 launch is stopped). A failure is recorded."""
+        self.localization_running = False
+        if not self.localization_configured:
+            return
+        n = LOCALIZATION_NODE
+        try:
+            st = self._call(self.get[n], GetState.Request(), f'{n} get_state', None).current_state.id
+            if st == State.PRIMARY_STATE_ACTIVE:
+                self._lifecycle(n, Transition.TRANSITION_DEACTIVATE, 'deactivate', None); st = State.PRIMARY_STATE_INACTIVE
+            if st == State.PRIMARY_STATE_INACTIVE:
+                self._lifecycle(n, Transition.TRANSITION_CLEANUP, 'cleanup', None)
+            self.localization_configured = False
+            record('localization_stopped', f'{n} deactivated and cleaned up (A3 launch stopped)', {})
+        except StepFailed as e:
+            record('localization_stop_failed', str(e), {})
+
     def start(self, token, mission: ac.Mission, initial_pose: PoseWithCovarianceStamped, record: Callable) -> None:
-        """TR-05 after the transition: parameters, Nav2 STARTUP, vehicle output, initial pose, goal. Raises StepFailed / Abandoned."""
+        """TR-05 after the transition: ND-07 (localize, until 正常), parameters, Nav2 STARTUP, vehicle output, goal. Raises
+        StepFailed / EstimatorUnavailable / Abandoned."""
+        self.localize(token, mission, initial_pose, record)
         self._set('map_server', {'yaml_filename': mission.map_yaml}, 'map_server yaml_filename', token)
         self._set('filter_mask_server', {'yaml_filename': mission.mask_yaml}, 'filter_mask_server yaml_filename', token)
         self._set('costmap_filter_info_server', {'base': mission.filter_base, 'multiplier': mission.filter_multiplier}, 'costmap_filter_info_server base / multiplier', token)
         record('nav2_parameters_set', f'map {mission.map_yaml}, mask {mission.mask_yaml}, base {mission.filter_base}, multiplier {mission.filter_multiplier}', {})
-        self.initial_pose_pub.publish(initial_pose)
-        record('initial_pose_sent', 'IFD-34 localization/initial_pose sent once', {'x': initial_pose.pose.pose.position.x, 'y': initial_pose.pose.pose.position.y})
         self.limit_since_start = None; self.mask = None; self.info_received = False; self.robot_xy = None
         req = ManageLifecycleNodes.Request(); req.command = ManageLifecycleNodes.Request.STARTUP
         if not self._call(self.manage, req, 'Nav2 STARTUP', token).success:

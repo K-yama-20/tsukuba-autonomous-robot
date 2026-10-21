@@ -3,6 +3,7 @@ process), map_database (register source, publish/abort conversion, hashes, index
 dump -> occupancy grid, settings required, refusal without submaps). Design tests: TS-11 (core part), TS-27.
 """
 import json
+import math
 import struct
 import sys
 import tempfile
@@ -180,6 +181,111 @@ class MapConvertTests(unittest.TestCase):
         ter = mc.terrain(g, s)
         self.assertAlmostEqual(float(np.nanmax(ter['step_m'])), 0.15, places=6)
         self.assertAlmostEqual(float(np.nanmin(ter['step_m'])), 0.0, places=6)
+
+    def test_point_map_tiles_for_a3(self):
+        """TS-43 (REV-128): the thinned points in square tiles with the autoware_pointcloud_map_loader metadata, and the
+        trajectory copy. Every kept point is in exactly one tile; the metadata gives each tile's lower-left corner."""
+        with tempfile.TemporaryDirectory() as d:
+            ground = [[x * 0.5, y * 0.5, 0.0] for x in range(-20, 60) for y in range(-10, 10)]
+            dup = [[0.01, 0.01, 0.0], [0.02, 0.02, 0.01]]                       # in the voxel of (0, 0, 0): thinned away
+            make_dump(Path(d) / 'dump', [(np.eye(4), ground + dup)])
+            (Path(d) / 'dump' / 'traj_imu.txt').write_text('1.0 0 0 1.2 0 0 0 1\n')
+            s = dict(grid_settings(), pointmap_voxel_m=0.2, pointmap_tile_m=20.0)
+            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', s)
+            pm = stats['pointcloud_map']; self.assertTrue(pm['made']); self.assertEqual(pm['points'], len(ground))
+            out = Path(d) / 'out' / mc.POINTCLOUD_MAP_DIR
+            meta = (out / 'metadata.yaml').read_text().splitlines()
+            self.assertEqual(meta[:2], ['x_resolution: 20.0', 'y_resolution: 20.0'])
+            corners = dict(line.split(': ', 1) for line in meta[2:])
+            self.assertEqual(sorted(corners), sorted(f'tile_{i}_{j}.pcd' for i in (-1, 0, 1) for j in (-1, 0)))
+            self.assertEqual(corners['tile_-1_-1.pcd'], '[-20, -20]')   # integers: the loader rejects '[-20.0, -20.0]' (VM, 2026-10-21)
+            total = 0
+            for name, corner in corners.items():
+                x0, y0 = [float(v) for v in corner.strip('[]').split(', ')]
+                _, p = read_pcd(out / name); total += p.shape[0]
+                self.assertTrue(((p[:, 0] >= x0) & (p[:, 0] < x0 + 20) & (p[:, 1] >= y0) & (p[:, 1] < y0 + 20)).all(), name)
+            self.assertEqual(total, len(ground))
+            self.assertIn(mc.POINTCLOUD_MAP_METADATA, stats['files']); self.assertIn(mc.TRAJECTORY_FILE, stats['files'])
+            self.assertEqual((Path(d) / 'out' / mc.TRAJECTORY_FILE).read_text(), '1.0 0 0 1.2 0 0 0 1\n')
+
+    def test_tile_size_must_be_whole_metres(self):
+        with self.assertRaises(ValueError) as cm: mc.write_tiles(np.zeros((1, 3)), Path(tempfile.mkdtemp()) / 'pm', 12.5)
+        self.assertIn('whole number', str(cm.exception))
+
+    def test_no_tiles_without_their_settings(self):
+        with tempfile.TemporaryDirectory() as d:
+            make_dump(Path(d) / 'dump', [(np.eye(4), [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)])])
+            stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', dict(grid_settings(), pointmap_voxel_m=0.2))   # tile size unresolved
+            self.assertFalse(stats['pointcloud_map']['made']); self.assertIn('PRM-95', stats['pointcloud_map']['reason'])
+            self.assertFalse((Path(d) / 'out' / mc.POINTCLOUD_MAP_DIR).exists()); self.assertTrue((Path(d) / 'out' / 'map.yaml').is_file())
+
+    # ---- plan C: the swept corridor (TS-44, REV-131) ----
+    @staticmethod
+    def _traj(points, yaw=0.0):
+        q = (0.0, 0.0, math.sin(yaw / 2), math.cos(yaw / 2))
+        return ''.join(f'{i * 0.1:.1f} {x} {y} 0.3 {q[0]} {q[1]} {q[2]} {q[3]}\n' for i, (x, y) in enumerate(points))
+
+    def _corridor(self, d, traj_text, mount_values, half=0.5, gap=1.0):
+        make_dump(Path(d) / 'dump', [(np.eye(4), [[x * 0.5, y * 0.5, 0.0] for x in range(4) for y in range(4)])])
+        (Path(d) / 'dump' / 'traj_imu.txt').write_text(traj_text)
+        s = dict(grid_settings(), map_resolution_m=0.1, corridor_half_width_m=half, corridor_gap_m=gap)
+        stats = mc.convert(Path(d) / 'dump', Path(d) / 'out', s, {'values': mount_values, 'source': 'test'} if mount_values is not None else None)
+        return stats
+
+    def _free_centres(self, d):
+        out = Path(d) / 'out'; meta = (out / 'map_swept_corridor.yaml').read_text()
+        res = float(meta.split('resolution: ')[1].split()[0]); ox, oy = [float(v) for v in meta.split('origin: [')[1].split(',')[:2]]
+        pgm = (out / 'map_swept_corridor.pgm').read_bytes(); w, h = [int(v) for v in pgm.split(b'\n')[1].split()]
+        img = np.frombuffer(pgm.split(b'\n', 3)[3], dtype=np.uint8).reshape(h, w)[::-1, :]   # row 0 = lowest y
+        self.assertTrue(set(np.unique(img)) <= {254, 205}, 'only free and unknown, no occupied cell')
+        j, i = np.nonzero(img == 254)
+        return np.c_[ox + (i + 0.5) * res, oy + (j + 0.5) * res]
+
+    def test_corridor_is_free_only_near_the_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = [(x * 0.1, 0.0) for x in range(51)] + [(5.0, y * 0.1) for y in range(1, 31)]   # straight, then a corner
+            stats = self._corridor(d, self._traj(path), {})
+            self.assertTrue(stats['swept_corridor']['made']); self.assertIn('map_swept_corridor.yaml', stats['files'])
+            c = self._free_centres(d)
+            def dist(p):   # distance to the polyline (two segments)
+                a = np.clip(p[:, 0], 0, 5); d1 = np.hypot(p[:, 0] - a, p[:, 1])
+                b = np.clip(p[:, 1], 0, 3); d2 = np.hypot(p[:, 0] - 5, p[:, 1] - b)
+                return np.minimum(d1, d2)
+            self.assertLessEqual(float(dist(c).max()), 0.5 + 1e-9)
+            self.assertGreater(len(c), 0.8 * (5 + 3) * 1.0 / 0.01)    # most of the 1 m wide band is free
+            rec = json.loads((Path(d) / 'out' / 'swept_corridor.json').read_text())
+            self.assertEqual(rec['trajectory']['pieces'], 1); self.assertEqual(rec['trajectory']['not_joined'], [])
+            self.assertIn('imu_mount_x_m', rec['mounting']['defaulted_fields'])   # UNKNOWN mounting -> neutral, recorded
+
+    def test_a_jump_is_not_joined(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = [(x * 0.1, 0.0) for x in range(21)] + [(x * 0.1, 0.0) for x in range(80, 101)]   # 2 m -> 8 m jump of 6 m
+            self._corridor(d, self._traj(path), {})
+            c = self._free_centres(d)
+            self.assertFalse(((c[:, 0] > 2.6) & (c[:, 0] < 7.4)).any(), 'the jump is not free')
+            rec = json.loads((Path(d) / 'out' / 'swept_corridor.json').read_text())
+            self.assertEqual(rec['trajectory']['pieces'], 2); self.assertAlmostEqual(rec['trajectory']['not_joined'][0]['distance_m'], 6.0)
+
+    def test_imu_mounting_moves_the_corridor(self):
+        """base_link = IMU pose * inv(T_base_imu): an IMU 0.3 m ahead of base_link puts base_link 0.3 m behind the IMU path."""
+        with tempfile.TemporaryDirectory() as d:
+            path = [(x * 0.1, 0.0) for x in range(31)]
+            self._corridor(d, self._traj(path), {'imu_mount_x_m': 0.3, 'imu_axis_mapping': '+x forward, +y left, +z up'}, half=0.2)
+            c = self._free_centres(d)
+            self.assertAlmostEqual(float(c[:, 0].min()), -0.3 - 0.2, delta=0.1); self.assertAlmostEqual(float(c[:, 0].max()), 3.0 - 0.3 + 0.2, delta=0.1)
+
+    def test_corridor_needs_trajectory_mounting_and_settings(self):
+        with tempfile.TemporaryDirectory() as d:
+            st = self._corridor(d, '', {})
+            self.assertFalse(st['swept_corridor']['made']); self.assertIn('traj_imu.txt', st['swept_corridor']['reason'])
+        with tempfile.TemporaryDirectory() as d:
+            st = self._corridor(d, self._traj([(0, 0), (1, 0)]), None)
+            self.assertFalse(st['swept_corridor']['made']); self.assertIn('DEC-212', st['swept_corridor']['reason'])
+            self.assertTrue((Path(d) / 'out' / 'map.yaml').is_file(), 'the 2D map used for driving is still made (DEC-211)')
+        with tempfile.TemporaryDirectory() as d:
+            make_dump(Path(d) / 'dump', [(np.eye(4), [[0, 0, 0], [1, 1, 0]])])
+            st = mc.convert(Path(d) / 'dump', Path(d) / 'out', grid_settings(), {'values': {}, 'source': 'test'})
+            self.assertFalse(st['swept_corridor']['made']); self.assertIn('PRM-96', st['swept_corridor']['reason'])
 
     def test_refuses_without_submaps_or_settings(self):
         with tempfile.TemporaryDirectory() as d:

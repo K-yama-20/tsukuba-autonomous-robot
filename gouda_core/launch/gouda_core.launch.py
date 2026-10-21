@@ -1,5 +1,5 @@
 """Launch of everything gouda.sh starts (the one start path, DEC-090 / DEC-091): gouda_mode_manager, gouda_recorder,
-gouda_monitor, gouda_map_creator, gouda_static_tf, the vehicle-output lifecycle nodes, the sensor drivers under
+gouda_monitor, gouda_map_creator, gouda_static_tf, gouda_global_localization (ND-07, lifecycle), the vehicle-output lifecycle nodes, the sensor drivers under
 gouda_sensor_supervisor, and Nav2 (gouda_nav2.launch.py, started inactive).
 
 Arguments (gouda.sh passes exactly params_dir and data_root):
@@ -60,6 +60,10 @@ def _nodes(context, *args, **kwargs):
              parameters=params('gouda_monitor', {'data_root': data_root})),   # monitor_port: PRM-26 in the generated file
         # ND-08 relay: localization/odometry from GLIM's odometry-only TF (publishes only while ND-03 runs GLIM in autonomy)
         Node(package='gouda_core', executable='gouda_local_odometry', name='gouda_local_odometry', output='screen'),
+        # ND-07 (trial A3, REV-128): lifecycle node, started UNCONFIGURED; ND-03 sets map_directory and configures / activates it at
+        # 自律走行開始 (TR-05) and deactivates / cleans it up at the end (TR-11 / TR-12). Its A3 parts run as its child launch.
+        LifecycleNode(package='gouda_core', executable='gouda_global_localization', name='gouda_global_localization', namespace='', output='screen',
+                      parameters=params('gouda_global_localization', {'data_root': data_root})),
         # ND-13: the only static TF publisher (base_footprint -> base_link -> sensors and GNSS antennas, from /config)
         Node(package='gouda_core', executable='gouda_static_tf', name='gouda_static_tf', output='screen',
              parameters=params('gouda_static_tf', {'data_root': data_root})),   # base_link_z_m: PRM-05 in the generated file
