@@ -1,0 +1,46 @@
+# 変更セット REV-143（2026-10-22 第115便: 自律走行開始で ND-07 が推定不能（init_failed）になる件の調査と DEC-280・DEC-279 の登録）
+# 適用: design/tools/apply_revision.py REV-143
+id: REV-143
+date: '2026-10-22'
+summary: 第115便：実車（VM）で自律走行開始のたびに ND-07 が「推定不能（init_failed、ndt_align_srv did not succeed）」になる件を調べた。NDT が点群を一つも受け取っていない（No InputSource）。原因は二つ。(1) ND-07 が A3 の起動の直後（1.5〜3 秒）に ndt_align_srv を呼び、最初の点群を待たない。(2) XT-32 の点群（1 通 1.66 MB）を BEST_EFFORT で受けると、既定の受信バッファではほとんど届かない（10 秒で 0〜8 通。pcl_ros の CropBox は BEST_EFFORT で受け、18 秒で 3 通しか出さなかった）。対応の案を承認事項 DEC-279（点群の受け渡し）と DEC-280（初期化の待ち方）として登録する。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- IFD-21
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-279
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】XT-32 の点群（IFD-21、1 通 1.66 MB、10 Hz）を BEST_EFFORT で受けるノード（ND-07 の子の launch の pcl_ros CropBox ほか）に、点群がほとんど届かない。どう直すか
+  answer_verbatim: ''
+  affected_refs:
+  - IFD-21
+  - ND-07
+  - ND-08
+  - TR-05
+  resulting_refs: []
+  note: 事実（VM、2026-10-22 00:5x〜01:0x、Gouda は人が起動したもの、main a27de9e、RMW は既定（Fast DDS）、net.core.rmem_default 212992、rmem_max 4194304）：hesai_ros_driver は IFD-21 を RELIABLE で出す（1 通 1664000 バイト、点 64000）。確かめのための一時的な購読（Python、10 秒）で、BEST_EFFORT は 0 通（2 回目は 8 通）、RELIABLE は 73 通（最初の 1 通まで 3.0 秒）。BEST_EFFORT の購読に UDP の受信バッファ 4 MB の Fast DDS の profile（その試験のプロセスだけ）を与えると 75 通。一時的に動かした pcl_ros filter_crop_box_node は入力を BEST_EFFORT で購読し（出力に購読者がいるときだけ購読する）、18 秒で 3 通しか出さなかった。点群そのもの（最大距離 74.75 m、遅れ 0.1 秒、frame xt32_link）は正常。案 a（推奨）：Fast DDS の profile（UDP の受信バッファを大きくし、共有メモリの転送は残す）を設定ファイルとして持ち、gouda.sh start で起動するノードに与える（理由：試験で 75 通／10 秒に戻った。上流の部品を変えずに済む。ほかの BEST_EFFORT の購読者（GLIM、monitor）にも効く）。値（バッファの大きさ）は今回の試験の 4 MB を出発点とし、rmem_max（4194304）を超えない。案 b：点群を RELIABLE で受けて中継する小さなノードを ND-07 の子の launch の先頭に置く（ND-07 の経路だけ直る。GLIM には効かない）。案 c：rmem_default などカーネルの設定を上げる（setup.sh で sysctl。システムの設定の変更なので人の作業）。未確認：GLIM（ND-08）の点群の購読の QoS と、実際に届いている量（今回は GLIM が止まっていて見ていない）。影響を受けるもの：ND-07 の初期化と NDT の更新、ND-08（BEST_EFFORT なら）、monitor の points の表示。決まらない場合に止まる作業：実車での ND-07 の初期化と自律走行（模擬の試験は止まらない）。第115便で登録。
+  disposition: open_human
+- id: DEC-280
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】ND-07 の初期化で、ndt_align_srv を呼ぶ前に、NDT が点群を受け取ったことを待つようにするか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - IFD-53
+  - TR-05
+  - TR-07
+  resulting_refs: []
+  note: 事実（VM、2026-10-22 00:48〜00:52 の 5 回、~/.ros/log の A3 の各ノードの記録）：A3 の起動から 1.5〜3 秒で ND-07 が ndt_align_srv を呼び、NDT は「No InputSource. Please check the input lidar topic」で失敗した。今の ND-07（global_localization_node.py の _initialize）は、サービスが現れるのを待つだけで、点群は待たない。Autoware の ndt_scan_matcher 1.9.0 のソース（ndt_scan_matcher_core.cpp）では、点群は届いても、点 0、TF の失敗、最大距離が required_distance（10 m）未満のときは捨てられる。最大距離の不足はログに出ず /diagnostics だけに出る（屋内などで起こりうる）。DEC-279 を直しても、最初の点群は起動から約 3 秒かかる。案 a（推奨）：ND-07 は、NDT の /diagnostics（scan_points）が点群を保存したと示すまで、時間の制限なしで待ってから ndt_align_srv を呼ぶ（サービスの待ちと同じ扱い。人はいつでも一時停止・終了できる）。待つ間、IFD-53 の詳細に「点群を待っている」と、NDT が最後に捨てた理由（例：最大距離 7 m < 10 m）を出す。案 b：届いた点群（points_downsampled）を 1 通見てから呼ぶ（NDT が捨てた場合は今と同じ失敗になる）。案 c：失敗したら決まった回数だけ呼び直す（原因が分からないまま通る。採らない）。振る舞いの違い：案 a・b では、点群が来ないとき「推定不能」ではなく「初期化中（点群待ち）」のまま止まる。影響を受けるもの：ND-07、IFD-53 の表示、TR-05 の待ち（mode manager は ND-07 の状態を待つ）。決まらない場合に止まる作業：実車での ND-07 の初期化（DEC-279 が直れば、案なしでも起動から 3 秒以上たってから呼べば通る見込み。推測、未確認）。第115便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

@@ -1,8 +1,26 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-142、第112便）。
+最終更新：2026-10-22（REV-144、第116便）。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第116便: DEC-279・280 の実装と VM の試験（REV-144、PRM-100）**（作業記録 `reports/worklog/2026-10-22_bin116_dec279_280_impl.md`）。
+- 人の回答（原文）で、両方とも案 a を採用した。
+  - gouda.sh start は PRM-100（4194304 バイト）から Fast DDS の profile を書き、全プロセスに渡す。共有メモリの区画は既定のまま（DEC-138 は pending）。
+  - ND-07 は、NDT が点群を保持するまで待ってから ndt_align_srv を呼ぶ。待つ間は初期化中で、捨てた理由を出す。
+- 試験
+  - Mac・VM の単体試験は 271 件合格。
+  - VM の `ubuntu_nd07_wait_points.sh`：点群なし・捨てられる点群の間は初期化中、保持すると 25 秒で正常。
+  - 設計検査は違反 0・未判定 5。run_checks の違反 6 件は、原本 drawio・`.DS_Store` によるもので第115便と同じ。
+- 実の点群での確認は未判定。XT-32 に届かない（USB-LAN の speed 0、ARP 失敗。人が接続を確かめる）。
+- 別の不具合（未修正）：gouda.sh stop で sensor supervisor が落ち、hesai_ros_driver が残って stop が終わらない。
+- VM の `~/gouda_ws` は作業ツリーが変わっている（update.sh は止まる）。コミットはまだ。
+
+**第115便: 自律走行開始で ND-07 が推定不能（init_failed）になる件（REV-143、DEC-279・280）**（作業記録 `reports/worklog/2026-10-22_bin115_ndt_init_failed.md`）。
+- NDT が点群を一つも受け取らないまま ndt_align_srv を呼んでいた（No InputSource）。原因は二つ。
+  - ND-07 が、A3 の起動から 1.5〜3 秒で点群を待たずに呼ぶ。
+  - XT-32 の 1.66 MB の点群は、BEST_EFFORT では既定の受信バッファでほとんど届かない。pcl_ros の CropBox は 18 秒で 3 通しか出さなかった。受信バッファを 4 MB にすると、10 秒で 75 通届いた。
+- 対応は承認待ち：DEC-279（Fast DDS の profile で受信バッファを大きくする）、DEC-280（NDT が点群を受け取るまで待つ）。コードと設定は変えていない。実車での自律走行は、これが決まるまで止まる。
 
 **第112便: monitor の「発進準備」タブを実装済みの手順に合わせた**（作業記録 `reports/worklog/2026-10-21_bin112_prep_tab.md`）。
 - 文面だけのタブが「未実装」のまま古かった。waypoint タブでの選択と初期位置、自律走行ボタン、その後の自動の起動の順に書き直した。未実装は GNSS による初期位置（DEC-124）だけ。Mac 258 合格。VM には未反映。

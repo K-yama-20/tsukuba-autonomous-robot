@@ -18,7 +18,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、150 件）を根拠にした要素
+### 1.2 人の決定（answered、152 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -172,8 +172,10 @@
 | DEC-225 | 「DEC-225: B = 5.1にしよう。<br>VMのメモリは12GBに増強した。<br><br>作り直した地図はgouda_wsに入れよ。」<br> | `PRM-97` |
 | DEC-227 | （分岐セッション「引き継ぎ 2026-10-21 その2」からの転記。人の発言の原文、時系列の番号つき）<br>1.「DEC-227はAを基本とするが､条件を加える。<br>禁止範囲同士が近接していて、膨らんだ部 | `DEC-229`, `PRM-99` |
 | DEC-278 | 「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」 | `PRM-99` |
+| DEC-279 | DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM で試験して。<br> | `PRM-100`, `ND-01` |
+| DEC-280 | DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM で試験して。<br> | `ND-07`, `TS-41` |
 
-### 1.3 承認済み（87 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`
+### 1.3 承認済み（88 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`
 
 ## 2. 承認によって着手する作業（工程と完了条件は docs/implementation_stages.md）
 

@@ -1,6 +1,6 @@
 {
-  "run_time_utc": "2026-10-21T14:02:33.628113+00:00",
-  "python": "/opt/anaconda3/bin/python3",
+  "run_time_utc": "2026-10-21T16:24:02.987276+00:00",
+  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
     {
@@ -11,7 +11,7 @@
     {
       "step": "generate params",
       "command": [
-        "/opt/anaconda3/bin/python3",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/generate_params.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -21,7 +21,7 @@
     {
       "step": "intent identity",
       "command": [
-        "/opt/anaconda3/bin/python3",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_intent_identity.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -31,7 +31,7 @@
     {
       "step": "fidelity validator",
       "command": [
-        "/opt/anaconda3/bin/python3",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/validate_model.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -41,7 +41,7 @@
     {
       "step": "design consistency",
       "command": [
-        "/opt/anaconda3/bin/python3",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_design.py"
       ],
       "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
@@ -51,7 +51,7 @@
     {
       "step": "unit tests",
       "command": [
-        "/opt/anaconda3/bin/python3",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
         "-m",
         "unittest",
         "discover",
@@ -67,7 +67,7 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "b2514e0540ac02b0bc3f07ceeacb0fe3d744c6064ebd3e7b732d2080e3ea78cb",
+    "design/model.yaml": "bea2ea3a738f3ccf1ab303a43b5df9b24fc5fea23e3be0d6541ffd145a42bcf1",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "9bf08d3ebe240ed174f3cc7b54b7b7931b846b39d88c489bc3941faaf46969a4",
@@ -234,7 +234,9 @@
     "design/revisions/REV-139.yaml": "9f40d32321345b17a9208476f12a515df4748e03a7d4ba03b15c7a0626964f1b",
     "design/revisions/REV-140.yaml": "7b4f6972a98fd936bd8028dd1015001d59ad380ccfbec9e6004b5b0b3e03981c",
     "design/revisions/REV-141.yaml": "6982fa81325fed377c7cc6cceda3de7179fbb294885b598ca312984a1b243f57",
-    "design/revisions/REV-142.yaml": "ab472a809c3d9c9ed92d854d09790d8b539e5acf33f736feca3ed61b6a0274d9"
+    "design/revisions/REV-142.yaml": "ab472a809c3d9c9ed92d854d09790d8b539e5acf33f736feca3ed61b6a0274d9",
+    "design/revisions/REV-143.yaml": "1788248f40ec8748dadc06adcf44597a0b1aae6261e9b1fe574a585fd8fe6dca",
+    "design/revisions/REV-144.yaml": "844e32a998a3fd7cbbdf4f252257e6c800dcfa10893c7e1786152feb606f0acb"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }

@@ -34530,14 +34530,15 @@ entities:
       - G-ARCH
       - G-DUP-START
     interpretation: REV-108（DEC-174）：stop は SIGINT の後、時間の上限なしに待つ（SIGTERM・SIGKILL を送らない）。PRM-77 ごとに GLIM と 
-      rosbag の保存の大きさと増え方を表示する。終わらないときは人が PC を再起動する。
+      rosbag の保存の大きさと増え方を表示する。終わらないときは人が PC を再起動する。 REV-144（DEC-279 案 a）：start で Fast DDS の profile 
+      を書いて全プロセスに与える（PRM-100）。起動オプションは増やさない。
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I003
       - RQ-I004
       - RQ-I058
-    revision_ref: REV-108
+    revision_ref: REV-144
     ros_node:
       node_name: gouda_launcher
       responsibilities:
@@ -34550,6 +34551,9 @@ entities:
         - Gouda は同時に一つ。pid ファイルにない gouda_core の起動（試験スタック trial:=true 
           は除く）が同じ利用者で動いていれば起動を拒み、止め方を表示する。status・stop でも表示する（G-DUP-START、DEC-103）
         - 走行開始要求は発行しない（M-001 K2 を維持）
+        - Fast DDS の profile：start のたびに PRM-100 から <data_root>/run/fastdds_profile.xml 
+          を書き（gouda_core.dds_profile）、FASTRTPS_DEFAULT_PROFILES_FILE で launch に渡す（子のプロセス・子の launch 
+          も同じ設定）。共有メモリの転送は既定の区画のまま、UDPv4 の受信・送信のバッファを PRM-100 にする。値がなければ起動しない（DEC-279）
       absorbs_module_refs:
         - M-001
       active_in_mode_refs:
@@ -35075,7 +35079,8 @@ entities:
       EstimatorStatus を出し、ND-03 が一時停止する経路を ND-07 と一緒に設計する（DEC-200）。構成の案は 
       design/proposals/nd07_a3_trial_design_2026-10-21.md（DEC-203、承認待ち）。 
       REV-127（DEC-203、転記）：構成の案（design/proposals/nd07_a3_trial_design_2026-10-21.md 
-      §2・§3）の正本への取込みと実装を人が許可。取込みは別の変更セット。 REV-128（DEC-203）：構成を正本に入れた。
+      §2・§3）の正本への取込みと実装を人が許可。取込みは別の変更セット。 REV-128（DEC-203）：構成を正本に入れた。 REV-144（DEC-280 案 a）：ndt_align_srv 
+      の前に、NDT が点群を保持するまで待つ。
     sensitivity:
       - safety
       - operation
@@ -35083,7 +35088,7 @@ entities:
       - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-128
+    revision_ref: REV-144
     ros_node:
       node_name: gouda_global_localization
       responsibilities:
@@ -35097,9 +35102,10 @@ entities:
           map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 
           を受けるたびにその時刻で出す。localization/pose（IFD-33）は EKF の姿勢
         - 速度の中継：IFD-25 の速度を TwistWithCovarianceStamped（分散 PRM-82・83）にして EKF へ
-        - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付けて ndt_align_srv（Monte Carlo 
-          の探索）→ 成功したら EKF の初期姿勢 → EKF・NDT の trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom 
-          を出さず推定不能（init_failed）
+        - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付ける → NDT 
+          が点群を保持するまで待つ（/diagnostics の scan_matching_status に is_activated があること。時間の制限なし。待つ間は初期化中で、IFD-53 の詳細に 
+          NDT が最後に点群を捨てた理由を出す。DEC-280）→ ndt_align_srv（Monte Carlo の探索）→ 成功したら EKF の初期姿勢 → EKF・NDT の 
+          trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom を出さず推定不能（init_failed）
         - 推定の状態（IFD-53）：NDT の診断（nearest_voxel_transformation_likelihood、PRM-90）、EKF 
           の診断（pose_no_update_count、PRM-91）、EKF の位置の標準偏差（PRM-92）、入力の古さ（PRM-89）から判定（DEC-200、DEC-206 の 
           (2)）。材料がない・読めないときは正常にしない
@@ -45939,23 +45945,26 @@ entities:
       - PRM-92
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。
+    interpretation: REV-128（DEC-203）で追加。 REV-144（DEC-279・280）：点群の保持の待ちと Fast DDS の profile の試験を追加。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
       - RQ-I029
       - RQ-I004
-    revision_ref: REV-128
+    revision_ref: REV-144
     test:
       execution_status: 未実行
       stage: 自己位置推定
       procedure: 単体（test_localization_core.py）：map→odom の計算（EKF の map→base_link と、同じ時刻に補間した odom→base_link 
-        から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散。VM：gouda_global_localization
-        の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の map→odom の発行者が 1 つ。rosbag 
+        から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散、NDT 
+        の点群の保持の読み取り（DEC-280）。単体（test_dds_profile.py）：PRM-100 からの Fast DDS の 
+        profile。VM：gouda_global_localization の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の 
+        map→odom の発行者が 1 つ。gouda.sh start の下で、点群（IFD-21）が BEST_EFFORT の購読者と A3 の CropBox に届く量。rosbag 
         の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
       observe: localization/status、/tf、DecisionEvent（初期化の各段）
-      expected: 材料がそろうまで正常にならない。map→odom の発行者は ND-07 だけ。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
+      expected: 材料がそろうまで正常にならない。map→odom の発行者は ND-07 だけ。NDT が点群を保持する前に ndt_align_srv 
+        を呼ばない（その間は初期化中、推定不能にしない）。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
   - id: TS-42
     kind: test
     name: 推定不能での一時停止（mode_manager）
@@ -46425,6 +46434,47 @@ entities:
       value_type: double
       apply_timing: launch
     approval_decision_ref: DEC-278
+  - id: PRM-100
+    kind: parameter
+    name: Fast DDS の UDP の受信・送信のバッファの大きさ
+    source_refs:
+      - SRC-I006
+      - SRC-I007
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-21
+      - ND-07
+      - G-DDS
+    issue_refs:
+      - G-DDS
+    interpretation: REV-144（DEC-279 案 a）で追加。
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+    revision_ref: REV-144
+    parameter:
+      owner_ref: ND-01
+      value: 4194304
+      value_state: approved
+      unit: byte
+      stage: 起動と記録
+      purpose: gouda.sh start が書く Fast DDS の profile（<data_root>/run/fastdds_profile.xml）の UDPv4 の 
+        receiveBufferSize と sendBufferSize。XT-32 の点群（IFD-21、1 通約 1.66 MB）を BEST_EFFORT で受けるノード（ND-07 の子の 
+        launch の pcl_ros CropBox、monitor）に届くようにする。カーネルの上限（net.core.rmem_max・wmem_max）で頭打ちになる
+      measurement: VM（2026-10-22、第115便）：BEST_EFFORT の購読で、既定の受信バッファでは 10 秒で 0〜8 通、この値（4194304、VM の rmem_max 
+        と同じ）の profile では 75 通。人の承認（DEC-279 案 a）は、4 MB を出発点とし rmem_max を超えないこと。x86 機（実車）の rmem_max は未確認
+      decision_deadline: 決定済み（DEC-279）。x86 機に移るときに rmem_max を確かめる
+      software_trial_value:
+      software_trial_basis: 人の承認（DEC-279）で実車の値があるため仮値なし
+      declaration: config_yaml
+      target: gouda_dds
+      param_key: udp_buffer_bytes
+      value_type: int
+      apply_timing: launch
+    approval_decision_ref: DEC-279
 migration:
   baseline_definition_count: 198
   id_map:
@@ -59365,6 +59415,66 @@ decisions:
     note: 人の決定。測定値ではない（VM のまっすぐの隙間では 0.7 m で止まり、0.8 m はぎりぎり、0.9 m 以上は通れた：DEC-229 の note）。DEC-229 は pending 
       のまま、決まったら PRM-99 を見直す。警告だけの値で、保存も走行も止めない。第110便で登録。
     disposition: answered
+  - id: DEC-279
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】XT-32 の点群（IFD-21、1 通 1.66 MB、10 Hz）を BEST_EFFORT で受けるノード（ND-07 の子の launch の pcl_ros CropBox 
+      ほか）に、点群がほとんど届かない。どう直すか
+    answer_verbatim: "DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM
+      で試験して。\n"
+    affected_refs:
+      - IFD-21
+      - ND-07
+      - ND-08
+      - TR-05
+    resulting_refs:
+      - PRM-100
+      - ND-01
+    note: 事実（VM、2026-10-22 00:5x〜01:0x、Gouda は人が起動したもの、main a27de9e、RMW は既定（Fast DDS）、net.core.rmem_default 
+      212992、rmem_max 4194304）：hesai_ros_driver は IFD-21 を RELIABLE で出す（1 通 1664000 バイト、点 
+      64000）。確かめのための一時的な購読（Python、10 秒）で、BEST_EFFORT は 0 通（2 回目は 8 通）、RELIABLE は 73 通（最初の 1 通まで 3.0 
+      秒）。BEST_EFFORT の購読に UDP の受信バッファ 4 MB の Fast DDS の profile（その試験のプロセスだけ）を与えると 75 通。一時的に動かした pcl_ros 
+      filter_crop_box_node は入力を BEST_EFFORT で購読し（出力に購読者がいるときだけ購読する）、18 秒で 3 通しか出さなかった。点群そのもの（最大距離 74.75 m、遅れ 
+      0.1 秒、frame xt32_link）は正常。案 a（推奨）：Fast DDS の profile（UDP の受信バッファを大きくし、共有メモリの転送は残す）を設定ファイルとして持ち、gouda.sh 
+      start で起動するノードに与える（理由：試験で 75 通／10 秒に戻った。上流の部品を変えずに済む。ほかの BEST_EFFORT 
+      の購読者（GLIM、monitor）にも効く）。値（バッファの大きさ）は今回の試験の 4 MB を出発点とし、rmem_max（4194304）を超えない。案 b：点群を RELIABLE 
+      で受けて中継する小さなノードを ND-07 の子の launch の先頭に置く（ND-07 の経路だけ直る。GLIM には効かない）。案 c：rmem_default 
+      などカーネルの設定を上げる（setup.sh で sysctl。システムの設定の変更なので人の作業）。未確認：GLIM（ND-08）の点群の購読の QoS と、実際に届いている量（今回は GLIM 
+      が止まっていて見ていない）。影響を受けるもの：ND-07 の初期化と NDT の更新、ND-08（BEST_EFFORT なら）、monitor の points の表示。決まらない場合に止まる作業：実車での
+      ND-07 の初期化と自律走行（模擬の試験は止まらない）。第115便で登録。
+    disposition: answered
+  - id: DEC-280
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】ND-07 の初期化で、ndt_align_srv を呼ぶ前に、NDT が点群を受け取ったことを待つようにするか
+    answer_verbatim: "DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM
+      で試験して。\n"
+    affected_refs:
+      - ND-07
+      - IFD-53
+      - TR-05
+      - TR-07
+    resulting_refs:
+      - ND-07
+      - TS-41
+    note: 事実（VM、2026-10-22 00:48〜00:52 の 5 回、~/.ros/log の A3 の各ノードの記録）：A3 の起動から 1.5〜3 秒で ND-07 が ndt_align_srv
+      を呼び、NDT は「No InputSource. Please check the input lidar topic」で失敗した。今の ND-07（global_localization_node.py 
+      の _initialize）は、サービスが現れるのを待つだけで、点群は待たない。Autoware の ndt_scan_matcher 1.9.0 
+      のソース（ndt_scan_matcher_core.cpp）では、点群は届いても、点 0、TF の失敗、最大距離が required_distance（10 
+      m）未満のときは捨てられる。最大距離の不足はログに出ず /diagnostics だけに出る（屋内などで起こりうる）。DEC-279 を直しても、最初の点群は起動から約 3 秒かかる。案 
+      a（推奨）：ND-07 は、NDT の /diagnostics（scan_points）が点群を保存したと示すまで、時間の制限なしで待ってから ndt_align_srv 
+      を呼ぶ（サービスの待ちと同じ扱い。人はいつでも一時停止・終了できる）。待つ間、IFD-53 の詳細に「点群を待っている」と、NDT が最後に捨てた理由（例：最大距離 7 m < 10 m）を出す。案 
+      b：届いた点群（points_downsampled）を 1 通見てから呼ぶ（NDT が捨てた場合は今と同じ失敗になる）。案 
+      c：失敗したら決まった回数だけ呼び直す（原因が分からないまま通る。採らない）。振る舞いの違い：案 a・b 
+      では、点群が来ないとき「推定不能」ではなく「初期化中（点群待ち）」のまま止まる。影響を受けるもの：ND-07、IFD-53 の表示、TR-05 の待ち（mode manager は ND-07 
+      の状態を待つ）。決まらない場合に止まる作業：実車での ND-07 の初期化（DEC-279 が直れば、案なしでも起動から 3 秒以上たってから呼べば通る見込み。推測、未確認）。第115便で登録。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -62529,6 +62639,38 @@ revisions:
     added_entity_ids: []
     modified_entity_ids:
       - PRM-99
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-143
+    date: '2026-10-22'
+    summary: 第115便：実車（VM）で自律走行開始のたびに ND-07 が「推定不能（init_failed、ndt_align_srv did not succeed）」になる件を調べた。NDT 
+      が点群を一つも受け取っていない（No InputSource）。原因は二つ。(1) ND-07 が A3 の起動の直後（1.5〜3 秒）に ndt_align_srv を呼び、最初の点群を待たない。(2) 
+      XT-32 の点群（1 通 1.66 MB）を BEST_EFFORT で受けると、既定の受信バッファではほとんど届かない（10 秒で 0〜8 通。pcl_ros の CropBox は 
+      BEST_EFFORT で受け、18 秒で 3 通しか出さなかった）。対応の案を承認事項 DEC-279（点群の受け渡し）と DEC-280（初期化の待ち方）として登録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - IFD-21
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-144
+    date: '2026-10-22'
+    summary: 第116便：人の回答（原文）で DEC-279 は案 a、DEC-280 は案 a。gouda.sh start は、PRM-100（UDP の受信・送信のバッファ、4194304 バイト）から
+      Fast DDS の profile を書き、すべてのプロセスに与える（共有メモリの転送は既定の区画のまま残す。区画を大きくする DEC-138 は pending のまま）。ND-07 は、NDT の 
+      /diagnostics（scan_matching_status）が点群を保持したと示すまで、時間の制限なしで待ってから ndt_align_srv を呼ぶ。待つ間は IFD-53 の詳細に、NDT 
+      が最後に点群を捨てた理由を出す。
+    basis_refs:
+      - DEC-279
+      - DEC-280
+    added_entity_ids:
+      - PRM-100
+    modified_entity_ids:
+      - ND-01
+      - ND-07
+      - TS-41
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []
