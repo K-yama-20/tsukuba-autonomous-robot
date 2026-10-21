@@ -7755,7 +7755,7 @@
   },
   "design_maturity": {
     "未設計": 415,
-    "案": 423,
+    "案": 447,
     "承認済み": 66
   },
   "revisions": [
@@ -8998,6 +8998,66 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-126",
+      "date": "2026-10-21",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 5,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-127",
+      "date": "2026-10-21",
+      "basis_refs": 4,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-128",
+      "date": "2026-10-21",
+      "basis_refs": 5,
+      "added_entity_ids": 21,
+      "modified_entity_ids": 7,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-129",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-130",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-131",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 3,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -9249,11 +9309,11 @@
     }
   ],
   "decisions": {
-    "count": 197,
+    "count": 213,
     "by_status": {
-      "answered": 121,
+      "answered": 132,
       "recorded": 56,
-      "pending": 20
+      "pending": 25
     },
     "pending": [
       "DEC-021",
@@ -9265,8 +9325,6 @@
       "DEC-101",
       "DEC-104",
       "DEC-105",
-      "DEC-107",
-      "DEC-115",
       "DEC-127",
       "DEC-129",
       "DEC-134",
@@ -9275,7 +9333,14 @@
       "DEC-152",
       "DEC-184",
       "DEC-189",
-      "DEC-190"
+      "DEC-190",
+      "DEC-208",
+      "DEC-209",
+      "DEC-211",
+      "DEC-212",
+      "DEC-213",
+      "DEC-214",
+      "DEC-215"
     ]
   },
   "vehicle_verification": {
@@ -9283,7 +9348,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 904,
+    "entity_count": 928,
     "source_count": 505,
     "id_map_count": 202,
     "legacy_198_count": 198,

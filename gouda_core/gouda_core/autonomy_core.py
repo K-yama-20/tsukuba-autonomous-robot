@@ -45,6 +45,7 @@ class Mission:
     filter_multiplier: float
     waypoints: list = field(default_factory=list)      # [(x, y, yaw)]
     section_limits_mps: list = field(default_factory=list)
+    map_directory: str = ''                             # the converted map revision (ND-07's map, REV-128)
 
 
 def _int(text) -> Optional[int]:
@@ -88,7 +89,17 @@ def resolve_mission(data_root: Path, request: dict) -> tuple:
     if kind != 2:
         return None, f'{info}: type {kind} is not the speed limit in m/s (type 2, IFD-41)'
     return Mission(sid, srev, man['content_hash'], mid, mrev, ws.map_content_hash, str(map_yaml), str(mask_yaml), base, mult,
-                   [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps)), 'mission resolved'
+                   [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps), str(mdir)), 'mission resolved'
+
+
+def check_localization_map(map_directory: str) -> Optional[str]:
+    """None when the converted map has what ND-07 (trial A3) needs: the point-map tiles and the mapping trajectory (REV-128)."""
+    from gouda_core import map_convert as mc
+    d = Path(map_directory)
+    for rel in (mc.POINTCLOUD_MAP_METADATA, mc.TRAJECTORY_FILE):
+        if not (d / rel).is_file():
+            return f'the map has no {rel} for the global localization (ND-07): convert it again with PRM-94 / PRM-95 resolved'
+    return None
 
 
 def check_initial_pose(frame_id: str, x: float, y: float, qz: float, qw: float) -> Optional[str]:

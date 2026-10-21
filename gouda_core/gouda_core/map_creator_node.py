@@ -8,6 +8,11 @@ discards the incomplete output. Re-conversion can be requested any time (from go
 Settings (PRM-33..36, PRM-38, PRM-62..64) are ROS parameters read from design/generated/params/gouda_map_creator.yaml (or the .trial.yaml
 software trial values in stub tests). They are unresolved until measured on the vehicle (Q-06); the node refuses to
 convert when a setting is missing rather than using a default. No numeric value is hard-coded (RQ-I076).
+The point-map tiles of the global localization A3 (PRM-94, PRM-95; REV-128) are optional: when they are unresolved the other
+products are made and the reason is in the manifest's stats. A re-conversion from the map tab (its settings_json has only the
+2D settings) gets them from this node's parameters. The same holds for plan C's swept corridor (PRM-96, PRM-97; REV-131), which
+also needs the /config snapshot registered next to the source (the IMU mounting of the mapping run): without it the corridor is
+not made (DEC-212 is open).
 """
 from __future__ import annotations
 
@@ -24,6 +29,7 @@ from gouda_interfaces.action import ConvertMap
 
 from gouda_core import map_convert
 from gouda_core.map_database import MapDatabase
+from gouda_core.monitor_core import SensorConfig
 
 def optional_double(node, name):
     """Value of a declared-but-possibly-unset DOUBLE parameter, or None (rclpy raises on an uninitialised parameter)."""
@@ -43,7 +49,7 @@ class MapCreatorNode(Node):
         root = self.get_parameter('data_root').get_parameter_value().string_value
         if not root:
             raise RuntimeError('data_root is not set (PRM-25)')
-        for key in SETTING_PARAMS:
+        for key in SETTING_PARAMS + map_convert.POINTMAP_KEYS + map_convert.CORRIDOR_KEYS:
             self.declare_parameter(key, Parameter.Type.DOUBLE)
         self.db = MapDatabase(Path(os.path.expanduser(root)) / 'maps')
         self._lock = threading.Lock()
@@ -73,6 +79,9 @@ class MapCreatorNode(Node):
         with self._lock:   # one conversion at a time; the source is never modified
             try:
                 settings = json.loads(goal.settings_json) if goal.settings_json else self._settings()
+                for key in map_convert.POINTMAP_KEYS + map_convert.CORRIDOR_KEYS:   # optional (PRM-94, 95; PRM-96, 97): from this node when not in the request
+                    if settings.get(key) is None:
+                        settings[key] = optional_double(self, key)
                 src_manifest = self.db.source_manifest(goal.origin_id)
                 if src_manifest is None:
                     raise ValueError(f'origin {goal.origin_id} is not registered')
@@ -80,7 +89,9 @@ class MapCreatorNode(Node):
                 tmp = self.db.begin_conversion(goal.origin_id)
                 try:
                     feedback('converting', 0.4)
-                    stats = map_convert.convert(self.db.source_dir(goal.origin_id), tmp, settings)
+                    snap = self.db.root / goal.origin_id / 'sensor_config.json'   # the /config of the mapping run (REV-067)
+                    mount = {'values': dict(SensorConfig(snap).values), 'source': f'{snap} (/config snapshot of the mapping run)'} if snap.is_file() else None
+                    stats = map_convert.convert(self.db.source_dir(goal.origin_id), tmp, settings, mount)
                     feedback('publishing', 0.9)
                     ok, msg, manifest = self.db.finish_conversion(goal.origin_id, tmp, {'version': map_convert.CONVERTER_VERSION}, settings, stats)
                 except Exception as e:

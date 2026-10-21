@@ -22,6 +22,23 @@ Products of one conversion (all from the same points and settings; RQ-I008/RQ-I0
   terrain.json, slope.png, step.png, height.png
                          views for the human (DEC-097 A: not used for driving): ground slope and step height per ground
                          cell, and the highest point above the ground per 2D cell (a top view of the 3D map).
+  pointcloud_map/        the 3D point map for the global localization A3 (ND-07, REV-128): the points thinned to one per
+                         voxel of PRM-94 and split into square tiles of PRM-95 (tile_<i>_<j>.pcd) with the metadata.yaml of
+                         autoware_pointcloud_map_loader (x_resolution, y_resolution, '<file>: [x_min, y_min]'), as the
+                         evaluation tools make_map_pcd.py / tile_pcd.py (FILE-LOCALIZATION-EVAL). The loader reads the corners
+                         as integers (yaml-cpp bad conversion on '[0.0, 0.0]': VM, 2026-10-21), so the tile size must be a
+                         whole number of metres. Made only when both
+                         settings are given; without them the other products are made and ND-07 refuses that map.
+  trajectory_imu.txt     a copy of the source's traj_imu.txt (GLIM's IMU poses in the map frame, TUM) when the dump has it:
+                         ND-07 takes the initial height from it (the human gives only x, y and the heading).
+  map_swept_corridor.yaml + .pgm, swept_corridor.json
+                         plan C (DEC-107 / DEC-210, REV-131; proposals/swept_corridor_map_2026-10-21.md): a 2D grid (PRM-33
+                         resolution) that is free only within corridor_half_width_m (PRM-96) of base_link's path while mapping
+                         and unknown elsewhere; no ground estimation, no occupied cell. base_link's path is traj_imu.txt (the
+                         loop-closure corrected IMU poses) with the IMU mounting of the source's /config snapshot; consecutive
+                         points farther apart than corridor_gap_m (PRM-97, a LiDAR dropout jump) are not joined. Made only when
+                         PRM-96 / PRM-97, the trajectory and the mounting are all given; otherwise the reason is recorded. It is
+                         NOT the map used for driving (map.yaml) until DEC-211 is answered.
 All settings come in as a dict (declared parameters); nothing numeric is hard-coded.
 """
 from __future__ import annotations
@@ -41,12 +58,20 @@ except ImportError:  # pragma: no cover
 from gouda_core import png as pngmod
 
 SUBMAP_DIR = re.compile(r'^\d{6}$')
-CONVERTER_VERSION = 'gouda_map_convert 0.2 (ground-relative height bands; 3D point map; terrain views)'
+CONVERTER_VERSION = 'gouda_map_convert 0.4 (ground-relative height bands; 3D point map; terrain views; A3 point map tiles; plan C swept corridor)'
 SETTING_KEYS = ['map_resolution_m', 'ground_band_max_m', 'obstacle_band_min_m', 'obstacle_band_max_m', 'occupied_min_points',
                 'ground_cell_m', 'ground_max_slope_deg', 'ground_fill_radius_m']
 NAV2_FILES = ['map.yaml', 'map.pgm']
 PRODUCT_FILES = NAV2_FILES + ['pointmap.pcd', 'terrain.json', 'slope.png', 'step.png', 'height.png']
 VIEW_FILES = ['slope.png', 'step.png', 'height.png']
+POINTMAP_KEYS = ['pointmap_voxel_m', 'pointmap_tile_m']   # optional: the A3 tiles (PRM-94, PRM-95)
+POINTCLOUD_MAP_DIR = 'pointcloud_map'
+POINTCLOUD_MAP_METADATA = POINTCLOUD_MAP_DIR + '/metadata.yaml'
+TRAJECTORY_FILE = 'trajectory_imu.txt'
+SOURCE_TRAJECTORY = 'traj_imu.txt'
+CORRIDOR_KEYS = ['corridor_half_width_m', 'corridor_gap_m']   # optional: plan C (PRM-96, PRM-97)
+CORRIDOR_MAP = 'map_swept_corridor'
+CORRIDOR_RECORD = 'swept_corridor.json'
 
 
 @dataclass
@@ -264,6 +289,126 @@ def write_pcd(pts: 'np.ndarray', path: Path) -> None:
     Path(path).write_bytes(header.encode('ascii') + data.tobytes())
 
 
+def voxel_thin(pts: 'np.ndarray', voxel: float) -> 'np.ndarray':
+    """Keep the first point (in input order) of each cubic voxel of the given size."""
+    if not voxel > 0: raise ValueError('pointmap_voxel_m must be positive')
+    _, idx = np.unique(np.floor(pts / voxel).astype(np.int64), axis=0, return_index=True)
+    return pts[np.sort(idx)]
+
+
+def write_tiles(pts: 'np.ndarray', out_dir: Path, tile: float) -> list:
+    """Square tiles of the given size (tile_<i>_<j>.pcd) and the autoware_pointcloud_map_loader metadata.yaml in out_dir.
+    Returns the written file names relative to the parent of out_dir."""
+    if not tile > 0: raise ValueError('pointmap_tile_m must be positive')
+    if tile != int(tile):
+        raise ValueError(f'pointmap_tile_m {tile} is not a whole number of metres: autoware_pointcloud_map_loader reads the tile corners as integers')
+    tile_i = int(tile)
+    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    ij = np.floor(pts[:, :2] / tile).astype(np.int64)
+    keys, inv = np.unique(ij, axis=0, return_inverse=True); inv = inv.ravel()
+    lines = [f'x_resolution: {float(tile)}', f'y_resolution: {float(tile)}']; files = []
+    for n, (ix, iy) in enumerate(keys):
+        name = f'tile_{int(ix)}_{int(iy)}.pcd'
+        write_pcd(pts[inv == n], out_dir / name)
+        lines.append(f'{name}: [{int(ix) * tile_i}, {int(iy) * tile_i}]'); files.append(f'{out_dir.name}/{name}')
+    (out_dir / 'metadata.yaml').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return [f'{out_dir.name}/metadata.yaml'] + files
+
+
+# ---------------------------------------------------------------- plan C: the swept corridor (REV-131)
+
+def read_trajectory(text: str) -> 'np.ndarray':
+    """N x 8 (t x y z qx qy qz qw) rows of a TUM trajectory; comment and malformed lines are skipped."""
+    rows = []
+    for line in text.splitlines():
+        f = line.split()
+        if len(f) != 8 or line.lstrip().startswith('#'): continue
+        try: rows.append([float(v) for v in f])
+        except ValueError: continue
+    return np.array(rows, dtype=np.float64).reshape(-1, 8)
+
+
+def _quat_matrices(q: 'np.ndarray') -> 'np.ndarray':
+    x, y, z, w = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+    return np.stack([np.stack([1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)], -1),
+                     np.stack([2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)], -1),
+                     np.stack([2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)], -1)], 1)
+
+
+def base_path(traj: 'np.ndarray', r_base_imu, t_base_imu) -> 'np.ndarray':
+    """Horizontal positions (N x 2) of base_link: T_map_base = T_map_imu * inv(T_base_imu), so p_base = p_imu - R_map_base t_base_imu
+    with R_map_base = R_map_imu R_base_imu^T. Height and tilt are not used."""
+    r_bi = np.asarray(r_base_imu, dtype=np.float64); t_bi = np.asarray(t_base_imu, dtype=np.float64)
+    r_mb = _quat_matrices(traj[:, 4:8]) @ r_bi.T
+    return (traj[:, 1:4] - r_mb @ t_bi)[:, :2]
+
+
+def split_at_gaps(xy: 'np.ndarray', gap: float) -> tuple:
+    """(list of index ranges joined, list of (index, distance) where consecutive points are farther apart than gap)."""
+    if not gap > 0: raise ValueError('corridor_gap_m must be positive')
+    step = np.hypot(*np.diff(xy, axis=0).T) if len(xy) > 1 else np.zeros(0)
+    cuts = np.nonzero(step > gap)[0]
+    bounds = [0] + [int(c) + 1 for c in cuts] + [len(xy)]
+    return [(bounds[k], bounds[k + 1]) for k in range(len(bounds) - 1) if bounds[k + 1] > bounds[k]], [(int(c), float(step[c])) for c in cuts]
+
+
+def corridor_grid(xy: 'np.ndarray', pieces: list, half_width: float, res: float):
+    """(grid uint8 H x W with 0 free / 255 unknown, GridResult). Free = cell centre within half_width of a joined piece of the path
+    (a piece of one point is a disc). The grid covers the path plus half_width and one cell."""
+    if not half_width > 0: raise ValueError('corridor_half_width_m must be positive')
+    if not res > 0: raise ValueError('map_resolution_m must be positive')
+    lo = xy.min(axis=0) - half_width - res; hi = xy.max(axis=0) + half_width + res
+    width, height = int(math.ceil((hi[0] - lo[0]) / res)), int(math.ceil((hi[1] - lo[1]) / res))
+    if width * height > 50_000_000:
+        raise ValueError(f'corridor grid too large: {width}x{height} cells at {res} m')
+    grid = np.full((height, width), 255, dtype=np.uint8)
+    def mark(a, b):
+        bx0, by0 = np.minimum(a, b) - half_width; bx1, by1 = np.maximum(a, b) + half_width
+        i0, i1 = max(int(math.floor((bx0 - lo[0]) / res)), 0), min(int(math.ceil((bx1 - lo[0]) / res)), width)
+        j0, j1 = max(int(math.floor((by0 - lo[1]) / res)), 0), min(int(math.ceil((by1 - lo[1]) / res)), height)
+        cx = lo[0] + (np.arange(i0, i1) * 2 + 1) * res / 2; cy = lo[1] + (np.arange(j0, j1) * 2 + 1) * res / 2   # cell centres
+        px, py = np.meshgrid(cx, cy)
+        d = b - a; L = float(d @ d)
+        u = np.zeros_like(px) if L == 0 else np.clip(((px - a[0]) * d[0] + (py - a[1]) * d[1]) / L, 0, 1)
+        near = np.hypot(px - (a[0] + u * d[0]), py - (a[1] + u * d[1])) <= half_width
+        grid[j0:j1, i0:i1][near] = 0
+    for s, e in pieces:
+        if e - s == 1:
+            mark(xy[s], xy[s])
+        for k in range(s, e - 1):
+            mark(xy[k], xy[k + 1])
+    free = int((grid == 0).sum())
+    return grid, GridResult(res, float(lo[0]), float(lo[1]), width, height, 0, free, width * height - free, 0, 0, 0, 0, 0, 0)
+
+
+def swept_corridor(dump_dir: Path, out_dir: Path, settings: dict, mount: Optional[dict]) -> dict:
+    """Write map_swept_corridor.yaml / .pgm and swept_corridor.json when everything is given; return the record (made or reason).
+    mount: {'values': /config values, 'source': where they come from} or None (no /config snapshot: not made, DEC-212)."""
+    from gouda_core import sensor_extrinsics as se
+    if any(settings.get(k) is None for k in CORRIDOR_KEYS):
+        return {'made': False, 'reason': f'{CORRIDOR_KEYS} not given (PRM-96, PRM-97: DEC-213)'}
+    traj_path = Path(dump_dir) / SOURCE_TRAJECTORY
+    traj = read_trajectory(traj_path.read_text(encoding='utf-8')) if traj_path.is_file() else np.zeros((0, 8))
+    if len(traj) == 0:
+        return {'made': False, 'reason': f'{traj_path} is missing, empty or unreadable'}
+    if mount is None:
+        return {'made': False, 'reason': 'no /config snapshot with the source map: the IMU mounting of the mapping run is unknown (DEC-212)'}
+    half, gap, res = float(settings['corridor_half_width_m']), float(settings['corridor_gap_m']), float(settings['map_resolution_m'])
+    r_bi, t_bi, defaulted, problems = se.sensor_pose(dict(mount['values']), 'imu')
+    xy = base_path(traj, r_bi, t_bi)
+    pieces, gaps = split_at_gaps(xy, gap)
+    grid, result = corridor_grid(xy, pieces, half, res)
+    write_map(grid, result, out_dir, CORRIDOR_MAP)
+    record = {'made': True, 'use': 'plan C (DEC-107 / DEC-210). Not the map used for driving until DEC-211.',
+              'trajectory': {'file': SOURCE_TRAJECTORY, 'points': int(len(traj)), 'pieces': len(pieces),
+                             'not_joined': [{'after_time': float(traj[i, 0]), 'distance_m': d} for i, d in gaps]},
+              'mounting': {'source': mount.get('source', ''), 'imu_translation_m': list(t_bi), 'defaulted_fields': defaulted, 'problems': problems},
+              'settings': {'corridor_half_width_m': half, 'corridor_gap_m': gap, 'map_resolution_m': res},
+              'grid': {'width': result.width, 'height': result.height, 'origin_x': result.origin_x, 'origin_y': result.origin_y, 'free_cells': result.free}}
+    (Path(out_dir) / CORRIDOR_RECORD).write_text(json.dumps(record, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    return record
+
+
 # ---------------------------------------------------------------- terrain views (display only, DEC-097 A)
 
 def ground_like(ground: Ground, s: dict) -> 'np.ndarray':
@@ -348,8 +493,9 @@ def write_views(out_dir: Path, ground: Ground, ter: dict, pts, hag, obst, gnd, r
 
 # ---------------------------------------------------------------- conversion
 
-def convert(dump_dir: Path, out_dir: Path, settings: dict) -> dict:
-    """Full conversion; raises ValueError with a reason when the input cannot be converted (caller discards output)."""
+def convert(dump_dir: Path, out_dir: Path, settings: dict, mount: Optional[dict] = None) -> dict:
+    """Full conversion; raises ValueError with a reason when the input cannot be converted (caller discards output).
+    mount: the /config snapshot of the mapping run for plan C ({'values', 'source'}) or None."""
     if np is None:
         raise RuntimeError('numpy is required for map conversion')
     s = _require(settings, SETTING_KEYS)
@@ -362,4 +508,19 @@ def convert(dump_dir: Path, out_dir: Path, settings: dict) -> dict:
     write_map(grid, result, out_dir)
     write_pcd(pts, out_dir / 'pointmap.pcd')
     ter_stats = write_views(out_dir, ground, terrain(ground, s), pts, hag, obst, gnd, result, s)
-    return {'converter': CONVERTER_VERSION, 'submaps': len(submaps), **result.__dict__, 'terrain': ter_stats, 'files': list(PRODUCT_FILES)}
+    files = list(PRODUCT_FILES); pointmap = {'made': False}
+    if all(settings.get(k) is not None for k in POINTMAP_KEYS):
+        voxel, tile = float(settings['pointmap_voxel_m']), float(settings['pointmap_tile_m'])
+        thin = voxel_thin(pts, voxel)
+        tiles = write_tiles(thin, out_dir / POINTCLOUD_MAP_DIR, tile)
+        files += tiles; pointmap = {'made': True, 'voxel_m': voxel, 'tile_m': tile, 'points': int(thin.shape[0]), 'tiles': len(tiles) - 1}
+    else:
+        pointmap['reason'] = f'{POINTMAP_KEYS} not given (PRM-94, PRM-95): no {POINTCLOUD_MAP_DIR}/; ND-07 (A3) refuses this map'
+    traj = Path(dump_dir) / SOURCE_TRAJECTORY
+    if traj.is_file() and traj.stat().st_size > 0:
+        (out_dir / TRAJECTORY_FILE).write_bytes(traj.read_bytes()); files.append(TRAJECTORY_FILE)
+    corridor = swept_corridor(dump_dir, out_dir, settings, mount)
+    if corridor['made']:
+        files += [f'{CORRIDOR_MAP}.yaml', f'{CORRIDOR_MAP}.pgm', CORRIDOR_RECORD]
+    return {'converter': CONVERTER_VERSION, 'submaps': len(submaps), **result.__dict__, 'terrain': ter_stats, 'pointcloud_map': pointmap,
+            'swept_corridor': {k: v for k, v in corridor.items() if k in ('made', 'reason')}, 'files': files}

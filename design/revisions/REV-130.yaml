@@ -1,0 +1,115 @@
+# 変更セット REV-130（2026-10-21 第100便: DEC-107 の回答の転記、案 C、DEC-210〜215）
+# 適用: design/tools/apply_revision.py REV-130
+id: REV-130
+date: '2026-10-21'
+summary: 分岐セッション「Side chat」からの転記で、DEC-107 への人の回答（案 A は DEC-105 の後に再検討、まず案 C を試す）と、案 C の実装の指示を記録する（DEC-210）。提案 swept_corridor_map_2026-10-21.md の §9 の 2〜6 を DEC-211〜215（pending）に。正本の構成とコードは変えない。
+basis_refs:
+- DEC-107
+- DEC-210
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-210
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 【承認】案 C（design/proposals/swept_corridor_map_2026-10-21.md）の設計（§3〜§7）で実装を始めてよいか（変換・単体試験・分析用の再変換・VM の試験まで。実車の設定への反映は別）。提案 §9 の 1
+  answer_verbatim: |
+    （分岐セッション「Side chat」からの転記。人の発言の原文）「DEC-107 は、まず案 C（地面推定なしで通った帯だけを空きにする 2D 地図）を試し、案 A は DEC-105 の後に再検討する。案 C の設計を提案として出して。」
+    「メインのチャットに実装を指示せよ」
+  affected_refs:
+  - ND-05
+  - DEC-107
+  - ND-10
+  resulting_refs: []
+  note: 分岐先の読み：原文 2 は「案 C の実装を始めよ」という指示。人の答えのない §9 の 2〜6 は DEC-211〜215（pending）。実装の許可としては、メインのチャットで人に確かめるまで使わない。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第100便）。
+  disposition: answered
+- id: DEC-211
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】走行に使う 2D 地図（変換の map.yaml）を通った帯の地図に替え、今の分類の 2D 地図（PRM-34〜36・38・62〜64、DEC-098）を表示用の map_ground_band にすること（design/proposals/swept_corridor_map_2026-10-21.md §3.3・§4、§9 の 2）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-05
+  - PRM-34
+  - PRM-35
+  - PRM-36
+  - PRM-38
+  - PRM-62
+  - PRM-63
+  - PRM-64
+  - DEC-098
+  resulting_refs: []
+  note: 振る舞いの違い：走行の経路は地図作成で通った帯の中だけになる。DEC-098 の分類の設定は走行に使われなくなる（役割の変更）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。
+  disposition: open_human
+- id: DEC-212
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】/config の写しがない古い原図（2026-10-19 より前、例 10-14 のもの）で、変換のときの /config（imu_mount_*）を使って帯を作ってよいか（manifest に記録）。代わり：写しのない原図は変換しない（design/proposals/swept_corridor_map_2026-10-21.md §3.1・§7、§9 の 3）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-05
+  resulting_refs: []
+  note: 決まらない場合に止まる作業：古い原図からの帯の地図だけ（新しい原図は止まらない）。
+  disposition: open_human
+- id: DEC-213
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】案 C の新しい設定値：A 帯の半分の幅（候補 0.3／0.5／1.0 m。推奨は置いていない）、B 軌跡をつながないとみなす距離（例 1 m：通常の点の間隔は約 0.1 m、途切れのとき 2.7〜12.6 m 跳んだ）（design/proposals/swept_corridor_map_2026-10-21.md §4、§9 の 4）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-05
+  resulting_refs: []
+  note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。試験は試行の値で進められる。
+  disposition: open_human
+- id: DEC-214
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】経路の計画（NavFn）の allow_unknown を false にすること（今は上流の既定の true）（design/proposals/swept_corridor_map_2026-10-21.md §5、§9 の 5）。§5 の 3 の (a)・(b)（走行中に見えた所への迂回を許すか）は VM の確認の後に改めて示す
+  answer_verbatim: ''
+  affected_refs:
+  - ND-10
+  - RQ-I012
+  resulting_refs: []
+  note: 振る舞いの違い：不明な所を通る経路を引かない（intent.md:15「観測外を安全とみなさない」）。経路が引けないときは recovery の後に TR-07（計画の失敗）。未確認：obstacle_layer の clearing が static の「不明」を「空き」に上書きするか（AI の推測、上流のソースは未確認）。決まらない場合に止まる作業：案 C の 2D 地図での走行。
+  disposition: open_human
+- id: DEC-215
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】waypoint が帯の地図の空きの格子の外にあるとき、保存を拒否するか（案）、警告だけにして保存するか（design/proposals/swept_corridor_map_2026-10-21.md §6、§9 の 6）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  resulting_refs: []
+  note: 決まらない場合に止まる作業：保存のときの確認だけ（走り出してからの計画の失敗で分かる）。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-107
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    resulting_refs:
+    - DEC-210
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文）「DEC-107 は、まず案 C（地面推定なしで通った帯だけを空きにする 2D 地図）を試し、案 A は DEC-105 の後に再検討する。案 C の設計を提案として出して。」
+    note: '決まらない場合に止まる作業：2D 地図への変換の修正（今は床の反射・2 層の地面で不合格）。地図作成そのもの（原図の保存）は止まらない。 設計の根拠: FILE-GROUND-PLAN-CHECK、FILE-GROUND-DESIGN-CHECK。2026-10-17、人の指示（DEC-109）により保留（自己位置推定の方式を先に決める）。 根拠の数値（屋外の山 47 %、下の外れた点 0.6 %）は補正前の odometry の姿勢で求めていた。補正後の軌跡での値は FILE-EVENING-MAPS-ROSBAG の 3。 REV-130（第100便）：人の回答（転記）で、案 A（地面の推定の修正、ground_estimation_design.md）は今は採らず DEC-105 の後に再検討する。まず案 C（通った帯だけを空きにする 2D 地図）を試す。案 C の設計は design/proposals/swept_corridor_map_2026-10-21.md（分岐セッションで作成）、実装の承認は DEC-210〜215。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第100便）。'

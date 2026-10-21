@@ -1,6 +1,8 @@
 """Stage 5-6 VM test fixture (test only): a synthetic converted map (free space) and a waypoint set with its speed mask, stored as
 stages 5-3 / 5-4 store them, under <data_root>. Prints the StartAutonomy request fields (JSON) for the test script.
-usage: python3 stage56_fixture.py <data_root>"""
+usage: python3 stage56_fixture.py <data_root> [corridor]
+corridor (plan C, REV-131, TS-44): the map is the swept corridor of a synthetic mapping walk along the waypoints instead of free
+space (map_convert.corridor_grid, trial half width PRM-96 from the generated trial file)."""
 import json
 import sys
 import time
@@ -14,8 +16,22 @@ root = Path(sys.argv[1])
 RES, W, H, OX, OY = 0.1, 300, 300, -15.0, -15.0          # 30 m x 30 m of free space (synthetic; not a vehicle value)
 MAP_HASH = 'synthetic-free-map-stage56'
 mdir = root / 'maps' / 'origin_st56' / 'converted' / '001'; mdir.mkdir(parents=True, exist_ok=True)
-(mdir / 'map.pgm').write_bytes(b'P5\n%d %d\n255\n' % (W, H) + bytes([254]) * (W * H))
-(mdir / 'map.yaml').write_text(f'image: map.pgm\nmode: trinary\nresolution: {RES}\norigin: [{OX}, {OY}, 0.0]\nnegate: 0\noccupied_thresh: 0.65\nfree_thresh: 0.25\n')
+if len(sys.argv) > 2 and sys.argv[2] == 'corridor':
+    import numpy as np, yaml
+    from gouda_core import map_convert as mc
+    trial = yaml.safe_load(open(Path(__file__).resolve().parents[2] / 'design' / 'generated' / 'params' / 'gouda_map_creator.trial.yaml'))['gouda_map_creator']['ros__parameters']
+    walk = np.array([(x / 10, 0.0) for x in range(0, 41)] + [(4.0, y / 10) for y in range(1, 31)])   # mapping walk (0,0)->(4,0)->(4,3)
+    pieces, _ = mc.split_at_gaps(walk, trial['corridor_gap_m'])
+    grid, gres = mc.corridor_grid(walk, pieces, trial['corridor_half_width_m'], RES)
+    mc.write_map(grid, gres, mdir)
+    print(f'corridor map: half width {trial["corridor_half_width_m"]} m, {gres.free} free cells', file=sys.stderr)
+else:
+    (mdir / 'map.pgm').write_bytes(b'P5\n%d %d\n255\n' % (W, H) + bytes([254]) * (W * H))
+    (mdir / 'map.yaml').write_text(f'image: map.pgm\nmode: trinary\nresolution: {RES}\norigin: [{OX}, {OY}, 0.0]\nnegate: 0\noccupied_thresh: 0.65\nfree_thresh: 0.25\n')
+# the files ND-07 (A3) needs on the map (REV-128); the test's ND-07 is the stand-in nd07_stub.py, which does not read them
+(mdir / 'pointcloud_map').mkdir(exist_ok=True)
+(mdir / 'pointcloud_map' / 'metadata.yaml').write_text('x_resolution: 20.0\ny_resolution: 20.0\n')
+(mdir / 'trajectory_imu.txt').write_text('0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0\n')
 (mdir / 'manifest.json').write_text(json.dumps({'revision': 1, 'content_hash': MAP_HASH, 'created_at': time.time()}))
 ws = wp.WaypointSet('origin_st56', 1, MAP_HASH, [wp.Waypoint(1.0, 0.0), wp.Waypoint(4.0, 0.0), wp.Waypoint(4.0, 3.0)], [0.3, 0.2])
 db = wp.RouteDatabase(root / 'routes')

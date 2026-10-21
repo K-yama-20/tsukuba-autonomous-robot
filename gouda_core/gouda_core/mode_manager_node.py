@@ -20,11 +20,16 @@ sends the initial pose (IFD-34), starts Nav2 (IFD-36), activates ND-11 / ND-12 a
 from the first waypoint not yet passed; after a PC restart the resume is refused: 5-7), TR-11 / TR-12 終了 (cancel, ND-11 /
 ND-12 deactivate, Nav2 RESET, auto log stop), TR-07 (Nav2 failed) and TR-08 (last waypoint reached) from the result.
 TR-03 also configures vehicle_bridge (ND-12; not activated, no COMMAND) after the transition so that the ESP32 STATUS is recorded
-while mapping (DEC-169, DEC-180); it stays configured after TR-04. TR-05 starts ND-08 (GLIM odometry only, before Nav2) and needs the ND-07 node; in this build ND-07 does not exist, so on the
-vehicle the start is refused (no self-localisation, no driving). Recovery (TR-13..16) is stage 5-7.
+while mapping (DEC-169, DEC-180); it stays configured after TR-04. TR-05 starts ND-08 (GLIM odometry only, before Nav2), then
+the global localization ND-07 (trial A3, REV-128, DEC-203): the map is set, ND-07 is configured and activated, and Nav2 is
+started only when its state (localization/status, IFD-53) is 正常. While driving, 推定不能 or no state for
+estimator_status_timeout_s (PRM-93) pauses with stop_reason estimator_unavailable (TR-07; DEC-200): motion_hold=true, the goal is
+cancelled. TR-10 needs 正常. TR-11 / TR-12 deactivate and clean up ND-07. TR-03 is refused while ND-07 is configured (RQ-I004).
+Recovery (TR-13..16) is stage 5-7.
 
 Settings: state_root (PRM-25) launch argument; params_dir / trial (launch: Nav2 readiness); state_publish_period_s (PRM-16, unresolved -> publish on change);
-glim_stop_wait_s (PRM-37) from the generated parameter file (trial file in stub tests). GLIM topics/frames are the
+glim_stop_wait_s (PRM-37) and estimator_status_timeout_s (PRM-93; unresolved -> 自律走行開始 is refused) from the generated
+parameter file (trial file in stub tests). GLIM topics/frames are the
 design's interface names (IFD-19..22). No numeric value is hard-coded (RQ-I076).
 """
 from __future__ import annotations
@@ -40,7 +45,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from std_srvs.srv import Trigger
-from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionHold
+from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionHold, EstimatorStatus
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
 
@@ -81,6 +86,7 @@ class ModeManagerNode(Node):
         self.declare_parameter('data_root', '')                 # PRM-25 (maps/, mapping work dir)
         self.declare_parameter('state_publish_period_s', 0.0)   # PRM-16; 0.0 means "unresolved: publish on change only"
         self.declare_parameter('glim_stop_wait_s', Parameter.Type.DOUBLE)   # PRM-37; required for TR-04
+        self.declare_parameter('estimator_status_timeout_s', Parameter.Type.DOUBLE)   # PRM-93; required for TR-05
         self.declare_parameter('params_dir', '')                # design/generated/params (Nav2 readiness, launch argument)
         self.declare_parameter('trial', False)                  # TEST SCRIPTS ONLY (trial values)
         root = self.get_parameter('state_root').get_parameter_value().string_value
@@ -125,6 +131,12 @@ class ModeManagerNode(Node):
         self._pending_start = None
         from gouda_core.autonomy_client import AutonomyClient
         self.auto = AutonomyClient(self, self._on_nav_feedback, self._on_nav_result, self._on_speed_state)
+        # ND-07's state (IFD-53, REV-128): fed to the start, and watched while driving
+        self.estimator_rx = None   # receive time of the last IFD-53 (node clock)
+        self.create_subscription(EstimatorStatus, 'localization/status', self._on_estimator_status, LATCHED)
+        self.estimator_timeout = optional_double(self, 'estimator_status_timeout_s')
+        if self.estimator_timeout and self.estimator_timeout > 0:
+            self.create_timer(self.estimator_timeout, self._check_estimator_timeout)
         miss = self._nav2_missing()
         if miss:
             self._publish_decision('nav2_not_configured', 'TR-05', f'Nav2 is not started: unresolved vehicle values {miss}; 自律走行開始 is refused until they are decided (intent.md:85)', {'missing': miss})
@@ -187,7 +199,12 @@ class ModeManagerNode(Node):
         # this build ND-07 is not implemented, so on the vehicle the start is refused here (no driving without self-localisation).
         names = {n for n, _ in self.get_node_names_and_namespaces()}
         if LOCALIZATION_NODE not in names:
-            return f'{LOCALIZATION_NODE} (ND-07) is not running: no self-localisation (stage 5-6, DEC-115)', None
+            return f'{LOCALIZATION_NODE} (ND-07) is not running: no self-localisation (DEC-115)', None
+        if not (self.estimator_timeout and self.estimator_timeout > 0):
+            return 'estimator_status_timeout_s (PRM-93) is unresolved: 推定不能 could not be detected while driving (intent.md:85)', None
+        bad = ac.check_localization_map(mission.map_directory)
+        if bad:
+            return bad, None
         return None, mission
 
     def _request(self, event, details):
@@ -258,6 +275,8 @@ class ModeManagerNode(Node):
             return False, 'GLIM is already running'
         if self.glim_odom.running:
             return False, 'the odometry GLIM of autonomy (ND-08) is still running; mapping GLIM is not started together with it (RQ-I004)'
+        if self.auto.localization_configured:
+            return False, 'the global localization (ND-07) is still configured; mapping GLIM is not started together with it (RQ-I004)'
         origin_id = new_origin_id(); work = self.data_root / 'mapping' / origin_id
         # GLIM's LiDAR-IMU transform from the human's /config (intent.md:105). UNKNOWN fields never stop the start: they are
         # replaced by the neutral element and listed in the record and on the monitor.
@@ -357,6 +376,9 @@ class ModeManagerNode(Node):
             return False, 'the previous Nav2 goal has not ended yet'
         if not self.auto.nav2_active:
             return False, 'Nav2 is not active'
+        why = self._estimator_not_normal()
+        if why:
+            return False, f'the global localization is not 正常: {why} (TR-10 guard)'
         self.drive_released = False
         offset = min(self.next_offset, len(self.mission.waypoints) - 1)
         self._next_state_fields = {'speed_limit_application_state': ac.SL_UNKNOWN}
@@ -372,6 +394,7 @@ class ModeManagerNode(Node):
             rec = self._rec(transition_id)
             self.auto.cancel(rec, transition_id)
             self.auto.stop(token, rec)
+            self.auto.stop_localization(token, rec)
             self._stop_odometry(rec)
             self.request_auto_record('stop_auto', transition_id)
         self._after_transition = job
@@ -417,9 +440,11 @@ class ModeManagerNode(Node):
         except Abandoned:
             rec('autonomy_start_abandoned', 'a human pause / end came first; the remaining start steps were not run', {})
         except StepFailed as e:
+            from gouda_core.autonomy_client import EstimatorUnavailable
             with self._lock:
                 if token != self.auto._token: return
-                self._auto_pause('TR-07', mode_core.STOP_REASON_NODE_FAILURE, f'{transition_id} failed: {e}', {'step_error': str(e)})
+                why = mode_core.STOP_REASON_ESTIMATOR if isinstance(e, EstimatorUnavailable) else mode_core.STOP_REASON_NODE_FAILURE
+                self._auto_pause('TR-07', why, f'{transition_id} failed: {e}', {'step_error': str(e)})
 
     def _auto_pause(self, transition_id, stop_reason, reason, details):
         new = mode_core.automatic_pause(self.state, transition_id, stop_reason, self.state.remaining_waypoints)
@@ -429,6 +454,36 @@ class ModeManagerNode(Node):
         self._publish_decision('automatic_pause', transition_id, reason, dict(details, stop_reason=stop_reason))
         self.get_logger().warning(f'{transition_id}: {reason}')
         self._set_state(new)
+
+    # ---- ND-07 state (IFD-53, REV-128, DEC-200) ----
+    def _on_estimator_status(self, m: EstimatorStatus):
+        self.estimator_rx = self._now()
+        self.auto.on_estimator_status(int(m.state), m.reason, m.detail, m.header.stamp.sec + m.header.stamp.nanosec * 1e-9)
+        if m.state != EstimatorStatus.STATE_NORMAL:
+            self._estimator_pause(f'ND-07 {m.reason}: {m.detail}', {'state': int(m.state), 'reason': m.reason, 'detail': m.detail,
+                                  'ndt_nvtl': m.ndt_nvtl, 'ekf_pose_no_update_count': m.ekf_pose_no_update_count, 'ekf_xy_stddev_m': m.ekf_xy_stddev_m})
+
+    def _check_estimator_timeout(self):
+        if self.estimator_rx is None or self._now() - self.estimator_rx > self.estimator_timeout:
+            self._estimator_pause(f'no localization/status (IFD-53) for more than estimator_status_timeout_s ({self.estimator_timeout} s, PRM-93)',
+                                  {'last_received': self.estimator_rx})
+
+    def _estimator_pause(self, reason, details):
+        """TR-07 (推定不能): only while driving after ND-07 reached 正常 in this start (the start itself waits for 正常)."""
+        with self._lock:
+            if self.state.mode != mode_core.MODE_AUTONOMY or not self.auto.localization_running:
+                return
+            self.auto.new_token()   # a start step still in progress is abandoned
+            self._auto_pause('TR-07', mode_core.STOP_REASON_ESTIMATOR, reason, details)
+        threading.Thread(target=lambda: self.auto.cancel(self._rec('TR-07'), 'TR-07'), name='TR-07_cancel', daemon=True).start()
+
+    def _estimator_not_normal(self):
+        e = self.auto.estimator
+        if e is None or self.estimator_rx is None:
+            return 'no state received'
+        if self._now() - self.estimator_rx > self.estimator_timeout:
+            return 'state too old (PRM-93)'
+        return '' if e[0] == EstimatorStatus.STATE_NORMAL else f'{e[1]}: {e[2]}'
 
     def _on_nav_feedback(self, offset, poses, remaining):
         with self._lock:

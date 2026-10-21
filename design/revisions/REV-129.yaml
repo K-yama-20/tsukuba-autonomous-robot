@@ -1,0 +1,17 @@
+# 変更セット REV-129（2026-10-21 第99便: PRM-95 の説明に整数の m の制約）
+# 適用: design/tools/apply_revision.py REV-129
+id: REV-129
+date: '2026-10-21'
+summary: PRM-95 の説明に、格子の大きさは整数の m でなければならないことを足す（autoware_pointcloud_map_loader が metadata の格子の左下の座標を整数で読む。VM で 2026-10-21 に確認。map_convert はそれ以外を理由付きで拒否する）。意味は変えない整合の修正。
+basis_refs:
+- DEC-203
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-95
+  set_nested:
+    parameter.purpose: pointcloud_map/ の正方形の格子の一辺（autoware_map_loader の metadata の x_resolution・y_resolution）。整数の m に限る（map_loader が格子の左下の座標を整数で読む：VM 2026-10-21、yaml-cpp の bad conversion。それ以外は変換が理由を付けて拒否する）
+  interpretation_append: REV-129：整数の m に限ることを足した（第99便の VM の確認で見つかった実装の誤りの修正に合わせた）。
+decision_updates: []

@@ -1,0 +1,133 @@
+# 変更セット REV-131（2026-10-21 第101便: 案 C の帯の地図、PRM-96・97、TS-44）
+# 適用: design/tools/apply_revision.py REV-131
+id: REV-131
+date: '2026-10-21'
+summary: 人の確認（このチャット、原文）で案 C の実装に着手（DEC-210）。帯の 2D 地図（map_swept_corridor、swept_corridor.json）を変換の追加の成果物にする設計、新しい設定値 PRM-96・97（未確定、DEC-213）、試験 TS-44。走行に使う map.yaml・Nav2・waypoint の保存は DEC-211〜215 の答えまで変えない。
+basis_refs:
+- DEC-210
+- DEC-107
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities:
+- id: PRM-96
+  kind: parameter
+  name: 案 C：帯の半分の幅（変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - PRM-33
+  - PRM-69
+  issue_refs:
+  - G-FLOOR-REFLECTION
+  interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I009
+  - RQ-I012
+  revision_ref: REV-131
+  parameter:
+    owner_ref: ND-05
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 地図作成と変換
+    purpose: 地図作成の base_link の通り道（折れ線）からこの距離以内の格子を帯の地図の空きにする（提案 §3.2 の 3、§4 の A）。候補 0.3／0.5／1.0 m
+    measurement: 値は人が決める（DEC-213。推奨は置いていない）。分析用の再変換で帯の地図を人に示して決める
+    decision_deadline: 案 C の帯の地図を走行に使う前（DEC-211・DEC-213）
+    software_trial_value: 0.5
+    software_trial_basis: ソフト試験用（提案の候補の真ん中）。実車採用値ではない。値は DEC-213
+    declaration: ros_parameter
+    target: gouda_map_creator
+    param_key: corridor_half_width_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-97
+  kind: parameter
+  name: 案 C：軌跡をつながないとみなす距離（変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - PRM-33
+  - PRM-69
+  issue_refs:
+  - G-FLOOR-REFLECTION
+  interpretation: REV-131（DEC-210）で追加。design/proposals/swept_corridor_map_2026-10-21.md §4。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I009
+  - RQ-I012
+  revision_ref: REV-131
+  parameter:
+    owner_ref: ND-05
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 地図作成と変換
+    purpose: 隣り合う軌跡の点の水平の距離がこれを超えたら、その間を帯にしない（LiDAR の途切れで跳んだ所を空きにしない。提案 §3.2 の 2、§4 の B）
+    measurement: 値は人が決める（DEC-213。推奨は置いていない）。分析用の再変換で帯の地図を人に示して決める
+    decision_deadline: 案 C の帯の地図を走行に使う前（DEC-211・DEC-213）
+    software_trial_value: 1.0
+    software_trial_basis: ソフト試験用（提案の例。通常の点の間隔は約 0.1 m、途切れのとき 2.7〜12.6 m）。実車採用値ではない。値は DEC-213
+    declaration: ros_parameter
+    target: gouda_map_creator
+    param_key: corridor_gap_m
+    value_type: double
+    apply_timing: launch
+- id: TS-44
+  kind: test
+  name: 案 C：通った帯の 2D 地図（地図の変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-05
+  - PRM-96
+  - PRM-97
+  issue_refs:
+  - G-FLOOR-REFLECTION
+  interpretation: REV-131（DEC-210）で追加。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I009
+  - RQ-I012
+  revision_ref: REV-131
+  test:
+    execution_status: 未実行
+    stage: 地図作成と変換
+    procedure: 単体（test_mapping_core.py）：合成の軌跡（直線・曲がり角・跳び）で、空きの格子が通り道から PRM-96 以内にだけあること、PRM-97 を超える跳びをつながないこと、IMU の取付のずれが帯の位置に反映されること、占有の格子を作らないこと、軌跡・取付・設定のどれかがないと帯の地図を作らず理由を残すこと。規則を壊した写しで不合格になること。分析用の再変換（VM の原図、地図データベースには登録しない）で帯の地図と今の分類の地図を並べる。VM の Nav2（試験の基盤）で帯の地図を読み込み、帯の中の waypoint に着くこと
+    observe: map_swept_corridor.pgm・.yaml、swept_corridor.json、Nav2 の結果
+    expected: 空きは帯の中だけ、ほかは不明。跳びの所は空きにならない。
+modifications:
+- id: ND-05
+  set_nested:
+    ros_node.responsibilities:
+    - 地図作成終了と同時の自動変換（RQ-I009）。原図と変換後地図を由来IDで結び、各成果物に独立した内容ハッシュと変換器版を記録
+    - 変換失敗時は原図を保持し不完全な成果物を破棄。再変換はいつでも可能
+    - map_database（ファイル保存領域とライブラリ）。常時稼働の DB node は置かない（M-006 の方針を維持）
+    - 変換（docs/map_conversion.md）。高さは点群から推定した地面からの高さ（DEC-093。傾きを制限した下側の包絡、PRM-62〜64）。同じ設定から 2D 占有格子（Nav2）、3D 点群地図（pointmap.pcd、map 座標。DEC-095）、表示用の傾き・段差・高さの図（DEC-097 A。走行には使わない）を作り、1 つの rev として公開する
+    - 変換設定は ROS parameter（PRM-33〜36・38・62〜64）。地図タブからの再変換では要求に添えた設定を使い、manifest に記録する
+    - 自己位置推定（A3）用に、変換の rev に pointcloud_map/（PRM-94 で間引き、PRM-95 の正方形の格子の PCD と autoware_map_loader の metadata.yaml）と trajectory_imu.txt（原図の traj_imu.txt の写し。初期の高さに使う）を加える。PRM-94・95 が未確定なら作らない（2D 地図は作る。ND-07 はその地図では開始しない）。REV-128（DEC-203）
+    - 案 C（DEC-107・DEC-210）：原図の traj_imu.txt と、原図の横の /config の写しの IMU の取付から base_link の通り道を出し、PRM-96 以内の格子だけを空き、ほかを不明にした帯の 2D 地図 map_swept_corridor.yaml・.pgm と記録 swept_corridor.json を変換の rev に加える。地面は推定せず占有の格子は作らない。PRM-97 を超える軌跡の跳びはつながない。走行に使う map.yaml を帯の地図に替えるかは DEC-211（今は替えない）。/config の写しがない原図では作らない（DEC-212 の答えまで）。PRM-96・97 が未確定なら作らない。REV-131
+  interpretation_append: REV-131（DEC-210）：案 C の帯の 2D 地図を、走行には使わない追加の成果物として足した（DEC-211 の答えまで）。
+decision_updates:
+- id: DEC-210
+  set:
+    note: 分岐先の読み：原文 2 は「案 C の実装を始めよ」という指示。人の答えのない §9 の 2〜6 は DEC-211〜215（pending）。実装の許可としては、メインのチャットで人に確かめるまで使わない。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第100便）。 REV-131（第101便）：人がこのメインのチャットで転記を確かめた（原文「転記は私の回答で間違いない。案 C の実装（変換・単体試験・分析用の再変換・VM の試験まで）に着手して。DEC-211〜215 は後で答える。」）。DEC-211〜215 の答えまで、帯の地図は走行に使わない追加の成果物とし（map.yaml は替えない）、allow_unknown・waypoint の保存は変えず、/config の写しがない原図では作らない（分析用の再変換だけは使った /config を記録して作る）。

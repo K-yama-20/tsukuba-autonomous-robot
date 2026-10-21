@@ -178,11 +178,13 @@ def request_transition(event: str, state: ModeState, implemented: frozenset = fr
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Automatic transitions from the Nav2 result (stage 5-6): TR-07 (BT failure) and TR-08 (last waypoint reached). Both go to
-# 一時停止 without a human flag (RQ-I017, RQ-I012); resuming needs the human resume (TR-10, RQ-I025).
+# 一時停止 without a human flag (RQ-I017, RQ-I012); resuming needs the human resume (TR-10, RQ-I025). TR-07 also covers 推定不能
+# (REV-128, DEC-200) with its own stop reason, so that it is told apart from the plan failure (RQ-I029).
 # ---------------------------------------------------------------------------------------------------------------------
 STOP_REASON_PLAN_FAILURE = 'plan_failure'       # 計画の失敗／blocked (Nav2 BT failed after its own recovery: RQ-I012)
 STOP_REASON_NODE_FAILURE = 'node_failure'       # node の異常 (the autonomy start failed: Nav2 / vehicle output / goal)
 STOP_REASON_GOAL_REACHED = 'goal_reached'       # 最終 waypoint 到達 (TR-08)
+STOP_REASON_ESTIMATOR = 'estimator_unavailable'   # 推定不能 (ND-07 state IFD-53 not 正常, or no state: DEC-200, REV-128)
 
 
 def automatic_pause(state: ModeState, transition_id: str, stop_reason: str, remaining_waypoints: int) -> Optional[ModeState]:

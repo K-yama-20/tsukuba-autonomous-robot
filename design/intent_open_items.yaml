@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 20
+pending_decision_count: 25
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1061,21 +1061,6 @@ pending_decisions:
     question: 【実測】IMU と LiDAR の間の傾き（G-MAP-TILT）。水平な床で車体を 30 秒ほど止め、記録タブの Record で rosbag を記録する。 AI が、IMU 
       の加速度の平均（重力の向き、IMU の座標）と、LiDAR の点群の床の面の向き（LiDAR の座標）から、二つの座標の間の傾き（前後・左右）を求める。
     resulting_refs: []
-  - id: DEC-107
-    kind: approval
-    status: pending
-    question: '【承認】地面の推定の修正。人の方針（DEC-108）に基づく設計 design/proposals/ground_estimation_design.md（REV-049 の計画を置き換える）。
-      個別に承認していただきたいこと: (1) この設計で実装を始めてよいか（単体試験と分析用の再変換まで。実車の設定への反映は別）、(2) §4 の新しい設定の追加と初期値、 (3) PRM-05 が未確定の間の扱い（H
-      の補正の上限を 0.4 m に広げる案）、(4) 障害物の下限を 0.05 m にするか PRM-35 の提案値 0.15 m にするか。'
-    resulting_refs: []
-  - id: DEC-115
-    kind: approval
-    status: pending
-    question: 【承認】自己位置推定の方式の第一候補を案 A3（GLIM の odometry ＋ Autoware Core の 
-      autoware_ndt_scan_matcher・autoware_ekf_localizer）に変えてよいか。 最終の決定は、次の実機試験（同じ場所を 2 
-      回）のデータで別の走行の地図での評価をしてから。あわせて、A3 の残る課題（誤差 0.5 m 超の跳ねを 1 回見逃した）の対策の進め方 （NDT の設定の調整か、EKF 
-      の診断を「推定不能」の判定に加えるか）と、次の実機試験の段取り（2 回とも出発の前に止まった状態を 10 秒以上作る）を決めていただきたい。
-    resulting_refs: []
   - id: DEC-127
     kind: approval
     status: pending
@@ -1136,4 +1121,50 @@ pending_decisions:
     question: '【承認】gouda.sh:119 の「sleep 1   # PRM-77」は、PRM-77（gouda.sh stop の保存の進捗の表示の間隔 1 s、declaration model_declared）の値を手で書き写したもの（PRM
       の写し）。案 A（推奨）：generate_params.py が model_declared の PRM-77 を gouda.sh 用の生成物に出し、gouda.sh がそれを読む（値は正本の一か所）。案
       B：今のまま写しとして許容の一覧に入れ、正本の値を変えたら手で直す。'
+    resulting_refs: []
+  - id: DEC-208
+    kind: approval
+    status: pending
+    question: 【承認】ND-07（A3）と地図の変換の新しい設定値 PRM-79〜95 の値。推奨はすべて試行の値（評価で使った値、または上流 1.9.0 の既定値）：PRM-79 1.0 m、80 100
+      m、81 0.5 m、82 0.04、83 0.01、84 0.25、85 0.01、86 0.01、87 0.07、88 0.1 s、89 1.0 s、90 2.3、91 50 回、92 0.5 m、93 
+      1.0 s、94 0.2 m、95 20 m
+    resulting_refs: []
+  - id: DEC-209
+    kind: approval
+    status: pending
+    question: 【許可】段 5 の実装：DEC-207 (a) のとおり、monitor の /config に recovery の回数のタブ（DEC-204 の推奨：新しいタブ「Nav2」、範囲 
+      1〜9999999、保存先 <data_root>/config/nav2_recovery.json）を作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT 
+      を作る
+    resulting_refs: []
+  - id: DEC-211
+    kind: approval
+    status: pending
+    question: 【承認】走行に使う 2D 地図（変換の map.yaml）を通った帯の地図に替え、今の分類の 2D 地図（PRM-34〜36・38・62〜64、DEC-098）を表示用の 
+      map_ground_band にすること（design/proposals/swept_corridor_map_2026-10-21.md §3.3・§4、§9 の 2）
+    resulting_refs: []
+  - id: DEC-212
+    kind: approval
+    status: pending
+    question: 【承認】/config の写しがない古い原図（2026-10-19 より前、例 10-14 のもの）で、変換のときの 
+      /config（imu_mount_*）を使って帯を作ってよいか（manifest 
+      に記録）。代わり：写しのない原図は変換しない（design/proposals/swept_corridor_map_2026-10-21.md §3.1・§7、§9 の 3）
+    resulting_refs: []
+  - id: DEC-213
+    kind: approval
+    status: pending
+    question: 【承認】案 C の新しい設定値：A 帯の半分の幅（候補 0.3／0.5／1.0 m。推奨は置いていない）、B 軌跡をつながないとみなす距離（例 1 m：通常の点の間隔は約 0.1 
+      m、途切れのとき 2.7〜12.6 m 跳んだ）（design/proposals/swept_corridor_map_2026-10-21.md §4、§9 の 4）
+    resulting_refs: []
+  - id: DEC-214
+    kind: approval
+    status: pending
+    question: 【承認】経路の計画（NavFn）の allow_unknown を false にすること（今は上流の既定の 
+      true）（design/proposals/swept_corridor_map_2026-10-21.md §5、§9 の 5）。§5 の 3 の (a)・(b)（走行中に見えた所への迂回を許すか）は 
+      VM の確認の後に改めて示す
+    resulting_refs: []
+  - id: DEC-215
+    kind: approval
+    status: pending
+    question: 【承認】waypoint 
+      が帯の地図の空きの格子の外にあるとき、保存を拒否するか（案）、警告だけにして保存するか（design/proposals/swept_corridor_map_2026-10-21.md §6、§9 の 6）
     resulting_refs: []

@@ -47,6 +47,18 @@ class MissionTests(unittest.TestCase):
             self.assertIsNotNone(m, why)
             self.assertEqual(len(m.waypoints), 3); self.assertTrue(m.map_yaml.endswith('converted/001/map.yaml'))
             self.assertEqual(m.filter_base, 0.0); self.assertAlmostEqual(m.filter_multiplier, 0.02)
+            self.assertTrue(m.map_directory.endswith('converted/001'))
+
+    def test_localization_map_needs_tiles_and_trajectory(self):
+        """REV-128 (TS-41): ND-07 (A3) starts only on a map converted with the point-map tiles and the mapping trajectory."""
+        from gouda_core import map_convert
+        with tempfile.TemporaryDirectory() as d:
+            m, _ = ac.resolve_mission(Path(d), make_data(Path(d)))
+            self.assertIn(map_convert.POINTCLOUD_MAP_METADATA, ac.check_localization_map(m.map_directory))
+            (Path(m.map_directory) / map_convert.POINTCLOUD_MAP_DIR).mkdir(); (Path(m.map_directory) / map_convert.POINTCLOUD_MAP_METADATA).write_text('x_resolution: 20.0\n')
+            self.assertIn(map_convert.TRAJECTORY_FILE, ac.check_localization_map(m.map_directory))
+            (Path(m.map_directory) / map_convert.TRAJECTORY_FILE).write_text('1 0 0 0 0 0 0 1\n')
+            self.assertIsNone(ac.check_localization_map(m.map_directory))
 
     def test_refused_on_any_mismatch(self):
         with tempfile.TemporaryDirectory() as d:
@@ -118,6 +130,10 @@ class ModeCoreAutonomyTests(unittest.TestCase):
         n = mc.automatic_pause(a, 'TR-08', mc.STOP_REASON_GOAL_REACHED, 1)
         self.assertEqual((n.mode, n.remaining_waypoints, n.human_pause_or_end_recorded), (mc.MODE_PAUSE, 1, False))
         self.assertEqual(mc.automatic_pause(a, 'TR-07', mc.STOP_REASON_PLAN_FAILURE, 4).stop_reason, 'plan_failure')
+        # REV-128 (DEC-200, RQ-I029): 推定不能 pauses through TR-07 with its own stop reason
+        n = mc.automatic_pause(a, 'TR-07', mc.STOP_REASON_ESTIMATOR, 4)
+        self.assertEqual((n.mode, n.stop_reason), (mc.MODE_PAUSE, 'estimator_unavailable'))
+        self.assertEqual(len({mc.STOP_REASON_PLAN_FAILURE, mc.STOP_REASON_NODE_FAILURE, mc.STOP_REASON_ESTIMATOR, mc.STOP_REASON_GOAL_REACHED}), 4)
         self.assertIsNone(mc.automatic_pause(mc.ModeState(mode=mc.MODE_PAUSE), 'TR-07', 'x', 1), 'a result after a pause changes nothing')
 
 

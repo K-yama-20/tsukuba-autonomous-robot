@@ -1,0 +1,931 @@
+# 変更セット REV-128（2026-10-21 第99便: ND-07 案 A3 の構成、推定不能の一時停止、PRM-79〜95、DEC-207〜209）
+# 適用: design/tools/apply_revision.py REV-128
+id: REV-128
+date: '2026-10-21'
+summary: 人の確認（このチャット、原文）で DEC-203・205 の転記を確かめ、DEC-207 は (a)。ND-07（案 A3）の構成、推定不能での一時停止（TR-07）、IFD-53（localization/status）、新しい設定値 PRM-79〜95（未確定、値は DEC-208）、地図の変換の 20 m 格子、試験 TS-41〜43 を正本に入れる。IFD-34 を transient_local に。段 5 の許可は DEC-209。
+basis_refs:
+- DEC-203
+- DEC-205
+- DEC-207
+- DEC-200
+- DEC-115
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-208
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】ND-07（A3）と地図の変換の新しい設定値 PRM-79〜95 の値。推奨はすべて試行の値（評価で使った値、または上流 1.9.0 の既定値）：PRM-79 1.0 m、80 100 m、81 0.5 m、82 0.04、83 0.01、84 0.25、85 0.01、86 0.01、87 0.07、88 0.1 s、89 1.0 s、90 2.3、91 50 回、92 0.5 m、93 1.0 s、94 0.2 m、95 20 m
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-79
+  - PRM-80
+  - PRM-81
+  - PRM-82
+  - PRM-83
+  - PRM-84
+  - PRM-85
+  - PRM-86
+  - PRM-87
+  - PRM-88
+  - PRM-89
+  - PRM-90
+  - PRM-91
+  - PRM-92
+  - PRM-93
+  - PRM-94
+  - PRM-95
+  resulting_refs: []
+  note: 根拠：評価（FILE-LOCALIZATION-EVAL、localization_selection §6.1）と上流 1.9.0 の param ファイル。未確定の間、実車（trial なし）では ND-07 が configure を失敗にし、自律走行を始めない（RQ-I076）。VM の試験は trial で動く。決まらない場合に止まる作業：gouda.sh start からの A3 での自律走行（試験は止まらない）。
+  disposition: open_human
+- id: DEC-209
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【許可】段 5 の実装：DEC-207 (a) のとおり、monitor の /config に recovery の回数のタブ（DEC-204 の推奨：新しいタブ「Nav2」、範囲 1〜9999999、保存先 <data_root>/config/nav2_recovery.json）を作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT を作る
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-18
+  - ND-02
+  - ND-10
+  - DEC-207
+  resulting_refs: []
+  note: 反映は次の gouda.sh start（DEC-207 (a)、人の回答）。決まらない場合に止まる作業：段 5 だけ。
+  disposition: open_human
+entities:
+- id: PRM-79
+  kind: parameter
+  name: 点群の間引き：LiDAR の近くを除く立方体の半分の幅
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 自己位置推定（A3）
+    purpose: IFD-21 の点群から、LiDAR の座標で一辺 2×この値の立方体の中の点を除く（車体と近すぎる点。pcl_ros CropBox negative）。評価の min_range（1 m、球）の代わり
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 1.0
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: points_near_crop_m
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-80
+  kind: parameter
+  name: 点群の間引き：使う点の範囲（立方体の半分の幅）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 自己位置推定（A3）
+    purpose: LiDAR の座標で一辺 2×この値の立方体の外の点を除く（pcl_ros CropBox）。評価の max_range（100 m、球）の代わり
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 100.0
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: points_far_crop_m
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-81
+  kind: parameter
+  name: 点群の間引き：格子の大きさ
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 自己位置推定（A3）
+    purpose: NDT に渡す点群の VoxelGrid の格子（pcl_ros VoxelGrid）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.5
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: points_voxel_leaf_m
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-82
+  kind: parameter
+  name: EKF に渡す速度の分散（前後）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: (m/s)^2
+    stage: 自己位置推定（A3）
+    purpose: IFD-25 の速度を EKF（ekf_localizer）の TwistWithCovarianceStamped にするときの linear.x の分散（共分散 [0]）。ekf_localizer は前後の速度と旋回の角速度だけを使う
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.04
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: twist_vx_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-83
+  kind: parameter
+  name: EKF に渡す速度の分散（旋回）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: (rad/s)^2
+    stage: 自己位置推定（A3）
+    purpose: 同上の angular.z の分散（共分散 [35]）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.01
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: twist_wz_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-84
+  kind: parameter
+  name: 初期姿勢の分散（水平の位置）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m^2
+    stage: 自己位置推定（A3）
+    purpose: 人の初期姿勢（IFD-34）を Monte Carlo の探索（ndt_align_srv）に渡すときの x・y の分散。探索の広さになる
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.25
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: initial_xy_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-85
+  kind: parameter
+  name: 初期姿勢の分散（高さ）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m^2
+    stage: 自己位置推定（A3）
+    purpose: 同上の z の分散。初期の高さは地図作成のときの軌跡（GLIM の traj_imu）から求める
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.01
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: initial_z_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-86
+  kind: parameter
+  name: 初期姿勢の分散（傾き）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: rad^2
+    stage: 自己位置推定（A3）
+    purpose: 同上の roll・pitch の分散
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.01
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: initial_roll_pitch_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-87
+  kind: parameter
+  name: 初期姿勢の分散（向き）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: rad^2
+    stage: 自己位置推定（A3）
+    purpose: 同上の yaw の分散
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.07
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: initial_yaw_variance
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-88
+  kind: parameter
+  name: 推定の状態（IFD-53）の発行の周期
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: s
+    stage: 自己位置推定（A3）
+    purpose: localization/status を出し、判定（古さを含む）をやり直す周期
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.1
+    software_trial_basis: ソフト試験用。EKF の診断の周期（既定 10 Hz）に合わせた。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: status_period_s
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-89
+  kind: parameter
+  name: 推定が古いとみなす時間
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: s
+    stage: 自己位置推定（A3）
+    purpose: EKF の姿勢・NDT の診断・IFD-25 の最後の受信からこの時間を超えたら「推定不能」（input_stale）。stale を正常にしない（IF-010）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 1.0
+    software_trial_basis: ソフト試験用。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: stale_timeout_s
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-90
+  kind: parameter
+  name: NDT の照合の良さの下限（nearest_voxel_transformation_likelihood）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: —
+    stage: 自己位置推定（A3）
+    purpose: NDT の診断の nearest_voxel_transformation_likelihood がこれより小さければ「推定不能」（ndt_score_low）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 2.3
+    software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（converged_param_nearest_voxel_transformation_likelihood）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: ndt_nvtl_min
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-91
+  kind: parameter
+  name: EKF の姿勢の更新がない回数の上限
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: 回
+    stage: 自己位置推定（A3）
+    purpose: EKF の診断の pose_no_update_count（NDT の姿勢を使えなかった回数。マハラノビス距離での棄却を含む）がこれを超えたら「推定不能」（ekf_pose_not_updated）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 50
+    software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（pose_no_update_count_threshold_warn）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: ekf_pose_no_update_max
+    value_type: int
+    apply_timing: lifecycle_configure
+- id: PRM-92
+  kind: parameter
+  name: EKF の位置の標準偏差の上限
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-07
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 自己位置推定（A3）
+    purpose: EKF の姿勢（ekf_pose_with_covariance）の x・y の共分散の大きい方の固有値の平方根がこれを超えたら「推定不能」（ekf_covariance_large）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.5
+    software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（error_ellipse_size 1.5 m ÷ ellipse_scale 3）
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: ekf_xy_stddev_max_m
+    value_type: double
+    apply_timing: lifecycle_configure
+- id: PRM-93
+  kind: parameter
+  name: 推定の状態が届かないとみなす時間（mode_manager）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-03
+    value:
+    value_state: unresolved
+    unit: s
+    stage: 自己位置推定（A3）
+    purpose: 自律走行の間、localization/status（IFD-53）がこの時間届かなければ推定不能として一時停止する（TR-07、estimator_unavailable）。判定はこの周期の timer で、検出までの時間はこの値から 2 倍の間
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 1.0
+    software_trial_basis: ソフト試験用。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: estimator_status_timeout_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-94
+  kind: parameter
+  name: 3D 点群地図の格子（変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I009
+  - RQ-I084
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-05
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 地図作成と変換
+    purpose: 自己位置推定（A3）用の 20 m 格子の PCD を作るときの間引きの格子（格子ごとに最初の点を残す）。pointmap.pcd（全点）は変えない
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 0.2
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（make_map_pcd.py）
+    declaration: ros_parameter
+    target: gouda_map_creator
+    param_key: pointmap_voxel_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-95
+  kind: parameter
+  name: 3D 点群地図の分割の大きさ（変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I009
+  - RQ-I084
+  revision_ref: REV-128
+  parameter:
+    owner_ref: ND-05
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 地図作成と変換
+    purpose: pointcloud_map/ の正方形の格子の一辺（autoware_map_loader の metadata の x_resolution・y_resolution）
+    measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag の再生と実車）で確かめる
+    decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+    software_trial_value: 20.0
+    software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（tile_pcd.py）
+    declaration: ros_parameter
+    target: gouda_map_creator
+    param_key: pointmap_tile_m
+    value_type: double
+    apply_timing: launch
+- id: IFD-53
+  kind: designed_interface
+  name: localization/status（推定の状態。ND-07 → mode_manager・記録）
+  source_refs:
+  - SRC-I014
+  - SRC-I041
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IF-010
+  - D-13
+  - TR-07
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-200・DEC-203）で追加。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I029
+  - RQ-I012
+  - RQ-I084
+  revision_ref: REV-128
+  designed_interface:
+    transport: topic
+    name: localization/status
+    message_type: gouda_interfaces/msg/EstimatorStatus（header, uint8 state（0 未初期化・1 初期化中・2 正常・3 推定不能）, string reason, string detail, float64 ndt_nvtl, int32 ekf_pose_no_update_count, float64 ekf_xy_stddev_m, float64 last_input_age_s, string map_id）
+    standard_type: false
+    custom_type_reason: 推定の状態（未初期化・初期化中・正常・推定不能）と理由の区分と判定の数値を一つにまとめる標準型がない（D-13 の案を元にした）。
+    purpose: diagnostic
+    owner_ref: ND-07
+    publisher_refs:
+    - ND-07
+    consumer_refs:
+    - ND-03
+    - ND-04
+    unit: m、s
+    frame:
+    time_semantics: PRM-88 の周期と、状態が変わったときに出す。header.stamp は判定の時刻。正常は、EKF の姿勢・NDT の診断・IFD-25 がどれも PRM-89 より新しく、NDT の照合の良さ（PRM-90）・EKF の更新がない回数（PRM-91）・EKF の位置の標準偏差（PRM-92）がどれも範囲内のときだけ。判定の材料が届いていない・読めないときは正常にしない（IF-010、DEC-200）
+    qos:
+      reliability: reliable
+      durability: transient_local
+      history_depth: 1
+    version_dependency:
+      status: none
+      evidence: []
+      note: ''
+    legacy_refs:
+    - D-13
+    - IF-010
+- id: TS-41
+  kind: test
+  name: 自己位置推定（ND-07、案 A3）の中核と結合
+  source_refs:
+  - SRC-I014
+  - SRC-I041
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-07
+  - IFD-53
+  - IFD-18
+  - PRM-79
+  - PRM-92
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I084
+  - RQ-I029
+  - RQ-I004
+  revision_ref: REV-128
+  test:
+    execution_status: 未実行
+    stage: 自己位置推定
+    procedure: 単体（test_localization_core.py）：map→odom の計算（EKF の map→base_link と、同じ時刻に補間した odom→base_link から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散。VM：gouda_global_localization の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の map→odom の発行者が 1 つ。rosbag の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
+    observe: localization/status、/tf、DecisionEvent（初期化の各段）
+    expected: 材料がそろうまで正常にならない。map→odom の発行者は ND-07 だけ。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
+- id: TS-42
+  kind: test
+  name: 推定不能での一時停止（mode_manager）
+  source_refs:
+  - SRC-I014
+  - SRC-I041
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-03
+  - TR-07
+  - TR-05
+  - TR-10
+  - IFD-53
+  - PRM-93
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I029
+  - RQ-I012
+  revision_ref: REV-128
+  test:
+    execution_status: 未実行
+    stage: 自律走行
+    procedure: 単体（test_mode_core.py）：stop_reason estimator_unavailable の一時停止。ROS の試験（試験の基盤の模擬の ND-07）：自律走行中に status を推定不能にする・止める → motion_hold=true、goal の取消、TR-07（estimator_unavailable）、DecisionEvent。初期化が正常にならないと goal を送らない。一時停止中に正常でなければ再開（TR-10）を拒否する。
+    observe: mode/state の stop_reason、control/motion_hold、DecisionEvent（automatic_pause）、Nav2 の goal の状態
+    expected: 推定不能か status の途絶で、計画の失敗（plan_failure）と区別した stop_reason で一時停止する。
+- id: TS-43
+  kind: test
+  name: 3D 点群地図の 20 m 格子（地図の変換）
+  source_refs:
+  - SRC-I014
+  - SRC-I041
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-05
+  - PRM-94
+  - PRM-95
+  issue_refs:
+  - Q-02
+  interpretation: REV-128（DEC-203）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I009
+  - RQ-I084
+  revision_ref: REV-128
+  test:
+    execution_status: 未実行
+    stage: 地図作成と変換
+    procedure: 単体（test_mapping_core.py）：合成の点群で格子の数・各格子の点・metadata.yaml の形式（x_resolution、y_resolution、各ファイルの左下の座標）、間引き、軌跡の写し。設定が未確定なら格子を作らず 2D 地図は作る
+    observe: converted/<rev>/pointcloud_map/、trajectory_imu.txt、manifest
+    expected: 全ての点がどれか一つの格子に入る。metadata の座標は格子の左下。
+modifications:
+- id: ND-07
+  set:
+    related_refs:
+    - IFD-53
+    - TS-41
+  set_nested:
+    ros_node.responsibilities:
+    - 保存地図上の自己位置推定と map→odom TF の発行（自律走行・一時停止で単独の発行者）
+    - 人が指定した初期位置・向き（IFD-34）からの初期化と、推定の有効性の公開（IFD-53）
+    - 方式は案 A3 を試す（DEC-115）。上流の部品は改変せず子の launch（gouda_localization_a3.launch.py）で起動する：pcl_ros の CropBox 2 つと VoxelGrid（PRM-79〜81）、autoware_pointcloud_map_loader（地図の pointcloud_map/）、autoware_ndt_scan_matcher、autoware_ekf_localizer。設定は上流の param ファイルのまま、地図の場所と IF の名前だけを足す。部品の topic・service は名前空間 localization/a3 の中に閉じる
+    - EKF と NDT の /tf は名前空間の中の別の名前に逃がし、/tf の map→odom はこの node だけが出す（D-17、RQ-I004）。map→odom は EKF の map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 を受けるたびにその時刻で出す。localization/pose（IFD-33）は EKF の姿勢
+    - 速度の中継：IFD-25 の速度を TwistWithCovarianceStamped（分散 PRM-82・83）にして EKF へ
+    - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付けて ndt_align_srv（Monte Carlo の探索）→ 成功したら EKF の初期姿勢 → EKF・NDT の trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom を出さず推定不能（init_failed）
+    - 推定の状態（IFD-53）：NDT の診断（nearest_voxel_transformation_likelihood、PRM-90）、EKF の診断（pose_no_update_count、PRM-91）、EKF の位置の標準偏差（PRM-92）、入力の古さ（PRM-89）から判定（DEC-200、DEC-206 の (2)）。材料がない・読めないときは正常にしない
+    - lifecycle：ND-03 が TR-05 で map_directory を設定して configure（子の launch を起動）・activate（初期化）、TR-11・TR-12 で deactivate・cleanup（子の launch を止める）。設定値が未確定（実車で trial なし）なら configure を失敗にし理由を記録する（RQ-I076）
+    ros_node.publishes_refs:
+    - IFD-18
+    - IFD-33
+    - IFD-53
+    ros_node.subscribes_refs:
+    - IFD-21
+    - IFD-25
+    - IFD-34
+    - IFD-29
+    ros_node.placement_rationale: 案 A3 の試行（DEC-115）。上流の部品は改変せず、Gouda の部分は lifecycle node 1 つ（速度の中継、map→odom の中継、初期化の手順、推定の状態）。地図は TR-05 で選ぶので、上流の部品は configure のときに起動する（autoware_pointcloud_map_loader は起動のときに地図の場所を受け取る）。地図作成の GLIM と同時に動かさない（RQ-I004）。構成の根拠は design/proposals/nd07_a3_trial_design_2026-10-21.md。
+  interpretation_append: REV-128（DEC-203）：構成を正本に入れた。
+- id: ND-03
+  set:
+    related_refs:
+    - IFD-53
+    - TS-42
+  set_nested:
+    ros_node.responsibilities:
+    - 4ソフトモード（RQ-I065）の正本と遷移（TR-01〜TR-16）。内部状態・処理段階（変換中・goal送信中・取消待ち・復旧段階）はモードと混同しない
+    - 自律走行の開始・一時停止・再開・終了の受付と、Nav2 NavigateThroughPoses への goal 送信／取消（薄い action client。計画・追従・後退・再計画・通過判定は Nav2）
+    - 自律走行開始時に、選択した waypoint セットの速度マスク（IFD-41）を Nav2 の filter info server と mask 用 map_server に読み込ませる（IFD-42）。SpeedLimit 自体は Nav2 の SpeedFilter が発行（DEC-031）
+    - 速度上限の適用状態の観測と記録（DEC-047）：mask・filter info の latched 配信、speed_limit の最終受信値・時刻、ロボット位置が mask 範囲内かを観測し、speed_limit_application_state（適用中／帯外・無制限／マスク外・直前値保持／未読込・上限なし／不明）を IFD-01 と DecisionEvent に出す。発行はしない
+    - 一時停止・終了・故障・非自律モードでは motion_hold=true を motion_controller へ直接入力（IFD-40、DEC-004）。自律走行中だけ hold=false
+    - mission 文脈（地図・waypoint の ID／版／ハッシュ、run_id、残 waypoint、停止理由）の保持と、PC再起動に必要な部分の永続化（RQ-I064・RQ-I069）。区間番号は記録用に feedback から求める（RQ-I030）
+    - PC 再起動後の再開は人の初期位置要求（IFD-39）の受理後に限る（DEC-009）
+    - 異常終了後の自動復帰の手順（RQ-I013 の依存順序、RQ-I069 の必要状態だけの復元）。復旧不能時は自律走行・一時停止からは一時停止へ、手動走行・事前地図作成では直前モードを維持し理由を記録（DEC-008）
+    - 記録の自動開始・停止の呼出し。人の地図作成開始（TR-03）の受理で IFD-45、人の自律走行開始（TR-05）の受理で IFD-44 を非同期で呼び、応答を待ち合わせず走行開始を止めない。失敗・無応答は DecisionEvent（record_auto_start_failed）に記録し monitor がポップアップ表示。地図作成終了（TR-04）・自律走行終了（TR-11・TR-12）で IFD-46 を呼ぶ。復帰・再開・PC 再起動では呼ばない（DEC-071、DR-16）
+    - 判断・理由・走行ID・区間ID付きの DecisionEvent の発行（RQ-I030。transient_local 保持 50 件、DEC-072）
+    - 地図作成中に GLIM が停止の要求なしに終わったら、DecisionEvent（event=glim_exited、transition_id=TR-14。終了コード・開始からの時間・glim.log の末尾）で記録する。事前地図作成モードは維持し、GLIM は再起動しない（TR-14 の自動復帰は未実装。復旧不能のときの「モードを維持し理由を記録して表示」の部分だけ）。地図作成終了（TR-04）の記録 mapping_stopped に、GLIM が先に終わっていた時刻を残す（G-GLIM-EXIT）
+    - 自己位置推定（ND-07）の有効化と監視（REV-128、DEC-200・DEC-203）：TR-05 で ND-08 の後に、初期姿勢（IFD-34、transient_local）を出し、ND-07 に地図を設定して configure・activate、IFD-53 が正常になってから Nav2 を起動する（推定不能なら TR-07、estimator_unavailable）。自律走行の間、IFD-53 が推定不能になるか PRM-93 の間届かなければ、motion_hold=true → goal の取消 → TR-07（stop_reason estimator_unavailable。plan_failure・node_failure と区別）。再開（TR-10）は IFD-53 が正常のときだけ。TR-11・TR-12 で ND-07 を deactivate・cleanup。地図作成（TR-03）は ND-07 が有効な間は拒否（RQ-I004）
+    ros_node.subscribes_refs:
+    - IFD-12
+    - IFD-25
+    - IFD-33
+    - IFD-39
+    - IFD-14
+    - IFD-42
+    - IFD-47
+    - IFD-48
+    - IFD-49
+    - IFD-50
+    - IFD-53
+  interpretation_append: REV-128（DEC-200・DEC-203）：ND-07 の有効化と推定不能での一時停止を足した。
+- id: ND-05
+  set_nested:
+    ros_node.responsibilities:
+    - 地図作成終了と同時の自動変換（RQ-I009）。原図と変換後地図を由来IDで結び、各成果物に独立した内容ハッシュと変換器版を記録
+    - 変換失敗時は原図を保持し不完全な成果物を破棄。再変換はいつでも可能
+    - map_database（ファイル保存領域とライブラリ）。常時稼働の DB node は置かない（M-006 の方針を維持）
+    - 変換（docs/map_conversion.md）。高さは点群から推定した地面からの高さ（DEC-093。傾きを制限した下側の包絡、PRM-62〜64）。同じ設定から 2D 占有格子（Nav2）、3D 点群地図（pointmap.pcd、map 座標。DEC-095）、表示用の傾き・段差・高さの図（DEC-097 A。走行には使わない）を作り、1 つの rev として公開する
+    - 変換設定は ROS parameter（PRM-33〜36・38・62〜64）。地図タブからの再変換では要求に添えた設定を使い、manifest に記録する
+    - 自己位置推定（A3）用に、変換の rev に pointcloud_map/（PRM-94 で間引き、PRM-95 の正方形の格子の PCD と autoware_map_loader の metadata.yaml）と trajectory_imu.txt（原図の traj_imu.txt の写し。初期の高さに使う）を加える。PRM-94・95 が未確定なら作らない（2D 地図は作る。ND-07 はその地図では開始しない）。REV-128（DEC-203）
+  interpretation_append: REV-128（DEC-203）：自己位置推定（A3）用の 20 m 格子の PCD と軌跡の写しを足した。
+- id: TR-07
+  set:
+    name: 自律走行 → 一時停止（Nav2 BT の失敗、推定不能）
+  set_nested:
+    transition.trigger: NavigateThroughPoses の result が失敗（error_code != NONE。後退・再計画は Nav2 BT の責務で尽くした結果）、または推定不能（IFD-53 が推定不能になる・PRM-93 の間届かない。DEC-200）、または開始の手順の失敗
+    transition.actions:
+    - motion_hold=true を発行（IFD-40）。中立化の担当は ND-11（RQ-I063）
+    - Nav2 の失敗では結果（error_code・error_msg）をログに記録（RQ-I012）。result の受信をもって旧 goal の終了を確認し active_nav2_goal を消す。推定不能では goal がまだ動いているので取り消し、取消の結果を記録する
+    - 停止原因区分を「計画の失敗／blocked」（plan_failure）、「推定不能」（estimator_unavailable）、「node の異常」（node_failure）で区別して記録（RQ-I012・RQ-I029）。推定不能は IFD-53 の理由の区分と数値も残す
+    - 残 waypoint は保持（再開で同じ目標へ：RQ-I014）。直前モード記録は MODE-PAUSE（人の操作なし）
+  interpretation_append: REV-128（DEC-200）：推定不能を trigger に加えた。
+- id: TR-05
+  set_nested:
+    transition.actions:
+    - 初期位置を ND-07 へ送る（IFD-34、transient_local）
+    - run_id を発行し、remaining_waypoints を全区間で初期化
+    - ND-08（GLIM の odometry だけ）を起動し、ND-07 に選んだ地図の変換の rev を設定して configure・activate する。IFD-53 が正常になるまで Nav2 を起動しない。推定不能になったら TR-07（estimator_unavailable）
+    - 選択した waypoint セットの速度マスクと filter info を Nav2 に読み込ませる（IFD-41・IFD-42）。speed_limit は Nav2 の SpeedFilter が位置から発行する（IFD-14、DEC-031）。Gouda は発行しない
+    - NavigateThroughPoses goal を送信し active_nav2_goal を記録（IFD-13）。speed_limit_application_state=適用中 を確認してから motion_hold=false を発行（IFD-40）。確認できない間は hold=true のまま（DEC-056）
+    - 記録の自動開始を要求（IFD-44 record/log/start_autodrive。契機は人の自律走行開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも走行開始を止めない。失敗は DecisionEvent と monitor のポップアップ。設定状況を記録
+    - 直前モード記録を MODE-AUTO に更新
+  interpretation_append: REV-128（DEC-203）：ND-07 の configure・activate と、IFD-53 が正常になるまで Nav2 を起動しないことを足した。地図に pointcloud_map/ がなければ開始を拒否する。
+- id: IFD-34
+  set_nested:
+    designed_interface.qos:
+      reliability: reliable
+      durability: transient_local
+      history_depth: 1
+    designed_interface.time_semantics: 開始要求（IFD-02）の引数を ND-03 が TR-05 で 1 回出す（transient_local：ND-07 が configure の後に購読しても受け取れる）。ND-07 は activate の後の初期化に使い、走行中の再指定は受け付けない
+  interpretation_append: REV-128（DEC-203）：QoS を transient_local に。ND-07 が TR-05 で configure（購読の開始）される前に ND-03 が出すため。
+- id: IFD-33
+  interpretation_append: REV-128（DEC-203）：ND-07 は EKF（ekf_localizer）の姿勢をそのまま出す。
+decision_updates:
+- id: DEC-207
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    resulting_refs:
+    - DEC-209
+    answer_verbatim: |
+      「転記は私の回答で間違いない。段 1（setup.sh）と段 2〜4（ND-07）に着手して。DEC-207 は (a) で良い。」
+    note: 推奨は (a)：DEC-201 の「gouda_monitor で変更できるように」を満たし、Nav2 の作りは今のまま。DEC-201 の「次の走行の時に反映」は「次の gouda.sh start の後の走行から」に読み替わる（承認事項）。振る舞いの違い：(a) は monitor で保存しても、gouda.sh を起動し直すまで効かない。(b) は monitor では変えられない（DEC-201 と食い違う）。決まらない場合に止まる作業：段 5（monitor のタブ）だけ。ND-07（段 2〜4）と setup.sh（段 1）は止まらない。 REV-128（第99便）：人の回答（このメインのチャット）で (a)。monitor のタブを作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT を作る。反映は次の gouda.sh start。DEC-201 の「次の走行」は「次の gouda.sh start の後の走行」と読む。実装（段 5）の許可は DEC-209。
+- id: DEC-203
+  set:
+    note: '推奨は承認。根拠：DEC-200・DEC-115（人の回答の転記）、design/proposals/nd07_a3_trial_design_2026-10-21.md。代わり：EstimatorStatus を NDT の診断だけで作る（EKF の診断を使わない、DEC-115 の問い 2 の (a)）。振る舞いの違い：承認すると、自律走行の中で推定不能を検出したら一時停止する（今は推定不能を見ない）。決まらない場合に止まる作業：ND-07 の実装と自律走行の開始（TR-05 は ND-07 がないと拒否のまま）。安全の注意：一時停止は PC 出力の中立化で車体の停止の保証ではない。推定不能の判定は誤った姿勢を正常とみなすことを防げない（評価の 0.546 m の例）。 REV-127（第98便）：人の回答「DEC-203: 許可する」（転記）。ND-07 の構成（design/proposals/nd07_a3_trial_design_2026-10-21.md §2）と推定不能の判定・一時停止の経路（§3）を正本に入れ、段 2〜4 を実装することへの許可。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。 REV-128（第99便）：人がこのメインのチャットで転記を確かめた（原文「転記は私の回答で間違いない。段 1（setup.sh）と段 2〜4（ND-07）に着手して。DEC-207 は (a) で良い。」）。段 2〜4 に着手。'
+- id: DEC-205
+  set:
+    note: '推奨は承認。根拠：DEC-202、VM の版（1.9.0、2026-10-21 に dpkg で確認）。ROS の apt は最新の build だけを置くので、apt に 1.10 が来ると 1.9.0 は入れられない（推測を含む。x86 機の apt の版は未確認で、実装の前に確かめる）。そのとき止まるか入れるかが振る舞いの違い。決まらない場合に止まる作業：x86 機での A3 の起動。 REV-127（第98便）：人の回答「DEC-205: 警告は出さずに、一旦試してみよう。x86機は手元にないので、VMのみで頑張ろう！」（転記）。推奨案（1.9.0 でなければ止まる）ではなく代わりの案：setup.sh に Autoware の 3 つを版の確認なしで足す。x86 機での実行はしない。試験は VM だけ（VM は 1.9.0 が導入済み）。転記の出所は分岐セッション（local_a97307d5…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装の許可（DEC-106）としては、メインのチャットで人に確かめてから使う（第98便）。 REV-128（第99便）：人がこのメインのチャットで転記を確かめた（原文「転記は私の回答で間違いない。段 1（setup.sh）と段 2〜4（ND-07）に着手して。DEC-207 は (a) で良い。」）。段 1 に着手。pcl_ros は A3 の部品として直接使うので、DEC-203 の範囲で setup.sh に明示する。'
