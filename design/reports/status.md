@@ -1,8 +1,14 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-142、第110便）。
+最終更新：2026-10-21（REV-142、第112便）。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第112便: monitor の「発進準備」タブを実装済みの手順に合わせた**（作業記録 `reports/worklog/2026-10-21_bin112_prep_tab.md`）。
+- 文面だけのタブが「未実装」のまま古かった。waypoint タブでの選択と初期位置、自律走行ボタン、その後の自動の起動の順に書き直した。未実装は GNSS による初期位置（DEC-124）だけ。Mac 258 合格。VM には未反映。
+
+**第111便: main への取り込み（PR #14・#15）と VM の update**（作業記録 `reports/worklog/2026-10-21_bin111_main_merge_vm_update.md`）。
+- 第103〜110便を PR #15 にし、人が merge した（main a86a7d0）。VM の `~/gouda_ws` は update.sh でコードが a86a7d0 になったが、setup.sh が rtklib の導入で sudo のパスワードを求めて止まり、組み立てはまだ（人が setup.sh を実行する）。
 
 **第110便: PRM-99 を実車でも仮に 1.0 m に（REV-142、DEC-278）**（作業記録 `reports/worklog/2026-10-21_rev142_prm99_interim.md`）。
 - 人の決定（原文）で、DEC-229 が決まるまで実車でも PRM-99＝1.0 m を使う。gouda_monitor.yaml に反映した。設計検査は違反 0・未判定 5（DR-11 30）。Mac 258 合格。VM（人が再開した後）で、承認値だけで隙間 0.8 m の保存の警告が出ることを確認した。
