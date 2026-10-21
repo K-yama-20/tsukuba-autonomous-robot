@@ -94,12 +94,14 @@
       <div class="panel full">
         <div class="panel-title"><span class="code">PREP</span>発進準備シーケンス</div>
         <ol class="seq" id="seq">
-          <li data-step="map"><span class="code">1</span>地図とwaypointの組を選択 <span class="status amber">未実装（工程5-4／5-6）</span></li>
-          <li data-step="pose"><span class="code">2</span>初期位置・向きを指定（IFD-39） <span class="status amber">未実装（工程5-6）</span></li>
-          <li data-step="nodes"><span class="code">3</span>自律走行系 node の活性（ND-07・08・10） <span class="status amber">未実装（工程5-6）</span></li>
-          <li data-step="start"><span class="code">4</span>自律走行開始ボタンを 1 回押す（追加の承認は挟まない: RQ-I011） <span class="status" id="seq-start">右上の自律走行</span></li>
+          <li data-step="map"><span class="code">1</span>waypoint セットを選ぶ（地図はセットに保存された変換後地図と組になる） <span class="status">waypoint タブ「AUTO 自律走行の準備」→ セットを選んで「プレビュー」</span></li>
+          <li data-step="pose"><span class="code">2</span>初期位置・向きを入れる（IFD-39、map frame） <span class="status">同じ欄の x・y・向き、または「地図のクリックで初期位置を置く」</span></li>
+          <li data-step="start"><span class="code">3</span>自律走行開始ボタンを 1 回押す（追加の承認は挟まない: RQ-I011） <span class="status" id="seq-start">右上の「自律走行」</span></li>
+          <li data-step="nodes"><span class="code">4</span>自律走行系の起動（ND-08 → ND-07 → ND-10。TR-05） <span class="status">操作なし（ボタンの後に自動）</span></li>
         </ol>
-        <div class="note">各段の成立は mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
+        <div class="note">「自律走行」を押すと、mode manager が ND-08（オドメトリ）を起動し、地図を ND-07（自己位置推定）に読ませ、推定が正常になってから Nav2 を起動する。速度上限の適用と走行禁止のマスクを確かめてから motion_hold を解いて走り出す。</div>
+        <div class="note">推定が正常にならない間（LiDAR の点群がないなど）は走り出さない。GNSS による初期位置（DEC-124）は未実装なので、初期位置は手で入れる。</div>
+        <div class="note">各段の成立は「運行」タブの mode/state と DecisionEvent で確認する。架空の値は表示しない。</div>
         <div class="note">地図の一覧・変換設定・再変換は「地図」タブ。</div>
       </div>
     </section>
