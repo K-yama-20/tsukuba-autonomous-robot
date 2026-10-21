@@ -337,6 +337,7 @@ lines:
       - IFD-21
       - IFD-23
       - IFD-53
+      - IFD-54
       - ND-03
       - ND-09
       - ND-10
@@ -350,6 +351,7 @@ lines:
       - TS-05
       - TS-42
       - TS-44
+      - TS-45
     issue_refs: []
   - line: 16
     requirement_id: RQ-I086
@@ -1170,6 +1172,7 @@ lines:
       - IFD-20
       - IFD-26
       - IFD-52
+      - IFD-54
       - ND-02
       - ND-13
       - SO-03
@@ -1177,6 +1180,7 @@ lines:
       - TS-25
       - TS-36
       - TS-40
+      - TS-45
     issue_refs: []
   - line: 100
     requirement_id: RQ-I087

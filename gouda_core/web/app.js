@@ -306,7 +306,7 @@
   document.querySelectorAll('.subtab').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll('.subtab').forEach((x) => x.classList.toggle('active', x === b));
     document.querySelectorAll('.subpane').forEach((p) => p.classList.toggle('active', p.dataset.subpane === b.dataset.subtab));
-    if (b.dataset.subtab === 'motion') loadMotionComp(); else loadConfig();
+    if (b.dataset.subtab === 'motion') loadMotionComp(); else if (b.dataset.subtab === 'nav2') loadNav2(); else loadConfig();
   }));
 
   // ---- /config 自律走行の出力: dead-band compensation (IFD-52, DEC-181) ----
@@ -334,6 +334,32 @@
       const j = await r.json(); $('mc-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('mc-msg').className = j.ok ? 'cyan' : 'amber';
       if (j.config) renderMotionComp(j.config);
     } catch (err) { $('mc-msg').textContent = 'request failed: ' + err; $('mc-msg').className = 'amber'; }
+  });
+
+  // ---- /config Nav2: the BT recovery count used from the next gouda.sh start (IFD-54, DEC-209) ----
+  async function loadNav2() {
+    const r = await fetch('/api/nav2_recovery'); renderNav2(await r.json());
+  }
+  function renderNav2(c) {
+    const lim = c.limits && c.limits.recovery_number_of_retries;
+    $('nav2-rev').textContent = `revision ${c.config_revision} / ${c.path}`;
+    $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
+      const v = c.values[k]; const unknown = v === 'UNKNOWN';
+      return `<label><span>recovery の回数 <span class="dim">(${esc(k)}${lim ? `, ${lim[0]}〜${lim[1]}` : ', PRM-18 未確定のため保存できない'})</span></span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;
+    }).join('');
+    const row = (k, v) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`;
+    const nx = c.next_start, iu = c.in_use;
+    $('nav2-table').innerHTML = row('PRM-18（既定）', c.prm18 ?? '未確定')
+      + row('次の gouda.sh start で使う値', nx ? `${nx.value}（${nx.source}${nx.note ? ' / ' + nx.note : ''}）` : '—')
+      + row('今の起動で使っている値', iu ? `${iu.value}（${iu.source}${iu.note ? ' / ' + iu.note : ''}）` : '不明（Nav2 が起動していない）');
+  }
+  $('nav2-save').addEventListener('click', async () => {
+    const data = {}; new FormData($('nav2-form')).forEach((v, k) => { data[k] = v; });
+    try {
+      const r = await fetch('/api/nav2_recovery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const j = await r.json(); $('nav2-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('nav2-msg').className = j.ok ? 'cyan' : 'amber';
+      if (j.config) renderNav2(j.config);
+    } catch (err) { $('nav2-msg').textContent = 'request failed: ' + err; $('nav2-msg').className = 'amber'; }
   });
 
   $('config-save').addEventListener('click', async () => {

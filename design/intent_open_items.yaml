@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 25
+pending_decision_count: 23
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1121,20 +1121,6 @@ pending_decisions:
     question: '【承認】gouda.sh:119 の「sleep 1   # PRM-77」は、PRM-77（gouda.sh stop の保存の進捗の表示の間隔 1 s、declaration model_declared）の値を手で書き写したもの（PRM
       の写し）。案 A（推奨）：generate_params.py が model_declared の PRM-77 を gouda.sh 用の生成物に出し、gouda.sh がそれを読む（値は正本の一か所）。案
       B：今のまま写しとして許容の一覧に入れ、正本の値を変えたら手で直す。'
-    resulting_refs: []
-  - id: DEC-208
-    kind: approval
-    status: pending
-    question: 【承認】ND-07（A3）と地図の変換の新しい設定値 PRM-79〜95 の値。推奨はすべて試行の値（評価で使った値、または上流 1.9.0 の既定値）：PRM-79 1.0 m、80 100
-      m、81 0.5 m、82 0.04、83 0.01、84 0.25、85 0.01、86 0.01、87 0.07、88 0.1 s、89 1.0 s、90 2.3、91 50 回、92 0.5 m、93 
-      1.0 s、94 0.2 m、95 20 m
-    resulting_refs: []
-  - id: DEC-209
-    kind: approval
-    status: pending
-    question: 【許可】段 5 の実装：DEC-207 (a) のとおり、monitor の /config に recovery の回数のタブ（DEC-204 の推奨：新しいタブ「Nav2」、範囲 
-      1〜9999999、保存先 <data_root>/config/nav2_recovery.json）を作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT 
-      を作る
     resulting_refs: []
   - id: DEC-211
     kind: approval

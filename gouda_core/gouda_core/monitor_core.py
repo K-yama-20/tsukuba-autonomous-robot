@@ -53,7 +53,10 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
     ('reverse_min', 'fraction'), ('reverse_threshold', 'fraction'),
     ('turn_min', 'fraction'), ('turn_threshold', 'fraction'),
 ])
-NUMERIC_KINDS = ('number', 'fraction')
+# /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the Nav2 BT recovery count used from the next gouda.sh start (DEC-207 (a)).
+# 'count' = an integer from 1 to the upper limit given by the caller (PRM-18, read from the generated parameter file).
+NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count')])
+NUMERIC_KINDS = ('number', 'fraction', 'count')
 
 
 @dataclass
@@ -269,9 +272,10 @@ class SensorConfig:
     """/config (IFD-26; with fields=MOTION_COMPENSATION_FIELDS the 「自律走行の出力」 tab, IFD-52): persisted JSON, fields UNKNOWN
     until a value is entered (RQ-I070)."""
 
-    def __init__(self, path: Path, fields: Optional[OrderedDict] = None):
+    def __init__(self, path: Path, fields: Optional[OrderedDict] = None, limits: Optional[dict] = None):
         self.path = Path(path)
         self.fields = fields if fields is not None else CONFIG_FIELDS
+        self.limits = dict(limits or {})   # {key: (lowest, highest)} of 'count' fields; a count without limits is refused
         self.values = OrderedDict((k, UNKNOWN) for k in self.fields)
         self.config_revision = 0
         self.updated_at: Optional[float] = None
@@ -295,6 +299,9 @@ class SensorConfig:
         if value == UNKNOWN: return True
         if kind == 'number': return isinstance(value, (int, float)) and not isinstance(value, bool)
         if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
+        if kind == 'count':
+            lim = self.limits.get(key)
+            return lim is not None and isinstance(value, int) and not isinstance(value, bool) and lim[0] <= value <= lim[1]
         if kind == 'axes': return isinstance(value, str) and sensor_extrinsics.validate_axis_mapping(value) is None
         return isinstance(value, str) and value != ''
 
@@ -307,6 +314,12 @@ class SensorConfig:
                 try: v = float(v)
                 except ValueError: return False, f'{k}: not a number ({v!r})'
             if isinstance(v, str) and v.strip() in ('', UNKNOWN): v = UNKNOWN
+            if self.fields[k] == 'count' and isinstance(v, float):
+                if not v.is_integer(): return False, f'{k}: {v!r} is not a whole number'
+                v = int(v)
+            if self.fields[k] == 'count' and v != UNKNOWN and not self._valid(k, v):
+                lim = self.limits.get(k)
+                return False, (f'{k}: {v!r} is outside {lim[0]}..{lim[1]}' if lim else f'{k}: no upper limit is known (PRM-18 unresolved): not saved')
             if self.fields[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.validate_axis_mapping(v):
                 return False, f'{k}: {sensor_extrinsics.validate_axis_mapping(v)}'
             if self.fields[k] == 'fraction' and v != UNKNOWN and not self._valid(k, v):
@@ -328,4 +341,5 @@ class SensorConfig:
 
     def snapshot(self) -> dict:
         return {'values': dict(self.values), 'kinds': dict(self.fields), 'config_revision': self.config_revision, 'updated_at': self.updated_at,
-                'path': str(self.path), 'unknown_count': sum(1 for v in self.values.values() if v == UNKNOWN)}
+                'path': str(self.path), 'unknown_count': sum(1 for v in self.values.values() if v == UNKNOWN),
+                'limits': {k: list(v) for k, v in self.limits.items()}}

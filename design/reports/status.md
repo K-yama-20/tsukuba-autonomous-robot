@@ -1,8 +1,12 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-21（REV-131、第101便）。
+最終更新：2026-10-21（REV-132、第102便）。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第102便: DEC-208・209 の回答と monitor の「Nav2」タブ（REV-132）**（作業記録 `reports/worklog/2026-10-21_rev132_dec208_209_nav2_tab.md`）。
+- 人の回答（原文）：DEC-208 は全て既定値（PRM-79〜95 を推奨の値で承認。ND-07 は実車でも設定値がそろった）、DEC-209 は承認。monitor の /config に「Nav2」タブ（recovery の回数、1〜PRM-18）を足し、次の gouda.sh start で BT に入れる（IFD-54）。
+- 試験：Mac 246 合格、VM 254 合格、不合格 0。VM の試験スタックで、保存した 3 が起動し直した後の BT に入ることを確認。設計検査は違反 0・未判定 5（DR-11 32）。
 
 **第101便: 案 C（通った帯の 2D 地図）の実装（REV-131、DEC-210）**（作業記録 `reports/worklog/2026-10-21_rev131_plan_c_corridor.md`、分析 `research/vehicle_pc/2026-10-21_swept_corridor/`）。
 - 人の確認（原文）で着手。変換に帯の 2D 地図（map_swept_corridor、swept_corridor.json）を追加の成果物として足した（走行用の map.yaml は替えない：DEC-211 待ち）。PRM-96・97 は未確定（DEC-213）。/config の写しがない原図では作らない（DEC-212 待ち）。
@@ -416,27 +420,25 @@
 
 | 検査 | 合格 | 違反 | 未判定 | 時点・出所 |
 |---|---|---|---|---|
-| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-131 の後、`reports/input_integrity.json` |
-| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 49、DR-15 31） | REV-131 の後、`reports/design_check.txt` の要約行 |
+| 入力の完全性（原資料・抽出・baseline・intent） | 73（一致 72、intent の新版 1） | 3（drawio、.DS_Store 2 つ） | 0 | REV-132 の後、`reports/input_integrity.json` |
+| 設計整合性（17 ルール） | 12 | 0 | 5（DR-04 5、DR-05 2、DR-10 2、DR-11 32、DR-15 31） | REV-132 の後、`reports/design_check.txt` の要約行 |
 | 検査器の試験（`design/rules`） | 82 | 1（実モデルの移行の照合。上の drawio と .DS_Store と同じ原因） | 0 | 第88便（`test_apply_revision.py` 4 件を追加）、`reports/migration_tests.txt` |
-| gouda_core の単体試験 | Mac 243（8 skip）、VM 251 | 0 | 0 | 第101便（作業ツリー、4b44f75 の上の未 commit の変更）。VM は `~/gouda_rev128_ws` |
+| gouda_core の単体試験 | Mac 246（8 skip）、VM 254 | 0 | 0 | 第102便（作業ツリー、b2cb71d の上の未 commit の変更）。VM は `~/gouda_rev128_ws` |
 | firmware 中核のホスト試験（g++） | OK 282 | 0 | 0（実機は未実行） | 第89便（VL-02 の 4 チェックを追加） |
 | firmware のビルド（esp32dev） | 成功 | 0 | 0 | 第67・72便。書き込みは人（2026-10-21、申告） |
-| 判断台帳 | 213 件（answered 132、recorded 56） | — | pending 25（下の一覧） | REV-130 の後 |
+| 判断台帳 | 213 件（answered 134、recorded 56） | — | pending 23（下の一覧） | REV-132 の後 |
 
 `run_checks.py` の終了コードは 1。原因は、上の入力の完全性の 3 件だけ。
 
 ## 承認待ち・実測待ち・人の作業・提案
 
-判断台帳の pending（25 件）:
+判断台帳の pending（23 件）:
 
 - 方式・照合: DEC-021（Q-02 自己位置推定の方式）、DEC-022（Q-03 車両通信と制御の校正）、DEC-024（Q-09 Bluetooth 切断時の P 状態）、DEC-050（配線・firmware・操作結果の実機照合）。
 - 自己位置・GNSS: DEC-127（GNSS と地図の対応）、DEC-129（再起動後の初期位置の画面）、DEC-134（発散の監視と再初期化）、DEC-148（intent.md への運用の条件の追記）、DEC-152（NTRIP の検査ルール）。
 - 地図: DEC-211〜215（案 C：走行用の 2D 地図を帯の地図に、古い原図の /config、設定 A・B の値、allow_unknown、帯の外の waypoint。第100便で登録）、実測 DEC-099（地面が映るか）・DEC-100（点の密度と GLIM の周期）・DEC-105（IMU と LiDAR の傾き）。
 - 運用・環境: DEC-101（旧実装のファイルの扱い）、DEC-104（スリープの抑止）、DEC-138（VM の Fast DDS の設定）。
 - 構成: DEC-184（Hokuyo を今年使うか。第87便で登録）。
-- 自己位置推定（A3）：DEC-208（新しい設定値 PRM-79〜95 の値。推奨は試行の値）。第99便で登録。
-- Nav2: DEC-209（段 5：recovery の回数の monitor のタブ、DEC-207 (a)）。第99便で登録。
 - 検査: DEC-189（DR-15 の許容の一覧の案 28 件と、走査器の修正）、DEC-190（gouda.sh の PRM-77 の写しの扱い）。第88便で登録。
 
 実装の許可待ち（`reports/handover_2026-10-21.md` §5 のうち残るもの）:
@@ -466,14 +468,14 @@
 ## 次の作業
 
 - 人の指示を待つ。候補は上の承認待ち・決定待ちと、「Global_localization または Navigation のノードの実装の検討」（`reports/handover_2026-10-17.md` §5）。
-- 止まっている: 実車（trial なし）での A3 の自律走行（DEC-208 の値）、recovery の回数のタブ（DEC-209）、Nav2 で使える 2D 地図（案 C、DEC-210 の確認と DEC-211〜215）、実車試験。
+- 止まっている: Nav2 で使える 2D 地図（案 C、DEC-210 の確認と DEC-211〜215）、実車試験。
 
 ## 主要ファイルの場所（CLAUDE.md 1.9 の対応表。パスはリポジトリ `tsukuba-autonomous-robot/` 相対）
 
 | 役割 | 場所 | 備考 |
 |---|---|---|
 | 設計意図（人が所有） | `design/intent.md` | 第14版（SHA 9bf08d3e…、108 行）。写し `baselines/intent_history/`（`intent_v14_9bf08d3ebe24.md` など） |
-| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-131。番号は `tools/reserve_ids.py` で予約する |
+| 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-132。番号は `tools/reserve_ids.py` で予約する |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`、`vehicle_output_timing.md`、`speed_filter_design.md`、`map_conversion.md`、`sensor_supervision.md`、`regulations_2026.md`、`git_management_plan.md`、`deferred_verification.md` |
 | 判断台帳 | `model.yaml: decisions`（DEC-001〜215） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
@@ -481,6 +483,6 @@
 | 生成物（手で編集しない） | `generated/`（`params/` に node ごとの設定、`firmware_config.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時のヘッダはビルドのときに生成する（コミットしない） |
 | 提案 | `proposals/` | 承認済みの仕様として使わない |
 | 調査・証拠 | `research/` | `vehicle_pc/`（試験の記録、DAC の実測と配線）、`joystick270_firmware/`、`upstream_jazzy/` |
-| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21_2.md`。最新の作業記録 `2026-10-21_rev131_plan_c_corridor.md` |
+| 報告・作業記録 | `reports/`、`reports/worklog/` | 引き継ぎ `reports/handover_2026-10-21_2.md`。最新の作業記録 `2026-10-21_rev132_dec208_209_nav2_tab.md` |
 | ロボットの実装 | `gouda_interfaces/`、`gouda_core/`、`gouda.sh`、`setup.sh`、`update.sh`、`third_party/drivers.repos`、試験用 `gouda_core/test/stack.sh` | 起動は `bash gouda.sh start` だけ |
 | firmware | `firmware/gouda_esp32_v4/` | 旧 `firmware/gouda_esp32`・`gouda_dualsense_usb` は置き換えの対象 |

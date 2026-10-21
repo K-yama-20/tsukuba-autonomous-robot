@@ -205,6 +205,7 @@
       <nav class="subtabs" id="config-subtabs">
         <button class="subtab active" type="button" data-subtab="sensors">センサ取付・座標方向<small>SENSORS</small></button>
         <button class="subtab" type="button" data-subtab="motion">自律走行の出力<small>DRIVE OUTPUT</small></button>
+        <button class="subtab" type="button" data-subtab="nav2">Nav2<small>NAV2</small></button>
       </nav>
       <div class="panel full subpane active" data-subpane="sensors">
         <div class="panel-title"><span class="code">CFG</span>/config センサ取付・座標方向（RQ-I070） <span class="dim" id="config-rev"></span></div>
@@ -225,6 +226,17 @@
         <div class="btnrow">
           <button class="op" id="mc-save" type="button">保存<small>SAVE</small></button>
           <span class="dim" id="mc-msg"></span>
+        </div>
+      </div>
+      <div class="panel full subpane" data-subpane="nav2">
+        <div class="panel-title"><span class="code">NAV2</span>Nav2 BT の recovery の回数（DEC-209、IFD-54） <span class="dim" id="nav2-rev"></span></div>
+        <div class="note">BT が失敗を返して一時停止（TR-07、計画の失敗）するまでの後退・再計画の回数。1 以上 PRM-18 以下の整数。UNKNOWN（空欄）なら PRM-18 を使う。</div>
+        <div class="note amber">保存した値は、次に gouda.sh start したときから使う（走行中・今の起動の中の次の走行には効かない：DEC-207 (a)）。</div>
+        <form id="nav2-form" class="cfg mc"></form>
+        <table class="kv" id="nav2-table"></table>
+        <div class="btnrow">
+          <button class="op" id="nav2-save" type="button">保存<small>SAVE</small></button>
+          <span class="dim" id="nav2-msg"></span>
         </div>
       </div>
     </section>

@@ -34603,7 +34603,7 @@ entities:
       の欄（接続中・切断中の経過時間・切断回数）と ESP32 の欄の表で、IFD-51 を常に表示する。ポップアップは使わない（車載 PC の画面では消しにくい：人の指摘）。 
       REV-118（DEC-181）：/config の中をタブに分け、センサの取付の設定に加えて「自律走行の出力」タブで不感帯の補償の最低倒し量としきい値（前進・後退・旋回）を入力・保存する。保存先は 
       <data_root>/config/motion_compensation.json（UNKNOWN は推測で埋めない）。起動時と保存のたびに IFD-52 
-      を発行し、DecisionEvent（event=settings）に残す。
+      を発行し、DecisionEvent（event=settings）に残す。 REV-132（DEC-209）：「Nav2」タブを足した。
     sensitivity:
       - operation
     requirement_refs:
@@ -34616,7 +34616,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-118
+    revision_ref: REV-132
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34643,6 +34643,9 @@ entities:
           gouda_map_creator の parameter を表示する。再変換の要求と結果を DecisionEvent で記録する
         - DecisionEvent の glim_exited（GLIM の異常終了）と、record/status の failures の増加（記録の失敗。last_failure 
           を示す）をポップアップで示す。接続時に受け取った保持分はきっかけにしない（DEC-072 と同じ規則。G-GLIM-EXIT、G-REC-ROSBAG-RESTART）
+        - /config の「Nav2」タブ（DEC-201・DEC-207 (a)・DEC-209）：Nav2 BT の recovery の回数を入力し IFD-54 に保存する（1 以上 PRM-18 
+          以下の整数）。保存した値、次の gouda.sh start で使う値とその出所（monitor の値か PRM-18 
+          か）、今の起動で使っている値（<data_root>/run/nav2/recovery.json）を表示する。保存を DecisionEvent に残す
       absorbs_module_refs:
         - M-002
         - M-003
@@ -34661,6 +34664,7 @@ entities:
         - IFD-41
         - IFD-28
         - IFD-52
+        - IFD-54
       subscribes_refs:
         - IFD-01
         - IFD-12
@@ -35239,7 +35243,8 @@ entities:
       - G-NAV2-FIRST-GOAL
     interpretation: 'REV-061（DEC-122）: Nav2 は lifecycle_manager の autostart を false にし、ND-03 が自律走行の開始（TR-05）で起動、手動走行への遷移（TR-11・TR-12）で停止する（IFD-36）。手動走行・地図作成では
       inactive（map→odom の持ち主がない）。 REV-119（DEC-183、A2 の (4)）：起動する server の名前（smoother_server・filter_mask_server・costmap_filter_info_server・lifecycle_manager_navigation
-      を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。'
+      を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。
+      REV-132（DEC-209）：recovery の回数を IFD-54 から読む。'
     sensitivity:
       - safety
       - operation
@@ -35251,7 +35256,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-124
+    revision_ref: REV-132
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35275,6 +35280,8 @@ entities:
         - velocity_smoother の後退の速度の上限（min_velocity の x）は PRM-78（車椅子の後退の上限、倒し切ったときの後退の速さ）。前進の上限は 
           PRM-66。後退の倒し量と速度の傾きは前進より小さく（DEC-197）、Nav2 が倒し切りより速い後退を指令しないようにする（DEC-198 案 
           A。回転と組み合わせたときの範囲は倒し量の円で決まり、Nav2 は知らない：reports/reverse_limit_study_2026-10-21.md）
+        - BT の recovery の回数は、起動のときに IFD-54（monitor で保存した値）があればその値、なければ PRM-18（DEC-207 (a)・DEC-209）。使った値と出所を 
+          <data_root>/run/nav2/recovery.json と起動の記録に残す。値の範囲は 1 以上 PRM-18 以下で、外れていれば PRM-18 を使い理由を残す
       absorbs_module_refs:
         - M-011
       active_in_mode_refs:
@@ -35296,6 +35303,7 @@ entities:
         - IFD-19
         - IFD-20
         - IFD-42
+        - IFD-54
       serves_refs:
         - IFD-13
       calls_refs: []
@@ -39886,13 +39894,14 @@ entities:
       - Q-06
     interpretation: 'REV-122: DEC-192・DEC-194 で 9999999 を承認。BT の recovery の回数と理由の 50 回ごとの記録は G-RECOVERY-COUNT（工程
       5-7）。 REV-126（DEC-201）：既定値は 9999999 のまま、gouda_monitor から変えられるようにする（次の走行の開始から反映、走行中の goal には効かない）。monitor の値との優先と反映の仕組みは
-      DEC-204（承認待ち）。 REV-127（DEC-204、転記）：Nav2 の設定と BT は gouda.sh start のときに一度だけ作る今の実装のまま。monitor での変更の作りは DEC-207（pending）。'
+      DEC-204（承認待ち）。 REV-127（DEC-204、転記）：Nav2 の設定と BT は gouda.sh start のときに一度だけ作る今の実装のまま。monitor での変更の作りは DEC-207（pending）。
+      REV-132（DEC-209）：monitor の「Nav2」タブ（IFD-54）に値があれば、次の gouda.sh start からその値が BT に入る。なければこの値。この値は monitor で受け付ける範囲の上限でもある。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I012
       - RQ-I018
-    revision_ref: REV-127
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-10
       value: 9999999
@@ -45168,31 +45177,32 @@ entities:
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      1.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: m
       stage: 自己位置推定（A3）
       purpose: IFD-21 の点群から、LiDAR の座標で一辺 2×この値の立方体の中の点を除く（車体と近すぎる点。pcl_ros CropBox negative）。評価の min_range（1 
         m、球）の代わり
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 1.0
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体）
       declaration: ros_parameter
@@ -45200,36 +45210,38 @@ entities:
       param_key: points_near_crop_m
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-80
     kind: parameter
     name: 点群の間引き：使う点の範囲（立方体の半分の幅）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      100.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 100.0
+      value_state: approved
       unit: m
       stage: 自己位置推定（A3）
       purpose: LiDAR の座標で一辺 2×この値の立方体の外の点を除く（pcl_ros CropBox）。評価の max_range（100 m、球）の代わり
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 100.0
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（評価は球、ここは立方体）
       declaration: ros_parameter
@@ -45237,36 +45249,38 @@ entities:
       param_key: points_far_crop_m
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-81
     kind: parameter
     name: 点群の間引き：格子の大きさ
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.5 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.5
+      value_state: approved
       unit: m
       stage: 自己位置推定（A3）
       purpose: NDT に渡す点群の VoxelGrid の格子（pcl_ros VoxelGrid）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない）を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.5
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない
       declaration: ros_parameter
@@ -45274,37 +45288,39 @@ entities:
       param_key: points_voxel_leaf_m
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-82
     kind: parameter
     name: EKF に渡す速度の分散（前後）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.04 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.04
+      value_state: approved
       unit: (m/s)^2
       stage: 自己位置推定（A3）
       purpose: IFD-25 の速度を EKF（ekf_localizer）の TwistWithCovarianceStamped にするときの linear.x の分散（共分散 
         [0]）。ekf_localizer は前後の速度と旋回の角速度だけを使う
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.04
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py）
       declaration: ros_parameter
@@ -45312,36 +45328,38 @@ entities:
       param_key: twist_vx_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-83
     kind: parameter
     name: EKF に渡す速度の分散（旋回）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.01 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.01
+      value_state: approved
       unit: (rad/s)^2
       stage: 自己位置推定（A3）
       purpose: 同上の angular.z の分散（共分散 [35]）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.01
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（twist_relay.py）
       declaration: ros_parameter
@@ -45349,36 +45367,38 @@ entities:
       param_key: twist_wz_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-84
     kind: parameter
     name: 初期姿勢の分散（水平の位置）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.25 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.25
+      value_state: approved
       unit: m^2
       stage: 自己位置推定（A3）
       purpose: 人の初期姿勢（IFD-34）を Monte Carlo の探索（ndt_align_srv）に渡すときの x・y の分散。探索の広さになる
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.25
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
       declaration: ros_parameter
@@ -45386,36 +45406,38 @@ entities:
       param_key: initial_xy_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-85
     kind: parameter
     name: 初期姿勢の分散（高さ）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.01 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.01
+      value_state: approved
       unit: m^2
       stage: 自己位置推定（A3）
       purpose: 同上の z の分散。初期の高さは地図作成のときの軌跡（GLIM の traj_imu）から求める
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.01
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
       declaration: ros_parameter
@@ -45423,36 +45445,38 @@ entities:
       param_key: initial_z_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-86
     kind: parameter
     name: 初期姿勢の分散（傾き）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.01 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.01
+      value_state: approved
       unit: rad^2
       stage: 自己位置推定（A3）
       purpose: 同上の roll・pitch の分散
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.01
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
       declaration: ros_parameter
@@ -45460,36 +45484,38 @@ entities:
       param_key: initial_roll_pitch_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-87
     kind: parameter
     name: 初期姿勢の分散（向き）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.07 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.07
+      value_state: approved
       unit: rad^2
       stage: 自己位置推定（A3）
       purpose: 同上の yaw の分散
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.07
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（a3_init.py）
       declaration: ros_parameter
@@ -45497,36 +45523,38 @@ entities:
       param_key: initial_yaw_variance
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-88
     kind: parameter
     name: 推定の状態（IFD-53）の発行の周期
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.1 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.1
+      value_state: approved
       unit: s
       stage: 自己位置推定（A3）
       purpose: localization/status を出し、判定（古さを含む）をやり直す周期
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（ソフト試験用。EKF の診断の周期（既定 10 
+        Hz）に合わせた。実車採用値ではない）を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.1
       software_trial_basis: ソフト試験用。EKF の診断の周期（既定 10 Hz）に合わせた。実車採用値ではない
       declaration: ros_parameter
@@ -45534,36 +45562,37 @@ entities:
       param_key: status_period_s
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-89
     kind: parameter
     name: 推定が古いとみなす時間
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      1.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: s
       stage: 自己位置推定（A3）
       purpose: EKF の姿勢・NDT の診断・IFD-25 の最後の受信からこの時間を超えたら「推定不能」（input_stale）。stale を正常にしない（IF-010）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（ソフト試験用。実車採用値ではない）を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 1.0
       software_trial_basis: ソフト試験用。実車採用値ではない
       declaration: ros_parameter
@@ -45571,36 +45600,38 @@ entities:
       param_key: stale_timeout_s
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-90
     kind: parameter
     name: NDT の照合の良さの下限（nearest_voxel_transformation_likelihood）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      2.3 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 2.3
+      value_state: approved
       unit: —
       stage: 自己位置推定（A3）
       purpose: NDT の診断の nearest_voxel_transformation_likelihood がこれより小さければ「推定不能」（ndt_score_low）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（autoware 1.9.0 
+        の既定値（評価でも同じ）から。実車採用値ではない（converged_param_nearest_voxel_transformation_likelihood））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 2.3
       software_trial_basis: autoware 1.9.0 
         の既定値（評価でも同じ）から。実車採用値ではない（converged_param_nearest_voxel_transformation_likelihood）
@@ -45609,37 +45640,39 @@ entities:
       param_key: ndt_nvtl_min
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-91
     kind: parameter
     name: EKF の姿勢の更新がない回数の上限
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      50 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 50
+      value_state: approved
       unit: 回
       stage: 自己位置推定（A3）
       purpose: EKF の診断の pose_no_update_count（NDT 
         の姿勢を使えなかった回数。マハラノビス距離での棄却を含む）がこれを超えたら「推定不能」（ekf_pose_not_updated）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（autoware 1.9.0 
+        の既定値（評価でも同じ）から。実車採用値ではない（pose_no_update_count_threshold_warn））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 50
       software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（pose_no_update_count_threshold_warn）
       declaration: ros_parameter
@@ -45647,36 +45680,38 @@ entities:
       param_key: ekf_pose_no_update_max
       value_type: int
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-92
     kind: parameter
     name: EKF の位置の標準偏差の上限
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.5 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-07
-      value:
-      value_state: unresolved
+      value: 0.5
+      value_state: approved
       unit: m
       stage: 自己位置推定（A3）
       purpose: EKF の姿勢（ekf_pose_with_covariance）の x・y の共分散の大きい方の固有値の平方根がこれを超えたら「推定不能」（ekf_covariance_large）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（autoware 1.9.0 
+        の既定値（評価でも同じ）から。実車採用値ではない（error_ellipse_size 1.5 m ÷ ellipse_scale 3））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.5
       software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（error_ellipse_size 1.5 m ÷ ellipse_scale 
         3）
@@ -45685,38 +45720,39 @@ entities:
       param_key: ekf_xy_stddev_max_m
       value_type: double
       apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-208
   - id: PRM-93
     kind: parameter
     name: 推定の状態が届かないとみなす時間（mode_manager）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      1.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-03
-      value:
-      value_state: unresolved
+      value: 1.0
+      value_state: approved
       unit: s
       stage: 自己位置推定（A3）
       purpose: 
         自律走行の間、localization/status（IFD-53）がこの時間届かなければ推定不能として一時停止する（TR-07、estimator_unavailable）。判定はこの周期の timer
         で、検出までの時間はこの値から 2 倍の間
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（ソフト試験用。実車採用値ではない）を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 1.0
       software_trial_basis: ソフト試験用。実車採用値ではない
       declaration: ros_parameter
@@ -45724,36 +45760,38 @@ entities:
       param_key: estimator_status_timeout_s
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-208
   - id: PRM-94
     kind: parameter
     name: 3D 点群地図の格子（変換）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md
+    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
+      0.2 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I009
       - RQ-I084
-    revision_ref: REV-128
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 0.2
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: 自己位置推定（A3）用の 20 m 格子の PCD を作るときの間引きの格子（格子ごとに最初の点を残す）。pointmap.pcd（全点）は変えない
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（make_map_pcd.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.2
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（make_map_pcd.py）
       declaration: ros_parameter
@@ -45761,38 +45799,39 @@ entities:
       param_key: pointmap_voxel_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-208
   - id: PRM-95
     kind: parameter
     name: 3D 点群地図の分割の大きさ（変換）
     source_refs:
       - SRC-I014
       - SRC-I017
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs: []
     issue_refs:
       - Q-02
     interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-129：整数の m 
-      に限ることを足した（第99便の VM の確認で見つかった実装の誤りの修正に合わせた）。
+      に限ることを足した（第99便の VM の確認で見つかった実装の誤りの修正に合わせた）。 REV-132：DEC-208 で 20.0 を承認。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I009
       - RQ-I084
-    revision_ref: REV-129
+    revision_ref: REV-132
     parameter:
       owner_ref: ND-05
-      value:
-      value_state: unresolved
+      value: 20.0
+      value_state: approved
       unit: m
       stage: 地図作成と変換
       purpose: pointcloud_map/ の正方形の格子の一辺（autoware_map_loader の metadata の x_resolution・y_resolution）。整数の m 
         に限る（map_loader が格子の左下の座標を整数で読む：VM 2026-10-21、yaml-cpp の bad conversion。それ以外は変換が理由を付けて拒否する）
-      measurement: 値は人の承認（DEC-208）。推奨は試行の値（評価 FILE-LOCALIZATION-EVAL で使った値、または上流 1.9.0 の既定値）。実走（VM の rosbag 
-        の再生と実車）で確かめる
-      decision_deadline: ND-07 で自律走行を始める前（DEC-208）
+      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 
+        で示した推奨の値（評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（tile_pcd.py））を採った。測定値ではない。実走で確かめる
+      decision_deadline: 決定済み（DEC-208）
       software_trial_value: 20.0
       software_trial_basis: 評価（FILE-LOCALIZATION-EVAL、run_eval_A3.sh）で使った値。実車採用値ではない（tile_pcd.py）
       declaration: ros_parameter
@@ -45800,6 +45839,7 @@ entities:
       param_key: pointmap_tile_m
       value_type: double
       apply_timing: launch
+    approval_decision_ref: DEC-208
   - id: IFD-53
     kind: designed_interface
     name: localization/status（推定の状態。ND-07 → mode_manager・記録）
@@ -46059,6 +46099,88 @@ entities:
         の原図、地図データベースには登録しない）で帯の地図と今の分類の地図を並べる。VM の Nav2（試験の基盤）で帯の地図を読み込み、帯の中の waypoint に着くこと
       observe: map_swept_corridor.pgm・.yaml、swept_corridor.json、Nav2 の結果
       expected: 空きは帯の中だけ、ほかは不明。跳びの所は空きにならない。
+  - id: IFD-54
+    kind: designed_interface
+    name: config/nav2_recovery（Nav2 BT の recovery の回数。monitor の /config「Nav2」タブ → Nav2 の起動）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - PRM-18
+      - IFD-52
+    issue_refs:
+      - G-RECOVERY-COUNT
+    interpretation: REV-132（DEC-201・DEC-207 (a)・DEC-209）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I012
+      - RQ-I070
+    revision_ref: REV-132
+    designed_interface:
+      transport: file
+      name: <data_root>/config/nav2_recovery.json（monitor の /config「Nav2」タブ → gouda_nav2.launch.py）
+      message_type: "JSON {values: {recovery_number_of_retries: 整数 or 'UNKNOWN'}, config_revision, updated_at}（SensorConfig
+        と同じ形）"
+      standard_type: false
+      custom_type_reason: monitor の /config の他のタブ（IFD-26・IFD-52）と同じ保存の形にそろえる。
+      purpose: configuration
+      owner_ref: ND-02
+      publisher_refs:
+        - ND-02
+      consumer_refs:
+        - ND-10
+      unit: 回
+      frame:
+      time_semantics: 人が「Nav2」タブで保存したときに書く（1 以上 PRM-18 以下の整数。それ以外は保存を拒否）。gouda.sh start のときに 
+        gouda_nav2.launch.py が読み、値があればその回数で BT を作る（なければ・読めない・範囲外なら PRM-18。読み方と出所は 
+        <data_root>/run/nav2/recovery.json と起動の記録に残す）。走行中・同じ起動の中の次の走行には効かない（DEC-201・DEC-207 (a)）
+      qos:
+        reliability: not_applicable
+        durability: not_applicable
+        history_depth:
+      version_dependency:
+        status: none
+        evidence: []
+        note: ''
+      legacy_refs: []
+  - id: TS-45
+    kind: test
+    name: recovery の回数の monitor での変更（Nav2 タブ）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - PRM-18
+      - ND-02
+      - ND-10
+    issue_refs:
+      - G-RECOVERY-COUNT
+    interpretation: REV-132（DEC-209）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I012
+      - RQ-I070
+    revision_ref: REV-132
+    test:
+      execution_status: 未実行
+      stage: 自律走行
+      procedure: 単体：monitor_core（1 以上 PRM-18 以下の整数だけを受け付け、それ以外は拒否、保存と再読込）、nav2_config（設定のファイルに値があればその回数で BT 
+        を作る、なければ・範囲外・読めなければ PRM-18、出所の記録）。VM：monitor の API で保存 → gouda.sh start と同じ launch の起動で BT の 
+        number_of_retries がその値になること
+      observe: 
+        <data_root>/config/nav2_recovery.json、<data_root>/run/nav2/navigate_through_poses.xml・recovery.json
+      expected: 保存した値は次の起動から BT に入る。値がない・範囲外なら PRM-18。
 migration:
   baseline_definition_count: 198
   id_map:
@@ -58432,14 +58554,14 @@ decisions:
     disposition: answered
   - id: DEC-208
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【承認】ND-07（A3）と地図の変換の新しい設定値 PRM-79〜95 の値。推奨はすべて試行の値（評価で使った値、または上流 1.9.0 の既定値）：PRM-79 1.0 m、80 100
       m、81 0.5 m、82 0.04、83 0.01、84 0.25、85 0.01、86 0.01、87 0.07、88 0.1 s、89 1.0 s、90 2.3、91 50 回、92 0.5 m、93 
       1.0 s、94 0.2 m、95 20 m
-    answer_verbatim: ''
+    answer_verbatim: "「DEC-208は全て既定値で良い。\nDEC-209は承認する。」\n"
     affected_refs:
       - PRM-79
       - PRM-80
@@ -58458,29 +58580,50 @@ decisions:
       - PRM-93
       - PRM-94
       - PRM-95
-    resulting_refs: []
-    note: 根拠：評価（FILE-LOCALIZATION-EVAL、localization_selection §6.1）と上流 1.9.0 の param ファイル。未確定の間、実車（trial なし）では
-      ND-07 が configure を失敗にし、自律走行を始めない（RQ-I076）。VM の試験は trial で動く。決まらない場合に止まる作業：gouda.sh start からの A3 
-      での自律走行（試験は止まらない）。
-    disposition: open_human
+    resulting_refs:
+      - PRM-79
+      - PRM-80
+      - PRM-81
+      - PRM-82
+      - PRM-83
+      - PRM-84
+      - PRM-85
+      - PRM-86
+      - PRM-87
+      - PRM-88
+      - PRM-89
+      - PRM-90
+      - PRM-91
+      - PRM-92
+      - PRM-93
+      - PRM-94
+      - PRM-95
+    note: "根拠：評価（FILE-LOCALIZATION-EVAL、localization_selection §6.1）と上流 1.9.0 の param ファイル。未確定の間、実車（trial なし）では
+      ND-07 が configure を失敗にし、自律走行を始めない（RQ-I076）。VM の試験は trial で動く。決まらない場合に止まる作業：gouda.sh start からの A3 での自律走行（試験は止まらない）。
+      REV-132（第102便）：人の回答（このメインのチャット）。「既定値」は DEC-208 で示した推奨の値（評価で使った値か上流 1.9.0 の既定値。試行の値と同じ）と読んだ。人の直前の発言（途中で中断、原文「DEC-208は全て既定値で良い。\n\
+      DEC-28は承認する」）は、続く発言で DEC-209 に言い直された。"
+    disposition: answered
   - id: DEC-209
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-21'
-    answered_on:
+    answered_on: '2026-10-21'
     channel: chat
     question: 【許可】段 5 の実装：DEC-207 (a) のとおり、monitor の /config に recovery の回数のタブ（DEC-204 の推奨：新しいタブ「Nav2」、範囲 
       1〜9999999、保存先 <data_root>/config/nav2_recovery.json）を作り、gouda.sh start のときに monitor の値（なければ PRM-18）で BT 
       を作る
-    answer_verbatim: ''
+    answer_verbatim: "「DEC-208は全て既定値で良い。\nDEC-209は承認する。」\n"
     affected_refs:
       - PRM-18
       - ND-02
       - ND-10
       - DEC-207
-    resulting_refs: []
-    note: 反映は次の gouda.sh start（DEC-207 (a)、人の回答）。決まらない場合に止まる作業：段 5 だけ。
-    disposition: open_human
+    resulting_refs:
+      - IFD-54
+      - TS-45
+    note: 反映は次の gouda.sh start（DEC-207 (a)、人の回答）。決まらない場合に止まる作業：段 5 だけ。 REV-132（第102便）：人の回答（このメインのチャット）。段 5 
+      を実装する（IFD-54、TS-45）。受け付ける範囲の上限は PRM-18（今は 9999999）を読む（同じ数を二か所に書かないため）。
+    disposition: answered
   - id: DEC-210
     kind: approval
     status: answered
@@ -61552,6 +61695,41 @@ revisions:
       - TS-44
     modified_entity_ids:
       - ND-05
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-132
+    date: '2026-10-21'
+    summary: 人の回答（このチャット、原文）：DEC-208 は全て既定値（PRM-79〜95 を推奨の値で承認）、DEC-209 は承認（段 5：monitor の /config「Nav2」タブで 
+      recovery の回数を変え、次の gouda.sh start で BT に入れる。IFD-54、TS-45）。
+    basis_refs:
+      - DEC-208
+      - DEC-209
+      - DEC-207
+    added_entity_ids:
+      - IFD-54
+      - TS-45
+    modified_entity_ids:
+      - ND-02
+      - ND-10
+      - PRM-18
+      - PRM-79
+      - PRM-80
+      - PRM-81
+      - PRM-82
+      - PRM-83
+      - PRM-84
+      - PRM-85
+      - PRM-86
+      - PRM-87
+      - PRM-88
+      - PRM-89
+      - PRM-90
+      - PRM-91
+      - PRM-92
+      - PRM-93
+      - PRM-94
+      - PRM-95
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

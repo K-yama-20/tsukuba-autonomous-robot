@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from gouda_core.monitor_core import MOTION_COMPENSATION_FIELDS, MonitorCore, SensorConfig, freshness, Received, CONFIG_FIELDS  # noqa: E402
+from gouda_core.monitor_core import MOTION_COMPENSATION_FIELDS, NAV2_RECOVERY_FIELDS, MonitorCore, SensorConfig, freshness, Received, CONFIG_FIELDS  # noqa: E402
 from gouda_core import monitor_core  # noqa: E402
 
 
@@ -137,6 +137,29 @@ class MotionCompensationConfigTests(unittest.TestCase):
             p = Path(d) / 'mc.json'; p.write_text('{"values": {"forward_min": 2, "turn_min": 0.3}, "config_revision": 7}')
             c = SensorConfig(p, MOTION_COMPENSATION_FIELDS)
             self.assertEqual(c.values['forward_min'], 'UNKNOWN', 'out of range on disk -> UNKNOWN'); self.assertEqual(c.values['turn_min'], 0.3)
+
+
+class Nav2RecoveryConfigTests(unittest.TestCase):
+    """/config 「Nav2」 (REV-132, DEC-209, IFD-54, TS-45): a whole number from 1 to the upper limit (PRM-18); nothing without a limit."""
+    KEY = 'recovery_number_of_retries'
+
+    def test_whole_numbers_within_the_limits_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'nav2_recovery.json'
+            c = SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            for bad in ('0', '-3', '10000000', '2.5', 'many', 'nan'):
+                ok, msg = c.update({self.KEY: bad}, 1.0); self.assertFalse(ok, bad)
+            self.assertEqual(c.config_revision, 0)
+            for good, want in (('1', 1), ('9999999', 9999999), ('12.0', 12)):
+                ok, msg = c.update({self.KEY: good}, 2.0); self.assertTrue(ok, msg); self.assertEqual(c.values[self.KEY], want)
+            c2 = SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            self.assertEqual((c2.values[self.KEY], c2.config_revision), (12, 3))
+            ok, msg = c.update({self.KEY: ''}, 3.0); self.assertTrue(ok, msg); self.assertEqual(c.values[self.KEY], 'UNKNOWN')
+
+    def test_nothing_is_saved_without_the_upper_limit(self):
+        with tempfile.TemporaryDirectory() as d:
+            c = SensorConfig(Path(d) / 'n.json', NAV2_RECOVERY_FIELDS)   # PRM-18 unresolved
+            ok, msg = c.update({self.KEY: '5'}, 1.0); self.assertFalse(ok); self.assertIn('PRM-18', msg)
 
 
 if __name__ == '__main__': unittest.main()

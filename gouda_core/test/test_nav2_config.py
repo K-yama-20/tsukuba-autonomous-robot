@@ -7,6 +7,7 @@ SpeedFilter; the BT gets PRM-11 / PRM-18 and nothing else; and with the vehicle 
 vehicle value is decided: a copy of the generated files with one vehicle value removed builds nothing (Nav2 is not started rather
 than run with general values, intent.md:85), the real generated files (all decided since REV-122) build (REV-125, DEC-199)."""
 import copy
+import json
 import os
 import shutil
 import sys
@@ -136,6 +137,29 @@ class Nav2ConfigTests(unittest.TestCase):
             self.assertEqual(r['missing'], [])
             with open(r['params']) as f: doc = yaml.safe_load(f)
             self.assertEqual(doc['bt_navigator']['ros__parameters']['default_nav_through_poses_bt_xml'], r['bt'])
+
+    def test_recovery_count_from_the_monitor(self):
+        """REV-132 (DEC-207 (a), DEC-209, TS-45): a valid count saved in the monitor goes into the BT; otherwise PRM-18, with the reason."""
+        prm18 = self.values[('bt_params', 'recovery_number_of_retries')]
+        def bt_count(r):
+            return ET.parse(r['bt']).getroot().find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']").get('number_of_retries')
+        with tempfile.TemporaryDirectory() as d:
+            cfg = os.path.join(d, 'config'); os.makedirs(cfg)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'a'), cfg)
+            self.assertEqual(bt_count(r), str(prm18)); self.assertIn('does not exist', r['recovery']['note'])
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': {'recovery_number_of_retries': 3}, 'config_revision': 4}, f)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'b'), cfg)
+            self.assertEqual(bt_count(r), '3'); self.assertIn('config_revision 4', r['recovery']['source'])
+            with open(os.path.join(d, 'b', 'recovery.json')) as f: self.assertEqual(json.load(f)['value'], 3)
+            for bad in (0, prm18 + 1, 2.5, True, 'UNKNOWN', '7'):
+                with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                    json.dump({'values': {'recovery_number_of_retries': bad}}, f)
+                r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'c'), cfg)
+                self.assertEqual(bt_count(r), str(prm18), repr(bad)); self.assertTrue(r['recovery']['note'], repr(bad))
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f: f.write('{broken')
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'e'), cfg)
+            self.assertEqual(bt_count(r), str(prm18)); self.assertIn('could not be read', r['recovery']['note'])
 
 
 if __name__ == '__main__':
