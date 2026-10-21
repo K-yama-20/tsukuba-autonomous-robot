@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from gouda_core import autonomy_core as ac  # noqa: E402
+from gouda_core import keepout_mask as km  # noqa: E402
 from gouda_core import mode_core as mc  # noqa: E402
 from gouda_core import speed_mask as sm  # noqa: E402
 from gouda_core import waypoints as wp  # noqa: E402
@@ -22,7 +23,7 @@ from gouda_core import waypoints as wp  # noqa: E402
 MAP_HASH = 'm' * 64
 
 
-def make_data(root: Path):
+def make_data(root: Path, keepout: bool = True):
     """A converted map (manifest + map.yaml) and one waypoint set with its mask, as stages 5-3 / 5-4 store them."""
     mdir = root / 'maps' / 'origin1' / 'converted' / '001'; mdir.mkdir(parents=True)
     (mdir / 'manifest.json').write_text(json.dumps({'revision': 1, 'content_hash': MAP_HASH, 'created_at': time.time()}))
@@ -33,7 +34,9 @@ def make_data(root: Path):
     g = sm.MapGeometry(resolution=0.5, origin_x=-5.0, origin_y=-5.0, width=40, height=40)
     res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 0.6, 0.02)
     files = sm.write_mask(res, g, tmp, 'speed_filter_mask', 'costmap_filter_info')
-    ok, _, man = db.publish(sid, rev, tmp, ws, files, [], {})
+    if keepout:   # REV-137: a waypoint set carries the KeepoutFilter mask of its drawn areas (none here)
+        kfiles, krec = km.write(km.rasterize([], g), g, tmp, '/keepout_filter_mask', '/keepout_costmap_filter_info'); files.update(kfiles)
+    ok, _, man = db.publish(sid, rev, tmp, ws, files, [], {'keepout': krec} if keepout else {})
     assert ok
     return {'waypoint_set_id': sid, 'waypoint_set_revision': str(rev), 'waypoint_set_hash': man['content_hash'],
             'map_id': 'origin1', 'map_revision': '1', 'map_hash': MAP_HASH}
@@ -48,6 +51,13 @@ class MissionTests(unittest.TestCase):
             self.assertEqual(len(m.waypoints), 3); self.assertTrue(m.map_yaml.endswith('converted/001/map.yaml'))
             self.assertEqual(m.filter_base, 0.0); self.assertAlmostEqual(m.filter_multiplier, 0.02)
             self.assertTrue(m.map_directory.endswith('converted/001'))
+            self.assertTrue(m.keepout_yaml.endswith('keepout_mask.yaml')); self.assertEqual(len(m.keepout_sha256), 64); self.assertEqual(m.keepout_size, (40, 40))
+
+    def test_a_set_without_keepout_mask_is_refused(self):
+        """REV-137 (DEC-221, TR-05): a waypoint set saved before the drawn areas has no keepout mask: save it again."""
+        with tempfile.TemporaryDirectory() as d:
+            m, why = ac.resolve_mission(Path(d), make_data(Path(d), keepout=False))
+            self.assertIsNone(m); self.assertIn('keepout', why)
 
     def test_localization_map_needs_tiles_and_trajectory(self):
         """REV-128 (TS-41): ND-07 (A3) starts only on a map converted with the point-map tiles and the mapping trajectory."""

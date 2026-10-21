@@ -124,6 +124,8 @@
           <div class="panel-title" style="margin-top:6px"><span class="code">PREVIEW</span>変換後地図 <span class="dim" id="prev-title">未選択</span></div>
           <div class="prev-views" id="prev-views">
             <button class="view sel" type="button" data-view="map.png">2D 地図<small>NAV2</small></button>
+            <button class="view" type="button" data-view="corridor_overlay.png">帯と点群<small>重ね図</small></button>
+            <button class="view" type="button" data-view="ground_band.png">分類の地図<small>表示のみ</small></button>
             <button class="view" type="button" data-view="height.png">高さ<small>3D 点群地図を上から</small></button>
             <button class="view" type="button" data-view="slope.png">傾き<small>表示のみ</small></button>
             <button class="view" type="button" data-view="step.png">段差<small>表示のみ</small></button>
@@ -145,8 +147,14 @@
             <button class="op" id="wp-undo" type="button">最後の点を削除<small>UNDO</small></button>
             <button class="op" id="wp-clear" type="button">全消去<small>CLEAR</small></button>
           </div>
+          <div class="btnrow">
+            <label class="dim">クリックで置くもの <select id="wp-place"><option value="waypoint">waypoint</option><option value="keepout">走行禁止の頂点</option><option value="allowed">走行可の頂点</option></select></label>
+            <button class="op" id="wp-close-area" type="button">範囲を閉じる<small>CLOSE AREA</small></button>
+          </div>
           <div class="wp-canvas-wrap"><canvas id="wp-canvas" width="800" height="600"></canvas></div>
-          <div class="note" id="wp-canvas-note">地図上をクリックすると waypoint を追加する（map frame、REP-103）。通過・到達の判定は Nav2 が行う（RQ-I011）。</div>
+          <div class="note" id="wp-canvas-note">地図上をクリックすると waypoint を追加する（map frame、REP-103）。通過・到達の判定は Nav2 が行う（RQ-I011）。背景は帯と 3D 点群の重ね図（青: 帯、灰の濃さ: 点の数。ない地図では 2D 地図）。</div>
+          <div class="note">走行禁止（赤）・走行可（緑）の範囲：「クリックで置くもの」を選んで頂点を順にクリックし、「範囲を閉じる」で確定する（3 点以上）。禁止は帯の中でも通れない格子になり、走行可は帯の外の不明を空きにする。禁止の範囲は広げずにマスクにするので、車体のはみ出し（横 0.30 m・前 0.55 m）の分の余裕を取って描く（DEC-223）。waypoint セットと一緒に保存する（DEC-221）。</div>
+          <table class="kv" id="wp-areas"></table>
         </div>
         <div class="panel" id="wp-edit-panel">
           <div class="panel-title"><span class="code">SECTIONS</span>区間 i→i+1 の速度上限（m/s）</div>
@@ -229,8 +237,8 @@
         </div>
       </div>
       <div class="panel full subpane" data-subpane="nav2">
-        <div class="panel-title"><span class="code">NAV2</span>Nav2 BT の recovery の回数（DEC-209、IFD-54） <span class="dim" id="nav2-rev"></span></div>
-        <div class="note">BT が失敗を返して一時停止（TR-07、計画の失敗）するまでの後退・再計画の回数。1 以上 PRM-18 以下の整数。UNKNOWN（空欄）なら PRM-18 を使う。</div>
+        <div class="panel-title"><span class="code">NAV2</span>Nav2 の設定（DEC-209・DEC-217、IFD-54） <span class="dim" id="nav2-rev"></span></div>
+        <div class="note">recovery の回数：BT が失敗を返して一時停止（TR-07、計画の失敗）するまでの後退・再計画の回数。1 以上 PRM-18 以下の整数。inflate_around_unknown：true か false。どちらも UNKNOWN（空欄）なら正本の値（PRM-18・PRM-98）を使う。</div>
         <div class="note amber">保存した値は、次に gouda.sh start したときから使う（走行中・今の起動の中の次の走行には効かない：DEC-207 (a)）。</div>
         <form id="nav2-form" class="cfg mc"></form>
         <table class="kv" id="nav2-table"></table>

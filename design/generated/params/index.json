@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "ed2cf7fca054b22d0b695019f8432a2718c6c3bdb00ed0c42470e7972f746214",
+  "model_entities_sha256": "4ff16916802c498fa37f01eaf07d06bf59498fcd9395c076dfad06a82bbe85a3",
   "parameters": [
     {
       "id": "PRM-54",
@@ -489,8 +489,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 1.0,
       "unit": "m"
     },
     {
@@ -501,8 +501,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "double",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 5.1,
       "unit": "m"
     },
     {
@@ -698,6 +698,18 @@
       "unit": "s"
     },
     {
+      "id": "PRM-99",
+      "file": "gouda_monitor.yaml",
+      "key": "keepout_gap_warn_m",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 1.0,
+      "unit": "m"
+    },
+    {
       "id": "PRM-08",
       "file": "gouda_motion_controller.yaml",
       "key": "cmd_vel_timeout_s",
@@ -850,7 +862,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 0.5,
+      "value": 1.0,
       "unit": "m"
     },
     {
@@ -864,6 +876,18 @@
       "value_state": "approved",
       "value": 2.0,
       "unit": "rad/s²"
+    },
+    {
+      "id": "PRM-98",
+      "file": "gouda_nav2.yaml",
+      "key": "inflate_around_unknown",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "bool",
+      "value_state": "approved",
+      "value": false,
+      "unit": null
     },
     {
       "id": "PRM-59",

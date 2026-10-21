@@ -42,6 +42,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from gouda_core.monitor_core import MonitorCore, SensorConfig, MOTION_COMPENSATION_FIELDS, NAV2_RECOVERY_FIELDS, UNKNOWN
 from gouda_core import nav2_config
+from gouda_core import keepout_mask
 from gouda_core import monitor_core
 from gouda_core.monitor_server import MonitorServer
 from gouda_core.map_database import MapDatabase
@@ -99,6 +100,7 @@ class MonitorNode(Node):
             self.declare_parameter(key, Parameter.Type.DOUBLE)
         self.declare_parameter('speed_mask_half_width_m', Parameter.Type.DOUBLE)   # PRM-19 (unresolved: 実機調整; a save request may carry an explicit value)
         self.declare_parameter('speed_mask_step_mps', Parameter.Type.DOUBLE)       # PRM-20 (unresolved: depends on Q-06)
+        self.declare_parameter('keepout_gap_warn_m', Parameter.Type.DOUBLE)        # PRM-99 (unresolved: DEC-229; trial file in VM tests)
         self.ui = {}
         for key in UI_PARAMS:
             v = optional_double(self, key)
@@ -113,8 +115,9 @@ class MonitorNode(Node):
         # /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the recovery count read by Nav2 at the next gouda.sh start. Its range is 1 to
         # PRM-18 (read from the generated bt_params.yaml; while PRM-18 is unresolved nothing can be saved).
         self.declare_parameter('params_dir', ''); self.declare_parameter('trial', False)
-        bt = nav2_config.read_bt_params(self.get_parameter('params_dir').get_parameter_value().string_value,
-                                        self.get_parameter('trial').get_parameter_value().bool_value)
+        self.params_dir = self.get_parameter('params_dir').get_parameter_value().string_value
+        self.trial = self.get_parameter('trial').get_parameter_value().bool_value
+        bt = nav2_config.read_bt_params(self.params_dir, self.trial)
         self.prm18 = bt.get(nav2_config.RECOVERY_KEY)
         self.config_dir, self.run_dir = data_root / 'config', data_root / 'run'
         self.nav2_recovery = SensorConfig(self.config_dir / nav2_config.RECOVERY_CONFIG, NAV2_RECOVERY_FIELDS,
@@ -376,14 +379,40 @@ class MonitorNode(Node):
         try:
             res = speed_mask.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, geom, hw, st)
             files = speed_mask.write_mask(res, geom, tmp, 'speed_filter_mask', 'costmap_filter_info')
+            # REV-137 (DEC-220..223): the drawn areas as a KeepoutFilter mask on the same grid (always written; no area -> all -1)
+            kfiles, keepout = keepout_mask.write(keepout_mask.rasterize(ws.areas, geom), geom, tmp, nav2_config.KEEPOUT_MASK_TOPIC, nav2_config.KEEPOUT_INFO_TOPIC)
+            files.update(kfiles)
         except Exception as e:
             return {'ok': False, 'message': self.routes.abort(tmp, str(e))}
         gen = {'half_width_m': hw, 'step_mps': st, 'source': 'request' if body.get('half_width_m') not in (None, '') else 'parameter', 'painted_cells': res.painted_cells, 'overlap_cells': res.overlap_cells, 'sections_clipped': res.sections_clipped}
-        ok, msg, manifest = self.routes.publish(set_id, rev, tmp, ws, files, res.warnings, gen)
+        warnings = list(res.warnings)
+        gen['keepout'] = dict(keepout, areas=len(ws.areas))
+        warnings += [{'kind': 'waypoint_in_keepout', 'waypoint': i, 'x': ws.waypoints[i].x, 'y': ws.waypoints[i].y,
+                      'message': f'waypoint {i} は走行禁止の範囲の中（Nav2 は経路を引かない：保存はする）'} for i in keepout_mask.waypoints_in_keepout(ws.areas, [(w.x, w.y) for w in ws.waypoints])]
+        # DEC-227 (REV-140): keepout areas are inflated like walls in the global costmap, so a narrow gap between two of them may not
+        # let the vehicle through. Warned about, never refused (as DEC-215). Without PRM-99 (DEC-229) the check is not made and says so.
+        gap_m = optional_double(self, 'keepout_gap_warn_m')
+        if sum(a['kind'] == keepout_mask.KEEPOUT for a in ws.areas) >= 2:
+            if gap_m is None:
+                warnings.append({'kind': 'keepout_gap_unchecked', 'message': '走行禁止の範囲どうしの隙間を確かめていない（しきい値 PRM-99 が未確定：DEC-229）'})
+            else:
+                gaps = keepout_mask.narrow_gaps(ws.areas, gap_m)
+                warnings += [dict(g, kind='keepout_gap_narrow', message=f"走行禁止の範囲 {g['areas'][0]} と {g['areas'][1]} の隙間が {g['gap_m']:.2f} m（{gap_m} m 未満：PRM-99）。"
+                                  'global costmap では範囲が壁と同じに膨らむので、車体が通れないことがある（保存はする）') for g in gaps]
+                gen['keepout']['gap_warn_m'] = gap_m
+        try:   # DEC-215: a waypoint outside the swept corridor (map.yaml free cells) is warned about and saved (never refused)
+            mdir = self.map_db.root / ws.map_origin_id / 'converted' / f'{ws.map_revision:03d}'
+            outside = map_convert.outside_free(mdir, [(w.x, w.y) for w in ws.waypoints])
+            warnings += [{'kind': 'waypoint_outside_corridor', 'waypoint': i, 'x': x, 'y': y,
+                          'message': f'waypoint {i} ({x:.2f}, {y:.2f}) は 2D 地図の空きの格子の外（帯の外）。Nav2 は高い費用でしか経路を引かない（DEC-215：保存はする）'} for i, x, y in outside]
+            gen['waypoints_outside_free'] = [i for i, _, _ in outside]
+        except (OSError, ValueError, KeyError, IndexError) as e:
+            warnings.append({'kind': 'waypoint_check_failed', 'message': f'waypoint を 2D 地図と照らし合わせられなかった（{type(e).__name__}: {e}）'})
+        ok, msg, manifest = self.routes.publish(set_id, rev, tmp, ws, files, warnings, gen)
         with self._lock:
             self.core.on_command_result('waypoints_save', ok, msg)
         self.server.notify(self.core.connection_revision)
-        return {'ok': ok, 'message': msg, 'set_id': set_id, 'revision': rev, 'warnings': res.warnings, 'manifest': manifest}
+        return {'ok': ok, 'message': msg, 'set_id': set_id, 'revision': rev, 'warnings': warnings, 'manifest': manifest}
 
     def _config_update(self, body: dict) -> dict:
         with self._lock:
@@ -414,10 +443,15 @@ class MonitorNode(Node):
             snap = self.nav2_recovery.snapshot()
         snap['prm18'] = self.prm18
         snap['next_start'] = nav2_config.recovery_from_config(str(self.config_dir), self.prm18) if self.prm18 else None
+        bt = nav2_config.read_values(self.params_dir, self.trial)
+        prm98 = bt.get(('gouda_nav2', nav2_config.INFLATE_KEY))
+        snap['prm98'] = prm98
+        snap['next_start_inflate'] = nav2_config.inflate_from_config(str(self.config_dir), prm98) if prm98 is not None else None
         try:   # what the running Nav2 was built with (written at this gouda.sh start)
-            snap['in_use'] = json.loads((self.run_dir / 'nav2' / 'recovery.json').read_text(encoding='utf-8'))
+            o = json.loads((self.run_dir / 'nav2' / 'overrides.json').read_text(encoding='utf-8'))
+            snap['in_use'], snap['in_use_inflate'] = o.get(nav2_config.RECOVERY_KEY), o.get(nav2_config.INFLATE_KEY)
         except (OSError, ValueError):
-            snap['in_use'] = None
+            snap['in_use'], snap['in_use_inflate'] = None, None
         return snap
 
     def _save_nav2_recovery(self, rest, body):

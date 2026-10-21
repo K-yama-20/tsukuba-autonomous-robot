@@ -7755,8 +7755,8 @@
   },
   "design_maturity": {
     "未設計": 415,
-    "案": 432,
-    "承認済み": 83
+    "案": 433,
+    "承認済み": 87
   },
   "revisions": [
     {
@@ -9068,6 +9068,106 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-133",
+      "date": "2026-10-21",
+      "basis_refs": 8,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-134",
+      "date": "2026-10-21",
+      "basis_refs": 8,
+      "added_entity_ids": 2,
+      "modified_entity_ids": 7,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-135",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-136",
+      "date": "2026-10-21",
+      "basis_refs": 5,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-137",
+      "date": "2026-10-21",
+      "basis_refs": 5,
+      "added_entity_ids": 2,
+      "modified_entity_ids": 5,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-138",
+      "date": "2026-10-21",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-139",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-140",
+      "date": "2026-10-21",
+      "basis_refs": 2,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-141",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-142",
+      "date": "2026-10-21",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -9319,11 +9419,11 @@
     }
   ],
   "decisions": {
-    "count": 213,
+    "count": 227,
     "by_status": {
-      "answered": 134,
+      "answered": 150,
       "recorded": 56,
-      "pending": 23
+      "pending": 21
     },
     "pending": [
       "DEC-021",
@@ -9344,11 +9444,9 @@
       "DEC-184",
       "DEC-189",
       "DEC-190",
-      "DEC-211",
-      "DEC-212",
-      "DEC-213",
-      "DEC-214",
-      "DEC-215"
+      "DEC-219",
+      "DEC-226",
+      "DEC-229"
     ]
   },
   "vehicle_verification": {
@@ -9356,7 +9454,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 930,
+    "entity_count": 935,
     "source_count": 505,
     "id_map_count": 202,
     "legacy_198_count": 198,

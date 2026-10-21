@@ -16,8 +16,12 @@ ground is not at z=0 and may slope. The ground is estimated from the points them
   - a point's ground is the bilinear interpolation of the cell centres.
 
 Products of one conversion (all from the same points and settings; RQ-I008/RQ-I009):
-  map.yaml + map.pgm     Nav2 2D occupancy grid (PRM-33 resolution; ground band PRM-34; obstacle band PRM-35..36;
-                         occupied at PRM-38 obstacle points per cell). Only this map is used for driving.
+  map.yaml + map.pgm     the 2D map Nav2 drives on: plan C's swept corridor (DEC-211, REV-134; see below). Only this map is
+                         used for driving.
+  map_ground_band.yaml + .pgm, ground_band.png
+                         the earlier classification grid (PRM-33 resolution; ground band PRM-34; obstacle band PRM-35..36;
+                         occupied at PRM-38 obstacle points per cell). Display only since DEC-211 (floor reflections, TS-34).
+  corridor_overlay.png   the corridor over the density of the 3D map's points (top view; DEC-211, the human's request).
   pointmap.pcd           3D point map in the map frame (all submap points, float32 x y z, binary PCD) for localisation (DEC-095).
   terrain.json, slope.png, step.png, height.png
                          views for the human (DEC-097 A: not used for driving): ground slope and step height per ground
@@ -31,14 +35,14 @@ Products of one conversion (all from the same points and settings; RQ-I008/RQ-I0
                          settings are given; without them the other products are made and ND-07 refuses that map.
   trajectory_imu.txt     a copy of the source's traj_imu.txt (GLIM's IMU poses in the map frame, TUM) when the dump has it:
                          ND-07 takes the initial height from it (the human gives only x, y and the heading).
-  map_swept_corridor.yaml + .pgm, swept_corridor.json
-                         plan C (DEC-107 / DEC-210, REV-131; proposals/swept_corridor_map_2026-10-21.md): a 2D grid (PRM-33
-                         resolution) that is free only within corridor_half_width_m (PRM-96) of base_link's path while mapping
-                         and unknown elsewhere; no ground estimation, no occupied cell. base_link's path is traj_imu.txt (the
-                         loop-closure corrected IMU poses) with the IMU mounting of the source's /config snapshot; consecutive
-                         points farther apart than corridor_gap_m (PRM-97, a LiDAR dropout jump) are not joined. Made only when
-                         PRM-96 / PRM-97, the trajectory and the mounting are all given; otherwise the reason is recorded. It is
-                         NOT the map used for driving (map.yaml) until DEC-211 is answered.
+  swept_corridor.json    how map.yaml was made. Plan C (DEC-107 / DEC-210 / DEC-211, REV-131 / REV-134;
+                         proposals/swept_corridor_map_2026-10-21.md): a 2D grid (PRM-33 resolution) that is free only within
+                         corridor_half_width_m (PRM-96) of base_link's path while mapping and unknown elsewhere; no ground
+                         estimation, no occupied cell. base_link's path is traj_imu.txt (the loop-closure corrected IMU poses)
+                         with the IMU mounting of the source's /config snapshot; consecutive points farther apart than
+                         corridor_gap_m (PRM-97, a LiDAR dropout jump) are not joined. When PRM-96 / PRM-97, the trajectory or
+                         the snapshot is missing, the conversion fails with the reason (no silent fall-back to the
+                         classification grid; DEC-212 plan B: a source without a /config snapshot is not converted).
 All settings come in as a dict (declared parameters); nothing numeric is hard-coded.
 """
 from __future__ import annotations
@@ -58,19 +62,20 @@ except ImportError:  # pragma: no cover
 from gouda_core import png as pngmod
 
 SUBMAP_DIR = re.compile(r'^\d{6}$')
-CONVERTER_VERSION = 'gouda_map_convert 0.4 (ground-relative height bands; 3D point map; terrain views; A3 point map tiles; plan C swept corridor)'
+CONVERTER_VERSION = 'gouda_map_convert 0.5 (plan C swept corridor as the 2D map; ground-band grid for display; 3D point map; terrain views; A3 point map tiles)'
 SETTING_KEYS = ['map_resolution_m', 'ground_band_max_m', 'obstacle_band_min_m', 'obstacle_band_max_m', 'occupied_min_points',
                 'ground_cell_m', 'ground_max_slope_deg', 'ground_fill_radius_m']
-NAV2_FILES = ['map.yaml', 'map.pgm']
-PRODUCT_FILES = NAV2_FILES + ['pointmap.pcd', 'terrain.json', 'slope.png', 'step.png', 'height.png']
-VIEW_FILES = ['slope.png', 'step.png', 'height.png']
+NAV2_FILES = ['map.yaml', 'map.pgm']                       # the swept corridor (DEC-211)
+GROUND_BAND_MAP = 'map_ground_band'                         # the classification grid, display only (DEC-211)
+VIEW_FILES = ['slope.png', 'step.png', 'height.png', 'ground_band.png', 'corridor_overlay.png']
+PRODUCT_FILES = NAV2_FILES + [f'{GROUND_BAND_MAP}.yaml', f'{GROUND_BAND_MAP}.pgm', 'pointmap.pcd', 'terrain.json'] + VIEW_FILES + ['swept_corridor.json']
 POINTMAP_KEYS = ['pointmap_voxel_m', 'pointmap_tile_m']   # optional: the A3 tiles (PRM-94, PRM-95)
 POINTCLOUD_MAP_DIR = 'pointcloud_map'
 POINTCLOUD_MAP_METADATA = POINTCLOUD_MAP_DIR + '/metadata.yaml'
 TRAJECTORY_FILE = 'trajectory_imu.txt'
 SOURCE_TRAJECTORY = 'traj_imu.txt'
-CORRIDOR_KEYS = ['corridor_half_width_m', 'corridor_gap_m']   # optional: plan C (PRM-96, PRM-97)
-CORRIDOR_MAP = 'map_swept_corridor'
+CORRIDOR_KEYS = ['corridor_half_width_m', 'corridor_gap_m']   # plan C (PRM-96, PRM-97): required since DEC-211
+CORRIDOR_MAP = 'map'                                            # the corridor is the 2D map used for driving (DEC-211)
 CORRIDOR_RECORD = 'swept_corridor.json'
 
 
@@ -382,31 +387,66 @@ def corridor_grid(xy: 'np.ndarray', pieces: list, half_width: float, res: float)
 
 
 def swept_corridor(dump_dir: Path, out_dir: Path, settings: dict, mount: Optional[dict]) -> dict:
-    """Write map_swept_corridor.yaml / .pgm and swept_corridor.json when everything is given; return the record (made or reason).
-    mount: {'values': /config values, 'source': where they come from} or None (no /config snapshot: not made, DEC-212)."""
+    """Write the corridor as map.yaml / .pgm and swept_corridor.json when everything is given; return the record (made or reason).
+    mount: {'values': /config values, 'source': where they come from} or None (no /config snapshot: not made, DEC-212 plan B)."""
     from gouda_core import sensor_extrinsics as se
     if any(settings.get(k) is None for k in CORRIDOR_KEYS):
-        return {'made': False, 'reason': f'{CORRIDOR_KEYS} not given (PRM-96, PRM-97: DEC-213)'}
+        return {'made': False, 'reason': f'{CORRIDOR_KEYS} not given (PRM-96, PRM-97: DEC-213 / DEC-225)'}
     traj_path = Path(dump_dir) / SOURCE_TRAJECTORY
     traj = read_trajectory(traj_path.read_text(encoding='utf-8')) if traj_path.is_file() else np.zeros((0, 8))
     if len(traj) == 0:
         return {'made': False, 'reason': f'{traj_path} is missing, empty or unreadable'}
     if mount is None:
-        return {'made': False, 'reason': 'no /config snapshot with the source map: the IMU mounting of the mapping run is unknown (DEC-212)'}
+        return {'made': False, 'reason': 'no /config snapshot with the source map: the IMU mounting of the mapping run is unknown (DEC-212 plan B: not converted; map again)'}
     half, gap, res = float(settings['corridor_half_width_m']), float(settings['corridor_gap_m']), float(settings['map_resolution_m'])
     r_bi, t_bi, defaulted, problems = se.sensor_pose(dict(mount['values']), 'imu')
     xy = base_path(traj, r_bi, t_bi)
     pieces, gaps = split_at_gaps(xy, gap)
     grid, result = corridor_grid(xy, pieces, half, res)
     write_map(grid, result, out_dir, CORRIDOR_MAP)
-    record = {'made': True, 'use': 'plan C (DEC-107 / DEC-210). Not the map used for driving until DEC-211.',
+    record = {'_grid': grid, '_result': result,'made': True, 'use': 'plan C (DEC-107 / DEC-210 / DEC-211): map.yaml, the 2D map used for driving',
               'trajectory': {'file': SOURCE_TRAJECTORY, 'points': int(len(traj)), 'pieces': len(pieces),
                              'not_joined': [{'after_time': float(traj[i, 0]), 'distance_m': d} for i, d in gaps]},
               'mounting': {'source': mount.get('source', ''), 'imu_translation_m': list(t_bi), 'defaulted_fields': defaulted, 'problems': problems},
               'settings': {'corridor_half_width_m': half, 'corridor_gap_m': gap, 'map_resolution_m': res},
               'grid': {'width': result.width, 'height': result.height, 'origin_x': result.origin_x, 'origin_y': result.origin_y, 'free_cells': result.free}}
-    (Path(out_dir) / CORRIDOR_RECORD).write_text(json.dumps(record, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    (Path(out_dir) / CORRIDOR_RECORD).write_text(json.dumps({k: v for k, v in record.items() if not k.startswith('_')}, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     return record
+
+
+def outside_free(map_dir: Path, points: list) -> list:
+    """[(index, x, y)] of the points that are not on a free cell of map.yaml / map.pgm (the swept corridor; DEC-215 warns, never
+    refuses). A point outside the grid counts as outside."""
+    d = Path(map_dir)
+    meta = {}
+    for line in (d / 'map.yaml').read_text(encoding='utf-8').splitlines():
+        if ':' in line:
+            k, v = line.split(':', 1); meta[k.strip()] = v.strip()
+    res = float(meta['resolution']); ox, oy = [float(x) for x in meta['origin'].strip('[]').split(',')[:2]]
+    raw = (d / meta.get('image', 'map.pgm')).read_bytes()
+    head = raw.split(b'\n', 3); w, h = [int(x) for x in head[1].split()]
+    img = np.frombuffer(head[3], dtype=np.uint8).reshape(h, w)[::-1, :]   # row 0 = lowest y
+    out = []
+    for i, (x, y) in enumerate(points):
+        ix, iy = int(math.floor((x - ox) / res)), int(math.floor((y - oy) / res))
+        if not (0 <= ix < w and 0 <= iy < h) or img[iy, ix] != 254:
+            out.append((i, float(x), float(y)))
+    return out
+
+
+def corridor_overlay(pts: 'np.ndarray', grid: 'np.ndarray', result: 'GridResult', path: Path) -> None:
+    """corridor_overlay.png on the corridor grid (DEC-211, display only): grey levels = density of the 3D map's points per cell
+    (darker = more points; the heights are not used, their ground reference would mislead), blue = the corridor (free in map.yaml)."""
+    res, w, h = result.resolution, result.width, result.height
+    ix = np.floor((pts[:, 0] - result.origin_x) / res).astype(np.int64); iy = np.floor((pts[:, 1] - result.origin_y) / res).astype(np.int64)
+    ok = (ix >= 0) & (ix < w) & (iy >= 0) & (iy < h)
+    count = np.zeros((h, w), dtype=np.float64); np.add.at(count, (iy[ok], ix[ok]), 1)
+    shade = np.log1p(count); top = shade.max() if shade.size and shade.max() > 0 else 1
+    level = (255 - np.round(shade / top * 255)).astype(np.uint8)                  # white = no point, black = densest
+    rgb = np.repeat(level[:, :, None], 3, axis=2)
+    free = grid == 0
+    rgb[free] = (rgb[free].astype(np.uint16) * 2 // 3 + np.array([0, 90, 255], dtype=np.uint16) // 3).astype(np.uint8)   # blue tint
+    write_rgb_png(rgb, path)
 
 
 # ---------------------------------------------------------------- terrain views (display only, DEC-097 A)
@@ -501,13 +541,18 @@ def convert(dump_dir: Path, out_dir: Path, settings: dict, mount: Optional[dict]
     s = _require(settings, SETTING_KEYS)
     submaps = read_dump(dump_dir)
     pts = world_points(submaps)
+    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    corridor = swept_corridor(dump_dir, out_dir, settings, mount)   # map.yaml (DEC-211); first, so that a refusal costs nothing
+    if not corridor['made']:
+        raise ValueError(f"the 2D map for driving (swept corridor, DEC-211) cannot be made: {corridor['reason']}")
     ground = estimate_ground(pts, s['ground_cell_m'], s['ground_max_slope_deg'], s['ground_fill_radius_m'])
     hag, gnd, obst = classify(pts, ground, s)
     grid, result = build_grid(pts, hag, gnd, obst, s)
-    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
-    write_map(grid, result, out_dir)
+    write_map(grid, result, out_dir, GROUND_BAND_MAP)
+    (out_dir / 'ground_band.png').write_bytes(pngmod.pgm_to_png((out_dir / f'{GROUND_BAND_MAP}.pgm').read_bytes())[0])
     write_pcd(pts, out_dir / 'pointmap.pcd')
     ter_stats = write_views(out_dir, ground, terrain(ground, s), pts, hag, obst, gnd, result, s)
+    corridor_overlay(pts, corridor['_grid'], corridor['_result'], out_dir / 'corridor_overlay.png')
     files = list(PRODUCT_FILES); pointmap = {'made': False}
     if all(settings.get(k) is not None for k in POINTMAP_KEYS):
         voxel, tile = float(settings['pointmap_voxel_m']), float(settings['pointmap_tile_m'])
@@ -519,8 +564,6 @@ def convert(dump_dir: Path, out_dir: Path, settings: dict, mount: Optional[dict]
     traj = Path(dump_dir) / SOURCE_TRAJECTORY
     if traj.is_file() and traj.stat().st_size > 0:
         (out_dir / TRAJECTORY_FILE).write_bytes(traj.read_bytes()); files.append(TRAJECTORY_FILE)
-    corridor = swept_corridor(dump_dir, out_dir, settings, mount)
-    if corridor['made']:
-        files += [f'{CORRIDOR_MAP}.yaml', f'{CORRIDOR_MAP}.pgm', CORRIDOR_RECORD]
-    return {'converter': CONVERTER_VERSION, 'submaps': len(submaps), **result.__dict__, 'terrain': ter_stats, 'pointcloud_map': pointmap,
-            'swept_corridor': {k: v for k, v in corridor.items() if k in ('made', 'reason')}, 'files': files}
+    return {'converter': CONVERTER_VERSION, 'submaps': len(submaps), 'ground_band': result.__dict__, 'terrain': ter_stats, 'pointcloud_map': pointmap,
+            'swept_corridor': {'made': True, 'free_cells': corridor['grid']['free_cells'], 'pieces': corridor['trajectory']['pieces'],
+                               'not_joined': len(corridor['trajectory']['not_joined'])}, 'files': files}

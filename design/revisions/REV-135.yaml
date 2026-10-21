@@ -1,0 +1,38 @@
+# 変更セット REV-135（2026-10-21 第105便: DEC-225、PRM-97＝5.1 m）
+# 適用: design/tools/apply_revision.py REV-135
+id: REV-135
+date: '2026-10-21'
+summary: 人の回答（このチャット、原文）：DEC-225 で B（PRM-97）を 5.1 m に承認（DR-13 は変えない）。人の申告：VM のメモリを 12 GB に増やした。指示：作り直した地図を VM の ~/gouda_ws に入れる。
+basis_refs:
+- DEC-225
+- DEC-213
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-97
+  set:
+    design_status: 承認済み
+    adoption: approved
+    approval_decision_ref: DEC-225
+  set_nested:
+    parameter.value: 5.1
+    parameter.value_state: approved
+    parameter.decision_deadline: 決定済み（DEC-225）
+    parameter.measurement: '人の決定（DEC-225）：「DEC-225: B = 5.1にしよう。」。測定値ではない。実走の地図で確かめる'
+  interpretation_append: REV-135：DEC-225 で 5.1 を承認（DR-13 は変えない）。
+decision_updates:
+- id: DEC-225
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    resulting_refs:
+    - PRM-97
+    answer_verbatim: |
+      「DEC-225: B = 5.1にしよう。
+      VMのメモリは12GBに増強した。
+
+      作り直した地図はgouda_wsに入れよ。」
+    note: 検査ルールの緩和にあたるので承認事項（CLAUDE.md 1.2）。単位や書き方を変えて検査を通すことはしない（CLAUDE.md 1.5）。決まらない場合に止まる作業：PRM-97 の値の記録（帯の地図の変換は、正本では値が未確定なので製品の手順では作られない。試験の基盤は試験用の値で動く）。第104便で登録。 REV-135（第105便）：人の回答（このメインのチャット）は「B = 5.1」。示した案（DR-13 を限る・例外にする・B を見直す）のうち、B の値を 5.1 m にした（三つ目の案に近い）。DR-13 は変えない。同じ発言の人の申告（事実として記録）：VM のメモリを 12 GB に増やした。同じ発言の指示：作り直した地図を VM の ~/gouda_ws に入れる。

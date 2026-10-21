@@ -1,0 +1,1 @@
+Oct 19 13:15:27 aya-Parallels-ARM-Virtual-Machine kernel: Out of memory: Killed process 419896 (glim_rosnode) total-vm:9776332kB, anon-rss:5698144kB, file-rss:8kB, shmem-rss:40056kB, UID:1000 pgtables:14452kB oom_score_adj:0

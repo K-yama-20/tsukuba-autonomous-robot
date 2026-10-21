@@ -46,6 +46,9 @@ class Mission:
     waypoints: list = field(default_factory=list)      # [(x, y, yaw)]
     section_limits_mps: list = field(default_factory=list)
     map_directory: str = ''                             # the converted map revision (ND-07's map, REV-128)
+    keepout_yaml: str = ''                              # the drawn areas' KeepoutFilter mask (IFD-41, REV-137)
+    keepout_sha256: str = ''                            # hash of the cell values map_server publishes (DEC-224 (a))
+    keepout_size: tuple = (0, 0)                        # (width, height) of that mask
 
 
 def _int(text) -> Optional[int]:
@@ -88,8 +91,14 @@ def resolve_mission(data_root: Path, request: dict) -> tuple:
         return None, f'{info} could not be read ({type(e).__name__})'
     if kind != 2:
         return None, f'{info}: type {kind} is not the speed limit in m/s (type 2, IFD-41)'
+    from gouda_core import keepout_mask
+    keep = (man.get('generator') or {}).get('keepout') or {}
+    kyaml = sdir / f'{keepout_mask.NAME}.yaml'
+    if not keep.get('data_sha256') or not kyaml.is_file():
+        return None, f'waypoint set {sid}/{srev:03d} has no keepout mask (saved before REV-137): save it again in the waypoint tab'
     return Mission(sid, srev, man['content_hash'], mid, mrev, ws.map_content_hash, str(map_yaml), str(mask_yaml), base, mult,
-                   [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps), str(mdir)), 'mission resolved'
+                   [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps), str(mdir),
+                   str(kyaml), str(keep['data_sha256']), (int(keep.get('width', 0)), int(keep.get('height', 0)))), 'mission resolved'
 
 
 def check_localization_map(map_directory: str) -> Optional[str]:

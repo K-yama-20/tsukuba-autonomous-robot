@@ -156,6 +156,16 @@ class Nav2RecoveryConfigTests(unittest.TestCase):
             self.assertEqual((c2.values[self.KEY], c2.config_revision), (12, 3))
             ok, msg = c.update({self.KEY: ''}, 3.0); self.assertTrue(ok, msg); self.assertEqual(c.values[self.KEY], 'UNKNOWN')
 
+    def test_inflate_around_unknown_is_true_or_false(self):
+        """REV-134 (DEC-217): the tab's boolean overrides PRM-98."""
+        with tempfile.TemporaryDirectory() as d:
+            c = SensorConfig(Path(d) / 'n.json', NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            for bad in ('yes', '1', '0.5'):
+                ok, msg = c.update({'inflate_around_unknown': bad}, 1.0); self.assertFalse(ok, bad)
+            ok, msg = c.update({'inflate_around_unknown': 'True'}, 2.0); self.assertTrue(ok, msg); self.assertIs(c.values['inflate_around_unknown'], True)
+            ok, msg = c.update({'inflate_around_unknown': 'false'}, 3.0); self.assertTrue(ok, msg); self.assertIs(c.values['inflate_around_unknown'], False)
+            ok, msg = c.update({'inflate_around_unknown': ''}, 4.0); self.assertTrue(ok, msg); self.assertEqual(c.values['inflate_around_unknown'], 'UNKNOWN')
+
     def test_nothing_is_saved_without_the_upper_limit(self):
         with tempfile.TemporaryDirectory() as d:
             c = SensorConfig(Path(d) / 'n.json', NAV2_RECOVERY_FIELDS)   # PRM-18 unresolved

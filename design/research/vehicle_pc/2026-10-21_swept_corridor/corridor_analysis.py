@@ -2,7 +2,9 @@
 NOT registered in the map database. The given /config is used for the IMU mounting and recorded (for sources without a /config
 snapshot this is the analysis-only use that DEC-212 has not decided for the product).
 
-usage: python3 corridor_analysis.py <source_dir> <sensor_config.json> <params_dir> <out_dir>
+usage: python3 corridor_analysis.py <source_dir> <sensor_config.json> <params_dir> <out_dir> ['{"key": value, ...}' settings overrides]
+The overrides are for analysis only (e.g. a value a human decided that is not in the model yet: PRM-97 while DEC-225 is open) and
+are printed with the result.
 Writes <out_dir>/ (the conversion products) and <out_dir>/overlay.png on the corridor grid:
   white = corridor free; black = an occupied cell of the current classification map (map.pgm, ground band) inside the corridor;
   dark red = occupied outside the corridor; light green = free in map.pgm but unknown in the corridor; grey = unknown in both.
@@ -35,13 +37,15 @@ def main():
         p = params / f
         if p.is_file():
             s.update(((yaml.safe_load(p.read_text()) or {}).get('gouda_map_creator') or {}).get('ros__parameters') or {})
+    overrides = json.loads(sys.argv[5]) if len(sys.argv) > 5 else {}
+    s.update(overrides)
     conf = SensorConfig(cfg)
-    stats = mc.convert(src, out, s, {'values': dict(conf.values), 'source': f'{cfg} (config_revision {conf.config_revision}; analysis only, not the mapping run snapshot)'})
-    rec = json.loads((out / mc.CORRIDOR_RECORD).read_text()) if stats['swept_corridor']['made'] else stats['swept_corridor']
-    summary = {'source': str(src), 'corridor': rec, 'settings_used': {k: s.get(k) for k in mc.CORRIDOR_KEYS + ['map_resolution_m']}}
-    if stats['swept_corridor']['made']:
+    stats = mc.convert(src, out, s, {'values': dict(conf.values), 'source': f'{cfg} (config_revision {conf.config_revision}; analysis)'})
+    rec = json.loads((out / mc.CORRIDOR_RECORD).read_text())
+    summary = {'source': str(src), 'corridor': rec, 'settings_used': {k: s.get(k) for k in mc.CORRIDOR_KEYS + ['map_resolution_m']}, 'overrides': overrides}
+    if True:   # since converter 0.5 (DEC-211) map.yaml is the corridor and map_ground_band the classification grid
         cor, res, ox, oy = read_map(out, mc.CORRIDOR_MAP)
-        band, bres, box, boy = read_map(out, 'map')
+        band, bres, box, boy = read_map(out, mc.GROUND_BAND_MAP)
         h, w = cor.shape
         ii, jj = np.meshgrid(np.arange(w), np.arange(h))
         bx = np.floor((ox + (ii * 2 + 1) * res / 2 - box) / bres).astype(int); by = np.floor((oy + (jj * 2 + 1) * res / 2 - boy) / bres).astype(int)

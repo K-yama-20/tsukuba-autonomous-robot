@@ -1,0 +1,22 @@
+stack up (ROS_DOMAIN_ID=79, http://127.0.0.1:40711/)
+=== start mapping (TR-03) and play /media/psf/Crucial_4TB/Gouda/gouda_data/records/20261014_173522/rosbag/bag at rate 0.5 (points and IMU only)
+  start_mapping ok=True TR-03: manual -> mapping
+  played in 960 s
+=== end mapping (TR-04): GLIM save, source registration, conversion
+  end_mapping ok=True TR-04: mapping -> manual
+  processing_state: idle
+   TR-03 glim_extrinsic | T_lidar_imu from /config
+   TR-03 gnss_record_started | GNSS recorded to /home/aya/gouda_rebuild_2026-10-21/173522/mapping/20261019_123731_dc7b4c8a/gnss.jsonl
+   TR-03 mapping_started | GLIM started (pid 416058); origin 20261019_123731_dc7b4c8a
+   TR-03 human_request | TR-03: manual -> mapping
+   TR-03 record_auto_start | log recording started (auto:map_start) in /home/aya/gouda_rebuild_2026-10-21/173522/records/20261019_123731
+   TR-03 vehicle_bridge_configure_failed | vehicle_bridge: configure failed (see its log/decision: configure_refused); mapping continues without the ESP32 STATUS
+   TR-04 human_request | TR-04: mapping -> manual
+   TR-04 mapping_stopped | dump complete (119 submap(s))
+   TR-04 gnss_record_stopped | GNSS record closed: {} (no GNSS message: no alignment can be made from this map)
+   TR-04 source_map_registered | source map registered as 20261019_123731_dc7b4c8a (hash 971ecb900908…, 119 submap(s))
+   TR-04 record_auto_stop | log recording stopped
+   TR-04 map_converted | converted map published as 20261019_123731_dc7b4c8a/converted/001 (hash 73b18cd3c9e6…)
+=== maps
+20261019_123731_dc7b4c8a submaps 119 with /config snapshot
+  rev 1 gouda_map_convert 0.5 (plan C swept corr | corridor {'made': True, 'free_cells': 57825, 'pieces': 2, 'not_joined': 1} | settings A/B 1.0 1.0

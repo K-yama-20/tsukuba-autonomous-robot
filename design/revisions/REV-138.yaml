@@ -1,0 +1,47 @@
+# 変更セット REV-138（2026-10-21 第107便: 禁止の範囲の縁に沿う経路で RPP が止まる件、DEC-227）
+# 適用: design/tools/apply_revision.py REV-138
+id: REV-138
+date: '2026-10-21'
+summary: 第107便：人が描く範囲の VM の結合試験（TS-47）で、禁止の範囲の縁に沿う経路で車体がはみ出し RPP が止まることを確認。対応の案を DEC-227（pending）に登録。DEC-222・223・226 に VM の事実を書き足す。コードと設定は変えない。
+basis_refs:
+- DEC-222
+- DEC-223
+- DEC-226
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-227
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on: null
+  channel: chat
+  question: 【承認】禁止の範囲の縁に沿って引かれた経路で車体が禁止の範囲にはみ出し、RPP が「前方に衝突」として止まる（VM で確認）。global costmap で禁止の範囲を壁と同じように膨らませて経路を離すか（案 A）、ほかの案にするか
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-222
+  - DEC-223
+  - IFD-55
+  - IFD-41
+  - ND-02
+  - ND-03
+  - PRM-69
+  - PRM-72
+  - TS-47
+  resulting_refs: []
+  note: 事実（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）：global costmap は四角の中が 100、四角の外の 0.1〜0.4 m（y 0.6〜0.9）と手前 0.2〜0.5 m（x 2.3〜2.6）は 0（inflation_radius 1.0 m なのに膨らまない）。経路は四角のそばで |y| が最大 0.50 m（縁そのもの）。車体は横に 0.30 m（PRM-69）出るので、経路の上の車体は禁止の範囲に重なり、local の禁止の格子（DEC-222）で RPP が「collision ahead」を 815〜907 回、Controller patience exceeded、spin・backup も失敗。車体は x 約 2.05 m（四角の 0.76 m 手前）で止まり、禁止の範囲には入らなかったが、PAUSE（最後の waypoint）に着かなかった。同じ試験で範囲を描かないときは最後まで走り、collision ahead は 0 回。Nav2 1.3.13 のソース（keepout_filter.cpp）：KeepoutFilter は layer の後にマスクの値を master に書く（大きいときだけ）。提案 §2 の未確認 1（filter は inflation の後か）は「後」と確認。DEC-223 の前提（base_link が縁まで来て、車体がはみ出してよい）は、local にも禁止の格子がある（DEC-222）ので成り立たない：はみ出す代わりに止まる。案 A（推奨）：global costmap に keepout のマスクを読む層（StaticLayer、/keepout_filter_mask、use_maximum true）を
+    inflation の前に足し、禁止の範囲を壁と同じく膨らませる。KeepoutFilter（global・local、override_lethal_cost true）はそのまま。振る舞い：経路が禁止の範囲から壁と同じだけ離れる（base_link が縁まで来ることはなくなる。DEC-223 は「来てもよい」なので反しない）。禁止の範囲と壁の間の狭い所は通れなくなりうる。禁止の範囲の中にいるとき、global の層は 254 のまま残るので外への経路が引けず Nav2 が失敗しうる（override は local だけに効く。結果は TR-07 の一時停止）。StaticLayer が −1 の格子を飛ばすか、マスクの大きさで costmap を作り直さないかは推測で、VM で確かめる。案 B：保存のときに禁止の範囲を広げる（提案 §5。DEC-223 では不採用）。広げた縁に経路が沿うのは同じで、前に 0.55 m 出る車体では 0.30 m では足りない。案 C：今のまま（人が描く場所で避ける）。経路が禁止の範囲のそばを通るときは、いつも止まって recovery をくり返す。案 D：車体の形を考える planner（Smac Hybrid・Lattice）に替える（大きな変更）。影響を受けるもの：Nav2 の設定（gouda_nav2.yaml、nav2_config.py）、TS-47 の期待（迂回して最後まで着くこと）。決まらない場合に止まる作業：禁止の範囲のそばを走る経路（範囲を描かない走行と、描いた範囲の保存・開始の確認は止まらない）。第107便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-222
+  set:
+    note: 未確認（分岐先）：filter が inflation の後にかかるか、一つの costmap に速度と keepout の二つの filter を置けるか。決まらない場合に止まる作業：範囲を描く機能全体。 REV-136（第106便）：採用：KeepoutFilter を global と local の両方の costmap に置き、override_lethal_cost は両方 true（禁止の範囲の中にいるとき、外へ出る経路を許す）。分岐先は「true は失敗が外から見えにくくなり、DEC-200 の理由と向きが違う」と伝えたうえで、人が「反論は認めない」と決めた。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。 REV-138（第107便）：VM で確認（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）：一つの global costmap に SpeedFilter と KeepoutFilter の二つを置けた（速度の上限が届き、禁止の格子は 100）。filter は inflation の後にかかる（禁止の範囲のまわりは膨らまない）。経路が縁に沿うと RPP が止まる件は DEC-227。local の KeepoutFilter で「failed to get costmap
+      frame (odom) transformation to mask frame (map)」が 1 回の走行で 4 回出た。ソースでは、これは override_lethal_cost の判定（車体が禁止の範囲の中か）だけが失敗するもので、禁止の格子は TimePointZero の変換で書かれる。
+- id: DEC-223
+  set:
+    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：縁の扱いだけ。 REV-136（第106便）：採用：禁止の範囲を広げる幅の設定値は作らない。base_link は禁止の範囲の縁まで来てよく、人が車体のはみ出し（PRM-69：横 0.30 m・前 0.55 m）の分の余裕を取って描く。転記の出所は分岐セッション（local_560e07c3…「引き継ぎ 2026-10-21 その2」）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。実装は、メインのチャットで人に確かめてから行う（第106便）。 REV-137（第107便）：人がこのメインのチャットで転記を確かめ、着手を指示した（原文「転記は私の回答で間違いない。人が描く範囲（DEC-220〜224）の実装に着手して。」）。 REV-138（第107便）：VM で、base_link が縁まで来る経路では車体が local の禁止の格子に重なり、RPP が止まることを確認（DEC-227）。
+- id: DEC-226
+  set:
+    note: 人の発言（DEC-224 の転記）：「(b)を確かめる必要性も高い為、(b)も確かめるかどうかは未決事項として、実装を進めてほしい。」。分岐先が示した事実：KeepoutFilter は結果を topic に出さない（SpeedFilter の /speed_limit にあたるものがない）。判断の材料（実装の後に VM で測る）：global costmap の更新にかかる時間、判定する格子がないとき（禁止の範囲がない、地図の外）の扱い。決まらない場合に止まる作業：開始のときの (b) の確認だけ（(a) は実装する）。第106便で登録。 REV-138（第107便）：材料（VM）：開始の 20 秒後の /global_costmap/costmap（transient_local）で、禁止の四角の中は 100、外は 0 と読めた（VM（~/gouda_rev128_ws、試験の基盤 stack.sh、ROS_DOMAIN_ID 77、loopback_sim、模擬の ND-07）の 5-6 の結合試験 KEEPOUT=1、2026-10-21、空きの地図（stage56_fixture.py）に走行禁止の四角（x 2.8〜3.4 m、y −0.5〜0.5 m、直線 (1,0)→(4,0) をふさぐ）。記録：VM の /tmp/st56_rev137e.log、/tmp/st56_rev137_run3_stack.log・run5_stack.log。）。更新にかかる時間は未測定。

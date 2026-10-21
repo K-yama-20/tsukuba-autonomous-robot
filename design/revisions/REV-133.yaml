@@ -1,0 +1,217 @@
+# 変更セット REV-133（2026-10-21 第103便: DEC-211〜215 の回答の転記、DEC-216〜224）
+# 適用: design/tools/apply_revision.py REV-133
+id: REV-133
+date: '2026-10-21'
+summary: 分岐セッション「Side chat」からの転記で、DEC-211〜215 への人の回答（帯の地図を走行に使い人が描く範囲を重ねる、/config の写しがない原図は帯を作らず rosbag から作り直す、A 1.0 m・B 5 m、allow_unknown は true、帯の外の waypoint は警告だけ）と、新しい決定 DEC-216（combination_method 2）・DEC-217（inflate_around_unknown false、Nav2 タブで変える）・DEC-218（PRM-72 を 1 m に）を記録する。確認事項 DEC-219、提案 drawn_areas の承認事項 DEC-220〜224（pending）。値の変更・実装・作り直しは人の確認の後。
+basis_refs:
+- DEC-211
+- DEC-212
+- DEC-213
+- DEC-214
+- DEC-215
+- DEC-216
+- DEC-217
+- DEC-218
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-216
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱うか（global costmap の obstacle_layer の combination_method）
+  answer_verbatim: |
+    （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+    3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存 (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211 と DEC-212 はどうしますか？」→「後で答える」」
+  affected_refs:
+  - ND-10
+  resulting_refs: []
+  note: 採用：「帯の外は通れるが高い費用」。global costmap の obstacle_layer の combination_method を 2（MaxWithoutUnknownOverwrite：層の空きが不明を上書きしない）にする。上流の既定は 1（updateWithMax：空きが不明を上書きする）。根拠は分岐先が読んだ上流のソース（costmap_layer.cpp）、試験はしていない。 転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+  disposition: answered
+- id: DEC-217
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: inflation_layer の inflate_around_unknown をどうするか。monitor で変えられるようにするか
+  answer_verbatim: |
+    （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+    5.「inflate_around_unknown=falseにすると、base_link（車両の座標の原点）が帯の端を通りうるということか？」
+    6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな
+    DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。
+    DEC-212: 今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」
+    7.「1. /configのNav2タブに設定を置くので良い。
+    2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」
+  affected_refs:
+  - ND-10
+  - ND-02
+  - IFD-54
+  resulting_refs: []
+  note: 採用：inflate_around_unknown＝false（上流の既定のまま。true だと不明の格子に通れない値が書かれ allow_unknown＝true の意味がなくなる：分岐先が上流のソースで確認）。原文 5 の問い（base_link が帯の端を通りうるか）への分岐先の答えは提案に。monitor の /config「Nav2」タブで変えられるようにする（原文 6・7）。 転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+  disposition: answered
+- id: DEC-218
+  kind: approval
+  status: answered
+  asked_on: '2026-10-21'
+  answered_on: '2026-10-21'
+  channel: chat
+  question: 膨らませの半径（PRM-72、DEC-192 で 0.5 m を承認）を 1 m に変えるか
+  answer_verbatim: |
+    （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+    2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」
+  affected_refs:
+  - PRM-72
+  - ND-10
+  - DEC-192
+  resulting_refs: []
+  note: 採用：PRM-72 を 1.0 m にする（DEC-192 は書き換えず、この決定で値を置き換える）。nav2_config は同じ値を local・global の両方の inflation に入れる。値の変更は人の確認の後に変更セットで入れる。 転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+  disposition: answered
+- id: DEC-219
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【確認】/config の「Nav2」タブに置く設定の範囲と形：人が明示したのは inflate_around_unknown。allow_unknown（DEC-214）・combination_method（DEC-216）・膨らませの半径（PRM-72、DEC-218）も同じタブに置くか。置く場合、正本の値（PRM）を既定にして monitor の値で上書きし、次の gouda.sh start で反映する形（DEC-207 (a)・DEC-209 と同じ）でよいか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  - ND-10
+  - IFD-54
+  - PRM-72
+  resulting_refs: []
+  note: 原文 6・7 からは、inflate_around_unknown 以外の範囲と、上書きの形が決まらない（分岐先の読み）。決まらない場合に止まる作業：Nav2 タブの追加の項目だけ（正本の値で Nav2 は組める）。
+  disposition: open_human
+- id: DEC-220
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】人が描く「走行禁止」「走行可」の範囲（design/proposals/drawn_areas_2026-10-21.md）の設計で実装を始めてよいか（monitor の描画と保存、マスクの生成、Nav2 の設定、TR-05 の読み込み、VM の試験まで）。提案 §8 の 1
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  - ND-10
+  - ND-03
+  - DEC-211
+  resulting_refs: []
+  note: 推奨は提案に。決まらない場合に止まる作業：範囲を描く機能全体（帯の地図だけで走ることはできる）。
+  disposition: open_human
+- id: DEC-221
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】範囲の保存先：waypoint セットと一緒（推奨、提案 §3.1）か、地図の rev（§3.2）か。提案 §8 の 2
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  - IFD-41
+  resulting_refs: []
+  note: 決まらない場合に止まる作業：範囲を描く機能全体。
+  disposition: open_human
+- id: DEC-222
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】KeepoutFilter を global と local の両方に置くこと（提案 §5）。override_lethal_cost は false（推奨）か true か。提案 §8 の 3
+  answer_verbatim: ''
+  affected_refs:
+  - ND-10
+  resulting_refs: []
+  note: 未確認（分岐先）：filter が inflation の後にかかるか、一つの costmap に速度と keepout の二つの filter を置けるか。決まらない場合に止まる作業：範囲を描く機能全体。
+  disposition: open_human
+- id: DEC-223
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】禁止の範囲を車体の半分の幅だけ広げてマスクに書くこと（提案 §5）と、その幅の値。提案 §8 の 4
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  - PRM-69
+  resulting_refs: []
+  note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：縁の扱いだけ。
+  disposition: open_human
+- id: DEC-224
+  kind: approval
+  status: pending
+  asked_on: '2026-10-21'
+  answered_on:
+  channel: chat
+  question: 【承認】自律走行の開始のとき、keepout のマスクの適用を確かめられない間は motion_hold を解かないか（提案 §6）。提案 §8 の 5
+  answer_verbatim: ''
+  affected_refs:
+  - ND-03
+  - TR-05
+  resulting_refs: []
+  note: 決まらない場合に止まる作業：開始の確認だけ。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-211
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+      6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな
+      DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。
+      DEC-212: 今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」
+      7.「1. /configのNav2タブに設定を置くので良い。
+      2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」
+    note: 振る舞いの違い：走行の経路は地図作成で通った帯の中だけになる。DEC-098 の分類の設定は走行に使われなくなる（役割の変更）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。 REV-133（第103便）：分岐先の読み：承認（走行に使う map.yaml を帯の地図に替え、今の分類の地図は表示用の map_ground_band）。そのうえで、人が帯と 3D 点群の重ね図の上に描く「走行禁止」「走行可」の範囲を Nav2 の KeepoutFilter で重ねる（提案 design/proposals/drawn_areas_2026-10-21.md、承認事項は DEC-220〜224）。重ね図は原文 6 の要望。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+- id: DEC-212
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+      6.「inflate_around_unknown=falseとする。navigation設定で変更できるようにせよ。設定ボタンを押せば設定用のウィンドウが飛び出す形にするか、/configに新規タブを作るかどっちがいいかな
+      DEC-211: 帯のマップと3d点群の地図をoverlayしてほしい。また、nav2に帯のマップだけ渡すと、本当に行っちゃダメな場所と、行っても良い場所の違いが分からないと思うんだけどどうかな。
+      DEC-212: 今VMに入っている地図は古いものである。今つないだ外付けドライブに、rosbagが数件入っている。/Volumes/Crucial_4TB/Gouda」
+      7.「1. /configのNav2タブに設定を置くので良い。
+      2. DEC:211: 人が地図の上に描く案を採用する。B+作り直しの推奨案を採用する」
+    note: 決まらない場合に止まる作業：古い原図からの帯の地図だけ（新しい原図は止まらない）。 REV-133（第103便）：採用は代わりの案 B（/config の写しがない原図からは帯を作らない。今の実装のまま）と、外付けのドライブの rosbag から製品の手順で地図を作り直すこと（原文 6・7、分岐先の推奨「B＋作り直し」）。人の申告（事実として記録）：VM に入っている地図は古い。外付け /Volumes/Crucial_4TB/Gouda に rosbag が数件ある。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+- id: DEC-213
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存 (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211 と DEC-212 はどうしますか？」→「後で答える」」
+    note: 値は推測で埋めない（tbd）。決まらない場合に止まる作業：案 C の 2D 地図（自律走行の開始）。試験は試行の値で進められる。 REV-133（第103便）：PRM-96（帯の半分の幅 A）＝1.0 m、PRM-97（つながない距離 B）＝5 m。値の変更は人の確認の後に変更セットで入れる。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+- id: DEC-214
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存 (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211 と DEC-212 はどうしますか？」→「後で答える」」
+    note: 振る舞いの違い：不明な所を通る経路を引かない（intent.md:15「観測外を安全とみなさない」）。経路が引けないときは recovery の後に TR-07（計画の失敗）。未確認：obstacle_layer の clearing が static の「不明」を「空き」に上書きするか（AI の推測、上流のソースは未確認）。決まらない場合に止まる作業：案 C の 2D 地図での走行。 REV-133（第103便）：不採用：allow_unknown は true（上流の既定のまま）。帯の外は「通れるが高い費用」（NavFn：不明は COST_OBS−1。分岐先が上流のソースで確認、試験はしていない）。見えた所の扱いは DEC-216。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。
+- id: DEC-215
+  set:
+    status: answered
+    answered_on: '2026-10-21'
+    disposition: answered
+    answer_verbatim: |
+      （分岐セッション「Side chat」からの転記。人の発言の原文、時系列の番号つき）
+      2.「DEC-213は1.0mとする。膨らませの半径は1mに変更したい。allow_unknown=trueとする。帯の外のwaypointの保存も拒否しない」
+      3.「（選択式の質問への回答）「DEC-213 の「1.0 m」はどちらの値ですか？」→「A を 1.0 m、B は 5 m (Recommended)」／「帯の外の waypoint は、保存のときに警告を出しますか？」→「警告だけ出して保存 (Recommended)」／「allow_unknown＝true のとき、走行中に LiDAR で見えた帯の外を、帯と同じ「空き」として扱いますか？」→「帯の外は通れるが高い費用 (Recommended)」／「DEC-211 と DEC-212 はどうしますか？」→「後で答える」」
+    note: 決まらない場合に止まる作業：保存のときの確認だけ（走り出してからの計画の失敗で分かる）。 REV-133（第103便）：採用：帯の外の waypoint は、保存のときに警告だけ出して保存する（拒否しない）。転記の出所は分岐セッション（local_11a193cd…「Side chat」、2026-10-21）。セッション間のメッセージで届いたもので、人がこのメインのチャットに貼ったものではない。設定値の変更・実装・rosbag からの作り直しは、メインのチャットで人に確かめてから行う（第103便）。

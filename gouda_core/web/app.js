@@ -204,7 +204,9 @@
   const mapSel = { origin: null, rev: null, view: 'map.png', terrain: null };
   // what each preview shows (DEC-095 kinds; the terrain views are for checking only, DEC-097 A)
   const VIEW_NOTE = {
-    'map.png': '2D 占有格子（Nav2 が使う地図）。白: 空き（地面を観測）、黒: 占有、灰: 未知。',
+    'map.png': 'Nav2 が使う 2D 地図。変換器 0.5 以降は通った帯の地図（DEC-211）：白: 帯（地図作成で通った所から PRM-96 以内）、灰: 不明（通れるが高い費用）。それより前の rev は分類の地図。',
+    'ground_band.png': '地面の推定と高さの帯で分類した 2D 地図（表示用、走行には使わない：DEC-211）。白: 空き、黒: 占有、灰: 未知。',
+    'corridor_overlay.png': '帯の地図と 3D 点群地図の重ね図（DEC-211）。灰の濃さ: 格子ごとの点の数（濃いほど多い。高さは使わない）、青: 帯（走行用の空き）。',
     'height.png': '3D 点群地図を上から見た図。セルごとの地面からの最も高い点（障害物の上限まで）。濃い緑: 地面だけ。',
     'slope.png': '地面の傾き（地面を推定する格子ごと）。表示のみで、走行には使わない。',
     'step.png': '上下左右の格子との地面の高さの差（段差。坂では 1 格子分の上りを含む）。表示のみで、走行には使わない。' };
@@ -253,9 +255,11 @@
     showView();
     try {
       const j = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/manifest.json`)).json();
-      const m = j.manifest || {}; const st = m.stats || {}; const rows = {};
+      const m = j.manifest || {}; const st0 = m.stats || {}; const st = Object.assign({}, st0, st0.ground_band || {}); const rows = {};   // converter 0.5: the classification grid is ground_band (DEC-211)
       for (const s of mapSettings.length ? mapSettings : Object.keys(m.settings || {}).map((k) => ({ key: k, label: k, unit: '' }))) rows[`${s.label} [${s.unit}]`] = (m.settings || {})[s.key];
-      Object.assign(rows, { 'セル（占有／空き／未知）': `${st.occupied} / ${st.free} / ${st.unknown}`, '大きさ': `${st.width}×${st.height} cells, 解像度 ${st.resolution} m`,
+      const sc = st0.swept_corridor;
+      if (sc) rows['帯の地図（走行用：空きの格子／つながった区間／つながなかった所）'] = `${sc.free_cells} / ${sc.pieces} / ${sc.not_joined}`;
+      Object.assign(rows, { [sc ? '分類の地図（表示用）のセル（占有／空き／未知）' : 'セル（占有／空き／未知）']: `${st.occupied} / ${st.free} / ${st.unknown}`, '大きさ': `${st.width}×${st.height} cells, 解像度 ${st.resolution} m`,
         '点（全体／障害物／地面）': `${st.points_total} / ${st.points_obstacle} / ${st.points_ground}`,
         '点（帯の間／上限より上／地面が不明）': st.points_between == null ? '—' : `${st.points_between} / ${st.points_above} / ${st.points_no_ground}`,
         '地面の格子（点あり／地面／補った）': st.terrain ? `${st.terrain.ground_cells_observed} / ${st.terrain.ground_cells_ground_like} / ${st.terrain.ground_cells_filled}` : '—',
@@ -343,15 +347,21 @@
   function renderNav2(c) {
     const lim = c.limits && c.limits.recovery_number_of_retries;
     $('nav2-rev').textContent = `revision ${c.config_revision} / ${c.path}`;
+    const NAV2_LABELS = {
+      recovery_number_of_retries: `recovery の回数 <span class="dim">(recovery_number_of_retries${lim ? `, ${lim[0]}〜${lim[1]}` : ', PRM-18 未確定のため保存できない'})</span>`,
+      inflate_around_unknown: '不明の格子の周りを膨らませる <span class="dim">(inflate_around_unknown, true／false。false なら帯の外を「通れるが高い費用」のまま：DEC-217)</span>' };
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
-      return `<label><span>recovery の回数 <span class="dim">(${esc(k)}${lim ? `, ${lim[0]}〜${lim[1]}` : ', PRM-18 未確定のため保存できない'})</span></span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;
+      return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;
     }).join('');
     const row = (k, v) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`;
-    const nx = c.next_start, iu = c.in_use;
-    $('nav2-table').innerHTML = row('PRM-18（既定）', c.prm18 ?? '未確定')
-      + row('次の gouda.sh start で使う値', nx ? `${nx.value}（${nx.source}${nx.note ? ' / ' + nx.note : ''}）` : '—')
-      + row('今の起動で使っている値', iu ? `${iu.value}（${iu.source}${iu.note ? ' / ' + iu.note : ''}）` : '不明（Nav2 が起動していない）');
+    const fmt = (x, none) => (x ? `${x.value}（${x.source}${x.note ? ' / ' + x.note : ''}）` : none);
+    $('nav2-table').innerHTML = row('recovery の回数：PRM-18（既定）', c.prm18 ?? '未確定')
+      + row('recovery の回数：次の gouda.sh start で使う値', fmt(c.next_start, '—'))
+      + row('recovery の回数：今の起動で使っている値', fmt(c.in_use, '不明（Nav2 が起動していない）'))
+      + row('inflate_around_unknown：PRM-98（既定）', c.prm98 ?? '未確定')
+      + row('inflate_around_unknown：次の gouda.sh start で使う値', fmt(c.next_start_inflate, '—'))
+      + row('inflate_around_unknown：今の起動で使っている値', fmt(c.in_use_inflate, '不明（Nav2 が起動していない）'));
   }
   $('nav2-save').addEventListener('click', async () => {
     const data = {}; new FormData($('nav2-form')).forEach((v, k) => { data[k] = v; });
@@ -370,7 +380,14 @@
   });
 
   // ---- waypoint_manager (IFD-30 / IFD-41): edits on the converted map; save generates the speed mask ----
-  const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1 };
+  const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1, areas: [], drawing: null, gaps: [] };   // areas: drawn keepout / allowed polygons (REV-137); gaps: narrow keepout gaps of the last save (REV-140)
+  // background: the corridor over the 3D map (DEC-211); the 2D map when the revision has no overlay (converted before 0.5)
+  function wpImage(origin, rev, onload, onerror) {
+    const img = new Image(); let fallback = false;
+    img.onload = () => onload(img);
+    img.onerror = () => { if (fallback) { onerror(); return; } fallback = true; img.src = `/api/map/${origin}/${rev}/map.png?t=${Date.now()}`; };
+    img.src = `/api/map/${origin}/${rev}/corridor_overlay.png?t=${Date.now()}`;
+  }
   // ---- autonomy preparation (体験 9, IFD-02): the selected set (its map comes with it), the preview, the initial pose ----
   const autoState = { sel: null };
   function autoPose() {
@@ -391,14 +408,14 @@
     const m = j.set.map;
     const g = await (await fetch(`/api/map/${m.origin_id}/${m.revision}/geometry.json`)).json();
     if (!g.ok) { $('auto-msg').textContent = 'NG: ' + g.message; return; }
-    const img = new Image(); img.src = `/api/map/${m.origin_id}/${m.revision}/map.png?t=${Date.now()}`;
-    img.onload = () => {
+    wpImage(m.origin_id, m.revision, (img) => {
       wpState.map = { origin: m.origin_id, rev: m.revision, hash: m.content_hash }; wpState.geom = g; wpState.img = img;
-      wpState.points = j.set.waypoints.map((w) => Object.assign({}, w)); wpState.limits = j.set.section_limits_mps.slice(); wpDraw();
+      wpState.points = j.set.waypoints.map((w) => Object.assign({}, w)); wpState.limits = j.set.section_limits_mps.slice();
+      wpState.areas = (j.set.areas || []).map((a) => ({ kind: a.kind, polygon: a.polygon.map((p) => p.slice()) })); wpState.drawing = null; wpState.gaps = []; wpDraw();
       autoState.sel = { waypoint_set_id: sid, waypoint_set_revision: String(parseInt(rev, 10)), waypoint_set_hash: j.manifest.content_hash,
                         map_id: m.origin_id, map_revision: String(m.revision), map_hash: m.content_hash };
-      $('auto-msg').textContent = `選択: ${sid}/${rev}（地図 ${m.origin_id}/${m.revision}、${j.set.waypoints.length} 点）。初期位置を入れてから「自律走行」を押す`;
-    };
+      $('auto-msg').textContent = `選択: ${sid}/${rev}（地図 ${m.origin_id}/${m.revision}、${j.set.waypoints.length} 点、範囲 ${(j.set.areas || []).length}）。初期位置を入れてから「自律走行」を押す`;
+    }, () => { $('auto-msg').textContent = '地図画像を取得できない'; });
   }
   function wpFillMaps(s) {
     const sel = $('wp-map-select'); const cur = sel.value; sel.innerHTML = '';
@@ -424,9 +441,8 @@
     const [origin, rev] = v.split('/');
     const g = await (await fetch(`/api/map/${origin}/${rev}/geometry.json`)).json();
     if (!g.ok) { $('wp-map-status').textContent = g.message; return; }
-    const img = new Image(); img.src = `/api/map/${origin}/${rev}/map.png?t=${Date.now()}`;
-    img.onload = () => { wpState.map = { origin, rev: parseInt(rev, 10), hash: g.content_hash }; wpState.geom = g; wpState.img = img; wpState.points = []; wpState.limits = []; wpDraw(); $('wp-map-status').textContent = `${g.width}x${g.height} @ ${g.resolution} m`; $('wp-map-status').className = 'status ok'; };
-    img.onerror = () => { $('wp-map-status').textContent = '地図画像を取得できない'; };
+    wpImage(origin, rev, (img) => { wpState.map = { origin, rev: parseInt(rev, 10), hash: g.content_hash }; wpState.geom = g; wpState.img = img; wpState.points = []; wpState.limits = []; wpState.areas = []; wpState.drawing = null; wpState.gaps = []; wpDraw(); $('wp-map-status').textContent = `${g.width}x${g.height} @ ${g.resolution} m`; $('wp-map-status').className = 'status ok'; },
+      () => { $('wp-map-status').textContent = '地図画像を取得できない'; });
   }
   function wpDraw() {
     const cv = $('wp-canvas'); const ctx = cv.getContext('2d'); const g = wpState.geom;
@@ -435,6 +451,22 @@
     ctx.fillStyle = '#03100f'; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.imageSmoothingEnabled = false; ctx.drawImage(wpState.img, 0, 0, g.width * scale, g.height * scale);
     const toPx = (p) => [ (p.x - g.origin_x) / g.resolution * scale, (g.height - (p.y - g.origin_y) / g.resolution) * scale ];
+    const AREA_COLOR = { keepout: ['rgba(230,40,40,0.35)', '#e62828'], allowed: ['rgba(40,200,90,0.30)', '#28c85a'] };
+    const drawPoly = (kind, poly, closed) => {   // drawn areas (REV-137): filled when closed, a line while being drawn
+      if (!poly.length) return; const [fill, line] = AREA_COLOR[kind];
+      ctx.beginPath(); poly.forEach(([x, y], i) => { const [px, py] = toPx({ x, y }); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
+      if (closed) { ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
+      ctx.strokeStyle = line; ctx.lineWidth = 2; ctx.stroke();
+      poly.forEach(([x, y]) => { const [px, py] = toPx({ x, y }); ctx.fillStyle = line; ctx.fillRect(px - 2, py - 2, 4, 4); });
+    };
+    wpState.areas.filter((a) => a.kind === 'allowed').forEach((a) => drawPoly(a.kind, a.polygon, true));
+    wpState.areas.filter((a) => a.kind === 'keepout').forEach((a) => drawPoly(a.kind, a.polygon, true));
+    if (wpState.drawing) drawPoly(wpState.drawing.kind, wpState.drawing.polygon, false);
+    (wpState.gaps || []).forEach((w) => {   // narrow gaps between keepout areas from the last save (DEC-227, PRM-99)
+      const [ax, ay] = toPx({ x: w.from[0], y: w.from[1] }); const [bx, by] = toPx({ x: w.to[0], y: w.to[1] });
+      ctx.setLineDash([4, 3]); ctx.strokeStyle = '#f0b43c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#f0b43c'; ctx.font = '11px monospace'; ctx.fillText(`${w.gap_m.toFixed(2)} m`, (ax + bx) / 2 + 4, (ay + by) / 2 - 4);
+    });
     ctx.lineWidth = 2; ctx.strokeStyle = '#39d5e0';
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f0b43c' : '#39d5e0'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a8e6ea'; ctx.font = '11px monospace'; ctx.fillText(String(i), px + 6, py - 6); });
@@ -450,6 +482,10 @@
     const rows = wpState.points.slice(0, -1).map((p, i) => `<tr><td>区間 ${i}→${i + 1}</td><td><input class="sec" data-i="${i}" value="${wpState.limits[i] != null ? wpState.limits[i] : ''}" placeholder="m/s"></td></tr>`).join('');
     $('wp-table').innerHTML = rows || '<tr><td colspan="2" class="dim">waypoint を 2 点以上置く</td></tr>';
     $('wp-table').querySelectorAll('input.sec').forEach((inp) => inp.addEventListener('change', () => { wpState.limits[parseInt(inp.dataset.i, 10)] = parseFloat(inp.value); }));
+    const names = { keepout: '走行禁止', allowed: '走行可' };
+    $('wp-areas').innerHTML = wpState.areas.map((a, i) => `<tr><td>範囲 ${i}: ${names[a.kind]}</td><td>${a.polygon.length} 点 <button class="op" data-del="${i}" type="button">削除<small>DELETE</small></button></td></tr>`).join('')
+      + (wpState.drawing ? `<tr><td>描いている途中: ${names[wpState.drawing.kind]}</td><td>${wpState.drawing.polygon.length} 点（3 点以上で「範囲を閉じる」）</td></tr>` : '');
+    $('wp-areas').querySelectorAll('button[data-del]').forEach((b) => b.addEventListener('click', () => { wpState.areas.splice(parseInt(b.dataset.del, 10), 1); wpState.gaps = []; wpDraw(); }));
   }
   $('wp-canvas').addEventListener('click', (ev) => {
     const g = wpState.geom; if (!g) return;
@@ -460,6 +496,11 @@
       if ($('auto-yaw-deg').value === '') $('auto-yaw-deg').value = '0';
       wpDraw(); return;
     }
+    const place = $('wp-place').value;
+    if (place !== 'waypoint') {   // a vertex of a drawn area (REV-137)
+      if (!wpState.drawing || wpState.drawing.kind !== place) wpState.drawing = { kind: place, polygon: [] };
+      wpState.drawing.polygon.push([Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000]); wpDraw(); return;
+    }
     wpState.points.push({ x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, yaw: 0, kind: 'pass' });
     if (wpState.points.length > 1) wpState.limits.push(wpState.limits.length ? wpState.limits[wpState.limits.length - 1] : null);
     wpDraw();
@@ -467,15 +508,28 @@
   $('wp-load-map').addEventListener('click', wpLoadMap);
   $('auto-preview').addEventListener('click', autoPreview);
   ['auto-x', 'auto-y', 'auto-yaw-deg'].forEach((id) => $(id).addEventListener('change', wpDraw));
-  $('wp-undo').addEventListener('click', () => { wpState.points.pop(); wpState.limits.pop(); wpDraw(); });
-  $('wp-clear').addEventListener('click', () => { wpState.points = []; wpState.limits = []; wpDraw(); });
+  $('wp-undo').addEventListener('click', () => {
+    if (wpState.drawing && wpState.drawing.polygon.length) { wpState.drawing.polygon.pop(); if (!wpState.drawing.polygon.length) wpState.drawing = null; }
+    else { wpState.points.pop(); wpState.limits.pop(); }
+    wpDraw();
+  });
+  $('wp-clear').addEventListener('click', () => { wpState.points = []; wpState.limits = []; wpState.areas = []; wpState.drawing = null; wpState.gaps = []; wpDraw(); });
+  $('wp-close-area').addEventListener('click', () => {
+    const d = wpState.drawing;
+    if (!d || d.polygon.length < 3) { $('wp-msg').textContent = 'NG: 範囲は 3 点以上の頂点で閉じる'; $('wp-msg').className = 'note amber'; return; }
+    wpState.areas.push(d); wpState.drawing = null; wpState.gaps = []; wpDraw();
+  });
   $('wp-save').addEventListener('click', async () => {
     if (!wpState.map) { $('wp-msg').textContent = 'NG: 地図を表示してから編集する'; return; }
     const body = { set_id: $('wp-set-id').value || '', half_width_m: $('wp-half-width').value, step_mps: $('wp-step').value,
-      set: { map: { origin_id: wpState.map.origin, revision: wpState.map.rev, content_hash: wpState.map.hash }, waypoints: wpState.points, section_limits_mps: wpState.limits } };
+      set: { map: { origin_id: wpState.map.origin, revision: wpState.map.rev, content_hash: wpState.map.hash }, waypoints: wpState.points, section_limits_mps: wpState.limits, areas: wpState.areas } };
+    if (wpState.drawing) { $('wp-msg').textContent = 'NG: 描いている途中の範囲がある（閉じるか、最後の点を削除で消す）'; $('wp-msg').className = 'note amber'; return; }
     const r = await fetch('/api/waypoints/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const j = await r.json(); $('wp-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('wp-msg').className = j.ok ? 'note cyan' : 'note amber';
-    $('wp-warnings').innerHTML = (j.warnings || []).map((w) => `<div class="ev refused"><span class="t">区間 ${w.sections.join('/')}</span><span class="m">${esc(w.message)}</span><span class="n">${w.cells} cell</span></div>`).join('') || '<div class="dim">なし</div>';
+    $('wp-warnings').innerHTML = (j.warnings || []).map((w) => (w.sections
+      ? `<div class="ev refused"><span class="t">区間 ${w.sections.join('/')}</span><span class="m">${esc(w.message)}</span><span class="n">${w.cells} cell</span></div>`
+      : `<div class="ev refused"><span class="t">${w.waypoint != null ? 'waypoint ' + w.waypoint : (w.areas ? '範囲 ' + w.areas.join('・') : '確認')}</span><span class="m">${esc(w.message)}</span><span class="n"></span></div>`)).join('') || '<div class="dim">なし</div>';
+    wpState.gaps = (j.warnings || []).filter((w) => w.kind === 'keepout_gap_narrow'); wpDraw();
     if (j.ok) { $('wp-set-id').value = j.set_id; }
   });
 

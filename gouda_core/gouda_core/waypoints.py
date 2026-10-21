@@ -8,6 +8,11 @@ Layout:
   routes/<set_id>/<revision>/waypoints.yaml      the set (YAML, IFD-30)
   routes/<set_id>/<revision>/speed_mask.pgm/.yaml raw-mode mask for the Nav2 SpeedFilter (IFD-41)
   routes/<set_id>/<revision>/filter_info.yaml     costmap_filter_info_server parameters (IFD-41)
+  routes/<set_id>/<revision>/keepout_mask.pgm/.yaml, keepout_filter_info.yaml
+                                                  the human-drawn 「走行禁止」 / 「走行可」 areas as a KeepoutFilter mask
+                                                  (REV-137, DEC-220..223; keepout_mask.py). The areas are part of the set
+                                                  (and of its content hash) only when there are some, so the hash of a set
+                                                  without areas is the same as before
   routes/<set_id>/<revision>/manifest.json        hashes, map reference, generator settings, warnings
   routes/index.json                               derived list
 The legacy default pass radius (D-02) is not reused (DEC-016).
@@ -48,6 +53,7 @@ class WaypointSet:
     set_id: str = ''
     revision: int = 0
     note: str = ''
+    areas: list = field(default_factory=list)   # [{'kind': 'keepout'|'allowed', 'polygon': [[x, y], ...]}] (REV-137)
 
     def validate(self) -> list:
         errors = []
@@ -59,20 +65,27 @@ class WaypointSet:
         for i, w in enumerate(self.waypoints):
             if not all(isinstance(getattr(w, k), (int, float)) and math.isfinite(getattr(w, k)) for k in ('x', 'y', 'yaw')): errors.append(f'waypoint {i}: x, y, yaw must be finite numbers')
             if w.kind not in ('pass', 'stop'): errors.append(f'waypoint {i}: kind must be pass or stop')
+        from gouda_core import keepout_mask
+        errors += keepout_mask.validate_areas(self.areas)
         return errors
 
     def to_dict(self) -> dict:
-        return {'schema': SCHEMA, 'set_id': self.set_id, 'revision': self.revision, 'note': self.note,
-                'map': {'origin_id': self.map_origin_id, 'revision': self.map_revision, 'content_hash': self.map_content_hash},
-                'frame': 'map', 'waypoints': [{'x': float(w.x), 'y': float(w.y), 'yaw': float(w.yaw), 'kind': w.kind} for w in self.waypoints],
-                'section_limits_mps': [float(v) for v in self.section_limits_mps]}   # normalised numbers: the hash does not depend on int/float spelling
+        d = {'schema': SCHEMA, 'set_id': self.set_id, 'revision': self.revision, 'note': self.note,
+             'map': {'origin_id': self.map_origin_id, 'revision': self.map_revision, 'content_hash': self.map_content_hash},
+             'frame': 'map', 'waypoints': [{'x': float(w.x), 'y': float(w.y), 'yaw': float(w.yaw), 'kind': w.kind} for w in self.waypoints],
+             'section_limits_mps': [float(v) for v in self.section_limits_mps]}   # normalised numbers: the hash does not depend on int/float spelling
+        if self.areas:   # only when drawn: a set without areas keeps its earlier content hash
+            from gouda_core import keepout_mask
+            d['areas'] = keepout_mask.normalised(self.areas)
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> 'WaypointSet':
         m = d.get('map', {})
         return cls(map_origin_id=str(m.get('origin_id', '')), map_revision=int(m.get('revision', 0)), map_content_hash=str(m.get('content_hash', '')),
                    waypoints=[Waypoint(float(w['x']), float(w['y']), float(w.get('yaw', 0.0)), str(w.get('kind', 'pass'))) for w in d.get('waypoints', [])],
-                   section_limits_mps=[float(v) for v in d.get('section_limits_mps', [])], set_id=str(d.get('set_id', '')), revision=int(d.get('revision', 0)), note=str(d.get('note', '')))
+                   section_limits_mps=[float(v) for v in d.get('section_limits_mps', [])], set_id=str(d.get('set_id', '')), revision=int(d.get('revision', 0)), note=str(d.get('note', '')),
+                   areas=list(d.get('areas') or []))
 
     def content_hash(self) -> str:
         """Hash of the set's content (without set_id/revision/note), independent of file names."""

@@ -14,6 +14,9 @@ What it talks to (all names from the design):
   (localization/status, IFD-53, fed in by the node through on_estimator_status) must become 正常 before Nav2 is started;
   推定不能 there fails the start as EstimatorUnavailable (TR-07, estimator_unavailable). Deactivate + cleanup at TR-11 / TR-12.
 - speed_limit (IFD-14), costmap_filter_info / speed_filter_mask (IFD-42): observed only, for speed_limit_application_state.
+- the drawn areas (REV-137, IFD-41 / IFD-55): keepout_mask_server's yaml_filename is set before STARTUP; the received keepout mask
+  (its cell values' hash and size against the waypoint set's manifest) and its filter info are observed (DEC-224 (a)). The mode
+  manager releases motion_hold only when this is confirmed too. Whether the costmap applied it ((b)) is not observed (DEC-226).
 Waiting: a service or action server that is not there makes the step fail at once (recorded). A started call is waited for
 without an upper limit (no time value is invented); the human can always pause or end, which abandons the start.
 """
@@ -57,12 +60,12 @@ class EstimatorUnavailable(StepFailed):
 
 
 class AutonomyClient:
-    def __init__(self, node, on_feedback: Callable, on_result: Callable, on_speed_state: Callable):
+    def __init__(self, node, on_feedback: Callable, on_result: Callable, on_speed_state: Callable, on_keepout: Optional[Callable] = None):
         self.node = node
-        self.on_feedback, self.on_result, self.on_speed_state = on_feedback, on_result, on_speed_state
+        self.on_feedback, self.on_result, self.on_speed_state, self.on_keepout = on_feedback, on_result, on_speed_state, on_keepout
         self.nav = ActionClient(node, NavigateThroughPoses, 'navigate_through_poses')
         self.manage = node.create_client(ManageLifecycleNodes, 'lifecycle_manager_navigation/manage_nodes')
-        self.set_params = {n: node.create_client(SetParameters, f'{n}/set_parameters') for n in ('map_server', 'filter_mask_server', 'costmap_filter_info_server')}
+        self.set_params = {n: node.create_client(SetParameters, f'{n}/set_parameters') for n in ('map_server', 'filter_mask_server', 'costmap_filter_info_server', 'keepout_mask_server')}
         self.change = {n: node.create_client(ChangeState, f'{n}/change_state') for n in VEHICLE_NODES + (LOCALIZATION_NODE,)}
         self.get = {n: node.create_client(GetState, f'{n}/get_state') for n in VEHICLE_NODES + (LOCALIZATION_NODE,)}
         self.set_params[LOCALIZATION_NODE] = node.create_client(SetParameters, f'{LOCALIZATION_NODE}/set_parameters')
@@ -70,6 +73,11 @@ class AutonomyClient:
         node.create_subscription(SpeedLimit, nc.SPEED_LIMIT_TOPIC, self._on_speed_limit, SPEED_LIMIT_QOS)
         node.create_subscription(OccupancyGrid, nc.FILTER_MASK_TOPIC, self._on_mask, LATCHED)
         node.create_subscription(CostmapFilterInfo, nc.FILTER_INFO_TOPIC, self._on_info, LATCHED)
+        node.create_subscription(OccupancyGrid, nc.KEEPOUT_MASK_TOPIC, self._on_keepout_mask, LATCHED)     # IFD-55
+        node.create_subscription(CostmapFilterInfo, nc.KEEPOUT_INFO_TOPIC, self._on_keepout_info, LATCHED)
+        self.keepout_expected = None      # (sha256, (width, height)) of the started mission's mask
+        self.keepout_mask_state = None    # None (not received since STARTUP) / 'match' / 'mismatch: ...'
+        self.keepout_info_received = False
         self.mask: Optional[ac.MaskGrid] = None
         self.info_received = False
         self.limit_since_start: Optional[float] = None
@@ -97,6 +105,33 @@ class AutonomyClient:
     def _on_info(self, m: CostmapFilterInfo):
         self.info_received = True
         self._speed_state()
+
+    # ---- the drawn areas (IFD-55, DEC-224 (a)) ----
+    @property
+    def keepout_confirmed(self) -> bool:
+        return self.keepout_mask_state == 'match' and self.keepout_info_received
+
+    def _on_keepout_mask(self, m: OccupancyGrid):
+        if self.keepout_expected is None:
+            return
+        import hashlib
+        import numpy as np
+        sha = hashlib.sha256(np.asarray(m.data, dtype=np.int8).tobytes()).hexdigest()
+        size = (int(m.info.width), int(m.info.height))
+        want_sha, want_size = self.keepout_expected
+        self.keepout_mask_state = 'match' if (sha, size) == (want_sha, want_size) else f'mismatch: received {size} {sha[:12]}…, the waypoint set has {want_size} {want_sha[:12]}…'
+        self._keepout_changed({'received_sha256': sha, 'received_size': size})
+
+    def _on_keepout_info(self, m: CostmapFilterInfo):
+        if self.keepout_expected is None:
+            return
+        # nav2_msgs/CostmapFilterInfo: type 0 (keepout), filter_mask_topic, base 0, multiplier 1 (what KeepoutFilter requires)
+        self.keepout_info_received = int(m.type) == 0 and m.filter_mask_topic == nc.KEEPOUT_MASK_TOPIC and float(m.base) == 0 and float(m.multiplier) == 1
+        self._keepout_changed({'info_type': int(m.type), 'info_mask_topic': m.filter_mask_topic, 'info_base': float(m.base), 'info_multiplier': float(m.multiplier)})
+
+    def _keepout_changed(self, details):
+        if self.on_keepout:
+            self.on_keepout(self.keepout_confirmed, dict(details, mask_state=self.keepout_mask_state, info_received=self.keepout_info_received))
 
     def _speed_state(self):
         self.on_speed_state(ac.speed_limit_state(self.mask, self.info_received, self.robot_xy, self.limit_since_start),
@@ -221,7 +256,9 @@ class AutonomyClient:
         self._set('map_server', {'yaml_filename': mission.map_yaml}, 'map_server yaml_filename', token)
         self._set('filter_mask_server', {'yaml_filename': mission.mask_yaml}, 'filter_mask_server yaml_filename', token)
         self._set('costmap_filter_info_server', {'base': mission.filter_base, 'multiplier': mission.filter_multiplier}, 'costmap_filter_info_server base / multiplier', token)
-        record('nav2_parameters_set', f'map {mission.map_yaml}, mask {mission.mask_yaml}, base {mission.filter_base}, multiplier {mission.filter_multiplier}', {})
+        self._set('keepout_mask_server', {'yaml_filename': mission.keepout_yaml}, 'keepout_mask_server yaml_filename', token)   # IFD-55 (REV-137)
+        self.keepout_expected, self.keepout_mask_state, self.keepout_info_received = (mission.keepout_sha256, tuple(mission.keepout_size)), None, False
+        record('nav2_parameters_set', f'map {mission.map_yaml}, mask {mission.mask_yaml}, base {mission.filter_base}, multiplier {mission.filter_multiplier}, keepout {mission.keepout_yaml}', {})
         self.limit_since_start = None; self.mask = None; self.info_received = False; self.robot_xy = None
         req = ManageLifecycleNodes.Request(); req.command = ManageLifecycleNodes.Request.STARTUP
         if not self._call(self.manage, req, 'Nav2 STARTUP', token).success:
