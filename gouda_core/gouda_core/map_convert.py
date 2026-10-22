@@ -348,6 +348,33 @@ def base_path(traj: 'np.ndarray', r_base_imu, t_base_imu) -> 'np.ndarray':
     return (traj[:, 1:4] - r_mb @ t_bi)[:, :2]
 
 
+def mapping_end_pose(traj: 'np.ndarray', r_base_imu, t_base_imu) -> Optional[dict]:
+    """Pose of base_link at the last row of the mapping trajectory (REV-155, DEC-289): where the vehicle stood when mapping
+    stopped, in the map frame. Same transform as base_path (T_map_base = T_map_imu * inv(T_base_imu)); yaw is the heading of
+    base_link's x axis. None for an empty trajectory."""
+    if len(traj) == 0:
+        return None
+    last = traj[-1:]
+    r_mb = _quat_matrices(last[:, 4:8])[0] @ np.asarray(r_base_imu, dtype=np.float64).T
+    p = last[0, 1:4] - r_mb @ np.asarray(t_base_imu, dtype=np.float64)
+    return {'x': float(p[0]), 'y': float(p[1]), 'yaw': float(math.atan2(r_mb[1, 0], r_mb[0, 0])), 'time': float(last[0, 0])}
+
+
+def mapping_end_pose_of(converted_dir: Path, mount_values: Optional[dict]) -> dict:
+    """{'ok': True, x, y, yaw, time, defaulted_fields, problems} from a converted revision's trajectory and the /config snapshot
+    of the mapping run, or {'ok': False, 'message'} when either is missing (nothing is guessed)."""
+    from gouda_core import sensor_extrinsics as se
+    traj_path = Path(converted_dir) / TRAJECTORY_FILE
+    traj = read_trajectory(traj_path.read_text(encoding='utf-8')) if traj_path.is_file() else np.zeros((0, 8))
+    if len(traj) == 0:
+        return {'ok': False, 'message': f'{traj_path.name} is missing or empty in this revision'}
+    if mount_values is None:
+        return {'ok': False, 'message': 'no /config snapshot with the source map: the IMU mounting of the mapping run is unknown'}
+    r_bi, t_bi, defaulted, problems = se.sensor_pose(dict(mount_values), 'imu')
+    pose = mapping_end_pose(traj, r_bi, t_bi)
+    return dict(ok=True, **pose, defaulted_fields=defaulted, problems=problems)
+
+
 def split_at_gaps(xy: 'np.ndarray', gap: float) -> tuple:
     """(list of index ranges joined, list of (index, distance) where consecutive points are farther apart than gap)."""
     if not gap > 0: raise ValueError('corridor_gap_m must be positive')

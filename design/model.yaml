@@ -34531,14 +34531,14 @@ entities:
       - G-DUP-START
     interpretation: REV-108（DEC-174）：stop は SIGINT の後、時間の上限なしに待つ（SIGTERM・SIGKILL を送らない）。PRM-77 ごとに GLIM と 
       rosbag の保存の大きさと増え方を表示する。終わらないときは人が PC を再起動する。 REV-144（DEC-279 案 a）：start で Fast DDS の profile 
-      を書いて全プロセスに与える（PRM-100）。起動オプションは増やさない。
+      を書いて全プロセスに与える（PRM-100）。起動オプションは増やさない。 REV-146（DEC-138）：profile に共有メモリの区画（PRM-101）。
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I003
       - RQ-I004
       - RQ-I058
-    revision_ref: REV-144
+    revision_ref: REV-146
     ros_node:
       node_name: gouda_launcher
       responsibilities:
@@ -34551,9 +34551,10 @@ entities:
         - Gouda は同時に一つ。pid ファイルにない gouda_core の起動（試験スタック trial:=true 
           は除く）が同じ利用者で動いていれば起動を拒み、止め方を表示する。status・stop でも表示する（G-DUP-START、DEC-103）
         - 走行開始要求は発行しない（M-001 K2 を維持）
-        - Fast DDS の profile：start のたびに PRM-100 から <data_root>/run/fastdds_profile.xml 
+        - Fast DDS の profile：start のたびに PRM-100・PRM-101 から <data_root>/run/fastdds_profile.xml 
           を書き（gouda_core.dds_profile）、FASTRTPS_DEFAULT_PROFILES_FILE で launch に渡す（子のプロセス・子の launch 
-          も同じ設定）。共有メモリの転送は既定の区画のまま、UDPv4 の受信・送信のバッファを PRM-100 にする。値がなければ起動しない（DEC-279）
+          も同じ設定）。共有メモリの区画を PRM-101 にし（点群が丸ごと共有メモリで渡る。DEC-138）、UDPv4 の受信・送信のバッファを PRM-100 
+          にする。値がなければ起動しない（DEC-279）
       absorbs_module_refs:
         - M-001
       active_in_mode_refs:
@@ -34608,7 +34609,8 @@ entities:
       REV-118（DEC-181）：/config の中をタブに分け、センサの取付の設定に加えて「自律走行の出力」タブで不感帯の補償の最低倒し量としきい値（前進・後退・旋回）を入力・保存する。保存先は 
       <data_root>/config/motion_compensation.json（UNKNOWN は推測で埋めない）。起動時と保存のたびに IFD-52 
       を発行し、DecisionEvent（event=settings）に残す。 REV-132（DEC-209）：「Nav2」タブを足した。 REV-134（DEC-211・215・217）：waypoint 
-      の警告、重ね図、Nav2 タブの真偽の項目。 REV-137（DEC-220〜223）：人が描く範囲。
+      の警告、重ね図、Nav2 タブの真偽の項目。 REV-137（DEC-220〜223）：人が描く範囲。 REV-146（DEC-281 b）：点群の受信は IFD-56 で見る。 
+      REV-155（DEC-289 案 a）：waypoint タブに地図作成の終わりの姿勢と、それを初期位置にするボタン。
     sensitivity:
       - operation
     requirement_refs:
@@ -34621,7 +34623,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-137
+    revision_ref: REV-155
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -34639,8 +34641,9 @@ entities:
           transient_local の状態を取得する（DEC-014）
         - 自身の設定状況（UI の周期・待ち時間 PRM-27〜32、/config の版）を起動時と /config 保存時に 
           DecisionEvent（event=settings）で記録する（DEC-073、RQ-I015）。中継ノードとして parameter を宣言する（ブラウザ側 UI は宣言しない）
-        - 点群（IFD-21）と IMU（IFD-22）の受信状況（状態・周期・経過・header.stamp 
-          と受信時刻の差）を表示する。中身は展開せず到着だけを数える。表示のみで停止条件にしない（DEC-088）。しきい値は PRM-57・PRM-58
+        - 点群と IMU（IFD-22）の受信状況（状態・周期・経過。IMU は header.stamp 
+          と受信時刻の差も）を表示する。点群は、ドライバが点群を出すたびに出す小さな通知（IFD-56）の到着で見て、1.66 MB の点群そのもの（IFD-21）は購読しない（DEC-281 
+          b）。中身は展開せず到着だけを数える。表示のみで停止条件にしない（DEC-088）。しきい値は PRM-57・PRM-58
         - 地図作成開始ボタンの時点でどちらかのセンサーが未受信または途絶なら、ポップアップと 
           DecisionEvent（mapping_start_sensor_warning）で警告する。開始は止めない（RQ-I011、DEC-088）
         - 「地図」タブ（RQ-I082）。地図データベースの原図と変換後地図（rev）の一覧、変換設定（PRM-33〜36・38・62〜64）の入力と再変換（IFD-37 
@@ -34659,6 +34662,10 @@ entities:
           セットと一緒に保存する（内容ハッシュに入る）。保存のとき、速度マスクと同じ格子で keepout 
           のマスク（keepout_mask.pgm・.yaml、keepout_filter_info.yaml。禁止 100、走行可 0、指定なし -1。禁止が走行可より強い）を作り、map_server 
           が読む値の内容ハッシュを manifest に記録する。禁止の範囲を広げる幅はない（人が車体のはみ出しの余裕を取って描く：DEC-223）。走行禁止の中の waypoint は警告して保存する
+        - 地図作成の終わりの姿勢（DEC-289）：waypoint タブで地図を読み込むかセットをプレビューすると、変換後地図の軌跡（trajectory_imu.txt）の最後の点を、その地図作成の 
+          /config の写しの IMU の取り付けで base_link 
+          に直した位置・向きを、黄の矢印と「地図作成の終わり」で表示する（/api/map/<origin>/<rev>/end_pose.json）。「地図作成の終わりの姿勢を初期位置にする」ボタンで初期位置（IFD-34
+          に送る値）の欄に入れる。押すのは人で、車体を地図作成の後に動かしていないときだけ使う（説明を画面に出す）。軌跡か /config の写しがないときは理由を出し、矢印もボタンも出さない（補わない）
       absorbs_module_refs:
         - M-002
         - M-003
@@ -34686,9 +34693,9 @@ entities:
         - IFD-27
         - IFD-33
         - IFD-38
-        - IFD-21
         - IFD-22
         - IFD-51
+        - IFD-56
       serves_refs: []
       calls_refs:
         - IFD-02
@@ -35080,7 +35087,9 @@ entities:
       design/proposals/nd07_a3_trial_design_2026-10-21.md（DEC-203、承認待ち）。 
       REV-127（DEC-203、転記）：構成の案（design/proposals/nd07_a3_trial_design_2026-10-21.md 
       §2・§3）の正本への取込みと実装を人が許可。取込みは別の変更セット。 REV-128（DEC-203）：構成を正本に入れた。 REV-144（DEC-280 案 a）：ndt_align_srv 
-      の前に、NDT が点群を保持するまで待つ。
+      の前に、NDT が点群を保持するまで待つ。 REV-146（DEC-282 案 a）：初期化の後、入力が一度ずつ届くまで初期化中。 REV-148（DEC-283 案 a）：点群の前処理を Gouda の 
+      gouda_a3_points にした（pcl_ros の VoxelGrid が実の点群で落ちたため）。 REV-151（DEC-285・284 案 a）：map→odom 
+      の計算の待ち方、初回の計算までは初期化中、立方体の最小の点の数（PRM-102）。
     sensitivity:
       - safety
       - operation
@@ -35088,19 +35097,22 @@ entities:
       - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-144
+    revision_ref: REV-151
     ros_node:
       node_name: gouda_global_localization
       responsibilities:
         - 保存地図上の自己位置推定と map→odom TF の発行（自律走行・一時停止で単独の発行者）
         - 人が指定した初期位置・向き（IFD-34）からの初期化と、推定の有効性の公開（IFD-53）
-        - 方式は案 A3 を試す（DEC-115）。上流の部品は改変せず子の launch（gouda_localization_a3.launch.py）で起動する：pcl_ros の CropBox 2 
-          つと VoxelGrid（PRM-79〜81）、autoware_pointcloud_map_loader（地図の 
-          pointcloud_map/）、autoware_ndt_scan_matcher、autoware_ekf_localizer。設定は上流の param ファイルのまま、地図の場所と IF 
-          の名前だけを足す。部品の topic・service は名前空間 localization/a3 の中に閉じる
+        - 方式は案 A3 を試す（DEC-115）。部品は子の launch（gouda_localization_a3.launch.py）で起動する：点群の前処理は Gouda の 
+          gouda_a3_points 一つ（x・y・z だけを読み、±PRM-80 の箱の中を残し、±PRM-79 の箱の中を除き、PRM-81 の立方体ごとの重心にする。点が PRM-102 
+          より少ない立方体は捨てる（DEC-284、前の pcl_ros の VoxelGrid の既定と同じ）。DEC-283。pcl_ros の CropBox・VoxelGrid 
+          は使わない）、autoware_pointcloud_map_loader（地図の 
+          pointcloud_map/）、autoware_ndt_scan_matcher、autoware_ekf_localizer（上流のまま、設定は上流の param ファイルのまま、地図の場所と 
+          IF の名前だけを足す）。部品の topic・service は名前空間 localization/a3 の中に閉じる
         - EKF と NDT の /tf は名前空間の中の別の名前に逃がし、/tf の map→odom はこの node だけが出す（D-17、RQ-I004）。map→odom は EKF の 
-          map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 
-          を受けるたびにその時刻で出す。localization/pose（IFD-33）は EKF の姿勢
+          map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 を受けるたびにその時刻で出す。EKF の姿勢（約 50 Hz）は 
+          odometry（遅れて届く）より新しいので、EKF の姿勢を PRM-89 の期間ためておき、odometry を受けるたびに、その時刻以前で最も新しい EKF 
+          の姿勢で計算する（補外しない。DEC-285）。localization/pose（IFD-33）は EKF の姿勢
         - 速度の中継：IFD-25 の速度を TwistWithCovarianceStamped（分散 PRM-82・83）にして EKF へ
         - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付ける → NDT 
           が点群を保持するまで待つ（/diagnostics の scan_matching_status に is_activated があること。時間の制限なし。待つ間は初期化中で、IFD-53 の詳細に 
@@ -35108,7 +35120,9 @@ entities:
           trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom を出さず推定不能（init_failed）
         - 推定の状態（IFD-53）：NDT の診断（nearest_voxel_transformation_likelihood、PRM-90）、EKF 
           の診断（pose_no_update_count、PRM-91）、EKF の位置の標準偏差（PRM-92）、入力の古さ（PRM-89）から判定（DEC-200、DEC-206 の 
-          (2)）。材料がない・読めないときは正常にしない
+          (2)）。材料がない・読めないときは正常にしない。初期化の後、四つの入力（EKF の姿勢、NDT の診断、EKF の診断、odometry）のどれかがこの activate 
+          の後に一度も届いていない間は、推定不能ではなく初期化中（awaiting_inputs、待っている入力の名前を出す。時間の制限なし）にする（DEC-282）。map→odom がこの activate
+          の後に一度も計算されていない間も同じ（map_odom、DEC-285）。一度届いた入力が古くなったときは推定不能（input_stale）のまま
         - lifecycle：ND-03 が TR-05 で map_directory を設定して configure（子の launch を起動）・activate（初期化）、TR-11・TR-12 で 
           deactivate・cleanup（子の launch を止める）。設定値が未確定（実車で trial なし）なら configure を失敗にし理由を記録する（RQ-I076）
       absorbs_module_refs:
@@ -35565,12 +35579,12 @@ entities:
       - G-DUP-START
       - G-LIDAR-DROPOUT
       - G-MAP-TILT
-    interpretation: ''
+    interpretation: REV-146（DEC-281 b）：ドライバの点群ごとの通知（IFD-56）の名前を Gouda の名前にする。
     sensitivity: []
     requirement_refs:
       - RQ-I001
       - RQ-I006
-    revision_ref: REV-048
+    revision_ref: REV-146
     ros_node:
       node_name: hesai_ros_driver
       responsibilities:
@@ -35588,6 +35602,7 @@ entities:
       process_group: sensors
       publishes_refs:
         - IFD-21
+        - IFD-56
       subscribes_refs: []
       serves_refs: []
       calls_refs: []
@@ -37043,14 +37058,14 @@ entities:
       - H-005
       - G-DDS
       - G-LIDAR-DROPOUT
-    interpretation: ''
+    interpretation: REV-146（DEC-281 b）：monitor（ND-02）は購読しない（IFD-56 で受信を見る）。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I001
       - RQ-I006
       - RQ-I012
-    revision_ref: REV-061
+    revision_ref: REV-146
     designed_interface:
       transport: topic
       name: sensors/xt32/points
@@ -37068,7 +37083,6 @@ entities:
         - ND-09
         - ND-10
         - ND-16
-        - ND-02
       unit: m
       frame: xt32_link（LiDAR 固有の座標方向。base_link への変換は IFD-20 の静的TF）
       time_semantics: PRM-55=1（DEC-083）のとき、header.stamp はその frame の最初の packet の PC 受信時刻（Hesai SDK が 
@@ -45945,26 +45959,32 @@ entities:
       - PRM-92
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。 REV-144（DEC-279・280）：点群の保持の待ちと Fast DDS の profile の試験を追加。
+    interpretation: REV-128（DEC-203）で追加。 REV-144（DEC-279・280）：点群の保持の待ちと Fast DDS の profile の試験を追加。 
+      REV-146（DEC-282）：初期化の直後の入力待ちの試験を追加。 REV-148（DEC-283）：前処理の単体試験と、実の点群での試験を追加。 REV-151（DEC-285・284）：遅れて届く 
+      odometry の試験と、点の少ない立方体の試験を追加。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I084
       - RQ-I029
       - RQ-I004
-    revision_ref: REV-144
+    revision_ref: REV-151
     test:
       execution_status: 未実行
       stage: 自己位置推定
       procedure: 単体（test_localization_core.py）：map→odom の計算（EKF の map→base_link と、同じ時刻に補間した odom→base_link 
         から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散、NDT 
-        の点群の保持の読み取り（DEC-280）。単体（test_dds_profile.py）：PRM-100 からの Fast DDS の 
-        profile。VM：gouda_global_localization の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の 
-        map→odom の発行者が 1 つ。gouda.sh start の下で、点群（IFD-21）が BEST_EFFORT の購読者と A3 の CropBox に届く量。rosbag 
-        の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
+        の点群の保持の読み取り（DEC-280）、初期化の直後の入力待ち（DEC-282）、遅れて届く odometry と 50 Hz の EKF の姿勢での map→odom 
+        の計算（DEC-285）。単体（test_a3_points.py）：XT-32 の field の並び（UINT16、境界にない FLOAT64）からの x・y・z 
+        の読み取り、切り取りの境界（両端を含む）、立方体ごとの重心と、点の少ない立方体を捨てること（DEC-283・284）。単体（test_dds_profile.py）：PRM-100・PRM-101 からの
+        Fast DDS の profile。VM：実の XT-32 の点群で gouda_a3_points が 10 Hz で出し続けること。gouda_global_localization の 
+        configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の map→odom の発行者が 1 つ。gouda.sh start 
+        の下で、点群（IFD-21）が BEST_EFFORT の購読者と A3 の CropBox に届く量。rosbag の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
       observe: localization/status、/tf、DecisionEvent（初期化の各段）
       expected: 材料がそろうまで正常にならない。map→odom の発行者は ND-07 だけ。NDT が点群を保持する前に ndt_align_srv 
-        を呼ばない（その間は初期化中、推定不能にしない）。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
+        を呼ばない（その間は初期化中、推定不能にしない）。初期化の直後、入力が一度ずつ届き map→odom 
+        が一度計算されるまでは初期化中（awaiting_inputs）で、推定不能にしない（DEC-282・285）。odometry が EKF の姿勢より遅れて届いても、map→odom は 
+        odometry ごとに計算される（DEC-285）。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
   - id: TS-42
     kind: test
     name: 推定不能での一時停止（mode_manager）
@@ -46475,6 +46495,137 @@ entities:
       value_type: int
       apply_timing: launch
     approval_decision_ref: DEC-279
+  - id: PRM-101
+    kind: parameter
+    name: Fast DDS の共有メモリの区画の大きさ
+    source_refs:
+      - SRC-I006
+      - SRC-I007
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-21
+      - ND-07
+      - G-DDS
+      - PRM-100
+    issue_refs:
+      - G-DDS
+    interpretation: REV-146（DEC-138、DEC-281 案 a）で追加。
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I004
+    revision_ref: REV-146
+    parameter:
+      owner_ref: ND-01
+      value: 67108864
+      value_state: approved
+      unit: byte
+      stage: 起動と記録
+      purpose: gouda.sh start が書く Fast DDS の profile（<data_root>/run/fastdds_profile.xml）の共有メモリの転送の 
+        segment_size。XT-32 の点群（IFD-21、1 通約 1.66 MB）が、既定の区画（約 0.5 MB）に収まらず UDP の分割送信になって落ちるのを防ぐ。プロセスごとに一つの区画を 
+        /dev/shm に取る
+      measurement: 評価（FILE-LOCALIZATION-EVAL の 5、FILE-DEC116-FASTDDS）：同じ区画の profile で、間引きの node が受け取った点群が既定の 
+        74〜89／200 から 196〜200／200。試験スタック（gouda_core/test/fastdds_test_stack.xml）と同じ値。人の承認（DEC-138、REV-146 で記録）
+      decision_deadline: 決定済み（DEC-138）。x86 機に移るときに /dev/shm の大きさを確かめる
+      software_trial_value:
+      software_trial_basis: 人の承認（DEC-138）で実車の値があるため仮値なし
+      declaration: config_yaml
+      target: gouda_dds
+      param_key: shm_segment_bytes
+      value_type: int
+      apply_timing: launch
+    approval_decision_ref: DEC-138
+  - id: IFD-56
+    kind: designed_interface
+    name: sensors/xt32/packet_loss（XT-32 のドライバの点群ごとの通知）
+    source_refs:
+      - SRC-I008
+      - SRC-I009
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-21
+    issue_refs:
+      - G-DDS
+    interpretation: REV-146（DEC-281 案 b）で追加。monitor が点群そのものを購読しないため。
+    sensitivity:
+      - operation
+    requirement_refs:
+      - RQ-I005
+    revision_ref: REV-146
+    designed_interface:
+      transport: topic
+      name: sensors/xt32/packet_loss
+      message_type: hesai_ros_driver/msg/LossPacket（total_packet_count、total_packet_loss_count。header なし）
+      standard_type: false
+      custom_type_reason: Hesai のドライバ（ND-14）が出す型をそのまま使う（ドライバは改変しない）。名前だけを Gouda 
+        の名前にする（gouda_core.sensor_config）
+      purpose: diagnostic
+      owner_ref: ND-14
+      publisher_refs:
+        - ND-14
+      consumer_refs:
+        - ND-02
+      unit: packet（累計）
+      frame: —
+      time_semantics: ドライバは、点の数が下限を超えた frame の点群（IFD-21）を出した直後に、この通知を一つ出す（HesaiLidar_SDK_2.0 
+        hesai_lidar_sdk.hpp の MultiSend の後）。header がないので、時刻は受け取った時刻だけ。届いていれば点群も出ている（点群が購読者に届いたかは分からない）
+      qos:
+        reliability: reliable
+        durability: volatile
+        history_depth: 10
+      version_dependency:
+        status: confirmed_installed_version
+        evidence:
+          - research/upstream_sensors/hesai_ros2_e7e112f/source_driver_ros2.hpp
+          - research/vehicle_pc/2026-10-22_autonomy_run/ifd56_driver_frame_status.txt
+        note: VM の ~/gouda_ws/src/HesaiLidar_ROS_2.0（e7e112f）の 
+          src/driver/HesaiLidar_SDK_2.0/driver/hesai_lidar_sdk.hpp 322〜334 行を 2026-10-22 に読んだ（抜き書きは 
+          ifd56_driver_frame_status.txt）。VM で 10 Hz、型と QoS（RELIABLE、VOLATILE）を ros2 topic info・hz で確かめた
+      legacy_refs: []
+  - id: PRM-102
+    kind: parameter
+    name: 点群の間引き：立方体の最小の点の数
+    source_refs:
+      - SRC-I014
+      - SRC-I017
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - PRM-81
+    issue_refs:
+      - Q-02
+    interpretation: REV-151（DEC-284 案 a）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-151
+    parameter:
+      owner_ref: ND-07
+      value: 2
+      value_state: approved
+      unit: 点
+      stage: 自己位置推定（A3）
+      purpose: NDT に渡す点群の間引き（gouda_a3_points）で、PRM-81 の立方体のうち、点がこれより少ないものを捨てる
+      measurement: 人の承認（DEC-284 案 a）。値は、2026-10-22 まで A3 で使われていた pcl_ros の VoxelGrid の既定 
+        min_points_per_voxel（VM で ros2 param 
+        dump、design/research/vehicle_pc/2026-10-22_a3_points/notes.txt）。評価（DEC-115）もこの値の入力で行われた。測定値ではない
+      decision_deadline: 決定済み（DEC-284）
+      software_trial_value:
+      software_trial_basis: 人の承認（DEC-284）で実車の値があるため仮値なし
+      declaration: ros_parameter
+      target: gouda_global_localization
+      param_key: points_voxel_min_points
+      value_type: int
+      apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-284
 migration:
   baseline_definition_count: 198
   id_map:
@@ -57339,23 +57490,27 @@ decisions:
     disposition: answered
   - id: DEC-138
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-19'
-    answered_on:
+    answered_on: '2026-10-22'
     channel: chat
     question: '【承認】VM で実機試験を行う間、gouda.sh start（実車の起動）でも Fast DDS の共有メモリの区画を大きくする設定（試験スタックの gouda_core/test/fastdds_test_stack.xml
       と同じ内容）を使う。VM では既定の設定で約 2 MB の点群が落ち（G-DDS、FILE-DEC116-FASTDDS: 70・86/200）、GLIM の処理周期が 4 Hz 台になる。代わりの案: 使わない（x86
       機に戻るまで VM の地図は粗いまま）。'
-    answer_verbatim: ''
+    answer_verbatim: "DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。\n"
     affected_refs:
       - G-DDS
       - ND-01
       - ND-06
       - IFD-21
-    resulting_refs: []
+    resulting_refs:
+      - PRM-101
+      - ND-01
     note: '推奨は承認。起動の方法は増やさない（DEC-090）: 環境の切替や引数ではなく、gouda.sh が常に同じ設定を使う形（x86 機でも害はない見込み。x86 機で確かめる）。決まらない場合に止まる作業：VM
-      での地図作成の品質（実機試験の結果）。'
-    disposition: open_human
+      での地図作成の品質（実機試験の結果）。 REV-145（第117便）：DEC-279 で gouda.sh の profile（PRM-100、UDP のバッファ、共有メモリは既定の区画）が入った。その後の自律走行の試行でも、点群は
+      A3 の前処理をほとんど通らなかった（NDT の入力 0.4 Hz、GLIM 2.8 Hz、DEC-281）。この問いは DEC-281 の案 a として、もう一度答えを求める。決まらない場合に止まる作業：VM
+      での自律走行も。'
+    disposition: answered
   - id: DEC-139
     kind: approval
     status: answered
@@ -59474,6 +59629,255 @@ decisions:
       c：失敗したら決まった回数だけ呼び直す（原因が分からないまま通る。採らない）。振る舞いの違い：案 a・b 
       では、点群が来ないとき「推定不能」ではなく「初期化中（点群待ち）」のまま止まる。影響を受けるもの：ND-07、IFD-53 の表示、TR-05 の待ち（mode manager は ND-07 
       の状態を待つ）。決まらない場合に止まる作業：実車での ND-07 の初期化（DEC-279 が直れば、案なしでも起動から 3 秒以上たってから呼べば通る見込み。推測、未確認）。第115便で登録。
+    disposition: answered
+  - id: DEC-281
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】自律走行の間、XT-32 の点群（1 通 1.66 MB、10 Hz）が A3 の前処理（CropBox 2 段と VoxelGrid、それぞれ別のプロセス）と GLIM 
+      にほとんど届かない。点群の受け渡しをどう軽くするか
+    answer_verbatim: "DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。\n"
+    affected_refs:
+      - IFD-21
+      - ND-07
+      - ND-08
+      - DEC-138
+    resulting_refs:
+      - PRM-101
+      - IFD-56
+      - ND-02
+    note: 事実（VM、2026-10-22 01:59〜02:02、main c2b8d65、gouda.sh の Fast DDS の profile（PRM-100）あり、記録 
+      design/research/vehicle_pc/2026-10-22_autonomy_run/）：自律走行の約 120 秒で、points_downsampled（NDT の入力）は 48 通（0.4
+      Hz）、GLIM の odometry（IFD-25）は 332 通（2.8 Hz）、NDT の姿勢は 75 秒で 16 通。同じ時に一時的な購読で 10 秒数えると、生の点群 17 
+      通、points_cropped_far 6 通、points_cropped 1 通、points_downsampled 1 通。手動のとき（第116便の前、同じ profile の購読）は 10 秒で 
+      75 通だった。CPU は 45 % が空き（6 コア）。1 コアを使い切っていたのは gouda_global_localization（100 %、一時停止の後も主スレッド 70 %）と 
+      gouda_monitor（91 %）。gouda_monitor は生の点群（IFD-21）を Python で購読している。最初の 2 段の CropBox は、1.66 MB 
+      の点群をプロセスの間で受け渡す（遠い側の切り取りは 100 m なので、ほとんど小さくならない）。案 a（推奨）：DEC-138（Fast DDS の共有メモリの区画を大きくする、評価で 
+      196〜200/200 通）を gouda.sh の profile に入れる。案 b（推奨、a と一緒に）：monitor は生の点群を購読しない（受信の有無はドライバの状態か、間引いた点群で見る）。案 
+      c：A3 の前処理を一つのプロセスにまとめ（composable node、intra-process）、VoxelGrid を先にする（上流の部品の組み方の変更）。案 d：何もしない（VM 
+      では自律走行できない）。影響を受けるもの：gouda.sh の profile（PRM-100 と同じ所）、monitor の points の表示、ND-07 の子の 
+      launch。決まらない場合に止まる作業：VM での自律走行（x86 機でも同じかは未確認）。第117便で登録。
+    disposition: answered
+  - id: DEC-282
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】ND-07 は初期化の直後、EKF 
+      の姿勢・診断がまだ一つも届いていないので必ず一度「推定不能（input_stale）」を出し、自律走行開始の手順（正常を待つ所）はそれで失敗する。初期化の直後の状態をどう扱うか
+    answer_verbatim: "DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。\n"
+    affected_refs:
+      - ND-07
+      - IFD-53
+      - TR-05
+      - TR-07
+    resulting_refs:
+      - ND-07
+      - TS-41
+    note: 事実：第117便の試行（2026-10-22 02:00）、人の 01:5x の試行 2 回、第116便の VM の模擬の試験のどれでも、initialized の同じ瞬間に「推定不能 
+      (input_stale：ekf_pose, ndt_diagnostics, ekf_diagnostics)」が出た。localization_core.evaluate は、phase が 
+      running になると入力がまだない（None）ものを古いとみなす。autonomy_client.start_localization は、activate の後に推定不能を一度でも受けると 
+      EstimatorUnavailable で開始を失敗にする（TR-07、stop_reason estimator_unavailable）。模擬の試験では、この後に正常になった。案 a（推奨）：ND-07
+      は、初期化の後、四つの入力（EKF の姿勢、NDT の診断、EKF 
+      の診断、odometry）がそれぞれ一度届くまでは「初期化中」（理由は待っている入力の名前）にする。届いた後は今の判定のまま。時間の値は増やさない。案 b：mode manager 
+      が初期化の後しばらく推定不能を無視する（新しい時間の値が要る。推定不能を見逃す時間ができる）。案 c：今のまま（自律走行開始はいつも失敗する）。振る舞いの違い：案 a 
+      では、入力が来ないままなら初期化中のまま止まり（人は一時停止・終了できる）、推定不能にはならない。DEC-281 
+      が直らないと、入力がそろっても推定不能をくり返す見込み（推測）。決まらない場合に止まる作業：実車での自律走行開始。第117便で登録。
+    disposition: answered
+  - id: DEC-283
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】A3 の前処理の VoxelGrid（pcl_ros filter_voxel_grid_node、上流のまま）が、XT-32 の実の点群で落ちる。NDT 
+      の入力（points_downsampled）が来ず、ND-07 は初期化中のまま進まない。どう直すか
+    answer_verbatim: "DEC-283 は案 a で承認する。実装して VM で試験して。\n"
+    affected_refs:
+      - ND-07
+      - IFD-21
+      - DEC-281
+    resulting_refs:
+      - ND-07
+      - TS-41
+    note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_autonomy_run2/、voxel_probe.txt）：02:25:55 の
+      A3 で VoxelGrid は起動の約 4 秒後に exit -11（Segmentation fault）で落ちた。それまでの A3 の 11 回のうち 6 回、止めるとき（SIGINT）に exit 
+      -6 で落ち、ヒープの壊れの記録（munmap_chunk() invalid pointer、free() invalid next size）があった。実の点群の field は 
+      x・y・z・intensity（FLOAT32）、ring（UINT16、offset 16）、timestamp（FLOAT64、offset 18、8 バイト境界にない）、point_step 
+      26。同じ設定の VoxelGrid を一時的に動かすと、全 field の点群では 3 回中 2 回が止めるときに exit 139、x・y・z だけにした同じ点群では 3 
+      回とも正常に終わった。模擬の点群（x・y・z だけ）では A3 の VoxelGrid は一度も落ちていない。推測：pcl の VoxelGrid（PCLPointCloud2）が FLOAT32 以外の 
+      field（UINT16、境界にない FLOAT64）を扱えずにメモリを壊す（上流のソースでは未確認）。今回は点群が 10 Hz で届くようになったので、使っている間に落ちた。案 a（推奨）：A3 
+      の前処理（CropBox 2 段と VoxelGrid）を、Gouda の一つのノードにする。点群から x・y・z 
+      だけを読み、切り取り（PRM-79・80）と間引き（PRM-81）をして、x・y・z（FLOAT32）の点群を NDT に渡す。プロセスが 3 つ減り、大きな点群の受け渡しも 1 回になる（DEC-281 
+      の案 c と同じ向き）。NDT が使うのは x・y・z だけ。案 b：上流の部品のまま、VoxelGrid の前に x・y・z だけにするノードを足す（プロセスは一つ増える）。案 
+      c：別の上流の間引き（autoware_pointcloud_preprocessor など）を入れる（依存が増え、field の扱いは未確認）。案 
+      d：何もしない（実車で自律走行できない）。振る舞いの違い：案 a・b とも NDT の入力は今と同じ範囲・同じ格子の x・y・z。影響を受けるもの：ND-07 の子の 
+      launch、TS-41。決まらない場合に止まる作業：実車での自律走行。別の観察：初期化の結果は 2 回とも、人の初期姿勢（0.42、−0.83）から約 2.3 m 
+      離れた（−1.0、−2.56）だった（今回は NDT が受け取った点群が 1 つだけのときの探索）。正しいかは、点群が届くようにしてから確かめる。第119便で登録。
+    disposition: answered
+  - id: DEC-284
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】A3 の前処理（gouda_a3_points）で、点が一つだけの立方体を捨てるか（前の pcl_ros の VoxelGrid の既定 min_points_per_voxel 2 
+      と同じにする）
+    answer_verbatim: "DEC-285（と DEC-284）を案 a で承認\n"
+    affected_refs:
+      - ND-07
+      - DEC-283
+      - PRM-81
+    resulting_refs:
+      - PRM-102
+      - ND-07
+    note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_a3_points/notes.txt）：同じ模擬の点群（58946 
+      点）で、pcl_ros の VoxelGrid は 7342 点（最も遠い点 17.76 m）、gouda_a3_points は 8580 点（19.76 m）。pcl_ros のノードの 
+      parameter（ros2 param dump）は min_points_per_voxel 2。DEC-283 の note の「NDT の入力は今と同じ範囲・同じ格子」は、この点で同じではない。「2 
+      点以上」を VM の写しに一時的に入れた実験では、Monte Carlo の探索の時間（30 秒で終わらない）は変わらなかった。案 a（推奨）：前と同じにする。新しい設定値（立方体の最小の点の数、値 
+      2、出所は pcl_ros の既定で、2026-10-22 まで実際に使われていた値）を PRM にし、gouda_a3_points 
+      で使う。理由：評価（DEC-115）と第119便までの実車の試行は、この入力で行われた。案 b：今のまま（点が一つの立方体も残す。まばらな遠い点が NDT に入る）。振る舞いの違い：NDT の入力の点の数（約
+      15 % 少ない）と、まばらな点の扱い。影響を受けるもの：ND-07、TS-41。決まらない場合に止まる作業：なし（今のままでも動く）。第120便で登録。
+    disposition: answered
+  - id: DEC-285
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認】ND-07 の map→odom の計算が、実の odometry の遅れ（0.13〜0.25 秒）のためにほとんど行われない（推定不能 no_map_odom）。どう直すか
+    answer_verbatim: "DEC-285（と DEC-284）を案 a で承認\n"
+    affected_refs:
+      - ND-07
+      - IFD-18
+      - IFD-25
+      - IFD-53
+      - TS-41
+    resulting_refs:
+      - ND-07
+      - TS-41
+    note: 事実（VM、2026-10-22 03:17:38〜03:20、記録 
+      design/research/vehicle_pc/2026-10-22_autonomy_run3/、stamps.txt）：約 150 秒で points_downsampled 1402 通、NDT 
+      の姿勢 1274 通、GLIM の odometry 1443 通、EKF の姿勢 6541 通。初期化（19 秒）の 1 秒後に「推定不能 (no_map_odom)」、開始は 
+      TR-07（automatic_pause）で失敗した。128 秒に一度だけ正常になった（odometry の時刻のばらつきで、たまたま計算できたと推測）。odometry は受け取りの 
+      0.125〜0.165 秒前の時刻、EKF の姿勢は 0.001〜0.015 秒前の時刻で、EKF の姿勢は常に最新の odometry より 0.127〜0.25 
+      秒新しい。localization_core.MapOdomEstimator は「odometry より新しい EKF の姿勢は最新の一つだけ保留し、odometry がその時刻に届いたら計算する」。EKF
+      は約 50 Hz なので、保留はすぐ新しいものに置き換わり、odometry（10 Hz）は追いつかない。模擬の試験では odometry の時刻が今の時刻だったので起きなかった。案 a（推奨）：(1) 
+      EKF の姿勢を odometry と同じ期間（stale_timeout_s、PRM-89）だけためておき、odometry が届くたびに、その odometry の時刻以前で最も新しい EKF の姿勢で 
+      map→odom を計算する（EKF は約 50 Hz なので、差は約 20 ミリ秒以内。補外はしない）。(2) 初期化の後、map→odom が一度も計算されていない間は、DEC-282 
+      の四つの入力と同じく初期化中（awaiting_inputs、「map_odom」）にする。(1) だけでは、四つの入力がそろった瞬間に map→odom 
+      がまだなく、推定不能で開始が失敗しうるため。新しい時間の値は増やさない。一度計算された後に計算できなくなった場合の扱いは今のまま（古い map→odom を出し続け、入力の古さで推定不能）。案 b：EKF 
+      の姿勢の時刻ではなく odometry の時刻に合わせて EKF の姿勢を補間する（(1) とほぼ同じで、計算は少し増える）。案 
+      c：今のまま（実車では自律走行開始が失敗する）。影響を受けるもの：ND-07（map→odom、IFD-18 の時刻）、IFD-53、TS-41（odometry 
+      が遅れる模擬の試験を足す）。決まらない場合に止まる作業：実車での自律走行。別の観察（安全に関わる）：同じ置き方・同じ初期姿勢（0.425, −0.835, −114°、向きは Claude 
+      が軌跡から求めた値）で、初期化の結果が (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62) と 3.4 m ほど違う。どれが正しいかは分からない。DEC-285 
+      を直した後、走る前に、人が地図の上の推定位置と車体の本当の位置を見比べる必要がある。第121便で登録。
+    disposition: answered
+  - id: DEC-286
+    kind: approval
+    status: pending
+    asked_on: '2026-10-22'
+    answered_on:
+    channel: chat
+    question: 【承認・実測】止まっている実車で、EKF の x・y の標準偏差が 0.51〜0.54 m となり、PRM-92（0.5 
+      m、実測ではない）をわずかに超えて「推定不能」になり、自律走行開始が一時停止した。どう扱うか
+    answer_verbatim: ''
+    affected_refs:
+      - PRM-92
+      - ND-07
+      - IFD-53
+      - TR-07
+    resulting_refs: []
+    note: 事実（VM、2026-10-22 03:56:20 から、記録 design/research/vehicle_pc/2026-10-22_autonomy_run4/）：初期化 17 
+      秒（(−1.24, 0.02) に合う）、18 秒に正常で Nav2 の設定、21 秒 speed_limit の状態「不明」、22 秒に keepout のマスクを確認、25 秒に 
+      ekf_covariance_large（0.5098 > 0.5）で automatic_pause、開始の残り（goal）は行われなかった。その後も 0.536 などで推定不能と正常を行き来した。同じ時の
+      NDT は 9 Hz 前後、nearest_voxel_transformation_likelihood 2.93（PRM-90 の 2.3 より上）、pose_no_update_count 
+      0〜1。EKF の姿勢は約 50 Hz、odometry 10 Hz。車体は止まっていた（cmd_vel 0 通）。PRM-92 の 0.5 m は DEC-208 で既定値として採った値（Autoware 
+      1.9.0 の既定・評価から。実測ではない）。案 a（推奨）：PRM-92 を実測の項目にし、実車で止まっているとき・走っているときの EKF の x・y の標準偏差を記録して（DEC-285 
+      の後の今の構成で）、人が値を決める。決まるまで、実車での自律走行は止まる（値を仮定で緩めない）。Claude は測り方と解析のスクリプトを用意する。案 
+      b：推定不能の判定に、続いた時間の条件（例えば何秒続いたら）を足す（新しい時間の値が要り、それも実測が要る。推定不能を見逃す時間ができる）。案 c：今のまま（0.5 m 
+      を少し超えるたびに一時停止する）。決まらない場合に止まる作業：実車での自律走行。別の観察（安全に関わる、人の確認が要る）：推定の位置 (−1.5, 0.08)・向き約 −67° は、人が置いた位置として 
+      Claude が使った初期姿勢 (0.425, −0.835, −114°、向きは Claude が軌跡から求めた値) から約 2.1 m・47° 離れている。第117・119・121便の初期化の結果 
+      (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62) 
+      とも違う。どれが本当の位置かは、人が地図の上で確かめる必要がある。推定の位置が違っていれば、走らせてはならない。第123便で登録。
+    disposition: open_human
+  - id: DEC-287
+    kind: approval
+    status: pending
+    asked_on: '2026-10-22'
+    answered_on:
+    channel: chat
+    question: 【承認】自律走行開始の途中（Nav2 の STARTUP の最中）に一時停止・終了が来ると、Nav2 が動いたまま残り、次の開始が「Nav2 STARTUP 
+      failed」で必ず失敗する。どう直すか
+    answer_verbatim: ''
+    affected_refs:
+      - ND-03
+      - ND-10
+      - IFD-36
+      - TR-05
+      - TR-07
+      - TR-11
+      - TR-12
+    resulting_refs: []
+    note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_nav2_restart/）：第123便で lifecycle_manager の 
+      STARTUP が 1792608998 に始まり、1792609005.2 に ND-07 の ekf_covariance_large で TR-07、1792609005.54 に「Managed 
+      nodes are active」。1792609102.8 の end_autonomy（TR-12）では RESET の記録がない。人の試行（1792609384 開始）では、1792609413.72 
+      の STARTUP で「Failed to change state for node map_server」（動いたままだった）、続いて TR-07（stop_reason 
+      node_failure）。コード（autonomy_client.py）：_call は STARTUP の応答を受けた後、開始が捨てられていれば（token が変わっていれば）Abandoned 
+      を出し、self.nav2_active = True に届かない。stop() は nav2_active のときだけ RESET を送る。原因の分類：実装（競合）。案 a（推奨）：STARTUP 
+      を送る直前に「Nav2 は動いているかもしれない」と記録し（nav2_active = True）、終了・一時停止からの終了のときは必ず RESET を送る。RESET の失敗は今と同じく記録する。案 
+      b：終了のとき、Nav2 の状態（lifecycle_manager の is_active など）を問い合わせて、動いていれば RESET する。案 c：開始の最初に、念のため RESET を送ってから 
+      STARTUP する（残った Nav2 を毎回片付ける）。案 a と c は一緒にできる。今の VM の状態：人の試行は一時停止（mode 4、run-c1f3ac83）のままで、Nav2 
+      は動いたまま。人の試行の終了でも RESET は送られない見込み（同じ理由）。直すまで、次の開始は Gouda 
+      を起動し直さないと通らない。決まらない場合に止まる作業：実車での自律走行開始。別の観察（安全に関わる、人の確認が要る）：人が設定した初期姿勢 (−1.316, −1.429, −90°) 
+      に対し、初期化の結果は (−0.39, −0.24)、一時停止中の推定は (−0.36, −0.20)、向き約 −97°、照合の良さ 3.23。位置が約 1.5 m 違う。NDT 
+      が違う場所に合ったのか、設定した位置がずれているのかは分からない。第124便で登録。
+    disposition: open_human
+  - id: DEC-288
+    kind: approval
+    status: pending
+    asked_on: '2026-10-22'
+    answered_on:
+    channel: chat
+    question: 【確認・安全】地図作成の間（2026-10-22 03:14:30〜03:15:35）、ESP32 は 11 回「手動の優先（manual_override）」を出し、その間だけ GLIM 
+      は車体が動いた（合計 7.54 m、514 度）と推定した。人は「ずっと同じ位置にいた」と言っている。その間にゲームパッドを操作したか（誰かが車体を動かしたか）
+    answer_verbatim: ''
+    affected_refs:
+      - ND-11
+      - ND-12
+      - IFD-12
+    resulting_refs: []
+    note: 根拠は 
+      design/research/vehicle_pc/2026-10-22_mapping_motion/notes.txt。ゲームパッドを操作していたなら、車体は実際に動いており、自己位置推定は正しかった（地図作成の終わりの姿勢と推定が約
+      0.15 m・1 度で合う）。操作していないのに manual_override が出て車体が動いたのなら、意図しない動き（ゲームパッドのスティックの戻り、接続の誤り、ESP32 
+      の判定の誤りなど、推測）で、安全に関わる。その場合は、自律走行より先に ESP32 とゲームパッドを調べる（Claude は記録の解析と手順を用意する。実機の操作は人）。ESP32 の手動の優先そのもの（PC
+      の指令より優先）は安全の前提（CLAUDE.md 1.4）。第117便の試行の間にも 14 回、第121便の間にも 2 
+      回出ていた。決まらない場合に止まる作業：実車での自律走行（車体が人の思う位置にいるとは限らない）。第125便で登録。
+    disposition: open_human
+  - id: DEC-289
+    kind: approval
+    status: answered
+    asked_on: '2026-10-22'
+    answered_on: '2026-10-22'
+    channel: chat
+    question: 【承認・提案】初期姿勢を人が地図の上で推測して置くと、車体が動いていたときに大きくずれる。monitor の waypoint 
+      タブに、地図作成の終わりの姿勢（軌跡の最後の点の車体の位置・向き）を表示し、初期姿勢の候補にするか
+    answer_verbatim: "DEC-289を推奨案で実装せよ\n"
+    affected_refs:
+      - ND-02
+      - IFD-34
+      - IFD-39
+    resulting_refs:
+      - ND-02
+    note: 事実：monitor の waypoint 
+      タブは、帯の地図（青）と点群を表示するが、軌跡の始めと終わりの姿勢は表示しない。人は「軌跡（円）の中央」を地図作成の位置と考えて初期姿勢を置いたが、本当の位置（地図作成の終わり）は 1.4 m 離れていた。案
+      a（推奨）：地図作成の終わりの車体の姿勢（trajectory_imu の最後の点から、/config の取り付けで base_link 
+      に直した位置・向き）を矢印で表示し、「この姿勢を初期姿勢にする」ボタンを置く。地図を作った直後に、そのまま自律走行するときに使える。車体を動かした後は使わない（人が置く）。案 
+      b：表示だけする（ボタンは置かない）。案 
+      c：今のまま。いずれも、初期化の後の推定の位置（localization/pose）をタブに表示する案と一緒にできる（走る前に、人が本当の位置と見比べられる）。決まらない場合に止まる作業：なし（今のままでも動くが、初期姿勢の誤りは減らない）。第125便で登録。
     disposition: answered
 revisions:
   - id: REV-002
@@ -62671,6 +63075,179 @@ revisions:
       - ND-01
       - ND-07
       - TS-41
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-145
+    date: '2026-10-22'
+    summary: 第117便：人の指示で、Claude が monitor の API から自律走行開始を送り、挙動を記録した（main c2b8d65、REV-144 の実装の後）。ND-07 は点群を待ち、約
+      50 秒の探索の後に初期化したが、その直後に推定不能（input_stale）になり、開始は TR-07 で一時停止した。Nav2 は起動せず、速度の指令は出ていない。原因は二つ。(1) 初期化の直後は 
+      EKF の姿勢・診断がまだ届いていないので、ND-07 は必ず一度推定不能を出し、開始の手順はそれで失敗する。(2) 点群が A3 の前処理をほとんど通らない（NDT の入力 0.4 Hz、GLIM の 
+      odometry 2.8 Hz、NDT の姿勢 0.2 Hz）。承認事項 DEC-281（点群の受け渡しの負荷）と DEC-282（初期化の直後の状態）を登録し、DEC-138 
+      に今回の材料を足す。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - IFD-21
+      - DEC-138
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-146
+    date: '2026-10-22'
+    summary: 第118便：人の回答（原文）で DEC-282 は案 a、DEC-281 は案 a と b、DEC-138 は承認。gouda.sh の Fast DDS の profile に共有メモリの区画
+      PRM-101（67108864 バイト、試験スタックと同じ）を入れる。monitor は 1.66 MB 
+      の点群（IFD-21）を購読せず、ドライバが点群ごとに出す通知（IFD-56、sensors/xt32/packet_loss）で受信を見る。ND-07 
+      は初期化の後、入力が一度ずつ届くまで初期化中（awaiting_inputs）にする。
+    basis_refs:
+      - DEC-281
+      - DEC-282
+      - DEC-138
+    added_entity_ids:
+      - PRM-101
+      - IFD-56
+    modified_entity_ids:
+      - ND-01
+      - ND-02
+      - ND-07
+      - ND-14
+      - IFD-21
+      - TS-41
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-147
+    date: '2026-10-22'
+    summary: 第119便：人の指示（原文「周りは確認した。実車で自律走行開始を送って挙動を記録して。Gouda は前回と同じ位置・向きに置いている。」）で、REV-146 の実装を VM 
+      に写した状態で自律走行開始を送った。推定不能にはならず、点群は前処理の 2 段目まで 10 Hz で届き、GLIM の odometry も 10 Hz になった。しかし A3 の 
+      VoxelGrid（pcl_ros）が起動の約 4 秒後に落ち（exit -11）、NDT の入力が来ないので「初期化中（awaiting_inputs）」のまま進まなかった。Nav2 
+      は起動せず、速度の指令は出ていない。Claude が一時停止・終了した。承認事項 DEC-283（VoxelGrid の落ち）を登録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - IFD-21
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-148
+    date: '2026-10-22'
+    summary: 第120便：人の回答（原文）で DEC-283 は案 a。A3 の点群の前処理（pcl_ros の CropBox 2 段と VoxelGrid）を、Gouda の一つのノード 
+      gouda_a3_points にした。x・y・z だけを読み、同じ設定（PRM-79〜81）で切り取りと間引きをして、x・y・z（FLOAT32）の点群を NDT に渡す。
+    basis_refs:
+      - DEC-283
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-07
+      - TS-41
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-149
+    date: '2026-10-22'
+    summary: 第120便：gouda_a3_points（DEC-283 案 a）は、点が一つだけの立方体の重心も残す。前の pcl_ros の VoxelGrid 
+      は既定（min_points_per_voxel 2）でそれを捨てていた。NDT の入力を前と同じにするか、承認事項 DEC-284 として登録する。コードと設定は変えていない。
+    basis_refs:
+      - DEC-283
+      - ND-07
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-150
+    date: '2026-10-22'
+    summary: 第121便：人の指示（原文「周りは確認した。実車で自律走行開始を送って挙動を記録して。Gouda は前回と同じ位置・向きに置いている。」）で自律走行開始を送った（REV-148 の 
+      gouda_a3_points を VM に写した状態）。点群・NDT・GLIM の odometry・EKF はすべて届き（10 Hz・10 Hz・10 Hz・50 Hz）、初期化は約 19 
+      秒で終わった。しかし ND-07 が map→odom を計算できず「推定不能（no_map_odom）」になり、開始は TR-07 で一時停止した。Nav2 は起動せず、速度の指令は 0 
+      通。原因：MapOdomEstimator は最新の EKF の姿勢一つだけを保留し、odometry がその時刻に届くのを待つが、EKF の姿勢（約 50 Hz、時刻は受け取りとほぼ同じ）はいつも 
+      odometry（10 Hz、時刻は受け取りの 0.13〜0.17 秒前）より 0.13〜0.25 秒新しく、保留が次々に置き換わって計算されない。承認事項 DEC-285 
+      を登録する。初期化の結果が試行ごとに大きく違う（同じ置き方で (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62)）ことも記録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - DEC-282
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-151
+    date: '2026-10-22'
+    summary: 第122便：人の回答（原文）で DEC-285・DEC-284 は案 a。ND-07 は EKF の姿勢をためておき、odometry ごとにその時刻以前で最新の EKF の姿勢で 
+      map→odom を計算する。初期化の後、map→odom が一度計算されるまでは初期化中（awaiting_inputs）。gouda_a3_points は点が 
+      PRM-102（2）より少ない立方体を捨てる（前の pcl_ros の VoxelGrid の既定と同じ）。
+    basis_refs:
+      - DEC-285
+      - DEC-284
+    added_entity_ids:
+      - PRM-102
+    modified_entity_ids:
+      - ND-07
+      - TS-41
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-152
+    date: '2026-10-22'
+    summary: 第123便：人の指示（原文「周りは確認した。一時停止を終了してから、実車で自律走行開始を送って挙動を記録して。Gouda 
+      は前回と同じ位置・向きに置いている。」）で、一時停止（run-2f9eb1c5）を終了してから自律走行開始を送った（REV-151 を VM に写した状態）。初期化は 17 秒、18 
+      秒で正常になり、開始の手順は Nav2 の設定と keepout のマスクの確認まで進んだ。25 秒に EKF の x・y の標準偏差が 0.51 m（PRM-92 の 0.5 m 
+      を超える）になって推定不能（ekf_covariance_large）になり、TR-07 で一時停止して開始の残りの手順は行われなかった。Nav2 の goal は送られず、速度の指令は 0 
+      通、motion_hold は解かれていない。推定の位置は (−1.5, 0.08)、向き約 −67° で、人が置いた位置（Claude が使った初期姿勢 0.425, −0.835, −114°）から約 
+      2.1 m・47° 離れている。Claude は再開せず、終了した。承認事項 DEC-286 を登録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - PRM-92
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-153
+    date: '2026-10-22'
+    summary: 第124便：人の発言（原文「本当の位置を設定した」）の後、人が自律走行開始を送った試行（run-c1f3ac83、新しい地図 20261022_031430_5e5b16fc、waypoint 
+      20261022_031654_5320af、初期姿勢 (−1.316, −1.429, −90°)）の記録を読んだ。ND-07 は 29.6 秒で正常になったが、Nav2 の STARTUP が 
+      map_server の configure の失敗で止まり、TR-07 で一時停止した。原因は第123便（Claude の試行）で、Nav2 の STARTUP の途中で TR-07 
+      が起き、開始が捨てられた後に STARTUP が成功したのに、ND-03 が Nav2 を「動いている」と記録せず、終了のときに RESET しなかったこと。Nav2 は動いたまま残り、次の STARTUP 
+      が失敗した。承認事項 DEC-287 を登録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-03
+      - ND-10
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-154
+    date: '2026-10-22'
+    summary: 
+      第125便：人の指摘（原文「ずっと同じ位置にいたまま地図作成ボタンを押し、その後、軌跡（円）の中央に初期値を置いてwaypointをいくつか置いて自律走行開始ボタンを押したが、自己位置推定に失敗した。何か根本的なミスがあるのではないか？お手先の修正をしたって意味が無い。」）を受けて、読むだけで調べた。地図作成の間、GLIM
+      は ESP32 が手動の優先（manual_override）を出していた間だけ動き（7.54 m・514 
+      度）、それ以外は止まっていた。車体は地図作成の間に実際に動いた（ゲームパッドの操作による）と推論する。地図作成の終わりの姿勢（IMU (−0.25, −0.19)、2.4 度、車体の向き約 −97.6 
+      度）は、人の開始の推定 (−0.36, −0.20)、−97 度と合い、自己位置推定は正しかった。人が置いた初期姿勢（円の中央、(−1.316, −1.429, −90°)）が本当の位置から約 1.4 m 
+      違った。開始が止まったのは、Nav2 が動いたまま残った件（DEC-287）と、EKF の標準偏差のしきい値（DEC-286）による。確認事項 DEC-288 と提案 DEC-289 
+      を登録する。コードと設定は変えていない。
+    basis_refs:
+      - ND-07
+      - ND-02
+      - DEC-287
+      - DEC-286
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-155
+    date: '2026-10-22'
+    summary: 第126便：人の指示（原文「DEC-289を推奨案で実装せよ」）で DEC-289 案 a を実装した。monitor の waypoint 
+      タブに、地図作成の終わりの車体の姿勢（軌跡の最後の点を、地図作成の /config の写しの IMU の取り付けで base_link 
+      に直したもの）を黄の矢印で表示し、「地図作成の終わりの姿勢を初期位置にする」ボタンで初期位置の欄に入れる。
+    basis_refs:
+      - DEC-289
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-02
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

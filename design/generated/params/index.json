@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "2f7e8568d0c9b0327ebb884008a6f5984cb58f93b9a1a9d728ab6e309f5d666d",
+  "model_entities_sha256": "30d56680c55b048b3207d5a347e702d98e77e1e1c467b58e57bb9f57e9be6721",
   "parameters": [
     {
       "id": "PRM-54",
@@ -204,6 +204,30 @@
       "value_state": "approved",
       "value": 4194304,
       "unit": "byte"
+    },
+    {
+      "id": "PRM-101",
+      "file": "gouda_dds.yaml",
+      "key": "shm_segment_bytes",
+      "target": "gouda_dds",
+      "declaration": "config_yaml",
+      "apply_timing": "launch",
+      "value_type": "int",
+      "value_state": "approved",
+      "value": 67108864,
+      "unit": "byte"
+    },
+    {
+      "id": "PRM-102",
+      "file": "gouda_global_localization.yaml",
+      "key": "points_voxel_min_points",
+      "target": "gouda_global_localization",
+      "declaration": "ros_parameter",
+      "apply_timing": "lifecycle_configure",
+      "value_type": "int",
+      "value_state": "approved",
+      "value": 2,
+      "unit": "点"
     },
     {
       "id": "PRM-79",

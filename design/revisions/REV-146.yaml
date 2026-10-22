@@ -1,0 +1,206 @@
+# 変更セット REV-146（2026-10-22 第118便: DEC-281・282・138 への人の回答と実装）
+# 適用: design/tools/apply_revision.py REV-146
+id: REV-146
+date: '2026-10-22'
+summary: 第118便：人の回答（原文）で DEC-282 は案 a、DEC-281 は案 a と b、DEC-138 は承認。gouda.sh の Fast DDS の profile に共有メモリの区画 PRM-101（67108864 バイト、試験スタックと同じ）を入れる。monitor は 1.66 MB の点群（IFD-21）を購読せず、ドライバが点群ごとに出す通知（IFD-56、sensors/xt32/packet_loss）で受信を見る。ND-07 は初期化の後、入力が一度ずつ届くまで初期化中（awaiting_inputs）にする。
+basis_refs:
+- DEC-281
+- DEC-282
+- DEC-138
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities:
+- id: PRM-101
+  kind: parameter
+  name: Fast DDS の共有メモリの区画の大きさ
+  source_refs:
+  - SRC-I006
+  - SRC-I007
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-21
+  - ND-07
+  - G-DDS
+  - PRM-100
+  issue_refs:
+  - G-DDS
+  interpretation: REV-146（DEC-138、DEC-281 案 a）で追加。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I004
+  revision_ref: REV-146
+  parameter:
+    owner_ref: ND-01
+    value: 67108864
+    value_state: approved
+    unit: byte
+    stage: 起動と記録
+    purpose: gouda.sh start が書く Fast DDS の profile（<data_root>/run/fastdds_profile.xml）の共有メモリの転送の segment_size。XT-32 の点群（IFD-21、1 通約 1.66 MB）が、既定の区画（約 0.5 MB）に収まらず UDP の分割送信になって落ちるのを防ぐ。プロセスごとに一つの区画を /dev/shm に取る
+    measurement: 評価（FILE-LOCALIZATION-EVAL の 5、FILE-DEC116-FASTDDS）：同じ区画の profile で、間引きの node が受け取った点群が既定の 74〜89／200 から 196〜200／200。試験スタック（gouda_core/test/fastdds_test_stack.xml）と同じ値。人の承認（DEC-138、REV-146 で記録）
+    decision_deadline: 決定済み（DEC-138）。x86 機に移るときに /dev/shm の大きさを確かめる
+    software_trial_value:
+    software_trial_basis: 人の承認（DEC-138）で実車の値があるため仮値なし
+    declaration: config_yaml
+    target: gouda_dds
+    param_key: shm_segment_bytes
+    value_type: int
+    apply_timing: launch
+  approval_decision_ref: DEC-138
+- id: IFD-56
+  kind: designed_interface
+  name: sensors/xt32/packet_loss（XT-32 のドライバの点群ごとの通知）
+  source_refs:
+  - SRC-I008
+  - SRC-I009
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-21
+  issue_refs:
+  - G-DDS
+  interpretation: REV-146（DEC-281 案 b）で追加。monitor が点群そのものを購読しないため。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I005
+  revision_ref: REV-146
+  designed_interface:
+    transport: topic
+    name: sensors/xt32/packet_loss
+    message_type: hesai_ros_driver/msg/LossPacket（total_packet_count、total_packet_loss_count。header なし）
+    standard_type: false
+    custom_type_reason: Hesai のドライバ（ND-14）が出す型をそのまま使う（ドライバは改変しない）。名前だけを Gouda の名前にする（gouda_core.sensor_config）
+    purpose: diagnostic
+    owner_ref: ND-14
+    publisher_refs:
+    - ND-14
+    consumer_refs:
+    - ND-02
+    unit: packet（累計）
+    frame: —
+    time_semantics: ドライバは、点の数が下限を超えた frame の点群（IFD-21）を出した直後に、この通知を一つ出す（HesaiLidar_SDK_2.0 hesai_lidar_sdk.hpp の MultiSend の後）。header がないので、時刻は受け取った時刻だけ。届いていれば点群も出ている（点群が購読者に届いたかは分からない）
+    qos:
+      reliability: reliable
+      durability: volatile
+      history_depth: 10
+    version_dependency:
+      status: confirmed_installed_version
+      evidence:
+      - research/upstream_sensors/hesai_ros2_e7e112f/source_driver_ros2.hpp
+      - research/vehicle_pc/2026-10-22_autonomy_run/ifd56_driver_frame_status.txt
+      note: VM の ~/gouda_ws/src/HesaiLidar_ROS_2.0（e7e112f）の src/driver/HesaiLidar_SDK_2.0/driver/hesai_lidar_sdk.hpp 322〜334 行を 2026-10-22 に読んだ（抜き書きは ifd56_driver_frame_status.txt）。VM で 10 Hz、型と QoS（RELIABLE、VOLATILE）を ros2 topic info・hz で確かめた
+    legacy_refs: []
+modifications:
+- id: IFD-21
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-06
+    - ND-07
+    - ND-08
+    - ND-09
+    - ND-10
+    - ND-16
+  interpretation_append: REV-146（DEC-281 b）：monitor（ND-02）は購読しない（IFD-56 で受信を見る）。
+- id: ND-02
+  set_nested:
+    ros_node.responsibilities:
+    - 現在のモードと各nodeの状態の表示（RQ-I033）、ログ・rosbagの記録状態表示と独立した Record／Stop Record 操作（RQ-I005）
+    - 地図作成開始／終了、自律走行開始／一時停止／再開／終了の操作（サービス呼出し。進行の正本は持たない）。待ち時間は ROS parameter（PRM-29〜32。一時停止は別枠）で、超過は失敗を表示し自動再試行はしない
+    - 判断（log/decision）は時刻付きの「履歴」欄に表示し、「現在の状態」欄（mode/state）とは分ける。保持されたメッセージの受信を契機にしない（DEC-072）。記録の自動開始の失敗（record_auto_start_failed）はポップアップで警告（DEC-071）
+    - 初期位置・向きの指定（IFD-39）。開始時と、PC 再起動後の再開前（DEC-009）
+    - waypoint_manager GUI の表示（RQ-I044）と waypoint・区間速度上限の編集・保存（RQ-I078）。保存時に Speed Filter 用の速度マスクと filter info を生成して同じ由来 ID・ハッシュで保存（IFD-41、DEC-031。幅は PRM-19、刻みは PRM-20）
+    - 保存時に、重複する cell で上限が異なる区間を検出して警告する（対象区間と採用される低い方の値を示す。保存は拒否しない。DEC-059 案 A、TS-22）
+    - 地図とwaypointの組の選択とプレビュー（RQ-I011）
+    - センサTF・座標方向等の /config の保持。タブ遷移で設定が消えない永続化（RQ-I070）
+    - 表示用の状態集約。ESP32 STATUS のうち取得できる項目を表示し、取得できない項目・途絶時は「不明」と表示（DEC-006）。monitor の表示断は停止の契機にせず、再接続後に transient_local の状態を取得する（DEC-014）
+    - 自身の設定状況（UI の周期・待ち時間 PRM-27〜32、/config の版）を起動時と /config 保存時に DecisionEvent（event=settings）で記録する（DEC-073、RQ-I015）。中継ノードとして parameter を宣言する（ブラウザ側 UI は宣言しない）
+    - 点群と IMU（IFD-22）の受信状況（状態・周期・経過。IMU は header.stamp と受信時刻の差も）を表示する。点群は、ドライバが点群を出すたびに出す小さな通知（IFD-56）の到着で見て、1.66 MB の点群そのもの（IFD-21）は購読しない（DEC-281 b）。中身は展開せず到着だけを数える。表示のみで停止条件にしない（DEC-088）。しきい値は PRM-57・PRM-58
+    - 地図作成開始ボタンの時点でどちらかのセンサーが未受信または途絶なら、ポップアップと DecisionEvent（mapping_start_sensor_warning）で警告する。開始は止めない（RQ-I011、DEC-088）
+    - 「地図」タブ（RQ-I082）。地図データベースの原図と変換後地図（rev）の一覧、変換設定（PRM-33〜36・38・62〜64）の入力と再変換（IFD-37 に設定を添えて送る。一度に一つ）、rev ごとのプレビュー（2D 地図、3D 点群地図を上から見た高さの図、表示用の傾き・段差の図。DEC-095・DEC-097 A）・設定・結果の表示。既定値は gouda_map_creator の parameter を表示する。再変換の要求と結果を DecisionEvent で記録する
+    - DecisionEvent の glim_exited（GLIM の異常終了）と、record/status の failures の増加（記録の失敗。last_failure を示す）をポップアップで示す。接続時に受け取った保持分はきっかけにしない（DEC-072 と同じ規則。G-GLIM-EXIT、G-REC-ROSBAG-RESTART）
+    - /config の「Nav2」タブ（DEC-201・DEC-207 (a)・DEC-209）：Nav2 BT の recovery の回数を入力し IFD-54 に保存する（1 以上 PRM-18 以下の整数）。保存した値、次の gouda.sh start で使う値とその出所（monitor の値か PRM-18 か）、今の起動で使っている値（<data_root>/run/nav2/recovery.json）を表示する。保存を DecisionEvent に残す
+    - 案 C（DEC-215・DEC-211・DEC-217）：waypoint の保存のときに、各 waypoint が帯の地図（map.yaml）の空きの格子にあるかを確かめ、外にあれば警告を出して保存する（拒否しない）。地図タブに、帯と 3D 点群の重ね図（corridor_overlay.png）と今の分類の地図（ground_band.png）を表示する。「Nav2」タブに inflate_around_unknown（PRM-98 の上書き）を足す
+    - 人が描く範囲（DEC-220〜223）：waypoint タブの地図（帯と 3D 点群の重ね図）の上に、多角形で「走行禁止」「走行可」を描き、waypoint セットと一緒に保存する（内容ハッシュに入る）。保存のとき、速度マスクと同じ格子で keepout のマスク（keepout_mask.pgm・.yaml、keepout_filter_info.yaml。禁止 100、走行可 0、指定なし -1。禁止が走行可より強い）を作り、map_server が読む値の内容ハッシュを manifest に記録する。禁止の範囲を広げる幅はない（人が車体のはみ出しの余裕を取って描く：DEC-223）。走行禁止の中の waypoint は警告して保存する
+    ros_node.subscribes_refs:
+    - IFD-01
+    - IFD-12
+    - IFD-24
+    - IFD-25
+    - IFD-27
+    - IFD-33
+    - IFD-38
+    - IFD-22
+    - IFD-51
+    - IFD-56
+  interpretation_append: REV-146（DEC-281 b）：点群の受信は IFD-56 で見る。
+- id: ND-14
+  set_nested:
+    ros_node.publishes_refs:
+    - IFD-21
+    - IFD-56
+  interpretation_append: REV-146（DEC-281 b）：ドライバの点群ごとの通知（IFD-56）の名前を Gouda の名前にする。
+- id: ND-01
+  set_nested:
+    ros_node.responsibilities:
+    - 起動経路はこれ一つ（bash gouda.sh start／stop／status）。環境変数などの起動オプションを持たない（DEC-090・DEC-091）
+    - 共通nodeの起動と、モードごとの launch／lifecycle 有効化（RQ-I004）。センサードライバは常に gouda_sensor_supervisor（ND-18）の下で起動する（デバイスが無ければ待つ）
+    - ワークスペース（gouda.sh の 2 つ上）、データの置き場（PRM-25）、設定（design/generated/params）、ROS 2 Jazzy（/opt/ros/jazzy）は固定または正本から決める。仮値（<node>.trial.yaml）は読まない（試験 script だけが使う）
+    - 起動・有効化の失敗を gouda_monitor に表示できる形（/diagnostics・lifecycle状態）で残す。起動中に launch が終了したら失敗として表示する
+    - Gouda は同時に一つ。pid ファイルにない gouda_core の起動（試験スタック trial:=true は除く）が同じ利用者で動いていれば起動を拒み、止め方を表示する。status・stop でも表示する（G-DUP-START、DEC-103）
+    - 走行開始要求は発行しない（M-001 K2 を維持）
+    - Fast DDS の profile：start のたびに PRM-100・PRM-101 から <data_root>/run/fastdds_profile.xml を書き（gouda_core.dds_profile）、FASTRTPS_DEFAULT_PROFILES_FILE で launch に渡す（子のプロセス・子の launch も同じ設定）。共有メモリの区画を PRM-101 にし（点群が丸ごと共有メモリで渡る。DEC-138）、UDPv4 の受信・送信のバッファを PRM-100 にする。値がなければ起動しない（DEC-279）
+  interpretation_append: REV-146（DEC-138）：profile に共有メモリの区画（PRM-101）。
+- id: ND-07
+  set_nested:
+    ros_node.responsibilities:
+    - 保存地図上の自己位置推定と map→odom TF の発行（自律走行・一時停止で単独の発行者）
+    - 人が指定した初期位置・向き（IFD-34）からの初期化と、推定の有効性の公開（IFD-53）
+    - 方式は案 A3 を試す（DEC-115）。上流の部品は改変せず子の launch（gouda_localization_a3.launch.py）で起動する：pcl_ros の CropBox 2 つと VoxelGrid（PRM-79〜81）、autoware_pointcloud_map_loader（地図の pointcloud_map/）、autoware_ndt_scan_matcher、autoware_ekf_localizer。設定は上流の param ファイルのまま、地図の場所と IF の名前だけを足す。部品の topic・service は名前空間 localization/a3 の中に閉じる
+    - EKF と NDT の /tf は名前空間の中の別の名前に逃がし、/tf の map→odom はこの node だけが出す（D-17、RQ-I004）。map→odom は EKF の map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 を受けるたびにその時刻で出す。localization/pose（IFD-33）は EKF の姿勢
+    - 速度の中継：IFD-25 の速度を TwistWithCovarianceStamped（分散 PRM-82・83）にして EKF へ
+    - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付ける → NDT が点群を保持するまで待つ（/diagnostics の scan_matching_status に is_activated があること。時間の制限なし。待つ間は初期化中で、IFD-53 の詳細に NDT が最後に点群を捨てた理由を出す。DEC-280）→ ndt_align_srv（Monte Carlo の探索）→ 成功したら EKF の初期姿勢 → EKF・NDT の trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom を出さず推定不能（init_failed）
+    - 推定の状態（IFD-53）：NDT の診断（nearest_voxel_transformation_likelihood、PRM-90）、EKF の診断（pose_no_update_count、PRM-91）、EKF の位置の標準偏差（PRM-92）、入力の古さ（PRM-89）から判定（DEC-200、DEC-206 の (2)）。材料がない・読めないときは正常にしない。初期化の後、四つの入力（EKF の姿勢、NDT の診断、EKF の診断、odometry）のどれかがこの activate の後に一度も届いていない間は、推定不能ではなく初期化中（awaiting_inputs、待っている入力の名前を出す。時間の制限なし）にする（DEC-282）。一度届いた入力が古くなったときは推定不能（input_stale）のまま
+    - lifecycle：ND-03 が TR-05 で map_directory を設定して configure（子の launch を起動）・activate（初期化）、TR-11・TR-12 で deactivate・cleanup（子の launch を止める）。設定値が未確定（実車で trial なし）なら configure を失敗にし理由を記録する（RQ-I076）
+  interpretation_append: REV-146（DEC-282 案 a）：初期化の後、入力が一度ずつ届くまで初期化中。
+- id: TS-41
+  set_nested:
+    test.procedure: 単体（test_localization_core.py）：map→odom の計算（EKF の map→base_link と、同じ時刻に補間した odom→base_link から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散、NDT の点群の保持の読み取り（DEC-280）、初期化の直後の入力待ち（DEC-282）。単体（test_dds_profile.py）：PRM-100・PRM-101 からの Fast DDS の profile。VM：gouda_global_localization の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の map→odom の発行者が 1 つ。gouda.sh start の下で、点群（IFD-21）が BEST_EFFORT の購読者と A3 の CropBox に届く量。rosbag の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
+    test.expected: 材料がそろうまで正常にならない。map→odom の発行者は ND-07 だけ。NDT が点群を保持する前に ndt_align_srv を呼ばない（その間は初期化中、推定不能にしない）。初期化の直後、入力が一度ずつ届くまでは初期化中（awaiting_inputs）で、推定不能にしない（DEC-282）。初期化に失敗したら map→odom を出さず推定不能（init_failed）。
+  interpretation_append: REV-146（DEC-282）：初期化の直後の入力待ちの試験を追加。
+decision_updates:
+- id: DEC-282
+  set:
+    status: answered
+    answered_on: '2026-10-22'
+    disposition: answered
+    resulting_refs:
+    - ND-07
+    - TS-41
+    answer_verbatim: |
+      DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。
+- id: DEC-281
+  set:
+    status: answered
+    answered_on: '2026-10-22'
+    disposition: answered
+    resulting_refs:
+    - PRM-101
+    - IFD-56
+    - ND-02
+    answer_verbatim: |
+      DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。
+- id: DEC-138
+  set:
+    status: answered
+    answered_on: '2026-10-22'
+    disposition: answered
+    resulting_refs:
+    - PRM-101
+    - ND-01
+    answer_verbatim: |
+      DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。

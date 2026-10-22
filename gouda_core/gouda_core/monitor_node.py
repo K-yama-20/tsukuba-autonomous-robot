@@ -33,7 +33,8 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.parameter import Parameter
-from sensor_msgs.msg import PointCloud2, Imu, NavSatFix
+from sensor_msgs.msg import Imu, NavSatFix
+from hesai_ros_driver.msg import LossPacket   # IFD-56 (DEC-281)
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionCompensation
 from gouda_interfaces.srv import StartAutonomy
 from gouda_interfaces.action import ConvertMap
@@ -51,8 +52,10 @@ from gouda_core import speed_mask
 from gouda_core import png as pngmod
 from gouda_core import map_tab
 from gouda_core import map_convert
+from gouda_core import sensor_config
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
+LIDAR_STATUS_QOS = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)  # IFD-56
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
 # UI periods and waits (PRM-27..32): declared here (the relay node), values come from the generated parameter file.
 def optional_double(node, name):
@@ -142,7 +145,9 @@ class MonitorNode(Node):
         self.declare_parameter('imu_stale_s', Parameter.Type.DOUBLE)
         self.core.stale_after_sensor_s = {'points': optional_double(self, 'points_stale_s'), 'imu': optional_double(self, 'imu_stale_s')}
         sensor_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=5)
-        self.create_subscription(PointCloud2, 'sensors/xt32/points', lambda b: self._on_sensor('points', b), sensor_qos, raw=True)
+        # XT-32: the driver's per-frame message (IFD-56, a few bytes, sent right after each point cloud) instead of the 1.66 MB
+        # cloud itself (DEC-281 b): the cloud is not received by the monitor at all. It has no header: the stamp offset is not shown.
+        self.create_subscription(LossPacket, sensor_config.LIDAR_FRAME_STATUS_TOPIC, lambda m: self._on_sensor_message('points'), LIDAR_STATUS_QOS)
         self.create_subscription(Imu, 'sensors/imu/data', lambda b: self._on_sensor('imu', b), sensor_qos, raw=True)
         self.create_subscription(NavSatFix, 'sensors/gnss/navsatfix', lambda b: self._on_sensor('gnss', b), sensor_qos, raw=True)   # IFD-47
         self._subscribe_gnss_detail(sensor_qos)
@@ -205,6 +210,10 @@ class MonitorNode(Node):
                 self.core.on_gnss_detail('attitude', monitor_core.gnss_attitude_text(int(m.mode), float(m.heading)))
         self.create_subscription(PVTGeodetic, 'sensors/gnss/pvtgeodetic', quality, qos)
         self.create_subscription(AttEuler, 'sensors/gnss/atteuler', attitude, qos)
+
+    def _on_sensor_message(self, key: str):
+        with self._lock:
+            self.core.on_sensor(key, self._now(), None)
 
     def _on_sensor(self, key: str, raw: bytes):
         with self._lock:
@@ -330,7 +339,8 @@ class MonitorNode(Node):
         return {'ok': True, 'set': ws.to_dict(), 'manifest': man}
 
     def _get_map_png(self, rest, query):
-        """/api/map/<origin>/<revision>/map.png | slope.png | step.png | height.png | terrain.json | manifest.json | mask.png?set=<id>&rev=<n>."""
+        """/api/map/<origin>/<revision>/map.png | slope.png | step.png | height.png | terrain.json | manifest.json | geometry.json |
+        end_pose.json | mask.png?set=<id>&rev=<n>."""
         parts = [x for x in rest.split('/') if x]
         if len(parts) < 3: return {'ok': False, 'message': 'map/<origin>/<revision>/map.png'}
         origin, rev, what = parts[0], int(parts[1]), parts[2]
@@ -351,6 +361,10 @@ class MonitorNode(Node):
             d = self.map_db.root / origin / 'converted' / f'{rev:03d}'
             g = speed_mask.MapGeometry.from_map_yaml(d / 'map.yaml'); man = self.map_db.converted_manifest(origin, rev) or {}
             return {'ok': True, 'resolution': g.resolution, 'origin_x': g.origin_x, 'origin_y': g.origin_y, 'width': g.width, 'height': g.height, 'content_hash': man.get('content_hash', '')}
+        if what == 'end_pose.json':   # where the vehicle stood when mapping stopped, a candidate initial pose (REV-155, DEC-289)
+            snap = self.map_db.root / origin / 'sensor_config.json'   # the /config of the mapping run (REV-067)
+            values = dict(SensorConfig(snap).values) if snap.is_file() else None
+            return map_convert.mapping_end_pose_of(self.map_db.root / origin / 'converted' / f'{rev:03d}', values)
         if what == 'mask.png':
             q = dict(x.split('=', 1) for x in query.split('&') if '=' in x)
             d = self.routes.root / q['set'] / f"{int(q['rev']):03d}"

@@ -185,6 +185,10 @@
             <label class="dim">向き 度 <input id="auto-yaw-deg" class="num"></label>
             <label class="dim"><input type="checkbox" id="auto-click-pose"> 地図のクリックで初期位置を置く</label>
           </div>
+          <div class="btnrow">
+            <button class="op" id="auto-use-end-pose" type="button" disabled>地図作成の終わりの姿勢を初期位置にする<small>USE MAPPING END POSE</small></button>
+          </div>
+          <div class="note" id="auto-end-pose-note">地図を読み込むかプレビューすると、地図作成を終えたときの車体の姿勢（黄の矢印）を表示する。地図を作った後に車体を動かしていなければ、それが今の位置（DEC-289）。動かしたなら使わず、地図の上で置く。</div>
           <div class="note" id="auto-msg">セットを選んでプレビューし、初期位置（map frame）を入れてから上の「自律走行」を押す。GNSS による初期位置（DEC-124）は未実装。</div>
         </div>
       </div>

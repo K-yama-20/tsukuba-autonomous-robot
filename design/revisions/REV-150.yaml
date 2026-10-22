@@ -1,0 +1,31 @@
+# 変更セット REV-150（2026-10-22 第121便: 実車（VM）での 3 回目の自律走行開始と DEC-285 の登録）
+# 適用: design/tools/apply_revision.py REV-150
+id: REV-150
+date: '2026-10-22'
+summary: 第121便：人の指示（原文「周りは確認した。実車で自律走行開始を送って挙動を記録して。Gouda は前回と同じ位置・向きに置いている。」）で自律走行開始を送った（REV-148 の gouda_a3_points を VM に写した状態）。点群・NDT・GLIM の odometry・EKF はすべて届き（10 Hz・10 Hz・10 Hz・50 Hz）、初期化は約 19 秒で終わった。しかし ND-07 が map→odom を計算できず「推定不能（no_map_odom）」になり、開始は TR-07 で一時停止した。Nav2 は起動せず、速度の指令は 0 通。原因：MapOdomEstimator は最新の EKF の姿勢一つだけを保留し、odometry がその時刻に届くのを待つが、EKF の姿勢（約 50 Hz、時刻は受け取りとほぼ同じ）はいつも odometry（10 Hz、時刻は受け取りの 0.13〜0.17 秒前）より 0.13〜0.25 秒新しく、保留が次々に置き換わって計算されない。承認事項 DEC-285 を登録する。初期化の結果が試行ごとに大きく違う（同じ置き方で (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62)）ことも記録する。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- DEC-282
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-285
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】ND-07 の map→odom の計算が、実の odometry の遅れ（0.13〜0.25 秒）のためにほとんど行われない（推定不能 no_map_odom）。どう直すか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - IFD-18
+  - IFD-25
+  - IFD-53
+  - TS-41
+  resulting_refs: []
+  note: 事実（VM、2026-10-22 03:17:38〜03:20、記録 design/research/vehicle_pc/2026-10-22_autonomy_run3/、stamps.txt）：約 150 秒で points_downsampled 1402 通、NDT の姿勢 1274 通、GLIM の odometry 1443 通、EKF の姿勢 6541 通。初期化（19 秒）の 1 秒後に「推定不能 (no_map_odom)」、開始は TR-07（automatic_pause）で失敗した。128 秒に一度だけ正常になった（odometry の時刻のばらつきで、たまたま計算できたと推測）。odometry は受け取りの 0.125〜0.165 秒前の時刻、EKF の姿勢は 0.001〜0.015 秒前の時刻で、EKF の姿勢は常に最新の odometry より 0.127〜0.25 秒新しい。localization_core.MapOdomEstimator は「odometry より新しい EKF の姿勢は最新の一つだけ保留し、odometry がその時刻に届いたら計算する」。EKF は約 50 Hz なので、保留はすぐ新しいものに置き換わり、odometry（10 Hz）は追いつかない。模擬の試験では odometry の時刻が今の時刻だったので起きなかった。案 a（推奨）：(1) EKF の姿勢を odometry と同じ期間（stale_timeout_s、PRM-89）だけためておき、odometry が届くたびに、その odometry の時刻以前で最も新しい EKF の姿勢で map→odom を計算する（EKF は約 50 Hz なので、差は約 20 ミリ秒以内。補外はしない）。(2) 初期化の後、map→odom が一度も計算されていない間は、DEC-282 の四つの入力と同じく初期化中（awaiting_inputs、「map_odom」）にする。(1) だけでは、四つの入力がそろった瞬間に map→odom がまだなく、推定不能で開始が失敗しうるため。新しい時間の値は増やさない。一度計算された後に計算できなくなった場合の扱いは今のまま（古い map→odom を出し続け、入力の古さで推定不能）。案 b：EKF の姿勢の時刻ではなく odometry の時刻に合わせて EKF の姿勢を補間する（(1) とほぼ同じで、計算は少し増える）。案 c：今のまま（実車では自律走行開始が失敗する）。影響を受けるもの：ND-07（map→odom、IFD-18 の時刻）、IFD-53、TS-41（odometry が遅れる模擬の試験を足す）。決まらない場合に止まる作業：実車での自律走行。別の観察（安全に関わる）：同じ置き方・同じ初期姿勢（0.425, −0.835, −114°、向きは Claude が軌跡から求めた値）で、初期化の結果が (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62) と 3.4 m ほど違う。どれが正しいかは分からない。DEC-285 を直した後、走る前に、人が地図の上の推定位置と車体の本当の位置を見比べる必要がある。第121便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

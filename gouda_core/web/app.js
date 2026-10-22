@@ -380,7 +380,7 @@
   });
 
   // ---- waypoint_manager (IFD-30 / IFD-41): edits on the converted map; save generates the speed mask ----
-  const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1, areas: [], drawing: null, gaps: [] };   // areas: drawn keepout / allowed polygons (REV-137); gaps: narrow keepout gaps of the last save (REV-140)
+  const wpState = { map: null, geom: null, img: null, points: [], limits: [], scale: 1, areas: [], drawing: null, gaps: [], endPose: null };   // endPose: where the vehicle stood when mapping stopped (REV-155, DEC-289)   // areas: drawn keepout / allowed polygons (REV-137); gaps: narrow keepout gaps of the last save (REV-140)
   // background: the corridor over the 3D map (DEC-211); the 2D map when the revision has no overlay (converted before 0.5)
   function wpImage(origin, rev, onload, onerror) {
     const img = new Image(); let fallback = false;
@@ -388,6 +388,19 @@
     img.onerror = () => { if (fallback) { onerror(); return; } fallback = true; img.src = `/api/map/${origin}/${rev}/map.png?t=${Date.now()}`; };
     img.src = `/api/map/${origin}/${rev}/corridor_overlay.png?t=${Date.now()}`;
   }
+  // the vehicle's pose at the end of the mapping run (DEC-289): drawn on the map and offered as the initial pose. It is where the
+  // vehicle is only if it has not been moved since mapping stopped; the human decides.
+  async function wpFetchEndPose(origin, rev) {
+    wpState.endPose = null; endPoseNote('');
+    try {
+      const j = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/end_pose.json`)).json();
+      if (j.ok) { wpState.endPose = j; endPoseNote(`地図作成の終わりの姿勢: x ${j.x.toFixed(3)} m, y ${j.y.toFixed(3)} m, 向き ${(j.yaw * 180 / Math.PI).toFixed(1)} 度（黄の矢印）。車体をその後動かしていなければ、これが今の位置`
+        + (j.defaulted_fields && j.defaulted_fields.length ? `。/config の未入力で既定値を使った項目: ${j.defaulted_fields.join(', ')}` : '')); }
+      else endPoseNote(`地図作成の終わりの姿勢は出せない: ${j.message}`);
+    } catch (err) { endPoseNote('地図作成の終わりの姿勢を取得できない'); }
+    wpDraw();
+  }
+  function endPoseNote(text) { $('auto-end-pose-note').textContent = text; $('auto-use-end-pose').disabled = !wpState.endPose; }
   // ---- autonomy preparation (体験 9, IFD-02): the selected set (its map comes with it), the preview, the initial pose ----
   const autoState = { sel: null };
   function autoPose() {
@@ -415,6 +428,7 @@
       autoState.sel = { waypoint_set_id: sid, waypoint_set_revision: String(parseInt(rev, 10)), waypoint_set_hash: j.manifest.content_hash,
                         map_id: m.origin_id, map_revision: String(m.revision), map_hash: m.content_hash };
       $('auto-msg').textContent = `選択: ${sid}/${rev}（地図 ${m.origin_id}/${m.revision}、${j.set.waypoints.length} 点、範囲 ${(j.set.areas || []).length}）。初期位置を入れてから「自律走行」を押す`;
+      wpFetchEndPose(m.origin_id, m.revision);
     }, () => { $('auto-msg').textContent = '地図画像を取得できない'; });
   }
   function wpFillMaps(s) {
@@ -441,7 +455,7 @@
     const [origin, rev] = v.split('/');
     const g = await (await fetch(`/api/map/${origin}/${rev}/geometry.json`)).json();
     if (!g.ok) { $('wp-map-status').textContent = g.message; return; }
-    wpImage(origin, rev, (img) => { wpState.map = { origin, rev: parseInt(rev, 10), hash: g.content_hash }; wpState.geom = g; wpState.img = img; wpState.points = []; wpState.limits = []; wpState.areas = []; wpState.drawing = null; wpState.gaps = []; wpDraw(); $('wp-map-status').textContent = `${g.width}x${g.height} @ ${g.resolution} m`; $('wp-map-status').className = 'status ok'; },
+    wpImage(origin, rev, (img) => { wpState.map = { origin, rev: parseInt(rev, 10), hash: g.content_hash }; wpState.geom = g; wpState.img = img; wpState.points = []; wpState.limits = []; wpState.areas = []; wpState.drawing = null; wpState.gaps = []; wpDraw(); $('wp-map-status').textContent = `${g.width}x${g.height} @ ${g.resolution} m`; $('wp-map-status').className = 'status ok'; wpFetchEndPose(origin, rev); },
       () => { $('wp-map-status').textContent = '地図画像を取得できない'; });
   }
   function wpDraw() {
@@ -470,6 +484,13 @@
     ctx.lineWidth = 2; ctx.strokeStyle = '#39d5e0';
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f0b43c' : '#39d5e0'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a8e6ea'; ctx.font = '11px monospace'; ctx.fillText(String(i), px + 6, py - 6); });
+    const ep = wpState.endPose;
+    if (ep) {   // the end of the mapping run (DEC-289): a yellow arrow with a label, under the initial pose
+      const [px, py] = toPx(ep); const L = 22;
+      ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ep.yaw), py - L * Math.sin(ep.yaw)); ctx.stroke();
+      ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '11px monospace'; ctx.fillText('地図作成の終わり', px + 8, py + 14);
+    }
     const ip = autoPose();
     if (ip) {   // the initial pose (an arrow in the heading)
       const [px, py] = toPx(ip); const L = 18;
@@ -507,6 +528,12 @@
   });
   $('wp-load-map').addEventListener('click', wpLoadMap);
   $('auto-preview').addEventListener('click', autoPreview);
+  $('auto-use-end-pose').addEventListener('click', () => {   // DEC-289: the end of the mapping run as the initial pose (the human presses it)
+    const ep = wpState.endPose; if (!ep) return;
+    $('auto-x').value = Math.round(ep.x * 1000) / 1000; $('auto-y').value = Math.round(ep.y * 1000) / 1000;
+    $('auto-yaw-deg').value = Math.round(ep.yaw * 180 / Math.PI * 10) / 10;
+    wpDraw();
+  });
   ['auto-x', 'auto-y', 'auto-yaw-deg'].forEach((id) => $(id).addEventListener('change', wpDraw));
   $('wp-undo').addEventListener('click', () => {
     if (wpState.drawing && wpState.drawing.polygon.length) { wpState.drawing.polygon.pop(); if (!wpState.drawing.polygon.length) wpState.drawing = null; }

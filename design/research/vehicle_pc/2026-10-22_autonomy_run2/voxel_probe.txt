@@ -1,0 +1,13 @@
+# VoxelGrid (pcl_ros filter_voxel_grid_node, ROS 2 Jazzy, VM) probes, 2026-10-22 02:3x (bin 119). Recorded by Claude from the command output.
+# Same parameters as the A3 launch (leaf_size 0.5, filter_field_name ""), Fast DDS profile of gouda.sh, each run 20 s then SIGINT (timeout -s INT).
+# exit 124 = timeout ended the node normally; exit 139 = segmentation fault.
+## A3 run of 02:25:55 (a3_20261022_022555.log): filter_voxel_grid_node died with exit code -11 about 4 s after start (before the alignment); no output after that.
+## Earlier A3 runs (gouda_data/run/localization/a3_*.log, 2026-10-22): 6 of 11 runs show the node dying at SIGINT with exit -6 and
+##   heap messages ("munmap_chunk(): invalid pointer", "free(): invalid next size (fast)").
+## Fields of the real cloud (/localization/a3/points_cropped, the same as /sensors/xt32/points):
+##   x,y,z,intensity FLOAT32 (offsets 0,4,8,12), ring UINT16 (16), timestamp FLOAT64 (18, unaligned); point_step 26.
+## Probe on points_cropped while A3 was running (12 s, then SIGINT): gouda profile -> 10.5 Hz output, core dumped at SIGINT;
+##   default profile -> 10.1 Hz output, exit 139.
+## Probe on /sensors/xt32/points (all fields)        : run1 exit=124, run2 exit=139, run3 exit=139 (output about 10 Hz each)
+## Probe on the same clouds with only x,y,z (FLOAT32): run1 exit=124, run2 exit=124, run3 exit=124 (output about 10 Hz each)
+## Synthetic clouds (a3_synthetic_feed.py, x,y,z FLOAT32 only): the A3 VoxelGrid never died (bins 116, 118).

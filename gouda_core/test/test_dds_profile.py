@@ -1,8 +1,8 @@
-"""Unit tests of dds_profile (ND-01, PRM-100; REV-144, DEC-279) without ROS.
+"""Unit tests of dds_profile (ND-01, PRM-100 / PRM-101; REV-144, REV-146, DEC-279, DEC-138) without ROS.
 
-Checked: the profile carries the buffer size of the generated settings for both UDP buffers, keeps the shared-memory transport
-with its default segment (no segment_size: DEC-138 is a separate question), replaces the builtin transports by exactly these
-two; a missing or invalid value writes nothing and gives the reason (nothing is filled in); trial files are never read."""
+Checked: the profile carries the buffer size of the generated settings for both UDP buffers and the segment size for the
+shared-memory transport, replaces the builtin transports by exactly these two; a missing or invalid value writes nothing and
+gives the reason (nothing is filled in); trial files are never read."""
 import os
 import sys
 import tempfile
@@ -29,7 +29,7 @@ class DdsProfileTests(unittest.TestCase):
             out = os.path.join(d, 'run', 'fastdds_profile.xml')
             self.assertEqual(dp.write(PARAMS, out), '')
             root = ET.parse(out).getroot()
-        value = dp.read_node_params(PARAMS, dp.NODE, trial=False)[dp.KEY]
+        params = dp.read_node_params(PARAMS, dp.NODE, trial=False); value = params[dp.KEY]
         descs = {t.find('p:transport_id', NS).text: t for t in root.iterfind('p:transport_descriptors/p:transport_descriptor', NS)}
         udp = descs['gouda_udp']
         self.assertEqual(udp.find('p:type', NS).text, 'UDPv4')
@@ -37,7 +37,7 @@ class DdsProfileTests(unittest.TestCase):
         self.assertEqual(int(udp.find('p:sendBufferSize', NS).text), value)
         shm = descs['gouda_shm']
         self.assertEqual(shm.find('p:type', NS).text, 'SHM')
-        self.assertIsNone(shm.find('p:segment_size', NS))
+        self.assertEqual(int(shm.find('p:segment_size', NS).text), params[dp.SHM_KEY])
         part = root.find('p:participant', NS)
         self.assertEqual(part.get('is_default_profile'), 'true')
         self.assertEqual([t.text for t in part.iterfind('p:rtps/p:userTransports/p:transport_id', NS)], ['gouda_shm', 'gouda_udp'])
@@ -50,10 +50,14 @@ class DdsProfileTests(unittest.TestCase):
             write_params(d, 'gouda_dds:\n  ros__parameters: {}\n')
             write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 4194304\n', 'gouda_dds.trial.yaml')
             self.assertIn('PRM-100', dp.write(d, out))                       # the trial file is never read
-            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 0\n')
+            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 4\n')
+            self.assertIn('PRM-101', dp.write(d, out))                       # the segment size is required too
+            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 0\n    shm_segment_bytes: 8\n')
             self.assertIn('positive integer', dp.write(d, out))
-            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 1.5\n')
+            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 1.5\n    shm_segment_bytes: 8\n')
             self.assertIn('positive integer', dp.write(d, out))
+            write_params(d, 'gouda_dds:\n  ros__parameters:\n    udp_buffer_bytes: 4\n    shm_segment_bytes: -8\n')
+            self.assertIn('PRM-101', dp.write(d, out))
             self.assertFalse(os.path.exists(out))
             self.assertEqual(dp.main([d, out]), 1)
             self.assertEqual(dp.main([d]), 2)

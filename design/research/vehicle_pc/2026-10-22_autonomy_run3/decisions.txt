@@ -1,0 +1,720 @@
+header:
+  stamp:
+    sec: 1792603823
+    nanosec: 533761002
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": 11905, "ekf_xy_stddev_m": 42.88867659688...'
+---
+header:
+  stamp:
+    sec: 1792603244
+    nanosec: 596952226
+  frame_id: ''
+node: gouda_monitor
+event: settings
+transition_id: ''
+reason: settings recorded (startup)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"ui_parameters": {"ui_node_list_poll_period_s": 2.0, "ui_sse_keepalive_s": 2.0, "ui_service_ready_wait_s": 1.0, "ui_service_res...'
+---
+header:
+  stamp:
+    sec: 1792603823
+    nanosec: 537880627
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ekf trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792603823
+    nanosec: 538012960
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ndt trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792603824
+    nanosec: 267766210
+  frame_id: ''
+node: gouda_global_localization
+event: cleaned_up
+transition_id: ''
+reason: A3 launch stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792603824
+    nanosec: 267926210
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inpu...'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 607952337
+  frame_id: ''
+node: gouda_mode_manager
+event: mapping_stopped
+transition_id: TR-04
+reason: dump complete (1 submap(s))
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"origin_id": "20261022_031430_5e5b16fc", "dump_ok": true, "submaps": 1, "exit_code": 0, "save_duration_s": 0.600548505783081, "...'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 612759503
+  frame_id: ''
+node: gouda_mode_manager
+event: gnss_record_stopped
+transition_id: TR-04
+reason: 'GNSS record closed: {''sensors/gnss/navsatfix'': 651, ''sensors/gnss/pvtgeodetic'': 651, ''sensors/gnss/atteuler'': 651, ''sensors/gnss...'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"path": "/home/aya/gouda_ws/gouda_data/mapping/20261022_031430_5e5b16fc/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256"...'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 632369253
+  frame_id: ''
+node: gouda_mode_manager
+event: source_map_registered
+transition_id: TR-04
+reason: source map registered as 20261022_031430_5e5b16fc (hash 8d1680e4d54c…, 1 submap(s))
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"origin_id": "20261022_031430_5e5b16fc", "content_hash": "8d1680e4d54cdca0f8cbede364cf74fae04eff01723fbeb03dd7b89ea681e02c"}'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 662959920
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_stop
+transition_id: TR-04
+reason: log recording stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/stop_auto", "kind": "stop_auto", "ok": true}'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 842433962
+  frame_id: ''
+node: gouda_mode_manager
+event: map_converted
+transition_id: TR-04
+reason: converted map published as 20261022_031430_5e5b16fc/converted/001 (hash ba7a8770437a…)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"origin_id": "20261022_031430_5e5b16fc", "ok": true, "revision": 1, "content_hash": "ba7a8770437af28ce7ef1ebea2b7a49a1ca279cc79...'
+---
+header:
+  stamp:
+    sec: 1792603244
+    nanosec: 597549684
+  frame_id: ''
+node: gouda_motion_controller
+event: compensation_settings
+transition_id: ''
+reason: 'dead-band compensation revision 0: no direction set (not compensated)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"config_revision": 0, "compensated_directions": [], "forward_min": null, "forward_threshold": null, "reverse_min": null, "rever...'
+---
+header:
+  stamp:
+    sec: 1792603244
+    nanosec: 502237726
+  frame_id: ''
+node: gouda_static_tf
+event: static_tf_published
+transition_id: ''
+reason: static TF published for /config revision 18
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"config_revision": 18, "config_path": "/home/aya/gouda_ws/gouda_data/config/sensor_config.json", "transforms": [{"parent": "bas...'
+---
+header:
+  stamp:
+    sec: 1792606515
+    nanosec: 568963202
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2910967}'
+---
+header:
+  stamp:
+    sec: 1792606517
+    nanosec: 31425786
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2912427}'
+---
+header:
+  stamp:
+    sec: 1792606517
+    nanosec: 182690036
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2912547}'
+---
+header:
+  stamp:
+    sec: 1792606517
+    nanosec: 283678745
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2912657}'
+---
+header:
+  stamp:
+    sec: 1792606535
+    nanosec: 4993461
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_ended
+transition_id: ''
+reason: 'USB link counts of the mapping session: 0 disconnects'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"kind": "mapping", "started_at": 1792606470.5417297, "ended_at": 1792606535.0049195, "disconnects": 0, "reconnects": 0, "down_t...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 287454354
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-05
+reason: 'TR-05: manual -> autonomy'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"request_id": "claude-bin121-1", "map_id": "20261022_014810_39f5620e", "map_revision": "1", "waypoint_set_id": "20261022_015254...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 289707187
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_started
+transition_id: ''
+reason: USB link counting started for the autonomy session (DEC-177)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"session": "autonomy", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 293824979
+  frame_id: ''
+node: gouda_mode_manager
+event: odometry_started
+transition_id: TR-05
+reason: ND-08 GLIM (odometry only) started (pid 35463)
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-d5f9564b/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0,...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 294128895
+  frame_id: ''
+node: gouda_mode_manager
+event: initial_pose_sent
+transition_id: TR-05
+reason: IFD-34 localization/initial_pose sent once (transient_local)
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": 0.425, "y": -0.835}'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 296702395
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_start
+transition_id: TR-05
+reason: log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261022_022555
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 397979104
+  frame_id: ''
+node: gouda_global_localization
+event: configured
+transition_id: ''
+reason: A3 launch started (pid 35466); map /home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001", "log": "/home/aya/gouda_ws/gouda_...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 399239229
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inp...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 417866895
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '初期化中 (initializing: waiting for the initial pose (IFD-34))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_...'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 419350812
+  frame_id: ''
+node: gouda_global_localization
+event: initial_pose_received
+transition_id: ''
+reason: initial pose (0.42, -0.83); height -0.74 m from the mapping trajectory (nearest point 0.07 m away)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": 0.425, "y": -0.835, "z": -0.741712, "trajectory_distance_m": 0.07319465007772089}'
+---
+header:
+  stamp:
+    sec: 1792606658
+    nanosec: 430773437
+  frame_id: ''
+node: gouda_mode_manager
+event: localization_activated
+transition_id: TR-05
+reason: gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001 and activate...
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001"}'
+---
+header:
+  stamp:
+    sec: 1792606660
+    nanosec: 448785063
+  frame_id: ''
+node: gouda_global_localization
+event: ndt_points_waiting
+transition_id: ''
+reason: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606660
+    nanosec: 800332355
+  frame_id: ''
+node: gouda_global_localization
+event: ndt_points_kept
+transition_id: ''
+reason: the NDT holds a point cloud; ndt_align_srv can be called
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606677
+    nanosec: 524664946
+  frame_id: ''
+node: gouda_global_localization
+event: initial_pose_aligned
+transition_id: ''
+reason: aligned to (0.56, 0.62)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": 0.5603170990943909, "y": 0.6163600087165833, "z": -1.2366141080856323}'
+---
+header:
+  stamp:
+    sec: 1792606677
+    nanosec: 533036613
+  frame_id: ''
+node: gouda_global_localization
+event: initialized
+transition_id: ''
+reason: EKF and NDT active; the state follows the checks (IFD-53)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606677
+    nanosec: 536652488
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 1, "reason": "awaiting_inputs", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inp...'
+---
+header:
+  stamp:
+    sec: 1792606678
+    nanosec: 402511280
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 2.928517, "ekf_pose_no_update_count": 37, "ekf_xy_stddev_m": 0.191026194612542...'
+---
+header:
+  stamp:
+    sec: 1792606678
+    nanosec: 404704821
+  frame_id: ''
+node: gouda_mode_manager
+event: automatic_pause
+transition_id: TR-07
+reason: 'TR-05 failed: gouda_global_localization: 推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose tim...'
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"step_error": "gouda_global_localization: 推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose t...'
+---
+header:
+  stamp:
+    sec: 1792606786
+    nanosec: 210560415
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: 正常
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 2, "reason": "", "ndt_nvtl": 2.935895, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.12457993631965439, "last_in...'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 907828884
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-12
+reason: 'TR-12: pause -> manual'
+run_id: run-d5f9564b
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"event": "end_autonomy", "accepted": true, "mode": "pause"}'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 917692800
+  frame_id: ''
+node: gouda_mode_manager
+event: navigation_goal_check
+transition_id: TR-12
+reason: no active Nav2 goal
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 917182134
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_ended
+transition_id: ''
+reason: 'USB link counts of the autonomy session: 0 disconnects'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"kind": "autonomy", "started_at": 1792606658.2896628, "ended_at": 1792606808.9171474, "disconnects": 0, "reconnects": 0, "down_...'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 962088425
+  frame_id: ''
+node: gouda_global_localization
+event: deactivated
+transition_id: ''
+reason: map->odom is no longer published
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 964355884
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_initialized", "ndt_nvtl": 2.94369, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1105721032617...'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 973255217
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ekf trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606808
+    nanosec: 974754884
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ndt trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606809
+    nanosec: 575245301
+  frame_id: ''
+node: gouda_global_localization
+event: cleaned_up
+transition_id: ''
+reason: A3 launch stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606809
+    nanosec: 576857759
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inpu...'
+---
+header:
+  stamp:
+    sec: 1792606809
+    nanosec: 584511009
+  frame_id: ''
+node: gouda_mode_manager
+event: localization_stopped
+transition_id: TR-12
+reason: gouda_global_localization deactivated and cleaned up (A3 launch stopped)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606809
+    nanosec: 986741176
+  frame_id: ''
+node: gouda_mode_manager
+event: odometry_stopped
+transition_id: TR-12
+reason: ND-08 GLIM (odometry only) stopped (exit code 0)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792606809
+    nanosec: 991460468
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_stop
+transition_id: TR-12
+reason: log recording stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/stop_auto", "kind": "stop_auto", "ok": true}'
+---

@@ -7,7 +7,10 @@ unmodified by gouda_global_localization; this module holds Gouda's own small par
 - the twist for the EKF (only linear.x and angular.z are used by ekf_localizer) and the initial-pose covariance, from settings;
 - the initial height from the mapping trajectory (GLIM's traj_imu.txt in the map frame): the human gives x, y and the heading;
 - the estimator state of IFD-53 (evaluate): NORMAL only when every input is fresh (PRM-89) and every check passes (PRM-90..92).
-  A missing or unreadable input is never NORMAL (IF-010, DEC-200). Ages are measured on the receiving node's clock.
+  A missing or unreadable input is never NORMAL (IF-010, DEC-200). Ages are measured on the receiving node's clock. After the
+  initialization, an input that has not arrived even once since this activation keeps the state 初期化中 (awaiting_inputs),
+  not 推定不能: right after the EKF / NDT are triggered nothing can have arrived yet (REV-146, DEC-282). The same holds until
+  map->odom has been computed once (REV-151, DEC-285): it needs an EKF pose and odometry at least as new as that pose.
 Every number comes from the settings (design/generated/params/gouda_global_localization.yaml); nothing is hard-coded (RQ-I076).
 """
 from __future__ import annotations
@@ -25,6 +28,7 @@ REASONS = {
     'not_configured': 'no map is configured (gouda_global_localization is unconfigured)',
     'not_initialized': 'waiting for the initial pose and the initialization (activate)',
     'initializing': 'initialization in progress (Monte Carlo search, EKF / NDT activation)',
+    'awaiting_inputs': 'initialized; waiting for the first message of each input',
     'init_failed': 'the initialization failed (no map->odom is published)',
     'localizer_exited': 'the A3 launch (map loader / NDT / EKF / filters) ended',
     'input_stale': 'an input is missing or older than stale_timeout_s (PRM-89)',
@@ -33,12 +37,11 @@ REASONS = {
     'ekf_diagnostics_missing': 'no pose_no_update_count in the EKF diagnostics',
     'ekf_pose_not_updated': 'pose_no_update_count above ekf_pose_no_update_max (PRM-91)',
     'ekf_covariance_large': 'EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92)',
-    'no_map_odom': 'map->odom could not be computed yet (no odometry at the EKF pose time)',
 }
 DOUBLE_SETTINGS = ['points_near_crop_m', 'points_far_crop_m', 'points_voxel_leaf_m', 'twist_vx_variance', 'twist_wz_variance',
                    'initial_xy_variance', 'initial_z_variance', 'initial_roll_pitch_variance', 'initial_yaw_variance',
                    'status_period_s', 'stale_timeout_s', 'ndt_nvtl_min', 'ekf_xy_stddev_max_m']   # PRM-79..90, PRM-92
-INT_SETTINGS = ['ekf_pose_no_update_max']                                                         # PRM-91
+INT_SETTINGS = ['ekf_pose_no_update_max', 'points_voxel_min_points']                              # PRM-91, PRM-102
 NDT_SCORE_KEY = 'nearest_voxel_transformation_likelihood'
 EKF_NO_UPDATE_KEY = 'pose_no_update_count'
 # The NDT's status of each received cloud (autoware_ndt_scan_matcher 1.9.0, "<node name>: scan_matching_status"). The key
@@ -64,6 +67,7 @@ class Settings:
     ndt_nvtl_min: float
     ekf_xy_stddev_max_m: float
     ekf_pose_no_update_max: int
+    points_voxel_min_points: int
 
     @staticmethod
     def from_values(values: dict) -> 'Settings':
@@ -74,6 +78,8 @@ class Settings:
         positive = ['points_far_crop_m', 'points_voxel_leaf_m', 'status_period_s', 'stale_timeout_s', 'ekf_xy_stddev_max_m']
         bad = [k for k in positive if not getattr(s, k) > 0]
         bad += [k for k in DOUBLE_SETTINGS + INT_SETTINGS if k not in positive and k != 'ndt_nvtl_min' and getattr(s, k) < 0]
+        if s.points_voxel_min_points < 1:
+            bad.append('points_voxel_min_points must be at least 1')
         if not s.points_near_crop_m < s.points_far_crop_m:
             bad.append('points_near_crop_m must be smaller than points_far_crop_m')
         if bad:
@@ -131,26 +137,33 @@ class OdomBuffer:
 
 
 class MapOdomEstimator:
-    """map->odom = (map->base_link of the EKF at t) * inverse(odom->base_link at t). An EKF pose newer than the newest odometry
-    waits (only the latest one) until the odometry has reached its time."""
+    """map->odom = (map->base_link of the EKF at t) * inverse(odom->base_link at t), t the time of an EKF pose.
+    The EKF's poses (about 50 Hz, stamped near the receive time) are newer than the odometry (10 Hz, stamped 0.13..0.17 s before
+    it arrives; 第121便), so they are kept for span_s like the odometry. Each odometry computes map->odom with the newest kept EKF
+    pose at or before its time (no extrapolation), and an EKF pose that is not newer than the odometry is used at once
+    (REV-151, DEC-285; before, only the latest EKF pose waited and was replaced before the odometry reached it)."""
 
     def __init__(self, span_s: float):
         self.odom = OdomBuffer(span_s)
-        self.pending: Optional[tuple] = None
+        self.ekf: deque = deque()   # (t, map->base_link), increasing t, kept for span_s behind the newest
         self.map_odom: Optional[oc.Pose] = None
         self.map_odom_time: Optional[float] = None
 
     def on_odometry(self, t: float, odom_base: oc.Pose) -> None:
         self.odom.add(t, odom_base)
-        if self.pending is not None and self.odom.newest is not None and self.pending[0] <= self.odom.newest:
-            pending, self.pending = self.pending, None
-            self._compute(*pending)
+        newest = self.odom.newest
+        usable = [e for e in self.ekf if e[0] <= newest]
+        if usable and (self.map_odom_time is None or usable[-1][0] > self.map_odom_time):
+            self._compute(*usable[-1])
 
     def on_ekf_pose(self, t: float, map_base: oc.Pose) -> None:
+        if self.ekf and t <= self.ekf[-1][0]:
+            return   # out of order or repeated: ignored
+        self.ekf.append((t, map_base))
+        while self.ekf and self.ekf[0][0] < t - self.odom.span:
+            self.ekf.popleft()
         if self.odom.newest is not None and t <= self.odom.newest:
             self._compute(t, map_base)
-        else:
-            self.pending = (t, map_base)
 
     def _compute(self, t: float, map_base: oc.Pose) -> None:
         odom_base = self.odom.at(t)
@@ -160,7 +173,7 @@ class MapOdomEstimator:
         self.map_odom_time = t
 
     def reset(self) -> None:
-        self.odom = OdomBuffer(self.odom.span); self.pending = None; self.map_odom = None; self.map_odom_time = None
+        self.odom = OdomBuffer(self.odom.span); self.ekf = deque(); self.map_odom = None; self.map_odom_time = None
 
 
 # ---------------------------------------------------------------- covariances, twist, initial pose
@@ -280,9 +293,14 @@ def evaluate(now: float, inp: Inputs, s: Settings) -> tuple:
         return STATE_UNAVAILABLE, 'localizer_exited', REASONS['localizer_exited']
     if inp.phase == 'initializing':
         return STATE_INITIALIZING, 'initializing', inp.phase_detail or REASONS['initializing']
-    stale = [name for name, t in (('ekf_pose', inp.last_ekf_pose), ('ndt_diagnostics', inp.last_ndt_score),
-                                  ('ekf_diagnostics', inp.last_ekf_diag), ('odometry', inp.last_odometry))
-             if t is None or now - t > s.stale_timeout_s]
+    inputs = (('ekf_pose', inp.last_ekf_pose), ('ndt_diagnostics', inp.last_ndt_score), ('ekf_diagnostics', inp.last_ekf_diag),
+              ('odometry', inp.last_odometry))
+    first = [name for name, t in inputs if t is None]   # not yet received since this activation (DEC-282): no time limit
+    if not inp.has_map_odom:
+        first.append('map_odom')                         # not yet computed since this activation (DEC-285): no time limit
+    if first:
+        return STATE_INITIALIZING, 'awaiting_inputs', f"{REASONS['awaiting_inputs']}: {', '.join(first)}"
+    stale = [name for name, t in inputs if now - t > s.stale_timeout_s]
     if stale:
         return STATE_UNAVAILABLE, 'input_stale', f"{REASONS['input_stale']}: {', '.join(stale)}"
     if inp.ndt_nvtl is None:
@@ -295,6 +313,4 @@ def evaluate(now: float, inp: Inputs, s: Settings) -> tuple:
         return STATE_UNAVAILABLE, 'ekf_pose_not_updated', f"{REASONS['ekf_pose_not_updated']}: {inp.ekf_pose_no_update_count} > {s.ekf_pose_no_update_max}"
     if inp.ekf_xy_stddev_m is None or inp.ekf_xy_stddev_m > s.ekf_xy_stddev_max_m:
         return STATE_UNAVAILABLE, 'ekf_covariance_large', f"{REASONS['ekf_covariance_large']}: {inp.ekf_xy_stddev_m} > {s.ekf_xy_stddev_max_m}"
-    if not inp.has_map_odom:
-        return STATE_UNAVAILABLE, 'no_map_odom', REASONS['no_map_odom']
     return STATE_NORMAL, '', ''

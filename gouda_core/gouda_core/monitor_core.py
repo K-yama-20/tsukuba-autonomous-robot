@@ -171,8 +171,10 @@ class MonitorCore:
         self.connection_revision = 0                     # bumps on every change; SSE clients use it
         self.stale_after_mode_s: Optional[float] = None  # PRM-16 (tbd)
         self.stale_after_esp32_s: Optional[float] = None # PRM-15 (tbd)
-        self.sensors = {'points': SensorReception('XT-32 点群', 'sensors/xt32/points'), 'imu': SensorReception('IMU', 'sensors/imu/data'),
-                        'gnss': SensorReception('GNSS 位置', 'sensors/gnss/navsatfix')}  # IFD-21 / IFD-22 / IFD-47
+        # XT-32: the driver's per-frame message (IFD-56), sent right after each point cloud of IFD-21; the cloud itself is not
+        # received by the monitor (DEC-281 b)
+        self.sensors = {'points': SensorReception('XT-32 点群（ドライバのフレームごとの通知）', 'sensors/xt32/packet_loss'), 'imu': SensorReception('IMU', 'sensors/imu/data'),
+                        'gnss': SensorReception('GNSS 位置', 'sensors/gnss/navsatfix')}  # IFD-56 / IFD-22 / IFD-47
         self.stale_after_sensor_s: dict = {'points': None, 'imu': None, 'gnss': None}   # PRM-57 / PRM-58; GNSS has no threshold (no STALE)
         self.gnss_detail: dict = {}                        # 'quality' (IFD-48), 'attitude' (IFD-49), or 'note' when the driver's types are absent
         self.settings: dict = {}                           # effective UI parameters (PRM-27..32) for display

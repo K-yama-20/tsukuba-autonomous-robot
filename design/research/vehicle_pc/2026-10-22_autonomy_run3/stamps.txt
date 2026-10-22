@@ -1,0 +1,6 @@
+# Timestamps during the third autonomy start (bin 121), measured by Claude on the VM (5 s, 2026-10-22, about 120 s after the start at 03:17:38 = 1792606658).
+# /localization/odometry (GLIM, IFD-25): 27 messages, receive time minus header.stamp 0.125 .. 0.165 s
+# /localization/a3/ekf_pose_with_covariance: 134 messages, receive time minus header.stamp 0.001 .. 0.015 s
+# EKF pose stamp minus the newest odometry stamp at that moment: 0.127 .. 0.25 s (always positive: every EKF pose is newer than all odometry)
+# localization_core.MapOdomEstimator keeps only the latest EKF pose as pending and computes when odometry reaches its time; with the EKF at
+# about 50 Hz the pending pose is replaced before the odometry (10 Hz) reaches it -> map->odom is (almost) never computed (no_map_odom).

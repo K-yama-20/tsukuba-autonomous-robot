@@ -1,0 +1,29 @@
+# 変更セット REV-149（2026-10-22 第120便: DEC-284 の登録）
+# 適用: design/tools/apply_revision.py REV-149
+id: REV-149
+date: '2026-10-22'
+summary: 第120便：gouda_a3_points（DEC-283 案 a）は、点が一つだけの立方体の重心も残す。前の pcl_ros の VoxelGrid は既定（min_points_per_voxel 2）でそれを捨てていた。NDT の入力を前と同じにするか、承認事項 DEC-284 として登録する。コードと設定は変えていない。
+basis_refs:
+- DEC-283
+- ND-07
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-284
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】A3 の前処理（gouda_a3_points）で、点が一つだけの立方体を捨てるか（前の pcl_ros の VoxelGrid の既定 min_points_per_voxel 2 と同じにする）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - DEC-283
+  - PRM-81
+  resulting_refs: []
+  note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_a3_points/notes.txt）：同じ模擬の点群（58946 点）で、pcl_ros の VoxelGrid は 7342 点（最も遠い点 17.76 m）、gouda_a3_points は 8580 点（19.76 m）。pcl_ros のノードの parameter（ros2 param dump）は min_points_per_voxel 2。DEC-283 の note の「NDT の入力は今と同じ範囲・同じ格子」は、この点で同じではない。「2 点以上」を VM の写しに一時的に入れた実験では、Monte Carlo の探索の時間（30 秒で終わらない）は変わらなかった。案 a（推奨）：前と同じにする。新しい設定値（立方体の最小の点の数、値 2、出所は pcl_ros の既定で、2026-10-22 まで実際に使われていた値）を PRM にし、gouda_a3_points で使う。理由：評価（DEC-115）と第119便までの実車の試行は、この入力で行われた。案 b：今のまま（点が一つの立方体も残す。まばらな遠い点が NDT に入る）。振る舞いの違い：NDT の入力の点の数（約 15 % 少ない）と、まばらな点の扱い。影響を受けるもの：ND-07、TS-41。決まらない場合に止まる作業：なし（今のままでも動く）。第120便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

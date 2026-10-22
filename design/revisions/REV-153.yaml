@@ -1,0 +1,33 @@
+# 変更セット REV-153（2026-10-22 第124便: 人が本当の位置で開始した試行の調べと DEC-287 の登録）
+# 適用: design/tools/apply_revision.py REV-153
+id: REV-153
+date: '2026-10-22'
+summary: 第124便：人の発言（原文「本当の位置を設定した」）の後、人が自律走行開始を送った試行（run-c1f3ac83、新しい地図 20261022_031430_5e5b16fc、waypoint 20261022_031654_5320af、初期姿勢 (−1.316, −1.429, −90°)）の記録を読んだ。ND-07 は 29.6 秒で正常になったが、Nav2 の STARTUP が map_server の configure の失敗で止まり、TR-07 で一時停止した。原因は第123便（Claude の試行）で、Nav2 の STARTUP の途中で TR-07 が起き、開始が捨てられた後に STARTUP が成功したのに、ND-03 が Nav2 を「動いている」と記録せず、終了のときに RESET しなかったこと。Nav2 は動いたまま残り、次の STARTUP が失敗した。承認事項 DEC-287 を登録する。コードと設定は変えていない。
+basis_refs:
+- ND-03
+- ND-10
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-287
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】自律走行開始の途中（Nav2 の STARTUP の最中）に一時停止・終了が来ると、Nav2 が動いたまま残り、次の開始が「Nav2 STARTUP failed」で必ず失敗する。どう直すか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-03
+  - ND-10
+  - IFD-36
+  - TR-05
+  - TR-07
+  - TR-11
+  - TR-12
+  resulting_refs: []
+  note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_nav2_restart/）：第123便で lifecycle_manager の STARTUP が 1792608998 に始まり、1792609005.2 に ND-07 の ekf_covariance_large で TR-07、1792609005.54 に「Managed nodes are active」。1792609102.8 の end_autonomy（TR-12）では RESET の記録がない。人の試行（1792609384 開始）では、1792609413.72 の STARTUP で「Failed to change state for node map_server」（動いたままだった）、続いて TR-07（stop_reason node_failure）。コード（autonomy_client.py）：_call は STARTUP の応答を受けた後、開始が捨てられていれば（token が変わっていれば）Abandoned を出し、self.nav2_active = True に届かない。stop() は nav2_active のときだけ RESET を送る。原因の分類：実装（競合）。案 a（推奨）：STARTUP を送る直前に「Nav2 は動いているかもしれない」と記録し（nav2_active = True）、終了・一時停止からの終了のときは必ず RESET を送る。RESET の失敗は今と同じく記録する。案 b：終了のとき、Nav2 の状態（lifecycle_manager の is_active など）を問い合わせて、動いていれば RESET する。案 c：開始の最初に、念のため RESET を送ってから STARTUP する（残った Nav2 を毎回片付ける）。案 a と c は一緒にできる。今の VM の状態：人の試行は一時停止（mode 4、run-c1f3ac83）のままで、Nav2 は動いたまま。人の試行の終了でも RESET は送られない見込み（同じ理由）。直すまで、次の開始は Gouda を起動し直さないと通らない。決まらない場合に止まる作業：実車での自律走行開始。別の観察（安全に関わる、人の確認が要る）：人が設定した初期姿勢 (−1.316, −1.429, −90°) に対し、初期化の結果は (−0.39, −0.24)、一時停止中の推定は (−0.36, −0.20)、向き約 −97°、照合の良さ 3.23。位置が約 1.5 m 違う。NDT が違う場所に合ったのか、設定した位置がずれているのかは分からない。第124便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

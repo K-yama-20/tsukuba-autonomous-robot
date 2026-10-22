@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 21
+pending_decision_count: 23
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1079,13 +1079,6 @@ pending_decisions:
     question: '【承認】走行中の発散の監視と再初期化（貼られた仕様 T4: NDT と GNSS の差が続き、かつ NDT のスコアが劣化したら、停止して再初期化）を、推定不能からの自動復帰（TR-13）の具体化として設計する。詳細の設計は
       ND-07 の後に出し、それまで実装しない。'
     resulting_refs: []
-  - id: DEC-138
-    kind: approval
-    status: pending
-    question: '【承認】VM で実機試験を行う間、gouda.sh start（実車の起動）でも Fast DDS の共有メモリの区画を大きくする設定（試験スタックの gouda_core/test/fastdds_test_stack.xml
-      と同じ内容）を使う。VM では既定の設定で約 2 MB の点群が落ち（G-DDS、FILE-DEC116-FASTDDS: 70・86/200）、GLIM の処理周期が 4 Hz 台になる。代わりの案: 使わない（x86
-      機に戻るまで VM の地図は粗いまま）。'
-    resulting_refs: []
   - id: DEC-148
     kind: approval
     status: pending
@@ -1139,4 +1132,22 @@ pending_decisions:
     kind: measurement
     status: pending
     question: 【実測】禁止の範囲どうしの隙間の警告のしきい値（DEC-227 の追加）。車体（PRM-69）が、案 A の設定の Nav2 で通れる最小の隙間。まっすぐ通る場合と曲がる場合
+    resulting_refs: []
+  - id: DEC-286
+    kind: approval
+    status: pending
+    question: 【承認・実測】止まっている実車で、EKF の x・y の標準偏差が 0.51〜0.54 m となり、PRM-92（0.5 
+      m、実測ではない）をわずかに超えて「推定不能」になり、自律走行開始が一時停止した。どう扱うか
+    resulting_refs: []
+  - id: DEC-287
+    kind: approval
+    status: pending
+    question: 【承認】自律走行開始の途中（Nav2 の STARTUP の最中）に一時停止・終了が来ると、Nav2 が動いたまま残り、次の開始が「Nav2 STARTUP 
+      failed」で必ず失敗する。どう直すか
+    resulting_refs: []
+  - id: DEC-288
+    kind: approval
+    status: pending
+    question: 【確認・安全】地図作成の間（2026-10-22 03:14:30〜03:15:35）、ESP32 は 11 回「手動の優先（manual_override）」を出し、その間だけ GLIM 
+      は車体が動いた（合計 7.54 m、514 度）と推定した。人は「ずっと同じ位置にいた」と言っている。その間にゲームパッドを操作したか（誰かが車体を動かしたか）
     resulting_refs: []
