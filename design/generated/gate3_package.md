@@ -2,13 +2,13 @@
 
 # ゲート3 承認資料
 
-状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 168 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
+状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 169 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
 
 ## 1. 承認対象
 
-### 1.1 下位設計案（adoption=designed_proposal、168 件）
+### 1.1 下位設計案（adoption=designed_proposal、169 件）
 
-- designed_interface（54）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`
+- designed_interface（55）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`, `IFD-56`
 - issue（11）: `G-DDS`, `G-DUP-START`, `G-FLOOR-REFLECTION`, `G-LIDAR-DROPOUT`, `G-MAP-TILT`, `G-REC-ROSBAG-RESTART`, `G-GLIM-EXIT`, `G-INIT-POSE-GNSS`, `G-NAV2-FIRST-GOAL`, `G-GNSS-NO-HEADING`, `G-RECOVERY-COUNT`
 - parameter（9）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-19`, `PRM-20`, `PRM-37`
 - ros_node（19）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`, `ND-18`, `ND-19`
@@ -18,7 +18,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、152 件）を根拠にした要素
+### 1.2 人の決定（answered、159 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -95,6 +95,7 @@
 | DEC-135 | DEC-135は、一旦承認する。実験走行を私が行ってデータを取ってくるので、実データでも可能か検証しよう。実データでうまく推定出来なければ、ボツです。<br> | `TS-39` |
 | DEC-136 | DEC-136は承知した。<br> | モデル外: 推奨は承認（直線だけの走行ではレバーアームと遅延が決まらない: FILE-GNSS-CALIB-FEASIBILITY の S1）。決まらない場合に止まる作業：実データでの較正。 |
 | DEC-137 | 1a2a3b4ok5実機検証してから6実機検証してから7a8a9b<br> | `DEC-133` |
+| DEC-138 | DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。<br> | `PRM-101`, `ND-01` |
 | DEC-139 | B1を採用する。NRTKのパスワード、ユーザー名等はリモート、git, ログ、rosbag, 記録文書にも載せてはならない。<br> | `DEC-151`, `DEC-152` |
 | DEC-140 | DEC-140 は true。受信機の設定は Gouda（ドライバ）が持つ。注意事項 §5・§6 は手での調査の規則として残す。最初の起動の前後で gso と getDataInOut を記録すること | `PRM-74` |
 | DEC-141 | 次の 3 点を指示する。人の回答として判断台帳に原文で記録すること。<br><br>1. PRM-65（GNSS ドライバの接続先）を承認する。値は by-id の名前を使い、<br>   serial:/dev/se | `PRM-74` |
@@ -174,8 +175,14 @@
 | DEC-278 | 「PRM-99 は DEC-229 が決まるまで、実車でも仮に 1.0 m を使う。台帳に記録して設定に反映して。」 | `PRM-99` |
 | DEC-279 | DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM で試験して。<br> | `PRM-100`, `ND-01` |
 | DEC-280 | DEC-279 は案 a（Fast DDS の profile で受信バッファを大きくする）、DEC-280 は案 a（NDT が点群を受け取るまで待つ）で承認する。実装して VM で試験して。<br> | `ND-07`, `TS-41` |
+| DEC-281 | DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。<br> | `PRM-101`, `IFD-56`, `ND-02` |
+| DEC-282 | DEC-282 は案 a、DEC-281 は案 a と b（DEC-138 も承認）で承認する。実装して VM で試験して。<br> | `ND-07`, `TS-41` |
+| DEC-283 | DEC-283 は案 a で承認する。実装して VM で試験して。<br> | `ND-07`, `TS-41` |
+| DEC-284 | DEC-285（と DEC-284）を案 a で承認<br> | `PRM-102`, `ND-07` |
+| DEC-285 | DEC-285（と DEC-284）を案 a で承認<br> | `ND-07`, `TS-41` |
+| DEC-289 | DEC-289を推奨案で実装せよ<br> | `ND-02` |
 
-### 1.3 承認済み（88 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`
+### 1.3 承認済み（90 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`, `PRM-101`, `PRM-102`
 
 ## 2. 承認によって着手する作業（工程と完了条件は docs/implementation_stages.md）
 

@@ -1,0 +1,10 @@
+# REV-151 (DEC-285, DEC-284) on the VM, 2026-10-22 03:3x-03:5x (bin 122). Recorded by Claude from the command output.
+## Old MapOdomEstimator (git HEAD c2b8d65) with EKF poses at 50 Hz (stamp = receive time) and odometry at 10 Hz stamped 0.15 s late
+##   (the unit test test_lagging_odometry_and_frequent_ekf_poses, run against the old module on the Mac): map->odom computed 0 times.
+## New MapOdomEstimator: the same unit test passes (map->odom equals the true map->odom; computed with every odometry after the first).
+## ubuntu_nd07_wait_points.sh (ROS_DOMAIN_ID 79, odometry stamped 0.15 s late, nd07_wait_points_2026-10-22_bin122.txt):
+##   W1, W2 as before; W3: the Monte Carlo search did not finish within the 30 s window (as in bin 120); 推定不能 0.
+## Scratch copy with a 120 s W3 window (wait_points_long2.sh, ROS_DOMAIN_ID 88, nd07_wait_long_bin122.txt):
+##   aligned at about 40 s to (-11.24, -1.63) (true pose -11.19, -1.68); 初期化中 (awaiting_inputs: ekf_pose, ndt_diagnostics,
+##   ekf_diagnostics, map_odom, ...); 正常 by 50 s and still 正常 at 120 s; 推定不能 0. The map->odom value was not compared here.
+## Gouda (domain 0) was restarted for the new code; see the bin 122 work record for the stop during a human's paused run.

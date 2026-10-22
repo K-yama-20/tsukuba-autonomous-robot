@@ -1,0 +1,29 @@
+# 変更セット REV-147（2026-10-22 第119便: 実車（VM）での 2 回目の自律走行開始と DEC-283 の登録）
+# 適用: design/tools/apply_revision.py REV-147
+id: REV-147
+date: '2026-10-22'
+summary: 第119便：人の指示（原文「周りは確認した。実車で自律走行開始を送って挙動を記録して。Gouda は前回と同じ位置・向きに置いている。」）で、REV-146 の実装を VM に写した状態で自律走行開始を送った。推定不能にはならず、点群は前処理の 2 段目まで 10 Hz で届き、GLIM の odometry も 10 Hz になった。しかし A3 の VoxelGrid（pcl_ros）が起動の約 4 秒後に落ち（exit -11）、NDT の入力が来ないので「初期化中（awaiting_inputs）」のまま進まなかった。Nav2 は起動せず、速度の指令は出ていない。Claude が一時停止・終了した。承認事項 DEC-283（VoxelGrid の落ち）を登録する。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- IFD-21
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-283
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】A3 の前処理の VoxelGrid（pcl_ros filter_voxel_grid_node、上流のまま）が、XT-32 の実の点群で落ちる。NDT の入力（points_downsampled）が来ず、ND-07 は初期化中のまま進まない。どう直すか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - IFD-21
+  - DEC-281
+  resulting_refs: []
+  note: 事実（VM、2026-10-22、記録 design/research/vehicle_pc/2026-10-22_autonomy_run2/、voxel_probe.txt）：02:25:55 の A3 で VoxelGrid は起動の約 4 秒後に exit -11（Segmentation fault）で落ちた。それまでの A3 の 11 回のうち 6 回、止めるとき（SIGINT）に exit -6 で落ち、ヒープの壊れの記録（munmap_chunk() invalid pointer、free() invalid next size）があった。実の点群の field は x・y・z・intensity（FLOAT32）、ring（UINT16、offset 16）、timestamp（FLOAT64、offset 18、8 バイト境界にない）、point_step 26。同じ設定の VoxelGrid を一時的に動かすと、全 field の点群では 3 回中 2 回が止めるときに exit 139、x・y・z だけにした同じ点群では 3 回とも正常に終わった。模擬の点群（x・y・z だけ）では A3 の VoxelGrid は一度も落ちていない。推測：pcl の VoxelGrid（PCLPointCloud2）が FLOAT32 以外の field（UINT16、境界にない FLOAT64）を扱えずにメモリを壊す（上流のソースでは未確認）。今回は点群が 10 Hz で届くようになったので、使っている間に落ちた。案 a（推奨）：A3 の前処理（CropBox 2 段と VoxelGrid）を、Gouda の一つのノードにする。点群から x・y・z だけを読み、切り取り（PRM-79・80）と間引き（PRM-81）をして、x・y・z（FLOAT32）の点群を NDT に渡す。プロセスが 3 つ減り、大きな点群の受け渡しも 1 回になる（DEC-281 の案 c と同じ向き）。NDT が使うのは x・y・z だけ。案 b：上流の部品のまま、VoxelGrid の前に x・y・z だけにするノードを足す（プロセスは一つ増える）。案 c：別の上流の間引き（autoware_pointcloud_preprocessor など）を入れる（依存が増え、field の扱いは未確認）。案 d：何もしない（実車で自律走行できない）。振る舞いの違い：案 a・b とも NDT の入力は今と同じ範囲・同じ格子の x・y・z。影響を受けるもの：ND-07 の子の launch、TS-41。決まらない場合に止まる作業：実車での自律走行。別の観察：初期化の結果は 2 回とも、人の初期姿勢（0.42、−0.83）から約 2.3 m 離れた（−1.0、−2.56）だった（今回は NDT が受け取った点群が 1 つだけのときの探索）。正しいかは、点群が届くようにしてから確かめる。第119便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

@@ -69,7 +69,8 @@ class HesaiConfigTests(unittest.TestCase):
         self.assertEqual(missing, []); self.assertEqual(self.template, before, 'template not modified')
         a, b = flatten(before), flatten(cfg)
         changed = {k for k in a if a[k] != b.get(k)}
-        allowed = {'lidar[0].driver.source_type', 'lidar[0].driver.use_timestamp_type', 'lidar[0].driver.default_frame_frequency', 'lidar[0].ros.ros_frame_id', 'lidar[0].ros.ros_send_point_cloud_topic'} | \
+        allowed = {'lidar[0].driver.source_type', 'lidar[0].driver.use_timestamp_type', 'lidar[0].driver.default_frame_frequency', 'lidar[0].ros.ros_frame_id', 'lidar[0].ros.ros_send_point_cloud_topic',
+                   'lidar[0].ros.ros_send_packet_loss_topic'} | \
                   {f'lidar[0].driver.lidar_udp_type.{k}' for k in ('device_ip_address', 'host_ip_address', 'udp_port', 'ptc_port', 'multicast_ip_address', 'speed')}
         self.assertTrue(changed <= allowed, changed - allowed); self.assertEqual(set(a), set(b), 'no key added or removed')
         drv = cfg['lidar'][0]['driver']; udp = drv['lidar_udp_type']; ros = cfg['lidar'][0]['ros']
@@ -77,6 +78,7 @@ class HesaiConfigTests(unittest.TestCase):
         self.assertEqual((udp['device_ip_address'], udp['host_ip_address'], udp['udp_port']), ('192.168.1.201', '192.168.1.100', 2368))
         self.assertEqual(udp['multicast_ip_address'], '')
         self.assertEqual(ros['ros_frame_id'], 'xt32_link'); self.assertEqual(ros['ros_send_point_cloud_topic'], 'sensors/xt32/points')
+        self.assertEqual(ros['ros_send_packet_loss_topic'], 'sensors/xt32/packet_loss')   # IFD-56 (DEC-281)
 
     def test_written_file_roundtrips(self):
         params = sc.read_node_params(PARAMS, 'hesai_ros_driver', trial=True)

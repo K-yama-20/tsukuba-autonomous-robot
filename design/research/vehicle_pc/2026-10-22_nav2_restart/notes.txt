@@ -1,0 +1,9 @@
+# Nav2 left active after an abandoned start (bin 124). Recorded by Claude from the VM logs (gouda_core.launch.log, records/20261022_035620).
+## bin 123 run (Claude, start 1792608980): lifecycle_manager STARTUP began at 1792608998; ND-07 ekf_covariance_large -> TR-07 at 1792609005.2;
+##   lifecycle_manager "Managed nodes are active" at 1792609005.54 (after the pause); end_autonomy (TR-12) at 1792609102.8: no RESET in the log.
+## Human's run (start 1792609384, new map 20261022_031430_5e5b16fc, waypoints 20261022_031654_5320af, initial pose -1.316, -1.429, yaw -90 deg):
+##   aligned to (-0.39, -0.24) at +28.7 s; 正常 at +29.6 s; lifecycle_manager STARTUP at 1792609413.72: "Failed to change state for node:
+##   map_server" (it was still active) -> "Nav2 STARTUP failed" -> TR-07 (stop_reason node_failure).
+## Code (autonomy_client.py): _call(STARTUP) raises Abandoned (token changed) after the call returns, before self.nav2_active = True; stop()
+##   resets Nav2 only when nav2_active -> Nav2 stays active after a start abandoned during STARTUP; every later STARTUP fails.
+## Estimated pose while paused (1792609600 or so): (-0.36, -0.20), yaw about -97 deg, ndt_nvtl 3.23, EKF x-y stddev 0.503 m.

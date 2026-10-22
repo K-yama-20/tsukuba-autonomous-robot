@@ -4,7 +4,7 @@ Design: design/model.yaml ND-14 / ND-15, IFD-21 / IFD-22, PRM-50..56 (REV-030, R
 - Hesai: the driver reads one YAML file (`config_path`). It is built from the UPSTREAM template (installed
   share/hesai_ros_driver/config/config.yaml) with only the Gouda keys replaced: device/host IP, UDP/PTC port, timestamp type
   (from design/generated/params/hesai_ros_driver.yaml, trial file only in stub tests), source_type = real-time, and the frame /
-  topic of IFD-21, the spin rate (PRM-60: `speed` and the matching default_frame_frequency), and an empty multicast address (unicast only). Every other template value is kept as it is (no silent changes).
+  topic of IFD-21, the per-frame packet-count topic of IFD-56 (DEC-281), the spin rate (PRM-60: `speed` and the matching default_frame_frequency), and an empty multicast address (unicast only). Every other template value is kept as it is (no silent changes).
 - IMU: ROS parameters from design/generated/params/adi_imu_driver.yaml plus frame_id (IFD-22) and publish_tf=false (TF has a
   single owner, ND-13: RQ-I004). The driver's own default rate must not be used silently: without `rate` the IMU is not started.
 A missing value is reported, never filled in (RQ-I076, CLAUDE.md 1.5).
@@ -19,6 +19,7 @@ import yaml
 # Interface names from the design (IFD-21 / IFD-22). These are names, not settings.
 LIDAR_FRAME = 'xt32_link'
 LIDAR_TOPIC = 'sensors/xt32/points'
+LIDAR_FRAME_STATUS_TOPIC = 'sensors/xt32/packet_loss'   # IFD-56: sent by the driver right after each point cloud
 IMU_FRAME = 'imu_link'
 IMU_TOPIC = 'sensors/imu/data'
 IMU_DRIVER_TOPIC = 'imu/data_raw'      # adi_imu_tr_driver_ros2 publishes here (remapped to IMU_TOPIC)
@@ -59,6 +60,7 @@ def hesai_config(template: dict, params: dict) -> tuple:
         drv['default_frame_frequency'] = float(params['spin_rate_rpm']) / SECONDS_PER_MINUTE   # the frame rate the driver expects
     ros['ros_frame_id'] = LIDAR_FRAME
     ros['ros_send_point_cloud_topic'] = LIDAR_TOPIC
+    ros['ros_send_packet_loss_topic'] = LIDAR_FRAME_STATUS_TOPIC
     return cfg, missing
 
 

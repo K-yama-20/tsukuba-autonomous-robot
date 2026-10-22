@@ -1,0 +1,14 @@
+# gouda_a3_points (REV-148, DEC-283 plan a) on the VM, 2026-10-22 02:4x-03:1x (bin 120). Recorded by Claude from the command output.
+## Real XT-32 clouds (/sensors/xt32/points, Gouda running in manual mode, gouda.sh Fast DDS profile), PRM-79..81 = 1.0 / 100.0 / 0.5:
+##   output 10.006 Hz, 7634 points per downsampled cloud, process CPU 52 % of one core (ps / top), exit at SIGINT normal (timeout 124).
+## Same synthetic cloud (a3_synthetic_feed row 200, radius 10 m, 58946 points), one message each:
+##   pcl_ros VoxelGrid (leaf 0.5, filter_field_name ''; no crop): 7342 points, max range 17.76 m
+##   gouda_a3_points (near 1.0, far 100.0, leaf 0.5):              8580 points, max range 19.76 m
+##   The pcl_ros node's parameters (ros2 param dump): min_points_per_voxel 2 (upstream default; cubes with one point are dropped).
+## ubuntu_nd07_wait_points.sh (ROS_DOMAIN_ID 79, 30 s W3 window), files nd07_wait_points_2026-10-22_bin120*.txt:
+##   run 1 and run 2: W1, W2 as before; W3: the Monte Carlo search did not finish within 30 s; 正常 0, 推定不能 0.
+##   experiment (min 2 points per cube patched into the VM copy, then restored; hash checked): same, not within 30 s.
+## Scratch copy with a 120 s W3 window (wait_points_long.sh, ROS_DOMAIN_ID 88), nd07_wait_long.txt:
+##   search finished at about 50-55 s, aligned to (-11.23, -1.63) (true pose -11.19, -1.68), then 正常 for 65 s; 推定不能 0.
+## Earlier runs with the pcl_ros chain: the search took about 25 s (bin 116) and 30 s (bin 118) in the same test.
+## VM load during bin 120: load average 7-9; gouda_monitor 82 % of one core, Firefox open on the VM; CPU about 75 % idle.

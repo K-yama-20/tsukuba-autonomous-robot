@@ -1,0 +1,83 @@
+[2026-10-22 03:14:30.664] [glim] [info] config_path: /home/aya/gouda_ws/gouda_data/mapping/20261022_031430_5e5b16fc/glim_config
+[2026-10-22 03:14:30.664] [glim] [info] load libodometry_estimation_cpu.so
+[2026-10-22 03:14:30.665] [glim] [info] load libsub_mapping.so
+[2026-10-22 03:14:30.665] [glim] [warning] param sub_mapping/submap_target_num_points not found
+[2026-10-22 03:14:30.665] [glim] [warning] use default_value=-1
+[2026-10-22 03:14:30.665] [glim] [info] load libglobal_mapping.so
+[2026-10-22 03:14:30.665] [glim] [warning] param global_mapping/submap_voxel_resolution_max not found
+[2026-10-22 03:14:30.665] [glim] [warning] use default_value=0.5
+[2026-10-22 03:14:30.665] [glim] [warning] param global_mapping/submap_voxel_resolution_dmin not found
+[2026-10-22 03:14:30.665] [glim] [warning] use default_value=5
+[2026-10-22 03:14:30.665] [glim] [warning] param global_mapping/submap_voxel_resolution_dmax not found
+[2026-10-22 03:14:30.665] [glim] [warning] use default_value=20
+[2026-10-22 03:14:32.935] [glim] [warning] large point timestamp (min=1792606472.833670 max=1792606472.933469 > 1.0) found!!
+[2026-10-22 03:14:32.935] [glim] [warning] assume that point times are absolute and convert them to relative
+[2026-10-22 03:14:32.935] [glim] [warning] frame timestamp will be overwritten by the first point timestamp!!
+[2026-10-22 03:14:36.058] [odom] [info] estimate initial IMU state
+Initial error: 50237, values: 96
+iter      cost      cost_change    lambda  success iter_time
+   0        71.02        5e+04      1e-05      1          0
+   1          1.3           70      1e-06      1          0
+   2          1.3        2e-05      1e-07      1          0
+   3          1.3      3.2e-09      1e-08      1          0
+[2026-10-22 03:14:36.061] [odom] [info] initial IMU state estimation result
+[2026-10-22 03:14:36.061] [odom] [info] T_world_imu=se3(0.387864,0.339580,0.017443,0.011669,-0.005715,0.931771,0.362813)
+[2026-10-22 03:14:36.061] [odom] [info] v_world_imu=vec(0.026651,-0.021140,0.000150)
+[2026-10-22 03:14:36.061] [odom] [info] imu_bias=vec(-0.000635,-0.001763,0.000028,0.005299,0.008804,-0.003176)
+[2026-10-22 03:14:51.854] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:14:51.854] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:14:51.854] [odom] [warning] IMU validation results:
+[2026-10-22 03:14:51.854] [odom] [warning] num_validations=128
+[2026-10-22 03:14:51.854] [odom] [warning] No-IMU errors rot=2.436 +- 1.743 deg, trans=0.014 +- 0.006 m, vel=0.080 +- 0.059 m/s
+[2026-10-22 03:14:51.854] [odom] [warning] IMU errors rot=0.126 +- 0.075 deg, trans=0.015 +- 0.006 m, vel=0.032 +- 0.028 m/s
+[2026-10-22 03:14:51.854] [odom] [warning] IMU better ratios rot=0.99, trans=0.40, vel=0.91
+[2026-10-22 03:14:58.251] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:14:58.251] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:14:58.251] [odom] [warning] IMU validation results:
+[2026-10-22 03:14:58.251] [odom] [warning] num_validations=192
+[2026-10-22 03:14:58.251] [odom] [warning] No-IMU errors rot=1.639 +- 1.816 deg, trans=0.017 +- 0.006 m, vel=0.058 +- 0.059 m/s
+[2026-10-22 03:14:58.251] [odom] [warning] IMU errors rot=0.115 +- 0.065 deg, trans=0.018 +- 0.006 m, vel=0.036 +- 0.024 m/s
+[2026-10-22 03:14:58.251] [odom] [warning] IMU better ratios rot=0.68, trans=0.27, vel=0.63
+[2026-10-22 03:15:04.658] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:15:04.658] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:15:04.658] [odom] [warning] IMU validation results:
+[2026-10-22 03:15:04.658] [odom] [warning] num_validations=256
+[2026-10-22 03:15:04.658] [odom] [warning] No-IMU errors rot=1.237 +- 1.720 deg, trans=0.018 +- 0.006 m, vel=0.044 +- 0.056 m/s
+[2026-10-22 03:15:04.658] [odom] [warning] IMU errors rot=0.108 +- 0.058 deg, trans=0.019 +- 0.006 m, vel=0.038 +- 0.021 m/s
+[2026-10-22 03:15:04.658] [odom] [warning] IMU better ratios rot=0.51, trans=0.20, vel=0.47
+[2026-10-22 03:15:11.057] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:15:11.057] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:15:11.057] [odom] [warning] IMU validation results:
+[2026-10-22 03:15:11.057] [odom] [warning] num_validations=320
+[2026-10-22 03:15:11.057] [odom] [warning] No-IMU errors rot=1.061 +- 1.597 deg, trans=0.019 +- 0.005 m, vel=0.044 +- 0.055 m/s
+[2026-10-22 03:15:11.057] [odom] [warning] IMU errors rot=0.104 +- 0.054 deg, trans=0.020 +- 0.006 m, vel=0.040 +- 0.019 m/s
+[2026-10-22 03:15:11.057] [odom] [warning] IMU better ratios rot=0.52, trans=0.19, vel=0.44
+[2026-10-22 03:15:17.457] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:15:17.457] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:15:17.457] [odom] [warning] IMU validation results:
+[2026-10-22 03:15:17.457] [odom] [warning] num_validations=384
+[2026-10-22 03:15:17.457] [odom] [warning] No-IMU errors rot=1.131 +- 1.573 deg, trans=0.019 +- 0.005 m, vel=0.044 +- 0.052 m/s
+[2026-10-22 03:15:17.457] [odom] [warning] IMU errors rot=0.100 +- 0.052 deg, trans=0.020 +- 0.005 m, vel=0.039 +- 0.017 m/s
+[2026-10-22 03:15:17.457] [odom] [warning] IMU better ratios rot=0.56, trans=0.18, vel=0.45
+[2026-10-22 03:15:23.875] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:15:23.875] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:15:23.875] [odom] [warning] IMU validation results:
+[2026-10-22 03:15:23.875] [odom] [warning] num_validations=448
+[2026-10-22 03:15:23.875] [odom] [warning] No-IMU errors rot=0.979 +- 1.504 deg, trans=0.018 +- 0.005 m, vel=0.039 +- 0.050 m/s
+[2026-10-22 03:15:23.875] [odom] [warning] IMU errors rot=0.099 +- 0.049 deg, trans=0.020 +- 0.005 m, vel=0.039 +- 0.016 m/s
+[2026-10-22 03:15:23.875] [odom] [warning] IMU better ratios rot=0.50, trans=0.16, vel=0.39
+[2026-10-22 03:15:30.297] [odom] [warning] IMU prediction is not good.
+[2026-10-22 03:15:30.297] [odom] [warning] Possibly T_lidar_imu is not accurate or IMU bias is not well estimated.
+[2026-10-22 03:15:30.297] [odom] [warning] IMU validation results:
+[2026-10-22 03:15:30.297] [odom] [warning] num_validations=512
+[2026-10-22 03:15:30.297] [odom] [warning] No-IMU errors rot=0.862 +- 1.441 deg, trans=0.018 +- 0.004 m, vel=0.035 +- 0.048 m/s
+[2026-10-22 03:15:30.297] [odom] [warning] IMU errors rot=0.097 +- 0.047 deg, trans=0.020 +- 0.005 m, vel=0.038 +- 0.015 m/s
+[2026-10-22 03:15:30.297] [odom] [warning] IMU better ratios rot=0.45, trans=0.14, vel=0.34
+[INFO] [1792606535.007090545] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[2026-10-22 03:15:35.020] [glim] [info] waiting for odometry estimation
+[2026-10-22 03:15:35.021] [glim] [info] waiting for local mapping
+[2026-10-22 03:15:35.103] [glim] [info] waiting for global mapping
+[2026-10-22 03:15:35.140] [global] [info] saving to /home/aya/gouda_ws/gouda_data/mapping/20261022_031430_5e5b16fc/glim_dump...
+[2026-10-22 03:15:35.140] [global] [info] serializing factor graph to /home/aya/gouda_ws/gouda_data/mapping/20261022_031430_5e5b16fc/glim_dump/graph.bin
+[2026-10-22 03:15:35.269] [global] [info] saving config
+[2026-10-22 03:15:35.271] [global] [info] saved

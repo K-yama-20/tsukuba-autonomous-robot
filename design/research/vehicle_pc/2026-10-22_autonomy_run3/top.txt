@@ -1,0 +1,598 @@
+1792606653
+top - 03:17:33 up  1:33,  5 users,  load average: 5.20, 5.35, 5.88
+Tasks: 308 total,   4 running, 304 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 52.9 us,  8.8 sy,  0.0 ni, 32.4 id,  0.0 wa,  0.0 hi,  5.9 si,  0.0 st 
+61.1 1.8 Isolated
+61.1 0.3 ros2
+55.6 1.0 python3
+33.3 1.5 gouda_monitor
+16.7 1.5 gouda_mode_mana
+11.1 2.4 gnome-shell
+11.1 4.5 firefox
+5.6 1.3 ros2
+5.6 1.0 lifecycle_manag
+1792606657
+top - 03:17:37 up  1:33,  5 users,  load average: 5.34, 5.37, 5.89
+Tasks: 308 total,   2 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 23.1 us,  4.6 sy,  0.0 ni, 64.6 id,  0.0 wa,  0.0 hi,  7.7 si,  0.0 st 
+100.0 1.5 gouda_monitor
+50.0 1.5 gouda_mode_mana
+20.0 1.8 hesai_ros_drive
+20.0 1.8 Isolated
+10.0 2.4 gnome-shell
+10.0 4.5 firefox
+10.0 0.0 top
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+1792606662
+top - 03:17:42 up  1:33,  5 users,  load average: 5.39, 5.38, 5.89
+Tasks: 310 total,   5 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 64.2 us, 14.9 sy,  0.0 ni, 13.4 id,  0.0 wa,  0.0 hi,  7.5 si,  0.0 st 
+145.5 1.5 glim_rosnode
+118.2 1.3 autoware_ndt_sc
+72.7 1.5 gouda_a3_points
+63.6 1.5 gouda_monitor
+36.4 1.8 hesai_ros_drive
+27.3 1.9 Isolated
+18.2 1.4 gouda_global_lo
+18.2 4.5 firefox
+18.2 0.0 top
+1792606666
+top - 03:17:46 up  1:34,  6 users,  load average: 6.96, 5.71, 5.99
+Tasks: 314 total,   5 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 68.7 us,  7.5 sy,  0.0 ni, 17.9 id,  0.0 wa,  0.0 hi,  6.0 si,  0.0 st 
+123.1 1.3 autoware_ndt_sc
+84.6 1.5 gouda_a3_points
+69.2 1.8 Isolated
+61.5 2.0 glim_rosnode
+38.5 1.5 gouda_monitor
+23.1 4.5 firefox
+15.4 2.4 gnome-shell
+15.4 1.5 gouda_mode_mana
+7.7 1.4 gouda_global_lo
+1792606671
+top - 03:17:51 up  1:34,  6 users,  load average: 7.85, 5.91, 6.06
+Tasks: 314 total,   4 running, 310 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 69.4 us,  8.3 sy,  0.0 ni, 18.1 id,  0.0 wa,  0.0 hi,  4.2 si,  0.0 st 
+125.0 1.3 autoware_ndt_sc
+91.7 1.5 gouda_a3_points
+75.0 2.8 glim_rosnode
+50.0 1.5 gouda_monitor
+50.0 1.8 Isolated
+25.0 1.4 gouda_global_lo
+16.7 1.3 vehicle_bridge
+16.7 1.8 hesai_ros_drive
+8.3 2.4 gnome-shell
+1792606675
+top - 03:17:55 up  1:34,  6 users,  load average: 8.50, 6.08, 6.11
+Tasks: 314 total,   7 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 72.7 us,  9.1 sy,  0.0 ni, 16.7 id,  0.0 wa,  0.0 hi,  1.5 si,  0.0 st 
+141.7 1.3 autoware_ndt_sc
+66.7 1.5 gouda_a3_points
+58.3 2.9 glim_rosnode
+41.7 1.5 gouda_monitor
+25.0 1.8 Isolated
+16.7 1.8 hesai_ros_drive
+16.7 4.5 firefox
+8.3 2.4 gnome-shell
+8.3 1.5 gouda_mode_mana
+1792606680
+top - 03:18:00 up  1:34,  6 users,  load average: 8.62, 6.15, 6.13
+Tasks: 318 total,   4 running, 314 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 68.1 us,  8.7 sy,  0.0 ni, 18.8 id,  0.0 wa,  0.0 hi,  4.3 si,  0.0 st 
+115.4 2.9 glim_rosnode
+76.9 1.5 gouda_a3_points
+38.5 1.8 Isolated
+30.8 1.5 gouda_monitor
+30.8 1.4 gouda_global_lo
+15.4 1.5 gouda_mode_mana
+15.4 1.8 hesai_ros_drive
+15.4 1.3 python3
+7.7 2.4 gnome-shell
+1792606684
+top - 03:18:04 up  1:34,  6 users,  load average: 8.81, 6.23, 6.16
+Tasks: 314 total,   3 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 59.1 us,  7.6 sy,  0.0 ni, 31.8 id,  0.0 wa,  0.0 hi,  1.5 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+63.6 1.5 gouda_monitor
+63.6 2.9 glim_rosnode
+45.5 1.4 gouda_global_lo
+27.3 1.8 hesai_ros_drive
+27.3 1.8 Isolated
+18.2 4.5 firefox
+18.2 1.3 python3
+9.1 0.0 ksoftirqd/0
+1792606689
+top - 03:18:09 up  1:34,  6 users,  load average: 9.07, 6.32, 6.19
+Tasks: 317 total,   7 running, 310 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 71.6 us,  6.0 sy,  0.0 ni, 20.9 id,  0.0 wa,  0.0 hi,  1.5 si,  0.0 st 
+81.8 1.5 gouda_a3_points
+63.6 3.0 glim_rosnode
+54.5 1.5 gouda_monitor
+36.4 1.4 gouda_global_lo
+27.3 1.8 Isolated
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+18.2 1.3 python3
+9.1 0.0 ksoftirqd/0
+1792606693
+top - 03:18:13 up  1:34,  6 users,  load average: 8.90, 6.33, 6.19
+Tasks: 314 total,   3 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 65.2 us,  7.6 sy,  0.0 ni, 24.2 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+90.9 3.0 glim_rosnode
+90.9 1.5 gouda_a3_points
+72.7 1.4 gouda_global_lo
+54.5 1.5 gouda_monitor
+36.4 1.8 Isolated
+18.2 0.5 gjs
+18.2 1.8 hesai_ros_drive
+18.2 1.3 python3
+9.1 2.4 gnome-shell
+1792606698
+top - 03:18:18 up  1:34,  6 users,  load average: 8.90, 6.33, 6.19
+Tasks: 314 total,   5 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 68.7 us,  9.0 sy,  0.0 ni, 17.9 id,  0.0 wa,  0.0 hi,  4.5 si,  0.0 st 
+91.7 1.5 gouda_a3_points
+75.0 3.0 glim_rosnode
+58.3 1.5 gouda_monitor
+41.7 1.4 gouda_global_lo
+25.0 1.8 hesai_ros_drive
+25.0 1.8 Isolated
+25.0 1.3 autoware_ndt_sc
+16.7 4.5 firefox
+16.7 1.3 python3
+1792606702
+top - 03:18:22 up  1:34,  6 users,  load average: 9.31, 6.46, 6.24
+Tasks: 314 total,   5 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 56.7 us,  4.5 sy,  0.0 ni, 28.4 id,  0.0 wa,  0.0 hi, 10.4 si,  0.0 st 
+100.0 1.5 gouda_a3_points
+81.8 3.0 glim_rosnode
+63.6 1.5 gouda_monitor
+45.5 1.8 Isolated
+36.4 1.4 gouda_global_lo
+27.3 4.5 firefox
+27.3 1.3 python3
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+1792606707
+top - 03:18:27 up  1:34,  6 users,  load average: 9.45, 6.54, 6.26
+Tasks: 314 total,   5 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 59.7 us,  4.5 sy,  0.0 ni, 28.4 id,  0.0 wa,  0.0 hi,  7.5 si,  0.0 st 
+91.7 1.5 gouda_a3_points
+75.0 3.0 glim_rosnode
+50.0 1.5 gouda_monitor
+50.0 1.3 autoware_ndt_sc
+41.7 1.4 gouda_global_lo
+33.3 1.8 Isolated
+16.7 1.5 gouda_mode_mana
+16.7 1.8 hesai_ros_drive
+16.7 1.3 python3
+1792606711
+top - 03:18:31 up  1:34,  6 users,  load average: 9.89, 6.68, 6.31
+Tasks: 314 total,   7 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 65.7 us,  3.0 sy,  0.0 ni, 28.4 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+81.8 3.0 glim_rosnode
+72.7 1.8 Isolated
+72.7 1.5 gouda_a3_points
+63.6 1.5 gouda_monitor
+54.5 1.4 gouda_global_lo
+27.3 1.3 python3
+18.2 0.5 gjs
+18.2 1.8 hesai_ros_drive
+18.2 1.3 autoware_ndt_sc
+1792606716
+top - 03:18:36 up  1:34,  6 users,  load average: 10.14, 6.78, 6.35
+Tasks: 314 total,   6 running, 308 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.6 us,  6.1 sy,  0.0 ni, 30.3 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+81.8 3.1 glim_rosnode
+54.5 1.5 gouda_monitor
+36.4 1.4 gouda_global_lo
+27.3 1.8 Isolated
+27.3 1.3 autoware_ndt_sc
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+18.2 1.3 python3
+1792606720
+top - 03:18:40 up  1:34,  6 users,  load average: 9.89, 6.79, 6.35
+Tasks: 314 total,   4 running, 310 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 67.6 us,  7.0 sy,  0.0 ni, 23.9 id,  0.0 wa,  0.0 hi,  1.4 si,  0.0 st 
+81.8 3.2 glim_rosnode
+81.8 1.5 gouda_a3_points
+63.6 1.5 gouda_monitor
+36.4 1.4 gouda_global_lo
+27.3 1.8 hesai_ros_drive
+18.2 1.8 Isolated
+18.2 1.3 python3
+9.1 2.4 gnome-shell
+9.1 1.5 gouda_mode_mana
+1792606724
+top - 03:18:45 up  1:35,  6 users,  load average: 9.90, 6.84, 6.37
+Tasks: 317 total,   6 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.9 us,  6.2 sy,  0.0 ni, 29.7 id,  0.0 wa,  0.0 hi,  3.1 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+81.8 1.5 gouda_monitor
+72.7 1.4 gouda_global_lo
+63.6 3.0 glim_rosnode
+27.3 1.8 Isolated
+18.2 1.8 hesai_ros_drive
+18.2 4.5 firefox
+18.2 1.3 python3
+18.2 1.3 autoware_ndt_sc
+1792606729
+top - 03:18:49 up  1:35,  6 users,  load average: 10.47, 7.01, 6.43
+Tasks: 314 total,   7 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.3 us,  6.3 sy,  0.0 ni, 31.7 id,  0.0 wa,  0.0 hi,  1.6 si,  0.0 st 
+91.7 1.5 gouda_a3_points
+83.3 3.0 glim_rosnode
+50.0 1.5 gouda_monitor
+41.7 1.4 gouda_global_lo
+41.7 1.8 Isolated
+41.7 1.3 autoware_ndt_sc
+25.0 1.3 python3
+8.3 2.4 gnome-shell
+8.3 1.5 gouda_mode_mana
+1792606733
+top - 03:18:54 up  1:35,  6 users,  load average: 13.07, 7.61, 6.62
+Tasks: 314 total,   3 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.3 us,  7.4 sy,  0.0 ni, 29.4 id,  0.0 wa,  0.0 hi,  2.9 si,  0.0 st 
+75.0 1.5 gouda_monitor
+75.0 3.0 glim_rosnode
+75.0 1.5 gouda_a3_points
+66.7 1.4 gouda_global_lo
+41.7 1.8 Isolated
+25.0 2.4 gnome-shell
+16.7 1.5 gouda_mode_mana
+16.7 1.3 python3
+8.3 1.8 hesai_ros_drive
+1792606738
+top - 03:18:58 up  1:35,  6 users,  load average: 13.23, 7.73, 6.67
+Tasks: 317 total,   6 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 65.7 us,  6.0 sy,  0.0 ni, 25.4 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+81.8 3.0 glim_rosnode
+54.5 1.5 gouda_monitor
+54.5 1.4 gouda_global_lo
+27.3 1.8 Isolated
+27.3 1.3 autoware_ndt_sc
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+18.2 4.5 firefox
+1792606742
+top - 03:19:03 up  1:35,  6 users,  load average: 13.23, 7.73, 6.67
+Tasks: 317 total,   6 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.0 us,  4.6 sy,  0.0 ni, 29.2 id,  0.0 wa,  0.0 hi,  6.2 si,  0.0 st 
+81.8 1.5 gouda_a3_points
+63.6 1.5 gouda_monitor
+63.6 3.0 glim_rosnode
+45.5 1.8 Isolated
+27.3 1.4 gouda_global_lo
+18.2 2.4 gnome-shell
+18.2 4.5 firefox
+18.2 1.3 python3
+9.1 1.5 gouda_mode_mana
+1792606747
+top - 03:19:07 up  1:35,  6 users,  load average: 12.89, 7.75, 6.68
+Tasks: 314 total,   5 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.6 us,  7.6 sy,  0.0 ni, 27.3 id,  0.0 wa,  0.0 hi,  4.5 si,  0.0 st 
+108.3 3.0 glim_rosnode
+91.7 1.5 gouda_a3_points
+66.7 1.5 gouda_monitor
+58.3 1.8 Isolated
+33.3 1.4 gouda_global_lo
+16.7 1.8 hesai_ros_drive
+16.7 1.3 python3
+16.7 1.3 autoware_ndt_sc
+8.3 2.4 gnome-shell
+1792606751
+top - 03:19:12 up  1:35,  6 users,  load average: 12.58, 7.77, 6.69
+Tasks: 315 total,   3 running, 312 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 67.2 us,  6.0 sy,  0.0 ni, 25.4 id,  0.0 wa,  0.0 hi,  1.5 si,  0.0 st 
+100.0 1.5 gouda_a3_points
+81.8 3.0 glim_rosnode
+72.7 1.5 gouda_monitor
+36.4 1.4 gouda_global_lo
+18.2 2.4 gnome-shell
+18.2 1.8 hesai_ros_drive
+18.2 1.8 Isolated
+18.2 1.3 python3
+9.1 0.1 systemd-udevd
+1792606756
+top - 03:19:16 up  1:35,  6 users,  load average: 12.13, 7.76, 6.70
+Tasks: 314 total,   7 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 58.8 us,  4.4 sy,  0.0 ni, 32.4 id,  0.0 wa,  0.0 hi,  4.4 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+72.7 1.4 gouda_global_lo
+63.6 3.0 glim_rosnode
+36.4 1.5 gouda_monitor
+36.4 1.8 Isolated
+27.3 1.3 python3
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+18.2 4.5 firefox
+1792606760
+top - 03:19:21 up  1:35,  6 users,  load average: 11.88, 7.78, 6.71
+Tasks: 313 total,   7 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 66.7 us,  5.8 sy,  0.0 ni, 26.1 id,  0.0 wa,  0.0 hi,  1.4 si,  0.0 st 
+75.0 1.5 gouda_a3_points
+66.7 1.5 gouda_monitor
+66.7 3.0 glim_rosnode
+33.3 1.4 gouda_global_lo
+25.0 1.8 Isolated
+16.7 1.5 gouda_mode_mana
+16.7 1.8 hesai_ros_drive
+16.7 1.3 autoware_ndt_sc
+8.3 2.4 gnome-shell
+1792606765
+top - 03:19:25 up  1:35,  5 users,  load average: 11.81, 7.83, 6.73
+Tasks: 310 total,   6 running, 304 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 74.6 us,  6.0 sy,  0.0 ni, 14.9 id,  0.0 wa,  0.0 hi,  4.5 si,  0.0 st 
+109.1 1.5 gouda_a3_points
+90.9 3.1 glim_rosnode
+63.6 1.5 gouda_monitor
+63.6 1.4 gouda_global_lo
+27.3 1.8 Isolated
+18.2 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+18.2 1.3 python3
+18.2 1.3 autoware_ndt_sc
+1792606769
+top - 03:19:30 up  1:35,  5 users,  load average: 11.82, 7.90, 6.76
+Tasks: 310 total,   5 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.6 us,  7.6 sy,  0.0 ni, 28.8 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+90.0 1.5 gouda_a3_points
+80.0 1.8 Isolated
+70.0 3.2 glim_rosnode
+50.0 1.5 gouda_monitor
+40.0 1.4 gouda_global_lo
+20.0 4.5 firefox
+20.0 1.3 python3
+10.0 1.5 gouda_mode_mana
+10.0 1.3 gouda_recorder
+1792606774
+top - 03:19:34 up  1:35,  5 users,  load average: 11.60, 7.92, 6.77
+Tasks: 313 total,   3 running, 310 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 62.9 us,  4.8 sy,  0.0 ni, 32.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+66.7 3.0 glim_rosnode
+66.7 1.5 gouda_a3_points
+58.3 1.5 gouda_monitor
+58.3 1.8 Isolated
+41.7 1.4 gouda_global_lo
+16.7 4.5 firefox
+16.7 1.3 python3
+8.3 2.4 gnome-shell
+8.3 1.5 gouda_mode_mana
+1792606778
+top - 03:19:38 up  1:35,  5 users,  load average: 11.71, 8.01, 6.81
+Tasks: 310 total,   8 running, 302 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 62.3 us,  5.8 sy,  0.0 ni, 29.0 id,  0.0 wa,  0.0 hi,  2.9 si,  0.0 st 
+91.7 1.5 gouda_a3_points
+66.7 3.0 glim_rosnode
+58.3 1.5 gouda_monitor
+41.7 1.4 gouda_global_lo
+41.7 1.8 Isolated
+25.0 1.3 python3
+25.0 1.3 autoware_ndt_sc
+16.7 1.8 hesai_ros_drive
+16.7 4.5 firefox
+1792606783
+top - 03:19:43 up  1:36,  6 users,  load average: 11.71, 8.01, 6.81
+Tasks: 314 total,   6 running, 308 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 65.2 us, 13.6 sy,  0.0 ni, 18.2 id,  0.0 wa,  0.0 hi,  3.0 si,  0.0 st 
+84.6 3.0 glim_rosnode
+76.9 1.5 gouda_a3_points
+30.8 1.5 gouda_monitor
+30.8 1.4 gouda_global_lo
+30.8 1.8 Isolated
+23.1 1.3 autoware_ndt_sc
+15.4 2.4 gnome-shell
+15.4 1.8 hesai_ros_drive
+15.4 4.5 firefox
+1792606787
+top - 03:19:47 up  1:36,  6 users,  load average: 11.97, 8.12, 6.85
+Tasks: 316 total,   5 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 60.6 us, 10.6 sy,  0.0 ni, 19.7 id,  0.0 wa,  0.0 hi,  9.1 si,  0.0 st 
+127.3 3.0 glim_rosnode
+63.6 1.8 Isolated
+63.6 1.5 gouda_a3_points
+54.5 1.5 gouda_monitor
+54.5 1.4 gouda_global_lo
+18.2 1.8 hesai_ros_drive
+18.2 1.3 python3
+18.2 1.3 autoware_ndt_sc
+9.1 0.0 ksoftirqd/0
+1792606792
+top - 03:19:52 up  1:36,  5 users,  load average: 11.66, 8.12, 6.86
+Tasks: 311 total,   7 running, 304 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 63.8 us,  7.2 sy,  0.0 ni, 26.1 id,  0.0 wa,  0.0 hi,  2.9 si,  0.0 st 
+91.7 1.5 gouda_a3_points
+66.7 1.8 Isolated
+66.7 3.0 glim_rosnode
+58.3 1.5 gouda_monitor
+25.0 1.4 gouda_global_lo
+16.7 1.8 hesai_ros_drive
+16.7 4.5 firefox
+16.7 1.3 python3
+16.7 1.3 autoware_ndt_sc
+1792606796
+top - 03:19:56 up  1:36,  5 users,  load average: 14.41, 8.75, 7.07
+Tasks: 311 total,   7 running, 304 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 63.5 us,  6.3 sy,  0.0 ni, 28.6 id,  0.0 wa,  0.0 hi,  1.6 si,  0.0 st 
+91.7 3.0 glim_rosnode
+91.7 1.5 gouda_a3_points
+66.7 1.5 gouda_monitor
+58.3 1.8 Isolated
+33.3 1.4 gouda_global_lo
+16.7 1.5 gouda_mode_mana
+16.7 1.8 hesai_ros_drive
+16.7 4.5 firefox
+16.7 1.3 python3
+1792606801
+top - 03:20:01 up  1:36,  5 users,  load average: 14.05, 8.77, 7.08
+Tasks: 311 total,   5 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 57.8 us,  6.2 sy,  0.0 ni, 34.4 id,  0.0 wa,  0.0 hi,  1.6 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+81.8 3.1 glim_rosnode
+63.6 1.5 gouda_monitor
+45.5 1.4 gouda_global_lo
+45.5 1.8 Isolated
+18.2 1.8 hesai_ros_drive
+18.2 4.5 firefox
+18.2 1.3 python3
+9.1 0.7 python3
+1792606805
+top - 03:20:05 up  1:36,  5 users,  load average: 13.57, 8.76, 7.09
+Tasks: 311 total,   4 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 64.6 us,  6.2 sy,  0.0 ni, 27.7 id,  0.0 wa,  0.0 hi,  1.5 si,  0.0 st 
+90.9 1.5 gouda_a3_points
+72.7 1.5 gouda_monitor
+72.7 3.0 glim_rosnode
+45.5 1.8 Isolated
+36.4 1.4 gouda_global_lo
+27.3 4.5 firefox
+27.3 1.3 autoware_ndt_sc
+18.2 1.3 python3
+9.1 2.4 gnome-shell
+1792606810
+top - 03:20:10 up  1:36,  6 users,  load average: 14.08, 8.94, 7.16
+Tasks: 311 total,   3 running, 308 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 25.4 us,  4.8 sy,  0.0 ni, 65.1 id,  0.0 wa,  0.0 hi,  4.8 si,  0.0 st 
+100.0 1.5 gouda_monitor
+54.5 1.5 gouda_mode_mana
+9.1 2.4 gnome-shell
+9.1 1.3 gouda_recorder
+9.1 1.3 gouda_static_tf
+9.1 1.8 hesai_ros_drive
+9.1 1.3 python3
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+1792606814
+top - 03:20:14 up  1:36,  6 users,  load average: 13.28, 8.86, 7.14
+Tasks: 313 total,   2 running, 311 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 24.6 us,  3.3 sy,  0.0 ni, 68.9 id,  0.0 wa,  0.0 hi,  3.3 si,  0.0 st 
+100.0 1.5 gouda_monitor
+10.0 1.5 gouda_mode_mana
+10.0 1.8 hesai_ros_drive
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+0.0 0.0 kworker/R-sync_wq
+0.0 0.0 kworker/R-kvfree_rcu_reclaim
+1792606819
+top - 03:20:19 up  1:36,  5 users,  load average: 12.45, 8.76, 7.12
+Tasks: 310 total,   4 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 27.9 us,  3.3 sy,  0.0 ni, 65.6 id,  0.0 wa,  0.0 hi,  3.3 si,  0.0 st 
+90.9 1.5 gouda_monitor
+63.6 1.5 gouda_mode_mana
+27.3 1.8 Isolated
+9.1 1.8 hesai_ros_drive
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+0.0 0.0 kworker/R-sync_wq
+1792606823
+top - 03:20:23 up  1:36,  5 users,  load average: 11.85, 8.70, 7.11
+Tasks: 307 total,   2 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 25.0 us,  1.6 sy,  0.0 ni, 67.2 id,  0.0 wa,  0.0 hi,  6.2 si,  0.0 st 
+81.8 1.5 gouda_monitor
+45.5 1.5 gouda_mode_mana
+18.2 1.8 hesai_ros_drive
+9.1 2.4 gnome-shell
+9.1 1.8 Isolated
+9.1 1.3 python3
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+1792606827
+top - 03:20:28 up  1:36,  6 users,  load average: 11.85, 8.70, 7.11
+Tasks: 312 total,   3 running, 309 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 25.4 us,  3.2 sy,  0.0 ni, 65.1 id,  0.0 wa,  0.0 hi,  6.3 si,  0.0 st 
+100.0 1.5 gouda_monitor
+18.2 1.5 gouda_mode_mana
+9.1 1.8 hesai_ros_drive
+9.1 4.5 firefox
+9.1 0.9 adis_rcv_bin_no
+9.1 0.0 top
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+1792606832
+top - 03:20:32 up  1:36,  5 users,  load average: 11.31, 8.64, 7.10
+Tasks: 307 total,   2 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 23.8 us,  3.2 sy,  0.0 ni, 68.3 id,  0.0 wa,  0.0 hi,  4.8 si,  0.0 st 
+100.0 1.5 gouda_monitor
+20.0 1.5 gouda_mode_mana
+10.0 1.3 gouda_recorder
+10.0 1.8 hesai_ros_drive
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+0.0 0.0 kworker/R-sync_wq
+1792606836
+top - 03:20:36 up  1:36,  5 users,  load average: 10.64, 8.55, 7.07
+Tasks: 307 total,   2 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 23.4 us,  3.1 sy,  0.0 ni, 67.2 id,  0.0 wa,  0.0 hi,  6.2 si,  0.0 st 
+100.0 1.5 gouda_monitor
+18.2 1.5 gouda_mode_mana
+9.1 1.8 hesai_ros_drive
+9.1 0.0 str2str
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+0.0 0.0 kworker/R-sync_wq
+1792606841
+top - 03:20:41 up  1:36,  5 users,  load average: 10.27, 8.50, 7.07
+Tasks: 308 total,   1 running, 307 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 20.3 us,  1.6 sy,  0.0 ni, 71.9 id,  0.0 wa,  0.0 hi,  6.2 si,  0.0 st 
+90.0 1.5 gouda_monitor
+40.0 1.5 gouda_mode_mana
+20.0 4.5 firefox
+20.0 1.8 Isolated
+10.0 2.4 gnome-shell
+10.0 1.8 hesai_ros_drive
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+1792606845
+top - 03:20:45 up  1:37,  5 users,  load average: 9.61, 8.40, 7.04
+Tasks: 308 total,   2 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 29.4 us,  8.8 sy,  0.0 ni, 52.9 id,  0.0 wa,  0.0 hi,  8.8 si,  0.0 st 
+81.8 1.5 gouda_monitor
+9.1 1.5 gouda_mode_mana
+9.1 1.3 vehicle_bridge
+9.1 1.8 hesai_ros_drive
+9.1 0.0 kworker/u24:0-events_unbound
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+1792606850
+top - 03:20:50 up  1:37,  5 users,  load average: 9.16, 8.32, 7.02
+Tasks: 308 total,   2 running, 306 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 24.6 us,  3.3 sy,  0.0 ni, 68.9 id,  0.0 wa,  0.0 hi,  3.3 si,  0.0 st 
+100.0 1.5 gouda_monitor
+18.2 1.8 hesai_ros_drive
+9.1 1.5 gouda_mode_mana
+9.1 1.8 Isolated
+9.1 0.0 top
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp
+1792606854
+top - 03:20:54 up  1:37,  5 users,  load average: 8.58, 8.22, 7.00
+Tasks: 308 total,   3 running, 305 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 25.0 us,  4.7 sy,  0.0 ni, 65.6 id,  0.0 wa,  0.0 hi,  4.7 si,  0.0 st 
+110.0 1.5 gouda_monitor
+20.0 1.5 gouda_mode_mana
+20.0 1.8 hesai_ros_drive
+20.0 1.8 Isolated
+10.0 4.5 firefox
+0.0 0.1 systemd
+0.0 0.0 kthreadd
+0.0 0.0 pool_workqueue_release
+0.0 0.0 kworker/R-rcu_gp

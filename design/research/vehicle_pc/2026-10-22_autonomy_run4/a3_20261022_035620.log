@@ -1,0 +1,56 @@
+[INFO] [launch]: All log files can be found below /home/aya/.ros/log/2026-10-22-03-56-21-094738-aya-Parallels-ARM-Virtual-Machine-47144
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [gouda_a3_points-1]: process started with pid [47170]
+[INFO] [autoware_pointcloud_map_loader-2]: process started with pid [47171]
+[INFO] [autoware_ndt_scan_matcher_node-3]: process started with pid [47172]
+[INFO] [autoware_ekf_localizer_node-4]: process started with pid [47173]
+[autoware_ekf_localizer_node-4] [WARN] [1792608981.493946795] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[gouda_a3_points-1] [INFO] [1792608982.789233420] [localization.a3.points_filter]: near 1.0 m, far 100.0 m, leaf 0.5 m, min points 2 (PRM-79..81, PRM-102)
+[autoware_ekf_localizer_node-4] [WARN] [1792608983.504594129] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-4] [WARN] [1792608985.524554963] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-4] [WARN] [1792608987.544875339] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-4] [WARN] [1792608989.564905423] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-4] [WARN] [1792608991.574778216] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[autoware_ekf_localizer_node-4] [WARN] [1792608993.579695092] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[autoware_ekf_localizer_node-4] [WARN] [1792608995.584532718] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.383686927] [localization.a3.ndt_scan_matcher]: pose_buffer_.size() < 2
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.473504677] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.557650969] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.641087594] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.726595761] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.809964636] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792608997.893508511] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ekf_localizer_node-4] [WARN] [1792609000.346526262] [localization.a3.ekf_localizer]: Pose delay exceeds the compensation limit, ignored. delay: 0.991[s], limit: 0.990[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792609087.110505220] [localization.a3.ekf_localizer]: EKF period may be too slow to finish pose smoothing!! (0.1224 sec)
+[autoware_ekf_localizer_node-4] [WARN] [1792609099.458367268] [localization.a3.ekf_localizer]: EKF period may be too slow to finish pose smoothing!! (0.1337 sec)
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792609100.042530143] [localization.a3.ndt_scan_matcher]: Mismatch between pose timestamp and current timestamp
+[autoware_ekf_localizer_node-4] [WARN] [1792609102.924361186] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [autoware_ekf_localizer_node-4]: sending signal 'SIGINT' to process[autoware_ekf_localizer_node-4]
+[INFO] [autoware_ndt_scan_matcher_node-3]: sending signal 'SIGINT' to process[autoware_ndt_scan_matcher_node-3]
+[INFO] [autoware_pointcloud_map_loader-2]: sending signal 'SIGINT' to process[autoware_pointcloud_map_loader-2]
+[INFO] [gouda_a3_points-1]: sending signal 'SIGINT' to process[gouda_a3_points-1]
+[autoware_pointcloud_map_loader-2] [INFO] [1792609102.946245311] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_ekf_localizer_node-4] [INFO] [1792609102.947420519] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792609102.953792103] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_pointcloud_map_loader-2] [INFO] [1792609103.029507728] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[gouda_a3_points-1] Traceback (most recent call last):
+[gouda_a3_points-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points", line 33, in <module>
+[autoware_ekf_localizer_node-4] [INFO] [1792609103.032971019] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[gouda_a3_points-1]     sys.exit(load_entry_point('gouda-core', 'console_scripts', 'gouda_a3_points')())
+[gouda_a3_points-1]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[gouda_a3_points-1]   File "/home/aya/gouda_ws/build/gouda_core/gouda_core/a3_points_node.py", line 64, in main
+[gouda_a3_points-1]     node.destroy_node(); rclpy.try_shutdown()
+[gouda_a3_points-1]     ^^^^^^^^^^^^^^^^^^^
+[gouda_a3_points-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1958, in destroy_node
+[gouda_a3_points-1]     self.destroy_subscription(self._subscriptions[0])
+[gouda_a3_points-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1854, in destroy_subscription
+[gouda_a3_points-1]     subscription.destroy()
+[gouda_a3_points-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/subscription.py", line 101, in destroy
+[gouda_a3_points-1]     self.handle.destroy_when_not_in_use()
+[gouda_a3_points-1] KeyboardInterrupt
+[autoware_ndt_scan_matcher_node-3] [INFO] [1792609103.081837936] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [autoware_ekf_localizer_node-4]: process has finished cleanly [pid 47173]
+[INFO] [autoware_pointcloud_map_loader-2]: process has finished cleanly [pid 47171]
+[ERROR] [gouda_a3_points-1]: process has died [pid 47170, exit code -2, cmd '/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points --ros-args -r __node:=points_filter -r __ns:=/localization/a3 --params-file /tmp/launch_params_yhvbugfs -r input:=/sensors/xt32/points -r output:=points_downsampled'].
+[INFO] [autoware_ndt_scan_matcher_node-3]: process has finished cleanly [pid 47172]

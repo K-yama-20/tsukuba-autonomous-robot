@@ -1,0 +1,61 @@
+Fast DDS profile: /home/aya/gouda_ws/gouda_data/run/fastdds_profile.xml
+true pose (x y z qx qy qz qw): -11.186694 -1.675947 -0.359678 -0.001940 -0.012853 -0.612681 0.790224
+Transitioning successful
+=== W1 activate without point clouds
+Transitioning successful
+  t=5 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet' 
+  t=10 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet' 
+  t=15 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet' 
+=== W2 point clouds within 6 m in 3-D (the NDT drops them)
+  t=5 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: last cloud dropped: Max distance of sensor points = 5.9...' 
+  t=10 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: last cloud dropped: Max distance of sensor points = 5.9...' 
+  t=15 s: state: 1 reason: initializing detail: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: last cloud dropped: Max distance of sensor points = 5.9...' 
+=== W3 point clouds within 10 m (the NDT keeps them), odometry stamped 0.15 s late
+  t=5 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=10 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=15 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=20 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=25 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=30 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=35 s: state: 1 reason: initializing detail: Monte Carlo search of the initial pose (ndt_align_srv) 
+  t=40 s: state: 1 reason: awaiting_inputs detail: 'initialized; waiting for the first message of each input: ndt_diagnostics' 
+  t=45 s: state: 2 reason: '' detail: '' 
+  t=50 s: state: 2 reason: '' detail: '' 
+  t=55 s: state: 2 reason: '' detail: '' 
+  t=60 s: state: 2 reason: '' detail: '' 
+  t=65 s: state: 2 reason: '' detail: '' 
+  t=70 s: state: 2 reason: '' detail: '' 
+  t=75 s: state: 2 reason: '' detail: '' 
+  t=80 s: state: 2 reason: '' detail: '' 
+  t=85 s: state: 2 reason: '' detail: '' 
+  t=90 s: state: 2 reason: '' detail: '' 
+  t=95 s: state: 2 reason: '' detail: '' 
+  t=100 s: state: 2 reason: '' detail: '' 
+  t=105 s: state: 2 reason: '' detail: '' 
+  t=110 s: state: 2 reason: '' detail: '' 
+  t=115 s: state: 2 reason: '' detail: '' 
+  t=120 s: state: 2 reason: '' detail: '' 
+Transitioning successful
+Transitioning successful
+=== W4 decision events (event: reason)
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+  configured: A3 launch started (pid 43812); map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002
+  estimator_state: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+  estimator_state: '初期化中 (initializing: waiting for the initial pose (IFD-34))'
+  initial_pose_received: initial pose (-11.19, -1.68); height -0.36 m from the mapping trajectory (nearest point 0.00 m away)
+  ndt_points_waiting: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet'
+  ndt_points_dropped: 'the NDT dropped a point cloud: Max distance of sensor points = 5.987 [m] < 10.000 [m]'
+  ndt_points_kept: the NDT holds a point cloud; ndt_align_srv can be called
+  initial_pose_aligned: aligned to (-11.24, -1.63)
+  initialized: EKF and NDT active; the state follows the checks (IFD-53)
+  estimator_state: '初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map...'
+  estimator_state: 正常
+  deactivated: map->odom is no longer published
+  estimator_state: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+  trigger_off: 'ekf trigger_node false: True '
+  trigger_off: 'ndt trigger_node false: True '
+  cleaned_up: A3 launch stopped
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+  [INFO] [1792608269.484325580] [a3_synthetic_feed]: 12103 points within 6.0 m of trajectory row 200
+  [INFO] [1792608296.557882968] [a3_synthetic_feed]: 58946 points within 10.0 m of trajectory row 200
+=== node and A3 log (errors)

@@ -1,0 +1,39 @@
+# 変更セット REV-148（2026-10-22 第120便: DEC-283 への人の回答と実装）
+# 適用: design/tools/apply_revision.py REV-148
+id: REV-148
+date: '2026-10-22'
+summary: 第120便：人の回答（原文）で DEC-283 は案 a。A3 の点群の前処理（pcl_ros の CropBox 2 段と VoxelGrid）を、Gouda の一つのノード gouda_a3_points にした。x・y・z だけを読み、同じ設定（PRM-79〜81）で切り取りと間引きをして、x・y・z（FLOAT32）の点群を NDT に渡す。
+basis_refs:
+- DEC-283
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-07
+  set_nested:
+    ros_node.responsibilities:
+    - 保存地図上の自己位置推定と map→odom TF の発行（自律走行・一時停止で単独の発行者）
+    - 人が指定した初期位置・向き（IFD-34）からの初期化と、推定の有効性の公開（IFD-53）
+    - 方式は案 A3 を試す（DEC-115）。部品は子の launch（gouda_localization_a3.launch.py）で起動する：点群の前処理は Gouda の gouda_a3_points 一つ（x・y・z だけを読み、±PRM-80 の箱の中を残し、±PRM-79 の箱の中を除き、PRM-81 の立方体ごとの重心にする。DEC-283。pcl_ros の CropBox・VoxelGrid は使わない）、autoware_pointcloud_map_loader（地図の pointcloud_map/）、autoware_ndt_scan_matcher、autoware_ekf_localizer（上流のまま、設定は上流の param ファイルのまま、地図の場所と IF の名前だけを足す）。部品の topic・service は名前空間 localization/a3 の中に閉じる
+    - EKF と NDT の /tf は名前空間の中の別の名前に逃がし、/tf の map→odom はこの node だけが出す（D-17、RQ-I004）。map→odom は EKF の map→base_link と、同じ時刻に補間した odom→base_link（IFD-25）から計算し、IFD-25 を受けるたびにその時刻で出す。localization/pose（IFD-33）は EKF の姿勢
+    - 速度の中継：IFD-25 の速度を TwistWithCovarianceStamped（分散 PRM-82・83）にして EKF へ
+    - 初期化の手順：IFD-34 の姿勢に、地図作成の軌跡（trajectory_imu.txt）から求めた高さと分散（PRM-84〜87）を付ける → NDT が点群を保持するまで待つ（/diagnostics の scan_matching_status に is_activated があること。時間の制限なし。待つ間は初期化中で、IFD-53 の詳細に NDT が最後に点群を捨てた理由を出す。DEC-280）→ ndt_align_srv（Monte Carlo の探索）→ 成功したら EKF の初期姿勢 → EKF・NDT の trigger_node を true。各段を DecisionEvent に残す。失敗したら map→odom を出さず推定不能（init_failed）
+    - 推定の状態（IFD-53）：NDT の診断（nearest_voxel_transformation_likelihood、PRM-90）、EKF の診断（pose_no_update_count、PRM-91）、EKF の位置の標準偏差（PRM-92）、入力の古さ（PRM-89）から判定（DEC-200、DEC-206 の (2)）。材料がない・読めないときは正常にしない。初期化の後、四つの入力（EKF の姿勢、NDT の診断、EKF の診断、odometry）のどれかがこの activate の後に一度も届いていない間は、推定不能ではなく初期化中（awaiting_inputs、待っている入力の名前を出す。時間の制限なし）にする（DEC-282）。一度届いた入力が古くなったときは推定不能（input_stale）のまま
+    - lifecycle：ND-03 が TR-05 で map_directory を設定して configure（子の launch を起動）・activate（初期化）、TR-11・TR-12 で deactivate・cleanup（子の launch を止める）。設定値が未確定（実車で trial なし）なら configure を失敗にし理由を記録する（RQ-I076）
+  interpretation_append: REV-148（DEC-283 案 a）：点群の前処理を Gouda の gouda_a3_points にした（pcl_ros の VoxelGrid が実の点群で落ちたため）。
+- id: TS-41
+  set_nested:
+    test.procedure: 単体（test_localization_core.py）：map→odom の計算（EKF の map→base_link と、同じ時刻に補間した odom→base_link から）、補間、状態の判定（未初期化・初期化中・正常・推定不能の理由ごと、材料がない・古いときに正常にしない）、地図作成の軌跡からの初期の高さ、速度の変換と分散、NDT の点群の保持の読み取り（DEC-280）、初期化の直後の入力待ち（DEC-282）。単体（test_a3_points.py）：XT-32 の field の並び（UINT16、境界にない FLOAT64）からの x・y・z の読み取り、切り取りの境界（両端を含む）、立方体ごとの重心（DEC-283）。単体（test_dds_profile.py）：PRM-100・PRM-101 からの Fast DDS の profile。VM：実の XT-32 の点群で gouda_a3_points が 10 Hz で出し続けること。gouda_global_localization の configure（地図の 20 m 格子、子の launch の起動）・activate・cleanup、/tf の map→odom の発行者が 1 つ。gouda.sh start の下で、点群（IFD-21）が BEST_EFFORT の購読者と A3 の CropBox に届く量。rosbag の再生（評価と同じ地図と区間）で評価の結果と比べる（外付けがつながっているとき）
+  interpretation_append: REV-148（DEC-283）：前処理の単体試験と、実の点群での試験を追加。
+decision_updates:
+- id: DEC-283
+  set:
+    status: answered
+    answered_on: '2026-10-22'
+    disposition: answered
+    resulting_refs:
+    - ND-07
+    - TS-41
+    answer_verbatim: |
+      DEC-283 は案 a で承認する。実装して VM で試験して。

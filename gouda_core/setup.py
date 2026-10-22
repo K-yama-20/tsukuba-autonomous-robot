@@ -18,4 +18,5 @@ setup(name='gouda_core', version='0.1.0', packages=['gouda_core'],
                                         'gouda_sensor_supervisor = gouda_core.sensor_supervisor_node:main',
                                         'gouda_static_tf = gouda_core.static_tf_node:main',
                                         'gouda_local_odometry = gouda_core.local_odometry_node:main',
-                                        'gouda_global_localization = gouda_core.global_localization_node:main']})
+                                        'gouda_global_localization = gouda_core.global_localization_node:main',
+                                        'gouda_a3_points = gouda_core.a3_points_node:main']})

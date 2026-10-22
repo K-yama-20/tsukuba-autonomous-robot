@@ -1,0 +1,30 @@
+# 変更セット REV-152（2026-10-22 第123便: 実車（VM）での 4 回目の自律走行開始と DEC-286 の登録）
+# 適用: design/tools/apply_revision.py REV-152
+id: REV-152
+date: '2026-10-22'
+summary: 第123便：人の指示（原文「周りは確認した。一時停止を終了してから、実車で自律走行開始を送って挙動を記録して。Gouda は前回と同じ位置・向きに置いている。」）で、一時停止（run-2f9eb1c5）を終了してから自律走行開始を送った（REV-151 を VM に写した状態）。初期化は 17 秒、18 秒で正常になり、開始の手順は Nav2 の設定と keepout のマスクの確認まで進んだ。25 秒に EKF の x・y の標準偏差が 0.51 m（PRM-92 の 0.5 m を超える）になって推定不能（ekf_covariance_large）になり、TR-07 で一時停止して開始の残りの手順は行われなかった。Nav2 の goal は送られず、速度の指令は 0 通、motion_hold は解かれていない。推定の位置は (−1.5, 0.08)、向き約 −67° で、人が置いた位置（Claude が使った初期姿勢 0.425, −0.835, −114°）から約 2.1 m・47° 離れている。Claude は再開せず、終了した。承認事項 DEC-286 を登録する。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- PRM-92
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-286
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認・実測】止まっている実車で、EKF の x・y の標準偏差が 0.51〜0.54 m となり、PRM-92（0.5 m、実測ではない）をわずかに超えて「推定不能」になり、自律走行開始が一時停止した。どう扱うか
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-92
+  - ND-07
+  - IFD-53
+  - TR-07
+  resulting_refs: []
+  note: 事実（VM、2026-10-22 03:56:20 から、記録 design/research/vehicle_pc/2026-10-22_autonomy_run4/）：初期化 17 秒（(−1.24, 0.02) に合う）、18 秒に正常で Nav2 の設定、21 秒 speed_limit の状態「不明」、22 秒に keepout のマスクを確認、25 秒に ekf_covariance_large（0.5098 > 0.5）で automatic_pause、開始の残り（goal）は行われなかった。その後も 0.536 などで推定不能と正常を行き来した。同じ時の NDT は 9 Hz 前後、nearest_voxel_transformation_likelihood 2.93（PRM-90 の 2.3 より上）、pose_no_update_count 0〜1。EKF の姿勢は約 50 Hz、odometry 10 Hz。車体は止まっていた（cmd_vel 0 通）。PRM-92 の 0.5 m は DEC-208 で既定値として採った値（Autoware 1.9.0 の既定・評価から。実測ではない）。案 a（推奨）：PRM-92 を実測の項目にし、実車で止まっているとき・走っているときの EKF の x・y の標準偏差を記録して（DEC-285 の後の今の構成で）、人が値を決める。決まるまで、実車での自律走行は止まる（値を仮定で緩めない）。Claude は測り方と解析のスクリプトを用意する。案 b：推定不能の判定に、続いた時間の条件（例えば何秒続いたら）を足す（新しい時間の値が要り、それも実測が要る。推定不能を見逃す時間ができる）。案 c：今のまま（0.5 m を少し超えるたびに一時停止する）。決まらない場合に止まる作業：実車での自律走行。別の観察（安全に関わる、人の確認が要る）：推定の位置 (−1.5, 0.08)・向き約 −67° は、人が置いた位置として Claude が使った初期姿勢 (0.425, −0.835, −114°、向きは Claude が軌跡から求めた値) から約 2.1 m・47° 離れている。第117・119・121便の初期化の結果 (−0.96, −2.57)、(−1.02, −2.56)、(0.56, 0.62) とも違う。どれが本当の位置かは、人が地図の上で確かめる必要がある。推定の位置が違っていれば、走らせてはならない。第123便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

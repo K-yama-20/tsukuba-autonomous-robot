@@ -57,6 +57,12 @@ def demo_map(rest, query):
         return 200, 'image/png', (DEMO_OUT / what).read_bytes()
     if what == 'terrain.json':
         return {'ok': True, 'terrain': json.loads((DEMO_OUT / 'terrain.json').read_text())}
+    if what == 'geometry.json':   # the waypoint tab's grid (same reader as the monitor)
+        from gouda_core import speed_mask
+        g = speed_mask.MapGeometry.from_map_yaml(DEMO_OUT / 'map.yaml')
+        return {'ok': True, 'resolution': g.resolution, 'origin_x': g.origin_x, 'origin_y': g.origin_y, 'width': g.width, 'height': g.height, 'content_hash': 'DEMO-NOT-REAL'}
+    if what == 'end_pose.json':   # DEC-289, same function as the monitor; the DEMO /config is empty, so every mounting field is defaulted
+        return mc.mapping_end_pose_of(DEMO_OUT, {})
     if what == 'manifest.json':
         return {'ok': True, 'manifest': {'settings': DEMO_SETTINGS, 'stats': DEMO_STATS, 'files': DEMO_STATS['files'],
                 'converter': {'version': DEMO_STATS['converter'] + ' (DEMO scene)'}, 'content_hash': 'DEMO-NOT-REAL', 'created_at': time.time()}}

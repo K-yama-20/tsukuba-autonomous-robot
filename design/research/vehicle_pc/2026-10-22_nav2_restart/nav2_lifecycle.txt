@@ -1,0 +1,49 @@
+[lifecycle_manager-13] [INFO] [1792608035.038887010] [lifecycle_manager_navigation]: Creating
+[lifecycle_manager-13] [INFO] [1792608035.050228760] [lifecycle_manager_navigation]: [34m[1mCreating and initializing lifecycle service clients[0m[0m
+[gouda_global_localization-19] [INFO] [1792608035.890273927] [gouda_global_localization]: unconfigured; map_directory is set by gouda_mode_manager at 自律走行開始 (TR-05)
+[gouda_mode_manager-14] [INFO] [1792608938.875933608] [gouda_mode_manager]: end_autonomy: TR-12: pause -> manual
+[gouda_mode_manager-14] [INFO] [1792608980.516638003] [gouda_mode_manager]: start_autonomy: TR-05: manual -> autonomy
+[lifecycle_manager-13] [INFO] [1792608998.081861969] [lifecycle_manager_navigation]: [34m[1mStarting managed nodes bringup...[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.083951761] [lifecycle_manager_navigation]: [34m[1mConfiguring map_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.242530011] [lifecycle_manager_navigation]: [34m[1mConfiguring filter_mask_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.284261386] [lifecycle_manager_navigation]: [34m[1mConfiguring costmap_filter_info_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.345896719] [lifecycle_manager_navigation]: [34m[1mConfiguring keepout_mask_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.407039886] [lifecycle_manager_navigation]: [34m[1mConfiguring keepout_filter_info_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.453784344] [lifecycle_manager_navigation]: [34m[1mConfiguring controller_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608998.862976553] [lifecycle_manager_navigation]: [34m[1mConfiguring smoother_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608999.052221928] [lifecycle_manager_navigation]: [34m[1mConfiguring planner_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608999.634401012] [lifecycle_manager_navigation]: [34m[1mConfiguring behavior_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792608999.929242803] [lifecycle_manager_navigation]: [34m[1mConfiguring velocity_smoother[0m[0m
+[lifecycle_manager-13] [INFO] [1792609000.052372595] [lifecycle_manager_navigation]: [34m[1mConfiguring bt_navigator[0m[0m
+[lifecycle_manager-13] [INFO] [1792609001.378272971] [lifecycle_manager_navigation]: [34m[1mActivating map_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609001.527356846] [lifecycle_manager_navigation]: Server map_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609001.527463179] [lifecycle_manager_navigation]: [34m[1mActivating filter_mask_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609001.677909054] [lifecycle_manager_navigation]: Server filter_mask_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609001.678035096] [lifecycle_manager_navigation]: [34m[1mActivating costmap_filter_info_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609001.854729596] [lifecycle_manager_navigation]: Server costmap_filter_info_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609001.854795013] [lifecycle_manager_navigation]: [34m[1mActivating keepout_mask_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609002.030351221] [lifecycle_manager_navigation]: Server keepout_mask_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609002.030418346] [lifecycle_manager_navigation]: [34m[1mActivating keepout_filter_info_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609002.189953388] [lifecycle_manager_navigation]: Server keepout_filter_info_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609002.190015930] [lifecycle_manager_navigation]: [34m[1mActivating controller_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609002.736204430] [lifecycle_manager_navigation]: Server controller_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609002.736273721] [lifecycle_manager_navigation]: [34m[1mActivating smoother_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609002.872698222] [lifecycle_manager_navigation]: Server smoother_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609002.872759597] [lifecycle_manager_navigation]: [34m[1mActivating planner_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609004.057588680] [lifecycle_manager_navigation]: Server planner_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609004.057644264] [lifecycle_manager_navigation]: [34m[1mActivating behavior_server[0m[0m
+[lifecycle_manager-13] [INFO] [1792609004.189581097] [lifecycle_manager_navigation]: Server behavior_server connected with bond.
+[lifecycle_manager-13] [INFO] [1792609004.189662847] [lifecycle_manager_navigation]: [34m[1mActivating velocity_smoother[0m[0m
+[lifecycle_manager-13] [INFO] [1792609004.333045847] [lifecycle_manager_navigation]: Server velocity_smoother connected with bond.
+[lifecycle_manager-13] [INFO] [1792609004.333101222] [lifecycle_manager_navigation]: [34m[1mActivating bt_navigator[0m[0m
+[gouda_mode_manager-14] [WARN] [1792609005.225227056] [gouda_mode_manager]: TR-07: ND-07 ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5098433981904547 > 0.5
+[lifecycle_manager-13] [INFO] [1792609005.543183348] [lifecycle_manager_navigation]: Server bt_navigator connected with bond.
+[lifecycle_manager-13] [INFO] [1792609005.543323764] [lifecycle_manager_navigation]: [34m[1mManaged nodes are active[0m[0m
+[lifecycle_manager-13] [INFO] [1792609005.543379389] [lifecycle_manager_navigation]: [34m[1mCreating bond timer...[0m[0m
+[gouda_mode_manager-14] [INFO] [1792609102.823600186] [gouda_mode_manager]: end_autonomy: TR-12: pause -> manual
+[gouda_mode_manager-14] [INFO] [1792609384.165296487] [gouda_mode_manager]: start_autonomy: TR-05: manual -> autonomy
+[lifecycle_manager-13] [INFO] [1792609413.716590376] [lifecycle_manager_navigation]: [34m[1mStarting managed nodes bringup...[0m[0m
+[lifecycle_manager-13] [INFO] [1792609413.716904792] [lifecycle_manager_navigation]: [34m[1mConfiguring map_server[0m[0m
+[lifecycle_manager-13] [ERROR] [1792609413.746585667] [lifecycle_manager_navigation]: Failed to change state for node: map_server
+[lifecycle_manager-13] [ERROR] [1792609413.746733751] [lifecycle_manager_navigation]: Failed to bring up all requested nodes. Aborting bringup.
+[gouda_mode_manager-14] [WARN] [1792609413.796528876] [gouda_mode_manager]: TR-07: TR-05 failed: Nav2 STARTUP failed (a server did not configure / activate; see the Nav2 logs)

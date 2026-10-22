@@ -1,0 +1,50 @@
+# 変更セット REV-145（2026-10-22 第117便: 実車（VM）での自律走行開始の試行と DEC-281・282 の登録）
+# 適用: design/tools/apply_revision.py REV-145
+id: REV-145
+date: '2026-10-22'
+summary: 第117便：人の指示で、Claude が monitor の API から自律走行開始を送り、挙動を記録した（main c2b8d65、REV-144 の実装の後）。ND-07 は点群を待ち、約 50 秒の探索の後に初期化したが、その直後に推定不能（input_stale）になり、開始は TR-07 で一時停止した。Nav2 は起動せず、速度の指令は出ていない。原因は二つ。(1) 初期化の直後は EKF の姿勢・診断がまだ届いていないので、ND-07 は必ず一度推定不能を出し、開始の手順はそれで失敗する。(2) 点群が A3 の前処理をほとんど通らない（NDT の入力 0.4 Hz、GLIM の odometry 2.8 Hz、NDT の姿勢 0.2 Hz）。承認事項 DEC-281（点群の受け渡しの負荷）と DEC-282（初期化の直後の状態）を登録し、DEC-138 に今回の材料を足す。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- IFD-21
+- DEC-138
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-281
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】自律走行の間、XT-32 の点群（1 通 1.66 MB、10 Hz）が A3 の前処理（CropBox 2 段と VoxelGrid、それぞれ別のプロセス）と GLIM にほとんど届かない。点群の受け渡しをどう軽くするか
+  answer_verbatim: ''
+  affected_refs:
+  - IFD-21
+  - ND-07
+  - ND-08
+  - DEC-138
+  resulting_refs: []
+  note: 事実（VM、2026-10-22 01:59〜02:02、main c2b8d65、gouda.sh の Fast DDS の profile（PRM-100）あり、記録 design/research/vehicle_pc/2026-10-22_autonomy_run/）：自律走行の約 120 秒で、points_downsampled（NDT の入力）は 48 通（0.4 Hz）、GLIM の odometry（IFD-25）は 332 通（2.8 Hz）、NDT の姿勢は 75 秒で 16 通。同じ時に一時的な購読で 10 秒数えると、生の点群 17 通、points_cropped_far 6 通、points_cropped 1 通、points_downsampled 1 通。手動のとき（第116便の前、同じ profile の購読）は 10 秒で 75 通だった。CPU は 45 % が空き（6 コア）。1 コアを使い切っていたのは gouda_global_localization（100 %、一時停止の後も主スレッド 70 %）と gouda_monitor（91 %）。gouda_monitor は生の点群（IFD-21）を Python で購読している。最初の 2 段の CropBox は、1.66 MB の点群をプロセスの間で受け渡す（遠い側の切り取りは 100 m なので、ほとんど小さくならない）。案 a（推奨）：DEC-138（Fast DDS の共有メモリの区画を大きくする、評価で 196〜200/200 通）を gouda.sh の profile に入れる。案 b（推奨、a と一緒に）：monitor は生の点群を購読しない（受信の有無はドライバの状態か、間引いた点群で見る）。案 c：A3 の前処理を一つのプロセスにまとめ（composable node、intra-process）、VoxelGrid を先にする（上流の部品の組み方の変更）。案 d：何もしない（VM では自律走行できない）。影響を受けるもの：gouda.sh の profile（PRM-100 と同じ所）、monitor の points の表示、ND-07 の子の launch。決まらない場合に止まる作業：VM での自律走行（x86 機でも同じかは未確認）。第117便で登録。
+  disposition: open_human
+- id: DEC-282
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】ND-07 は初期化の直後、EKF の姿勢・診断がまだ一つも届いていないので必ず一度「推定不能（input_stale）」を出し、自律走行開始の手順（正常を待つ所）はそれで失敗する。初期化の直後の状態をどう扱うか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - IFD-53
+  - TR-05
+  - TR-07
+  resulting_refs: []
+  note: 事実：第117便の試行（2026-10-22 02:00）、人の 01:5x の試行 2 回、第116便の VM の模擬の試験のどれでも、initialized の同じ瞬間に「推定不能 (input_stale：ekf_pose, ndt_diagnostics, ekf_diagnostics)」が出た。localization_core.evaluate は、phase が running になると入力がまだない（None）ものを古いとみなす。autonomy_client.start_localization は、activate の後に推定不能を一度でも受けると EstimatorUnavailable で開始を失敗にする（TR-07、stop_reason estimator_unavailable）。模擬の試験では、この後に正常になった。案 a（推奨）：ND-07 は、初期化の後、四つの入力（EKF の姿勢、NDT の診断、EKF の診断、odometry）がそれぞれ一度届くまでは「初期化中」（理由は待っている入力の名前）にする。届いた後は今の判定のまま。時間の値は増やさない。案 b：mode manager が初期化の後しばらく推定不能を無視する（新しい時間の値が要る。推定不能を見逃す時間ができる）。案 c：今のまま（自律走行開始はいつも失敗する）。振る舞いの違い：案 a では、入力が来ないままなら初期化中のまま止まり（人は一時停止・終了できる）、推定不能にはならない。DEC-281 が直らないと、入力がそろっても推定不能をくり返す見込み（推測）。決まらない場合に止まる作業：実車での自律走行開始。第117便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-138
+  set:
+    note: '推奨は承認。起動の方法は増やさない（DEC-090）: 環境の切替や引数ではなく、gouda.sh が常に同じ設定を使う形（x86 機でも害はない見込み。x86 機で確かめる）。決まらない場合に止まる作業：VM での地図作成の品質（実機試験の結果）。 REV-145（第117便）：DEC-279 で gouda.sh の profile（PRM-100、UDP のバッファ、共有メモリは既定の区画）が入った。その後の自律走行の試行でも、点群は A3 の前処理をほとんど通らなかった（NDT の入力 0.4 Hz、GLIM 2.8 Hz、DEC-281）。この問いは DEC-281 の案 a として、もう一度答えを求める。決まらない場合に止まる作業：VM での自律走行も。'

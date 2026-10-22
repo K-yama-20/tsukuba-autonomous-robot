@@ -4,9 +4,10 @@ The robot stands still at one pose of the mapping trajectory (trajectory_imu.txt
 map's tiles within <radius> m of that pose, seen from it, are published as sensors/xt32/points (frame xt32_link); base_link ->
 xt32_link is the identity (static TF), so base_link is that pose. localization/odometry (IFD-25) is the identity pose with
 zero velocity. Then the NDT must converge to the pose, the EKF must follow and ND-07 must report 正常 with map->odom = the pose.
-usage: python3 a3_synthetic_feed.py <map_directory> <trajectory row> <radius_m> <period_s> [3d]
+usage: python3 a3_synthetic_feed.py <map_directory> <trajectory row> <radius_m> <period_s> [3d] [odom_lag=<s>]
   3d: the radius is the 3-D distance (every point nearer than radius_m; default: the horizontal distance). Used to give the
   NDT clouds whose max distance is below its required_distance (ubuntu_nd07_wait_points.sh, DEC-280).
+  odom_lag=<s>: the odometry is stamped <s> before it is published, as GLIM's is on the VM (0.13..0.17 s, 第121便; DEC-285).
 Prints the pose (x y z qx qy qz qw) on stdout first.
 """
 import math
@@ -15,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import rclpy
+import rclpy.duration
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from geometry_msgs.msg import TransformStamped
@@ -36,7 +38,7 @@ def rot(q):
 
 
 class Feed(Node):
-    def __init__(self, map_dir, row, radius, period, sphere=False):
+    def __init__(self, map_dir, row, radius, period, sphere=False, odom_lag=0.0):
         super().__init__('a3_synthetic_feed')
         traj = [l.split() for l in (Path(map_dir) / 'trajectory_imu.txt').read_text().splitlines() if len(l.split()) == 8]
         r = [float(v) for v in traj[row]]
@@ -52,6 +54,7 @@ class Feed(Node):
         self.static = StaticTransformBroadcaster(self); self.static.sendTransform(st)
         self.pts_pub = self.create_publisher(PointCloud2, 'sensors/xt32/points', qos_profile_sensor_data)
         self.odom_pub = self.create_publisher(Odometry, 'localization/odometry', qos_profile_sensor_data)
+        self.odom_lag = odom_lag
         self.create_timer(period, self.tick)
 
     def tick(self):
@@ -60,13 +63,15 @@ class Feed(Node):
         c.fields = [PointField(name=n, offset=4 * i, datatype=PointField.FLOAT32, count=1) for i, n in enumerate('xyz')]
         c.is_bigendian = False; c.point_step = 12; c.row_step = 12 * c.width; c.is_dense = True; c.data = self.local.tobytes()
         self.pts_pub.publish(c)
-        o = Odometry(); o.header.stamp = stamp; o.header.frame_id = 'odom'; o.child_frame_id = 'base_link'; o.pose.pose.orientation.w = 1.0
+        o = Odometry(); o.header.stamp = (self.get_clock().now() - rclpy.duration.Duration(seconds=self.odom_lag)).to_msg(); o.header.frame_id = 'odom'; o.child_frame_id = 'base_link'; o.pose.pose.orientation.w = 1.0
         self.odom_pub.publish(o)
 
 
 def main():
     a = sys.argv[1:]
-    rclpy.init(); n = Feed(a[0], int(a[1]), float(a[2]), float(a[3]), sphere=a[4:5] == ['3d'])
+    opts = a[4:]
+    lag = [float(o.split('=', 1)[1]) for o in opts if o.startswith('odom_lag=')]
+    rclpy.init(); n = Feed(a[0], int(a[1]), float(a[2]), float(a[3]), sphere='3d' in opts, odom_lag=lag[0] if lag else 0.0)
     try: rclpy.spin(n)
     except KeyboardInterrupt: pass
 

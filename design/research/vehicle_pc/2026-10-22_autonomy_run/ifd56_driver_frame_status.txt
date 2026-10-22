@@ -1,0 +1,40 @@
+# IFD-56 evidence (REV-146, DEC-281 b), read on the VM on 2026-10-21T17:15Z
+# HesaiLidar_ROS_2.0 commit: e7e112f  SDK: 9d5dc4f
+
+## src/driver/HesaiLidar_SDK_2.0/driver/hesai_lidar_sdk.hpp lines 318-336
+          }
+          lidar_ptr_->frame_.points_num = points_num;
+        }
+        //log info, display frame message
+        if (ret == 0 && lidar_ptr_->frame_.points_num > kMinPointsOfOneFrame) {
+          MultiSend();
+
+          //publish upd packet topic
+          if(pkt_cb_) {
+            pkt_cb_(udp_packet_frame, lidar_ptr_->frame_.frame_start_timestamp);
+          }
+
+          if (pkt_loss_cb_ )
+          {
+            total_packet_count = lidar_ptr_->GetGeneralParser()->seqnum_loss_message_.total_packet_count;
+            total_packet_loss_count = lidar_ptr_->GetGeneralParser()->seqnum_loss_message_.total_loss_count;
+            pkt_loss_cb_(total_packet_count, total_packet_loss_count);
+          }
+          if (ptp_cb_ && lidar_ptr_->frame_.frame_index % 100 == 1)
+
+## ros2 topic info -v /lidar_packets_loss (the driver default name, before REV-146 renames it)
+Type: hesai_ros_driver/msg/LossPacket
+Publisher count: 1
+Node name: hesai_ros_driver
+Node namespace: /
+  Reliability: RELIABLE
+  History (Depth): UNKNOWN
+  Durability: VOLATILE
+
+## ros2 interface show hesai_ros_driver/msg/LossPacket
+uint32 total_packet_count
+uint32 total_packet_loss_count
+
+## ros2 topic hz /lidar_packets_loss (8 s)
+average rate: 10.001
+	min: 0.098s max: 0.102s std dev: 0.00095s window: 66

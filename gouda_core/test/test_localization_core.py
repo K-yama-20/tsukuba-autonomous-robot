@@ -20,7 +20,8 @@ def yaw_pose(x, y, yaw, z=0.0):
 def settings(**over):
     v = {'points_near_crop_m': 1.0, 'points_far_crop_m': 100.0, 'points_voxel_leaf_m': 0.5, 'twist_vx_variance': 0.04, 'twist_wz_variance': 0.01,
          'initial_xy_variance': 0.25, 'initial_z_variance': 0.01, 'initial_roll_pitch_variance': 0.01, 'initial_yaw_variance': 0.07,
-         'status_period_s': 0.1, 'stale_timeout_s': 1.0, 'ndt_nvtl_min': 2.3, 'ekf_xy_stddev_max_m': 0.5, 'ekf_pose_no_update_max': 50}
+         'status_period_s': 0.1, 'stale_timeout_s': 1.0, 'ndt_nvtl_min': 2.3, 'ekf_xy_stddev_max_m': 0.5, 'ekf_pose_no_update_max': 50,
+         'points_voxel_min_points': 2}
     v.update(over)
     return lc.Settings.from_values(v)
 
@@ -61,6 +62,32 @@ class MapOdomTests(unittest.TestCase):
         est.on_odometry(0.2, yaw_pose(0.2, 0, 0))
         self.assertTrue(close(est.map_odom, T, places=6))
 
+    def test_lagging_odometry_and_frequent_ekf_poses(self):
+        # DEC-285 (第121便): EKF poses at 50 Hz stamped at the receive time, odometry at 10 Hz stamped 0.15 s before it arrives.
+        # Every EKF pose is newer than all odometry when it arrives; map->odom must still be computed with each odometry.
+        T = yaw_pose(2.0, -1.0, 0.3)
+        est = lc.MapOdomEstimator(1.0)
+        times = []
+        for k in range(1, 151):                       # 3 s of receive time in steps of 0.02 s
+            now = k * 0.02
+            est.on_ekf_pose(now, oc.compose(T, yaw_pose(now, 0, 0)))   # the vehicle moves along x at 1 m/s
+            if k % 5 == 0:                            # odometry every 0.1 s, stamped 0.15 s earlier
+                stamp = now - 0.15
+                if stamp >= 0:
+                    est.on_odometry(stamp, yaw_pose(stamp, 0, 0))
+                    times.append(est.map_odom_time)
+        self.assertIsNotNone(est.map_odom)
+        self.assertTrue(close(est.map_odom, T, places=6))
+        self.assertTrue(all(t is not None for t in times[1:]))
+        self.assertAlmostEqual(times[-1], 2.84, places=6)   # newest EKF pose (every 0.02 s) at or before the newest odometry (2.85)
+
+    def test_ekf_pose_older_than_all_odometry_is_not_extrapolated(self):
+        est = lc.MapOdomEstimator(1.0)
+        est.on_odometry(1.0, yaw_pose(1.0, 0, 0)); est.on_odometry(1.1, yaw_pose(1.1, 0, 0))
+        est.on_ekf_pose(0.5, yaw_pose(0.5, 0, 0))
+        self.assertIsNone(est.map_odom)
+        est.reset(); self.assertEqual(len(est.ekf), 0); self.assertIsNone(est.map_odom_time)
+
     def test_buffer_keeps_only_the_span_and_increasing_times(self):
         b = lc.OdomBuffer(1.0)
         for i in range(30): b.add(i / 10, yaw_pose(i, 0, 0))
@@ -88,7 +115,6 @@ class StateTests(unittest.TestCase):
             'ekf_diagnostics_missing': dict(ekf_pose_no_update_count=None),
             'ekf_pose_not_updated': dict(ekf_pose_no_update_count=51),
             'ekf_covariance_large': dict(ekf_xy_stddev_m=0.6),
-            'no_map_odom': dict(has_map_odom=False),
         }
         for reason, change in cases.items():
             inp = normal_inputs(now)
@@ -97,10 +123,28 @@ class StateTests(unittest.TestCase):
             self.assertNotEqual(state, lc.STATE_NORMAL, reason); self.assertEqual(why, reason)
             self.assertIn(why, lc.REASONS)
 
-    def test_an_input_never_received_is_stale(self):
+    def test_an_input_not_yet_received_after_initialization_waits(self):
+        # DEC-282 (REV-146): right after the initialization nothing can have arrived yet -> 初期化中, never 推定不能 and never 正常
+        # (was: 推定不能 input_stale, which failed every autonomy start on the VM, 第117便)
         inp = normal_inputs(100.0); inp.last_ndt_score = None
         state, why, detail = lc.evaluate(100.0, inp, settings())
-        self.assertEqual((state, why), (lc.STATE_UNAVAILABLE, 'input_stale')); self.assertIn('ndt_diagnostics', detail)
+        self.assertEqual((state, why), (lc.STATE_INITIALIZING, 'awaiting_inputs')); self.assertIn('ndt_diagnostics', detail)
+        self.assertIn(why, lc.REASONS)
+        fresh = lc.Inputs(phase='running', localizer_running=True)   # the state just after initialized
+        state, why, detail = lc.evaluate(100.0, fresh, settings())
+        self.assertEqual((state, why), (lc.STATE_INITIALIZING, 'awaiting_inputs'))
+        for name in ('ekf_pose', 'ndt_diagnostics', 'ekf_diagnostics', 'odometry', 'map_odom'): self.assertIn(name, detail)
+
+    def test_map_odom_not_yet_computed_waits(self):
+        # DEC-285 (REV-151): every input arrived but map->odom is not computed yet -> 初期化中 (was 推定不能 no_map_odom)
+        inp = normal_inputs(100.0); inp.has_map_odom = False
+        state, why, detail = lc.evaluate(100.0, inp, settings())
+        self.assertEqual((state, why), (lc.STATE_INITIALIZING, 'awaiting_inputs')); self.assertIn('map_odom', detail)
+        self.assertNotIn('no_map_odom', lc.REASONS)
+
+    def test_an_input_that_arrived_and_stopped_is_stale(self):
+        inp = normal_inputs(100.0); inp.last_odometry = 100.0 - 1.5
+        self.assertEqual(lc.evaluate(100.0, inp, settings())[:2], (lc.STATE_UNAVAILABLE, 'input_stale'))
 
     def test_limits_are_inclusive_where_the_design_says_above(self):
         s = settings(); now = 100.0
@@ -149,6 +193,7 @@ class InitAndCovarianceTests(unittest.TestCase):
         with self.assertRaises(ValueError): settings(stale_timeout_s=0.0)
         with self.assertRaises(ValueError): settings(points_near_crop_m=200.0)
         with self.assertRaises(ValueError): settings(twist_vx_variance=-1.0)
+        with self.assertRaises(ValueError): settings(points_voxel_min_points=0)
 
 
 if __name__ == '__main__':

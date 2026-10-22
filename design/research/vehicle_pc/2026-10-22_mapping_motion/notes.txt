@@ -1,0 +1,15 @@
+# Mapping run 20261022_031430_5e5b16fc (human: "the robot stayed in the same place") and the following autonomy start (bin 125).
+# Analysis by Claude from the files in this folder and records/20261022_022555/log/events.jsonl (VM). Read only.
+## GLIM odometry (odom_imu.txt, 589 rows, 5.4 .. 64.2 s after the mapping start 1792606470.52):
+##   path length while the ESP32 reported manual override (11 periods between 1.7 and 47.3 s): 7.54 m, rotation 513.7 deg
+##   path length outside those periods: 0.78 m, rotation 27.1 deg (mostly at the edges of the periods)
+##   still periods: 25-35 s at (-0.28, -0.48) yaw -42.6 deg; 50-64 s at (-0.25, -0.19) yaw 2.4 deg (no drift while no override)
+## ESP32 events during mapping: manual_override_begin / _end, 11 periods (decision log of vehicle_bridge).
+## Frames: base_link -> xt32_link and base_link -> imu_link yaw 100 deg (/config: mount yaw 10 deg, axis mapping "+x left, -y forward").
+##   End of mapping, IMU pose (-0.25, -0.19), yaw 2.4 deg -> base_link yaw about -97.6 deg.
+## Human's autonomy start (run-c1f3ac83): initial pose (-1.316, -1.429, -90 deg), "nearest trajectory point 1.32 m away";
+##   NDT aligned to (-0.39, -0.24); paused estimate (-0.36, -0.20), yaw about -97 deg, ndt_nvtl 3.23. This matches the end of
+##   the mapping trajectory (within about 0.15 m and 1 deg), not the clicked pose.
+## Monitor waypoint tab: toPx / click conversion (gouda_core/web/app.js lines 453, 493) use the same origin, resolution and height;
+##   the image (corridor_overlay.png, 54 x 39) matches map.pgm (0.1 m). No error found there.
+## Claude's autonomy runs (bins 117-123): manual_override_begin 14 / 0 / 2 / 0 times during the recorded windows.

@@ -1,0 +1,1605 @@
+header:
+  stamp:
+    sec: 1792601276
+    nanosec: 419682121
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-12
+reason: 'TR-12: pause -> manual'
+run_id: run-1cbe61c9
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"event": "end_autonomy", "accepted": true, "mode": "pause"}'
+---
+header:
+  stamp:
+    sec: 1792601807
+    nanosec: 728106457
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-06
+reason: 'refused: pause is not accepted in mode manual (accepted in autonomy)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"event": "pause", "accepted": false, "mode": "manual"}'
+---
+header:
+  stamp:
+    sec: 1792601766
+    nanosec: 992728355
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.150616, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1764859518552235...'
+---
+header:
+  stamp:
+    sec: 1792601807
+    nanosec: 658070457
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inpu...'
+---
+header:
+  stamp:
+    sec: 1792601808
+    nanosec: 78773957
+  frame_id: ''
+node: gouda_mode_manager
+event: odometry_stopped
+transition_id: TR-12
+reason: ND-08 GLIM (odometry only) stopped (exit code 0)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792601808
+    nanosec: 84223624
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_stop
+transition_id: TR-12
+reason: log recording stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/stop_auto", "kind": "stop_auto", "ok": true}'
+---
+header:
+  stamp:
+    sec: 1792601816
+    nanosec: 427514586
+  frame_id: ''
+node: gouda_sensor_supervisor
+event: ntrip_relay_state
+transition_id: ''
+reason: 'NTRIP relay (ND-19): input closed, output connected, closed, closed, closed'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"driver": "ntrip", "input": "closed", "outputs": ["connected", "closed", "closed", "closed"], "bytes": 0, "bps": 0}'
+---
+header:
+  stamp:
+    sec: 1792601821
+    nanosec: 427123130
+  frame_id: ''
+node: gouda_sensor_supervisor
+event: ntrip_relay_state
+transition_id: ''
+reason: 'NTRIP relay (ND-19): input waiting, output connected, closed, closed, closed'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"driver": "ntrip", "input": "waiting", "outputs": ["connected", "closed", "closed", "closed"], "bytes": 0, "bps": 0}'
+---
+header:
+  stamp:
+    sec: 1792601302
+    nanosec: 278589466
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 170616}'
+---
+header:
+  stamp:
+    sec: 1792601806
+    nanosec: 175047373
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_ended
+transition_id: ''
+reason: 'USB link counts of the autonomy session: 0 disconnects'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"kind": "autonomy", "started_at": 1792601691.3312829, "ended_at": 1792601806.1748464, "disconnects": 0, "reconnects": 0, "down_...'
+---
+header:
+  stamp:
+    sec: 1792601810
+    nanosec: 511849625
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 678896}'
+---
+header:
+  stamp:
+    sec: 1792601810
+    nanosec: 613633500
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 678981}'
+---
+header:
+  stamp:
+    sec: 1792601812
+    nanosec: 607153376
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 680986}'
+---
+header:
+  stamp:
+    sec: 1792601812
+    nanosec: 758495376
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 681136}'
+---
+header:
+  stamp:
+    sec: 1792601098
+    nanosec: 871289078
+  frame_id: ''
+node: gouda_monitor
+event: settings
+transition_id: ''
+reason: settings recorded (startup)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"ui_parameters": {"ui_node_list_poll_period_s": 2.0, "ui_sse_keepalive_s": 2.0, "ui_service_ready_wait_s": 1.0, "ui_service_res...'
+---
+header:
+  stamp:
+    sec: 1792601977
+    nanosec: 913036372
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-05
+reason: 'TR-05: manual -> autonomy'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"request_id": "claude-bin117-1", "map_id": "20261022_014810_39f5620e", "map_revision": "1", "waypoint_set_id": "20261022_015254...'
+---
+header:
+  stamp:
+    sec: 1792601977
+    nanosec: 915254788
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_started
+transition_id: ''
+reason: USB link counting started for the autonomy session (DEC-177)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"session": "autonomy", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}'
+---
+header:
+  stamp:
+    sec: 1792601977
+    nanosec: 920570497
+  frame_id: ''
+node: gouda_mode_manager
+event: odometry_started
+transition_id: TR-05
+reason: ND-08 GLIM (odometry only) started (pid 11235)
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-90b5b7d4/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0,...'
+---
+header:
+  stamp:
+    sec: 1792601977
+    nanosec: 920801497
+  frame_id: ''
+node: gouda_mode_manager
+event: initial_pose_sent
+transition_id: TR-05
+reason: IFD-34 localization/initial_pose sent once (transient_local)
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": 0.425, "y": -0.835}'
+---
+header:
+  stamp:
+    sec: 1792601977
+    nanosec: 922528788
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_start
+transition_id: TR-05
+reason: log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261022_014714
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}'
+---
+header:
+  stamp:
+    sec: 1792601978
+    nanosec: 3906497
+  frame_id: ''
+node: gouda_global_localization
+event: configured
+transition_id: ''
+reason: A3 launch started (pid 11236); map /home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001", "log": "/home/aya/gouda_ws/gouda_...'
+---
+header:
+  stamp:
+    sec: 1792601978
+    nanosec: 12061663
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inp...'
+---
+header:
+  stamp:
+    sec: 1792601978
+    nanosec: 27681580
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '初期化中 (initializing: waiting for the initial pose (IFD-34))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_...'
+---
+header:
+  stamp:
+    sec: 1792601978
+    nanosec: 35227163
+  frame_id: ''
+node: gouda_global_localization
+event: initial_pose_received
+transition_id: ''
+reason: initial pose (0.42, -0.83); height -0.74 m from the mapping trajectory (nearest point 0.07 m away)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": 0.425, "y": -0.835, "z": -0.741712, "trajectory_distance_m": 0.07319465007772089}'
+---
+header:
+  stamp:
+    sec: 1792601978
+    nanosec: 40263997
+  frame_id: ''
+node: gouda_mode_manager
+event: localization_activated
+transition_id: TR-05
+reason: gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001 and activate...
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261022_014810_39f5620e/converted/001"}'
+---
+header:
+  stamp:
+    sec: 1792601979
+    nanosec: 288492664
+  frame_id: ''
+node: gouda_global_localization
+event: ndt_points_waiting
+transition_id: ''
+reason: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792601982
+    nanosec: 663518624
+  frame_id: ''
+node: gouda_global_localization
+event: ndt_points_kept
+transition_id: ''
+reason: the NDT holds a point cloud; ndt_align_srv can be called
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602024
+    nanosec: 377213852
+  frame_id: ''
+node: gouda_global_localization
+event: initial_pose_aligned
+transition_id: ''
+reason: aligned to (-0.96, -2.58)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"x": -0.9594253897666931, "y": -2.580068826675415, "z": -0.9506667852401733}'
+---
+header:
+  stamp:
+    sec: 1792602024
+    nanosec: 390004602
+  frame_id: ''
+node: gouda_global_localization
+event: initialized
+transition_id: ''
+reason: EKF and NDT active; the state follows the checks (IFD-53)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602024
+    nanosec: 391550269
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ekf_pose, ndt_diagnostics, ekf_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_a...'
+---
+header:
+  stamp:
+    sec: 1792602024
+    nanosec: 396234186
+  frame_id: ''
+node: gouda_mode_manager
+event: automatic_pause
+transition_id: TR-07
+reason: 'TR-05 failed: gouda_global_localization: 推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ekf_pose...'
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"step_error": "gouda_global_localization: 推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ekf_po...'
+---
+header:
+  stamp:
+    sec: 1792602024
+    nanosec: 704288686
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.153963, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1750797989711127...'
+---
+header:
+  stamp:
+    sec: 1792602025
+    nanosec: 206360061
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5505892985062257 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.153963, "ekf_pose_no_update_count": 24, "ekf_xy_stddev_m": 0.550589...'
+---
+header:
+  stamp:
+    sec: 1792602025
+    nanosec: 504509769
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.153963, "ekf_pose_no_update_count": 39, "ekf_xy_stddev_m": 0.341768593749592...'
+---
+header:
+  stamp:
+    sec: 1792602025
+    nanosec: 611376728
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.153963, "ekf_pose_no_update_count": 44, "ekf_xy_stddev_m": 0.352793733517277...'
+---
+header:
+  stamp:
+    sec: 1792602028
+    nanosec: 404957812
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5330621449235851 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.151753, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.5330621...'
+---
+header:
+  stamp:
+    sec: 1792602028
+    nanosec: 610208563
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): odometry)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.151753, "ekf_pose_no_update_count": 6, "ekf_xy_stddev_m": 0.7908080910133947...'
+---
+header:
+  stamp:
+    sec: 1792602030
+    nanosec: 405388230
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.152944, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.2230817032892212...'
+---
+header:
+  stamp:
+    sec: 1792602031
+    nanosec: 405326647
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.152944, "ekf_pose_no_update_count": 46, "ekf_xy_stddev_m": 0.254052956133437...'
+---
+header:
+  stamp:
+    sec: 1792602034
+    nanosec: 704745482
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.15202, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.18313836038184586...'
+---
+header:
+  stamp:
+    sec: 1792602035
+    nanosec: 245802857
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5671417597705307 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.15202, "ekf_pose_no_update_count": 23, "ekf_xy_stddev_m": 0.5671417...'
+---
+header:
+  stamp:
+    sec: 1792602035
+    nanosec: 305356066
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.15202, "ekf_pose_no_update_count": 28, "ekf_xy_stddev_m": 0.3225605147186693...'
+---
+header:
+  stamp:
+    sec: 1792602035
+    nanosec: 704784316
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.15202, "ekf_pose_no_update_count": 48, "ekf_xy_stddev_m": 0.3261404231354582...'
+---
+header:
+  stamp:
+    sec: 1792602036
+    nanosec: 128436775
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 68 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.153236, "ekf_pose_no_update_count": 68, "ekf_xy_stddev_m": 0.272758...'
+---
+header:
+  stamp:
+    sec: 1792602036
+    nanosec: 204456983
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.153236, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.2477110615551978...'
+---
+header:
+  stamp:
+    sec: 1792602036
+    nanosec: 735109191
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 905116}'
+---
+header:
+  stamp:
+    sec: 1792602036
+    nanosec: 836679858
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 905186}'
+---
+header:
+  stamp:
+    sec: 1792602037
+    nanosec: 104273650
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.153236, "ekf_pose_no_update_count": 44, "ekf_xy_stddev_m": 0.259808017636800...'
+---
+header:
+  stamp:
+    sec: 1792602037
+    nanosec: 695673234
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 906051}'
+---
+header:
+  stamp:
+    sec: 1792602037
+    nanosec: 797579317
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 906136}'
+---
+header:
+  stamp:
+    sec: 1792602038
+    nanosec: 253758567
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 906616}'
+---
+header:
+  stamp:
+    sec: 1792602038
+    nanosec: 254072567
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 906626}'
+---
+header:
+  stamp:
+    sec: 1792602039
+    nanosec: 669918693
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 908051}'
+---
+header:
+  stamp:
+    sec: 1792602039
+    nanosec: 720419151
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 908071}'
+---
+header:
+  stamp:
+    sec: 1792602039
+    nanosec: 720673318
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 908076}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 429508610
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 908786}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 784652277
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 909146}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 784954027
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 909166}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 886862610
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 909246}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 937390318
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 909281}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 937660360
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 909286}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 938580735
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 909291}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 938684443
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 909296}'
+---
+header:
+  stamp:
+    sec: 1792602040
+    nanosec: 938733068
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 909311}'
+---
+header:
+  stamp:
+    sec: 1792602041
+    nanosec: 6855485
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 239 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.150567, "ekf_pose_no_update_count": 239, "ekf_xy_stddev_m": 0.29347...'
+---
+header:
+  stamp:
+    sec: 1792602041
+    nanosec: 90416235
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 909466}'
+---
+header:
+  stamp:
+    sec: 1792602041
+    nanosec: 138117069
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.150567, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1709251466855424...'
+---
+header:
+  stamp:
+    sec: 1792602041
+    nanosec: 622573902
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 910006}'
+---
+header:
+  stamp:
+    sec: 1792602041
+    nanosec: 824763902
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_begin
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 910186}'
+---
+header:
+  stamp:
+    sec: 1792602042
+    nanosec: 21594319
+  frame_id: ''
+node: vehicle_bridge
+event: esp32_event
+transition_id: ''
+reason: manual_override_end
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 910386}'
+---
+header:
+  stamp:
+    sec: 1792602042
+    nanosec: 104400194
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.150567, "ekf_pose_no_update_count": 45, "ekf_xy_stddev_m": 0.252624658418454...'
+---
+header:
+  stamp:
+    sec: 1792602043
+    nanosec: 704839195
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.154345, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1528542074652359...'
+---
+header:
+  stamp:
+    sec: 1792602044
+    nanosec: 704428320
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.154345, "ekf_pose_no_update_count": 48, "ekf_xy_stddev_m": 0.329169696403713...'
+---
+header:
+  stamp:
+    sec: 1792602046
+    nanosec: 404578821
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 133 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.151559, "ekf_pose_no_update_count": 133, "ekf_xy_stddev_m": 0.31243...'
+---
+header:
+  stamp:
+    sec: 1792602046
+    nanosec: 504584696
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.151559, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1857617004403515...'
+---
+header:
+  stamp:
+    sec: 1792602047
+    nanosec: 604953405
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.152818, "ekf_pose_no_update_count": 44, "ekf_xy_stddev_m": 0.313791341879407...'
+---
+header:
+  stamp:
+    sec: 1792602050
+    nanosec: 204280823
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 174 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.153116, "ekf_pose_no_update_count": 174, "ekf_xy_stddev_m": 0.47692...'
+---
+header:
+  stamp:
+    sec: 1792602050
+    nanosec: 305072865
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.153116, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1824234913924748...'
+---
+header:
+  stamp:
+    sec: 1792602051
+    nanosec: 204723948
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.153116, "ekf_pose_no_update_count": 43, "ekf_xy_stddev_m": 0.591044186407272...'
+---
+header:
+  stamp:
+    sec: 1792602057
+    nanosec: 104269076
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 338 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.151295, "ekf_pose_no_update_count": 338, "ekf_xy_stddev_m": 0.35525...'
+---
+header:
+  stamp:
+    sec: 1792602057
+    nanosec: 262128910
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.151295, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.2977586908843763...'
+---
+header:
+  stamp:
+    sec: 1792602058
+    nanosec: 704208369
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.552468392305083 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.149088, "ekf_pose_no_update_count": 34, "ekf_xy_stddev_m": 0.552468...'
+---
+header:
+  stamp:
+    sec: 1792602058
+    nanosec: 950125369
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.149088, "ekf_pose_no_update_count": 44, "ekf_xy_stddev_m": 0.772130209431415...'
+---
+header:
+  stamp:
+    sec: 1792602061
+    nanosec: 759104370
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.154091, "ekf_pose_no_update_count": 20, "ekf_xy_stddev_m": 0.328217034568096...'
+---
+header:
+  stamp:
+    sec: 1792602062
+    nanosec: 105275370
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.154091, "ekf_pose_no_update_count": 45, "ekf_xy_stddev_m": 0.555569200653190...'
+---
+header:
+  stamp:
+    sec: 1792602071
+    nanosec: 4186791
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 475 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.152098, "ekf_pose_no_update_count": 475, "ekf_xy_stddev_m": 0.31845...'
+---
+header:
+  stamp:
+    sec: 1792602071
+    nanosec: 107285750
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.152098, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1859770330875007...'
+---
+header:
+  stamp:
+    sec: 1792602071
+    nanosec: 604510000
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5681828464406815 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.152098, "ekf_pose_no_update_count": 24, "ekf_xy_stddev_m": 0.568182...'
+---
+header:
+  stamp:
+    sec: 1792602072
+    nanosec: 4080333
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics, odometry)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.152098, "ekf_pose_no_update_count": 44, "ekf_xy_stddev_m": 1.040200284937036...'
+---
+header:
+  stamp:
+    sec: 1792602074
+    nanosec: 504403001
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 169 > 50)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.15216, "ekf_pose_no_update_count": 169, "ekf_xy_stddev_m": 1.114370...'
+---
+header:
+  stamp:
+    sec: 1792602074
+    nanosec: 604362668
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (no_map_odom: map->odom could not be computed yet (no odometry at the EKF pose time))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "no_map_odom", "ndt_nvtl": 3.15216, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.18656387452472306...'
+---
+header:
+  stamp:
+    sec: 1792602075
+    nanosec: 304330918
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.5761286429838576 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.15216, "ekf_pose_no_update_count": 33, "ekf_xy_stddev_m": 0.5761286...'
+---
+header:
+  stamp:
+    sec: 1792602075
+    nanosec: 504459627
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.15216, "ekf_pose_no_update_count": 43, "ekf_xy_stddev_m": 0.7984576163666652...'
+---
+header:
+  stamp:
+    sec: 1792602099
+    nanosec: 907417013
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 1.719561037439808 > 0.5)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.153211, "ekf_pose_no_update_count": 40, "ekf_xy_stddev_m": 1.719561...'
+---
+header:
+  stamp:
+    sec: 1792602100
+    nanosec: 3909013
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '推定不能 (input_stale: an input is missing or older than stale_timeout_s (PRM-89): ndt_diagnostics)'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 3, "reason": "input_stale", "ndt_nvtl": 3.153211, "ekf_pose_no_update_count": 45, "ekf_xy_stddev_m": 0.634846608789449...'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 404499348
+  frame_id: ''
+node: gouda_mode_manager
+event: human_request
+transition_id: TR-12
+reason: 'TR-12: pause -> manual'
+run_id: run-90b5b7d4
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"event": "end_autonomy", "accepted": true, "mode": "pause"}'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 406333931
+  frame_id: ''
+node: vehicle_bridge
+event: link_count_ended
+transition_id: ''
+reason: 'USB link counts of the autonomy session: 0 disconnects'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"kind": "autonomy", "started_at": 1792601977.9151294, "ended_at": 1792602102.4062908, "disconnects": 0, "reconnects": 0, "down_...'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 407470681
+  frame_id: ''
+node: gouda_mode_manager
+event: navigation_goal_check
+transition_id: TR-12
+reason: no active Nav2 goal
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 417182681
+  frame_id: ''
+node: gouda_global_localization
+event: deactivated
+transition_id: ''
+reason: map->odom is no longer published
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 417792264
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_initialized", "ndt_nvtl": 3.153211, "ekf_pose_no_update_count": 165, "ekf_xy_stddev_m": 1.4176270166...'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 419178348
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ekf trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602102
+    nanosec: 419269431
+  frame_id: ''
+node: gouda_global_localization
+event: trigger_off
+transition_id: ''
+reason: 'ndt trigger_node false: True '
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602103
+    nanosec: 771383598
+  frame_id: ''
+node: gouda_global_localization
+event: cleaned_up
+transition_id: ''
+reason: A3 launch stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602103
+    nanosec: 771570265
+  frame_id: ''
+node: gouda_global_localization
+event: estimator_state
+transition_id: ''
+reason: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_inpu...'
+---
+header:
+  stamp:
+    sec: 1792602103
+    nanosec: 794779515
+  frame_id: ''
+node: gouda_mode_manager
+event: localization_stopped
+transition_id: TR-12
+reason: gouda_global_localization deactivated and cleaned up (A3 launch stopped)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602104
+    nanosec: 196539932
+  frame_id: ''
+node: gouda_mode_manager
+event: odometry_stopped
+transition_id: TR-12
+reason: ND-08 GLIM (odometry only) stopped (exit code 0)
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{}'
+---
+header:
+  stamp:
+    sec: 1792602104
+    nanosec: 204285932
+  frame_id: ''
+node: gouda_mode_manager
+event: record_auto_stop
+transition_id: TR-12
+reason: log recording stopped
+run_id: ''
+section_id: -1
+input_names: []
+input_stamps: []
+details: '{"service": "record/log/stop_auto", "kind": "stop_auto", "ok": true}'
+---

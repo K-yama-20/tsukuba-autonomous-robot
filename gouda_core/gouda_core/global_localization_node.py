@@ -4,8 +4,9 @@ Lifecycle (driven by gouda_mode_manager, IFD-36):
 - configure: map_directory (the converted map revision chosen at 自律走行開始, set by ND-03 before configure) must hold
   pointcloud_map/metadata.yaml and trajectory_imu.txt (map conversion, PRM-94 / PRM-95). The settings PRM-79..92 come from the
   generated parameter file; when one is unresolved (on the vehicle without trial values) configure fails and the reason is
-  recorded (RQ-I076). The A3 parts are started as a child launch (gouda_localization_a3.launch.py: pcl_ros filters, the point-cloud
-  map loader, the NDT scan matcher and the EKF localizer, all unmodified, in the namespace localization/a3).
+  recorded (RQ-I076). The A3 parts are started as a child launch (gouda_localization_a3.launch.py, namespace localization/a3):
+  Gouda's point filter gouda_a3_points (crop and voxel on x, y, z: REV-148, DEC-283) and the unmodified point-cloud map loader,
+  NDT scan matcher and EKF localizer.
 - activate: the initialization runs in a worker: the human's initial pose (IFD-34, transient_local) with the height from the
   mapping trajectory and the covariance PRM-84..87 -> ndt_align_srv (Monte Carlo search) -> the EKF's initial pose -> the
   EKF's and the NDT's trigger_node true. Each step is a DecisionEvent; a failure leaves the state 推定不能 (init_failed) and
@@ -123,7 +124,8 @@ class GlobalLocalizationNode(LifecycleNode):
         log_dir = self.data_root / 'run' / 'localization'; log_dir.mkdir(parents=True, exist_ok=True)
         log = log_dir / f'a3_{time.strftime("%Y%m%d_%H%M%S")}.log'
         cmd = ['ros2', 'launch', 'gouda_core', A3_LAUNCH, f'map_directory:={map_dir}', f'points_near_crop_m:={s.points_near_crop_m}',
-               f'points_far_crop_m:={s.points_far_crop_m}', f'points_voxel_leaf_m:={s.points_voxel_leaf_m}']
+               f'points_far_crop_m:={s.points_far_crop_m}', f'points_voxel_leaf_m:={s.points_voxel_leaf_m}',
+               f'points_voxel_min_points:={s.points_voxel_min_points}']
         try:
             self.proc = subprocess.Popen(cmd, stdout=open(log, 'ab'), stderr=subprocess.STDOUT, start_new_session=True)
         except OSError as e:
@@ -156,7 +158,8 @@ class GlobalLocalizationNode(LifecycleNode):
     def on_activate(self, state) -> TransitionCallbackReturn:
         with self._lock:
             self._token += 1; token = self._token
-            self.inputs.phase, self.inputs.phase_detail = 'initializing', 'waiting for the initial pose (IFD-34)'
+            # nothing received in an earlier activation counts for this one (DEC-282: 初期化中 until each input arrives)
+            self.inputs = lc.Inputs(phase='initializing', phase_detail='waiting for the initial pose (IFD-34)', localizer_running=self.inputs.localizer_running)
             self.estimator.reset()
         self._publish_status()
         threading.Thread(target=self._initialize, args=(token,), name='a3_init', daemon=True).start()
@@ -306,7 +309,8 @@ class GlobalLocalizationNode(LifecycleNode):
             t = stamp_s(msg.header.stamp)
             active = self.inputs.phase in ('initializing', 'running')
             if active:
-                self.estimator.on_odometry(t, pose_of(msg.pose.pose))
+                self.estimator.on_odometry(t, pose_of(msg.pose.pose))   # map->odom is computed here too (DEC-285)
+                self.inputs.has_map_odom = self.estimator.map_odom is not None
             running, map_odom, s = self.inputs.phase == 'running', self.estimator.map_odom, self.settings
         if active:
             tw = TwistWithCovarianceStamped(); tw.header.stamp = msg.header.stamp; tw.header.frame_id = BASE

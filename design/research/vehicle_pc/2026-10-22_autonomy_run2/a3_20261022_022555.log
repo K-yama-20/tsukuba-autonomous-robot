@@ -1,0 +1,49 @@
+[INFO] [launch]: All log files can be found below /home/aya/.ros/log/2026-10-22-02-25-55-588759-aya-Parallels-ARM-Virtual-Machine-20084
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [filter_crop_box_node-1]: process started with pid [20108]
+[INFO] [filter_crop_box_node-2]: process started with pid [20109]
+[INFO] [filter_voxel_grid_node-3]: process started with pid [20110]
+[INFO] [autoware_pointcloud_map_loader-4]: process started with pid [20111]
+[INFO] [autoware_ndt_scan_matcher_node-5]: process started with pid [20112]
+[INFO] [autoware_ekf_localizer_node-6]: process started with pid [20113]
+[autoware_ekf_localizer_node-6] [WARN] [1792603557.053010791] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603559.065898959] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[ERROR] [filter_voxel_grid_node-3]: process has died [pid 20110, exit code -11, cmd '/opt/ros/jazzy/lib/pcl_ros/filter_voxel_grid_node --ros-args -r __node:=points_voxel -r __ns:=/localization/a3 --params-file /tmp/launch_params_ac770z8x -r input:=points_cropped -r output:=points_downsampled'].
+[autoware_ekf_localizer_node-6] [WARN] [1792603561.081367668] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603563.087760336] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603565.091962545] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603567.110741921] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603569.128614380] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603571.145893923] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603573.146636007] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603575.165700133] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603577.185683009] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603579.205621635] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603581.225613220] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603583.225630221] [localization.a3.ekf_localizer]: The node is not activated. Provide initial pose to pose_initializer
+[autoware_ekf_localizer_node-6] [WARN] [1792603600.565836145] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 42.129[s], limit: 0.980[s]
+[autoware_ekf_localizer_node-6] [WARN] [1792603602.585730980] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 24.250[s], limit: 0.980[s]
+[autoware_ekf_localizer_node-6] [WARN] [1792603604.585812314] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 5.850[s], limit: 0.980[s]
+[autoware_ekf_localizer_node-6] [WARN] [1792603607.685692191] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 2.950[s], limit: 0.980[s]
+[autoware_ekf_localizer_node-6] [WARN] [1792603730.567807957] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [autoware_ekf_localizer_node-6]: sending signal 'SIGINT' to process[autoware_ekf_localizer_node-6]
+[INFO] [autoware_ndt_scan_matcher_node-5]: sending signal 'SIGINT' to process[autoware_ndt_scan_matcher_node-5]
+[INFO] [autoware_pointcloud_map_loader-4]: sending signal 'SIGINT' to process[autoware_pointcloud_map_loader-4]
+[INFO] [filter_crop_box_node-2]: sending signal 'SIGINT' to process[filter_crop_box_node-2]
+[INFO] [filter_crop_box_node-1]: sending signal 'SIGINT' to process[filter_crop_box_node-1]
+[autoware_ekf_localizer_node-6] [INFO] [1792603823.542380335] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_ndt_scan_matcher_node-5] [INFO] [1792603823.543301960] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_pointcloud_map_loader-4] [INFO] [1792603823.543554585] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[filter_crop_box_node-1] [INFO] [1792603823.543756918] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[filter_crop_box_node-2] [INFO] [1792603823.543912585] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_ekf_localizer_node-6] [INFO] [1792603823.553750210] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_pointcloud_map_loader-4] [INFO] [1792603823.554914918] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[filter_crop_box_node-1] [INFO] [1792603823.555206210] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[filter_crop_box_node-2] [INFO] [1792603823.556127210] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[autoware_ndt_scan_matcher_node-5] [INFO] [1792603823.560285793] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [filter_crop_box_node-2]: process has finished cleanly [pid 20109]
+[INFO] [filter_crop_box_node-1]: process has finished cleanly [pid 20108]
+[INFO] [autoware_pointcloud_map_loader-4]: process has finished cleanly [pid 20111]
+[INFO] [autoware_ekf_localizer_node-6]: process has finished cleanly [pid 20113]
+[INFO] [autoware_ndt_scan_matcher_node-5]: process has finished cleanly [pid 20112]

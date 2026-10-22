@@ -6,11 +6,12 @@
 #   W2 point clouds the NDT drops (all points within <near_m> m in 3-D: max distance below its required_distance): still 初期化中, the
 #      detail gives the NDT's reason
 #   W3 point clouds the NDT keeps (horizontal radius <far_m> m; keep the cloud near the XT-32's size, about 64000 points, or the
-#      VM cannot process 10 Hz): the initialization runs and the state becomes 正常
+#      VM cannot process 10 Hz), with the odometry stamped <odom_lag_s> before it is published as GLIM's is (DEC-285): the
+#      initialization runs and the state becomes 正常
 #   W4 the decision events of the wait: ndt_points_waiting, ndt_points_dropped, ndt_points_kept, initial_pose_aligned, initialized
-# usage: bash ubuntu_nd07_wait_points.sh <converted map directory with pointcloud_map/> [row] [near_m] [far_m]
+# usage: bash ubuntu_nd07_wait_points.sh <converted map directory with pointcloud_map/> [row] [near_m] [far_m] [odom_lag_s]
 set -o pipefail
-MAP=${1:?map dir}; ROW=${2:-200}; NEAR=${3:-6}; FAR=${4:-10}
+MAP=${1:?map dir}; ROW=${2:-200}; NEAR=${3:-6}; FAR=${4:-10}; LAG=${5:-0.15}
 WS=${WS:-~/gouda_ws}; REPO=$WS/src/tsukuba-autonomous-robot; ROOT=/tmp/nd07_wait; P=$REPO/design/generated/params
 export ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-79}
 PROFILE=${PROFILE:-$WS/gouda_data/run/fastdds_profile.xml}
@@ -44,8 +45,8 @@ python3 $REPO/gouda_core/test/a3_synthetic_feed.py $MAP $ROW $NEAR 0.1 3d > $ROO
 FEED=$!
 for i in 1 2 3; do sleep 5; echo "  t=$((i*5)) s: $(status)"; done
 kill -INT $FEED; wait $FEED 2>/dev/null
-echo "=== W3 point clouds within $FAR m (the NDT keeps them)"
-python3 $REPO/gouda_core/test/a3_synthetic_feed.py $MAP $ROW $FAR 0.1 > $ROOT/feed.out 2>&1 &
+echo "=== W3 point clouds within $FAR m (the NDT keeps them), odometry stamped $LAG s late"
+python3 $REPO/gouda_core/test/a3_synthetic_feed.py $MAP $ROW $FAR 0.1 odom_lag=$LAG > $ROOT/feed.out 2>&1 &
 FEED=$!
 for i in 1 2 3 4 5 6; do sleep 5; echo "  t=$((i*5)) s: $(status)"; done
 ros2 lifecycle set /gouda_global_localization deactivate; ros2 lifecycle set /gouda_global_localization cleanup; sleep 3
