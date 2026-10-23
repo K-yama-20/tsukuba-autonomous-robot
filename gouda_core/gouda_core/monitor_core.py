@@ -15,6 +15,7 @@ reloads; every field is UNKNOWN until a measured value is entered; each save bum
 from __future__ import annotations
 
 import json
+import math
 import os
 import time
 from collections import OrderedDict
@@ -56,8 +57,10 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
 # /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the Nav2 BT recovery count used from the next gouda.sh start (DEC-207 (a)).
 # 'count' = an integer from 1 to the upper limit given by the caller (PRM-18, read from the generated parameter file).
 # REV-134 (DEC-217): inflate_around_unknown ('boolean': true / false) overrides PRM-98 the same way.
-NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count'), ('inflate_around_unknown', 'boolean')])
-NUMERIC_KINDS = ('number', 'fraction', 'count')
+# REV-167 (DEC-347): replan_rate_hz ('positive': a number above zero) overrides PRM-103 the same way.
+NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count'), ('inflate_around_unknown', 'boolean'),
+                                    ('replan_rate_hz', 'positive')])
+NUMERIC_KINDS = ('number', 'fraction', 'count', 'positive')
 
 
 @dataclass
@@ -303,6 +306,7 @@ class SensorConfig:
         if kind == 'number': return isinstance(value, (int, float)) and not isinstance(value, bool)
         if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
         if kind == 'boolean': return isinstance(value, bool)
+        if kind == 'positive': return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
         if kind == 'count':
             lim = self.limits.get(key)
             return lim is not None and isinstance(value, int) and not isinstance(value, bool) and lim[0] <= value <= lim[1]
@@ -331,6 +335,8 @@ class SensorConfig:
                 return False, f'{k}: {sensor_extrinsics.validate_axis_mapping(v)}'
             if self.fields[k] == 'fraction' and v != UNKNOWN and not self._valid(k, v):
                 return False, f'{k}: {v!r} is outside [0, 1) (a stick amount)'
+            if self.fields[k] == 'positive' and v != UNKNOWN and not self._valid(k, v):
+                return False, f'{k}: {v!r} is not a number above zero'
             if not self._valid(k, v): return False, f'{k}: invalid value {v!r}'
             parsed[k] = v
         if not parsed: return True, 'no change'

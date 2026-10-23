@@ -138,7 +138,8 @@ class MigrationTests(unittest.TestCase):
         m = copy.deepcopy(self.m); m['authority_revisions'][-1]['removed_lines'] = [{'line': 1, 'text': 'x'}]
         self.assertTrue(any('removed line text recorded' in x['path'] or 'reproduced from archived copy' in x['path'] for x in self.errors(m)))
     def test_superseded_requirement_needs_intent_justification(self):
-        m = copy.deepcopy(self.m); e = next(e for e in m['entities'] if e['id'] == 'RQ-I001'); e['adoption'] = 'superseded'
+        # RQ-I002 is a live requirement that no reconciliation supersedes (RQ-I001 was superseded by AR-015, REV-161 / DEC-317)
+        m = copy.deepcopy(self.m); e = next(e for e in m['entities'] if e['id'] == 'RQ-I002'); e['adoption'] = 'superseded'
         self.assertTrue(any('superseded requirement justified' in x['path'] for x in self.errors(m)))
 
 

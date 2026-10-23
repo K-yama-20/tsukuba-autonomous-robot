@@ -1,0 +1,34 @@
+# 変更セット REV-177（2026-10-24 第153便: PRM-71 を地上 1.25 m に、DEC-324）
+# 適用: design/tools/apply_revision.py REV-177
+id: REV-177
+date: '2026-10-24'
+summary: >-
+  第153便：人の回答「DEC-324は1250mmに変更せよ。」で、障害物の高さの帯の上端 PRM-71 を地上 1.35 m（base_link 基準 1.185 m）から地上 1.25 m（1.085 m）に変える（DEC-324 を answered）。PRM-03・PRM-36 は変えていない。コードは変えていない（生成物の gouda_nav2.yaml の値が変わる）。
+basis_refs:
+- DEC-324
+- DEC-192
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-71
+  set:
+    approval_decision_ref: DEC-324
+  set_nested:
+    parameter.value: 1.085
+    parameter.measurement: >-
+      人の決定（DEC-324）：「DEC-324は1250mmに変更せよ。」。地面から 1.25 m（車両の最大高さの実測。余裕なし）。base_link 基準へ換算：1.25 − PRM-05（0.165 m）＝1.085 m。PRM-05 は記載値（実測していない）で、変わればこの換算も変わる。前の値は DEC-192 の 1.35 m（1.185 m）。
+  interpretation_append: 'REV-177: DEC-324 で 1.085 m（地面から 1.25 m）に変更（DEC-192 の 1.185 m から）。'
+decision_updates:
+- id: DEC-324
+  set:
+    status: answered
+    answered_on: '2026-10-24'
+    disposition: answered
+    answer_verbatim: |
+      DEC-324は1250mmに変更せよ。
+    resulting_refs:
+    - PRM-71
+    note: >-
+      推奨：地上 1.30 m（余裕 5 cm）。理由：帯は base_link の高さ PRM-05（0.165 m、実測でない記載値）を基準に当てるので、その誤差がそのまま上端の誤差になる。段差・制動での車体の傾きで、 前方の張り出し物の見かけの高さが変わる（推測：1 m 先で 3° 傾くと約 5 cm）。代替：1.25 m（余裕なし。張り出し物での誤検出は最も少ないが、車体の一番高い所（センサー）が枝に当たり、 取り付けがずれると自己位置推定に効く恐れがある）。1.35 m（今のまま）。決まらない場合に止まる作業：PRM-71 の値の変更。帯の段の実装は止まらない。 REV-177（第153便）：人の回答（原文）「DEC-324は1250mmに変更せよ。」。帯の上端を地上 1.25 m（余裕なし）にする。base_link 基準へ換算：1.25 − PRM-05（0.165 m、記載値）＝1.085 m。PRM-03（全高）は intent.md の人の改善の後の版（SHA-256 857661bd…、107 行の全高 1250 mm）を AR-017 として記録するときに合わせる（今は 1.2 m のまま）。地図の変換の上限 PRM-36（地面から 1.35 m、DEC-098 で PRM-71 とそろえた）は変えていない。そろえるかは別に確認する。注意：今の実装は帯を odom・map の z で当てている（K-3、DEC-336 は pending）ので、開始地点から標高が変わると地面からの高さとしては効かない。

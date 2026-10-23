@@ -1,0 +1,400 @@
+# トラブルシューティング台帳（人の指示 DEC-321 による。第138便で作成）
+#
+# 目的: 承認した設定・設計のうち、ある症状（衝突・滞留・誤検出など）の原因になりうるものを、先に登録しておく。
+# 症状が出たとき、この台帳を症状から引けば、疑う原因・確かめ方・直し方の候補がすぐに分かる。
+#
+# 書き方（CLAUDE.md 1.8）:
+# - スキーマは design/troubleshooting/schema.json。検査は design/rules/test_troubleshooting_ledger.py（run_checks.py の検査器の試験で走る）。
+# - キーの順序は id, name, status, sensitivity, decision_refs, related_refs, symptom, mechanism, how_to_confirm, countermeasures, source, recorded_on, occurrences に固定。
+# - decision_refs・related_refs は model.yaml にある ID だけ。
+# - status: 監視中（起きうるとして登録、まだ起きていない）／発生（occurrences に記録あり、原因の確認中）／解消（対策を入れて再発なし）。
+# - 起きたら occurrences に追記する（日付・走行や記録の ID・何が起きたか・証拠のファイル）。推測と確認した事実を分けて書く。
+# - 計算・推論は「推測」「計算」と明記する。
+entries:
+- id: TRB-001
+  name: local costmap を 2 次元（ObstacleLayer）にしたことによる、低い物への衝突
+  status: 監視中
+  sensitivity:
+  - safety
+  decision_refs:
+  - DEC-321
+  - DEC-122
+  - DEC-339
+  - DEC-341
+  related_refs:
+  - ND-09
+  - ND-10
+  - ND-14
+  - PRM-70
+  - PRM-71
+  symptom: >-
+    自律走行中に、低い物（縁石・車止め・コーン・段ボール・倒れた自転車など）に正面から当たる、または旋回・後退で当たる。
+    少し前まで local costmap に写っていた物が、車体が近づくと消えている。
+    確認走行区間では、緑のコーンに接触すると走行失敗になる（DEC-339、人が規則を確認）。見直しは DEC-341 で確認待ち。
+  mechanism: >-
+    XT-32（取り付け高さ 1.015 m、最下のビーム −16°）が見られる最低の高さは、平らな地面で距離 d のとき約 1.015 − d·tan16°
+    （計算: 2.5 m で 0.30 m、1.5 m で 0.585 m、1.0 m で 0.73 m）。物がこの見えない範囲に入ると観測されない。
+    2 次元の ObstacleLayer は、帯の中の奥の点へ向かう光線を水平面に落として、その上のセルを消す。光線が物の上を通っても
+    物のセルが消える。上流の VoxelLayer（3 次元）なら、光線は物のボクセルの上を通るだけで消さない。
+    また、2.5 m（obstacle_max_range）の時点で 0.30 m より低い物は、一度も印が付かない。
+  how_to_confirm: >-
+    (1) その走行の rosbag（生の点群 /sensors/xt32/points と /tf・/tf_static）で local costmap を再生し、その物のセルが
+    lethal → 空き に変わった時刻と、そのときの車体と物の距離を見る（1.5 m 前後で消えていればこの仕組み）。
+    (2) 同じ rosbag を VoxelLayer の構成で再生し、消えないことを確かめる。
+    (3) 物の高さと、その距離での見える最低の高さ（上の式）を比べる。
+  countermeasures: >-
+    候補: (a) MID-360 を前方の低い所の観測源に入れる（設計中）。(b) local を 3 次元の層に戻し、柱を車体の高さに付いて動く
+    座標系で持つ。(c) 帯の段の出力を、消去に使う点と印に使う点に分ける。(d) raytrace_max_range を短くして、遠くへの光線で
+    近くを消しにくくする。どれも承認事項。
+  source: >-
+    proposals/costmap_inputs_completion_v2_2026-10-22.md §2.2・§7、第134便のレビュー 1、本台帳の計算。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-002
+  name: 点の返らない方位を空きとして消す設定（inf_is_valid true）による、反射の弱い物への衝突
+  status: 監視中
+  sensitivity:
+  - safety
+  decision_refs:
+  - DEC-322
+  - DEC-320
+  - DEC-339
+  - DEC-341
+  related_refs:
+  - ND-09
+  - ND-10
+  - ND-14
+  symptom: >-
+    黒い物・ガラス・鏡面・濡れた暗い面など、反射の弱い物に当たる。その物のある方位の印が、走っている間に消える。
+    歩行者（黒い服など）に当たると走行失敗になる（DEC-339）。見直しは DEC-341 で確認待ち。
+  mechanism: >-
+    帯の段に pointcloud_to_laserscan（案 Y）を使う場合、帯の中に点がない方位は inf になる（use_inf true）。ObstacleLayer の
+    inf_is_valid を true にすると、その方位を raytrace_max_range まで空きとして消す。物から点が返らないと、物のセルも消える。
+    物が XT-32 の見えない高さにある場合も、その方位に帯の中の点がなければ同じく消える（TRB-001 と重なる）。
+    案 X（pcl_ros）を選んだ場合は、この仕組みはない（DEC-320 の比べ方の結果による）。
+  how_to_confirm: >-
+    (1) rosbag を再生し、帯の段の出力（LaserScan）の、その物の方位の値が inf か を見る。
+    (2) 同じ時刻に local・global costmap のその物のセルが空きに変わったかを見る。
+    (3) inf_is_valid false で再生し、消えないことを確かめる。
+  countermeasures: >-
+    候補: (a) inf_is_valid を false にする（残像が増え、滞留しやすくなる）。(b) MID-360 を観測源に足す。(c) 案 X に替える。
+    どれも承認事項。
+  source: >-
+    proposals/costmap_inputs_completion_v2_2026-10-22.md §2.1・§5 判断 3、pointcloud_to_laserscan jazzy 2.0.2 の
+    pointcloud_to_laserscan_node.cpp 160-163 行。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-003
+  name: 点群の途絶を Nav2 で検出しない設定（expected_update_rate 0）による、古い costmap のままの走行
+  status: 監視中
+  sensitivity:
+  - safety
+  decision_refs:
+  - DEC-325
+  - DEC-339
+  related_refs:
+  - ND-10
+  - ND-14
+  - G-LIDAR-DROPOUT
+  symptom: >-
+    点群が途切れている間に現れた物（人・自転車・置かれたコーン）に当たる。monitor の XT-32 の受信が「未受信」になっていたのに、
+    車体は止まらずに走り続けた。歩行者・確認走行区間の緑のコーンへの接触は走行失敗になる（DEC-339）。
+  mechanism: >-
+    expected_update_rate が 0 だと、Nav2 の観測の buffer の isCurrent() は常に真になり、controller は costmap が古くても待たない
+    （Nav2 1.3.13 observation_buffer.cpp）。点群が止まると、最後の costmap のまま走る。これは、途絶を検出すると
+    CONTROLLER_TIMED_OUT が BT の回復の対象外で一時停止（待機モード）になるのを避けるための、保護の削減（DEC-325）。
+  how_to_confirm: >-
+    (1) monitor のセンサーの受信の記録（IFD-56 の通知の途切れ）とログの時刻。
+    (2) rosbag の /sensors/xt32/points の間隔の最大値と、その時刻。
+    (3) VM の kernel log の LAN の Link Down／Up、GLIM の frame の途切れの記録。
+    (4) 衝突の時刻が途切れの間に入っているか。
+  countermeasures: >-
+    人の方針（DEC-325）: costmap が更新できない場面でも、GNSS・IMU で事前に設定した経路に追従し、MID-360 で障害物を回避・
+    追い越す構成を目指す（設計はこれから）。ほかの候補: LAN の物理的な安定化（DEC-334）、途絶の検出を入れて BT の回復の対象に
+    する（承認事項）。
+  source: >-
+    proposals/costmap_inputs_completion_v2_2026-10-22.md §2.4、Nav2 1.3.13 controller_server.cpp 528 行・
+    would_a_controller_recovery_help_condition.cpp、第134便。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-004
+  name: 横断歩道と歩道の段差での車体の急な傾きによる、自己位置推定の乱れ・停止
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-349
+  - DEC-342
+  related_refs:
+  - ND-07
+  - ND-08
+  - ND-09
+  - ND-14
+  symptom: >-
+    横断歩道の面に降りた・歩道に乗り上げた直後に、推定不能の表示が出る、待機に入る（今の作り）、GLIM の odometry や map→odom が跳ぶ、
+    GLIM・NDT のプロセスが落ちる、段差の先の地面が一瞬 costmap に障害物として出る。
+  mechanism: >-
+    推測：段差で車体の前後の傾きが急に変わる（後輪軸と前のキャスタの間 0.415 m に対して、段差 2 cm で約 2.8°、5 cm で約 6.9°）。衝撃で IMU の加速度が
+    大きくなり、点群の歪みの補正と GLIM の推定がずれうる。NDT の初期の姿勢（EKF の姿勢）の傾きが遅れて追いつくと、NDT の点数（NVTL）が下がり、
+    推定不能の判定（PRM-89〜93）に入りうる。今の作り（TR-07）では、推定不能が 1 通でも出ると待機に入る。base_link の帯は車体と一緒に傾くので、
+    傾いた瞬間に前方の地面が帯に入りうる。
+  how_to_confirm: >-
+    (1) その時刻の rosbag（点群・IMU・/tf・ND-07 の状態・/diagnostics）で、GLIM の odometry の位置・姿勢の不連続、IMU の加速度の大きさ、NDT の NVTL と
+    推定不能の理由、EKF の共分散を見る。(2) プロセスの終了の記録（launch のログ、決定の記録）。(3) 同じ段差を手動で何度か通る記録で再現するか（DEC-349）。
+  countermeasures: >-
+    候補: (a) 推定不能で待機に入らず回復を待つ（DEC-342 の localization_wait）。(b) 推定不能の判定に時間の猶予や連続回数を置く。(c) 段差を通る区間の速さを
+    下げる（区間の速度上限）。(d) GLIM・NDT の設定の見直し（実測の結果による）。どれも承認事項。
+  source: >-
+    人の懸念（DEC-349 の note に原文）、本台帳の計算。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-005
+  name: 初期位置の入力が数 m ずれていると、誤った位置を「正常」として自律走行を始める
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-360
+  - DEC-356
+  - DEC-357
+  related_refs:
+  - ND-07
+  - PRM-84
+  - PRM-90
+  symptom: >-
+    自律走行の開始の後、推定は「正常」なのに、車体が地図の上で違う場所にいるように動く（経路から外れる、壁や縁石の方へ進む）。
+    monitor の推定の位置が、実際の位置から数 m ずれている。
+  mechanism: >-
+    初期位置の探索（Autoware NDT の ndt_align_srv）は、向きは一周を試すが、位置は入力の周りを PRM-84（標準偏差 0.5 m）の広がりでしか試さない。
+    入力が数 m ずれていると、入力の近くの誤った位置に合い、照合の良さ（NVTL）がしきい値 PRM-90（2.3）を上回れば「正常」と判定される。
+    VM の模擬の試験（第148便、DEC-360 (1)）：入力 5 m ずれで 5.86 m 離れた位置に合い、NVTL 2.67 で「正常」。3 m ずれまでは正しく合った。
+  how_to_confirm: >-
+    (1) 開始のときの決定の記録 initial_pose_aligned の位置と、人が入れた初期位置・実際の位置を比べる。(2) 推定の位置を地図に重ねて見る（DEC-357 の rviz2）。
+    (3) その時の NVTL（localization/status）。
+  countermeasures: >-
+    候補: (a) 初期位置を正確に与える（地図作成の終わりの姿勢のボタン DEC-289、スタート地点＝地図の原点）。(b) 探索の範囲を段階的に広げる（DEC-356）が、広げると誤った位置に合う
+    恐れも増えるので、NVTL だけで受け入れない。(c) 開始の前に、人が推定の位置を地図で確かめる手順。(d) GNSS の位置との食い違いの確認（GNSS が使えるようになった後）。
+  source: >-
+    research/vehicle_pc/2026-10-23_initial_search_offsets/（notes.txt、case_5m_0deg.txt）。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-006
+  name: 塞がれた waypoint の代わりの終点が通過判定の外に残り、通り過ぎた後に戻る（U ターン）
+  status: 監視中
+  sensitivity:
+  - operation
+  decision_refs:
+  - DEC-367
+  - DEC-376
+  - DEC-310
+  related_refs:
+  - PRM-11
+  - ND-10
+  - IFD-13
+  symptom: >-
+    waypoint の上や近くに人・コーン・自転車があって車体が迂回した後、その waypoint を通り過ぎてから引き返す、またはその場で向きを変えて戻る経路が出る。
+    monitor の残りの waypoint の数が、通り過ぎた点の分だけ減らない。
+  mechanism: >-
+    推測（第150便のトピック 3）：NavFn は goal の格子が障害物でも、tolerance（上流の雛形 0.5）の半幅の正方形の中で届く格子を代わりの終点にする（隅で最大約 0.71 m 離れる、計算）。
+    一方、通過の判定 RemovePassedGoals は PRM-11（0.7 m）で、RPP は角の内側を回る。迂回のときに waypoint の 0.7 m 以内を通らないと点が消えずに残り、
+    1 Hz の経路の引き直し（PRM-103）で、残った点へ戻る経路ができうる。上流のソースの読みはエージェントによるもので、未照合の部分がある。
+  how_to_confirm: >-
+    (1) その時刻の /plan と、bt_navigator・planner_server のログ、Nav2 の feedback の残りの poses の数。(2) 車体の軌跡と waypoint の距離の最小値（0.7 m を超えていればこの仕組み）。
+    (3) VM の模擬で waypoint の上に障害物を置いて再現するか（DEC-376 (1)・(5)）。
+  countermeasures: >-
+    候補：(a) PRM-11 を NavFn の tolerance×√2 に追従のずれを足した値以上にそろえる。(b) opt-in で waypoint を飛ばす（DEC-367）。(c) 区間ごとの goal（DEC-366）で、残った点の影響を区間の中に限る。
+    どれも承認事項。値は DEC-376 で実測。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic3.md §2.2・H7。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-007
+  name: 回復が効かない種類の Nav2 の失敗で、回復の回数（PRM-18）に関係なく goal が中止され、待機に入る
+  status: 発生
+  sensitivity:
+  - operation
+  - intent
+  decision_refs:
+  - DEC-366
+  - DEC-375
+  - DEC-307
+  - DEC-305
+  related_refs:
+  - PRM-18
+  - TR-07
+  - ND-03
+  - ND-10
+  - IFD-13
+  symptom: >-
+    自律走行中に、塞がれてもいないのに突然待機（TR-07、plan_failure）に入る。Nav2 の結果は status 6（中止）で、error_code が 0・107（CONTROLLER_TIMED_OUT）・102 など。
+    bt_navigator のログに「Timed out while waiting for action server to acknowledge goal request」などが出る。
+  mechanism: >-
+    事実（上流 Nav2 1.3.13 のソースで AI が照合）：navigate_through_poses の BT は、外側の RecoveryNode で回復する前に WouldAControllerRecoveryHelp・WouldAPlannerRecoveryHelp で
+    「回復が効く失敗か」を確かめる。対象は UNKNOWN・PATIENCE_EXCEEDED・FAILED_TO_MAKE_PROGRESS・NO_VALID_CONTROL など一部の符号だけで、それ以外の失敗（action の受け付けの時間切れ、
+    CONTROLLER_TIMED_OUT、TF_ERROR など）は PRM-18（9999999）の回数に関係なく中止になる。今の作りでは、中止は TR-07 で待機に入り、人の再開が要る。
+    推測：LiDAR の途切れで GLIM が止まり TF が古くなると、TF_ERROR になりうる（未観測）。
+  how_to_confirm: >-
+    (1) 決定の記録の TR-07 の理由と、Nav2 の結果の status・error_code・error_msg。(2) bt_navigator・controller_server のログ。(3) そのときの計算機の負荷（load average）と TF の時刻。
+  countermeasures: >-
+    候補：(a) 中止されたら今の区間の残りを自動で出し直す（DEC-366）。(b) BT の外側の回復の条件に、上流の AreErrorCodesPresent で符号を足す（受け付けの時間切れの符号 0 は拾えない）。
+    (c) bt_navigator の server_timeout の見直し。どれも承認事項。値は DEC-375 で実測。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic2.md §2、上流 Nav2 1.3.13 の navigate_through_poses_w_replanning_and_recovery.xml と would_a_controller_recovery_help_condition.cpp、
+    reports/worklog/2026-10-21_rev134_plan_c_driving_nav2.md。
+  recorded_on: '2026-10-23'
+  occurrences:
+  - date: '2026-10-21'
+    record: 第104便（REV-134）の VM の試験 ubuntu_stage5-6.sh（MAP_KIND=corridor）1 回目の T2
+    description: >-
+      TR-07（plan_failure、Nav2 の status 6、error_code 0）。bt_navigator のログは compute_path_through_poses の goal の受け付けの時間切れの直後に「Goal failed」。
+      再開で最後の waypoint に着いた。再現していない（VM の load average 2〜4。環境の問題とは断定していない）。原因は未解決。
+    evidence:
+    - reports/worklog/2026-10-21_rev134_plan_c_driving_nav2.md
+    - VM の /tmp/st56_rev134_run1_stack.log（作業記録にある記載。リポジトリには入っていない）
+- id: TRB-008
+  name: waypoint タブで置いた点の向きがすべて 0 のため、最後の waypoint で車体がその場で回る
+  status: 監視中
+  sensitivity:
+  - operation
+  decision_refs:
+  - DEC-380
+  - DEC-373
+  - DEC-343
+  related_refs:
+  - ND-02
+  - IFD-30
+  - IFD-13
+  - ND-10
+  symptom: >-
+    最後の waypoint（今後は kind: stop の点も）に着いたところで、車体が止まらずにその場で回って、地図の +x の向きを向く。回っている間に推定が乱れることがある。
+  mechanism: >-
+    事実（AI がコードで照合）：monitor の waypoint タブで地図をクリックして足した点は、向きが常に yaw 0（gouda_core/web/app.js:529）で、向きを直す欄はない。
+    NavigateThroughPoses の最後の pose の向きは goal の判定（上流の雛形 yaw 0.25 rad）に使われるので、進んできた向きと違えば、RPP がその場で回って合わせる。
+    推測：回転は deskew していない NDT の入力を歪ませる（TRB-012）。
+  how_to_confirm: >-
+    (1) 保存した waypoints.yaml の各点の yaw。(2) 最後の点に着いたときの cmd_vel（並進 0・角速度だけ）と車体の向きの変化。
+  countermeasures: >-
+    候補：(a) 地図作成の軌跡から向きつきで候補を作る道具（DEC-373）。(b) waypoint タブに向きを直す欄を足す、または最後の点の向きを直前の区間の向きにする（DEC-380）。どれも承認事項。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic6.md §2・H6。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-009
+  name: RPP の衝突の検査と local costmap が上流の既定値のままで、急に現れた物の前で止まり切れない
+  status: 監視中
+  sensitivity:
+  - safety
+  decision_refs:
+  - DEC-371
+  - DEC-378
+  - DEC-339
+  - DEC-341
+  related_refs:
+  - PRM-66
+  - PRM-69
+  - ND-09
+  - ND-10
+  symptom: >-
+    1 m 前後の近さに急に現れた物（横から出た人・置かれたコーン・他のロボット）に、減速しきれずに当たる、または当たる直前に止まる。速いとき（1.25 m/s 近く）ほど起きやすい。
+  mechanism: >-
+    事実（AI がコードで確認）：nav2_config.py は RPP の 4 つのキー（plugin・desired_linear_vel・rotate_to_heading_angular_vel・allow_reversing）だけを設定し、lookahead・衝突の検査の時間などは上流の既定値のまま設計されていない。
+    local costmap の大きさも上流の雛形のまま（トピック 5 のエージェントの報告、AI は未照合）。
+    計算（トピック 5）：PC 側の周期と velocity_smoother の減速だけで、1.25 m/s から止まるまでに約 1.3 m 要り、RPP の検査の範囲（約 1.15 m、第138便の記録の推測）を超えうる。
+    これは停止距離ではない。実際の停止距離（ESP32・駆動系・慣性を含む）は tbd。PC の出力を中立にしても車体全体の停止は保証されない。
+  how_to_confirm: >-
+    (1) その時刻の rosbag で、物が local costmap に現れた時刻と距離、RPP の出力の速度の変化、車体が止まった位置。(2) 速度ごとの停止距離の実測（DEC-378 (1)）と比べる。
+  countermeasures: >-
+    候補：(a) RPP の lookahead・衝突の検査の時間と local costmap の大きさを PRM として明示し、停止距離と照らし合わせる（DEC-371 (2)）。(b) 区間の速度上限で、見通しの悪い所を遅くする（DEC-371 (1)）。
+    (c) MID-360 を前方の観測源に入れる（DEC-341）。どれも承認事項。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic5.md §2・H1・§7。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-010
+  name: LiDAR の途切れの間に EKF が最後の速度で外挿し、戻ったときの map→odom に段差が入る
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-365
+  - DEC-374
+  - DEC-354
+  - DEC-351
+  related_refs:
+  - ND-07
+  - ND-08
+  symptom: >-
+    LiDAR の点群が数秒途切れて戻った直後に、推定の位置が跳ぶ、長く推定不能が続く、または誤った位置で「正常」になる。経路が急に引き直され、RPP が急に切る。
+  mechanism: >-
+    事実（第142便の提案 §2 の読み）：Autoware NDT は収束しないと姿勢を出さず、EKF は入力が途切れても最後の vx・wz で予測を進める。途切れの間、GLIM の odometry も来ない。
+    推測：車体が実際には止まっている（今なら待機）のに EKF が進み続けると、GLIM が戻った最初の odometry で計算する map→odom に、最大で速度×途切れの時間の誤差が入る
+    （計算：1.25 m/s×3.5 s で約 4 m）。NDT はその EKF の姿勢を初期値に使うので、照合が捕らえる範囲を超えれば、長い推定不能か誤った収束になりうる。記録の再生ではまだ確かめていない。
+  how_to_confirm: >-
+    (1) 途切れの前後の EKF の姿勢・GLIM の odometry・map→odom・NDT の状態の時系列。(2) rosbag 20261014_175847（4.2 s の途切れ）の再生と、test/stack.sh で点群と odometry を 3.5 s 止める試験（DEC-374 (4)）。
+  countermeasures: >-
+    候補：(a) 戻ったときは EKF の外挿の姿勢ではなく、固定した map→odom×GLIM の姿勢を基準に回復の判定を通す（DEC-351・DEC-365）。(b) 途切れの間は止まって待つ（DEC-365 (c)）。どれも承認事項。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic1.md §4.1、proposals/localization_gap_bridging_2026-10-23.md §2。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-011
+  name: 幅の広い物が waypoint を塞ぐと計画が失敗し続け、回復を繰り返して滞留する
+  status: 監視中
+  sensitivity:
+  - operation
+  - intent
+  decision_refs:
+  - DEC-367
+  - DEC-376
+  - DEC-310
+  - DEC-339
+  related_refs:
+  - PRM-18
+  - ND-10
+  - IFD-13
+  symptom: >-
+    コースの上に集まったコーン・止めてある自転車・人の集まりがあり、その中か近くに waypoint があると、車体がその手前で回復動作（costmap の消去・回転・待機・後退）を繰り返し、先へ進まない。
+    確認走行区間では、一か所に 3 分以上停滞すると走行失敗になる（regulations_2026.md、DEC-339）。
+  mechanism: >-
+    推測（第150便のトピック 3。上流のソースの読みはエージェントによる、未照合）：ComputePathThroughPoses は waypoint の対ごとに計画をつなぎ、1 区間でも失敗すると全体が NO_VALID_PATH になる。
+    NavFn は goal が障害物でも tolerance（0.5）の正方形の中に届く格子があれば代わりの終点にするが、その外まで塞がれていると失敗する。NO_VALID_PATH は回復が効く失敗として扱われ、
+    PRM-18（9999999）の回数まで BT の中で回復を繰り返す。今の作りでは waypoint を飛ばす段がない。
+  how_to_confirm: >-
+    (1) planner_server のログ（「Failed to create plan with tolerance」など）と、Nav2 の feedback の回復の回数。(2) waypoint と障害物の位置。(3) VM の模擬で waypoint の周り 1 m に障害物を置いて再現するか（DEC-376 (1)）。
+  countermeasures: >-
+    候補：(a) opt-in で waypoint を飛ばす段（DEC-367、DEC-310 の段 3）。(b) waypoint をコースの通りやすい所に置く運用。(c) 滞留の時計で段階を上げる（DEC-310）。どれも承認事項。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic3.md §2.2。
+  recorded_on: '2026-10-23'
+  occurrences: []
+- id: TRB-012
+  name: 速い旋回で、動きの歪みを補正していない点群が NDT の照合を乱す
+  status: 監視中
+  sensitivity:
+  - operation
+  decision_refs:
+  - DEC-371
+  - DEC-378
+  - DEC-365
+  related_refs:
+  - PRM-67
+  - PRM-60
+  - ND-07
+  - ND-14
+  symptom: >-
+    その場の回転（rotate_to_heading、spin の回復）や急な旋回の最中・直後に、NDT の照合の良さ（NVTL）が下がる、推定不能が出る（今の作りでは待機に入る）、推定の向きがずれる。
+  mechanism: >-
+    事実（トピック 5 のエージェントがコードで確認）：NDT への点群は gouda_a3_points で切り取りと間引きをするだけで、動きによる歪みの補正（deskew）はしない。XT-32 は 10 Hz（PRM-60）。
+    計算：1 周 0.1 s の間に、1.0 rad/s（PRM-67）なら 0.1 rad 回り、20 m 先の点で最大約 2 m ずれる。並進は 1.25 m/s で 0.125 m。歪みは並進より回転で大きい。NVTL への影響は未測定。
+  how_to_confirm: >-
+    (1) その時刻の角速度（IMU・cmd_vel）と NVTL・推定不能の理由の時系列。(2) rosbag で、旋回の速さごとの NVTL を比べる（DEC-378 (3)）。
+  countermeasures: >-
+    候補：(a) その場の回転の上限を別の値に分ける（DEC-371 の後、実測で判断）。(b) NDT の入力を deskew した点群にする（GLIM の補正済みの点群などを使う案、要調査）。
+    (c) 推定不能で即座に待機に入らない（DEC-365）。どれも承認事項。
+  source: >-
+    proposals/kuams_adoption_review_2026-10-23/topic5.md §2・H3。
+  recorded_on: '2026-10-23'
+  occurrences: []

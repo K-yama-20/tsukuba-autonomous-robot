@@ -35,11 +35,14 @@ The BT's recovery count is PRM-18 and inflate_around_unknown is PRM-98 unless th
 value is used from this start on (the count: a whole number from 1 to PRM-18; the flag: true or false); a missing, unreadable or
 invalid value falls back to the PRM with the reason. The values used and where they came from are written to
 <out_dir>/overrides.json (and the count also to recovery.json) and returned.
+The BT's replanning rate (the RateController around ComputePathThroughPoses; upstream 0.333 Hz) is PRM-103 unless the human
+saved a positive number in the same tab (REV-167, DEC-347).
 """
 from __future__ import annotations
 
 import copy
 import json
+import math
 import os
 import xml.etree.ElementTree as ET
 from typing import Optional
@@ -74,7 +77,8 @@ REQUIRED = {  # key in the generated files -> PRM (vehicle values that must be d
     ('gouda_nav2', 'inflation_radius_m'): 'PRM-72', ('controller_server', 'controller_frequency'): 'PRM-17',
     ('controller_server', 'enable_stamped_cmd_vel'): 'PRM-12',
     ('bt_params', 'remove_passed_goals_radius_m'): 'PRM-11', ('bt_params', 'recovery_number_of_retries'): 'PRM-18',
-    ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78', ('gouda_nav2', 'inflate_around_unknown'): 'PRM-98'}
+    ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78', ('gouda_nav2', 'inflate_around_unknown'): 'PRM-98',
+    ('bt_params', 'replan_rate_hz'): 'PRM-103'}
 OBSTACLE_COMBINATION_GLOBAL = 2   # DEC-216 (a design choice like DEC-122, not a vehicle value): MaxWithoutUnknownOverwrite
 
 
@@ -190,6 +194,7 @@ RECOVERY_KEY = 'recovery_number_of_retries'
 
 
 INFLATE_KEY = 'inflate_around_unknown'
+REPLAN_KEY = 'replan_rate_hz'      # PRM-103 (REV-167, DEC-347)
 
 
 def _saved(config_dir: Optional[str], key: str) -> tuple:
@@ -232,16 +237,29 @@ def inflate_from_config(config_dir: Optional[str], prm98) -> dict:
     return dict(base, note=f'the saved {INFLATE_KEY} {v!r} is not true / false: PRM-98 used')
 
 
+def replan_from_config(config_dir: Optional[str], prm103) -> dict:
+    """{'value', 'source', 'note'}: the replanning rate saved in the monitor (IFD-54) when it is a positive finite number, else PRM-103."""
+    base = {'value': prm103, 'source': 'PRM-103 (generated parameter file)', 'note': ''}
+    v, rev, note = _saved(config_dir, REPLAN_KEY)
+    if v is None:
+        return dict(base, note=note)
+    if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0:
+        return {'value': float(v), 'source': f'monitor /config Nav2 tab (IFD-54, config_revision {rev})', 'note': ''}
+    return dict(base, note=f'the saved {REPLAN_KEY} {v!r} is not a positive number: PRM-103 used')
+
+
 def build_bt(template_xml: str, values: dict) -> str:
-    """The upstream navigate-through-poses BT with PRM-11 and PRM-18 inserted (no other change)."""
+    """The upstream navigate-through-poses BT with PRM-11, PRM-18 and PRM-103 inserted (no other change)."""
     v = {k: val for (_, k), val in values.items()}
     root = ET.fromstring(template_xml)
     outer = root.find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']")
     rpg = root.findall('.//RemovePassedGoals')
-    if outer is None or len(rpg) != 1:
-        raise ValueError('the upstream BT does not have the expected NavigateRecovery / RemovePassedGoals nodes')
+    replan = [r for r in root.iter('RateController') if r.find('.//ComputePathThroughPoses') is not None]
+    if outer is None or len(rpg) != 1 or len(replan) != 1:
+        raise ValueError('the upstream BT does not have the expected NavigateRecovery / RemovePassedGoals / replanning RateController nodes')
     outer.set('number_of_retries', str(int(v['recovery_number_of_retries'])))
     rpg[0].set('radius', repr(float(v['remove_passed_goals_radius_m'])))
+    replan[0].set('hz', repr(float(v[REPLAN_KEY])))
     return ET.tostring(root, encoding='unicode')
 
 
@@ -255,16 +273,18 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
     os.makedirs(out_dir, exist_ok=True)
     recovery = recovery_from_config(config_dir, values[('bt_params', RECOVERY_KEY)])
     inflate = inflate_from_config(config_dir, values[('gouda_nav2', INFLATE_KEY)])
+    replan = replan_from_config(config_dir, values[('bt_params', REPLAN_KEY)])
     values = dict(values); values[('bt_params', RECOVERY_KEY)] = recovery['value']; values[('gouda_nav2', INFLATE_KEY)] = inflate['value']
+    values[('bt_params', REPLAN_KEY)] = replan['value']
     with open(os.path.join(out_dir, 'recovery.json'), 'w', encoding='utf-8') as f:
         json.dump(recovery, f, ensure_ascii=False, indent=1)
     with open(os.path.join(out_dir, 'overrides.json'), 'w', encoding='utf-8') as f:
-        json.dump({RECOVERY_KEY: recovery, INFLATE_KEY: inflate}, f, ensure_ascii=False, indent=1)
+        json.dump({RECOVERY_KEY: recovery, INFLATE_KEY: inflate, REPLAN_KEY: replan}, f, ensure_ascii=False, indent=1)
     with open(bt_template_path, encoding='utf-8') as f:
         bt = build_bt(f.read(), values)
     bt_path = os.path.join(out_dir, 'navigate_through_poses.xml')
     with open(bt_path, 'w', encoding='utf-8') as f:
-        f.write('<!-- GENERATED by gouda_core.nav2_config from the upstream BT with PRM-11 / PRM-18 -->\n' + bt + '\n')
+        f.write('<!-- GENERATED by gouda_core.nav2_config from the upstream BT with PRM-11 / PRM-18 / PRM-103 -->\n' + bt + '\n')
     with open(nav2_template_path, encoding='utf-8') as f:
         template = yaml.safe_load(f)
     params = nav2_parameters(template, values, bt_path)
@@ -272,7 +292,7 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
     with open(params_path, 'w', encoding='utf-8') as f:
         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')
         yaml.safe_dump(params, f, sort_keys=False, allow_unicode=True)
-    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate}
+    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate, REPLAN_KEY: replan}
 
 
 def find_templates(bringup_share: Optional[str], bt_navigator_share: Optional[str]) -> tuple:

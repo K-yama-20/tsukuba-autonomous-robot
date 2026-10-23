@@ -1,0 +1,30 @@
+# 変更セット REV-162（2026-10-22 第135便: 検査器の試験の見本の差し替えの許可、DEC-317）
+# 適用: design/tools/apply_revision.py REV-162
+id: REV-162
+date: '2026-10-22'
+summary: 第135便：人の許可（DEC-317、原文）により、検査器の試験 test_superseded_requirement_needs_intent_justification（design/rules/test_validate_model.py）の見本を、AR-015 で置き換えられた RQ-I001 から、今も置き換えられていない RQ-I002 に替えた。合否の基準（superseded の要求に resolved_by_intent の照合がなければ違反）は変えていない。
+basis_refs:
+- DEC-317
+- DEC-315
+- DEC-106
+intent_version_copy: design/baselines/intent_history/intent_v15_b24fce29a261.md
+files: []
+decisions:
+- id: DEC-317
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-22'
+  answered_on: '2026-10-22'
+  channel: chat
+  question: 検査器の試験 test_superseded_requirement_needs_intent_justification の見本を RQ-I001（AR-015 で superseded）から別の要求に替えてよいか
+  answer_verbatim: |
+    検査器の試験の見本を RQ-I001 から今も置き換えられていない要求に替えてよい。合否の基準は変えないこと。
+  affected_refs:
+  - RQ-I001
+  - RQ-I002
+  - DEC-315
+  resulting_refs: []
+  note: 原因の分類：試験（試験基盤の見本の選び方）。見本は RQ-I002（adoption upper_requirement、どの照合の affected_refs にもない）。確かめたこと：変える前の実モデルでは RQ-I002 に「superseded requirement justified」の違反はなく、superseded に変えると違反が出る（試験が規則の検出だけで合格する）。
+entities: []
+modifications: []
+decision_updates: []

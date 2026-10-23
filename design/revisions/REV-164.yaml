@@ -1,0 +1,417 @@
+# 変更セット REV-164（2026-10-23 第138便: costmap 第2版などへの人の回答 A1〜A9・B1〜B5 と、第130便のチャットの回答の記録）
+# 適用: design/tools/apply_revision.py REV-164
+id: REV-164
+date: '2026-10-23'
+summary: >-
+  第138便：costmap の入力の直しの提案 第2版（proposals/costmap_inputs_completion_v2_2026-10-22.md）と第134便のレビューで出した問い（A1〜A9・B1〜B5）への人の回答を原文で記録する。
+  あわせて、第130便でチャットにしか残っていなかった人の回答（A〜E、C の RANSAC、MID-360 の見え方）を記録する。人の指示（DEC-321）でトラブルシューティング台帳
+  design/troubleshooting/ledger.yaml を作り、TRB-001〜003 を登録した。回答から生じた確認・承認の項目（DEC-324・331・336〜338）を登録する。コード・設定は変えていない。
+basis_refs:
+- DEC-106
+- DEC-122
+- DEC-305
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-319
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-22'
+  answered_on: '2026-10-22'
+  channel: chat
+  question: >-
+    第130便の前のチャットで、AI が示した costmap の改善の案 A〜E（A：costmap の格子に合わせて実点を残す間引きの自作ノード、B：遠い点を光線の消去用に残す、
+    C：高さの帯を base_link 基準で当て、柱は車体に付いて動く座標系で持つ、D：前処理ノードを lifecycle にして lifecycle_manager に監視させる、
+    E：NDT の前処理 gouda_a3_points は段階 1 では分けたまま）への人の回答と、続く人の発言
+  answer_verbatim: |
+    （人の発言の原文、時系列の番号つき）
+    1.「A: 許可する。
+    B:
+    C: その案でも良いと思うが、スタート地点からロボットが進むにつれて段々標高が低くなって1.2mを下回るとまずいことになるのか？2.2kmの周回だから、多少の標高の上下はあると思うよ。障害物はLivox MID-360を入手したので、それでガンガン避けていこうって感じです。
+    D: 採用
+    E: 実行してもかまわない。」
+    2.「C: 地面をRANSACで推定しよう。それなら解決かな？
+    MID-360は前方の足元が主に見えています。よって、xt-32でも障害物を認識しておく必要はありますが、どうでしょうか。」
+  affected_refs:
+  - ND-09
+  - ND-10
+  - ND-14
+  - DEC-122
+  - DEC-108
+  resulting_refs:
+  - DEC-338
+  note: >-
+    記録の遅れ：第130便・第134便では、作業ツリーの model.yaml を別のセッションが変更中だったため登録せず、チャットにしか残っていなかった（第130便の作業記録に原文あり）。
+    B は回答なし（空欄）。A〜E の案のその後の扱い（第2版の V2-6）は DEC-338 で確認待ち。案は第1版 proposals/costmap_inputs_stvl_mid360_2026-10-22.md と第130便の作業記録。
+  disposition: answered
+- id: DEC-320
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第2版 判断 1）高さの帯を base_link で当てる帯の段は、案 X（pcl_ros PassThrough、PointCloud2 のまま）と案 Y（pointcloud_to_laserscan、LaserScan）のどちらにするか。
+    推奨は rosbag で比べて決め、両方が条件を満たせば案 Y。
+  answer_verbatim: |
+    A1: rosbagで比較検討。後ほど数パターンのrosbagを取得する予定。
+  affected_refs:
+  - ND-09
+  - ND-10
+  - IFD-21
+  resulting_refs: []
+  note: >-
+    比べ方は第2版 §3。使う rosbag は人が取得する（DEC-326）。base_link で当てること自体（第2版 V2-1）は DEC-336 で確認待ち。決まらない場合に止まる作業：帯の段の実装。
+  disposition: answered
+- id: DEC-321
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第2版 判断 2・V2-2）local costmap の VoxelLayer を上流の ObstacleLayer（2 次元）に替えるか。確定済みの DEC-122（障害物は VoxelLayer・ObstacleLayer で扱う）を変える。
+    推奨は替える。柱が odom に固定される問題がなくなり、残像が消えやすい。代償は低い物を 3 次元で覚えないこと。
+  answer_verbatim: |
+    A2: 一旦採用するが、これが原因で物体に衝突することが出てくると思う。その際に原因としてこれが挙げられるとすぐに答えられるよう、専用のトラブルシューティング用台帳を作成して登録せよ。
+  affected_refs:
+  - DEC-122
+  - ND-09
+  - ND-10
+  - TS-37
+  resulting_refs: []
+  note: >-
+    人の指示により、トラブルシューティング台帳 design/troubleshooting/ledger.yaml（スキーマ design/troubleshooting/schema.json、検査 design/rules/test_troubleshooting_ledger.py）を作り、
+    TRB-001（2 次元にしたことによる低い物への衝突）を登録した。DEC-122 は書き換えず、この項目が置き換える（local の層だけ）。実装は帯の段（DEC-320）とまとめて、rosbag の比べ方の後。
+    「一旦採用」なので、衝突が出たら TRB-001 を見て戻すかを判断する。
+  disposition: answered
+- id: DEC-322
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第2版 判断 3）案 Y のとき、帯の中に点のない方位を空きとして消去に使うか（pointcloud_to_laserscan の use_inf true と ObstacleLayer の inf_is_valid true）。
+    推奨は使う（残像が消えて滞留が減る）。代償は反射の返らない物のある方位も消えること。
+  answer_verbatim: |
+    A3: 採用。トラブルシューティング用の台帳に保存
+  affected_refs:
+  - ND-09
+  - ND-10
+  resulting_refs: []
+  note: >-
+    トラブルシューティング台帳に TRB-002 として登録した。案 Y が選ばれた場合だけ効く（DEC-320）。rosbag の比べ方では inf_is_valid の true と false の両方を流す（第2版 §3）。
+  disposition: answered
+- id: DEC-323
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第2版 判断 4）帯の上端 PRM-71（地上 1.35 m、DEC-192 で人が決めた値）を、車体の一番高い所の実測値に余裕を足した値へ下げるか
+  answer_verbatim: |
+    A4: 15cmのマージンは取りすぎってこと？取り過ぎなら、0~1.25mの範囲が空いているなら通行可にしても良いです。（車両の最大高さは1.25mくらいです本当の実測値は。）
+  affected_refs:
+  - PRM-71
+  - PRM-03
+  - DEC-192
+  resulting_refs:
+  - DEC-324
+  note: >-
+    人の申告（事実として記録）：車両の最大高さの実測値はおよそ 1.25 m。正本の PRM-03（車体全高）は intent.md 100 行の「全高 1200 mm」の転記（1.2 m）で、この申告と 5 cm 違う。
+    intent.md は人が直す。回答は条件つき（「取り過ぎなら」）なので、上端の値の決定は DEC-324 で確認する。AI の説明は第138便の作業記録。
+  disposition: answered
+- id: DEC-324
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】帯の上端 PRM-71 を、地上 1.35 m（今）から地上 1.25 m（車両の最大高さの実測、余裕なし）に下げるか、それとも 1.25 m に小さい余裕を足した値にするか。
+    あわせて PRM-03（全高 1.2 m、intent.md 100 行の転記）を実測 1.25 m に合わせるため、intent.md 100 行を人が直すか。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-71
+  - PRM-03
+  - PRM-05
+  - DEC-192
+  - RQ-I087
+  resulting_refs: []
+  note: >-
+    推奨：地上 1.30 m（余裕 5 cm）。理由：帯は base_link の高さ PRM-05（0.165 m、実測でない記載値）を基準に当てるので、その誤差がそのまま上端の誤差になる。段差・制動での車体の傾きで、
+    前方の張り出し物の見かけの高さが変わる（推測：1 m 先で 3° 傾くと約 5 cm）。代替：1.25 m（余裕なし。張り出し物での誤検出は最も少ないが、車体の一番高い所（センサー）が枝に当たり、
+    取り付けがずれると自己位置推定に効く恐れがある）。1.35 m（今のまま）。決まらない場合に止まる作業：PRM-71 の値の変更。帯の段の実装は止まらない。
+  disposition: open_human
+- id: DEC-325
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第2版 判断 5・V2-4）点群の途絶を Nav2 で検出しない設定（各観測源の expected_update_rate＝0、今のまま）にし、保護の削減として記録するか。
+    理由：検出すると costmap が 0.3 s 古いだけで controller が CONTROLLER_TIMED_OUT を返し、これは BT の回復の対象外で一時停止になる。
+  answer_verbatim: |
+    A5: 点群の途絶をNav2で検出しない設定とする。本番は人が多くてcostmapが更新できなくなったとしても、gpsやimuで事前に設定した経路に追従+mid360による障害物回避・追越を行和ザルを得ない場合がある。
+  affected_refs:
+  - ND-10
+  - ND-14
+  - RQ-I012
+  - G-LIDAR-DROPOUT
+  resulting_refs: []
+  note: >-
+    保護の削減（intent.md 第16版 39 行：走行失敗を防ぐための保護削減は報告し判断台帳に記録する）。失うもの：点群が止まっても Nav2 は最後の costmap のまま走り続ける。
+    トラブルシューティング台帳に TRB-003 として登録した。人の方針（原文の後半）：costmap が更新できない場面でも、GNSS・IMU で事前に設定した経路に追従し、MID-360 で障害物の回避・
+    追い越しを行う構成が要る場合がある。この構成は未設計（GNSS は今は衛星を追尾していない：第129便）。
+  disposition: answered
+- id: DEC-326
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第2版 判断 6）rosbag の比べ方に使う記録。推奨は 10/14 の屋外の外付けの bag（20261014_173522・20261014_175847）で始め、場面が足りなければ 11/7 にコースで記録する。
+  answer_verbatim: |
+    A6: 後で様々計測したものを用意するので、それを待て。
+  affected_refs:
+  - ND-09
+  - ND-10
+  resulting_refs: []
+  note: 人が計測した rosbag を用意するまで、比べ方（DEC-320）は行わない。10/14 の bag は使わない。
+  disposition: answered
+- id: DEC-327
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第2版 判断 7）MID-360 を本番前にどう扱うか。AI の推奨は「costmap には入れず、本番の後にまとめて組み込む」だった。
+  answer_verbatim: |
+    A7: 目の前にコーンがパッとおかれて、それを避けたりするテストにパスし無きゃいけないのと、コーンがランダムに置かれた区間を無事通り抜けられないと失格になる。xt-32だけでは無理でしょ。君が想定している走行環境が甘すぎる可能性があるので、現在のシステムが想定する走行環境および、君の開発方針を詳細に述べよ。ルールで分からないことがあれば正直に答えよ。君の現状の想定が知りたいので、ネット検索は禁止。
+  affected_refs:
+  - ND-09
+  - ND-10
+  - ND-14
+  - DEC-122
+  resulting_refs: []
+  note: >-
+    人の申告（規則として）：目の前に置かれたコーンを避ける試験と、コーンがランダムに置かれた区間の通過が要り、通過できなければ失格。AI は規則の該当の原文を読んでいない（原本未照合）。
+    AI の推奨（MID-360 は本番の後）と第2版の「本番前は XT-32 だけ」（V2-5）は、この申告と衝突するので取り下げ、MID-360 を本番前に障害物の観測に入れる設計を作り直す（提案 第3版）。
+    人の指示により、AI の想定する走行環境と開発方針を、ネット検索なしで第138便の回答に書いた。
+  disposition: answered
+- id: DEC-328
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第2版 判断 8）costmap の変更をいつ凍結するか。推奨は 11/28 の実験日より前に入れて実車で確かめ、それ以降は値だけを変える。
+  answer_verbatim: |
+    A8: costmapの変更の凍結は12/1とする。（暫定）
+  affected_refs:
+  - ND-09
+  - ND-10
+  resulting_refs: []
+  note: 暫定の凍結日 2026-12-01。本走行は 12/6（公式サイトの日程。第134便）。凍結の後は値の変更だけ。
+  disposition: answered
+- id: DEC-329
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第2版 判断 9）随行者の歩く位置を運用で決めるか（車体の後ろ〜斜め後ろ、1 m 以上、前方 2 m に入らない、旋回中は離れる）
+  answer_verbatim: |
+    A9: 随行員の歩く位置は運用で決められるが、本番は5~10分おきにロボットが出走するので、多数のロボット・随行員が環境中にいる。ロボットを追い越したり、追い越されたりする状況も考えられる。
+  affected_refs:
+  - ND-09
+  - ND-10
+  resulting_refs: []
+  note: >-
+    人の申告（環境として）：本番は 5〜10 分おきにロボットが出走し、多数のロボットと随行員がいる。追い越す・追い越される状況がある。随行員の位置は運用で決められる。
+    障害物の扱い・回避の設計（第3版、DEC-313）の前提に入れる。
+  disposition: answered
+- id: DEC-330
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【確認】（第134便 B1）規則の読み方：「一時停止＝失格」の範囲。規則に「一時停止モード」という語はなく、停止線・道路端での自律的な一時停止とオペレータの再開を規則は求めている（EV-22・EV-19）。
+    推奨は「規定の位置での停止と再開は合法、それ以外では自動で止まらない」と読む。
+  answer_verbatim: |
+    B1： goudaのモードとしての一時停止と、自律走行中に道路端に達した際の一時停止が用語としてかぶっており、AIが混乱しているようだから、モード名を"待機"モードと名称変更する。その上で、君の現状の理解を詳細に述べよ（現状の想定が知りたいので、ネット検索は禁止）。誤りがあれば指摘を入れたいので。
+  affected_refs:
+  - MODE-PAUSE
+  - TR-07
+  - TR-08
+  - DEC-305
+  - DEC-316
+  resulting_refs:
+  - DEC-331
+  note: >-
+    人の決定：Gouda のモードの「一時停止」を「待機」モードに名称変更する（MODE-PAUSE）。規則の「一時停止」（停止線・道路端での停止）と区別するため。
+    intent.md の「一時停止モード」の語は人が直す（intent.md は人が所有）。正本・生成物・コード・monitor の表示の名称変更の範囲は DEC-331 で確認する。
+    AI の現状の理解は、ネット検索なしで第138便の回答に書いた（人の指摘待ち）。
+  disposition: answered
+- id: DEC-331
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】モード名「一時停止」→「待機」（DEC-330）を、どこまで変えるか。(1) intent.md（人が直す）、(2) 正本 model.yaml の名前・説明（MODE-PAUSE、TR-07〜09・TR-13〜16 など）と生成物、
+    (3) monitor の表示（ボタン「一時停止」「再開」など）、(4) コードの識別子（モードの値 pause、メッセージの定数、topic・service 名）。
+  answer_verbatim: ''
+  affected_refs:
+  - MODE-PAUSE
+  - ND-02
+  - ND-03
+  - DEC-330
+  resulting_refs: []
+  note: >-
+    推奨：(1) 人、(2)(3) は変える（人と AI が読む語）、(4) は変えない（記録・試験・ログの互換を保つ。識別子は表示名と別でよい）。monitor の「一時停止ボタン」（人が押す操作）の名前も、
+    待機に入れる操作として「待機」ボタンにするかを決める必要がある。決まらない場合に止まる作業：名称変更そのもの。ほかの作業は止まらない（記録では「一時停止（待機）モード」と併記する）。
+  disposition: open_human
+- id: DEC-332
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第134便 B2）停止線・道路端での自律的な停止（規則 EV-22）を今すぐ設計するか。推奨は最優先で、waypoint の属性で止まり、monitor の再開ボタンで再開する形。
+    今は横断歩道の状態遷移が「未設計」（drawio の要素 DG-f3b9a12f…）。
+  answer_verbatim: |
+    B2: 横断歩道の状態遷移は最優先で作ること。waypointの属性で止まり、人が再開ボタンを押して再開させる形が良い。
+  affected_refs:
+  - DG-f3b9a12f-0113-5b35-b129-02da773d4025
+  - ND-03
+  - ND-02
+  - IFD-41
+  resulting_refs: []
+  note: >-
+    人の決定：横断歩道の状態遷移を最優先で作る。形は、waypoint の属性で止まり、人が再開ボタンを押して再開する。次に設計の提案を出す。実装の許可（DEC-106）は、
+    設計を示したときに項目ごとに確認する。モードの名前は DEC-330（待機）と組で決める。
+  disposition: answered
+- id: DEC-333
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第134便 B3）本番で使う計算機は VM か、Dell G15（x86 機）を直接起動するか。推奨は G15 に一本化してそこで計測する。
+  answer_verbatim: |
+    B3: 申し訳ないが、x86機は現在使用できない。私が使用pcに関する判断台帳の更新を指示するまで、VMで走行及び実験をする。mac及びvmはsleepさせないようにosの設定をしてあるし、usbも走行前にgouda_monitorの表示を見て抜き差しし、データを受信できていることを確認してから走行開始する運用にしています。これを判断台帳に記録せよ。
+  affected_refs:
+  - ND-02
+  - ND-18
+  - ND-14
+  resulting_refs: []
+  note: >-
+    人の決定：人が使用 PC に関する判断台帳の更新を指示するまで、走行と実験は VM（Parallels、Mac）で行う。x86 機（Dell G15）は今は使えない。
+    人の運用（事実として記録）：Mac と VM は OS の設定でスリープしない。走行の前に gouda_monitor の表示を見て USB を抜き差しし、データを受信できていることを確かめてから走行を始める。
+    これまでの CPU の記録（Parallels の ARM VM）は本番の構成の値になる。
+  disposition: answered
+- id: DEC-334
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第134便 B4）LiDAR の LAN のリンク断（x86 機の r8169、点群の途切れ 2.7〜3.5 s）への対策（ケーブル・コネクタ・NIC の省電力の確認、振動のある走行での確認）
+  answer_verbatim: |
+    B4: LANは走行中の振動でリンク断が起きないよう､ハードウェアを改良した。台帳に記録せよ。
+  affected_refs:
+  - G-LIDAR-DROPOUT
+  - ND-14
+  resulting_refs: []
+  note: >-
+    人の申告（事実として記録）：走行中の振動で LAN のリンク断が起きないよう、ハードウェアを改良した。改良の中身と、振動のある走行でリンク断が 0 回であることの確認の記録は、
+    まだ台帳にない。VM の LiDAR の口は USB-LAN（AX88179B）で、記録のリンク断は x86 機の r8169 のもの。人の回答の最後に、中身のない「B4:」の行がもう 1 つあった。
+  disposition: answered
+- id: DEC-335
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    【承認】（第134便 B5）XT-32 の別のドライバ Nebula と PTP（時刻同期）を本番の後に回すか。理由：Nebula は PC の受信時刻で時刻を付けられず、XT-32 の時計は年単位でずれている。
+  answer_verbatim: |
+    B5: nebulaは後回しで良い。
+  affected_refs:
+  - ND-14
+  - DEC-080
+  - DEC-083
+  - PRM-55
+  resulting_refs: []
+  note: Nebula は後回し。PTP は回答に含まれていないが、Nebula と組で後回しの扱いとして記録する（AI の解釈）。今のドライバ（DEC-080）と受信時刻（DEC-083・PRM-55）は変えない。
+  disposition: answered
+- id: DEC-336
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】（第2版 V2-1）高さの帯 PRM-70・71（正本では base_link 基準）を、帯の段（DEC-320 の案 X か Y）で base_link に当て、Nav2 の観測源の min/max_obstacle_height は帯を実質無効にする広い値
+    （新しい PRM）にするか。今は Nav2 が odom・map の z で当てている（設計と実装の不一致）。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-70
+  - PRM-71
+  - ND-09
+  - ND-10
+  - IFD-21
+  resulting_refs: []
+  note: >-
+    推奨は承認。DEC-320 の回答（rosbag で比較検討）は、帯の段の 2 案がどちらも base_link に当てる前提の問いへの答えだが、base_link で当てること自体の承認は明示されていないので確認する。
+    決まらない場合に止まる作業：帯の段の実装。
+  disposition: open_human
+- id: DEC-337
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】（第2版 V2-3）local・global の観測源の obstacle_max_range 2.5 m・raytrace_max_range 3.0 m（今は承認なしの上流の既定値が暗黙に効いている）を、同じ値のまま PRM として宣言するか。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-10
+  - Q-06
+  resulting_refs: []
+  note: 推奨は承認（振る舞いは変わらない）。値を変えるかは、停止距離の実測（Q-06）と MID-360 を入れた設計（第3版）で別に決める。決まらない場合に止まる作業：PRM の宣言。
+  disposition: open_human
+- id: DEC-338
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】（第2版 V2-6）第130便の案 A〜E（DEC-319）の扱い：A（自作の間引きノード）は本番の後へ、B（回答なし）は取り下げ、C（base_link の帯と柱）は DEC-336・DEC-321 に置き換え、
+    RANSAC による地面の推定は MID-360 を入れる設計（第3版）で改めて検討、D（lifecycle の監視）は帯の段が lifecycle でないので取り下げ、E（NDT の前処理は分けたまま）はそのまま。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-319
+  - ND-09
+  resulting_refs: []
+  note: >-
+    推奨は承認。DEC-327（コーンの課題のため MID-360 が本番前に要る）を受けて、RANSAC の扱いを「本番の後」から「第3版で検討」に改めた。決まらない場合に止まる作業：なし（記録の整理）。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

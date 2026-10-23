@@ -1,0 +1,32 @@
+関西大学 KUAMS（つくばチャレンジ2025 チーム番号2564）の調査の証拠（第150便の検討、第151便で登録）
+
+取得日: 2026-10-23
+
+ファイル:
+- tc2025_final_run_results_reduced.csv
+  - 出典: つくばチャレンジ2025 本走行の結果の Google スプレッドシート
+    https://docs.google.com/spreadsheets/d/1iaw7ZpQhZkE2mpo7Z32uIfZj6kFD_93Aee2RyIzMuFI/edit?gid=0（gid=0 を export?format=csv で取得）
+  - 取得した CSV の SHA-256: 2171dac4a61c12a7be4516e3c0542d2d541fbc7b9932e4bf08c251168e1db510（1000 行、20 列）
+  - 変更点（黙って変えないために明記する）:
+    - 最後の 2 列「備考」と「随行委員」を除いた（0〜17 列目だけを残した）
+    - 理由: 個人の名前（随行委員、備考の中の人名）を、公開されているリポジトリに入れないため
+    - 値の変更はない
+  - KUAMS の行: 2564、11:30〜12:40、70分、ゴール、2200m、マイルストーン 3 つとも TRUE、選択課題 5 つとも「不実施」、×（不達成）
+- kuams_repos_read.txt
+  - GitHub の kzm784 のリポジトリを git clone し、読んだときの commit の一覧
+  - 本走行（2025-12-07）より前の commit を読んだ（kuams@750934a、waypoint_manager@7671afa）
+  - waypoint_editor だけは本走行の後の HEAD（自動追加の実装は 2025-11-28 の commit で入った）
+- kuams_comparison.md
+  - リポジトリの外の reports/KUAMSとgoudaの比較.md の写し（2026-10-23 の時点）
+  - KUAMS のコードと gouda（31a6e1d ＋作業ツリー）の比較
+- kuams_summary.md
+  - リポジトリの外の reports/KUAMSの工夫まとめ.md の写し（別のセッション「つくばチャレンジ ロボット調査」が作成）
+  - 64 行の「横断を手動にすれば待機列に並ばなくてよい」は、TK-70 が本走行に適用されるかが未確認で、DEC-368 で確認中
+- kuams_literature.md
+  - リポジトリの外の research_notes/tc2025_他チーム公開コード/kuams_文献調査.md の写し（エージェントの文献調査）
+  - JRM Vol.37 No.6 p.1355（2025）と Vol.38 No.4 p.1073（2026）は、ページが実在し、八木・前の両氏が著者であることを AI が確認した
+  - 本文の内容は、エージェントが読んだもの
+
+照合の状態:
+- 2025 年の参加レポート（report_2564.pdf）は参加者だけが読める（HTTP 401）。未照合
+- KUAMS の本走行時の地図・waypoint・設定は公開されていない

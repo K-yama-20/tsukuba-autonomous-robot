@@ -1,0 +1,183 @@
+# 変更セット REV-161（2026-10-22 第133便: intent.md 第15版、AR-015、DEC-315・316）
+# 適用: design/tools/apply_revision.py REV-161
+id: REV-161
+date: '2026-10-22'
+summary: 第133便：intent.md 第15版（人の編集、SHA-256 b24fce29…、108 行）を AR-015 として記録（DEC-315、RQ-I089〜094、C-030）。本番の失格の条件、必達の 2.2 km、Nav2 の失敗で一時停止に入らずとも良い、優先順位の 0、保護削減の扱い、PC 再起動の後に自律走行へ戻る。読み取れない点を DEC-316 で確かめる。設計・実装は変えていない。
+basis_refs:
+- DEC-315
+- DEC-304
+- DEC-305
+intent_version_copy: design/baselines/intent_history/intent_v15_b24fce29a261.md
+authority_revision:
+  id: AR-015
+  file_id: FILE-INTENT-V15
+  previous_file_id: FILE-INTENT-V14
+  archived_previous_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+  current_copy: design/baselines/intent_history/intent_v15_b24fce29a261.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    1: RQ-I089
+    2: RQ-I090
+    16: RQ-I091
+    33: RQ-I092
+    39: RQ-I093
+    94: RQ-I094
+  decision_ref: DEC-315
+  note: 人の編集（リポジトリ側の design/intent.md、2026-10-22）。第14版との差（人の編集。AI は intent.md を編集していない。current_copy は一字も変えない写し）：1 行（目的）の置換：本番の失格の条件（一時停止モード・3 分の滞留）、衝突は失格でない、随行員とチームメンバーの監視、安全機構は極限まで削減すべき、を足した。2 行の追記：必達は必須課題 2.2 km の完走。以降の行番号は 1 つずれる。16 行（旧 15 行）の置換：「（走行失敗の判定を避け、完走を確実なものとする為、一時停止モードに入らずとも良い。）」を足した。33 行（旧 32 行）の置換：優先順位の前段に「0. 本番で完走できる」を足した。39 行（旧 38 行）の置換：「一方で、走行失敗を防ぐ為の保護削減は行って良いが、必ず報告し、判断台帳にも記録すること。」を足した。94 行（旧 93 行）の置換：PC 再起動後、直前が自律走行なら自律走行に戻る。直前が一時停止なら一時停止、手動走行なら手動走行。事前地図作成の場合の記載がなくなった（DEC-316 で確認）。 途中の版（15 行だけを編集した版、SHA-256 07668b54…、22:19 に観測）は記録していない（人が「intent.md の編集は終わった」と答えた後の版を記録）。
+requirement_ref_replacements:
+  RQ-I001: RQ-I089
+  RQ-I012: RQ-I091
+  RQ-I022: RQ-I092
+  RQ-I027: RQ-I093
+  RQ-I064: RQ-I094
+files: []
+decisions:
+- id: DEC-315
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-22'
+  channel: chat + intent.md
+  question: intent.md 第15版（人の編集：本番の失格の条件、Nav2 の失敗で一時停止に入らずとも良い、優先順位の 0、保護削減の扱い、PC 再起動の後の復帰先）
+  answer_verbatim: |
+    intent.md の編集は終わった。AR-015 として記録して。
+  affected_refs:
+  - FILE-INTENT-V14
+  - RQ-I001
+  - RQ-I012
+  - RQ-I022
+  - RQ-I027
+  - RQ-I064
+  - DEC-200
+  - DEC-305
+  - DEC-304
+  resulting_refs:
+  - AR-015
+  - RQ-I089
+  - RQ-I090
+  - RQ-I091
+  - RQ-I092
+  - RQ-I093
+  - RQ-I094
+  - C-030
+  note: 第14版との差（人の編集。AI は intent.md を編集していない。current_copy は一字も変えない写し）：1 行（目的）の置換：本番の失格の条件（一時停止モード・3 分の滞留）、衝突は失格でない、随行員とチームメンバーの監視、安全機構は極限まで削減すべき、を足した。2 行の追記：必達は必須課題 2.2 km の完走。以降の行番号は 1 つずれる。16 行（旧 15 行）の置換：「（走行失敗の判定を避け、完走を確実なものとする為、一時停止モードに入らずとも良い。）」を足した。33 行（旧 32 行）の置換：優先順位の前段に「0. 本番で完走できる」を足した。39 行（旧 38 行）の置換：「一方で、走行失敗を防ぐ為の保護削減は行って良いが、必ず報告し、判断台帳にも記録すること。」を足した。94 行（旧 93 行）の置換：PC 再起動後、直前が自律走行なら自律走行に戻る。直前が一時停止なら一時停止、手動走行なら手動走行。事前地図作成の場合の記載がなくなった（DEC-316 で確認）。 1 行の追記の文は DEC-304 の人の発言とほぼ同じ。この編集は DEC-305（方針と intent.md の修正案）への回答としては記録しない（DEC-305 への原文の回答がないため、pending のまま）。修正案（design/proposals/intent_edit_request_competition_2026-10-22.md）との関係：§1 は人の文で満たされた。§3 は事前地図作成の扱いを除き満たされた。§4・§5 は人の別の文になった。§2 は許可の形で一部だけ満たされた。読み取れない点は DEC-316 で確かめる。DEC-200（推定不能・Nav2 の失敗で一時停止）は書き換えない。第15版の 16 行で、Nav2 の失敗では一時停止に入らないことが許された。補足：REV-160 の DEC-307・DEC-309 の affected_refs の RQ-I013 は、AR-013 で RQ-I086 に置き換わっていた（AI の参照の誤り。DEC は書き換えず、ここに記録する）。
+- id: DEC-316
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【確認】intent.md 第15版で読み取れない点。(1) 94 行：PC 再起動の前が事前地図作成モードだった場合の復帰先（第14版は一時停止。第15版は記載なし）。(2) 16 行：「一時停止モードに入り、…（…一時停止モードに入らずとも良い。）」で一時停止に入らない場合に何をするか。推定不能・通信異常のときにも及ぶか（1 行の「自動的に一時停止モードに入ったり…極めて致命的」からは及ぶと読める）。(3) 33 行：「0. 本番で完走できる」は、矢印の後の「基本契約を満たす案の中で、1.デバッグ性 2.交換性 3.追加的な安全性向上」でも先頭に来るか。(4) 39 行「走行失敗を防ぐ為の保護削減は行って良いが、必ず報告し、判断台帳にも記録すること」は、DEC-106（実装は個別の許可の後）より優先して、AI が許可なしに保護削減を実装してよいという意味か。
+  answer_verbatim: ''
+  affected_refs:
+  - RQ-I094
+  - RQ-I091
+  - RQ-I092
+  - RQ-I093
+  - TR-02
+  - TR-07
+  - DEC-106
+  - DEC-305
+  - DEC-306
+  - DEC-307
+  - DEC-309
+  resulting_refs: []
+  note: 推奨：(1) 一時停止（第14版と同じ。事前地図作成は人が操縦するので、自動で地図作成に戻さない）。(2) 現在地から残りの waypoint へ goal を出し直して走行を続け（DEC-307）、推定不能・通信異常にも及ぶ（DEC-306）。(3) 先頭に来る（基本契約を満たす案の中で、0 を最優先）。(4) DEC-106 のまま：保護削減の案と記録は AI が出し、実装は項目ごとに人の許可の後。決まらない場合に止まる作業：(1) TR-02 の変更の実装（DEC-309）。(2) DEC-306・307 の実装。(3)・(4) なし（今は DEC-106 に従い、実装を待つ）。
+  disposition: open_human
+entities:
+- id: C-030
+  kind: reconciliation
+  name: 本番の失格の条件と保護の扱い（intent.md 第14版 1・15・32・38・93 行 → 第15版 1・2・16・33・39・94 行）
+  intent_lines:
+  - 1
+  - 2
+  - 16
+  - 33
+  - 39
+  - 94
+  source_from_affected: true
+  related_refs:
+  - DEC-315
+  - AR-015
+  - DEC-304
+  - DEC-305
+  - DEC-316
+  - DEC-200
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs:
+    - RQ-I001
+    - RQ-I012
+    - RQ-I022
+    - RQ-I027
+    - RQ-I064
+    adopted_requirement_refs:
+    - RQ-I089
+    - RQ-I090
+    - RQ-I091
+    - RQ-I092
+    - RQ-I093
+    - RQ-I094
+    scope: 第14版の 1 行（目的）・15 行（Nav2 の失敗で一時停止）・32 行（優先順位）・38 行（双方向の歯止め）・93 行（PC 再起動の後の復帰先）を置き換え、2 行（必達は 2.2 km の完走）を足した第15版（人の編集）。
+    retained_scope: 目的の文の前半、16 行の Nav2 の失敗の記録と原因の区別、33 行の矢印の後、39 行の基本契約を独断で増やさない・追加の保護は提案、94 行の自動復帰後は直前の状態は同一。
+    rationale: 人が intent.md を編集（DEC-315）。設計（TR-02・TR-07 など）の変更は、DEC-305〜313・DEC-316 の回答の後に行う。今回は要求の記録だけで、設計・実装は変えていない。
+    issue_refs: []
+modifications:
+- id: RQ-I001
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-161: intent.md 第15版で目的の文を置換（C-030、DEC-315）。後継は RQ-I089。'
+- id: RQ-I012
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-161: intent.md 第15版でNav2 の失敗の扱いの文を置換（C-030、DEC-315）。後継は RQ-I091。'
+- id: RQ-I022
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-161: intent.md 第15版で優先順位の文を置換（C-030、DEC-315）。後継は RQ-I092。'
+- id: RQ-I027
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-161: intent.md 第15版で双方向の歯止めの文を置換（C-030、DEC-315）。後継は RQ-I093。'
+- id: RQ-I064
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-161: intent.md 第15版で自動復帰・PC 再起動の後の復帰先の文を置換（C-030、DEC-315）。後継は RQ-I094。'
+- id: C-001
+  append:
+    related_refs:
+    - C-030
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I025
+    - RQ-I094
+    - RQ-I065
+    - RQ-I080
+- id: C-005
+  append:
+    related_refs:
+    - C-030
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I091
+    - RQ-I018
+    - RQ-I019
+- id: C-006
+  append:
+    related_refs:
+    - C-030
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I086
+    - RQ-I014
+    - RQ-I025
+    - RQ-I094
+    - RQ-I069
+decision_updates: []

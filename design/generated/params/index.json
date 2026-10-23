@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "30d56680c55b048b3207d5a347e702d98e77e1e1c467b58e57bb9f57e9be6721",
+  "model_entities_sha256": "34dfe2d00641340ddbbcde971a6c06dda3481f557dca2f1bdf86e13ef94df1ca",
   "parameters": [
     {
       "id": "PRM-54",
@@ -23,6 +23,18 @@
       "value_type": "double",
       "value_state": "approved",
       "value": 100.0,
+      "unit": "Hz"
+    },
+    {
+      "id": "PRM-103",
+      "file": "bt_params.yaml",
+      "key": "replan_rate_hz",
+      "target": "navigate_through_poses BT（RateController hz）",
+      "declaration": "bt_xml",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 1.0,
       "unit": "Hz"
     },
     {
@@ -394,7 +406,7 @@
       "apply_timing": "lifecycle_configure",
       "value_type": "double",
       "value_state": "approved",
-      "value": 0.5,
+      "value": 0.7,
       "unit": "m"
     },
     {
@@ -886,7 +898,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 1.185,
+      "value": 1.085,
       "unit": "m"
     },
     {

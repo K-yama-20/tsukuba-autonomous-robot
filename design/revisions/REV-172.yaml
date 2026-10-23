@@ -1,0 +1,36 @@
+# 変更セット REV-172（2026-10-23 第147便: DEC-361 への人の回答と実装。NTRIP の中継を TLS（stunnel4）で包む）
+# 適用: design/tools/apply_revision.py REV-172
+id: REV-172
+date: '2026-10-23'
+summary: >-
+  第147便：人の指示（原文「認証系を直して」、方法の選択「stunnel4 で包む (Recommended)」）で DEC-361 案 a を実装した。
+  中継は gouda_core.ntrip_relay_runner が stunnel4 と str2str を起動する形にした。str2str は 127.0.0.1 の空いた口の stunnel4 にだけつなぎ、
+  stunnel4 が caster へ TLS（証明書の連鎖とホスト名を確かめる）でつなぐ。接続の情報は runner の標準入力と stunnel4 の標準入力でだけ渡し、ファイル・argv・記録に出さない
+  （str2str の argv には今までどおり user・password・mountpoint が入る。caster の名前は入らない）。stunnel4 がなければ中継を起動しない（平文の道はない）。
+  stunnel4 のログは TLS の出来事の種類（connected など）だけにして ntrip_tls_state として記録する。setup.sh の apt に stunnel4・ca-certificates を足した。
+  あわせて、中継を起動しないときも USB2 の by-id を見張るようにした（起動しない中継が sensor supervisor の見張りの thread を AttributeError host_ip で止めた回帰の修正）。
+basis_refs:
+- DEC-361
+- DEC-139
+- DEC-156
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: ND-19
+  interpretation_append: >-
+    REV-172（DEC-361 案 a）：ネットワーク RTK の補正は sensor supervisor（ND-18）が起動する中継（gouda_core.ntrip_relay_runner）が受ける。
+    str2str（RTKLIB、TLS なし）は 127.0.0.1 の stunnel4 にだけつなぎ、stunnel4 が caster へ TLS（verifyChain・checkHost）でつなぐ。caster は TLS 専用（第145便）。
+    stunnel4 がなければ中継を起動しない。接続の情報は gnss_rtk.yaml の ntrip の節から中継だけが読み、標準入力で渡す（DEC-139）。ドライバには渡さない。
+decision_updates:
+- id: DEC-361
+  set:
+    status: answered
+    answered_on: '2026-10-23'
+    disposition: answered
+    resulting_refs:
+    - ND-19
+    answer_verbatim: |
+      認証系を直して
+      （方法の選択への回答）stunnel4 で包む (Recommended)

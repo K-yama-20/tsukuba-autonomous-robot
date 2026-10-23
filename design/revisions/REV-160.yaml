@@ -1,0 +1,240 @@
+# 変更セット REV-160（2026-10-22 第132便: 本番で自動で一時停止しない方針の承認事項）
+# 適用: design/tools/apply_revision.py REV-160
+id: REV-160
+date: '2026-10-22'
+summary: 第132便：人の発言（DEC-304、原文）により、本番で自動で一時停止に入る・止まり続ける・回避を窮屈にする仕組みを洗い出し、方針を提案 design/proposals/competition_no_auto_pause_2026-10-22.md に、intent.md の修正案を design/proposals/intent_edit_request_competition_2026-10-22.md にまとめた。確定済みの DEC-200 と intent.md 第14版の 15・93・38 行と衝突するため、承認事項 DEC-305〜313 と実測 DEC-314 を登録する。コード・設定は変えていない（人の指示「実装はまだしない」）。
+basis_refs:
+- DEC-200
+- DEC-201
+- DEC-106
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files: []
+decisions:
+- id: DEC-304
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-22'
+  channel: chat
+  question: 本番の失格の条件と、自動の一時停止・安全機構の扱い（人の発言）、および方針の登録の指示
+  answer_verbatim: |
+    （人の発言の原文、時系列の番号つき）
+    1.「つくばチャレンジでは、一時停止モードに入ったり、同じ場所で3分以上滞留（1mくらいの前進が出来ない場合）してしまうと、走行失敗と判定されてしまう。衝突そのものは失敗と判断されない。ロボットには随行員が1名とチームメンバー2人が常時近くを歩いて監視している。よって、自動的に一時停止モードに入ったり、回避動作が満足に出来ない設定になっていることは極めて致命的である。逆に、ロボット自体の安全機構は極限まで削減すべきだと言える。
+    つくばチャレンジでの必達事項は、「必須課題」2.2kmの完走である。
+
+    現在の状況および、君の方針をまとめよ。」
+    2.「方針の項目を承認事項として判断台帳に登録し、intent.md の修正案も作って。実装はまだしない。」
+  affected_refs:
+  - DEC-200
+  - DEC-201
+  - TR-07
+  - TR-02
+  - RQ-I012
+  - RQ-I064
+  - RQ-I027
+  - RQ-I022
+  resulting_refs:
+  - DEC-305
+  - DEC-306
+  - DEC-307
+  - DEC-308
+  - DEC-309
+  - DEC-310
+  - DEC-311
+  - DEC-312
+  - DEC-313
+  - DEC-314
+  note: 大会の規則の原文は AI が読んでいない（原本未照合）。失格の条件は人の発言による。この発言は確定済みの DEC-200（推定不能・Nav2 の失敗で一時停止）と intent.md 第14版の 15 行（RQ-I012）・93 行（RQ-I064）・38 行（RQ-I027）と衝突するため、黙って適用せず承認事項 DEC-305〜313 と実測 DEC-314 にした（CLAUDE.md 1.1）。2 の指示により、実装はしない（DEC-106）。方針は design/proposals/competition_no_auto_pause_2026-10-22.md、intent.md の修正案は design/proposals/intent_edit_request_competition_2026-10-22.md。
+- id: DEC-305
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認・方針】本番で、自律走行中に自動で一時停止モードに入るのを最後の waypoint への到達（TR-08）だけにし、それ以外の異常（推定不能・Nav2 の失敗・開始の手順の失敗・ドライバの終了・PC 再起動）では原因を記録して走行を続ける方針にするか。あわせて intent.md の修正案（design/proposals/intent_edit_request_competition_2026-10-22.md §1〜5）を採るか。確定済みの DEC-200 を置き換える。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-200
+  - DEC-201
+  - TR-07
+  - TR-02
+  - TR-08
+  - RQ-I012
+  - RQ-I064
+  - RQ-I027
+  - RQ-I022
+  - RQ-I025
+  resulting_refs: []
+  note: 推奨は承認（§1〜3 は必須、§4・5 は任意）。理由：人の発言 DEC-304 によれば一時停止＝失格、衝突は失格でない。DEC-200 の理由（実験で Nav2 の失敗が外から見えること）は、失敗の原因・回数・時刻を monitor とログに目立つ形で出すことで代える。変えないもの：基本契約（手動操作の優先、ゲームパッドの途絶で中立、開始は人の操作だけ、人の一時停止・終了の後は自動で走らない）、ESP32 の PC 指令の watchdog（PRM-13）、記録と原因の区分。代替案：単一の起動経路（gouda.sh start）に、実験と本番の切り替えを足す（実験では一時停止する）。起動の選択肢を増やすので推奨しない。振る舞いの違い：異常のとき、車体は止まらずに走り続ける。止める手段は人の一時停止ボタンとゲームパッドの手動操作になる。決まらない場合に止まる作業：DEC-306〜311 の実装。intent.md の編集は人が行う。詳細は design/proposals/competition_no_auto_pause_2026-10-22.md。
+  disposition: open_human
+- id: DEC-306
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】推定不能（ND-07 の状態が正常でない、PRM-89〜92 の条件、状態の途絶 PRM-93）のとき、一時停止せずに走り続けるか。推奨は、map→odom を最後の値に保ち（GLIM の odometry で走る）、ND-07 は推定を続け、推定不能の続く時間・原因を monitor とログに出す。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - ND-03
+  - TR-07
+  - PRM-89
+  - PRM-90
+  - PRM-91
+  - PRM-92
+  - PRM-93
+  - DEC-286
+  - DEC-200
+  - RQ-I064
+  resulting_refs: []
+  note: 推奨は承認。理由：今は状態が 1 通でも正常でないと即一時停止し（猶予なし）、実車の 4 回の開始のうち 3 回がこれで止まった（第117・121・123便）。intent.md:93（RQ-I064）の前半は推定不能からの自動復帰を求めており、これと合う。代替案 1：推定不能が T 秒（tbd）続いたときだけ一時停止。本番では失格になるので推奨しない。代替案 2：推定不能の間は SpeedLimit の経路で速度を下げる（独自の抑制は intent.md:26 と衝突）。リスク：推定がずれたまま走るとコースを外れる。随行者のゲームパッドでの介入が前提。承認されれば DEC-286（PRM-92）は一時停止のしきい値から警告のしきい値に意味が変わる。決まらない場合に止まる作業：この項目の実装。DEC-287 の直しは止まらない。
+  disposition: open_human
+- id: DEC-307
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】Nav2 の goal が失敗で終わったとき（TR-07 plan_failure）と、自律走行の開始の手順が失敗したとき（service がない・lifecycle の失敗・goal の拒否・Nav2 STARTUP の失敗）、一時停止せずに、失敗を記録してから現在地から残りの waypoint へ goal を出し直し続けるか。開始の手順の失敗では Nav2 を RESET してやり直す。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-03
+  - ND-10
+  - TR-07
+  - TR-09
+  - RQ-I012
+  - RQ-I013
+  - DEC-287
+  - DEC-200
+  - PRM-18
+  resulting_refs: []
+  note: 推奨は承認。出し直しの前に旧 goal の終了を確かめる（intent.md:16 の順序）。出し直しの回数に上限を置かない（回数・理由は記録し、50 回ごとの記録は G-RECOVERY-COUNT のまま）。DEC-287（Nav2 が残る件の直し）が前提。代替案：出し直しが N 回（tbd）続いたら一時停止。本番では失格になるので推奨しない。注意：同じ場所での出し直しの繰り返しは滞留になるので DEC-310 と組み合わせる。決まらない場合に止まる作業：この項目の実装。
+  disposition: open_human
+- id: DEC-308
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】自律走行中にセンサードライバ（XT-32・IMU・GNSS など）が終了したとき、gouda_sensor_supervisor が同じ設定で作り直すか（今は同じデバイスのドライバを作り直さず、点群が古くなって推定不能→一時停止になる）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-18
+  - ND-07
+  - G-LIDAR-DROPOUT
+  resulting_refs: []
+  note: 推奨は承認（作り直しの回数・理由・時刻を記録）。IMU（ADIS16607）は止めて起こし直すと USB の挿し直しまで答えないことがある（既知）ので、作り直しで直らないときも記録して走行は続ける（DEC-306 と組み合わせる）。代替案：作り直さず、DEC-306 だけで走り続ける。決まらない場合に止まる作業：この項目の実装。
+  disposition: open_human
+- id: DEC-309
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】PC の再起動の後（TR-02）と、プロセスの異常の後（TR-13、未実装）に、直前が自律走行で人の一時停止・終了の操作の後でなければ、自律走行へ自動で戻るか。初期姿勢は最後に記録した推定の姿勢を使う。
+  answer_verbatim: ''
+  affected_refs:
+  - TR-02
+  - TR-13
+  - TR-09
+  - RQ-I064
+  - RQ-I013
+  - RQ-I025
+  - ND-03
+  - G-RECOVERY
+  resulting_refs: []
+  note: 推奨は承認（intent.md:93 の修正が要る：design/proposals/intent_edit_request_competition_2026-10-22.md §3）。順序は intent.md:16（プロセス再起動 → mission の復元 → 旧 goal の終了の確認 → 指令の再許可）。今は PC 再起動後は一時停止（初期姿勢が要る）で、再開も拒否される。代替案：プロセスの異常（TR-13）だけ自動で戻し、PC 再起動（TR-02）は今のまま。リスク：PC 再起動の間に車体が動いていた場合、最後の推定の姿勢がずれている。決まらない場合に止まる作業：TR-13 と TR-02 の変更の実装。
+  disposition: open_human
+- id: DEC-310
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】3 分の滞留を避けるため、mode_manager が「最後に 1 m 進んでからの時間」を見て段階を上げるか。段 1：costmap の消去と今の BT の recovery。段 2：inflation を小さくし、未知の格子を空きとみなす（Nav2 の parameter を走行中に変える）。段 3：今の waypoint を飛ばして次へ goal を出し直す。前進できたら段を戻す。各段の時間は tbd（DEC-314）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-03
+  - ND-10
+  - ND-09
+  - PRM-18
+  - PRM-72
+  - PRM-98
+  - RQ-I012
+  - DEC-216
+  - G-RECOVERY
+  resulting_refs: []
+  note: 推奨は承認。理由：今は回復できる失敗（NO_VALID_CONTROL・PATIENCE_EXCEEDED・FAILED_TO_MAKE_PROGRESS・NO_VALID_PATH）で、止まって recovery を延々と繰り返す（PRM-18＝9999999）。段 2 は intent.md:15 の「観測外を安全とみなさない」と衝突する（design/proposals/intent_edit_request_competition_2026-10-22.md §2）。代替案：Nav2 の BT の中で段階を上げる（Nav2 本体は改変しない）。waypoint の通過の判定は Nav2 が行う（intent.md:14）ので、段 3 の「飛ばす」が intent.md と合うかを人が確かめる。決まらない場合に止まる作業：この項目の実装。
+  disposition: open_human
+- id: DEC-311
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】motion_hold を、速度制限が applied かつ keepout のマスクの確認済みのとき（DEC-056・DEC-224）ではなく、Nav2 の goal が受け付けられたときに解くか。確かめられない間は monitor とログに警告を出す。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-03
+  - DEC-056
+  - DEC-224
+  - TR-10
+  resulting_refs: []
+  note: 推奨は承認。理由：速度制限の帯の外で開始・再開・出し直しをすると hold が解けず、自律走行のまま速度 0 が続く（一時停止にもならず、滞留で失格）。リスク：速度制限が効かない間は Nav2 の上限（PRM-66）まで出うる。マスクが効かない間は禁止の範囲に入りうる。代替案：開始のときだけ確かめ、再開・出し直しのときは確かめない。決まらない場合に止まる作業：この項目の実装。
+  disposition: open_human
+- id: DEC-312
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】ESP32 は PC 指令の watchdog（PRM-13）で PC を外した後、x＝y＝0 の指令が来るまで PC の指令を受け付けない（control.hpp:183）。vehicle_bridge が /esp32/status の PC 無効を見たら中立の COMMAND を 1 回送って再許可させるか。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-12
+  - ND-17
+  - PRM-13
+  resulting_refs: []
+  note: 推奨は承認（firmware は変えない）。理由：Nav2 が 0 でない指令を出し続けると中立のまま止まる（Nav2 が止まって 0 を出せば戻るので、優先は低い）。代替案：firmware の再許可の条件をなくす。watchdog（PRM-13）自体は基本契約（intent.md:97）なので変えない。この再許可の条件の根拠になった判断は台帳で見つけていない（未確認）。決まらない場合に止まる作業：この項目の実装。
+  disposition: open_human
+- id: DEC-313
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【承認】回避・前進を窮屈にしている設定を緩める向きで見直すか。対象：inflation（PRM-72＝1.0 m）、未知の格子の扱い（DEC-216、track_unknown_space）、keepout の override_lethal_cost と壁と同じ膨らませ方（DEC-222・DEC-227）、RPP の衝突検出（上流の既定値）、進み具合の判定（0.5 m／10 s）。値は DEC-314 の実測で決め、それまでは今の値のまま。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-09
+  - ND-10
+  - PRM-72
+  - PRM-98
+  - PRM-69
+  - DEC-216
+  - DEC-222
+  - DEC-227
+  - DEC-229
+  resulting_refs: []
+  note: 推奨は承認（緩める向きの方針だけ。値は推測で決めない）。理由：車幅 0.6 m に対して inflation 1.0 m で、歩道や人の間で通れないと滞留になる。衝突は失格ではない（DEC-304）。リスク：壁・縁石・人に寄る。車体の破損や人へのけがの扱いは人が判断する。代替案：今の値のまま、DEC-310 の段 2 で滞留のときだけ緩める。決まらない場合に止まる作業：値の変更。
+  disposition: open_human
+- id: DEC-314
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on:
+  channel: chat
+  question: 【実測】DEC-310 の各段の時間と、DEC-313 の値（inflation、RPP の衝突検出の有無・時間、進み具合の判定、keepout の膨らませ方）を、実車で測って決める。歩道の幅・人の間・縁石の近くで、通れる最小の隙間と、滞留から抜けるまでの時間を記録する。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-310
+  - DEC-313
+  - DEC-229
+  - PRM-72
+  resulting_refs: []
+  note: 担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。証拠（ログ・条件・日付）のない値は確定扱いにしない。各段の時間は 3 分より十分短くする（具体の値は tbd）。決まらない場合に止まる作業：DEC-310・313 の値の確定。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

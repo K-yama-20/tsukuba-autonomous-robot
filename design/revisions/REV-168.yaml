@@ -1,0 +1,157 @@
+# 変更セット REV-168（2026-10-23 第142便: 推定不能の間の補い方の調べと提案、承認事項・実測 DEC-350〜354）
+# 適用: design/tools/apply_revision.py REV-168
+id: REV-168
+date: '2026-10-23'
+summary: >-
+  第142便：人の要望（推定不能の間はフィルタなどの数理的な手法で補って走り続けたい。慎重に調べること）で、原因の区分と続く時間、補う手法 (a)〜(f) の比較、
+  戻すときの段差の扱い、ずれたまま走ることの検出、rosbag の再生での評価の方法を調べ、提案 design/proposals/localization_gap_bridging_2026-10-23.md を作った。
+  GLIM の odometry のずれの下限を、VM の地図の dump から読むだけで見積もった（証拠 research/vehicle_pc/2026-10-23_glim_odom_drift/）。
+  承認事項 DEC-350〜353 と実測 DEC-354 を登録する。コード・設定・パラメータは変えていない（DEC-106）。
+basis_refs:
+- DEC-340
+- DEC-342
+- DEC-306
+- DEC-286
+- DEC-114
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-GLIM-ODOM-DRIFT-NOTES
+  path: design/research/vehicle_pc/2026-10-23_glim_odom_drift/notes.txt
+  role: evidence
+- id: FILE-GLIM-ODOM-DRIFT-SCRIPT
+  path: design/research/vehicle_pc/2026-10-23_glim_odom_drift/glim_odom_drift.py
+  role: evidence
+- id: FILE-GLIM-ODOM-DRIFT-OUTPUT
+  path: design/research/vehicle_pc/2026-10-23_glim_odom_drift/glim_odom_drift_output.txt
+  role: evidence
+decisions:
+- id: DEC-350
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認・方針】推定不能の間の補い方を次にするか：新しいフィルタ（IMU による予測、因子グラフ）は今は足さない。推定不能の原因の区分で扱いを分け、
+    入力の途切れ（GLIM も止まる LiDAR のリンク断）は止まって待つ。照合の質の低下（NVTL の低下・NDT の姿勢の欠け・NDT と GLIM の食い違い）と計算の詰まりは、
+    map→odom を最後の信頼できる値に固定して GLIM の odometry で進み、距離 D・時間 T（tbd）を超えたら止まって回復を待つ（DEC-342 の案 c の具体化）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-306
+  - DEC-340
+  - ND-07
+  - ND-03
+  - ND-08
+  - TR-07
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：車輪のエンコーダがなく GNSS も今は使えないので、新しいフィルタを足しても使える情報は増えず、ずれは小さくならない。調整の値が増え、共分散の誤りで
+    静かにずれる危険が増える（人の懸念と同じ）。今の作りでも NDT が止まると EKF は GLIM の速度で予測しており、ずれは GLIM とほぼ同じ。GLIM の odometry のずれの下限は
+    50 m あたり p95 で 0.06〜1.18 %（4 回の地図作成、FILE-GLIM-ODOM-DRIFT-OUTPUT。基準は真値でなく下限）。止まっている間は GLIM はずれない（第125便の記録）。
+    LiDAR のリンク断は 2.7〜4.2 s（2026-10-14 の記録、2026-10-17 の検証の rosbag）で、その間は GLIM も止まるので、止まって待っても失うのは数秒。
+    固定する理由：NDT は収束しないと姿勢を出さない（autoware_core 1.9.0 ndt_scan_matcher_core.cpp:742）が、収束したと判定した誤った姿勢は EKF に取り込まれる。
+    EKF の棄却は 2 乗でない距離と pose_gate_dist 49.5 を比べる（ekf_module.cpp:302-306、mahalanobis.cpp）ので、49.5σ を超えるまで棄却せず、実質ない。固定すれば使っているものが二値で記録に残り、再生で再現できる（intent のデバッグ性）。
+    代替案：今のまま EKF の予測に任せる、IMU の予測で進む（robot_localization）、因子グラフ（fuse、apt にある）。NDT の共分散の推定（上流の covariance_estimation_type）は
+    段階 2 として、評価（DEC-354）の後に別の承認で出す。新しい値 D・T は DEC-354 で実測。提案 localization_gap_bridging_2026-10-23.md §4・§7。
+    決まらない場合に止まる作業：原因の区分ごとの扱いの実装。DEC-305・342 が前提（待機に入らない）。
+  disposition: open_human
+- id: DEC-351
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】推定が戻ったときの扱い：(1) 回復の判定は、NDT が姿勢を出し NVTL が PRM-90 以上、NDT の姿勢の動きが同じ時間の GLIM の動きと δ 以内で合い、
+    推測の姿勢との差が予算 e0＋ε×（推定不能の間に進んだ距離）の中、を連続 N 回満たすこと。予算の外なら疑わしい回復として受け入れない。
+    (2) 差が J 以下なら map→odom を速さ v_c・角速度 ω_c を超えないように寄せ、J を超えるなら止まってから一度に直し、残りの waypoint へ goal を出し直す。値は tbd。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-346
+  - ND-07
+  - ND-03
+  - IFD-18
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：今は NDT が戻ると EKF が取り込み、map→odom がずれの大きさだけ短い時間で動く。Nav2 の controller（Regulated Pure Pursuit）は map の経路を
+    odom に直して追うので、map→odom が跳ぶと経路が横にずれて急に曲がる（推測）。止まっている車体に段差を与えても動きには出ない。誤った所への回復を、予算の外として拒める。
+    代替案：段差をそのまま受け入れる（今の作り）、いつも止まって直す（滞留が増える）。新しい値 N・δ・J・v_c・ω_c は DEC-354 で実測。提案 §5。
+    決まらない場合に止まる作業：回復の判定と戻し方の実装。
+  disposition: open_human
+- id: DEC-352
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】ずれたまま走ることへの備え：(1) 推定不能になってから進んだ距離 D・時間 T（止まっている時間を除く）の上限を超えたら必ず止まる、
+    (2) 正常の間も、短い時間の NDT の動きと GLIM の動きの差が δ を超えたら NDT を信じない（推定不能と同じ扱い）、
+    (3) 食い違いが続きどちらが狂っているか分からないときは止まって確かめる（止まっていれば GLIM は動かない）。値は tbd。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-286
+  - ND-07
+  - PRM-89
+  - PRM-90
+  - PRM-91
+  - PRM-92
+  resulting_refs: []
+  note: >-
+    推奨は承認。D は「コースの横の余裕 M」と実測のずれの割合 ε から D＝(M−e0)/ε とする案（M は場所で違う。規則の「大きく離れる」は数値が未定義：Q-G8）。
+    EKF の共分散（PRM-92）は、GLIM の実際のずれから求めた値ではない（PRM-82・83 は固定値）ので、ずれの大きさの目安に使わない。
+    重大な注意：どれも位置が正しいことの証明ではない。NDT が誤った所に収まり GLIM の動きとも合う場合は検出できない。検出できるのは絶対の手がかり（RTK の GNSS、DEC-290）か人だけ。
+    代替案：予算だけ（見張りなし）、見張りだけ（予算なし）。提案 §6。決まらない場合に止まる作業：上限と見張りの実装。
+  disposition: open_human
+- id: DEC-353
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】予算を超えて止まり、W 秒（tbd）待っても推定が戻らないとき、止まったまま Autoware の ndt_align_srv（今の初期化で使っている探索）で、
+    推測の姿勢のまわりを探して再初期化するか。結果は DEC-351 の回復の判定を通してから使う。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-340
+  - ND-07
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：人の発言（DEC-340）の「時間がたつと推定できるようになる」に加えて、ずれが大きくなって NDT の初期値の範囲を外れた場合にも戻れる。
+    危険：似た形の場所での誤った回復。止まっているときだけ行い、回復の判定を厳しくする。探索の間は計算が重い（VM で初期化の探索中 NDT が 185〜218 %、第123便の top）。
+    探索の広さは予算から決める。代替案：再初期化しない（戻るまで待つだけ）、人が初期姿勢を与える（本番では操作が失敗になる：DEC-345）。提案 §7。
+    決まらない場合に止まる作業：再初期化の実装。
+  disposition: open_human
+- id: DEC-354
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】rosbag の再生に故障を入れて（NDT への点群を T 秒止める、方位・距離で点を消す・人の大きさの点の塊を足す、全部の点群を 3.5 s 止めて GLIM も作り直す）、
+    ずれの割合 ε、回復の時間と誤った回復の回数、戻るときの map→odom の段差、見逃しと空振り、止まった回数と時間、計算の重さを測り、
+    D・T・W・N・δ・J・v_c・ω_c と受入の条件 K2〜K6 の値を人が決める。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-346
+  - DEC-293
+  - DEC-349
+  - DEC-114
+  - ND-07
+  - ND-08
+  resulting_refs: []
+  note: >-
+    担当：人は外付け（Crucial_4TB。2026-10-23 は Mac につながっていない）の接続と、新しい記録（同じ区間を 2 回、人混み DEC-293、段差 DEC-349、GLIM で進むずれ DEC-346 の (2)）、
+    受入の値の決定。AI は評価用のスクリプト（VM の ~/loc_eval_ws、製品のコードではない、乱数の seed を固定）と解析を担当する。K1 は承認済みの DEC-114 の条件をそのまま使う。
+    再生は開ループなので、止まる・寄せることへの車体の反応は見られない（Nav2 の模擬で別に見る案）。証拠（rosbag・条件・スクリプト・日付）のない値は確定扱いにしない。
+    計算機は VM（DEC-333）。本番の計算機の計算の余裕は別に測る。提案 §8。決まらない場合に止まる作業：値の確定、実車での走行。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

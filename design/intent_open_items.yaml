@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 23
+pending_decision_count: 81
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -357,10 +357,10 @@ issues:
     question: 最新の復旧順序と故障別復帰先に対応する下位設計は未実施。
     next_action: 必要状態だけの復元・旧goal処理を次段階で具体化。人の追加承認や新モードを追加しない。
     intent_lines:
-      - 36
-      - 93
-      - 98
+      - 105
       - FILE-INTENT:16
+      - FILE-INTENT:36
+      - FILE-INTENT:92
     affected_refs:
       - RQ-I013
       - RQ-I025
@@ -456,10 +456,10 @@ issues:
     question: 独立した記録操作・自動開始条件・欠落追跡の具体IFと状態所有者が不足。
     next_action: 最新要求の範囲内で次段階に設計。復帰時の無断自動Recordを追加しない。
     intent_lines:
-      - 19
-      - 20
-      - 21
-      - 8
+      - 12
+      - 24
+      - FILE-INTENT:19
+      - FILE-INTENT:21
     affected_refs:
       - RQ-I005
       - RQ-I015
@@ -726,11 +726,11 @@ issues:
       firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 
       DEC-050。firmware の版は本文書の版（v4）と build id で管理
     intent_lines:
-      - 102
-      - 34
-      - 35
-      - 49
-      - 97
+      - 104
+      - 109
+      - 40
+      - 56
+      - FILE-INTENT:34
     affected_refs:
       - ND-17
       - IFD-17
@@ -764,8 +764,8 @@ issues:
       機は変えていない。 VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。
       残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。'
     intent_lines:
-      - 8
-      - 9
+      - 12
+      - FILE-INTENT:9
     affected_refs:
       - IFD-21
       - ND-14
@@ -965,7 +965,12 @@ issues:
       側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend
       mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20
       屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測
-      0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。'
+      0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。
+      2026-10-22（REV-157）: 屋外の確認はまだ。2026-10-22 の実の地図作成 3 回の GNSS 記録はすべて mode 0・方位 error 1（屋内か空が見えない所と推測）。提案 gnss_improvements_2026-10-22.md
+      §2.1 で、方位と RTK（中継）を 1 回の屋外の確認でまとめて確かめる案。 2026-10-22（REV-158、FILE-GNSS-NO-TRACKING-INVESTIGATION）：屋外（第114便）でも衛星を
+      1 つも追尾しない（MeasEpoch n 0、時刻不明）。2026-10-19 朝は屋内で衛星 13〜17 を捕まえており、捕まえなくなったのは DualAnt と reset の後から。REV-083（2026-10-20）の「屋内のため観測
+      0（期待どおり）」は AI の誤り（確かめていない仮定）。Gouda のコード（ドライバの設定・中継）が追尾を止めている証拠はない。最も疑わしいのは DualAnt（AI が利得などの条件を確かめずに勧めた）。次：DEC-299（T1
+      読むだけ）、DEC-300（T2 Nominal に戻す）。'
     intent_lines: []
     affected_refs:
       - ND-19
@@ -1133,12 +1138,6 @@ pending_decisions:
     status: pending
     question: 【実測】禁止の範囲どうしの隙間の警告のしきい値（DEC-227 の追加）。車体（PRM-69）が、案 A の設定の Nav2 で通れる最小の隙間。まっすぐ通る場合と曲がる場合
     resulting_refs: []
-  - id: DEC-286
-    kind: approval
-    status: pending
-    question: 【承認・実測】止まっている実車で、EKF の x・y の標準偏差が 0.51〜0.54 m となり、PRM-92（0.5 
-      m、実測ではない）をわずかに超えて「推定不能」になり、自律走行開始が一時停止した。どう扱うか
-    resulting_refs: []
   - id: DEC-287
     kind: approval
     status: pending
@@ -1150,4 +1149,392 @@ pending_decisions:
     status: pending
     question: 【確認・安全】地図作成の間（2026-10-22 03:14:30〜03:15:35）、ESP32 は 11 回「手動の優先（manual_override）」を出し、その間だけ GLIM 
       は車体が動いた（合計 7.54 m、514 度）と推定した。人は「ずっと同じ位置にいた」と言っている。その間にゲームパッドを操作したか（誰かが車体を動かしたか）
+    resulting_refs: []
+  - id: DEC-290
+    kind: approval
+    status: pending
+    question: 【承認・方針】観客・他のロボットが多い本番で、自己位置推定を LiDAR だけに頼らないための方針を、提案 crowd_robust_localization_2026-10-22.md §5
+      の a（品質で重みを変える GNSS・NDT・GLIM の融合）、b（GNSS＋IMU が主、LiDAR は補助）、c（NDT が主のまま、LiDAR 
+      の対策と食い違いの見張りだけ）、d（区間ごとの切り替え）のどれにするか
+    resulting_refs: []
+  - id: DEC-291
+    kind: approval
+    status: pending
+    question: 【承認】NDT に入れる点を、地面からの高さ h 以上（人の頭より上）に絞る設定を gouda_a3_points に足すか。h の値は tbd（DEC-293 で決める）
+    resulting_refs: []
+  - id: DEC-292
+    kind: approval
+    status: pending
+    question: 【承認・ハードウェア】LiDAR と GNSS の両方が弱いときに位置を保つ手段として、車輪のエンコーダを足す検討を始めるか
+    resulting_refs: []
+  - id: DEC-293
+    kind: measurement
+    status: pending
+    question: 
+      【実測】人混みの中の自己位置推定を評価するため、XT-32・IMU・GNSS（RTK）を同時に記録するか。いつ・どこで記録するか（本番のコースの区間で人の多い時と少ない時、チームの人が車体の周りを歩く試験）
+    resulting_refs: []
+  - id: DEC-294
+    kind: approval
+    status: pending
+    question: 【承認】地図作成の開始の警告に GNSS を足す（RTK fix でない・方位が出ていないとき「この地図は GNSS と対応づけられない」。地図作成は止めない）。地図の manifest に 
+      GNSS の質の要約（RTK fixed・float・単独・解なし、方位 fixed の件数）を書き、地図の一覧に GNSS 対応の可否を出す（提案 
+      gnss_improvements_2026-10-22.md §2.2 A・B）。
+    resulting_refs: []
+  - id: DEC-295
+    kind: approval
+    status: pending
+    question: 【承認】副アンテナの見張り：主アンテナで衛星が見えているのに方位が「測定が足りない」（AttEuler error 1）のまま続くとき、monitor 
+      に「副アンテナの観測なし（frontend mode・ケーブルを確認）」と出す（提案 §2.2 C）。続く時間のしきい値は新しい値（tbd、屋外の確認で決める）。
+    resulting_refs: []
+  - id: DEC-296
+    kind: approval
+    status: pending
+    question: 【承認】ドライバの雛形の ntp_server（true）を Gouda の差し込みで false にする（提案 §2.2 D）。受信機（firmware 1.1.1）は sntp, on 
+      を毎回拒否し、起動のたびに ERROR が出る。Gouda は受信機の NTP を使わない。
+    resulting_refs: []
+  - id: DEC-297
+    kind: approval
+    status: pending
+    question: 【承認】地図作成の GNSS の記録（gnss.jsonl）に、受信機の状態（ReceiverStatus の AGC、QualityInd）を足す（提案 §2.2 
+      F）。頻度はドライバの雛形の 500 ms のまま。
+    resulting_refs: []
+  - id: DEC-298
+    kind: approval
+    status: pending
+    question: 【承認】apt の str2str は NTRIP v1（HTTP/1.0、Basic 認証）で TLS がなく、認証は base64 
+      で暗号化されずにネットワークを流れる（FILE-RTKLIB-STR2STR-REVIEW）。これを受け入れて屋外で RTK を試すか。
+    resulting_refs: []
+  - id: DEC-299
+    kind: approval
+    status: pending
+    question: 【承認】試験 T1（読むだけ）：受信機を VM につなぎ、Gouda を止めたまま（mode を先に確かめる）受信機の電源を入れ直し、USB1 を mrtk relay で 60 
+      秒ほど生のまま記録する（コマンドは送らない）。ReceiverStatus の AGC・RxError と MeasEpoch の観測の数を読む（記録 
+      gnss_no_tracking_investigation_2026-10-22.md §4）。
+    resulting_refs: []
+  - id: DEC-300
+    kind: approval
+    status: pending
+    question: 【承認】試験 T2（受信機の設定の変更）：frontend mode を元の Nominal に戻す（USB2 で sfm, Nominal → eccf, Current, Boot → 
+      exeResetReceiver, Hard, none）。衛星を捕まえるようになれば、DualAnt が原因と決まる。
+    resulting_refs: []
+  - id: DEC-301
+    kind: approval
+    status: pending
+    question: 【承認】試験 T3（caster への接続だけ）：gnss_rtk.yaml を読み、caster に NTRIP の要求を 1 回送って、応答の状態の種類（接続できない・HTTP 
+      の状態の番号など）だけを出す小さな確かめ。値（認証・caster・マウントポイント）は出さない。
+    resulting_refs: []
+  - id: DEC-302
+    kind: approval
+    status: pending
+    question: 【承認】今回の調べで見えたプログラムの改善：(1) monitor の GNSS の欄に MeasEpoch の観測の数と受信機の時刻の有無を出し「衛星 0」を区別する、(2) 中継の 
+      str2str の msg を秘密を含まない種類（connect error の番号・timeout・disconnected・HTTP の状態の番号）に分けて記録する、(3) 受信機の 
+      AGC・アンテナの給電の状態を読む道具（T1 の方法）を用意する。
+    resulting_refs: []
+  - id: DEC-305
+    kind: approval
+    status: pending
+    question: 【承認・方針】本番で、自律走行中に自動で一時停止モードに入るのを最後の waypoint への到達（TR-08）だけにし、それ以外の異常（推定不能・Nav2 
+      の失敗・開始の手順の失敗・ドライバの終了・PC 再起動）では原因を記録して走行を続ける方針にするか。あわせて intent.md 
+      の修正案（design/proposals/intent_edit_request_competition_2026-10-22.md §1〜5）を採るか。確定済みの DEC-200 を置き換える。
+    resulting_refs: []
+  - id: DEC-307
+    kind: approval
+    status: pending
+    question: 【承認】Nav2 の goal が失敗で終わったとき（TR-07 plan_failure）と、自律走行の開始の手順が失敗したとき（service がない・lifecycle の失敗・goal
+      の拒否・Nav2 STARTUP の失敗）、一時停止せずに、失敗を記録してから現在地から残りの waypoint へ goal を出し直し続けるか。開始の手順の失敗では Nav2 を RESET 
+      してやり直す。
+    resulting_refs: []
+  - id: DEC-308
+    kind: approval
+    status: pending
+    question: 【承認】自律走行中にセンサードライバ（XT-32・IMU・GNSS など）が終了したとき、gouda_sensor_supervisor 
+      が同じ設定で作り直すか（今は同じデバイスのドライバを作り直さず、点群が古くなって推定不能→一時停止になる）。
+    resulting_refs: []
+  - id: DEC-309
+    kind: approval
+    status: pending
+    question: 【承認】PC 
+      の再起動の後（TR-02）と、プロセスの異常の後（TR-13、未実装）に、直前が自律走行で人の一時停止・終了の操作の後でなければ、自律走行へ自動で戻るか。初期姿勢は最後に記録した推定の姿勢を使う。
+    resulting_refs: []
+  - id: DEC-310
+    kind: approval
+    status: pending
+    question: 【承認】3 分の滞留を避けるため、mode_manager が「最後に 1 m 進んでからの時間」を見て段階を上げるか。段 1：costmap の消去と今の BT の recovery。段 
+      2：inflation を小さくし、未知の格子を空きとみなす（Nav2 の parameter を走行中に変える）。段 3：今の waypoint を飛ばして次へ goal 
+      を出し直す。前進できたら段を戻す。各段の時間は tbd（DEC-314）。
+    resulting_refs: []
+  - id: DEC-311
+    kind: approval
+    status: pending
+    question: 【承認】motion_hold を、速度制限が applied かつ keepout のマスクの確認済みのとき（DEC-056・DEC-224）ではなく、Nav2 の goal 
+      が受け付けられたときに解くか。確かめられない間は monitor とログに警告を出す。
+    resulting_refs: []
+  - id: DEC-312
+    kind: approval
+    status: pending
+    question: 【承認】ESP32 は PC 指令の watchdog（PRM-13）で PC を外した後、x＝y＝0 の指令が来るまで PC 
+      の指令を受け付けない（control.hpp:183）。vehicle_bridge が /esp32/status の PC 無効を見たら中立の COMMAND を 1 回送って再許可させるか。
+    resulting_refs: []
+  - id: DEC-313
+    kind: approval
+    status: pending
+    question: 【承認】回避・前進を窮屈にしている設定を緩める向きで見直すか。対象：inflation（PRM-72＝1.0 
+      m）、未知の格子の扱い（DEC-216、track_unknown_space）、keepout の override_lethal_cost と壁と同じ膨らませ方（DEC-222・DEC-227）、RPP 
+      の衝突検出（上流の既定値）、進み具合の判定（0.5 m／10 s）。値は DEC-314 の実測で決め、それまでは今の値のまま。
+    resulting_refs: []
+  - id: DEC-314
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-310 の各段の時間と、DEC-313 の値（inflation、RPP の衝突検出の有無・時間、進み具合の判定、keepout 
+      の膨らませ方）を、実車で測って決める。歩道の幅・人の間・縁石の近くで、通れる最小の隙間と、滞留から抜けるまでの時間を記録する。
+    resulting_refs: []
+  - id: DEC-316
+    kind: approval
+    status: pending
+    question: 【確認】intent.md 第15版で読み取れない点。(1) 94 行：PC 再起動の前が事前地図作成モードだった場合の復帰先（第14版は一時停止。第15版は記載なし）。(2) 16 
+      行：「一時停止モードに入り、…（…一時停止モードに入らずとも良い。）」で一時停止に入らない場合に何をするか。推定不能・通信異常のときにも及ぶか（1 
+      行の「自動的に一時停止モードに入ったり…極めて致命的」からは及ぶと読める）。(3) 33 行：「0. 本番で完走できる」は、矢印の後の「基本契約を満たす案の中で、1.デバッグ性 2.交換性 
+      3.追加的な安全性向上」でも先頭に来るか。(4) 39 行「走行失敗を防ぐ為の保護削減は行って良いが、必ず報告し、判断台帳にも記録すること」は、DEC-106（実装は個別の許可の後）より優先して、AI 
+      が許可なしに保護削減を実装してよいという意味か。
+    resulting_refs: []
+  - id: DEC-331
+    kind: question
+    status: pending
+    question: 【確認】モード名「一時停止」→「待機」（DEC-330）を、どこまで変えるか。(1) intent.md（人が直す）、(2) 正本 model.yaml 
+      の名前・説明（MODE-PAUSE、TR-07〜09・TR-13〜16 など）と生成物、 (3) monitor の表示（ボタン「一時停止」「再開」など）、(4) コードの識別子（モードの値 
+      pause、メッセージの定数、topic・service 名）。
+    resulting_refs: []
+  - id: DEC-336
+    kind: approval
+    status: pending
+    question: 【承認】（第2版 V2-1）高さの帯 PRM-70・71（正本では base_link 基準）を、帯の段（DEC-320 の案 X か Y）で base_link に当て、Nav2 の観測源の
+      min/max_obstacle_height は帯を実質無効にする広い値 （新しい PRM）にするか。今は Nav2 が odom・map の z で当てている（設計と実装の不一致）。
+    resulting_refs: []
+  - id: DEC-337
+    kind: approval
+    status: pending
+    question: 【承認】（第2版 V2-3）local・global の観測源の obstacle_max_range 2.5 m・raytrace_max_range 3.0 
+      m（今は承認なしの上流の既定値が暗黙に効いている）を、同じ値のまま PRM として宣言するか。
+    resulting_refs: []
+  - id: DEC-338
+    kind: approval
+    status: pending
+    question: 【承認】（第2版 V2-6）第130便の案 A〜E（DEC-319）の扱い：A（自作の間引きノード）は本番の後へ、B（回答なし）は取り下げ、C（base_link の帯と柱）は 
+      DEC-336・DEC-321 に置き換え、 RANSAC による地面の推定は MID-360 を入れる設計（第3版）で改めて検討、D（lifecycle の監視）は帯の段が lifecycle 
+      でないので取り下げ、E（NDT の前処理は分けたまま）はそのまま。
+    resulting_refs: []
+  - id: DEC-341
+    kind: approval
+    status: pending
+    question: 【承認】コーン（確認走行区間）と歩行者への接触が走行失敗になる（DEC-339）ので、一旦採用した DEC-321（local costmap を 2 次元の ObstacleLayer 
+      にする）と DEC-322 （点のない方位を空きとして消す、inf_is_valid true）を見直すか。2 次元の local は、XT-32 
+      の見えない高さに入った低い物（コーン）の印を消す（TRB-001）。点のない方位の消去は、 反射の弱い物の印を消す（TRB-002）。
+    resulting_refs: []
+  - id: DEC-343
+    kind: approval
+    status: pending
+    question: '【承認】横断歩道・道路端の一時停止（DEC-332）の作り：waypoint の kind: stop（既存の属性）を規則の一時停止の位置とし、次の stop までの区切りごとに NavigateThroughPoses
+      の goal を出す。 区切りの goal が成功したら自律走行モードのまま段階 rule_stop_hold で止まり、人の「横断を始める」操作で次の区切りを出す。「横断を始める」操作を、待機からの再開ボタン（TR-10）と別のボタンにするか。'
+    resulting_refs: []
+  - id: DEC-344
+    kind: approval
+    status: pending
+    question: '【承認】(1) 場所ごとの inflation：waypoint の区間の属性に inflation を足し、区間が変わったら mode_manager が local・global の inflation_radius
+      を走行中に変える（確認走行区間では大きく、狭い歩道では小さく）。 (2) 滞留から抜ける段階（DEC-310）の段 3（waypoint を飛ばす）は、kind: stop の waypoint では行わず、確認走行区間の外だけで行う。'
+    resulting_refs: []
+  - id: DEC-346
+    kind: measurement
+    status: pending
+    question: '【実測】(1) kind: stop の waypoint で Nav2 が止まる位置のずれ（規則の指定された領域に入るか）。(2) 推定不能のまま GLIM の odometry で走ったときのずれと、DEC-342
+      の案 c の距離 D。 (3) 推定の回復の判定の連続回数 N（正常と異常の行き来の実際の様子）。'
+    resulting_refs: []
+  - id: DEC-349
+    kind: measurement
+    status: pending
+    question: 【実測】横断歩道の面と歩道の面の段差を降りる・乗り上げるとき（車体の傾きが急に変わる）、GLIM の odometry と NDT・EKF 
+      の推定がずれる・推定不能になる・落ちることがないかを確かめる。
+    resulting_refs: []
+  - id: DEC-357
+    kind: approval
+    status: pending
+    question: 【承認】実験走行・デバッグで、推定した自己位置・その軌跡・Nav2 の経路・costmap・NDT の照合の点群を地図に重ねて見るために、VM に入っている 
+      rviz2（nav2_rviz_plugins）を使い、Gouda 用の表示の設定ファイルと起動の手順を用意するか。 新しいプログラムは作らない。rviz2 は Gouda の起動経路（gouda.sh 
+      start）とは別に、人が必要なときに開く道具とする。
+    resulting_refs: []
+  - id: DEC-359
+    kind: approval
+    status: pending
+    question: 【承認】自律走行開始ボタンを押してから速く動き出すため、準備の段階（手動走行モード、地図と waypoint を選び初期位置を入れた後）で、自己位置推定の初期化と Nav2 
+      の起動（STARTUP）を先に済ませ、 開始ボタンでは goal を出すだけにするか。あわせて DEC-287 は推奨案 a（STARTUP の前に記録し、終了で必ず RESET。開始のときも Nav2 
+      が動いていれば先に RESET）とする。
+    resulting_refs: []
+  - id: DEC-360
+    kind: measurement
+    status: pending
+    question: 【試験・実測】(1) 初期位置の探索が向きと位置のどちらのずれで失敗するかを、VM の模擬の試験（ubuntu_nd07_synthetic.sh など）で切り分ける：位置 0 m・向き 
+      90°、0 m・180°、1 m・90°、3 m・0°、5 m・0°。 (2) 実車の記録で、EKF の位置の標準偏差と NDT の姿勢の遅れの関係を調べる。(3) 
+      地図にない物・人混み・スタート地点ののぼりと観客で、照合の良さ（NVTL）がどう下がるか。
+    resulting_refs: []
+  - id: DEC-354
+    kind: measurement
+    status: pending
+    question: 【実測】rosbag の再生に故障を入れて（NDT への点群を T 秒止める、方位・距離で点を消す・人の大きさの点の塊を足す、全部の点群を 3.5 s 止めて GLIM も作り直す）、 
+      ずれの割合 ε、回復の時間と誤った回復の回数、戻るときの map→odom の段差、見逃しと空振り、止まった回数と時間、計算の重さを測り、 D・T・W・N・δ・J・v_c・ω_c と受入の条件 K2〜K6 
+      の値を人が決める。
+    resulting_refs: []
+  - id: DEC-362
+    kind: confirmation
+    status: pending
+    question: 【確認】中継（str2str）は起動のたびに、TLS 専用の port へ平文で NTRIP の要求（Basic 認証＝ユーザー名とパスワードの base64）を送っていた。 
+      第145便の診断でも、認証つきの平文の要求を 5 回送った（caster はすぐリセットしたが、要求のバイトはネットワークを流れた）。パスワードの変更を検討するか。
+    resulting_refs: []
+  - id: DEC-366
+    kind: approval
+    status: pending
+    question: '【承認】DEC-307（Nav2 の失敗）の新しい答えとして、kind: stop で区切った区間ごとに NavigateThroughPoses の goal を出し（DEC-343 と同じ区切り）、goal
+      が中止されたら、 今の区間の残りの waypoint だけを自動で出し直す。stop を越えて出し直さない。出し直すのは ND-07 が正常のときだけで、出し直しの間に最小の間隔 T_retry（tbd）を置く。
+      回数の上限は置かず、一定回数ごとに理由を記録する。KUAMS の「waypoint ごとに NavigateToPose」は採らない。'
+    resulting_refs: []
+  - id: DEC-367
+    kind: approval
+    status: pending
+    question: '【承認】滞留から抜ける段階（DEC-310）の段 3（waypoint を飛ばす）を、人が waypoint に付ける属性 skip_allowed（既定は false）の点だけで行う。条件は、滞留の時計
+      T3 と recovery の増加、 global costmap で見た waypoint の footprint の cost が閾値 C 以上の状態が T_occ 続くこと、ND-07 が正常なこと。kind:
+      stop・確認走行区間・横断歩道・待機列では行わず、 連続で飛ばすのは 1 点まで。飛ばしたら残りで goal を出し直し、理由を記録と monitor に出す（値はすべて tbd）。 あわせて、DEC-344
+      (2) の「確認走行区間の外だけで行う」は、3 分の滞留で失敗になる唯一の区間で段 3 を使わないことを意味するが、それでよいか。'
+    resulting_refs: []
+  - id: DEC-368
+    kind: question
+    status: pending
+    question: 
+      【確認】本走行で、信号あり横断歩道をマニュアル走行や手押しで渡ってよいか。TK-70（データ取得や単なる移動のためにマニュアル走行・手押しで横断する場合は待機列に並ばなくてよい）は本走行に適用されるか。
+    resulting_refs: []
+  - id: DEC-369
+    kind: question
+    status: pending
+    question: 【確認】信号待ちの待機列で、前のロボットが動かない・人が列に入るなどで前が空かないときの扱い（追い越しの禁止 TK-69 と、前が空いているのに 90 秒停滞すると失敗の EV-25 
+      の関係）。 また、過去の大会で待機列は何台くらいになったか。
+    resulting_refs: []
+  - id: DEC-370
+    kind: approval
+    status: pending
+    question: 【承認】横断歩道の状態遷移（DEC-343）の停止線の手前に、待機列の段階 queue_follow 
+      を足す。列の区間では経路を固定し、前方の箱が塞がっていれば止まり、空けば自律で進み、停止線に着いたら rule_stop_hold に入る。 
+      列の区間では、経路の引き直し・recovery（spin・backup）・滞留から抜ける段階（DEC-310）を止める。列の入口を waypoint の属性で表すため、waypoint 
+      のデータの形を変える（DEC-343 の「形は変えない」の変更）。
+    resulting_refs: []
+  - id: DEC-371
+    kind: approval
+    status: pending
+    question: 【承認】(1) Nav2 の大域の上限（PRM-66 前進 1.25 m/s、PRM-67 角速度 1.0 
+      rad/s）は下げず、遅くしたい区間（確認走行区間・横断歩道の手前・人の多い所・段差）は、すでにある区間の速度上限（速度マスク）で下げる。 (2) RPP の 
+      lookahead・衝突の検査の時間と、local costmap の大きさ（今は上流の既定値のまま）を PRM として明示し、停止距離（実測）と検査の範囲が整合するかを確かめる。
+    resulting_refs: []
+  - id: DEC-372
+    kind: question
+    status: pending
+    question: 【確認】Nav2 の collision_monitor（KUAMS は前方 1.0 m の四角で停止、2 秒先の衝突の予測で減速）を、確認走行区間だけ approach 
+      型（減速）で使う案を検討の対象にしてよいか。 intent.md の「PC 側で非常停止機構は存在させない（絶対決定事項）」と「cmd_vel 
+      の後段で独自に速度を抑える処理は加えない」の範囲に入るか（intent.md は人が所有する）。
+    resulting_refs: []
+  - id: DEC-373
+    kind: approval
+    status: pending
+    question: 【承認】地図作成の軌跡（変換後の地図の trajectory_imu.txt）から waypoint の候補を作り、waypoint タブの編集欄に読み込む道具を作る。弧長の順に間引き（間隔 
+      Δd・角度 θ は人が入れて記録に残す）、 向きは間引いた後の線の接線、kind はすべて 
+      pass、区間の速度上限は空欄のまま（既存の検査で保存を断る）。跳び・止まっていた所・逆走・同じ所の再通過は消さずに印を付ける。保存は今のまま人が押す。
+    resulting_refs: []
+  - id: DEC-374
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-365 のための計測。(1) NDT と GLIM の両方が弱い時間の長さと頻度（人混み・特徴の少ない所・LiDAR の途切れ）。(2) 人混みでの GLIM 
+      のずれ（DEC-293・DEC-346 (2) と同じ計測で取る）。 (3) (a) と (b) を見分ける補助の信号（ジャイロと GLIM の yaw の速さ、cmd_vel と GLIM 
+      の速さ、近い点の割合、NDT と GLIM の食い違い）の有効さ。 (4) 仮説の確認：LiDAR の途切れの間も EKF が最後の速度で外挿し、戻ったときの map→odom 
+      に最大で速度×途切れの時間の誤差が入るか（rosbag の再生と test/stack.sh で確かめる）。
+    resulting_refs: []
+  - id: DEC-375
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-366 のための計測。(1) 出し直しの最小の間隔 T_retry。(2) 1 つの区間の長さ・点の数の上限（1 Hz の引き直しで planner が間に合うか）。(3) 
+      実際に起きる中止の error_code の種類と頻度。
+    resulting_refs: []
+  - id: DEC-376
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-367 のための計測。(1) waypoint の上に物を置いたときの Nav2 の挙動。(2) コースの rosbag で、何もない走行での waypoint の 
+      footprint の cost の分布（閾値 C）。 (3) 人が waypoint の上に立ち止まる時間の分布（T_occ）。(4) 角の waypoint を飛ばしたときの経路が帯の外へ出ないか。 
+      (5) 仮説の確認：NavFn の tolerance（0.5 m の正方形、対角 0.71 m）と RemovePassedGoals（PRM-11、0.7 
+      m）がそろっていないため、塞がれた点の代わりの終点が残り、通り過ぎた後に戻る経路ができるか。
+    resulting_refs: []
+  - id: DEC-377
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-370 のための計測。(1) 停止線・道路端で止まる位置のずれ（DEC-346 (1) に足す。前端を帯に入れるには base_link を停止線の手前 0.05〜1.55 
+      m、道路端の手前 0.55〜2.05 m に置く必要がある、PRM-69 からの計算）。 (2) 
+      列の中の速度、前のロボットとの間隔、前方の箱の大きさ、空いたと判定する連続回数、空いてから進み出すまでの時間。(3) 列の入口の位置。
+    resulting_refs: []
+  - id: DEC-378
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-371・DEC-372 のための計測。(1) 速度ごとの停止距離（実車で ESP32 を経由して）。(2) 倒す量と速度の対応。(3) 速度・旋回の速さと推定の質の関係。 
+      (4) 誤って止まる率（rosbag を流して数える）。(5) 信号・列・横断の待ち時間の合計。(6) コーンが見える距離。(7) 速度マスクの帯の半幅（PRM-19）。
+    resulting_refs: []
+  - id: DEC-379
+    kind: measurement
+    status: pending
+    question: 【実測】DEC-373 のための計測。(1) waypoint の点の数と planner の計算の時間。(2) 点の間隔と追従のずれ。(3) stop の点で止まる位置（DEC-346 
+      (1) と同じ）。 (4) 地図作成の軌跡と、同じ地図での推定の位置が一致するか。
+    resulting_refs: []
+  - id: DEC-380
+    kind: question
+    status: pending
+    question: 【確認】検討で見つかった実装の抜けを直すか。(1) autonomy_core.py:100 の Mission が waypoint の kind を落とし、(x, y, yaw) だけを 
+      Nav2 に渡している（stop の点を区切りに使えない）。 (2) monitor の waypoint タブで置いた点の向きがすべて 0 になる（gouda_core/web/app.js:529）。 
+      (3) Nav2 の RPP の lookahead・衝突の検査の時間と、local costmap の大きさが、上流の既定値のままで設計されていない（DEC-371 (2) で扱う）。
+    resulting_refs: []
+  - id: DEC-383
+    kind: approval
+    status: pending
+    question: 【承認・方針】GNSS を必須にせず、品質の門（DEC-384）を通ったときだけ使う。役割は R1 初期位置の種、R2 見張り（NDT と GNSS の差の記録・表示）、R3 
+      再初期化の種（DEC-353 の探索の中心）とし、どれも待機の契機にしない。R4 融合（DEC-290 の a）は本番の後。
+    resulting_refs: []
+  - id: DEC-384
+    kind: approval
+    status: pending
+    question: 【承認】GNSS の品質の門の作り：受信機の値（解の種類、受信機の誤差の推定、衛星の数、方位の有無）で判定し、K 秒続けて良いときに『使える』、1 
+      回でも悪ければ『使えない』にする（入りにくく出やすい）。値は tbd（DEC-390）。
+    resulting_refs: []
+  - id: DEC-386
+    kind: approval
+    status: pending
+    question: 【承認】推定が確定しないままの発進：案 B（推奨）S1〜S4 で決めた姿勢を『仮』として発進し、GLIM で進む。スタートの区間の予算（距離 D_start・時間 
+      T_start、tbd）の中で NDT（使えれば GNSS）が仮の姿勢と合えば『確定』。超えても確定しなければ、自律走行モードのまま止まって待つ（DEC-365 (b)）か再初期化（DEC-353）。案 
+      A：推定が『正常』になるまで発進しない（今）。
+    resulting_refs: []
+  - id: DEC-387
+    kind: approval
+    status: pending
+    question: 【承認】走行中に GNSS の状態が変わったときの扱い：使えなくなったら何も変えず（LiDAR だけで続け、記録・表示）、使えるようになったら門の K 
+      秒の後に見張り（R2）・再初期化の種（R3）に使う。NDT と GNSS の差が大きいときは記録・表示し、NDT も劣化しているときだけ止まったときの再初期化の種を GNSS にする。GNSS 
+      の差だけでは止めない。あわせて DEC-134 を取り下げる。
+    resulting_refs: []
+  - id: DEC-388
+    kind: approval
+    status: pending
+    question: 【承認・運用】本番の前に、RTK fix の状態で地図を作り直し、地図と GNSS の対応（DEC-127・135）を検証する（R1〜R3 の前提）。受信機の不具合（第129便、試験 
+      DEC-299〜301）と RTK の確認（第147便、人の setup.sh）の後に行う。
+    resulting_refs: []
+  - id: DEC-389
+    kind: confirmation
+    status: pending
+    question: 【確認】intent.md（人の改善の後の版、SHA-256 857661bd…）11 
+      行「Nav2も同時に起動してはならない」は何と同時に起動してはならないという意味か。DEC-359（準備の段階＝手動走行モードで、推定の初期化と Nav2 の起動を先に済ませ、開始ボタンでは goal 
+      を出すだけにする）を禁じるか。
+    resulting_refs: []
+  - id: DEC-390
+    kind: measurement
+    status: pending
+    question: 【実測】(1) コース全体とスタート地点での GNSS の品質の時系列（解の種類・受信機の誤差の推定・衛星の数・方位の有無。G1〜G4 の割合と、それぞれが続く長さ）。(2) 
+      品質の門の値（DEC-384）。(3) スタート地点（のぼり・観客）での NDT の照合の良さ（DEC-360 (3) と同じ）。(4) スタートの区間の予算 
+      D_start・T_start（区間の形とコースの幅）。
     resulting_refs: []

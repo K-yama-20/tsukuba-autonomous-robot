@@ -1,0 +1,18 @@
+# KUAMS 関連のリポジトリの、第150便で読んだ commit（git clone した写しの HEAD。2026-10-23 取得）
+# 形式: リポジトリ URL | 読んだ commit | commit の日付 | 件名
+https://github.com/kzm784/door_server | 7dd723257cbd8bb5843652d7df56aadeaa363b51 | 2025-01-29 | initial commit
+https://github.com/kzm784/kuams | 750934ad97c5f78e581d21fb964e607561cee390 | 2025-10-03 | Add smoother_server and custom bt_trees
+https://github.com/kzm784/kuams3 | ee6672359b53b2de33ec59bcd0e607e59d426e14 | 2025-04-24 | Merge pull request #4 from ndlab-ros2/main
+https://github.com/kzm784/lidar_localization_ros2 | bd71f9f8a440cec3ede3250aafa20f40f6bf278e | 2025-10-30 | init
+https://github.com/kzm784/map_change_server | a431021d480dc164d5ea465d676fe063c56ca73c | 2025-02-15 | 動作確認済み
+https://github.com/kzm784/map_divider | cfbe93b95a77f718f6b99247aa8c2ee51376d341 | 2025-02-13 | Merge pull request #1 from kzm784/octomap
+https://github.com/kzm784/observable_pointcloud_map_creator | c78f553597638566d5359c0d5c6801c002109f04 | 2025-06-14 | update hpr radius
+https://github.com/kzm784/opc_ros2 | 2c19960df0c9bef51e2babaa6d5ca46b12e3d061 | 2025-10-30 | Init
+https://github.com/kzm784/pcd2pgm | 61841960edb37c5b49b1241a01528751d3fa8358 | 2025-09-13 | pcd2pgm.cpp を更新
+https://github.com/kzm784/ros2_whill | 75abd97c6a214af30ad7d5e5e088d6d29b9a27c6 | 2025-07-03 | Merge pull request #1 from kzm784/humble-develop
+https://github.com/kzm784/voice_manager | 2531fbd44df76b5e1725e7ef4344ee225a5d1056 | 2024-12-05 | README.md を更新
+https://github.com/kzm784/waypoint_editor | 911c46402be6e69a74b389cdc79442b50bfa39d2 | 2026-02-03 | Prefer existing Qt targets
+https://github.com/kzm784/waypoint_function_map_change_server | 49fb38838b9611955562aa2ab7533974c445091c | 2025-10-10 | LoadChangeDataMapの動作確認済み
+https://github.com/kzm784/waypoint_manager | 7671afa572772c110678cdd41d907fe5c3fe1c34 | 2025-10-14 | added lineup server
+https://github.com/kzm784/waypoint_manager_cpp | 69b1c519c56040a9853e1e359ab607814e61e66e | 2025-01-23 | Merge pull request #1 from kzm784/develop
+# lidar_localization_ros2 の比較の基準：upstream https://github.com/rsasaki0109/lidar_localization_ros2 main fe2b7d9a53131058a26cfdb79febde8984fccb68

@@ -1,0 +1,42 @@
+# 変更セット REV-175（2026-10-23 第151便: KUAMS の調査の証拠の登録）
+# 適用: design/tools/apply_revision.py REV-175
+id: REV-175
+date: '2026-10-23'
+summary: >-
+  第151便：人の指示（原文）「判断台帳等への登録を進めよ」により、第150便（REV-174、DEC-365〜381）の根拠になった KUAMS の調査の資料を、
+  証拠として design/research/kuams_tc2025_2026-10-23/ に置いて登録する。登録するのは、つくばチャレンジ2025 本走行の結果の CSV（個人名の 2 列を除いた。notes.txt に明記）、
+  読んだ KUAMS のリポジトリの commit の一覧、比較の報告・まとめ・文献調査の写し、出典と照合の状態の説明。
+  同じ便で、検討で見つかった今の設定・設計の故障の起こり方を、トラブルシューティング台帳に TRB-006〜012（監視中・発生）として登録する（台帳は model.yaml の外）。
+  コード・設定・正本の値は変えていない（DEC-106）。
+basis_refs:
+- DEC-365
+- DEC-366
+- DEC-367
+- DEC-370
+- DEC-371
+- DEC-373
+- DEC-381
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-KUAMS-TC2025-NOTES
+  path: design/research/kuams_tc2025_2026-10-23/notes.txt
+  role: evidence
+- id: FILE-KUAMS-TC2025-RESULTS
+  path: design/research/kuams_tc2025_2026-10-23/tc2025_final_run_results_reduced.csv
+  role: evidence
+- id: FILE-KUAMS-TC2025-REPOS
+  path: design/research/kuams_tc2025_2026-10-23/kuams_repos_read.txt
+  role: evidence
+- id: FILE-KUAMS-TC2025-COMPARISON
+  path: design/research/kuams_tc2025_2026-10-23/kuams_comparison.md
+  role: evidence
+- id: FILE-KUAMS-TC2025-SUMMARY
+  path: design/research/kuams_tc2025_2026-10-23/kuams_summary.md
+  role: evidence
+- id: FILE-KUAMS-TC2025-LITERATURE
+  path: design/research/kuams_tc2025_2026-10-23/kuams_literature.md
+  role: evidence
+decisions: []
+entities: []
+modifications: []
+decision_updates: []

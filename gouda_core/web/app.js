@@ -349,7 +349,8 @@
     $('nav2-rev').textContent = `revision ${c.config_revision} / ${c.path}`;
     const NAV2_LABELS = {
       recovery_number_of_retries: `recovery の回数 <span class="dim">(recovery_number_of_retries${lim ? `, ${lim[0]}〜${lim[1]}` : ', PRM-18 未確定のため保存できない'})</span>`,
-      inflate_around_unknown: '不明の格子の周りを膨らませる <span class="dim">(inflate_around_unknown, true／false。false なら帯の外を「通れるが高い費用」のまま：DEC-217)</span>' };
+      inflate_around_unknown: '不明の格子の周りを膨らませる <span class="dim">(inflate_around_unknown, true／false。false なら帯の外を「通れるが高い費用」のまま：DEC-217)</span>',
+      replan_rate_hz: '経路の引き直しの頻度（Hz）' };
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;
@@ -361,7 +362,10 @@
       + row('recovery の回数：今の起動で使っている値', fmt(c.in_use, '不明（Nav2 が起動していない）'))
       + row('inflate_around_unknown：PRM-98（既定）', c.prm98 ?? '未確定')
       + row('inflate_around_unknown：次の gouda.sh start で使う値', fmt(c.next_start_inflate, '—'))
-      + row('inflate_around_unknown：今の起動で使っている値', fmt(c.in_use_inflate, '不明（Nav2 が起動していない）'));
+      + row('inflate_around_unknown：今の起動で使っている値', fmt(c.in_use_inflate, '不明（Nav2 が起動していない）'))
+      + row('経路の引き直しの頻度：PRM-103（既定）', c.prm103 ?? '未確定')
+      + row('経路の引き直しの頻度：次の gouda.sh start で使う値', fmt(c.next_start_replan, '—'))
+      + row('経路の引き直しの頻度：今の起動で使っている値', fmt(c.in_use_replan, '不明（Nav2 が起動していない）'));
   }
   $('nav2-save').addEventListener('click', async () => {
     const data = {}; new FormData($('nav2-form')).forEach((v, k) => { data[k] = v; });

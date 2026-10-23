@@ -1,0 +1,35 @@
+# 変更セット REV-171（2026-10-23 第146便: monitor の waypoint タブで waypoint セットの選択欄まで届かない不具合の修正。承認 DEC-363）
+# 適用: design/tools/apply_revision.py REV-171
+id: REV-171
+date: '2026-10-23'
+summary: >-
+  第146便：人の指摘「waypoint タブが下にスクロールできず、waypoint ファイルを選択できない」の原因を調べた。画面全体（.screen）と各パネル（.panel）が overflow hidden で、
+  右パネルの区間の速度上限表と保存済みセットの一覧が長くなると、その下の「AUTO 自律走行の準備」（セットの選択・初期位置）がパネルの外に押し出されて操作できなかった。
+  人の回答「Bで」（DEC-363）で、AUTO の欄を右パネルの一番上に移し、waypoint タブの両パネルを中でスクロールできるようにした（gouda_core/web の index.html・style.css）。
+  画面の配置だけの変更で、モード・開始の条件・送る要求は変えていない。
+basis_refs:
+- DEC-106
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-363
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第146便）monitor の waypoint タブで、右パネルが画面の下で切れて waypoint セットの選択欄に届かない。直し方を次から選ぶ：
+    A. 右パネル（と左パネル）をパネルの中でスクロールできるようにする（CSS のみ、並び順はそのまま）、
+    B. A に加えて「AUTO 自律走行の準備」を右パネルの一番上に移す（セットの選択が常に見える。発進準備シーケンスの案内の文言も直す）、
+    C. 画面全体を縦にスクロールできるようにする（主タブを縦スクロールなしにする方針を変える）。
+  answer_verbatim: |
+    Bで
+  affected_refs:
+  - M-002
+  resulting_refs: []
+  note: >-
+    AI の解釈：B の説明で「B だけでは足りず、A と組み合わせて使う前提」と示した後の回答なので、A＋B の実装の許可（DEC-106）として扱った。違っていれば人が訂正する。
+    原因の分類は実装（画面の CSS と配置の誤り）。デモの monitor（gouda_core/test/demo_monitor_server.py、1600×900）で、試験用の行を区間表 40・保存済み 25・範囲 20 入れ、
+    セットの選択欄がパネルの上に見えること、右パネルを一番下までスクロールでき最後の行に届くことを確かめた。実車の monitor の画面ではまだ見ていない。
+  disposition: answered

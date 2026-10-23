@@ -1,0 +1,66 @@
+== 20261014_044153_785dadfe  rows 897 (3.8 per s)  same stamps True  duration 238.0 s  path 143.3 m
+   whole run (start aligned): horizontal 1.068 m, yaw 0.13 deg
+   row gaps > 1.5 s: 4
+     at 7.6 s: 1.60 s
+     at 30.8 s: 1.60 s
+     at 88.5 s: 1.80 s
+     at 140.5 s: 1.90 s
+   over   5 m (841 windows): horiz med 0.000 p95 0.029 max 0.093 m (p95 0.58 %), yaw med 0.00 p95 0.20 max 0.45 deg
+   over  10 m (807 windows): horiz med 0.000 p95 0.088 max 0.102 m (p95 0.88 %), yaw med 0.00 p95 0.21 max 0.51 deg
+   over  20 m (751 windows): horiz med 0.025 p95 0.112 max 0.114 m (p95 0.56 %), yaw med 0.06 p95 0.40 max 0.83 deg
+   over  50 m (508 windows): horiz med 0.089 p95 0.590 max 0.648 m (p95 1.18 %), yaw med 0.31 p95 0.48 max 0.86 deg
+   over   3 s (883 windows): horiz med 0.000 p95 0.020 max 0.092 m, yaw p95 0.06 max 0.41 deg
+   over  10 s (855 windows): horiz med 0.000 p95 0.044 max 0.096 m, yaw p95 0.20 max 0.45 deg
+   over  30 s (761 windows): horiz med 0.024 p95 0.114 max 0.115 m, yaw p95 0.41 max 0.83 deg
+   over  60 s (629 windows): horiz med 0.070 p95 0.128 max 0.567 m, yaw p95 0.46 max 0.85 deg
+   across the gap at 7.6 s (1 s before to 1 s after): horiz 0.000 m, yaw 0.00 deg; moved 6.50 m
+   across the gap at 30.8 s (1 s before to 1 s after): horiz 0.024 m, yaw 0.34 deg; moved 5.84 m
+   across the gap at 88.5 s (1 s before to 1 s after): horiz 0.044 m, yaw 0.07 deg; moved 9.63 m
+   across the gap at 140.5 s (1 s before to 1 s after): horiz 0.000 m, yaw 0.00 deg; moved 4.95 m
+== 20261014_054556_fbd0a733  rows 611 (4.4 per s)  same stamps True  duration 139.7 s  path 130.0 m
+   whole run (start aligned): horizontal 0.028 m, yaw 0.02 deg
+   row gaps > 1.5 s: 0
+   over   5 m (557 windows): horiz med 0.000 p95 0.007 max 0.034 m (p95 0.13 %), yaw med 0.00 p95 0.02 max 0.07 deg
+   over  10 m (539 windows): horiz med 0.000 p95 0.028 max 0.032 m (p95 0.28 %), yaw med 0.00 p95 0.04 max 0.07 deg
+   over  20 m (499 windows): horiz med 0.000 p95 0.025 max 0.027 m (p95 0.12 %), yaw med 0.00 p95 0.04 max 0.07 deg
+   over  50 m (375 windows): horiz med 0.009 p95 0.030 max 0.032 m (p95 0.06 %), yaw med 0.02 p95 0.04 max 0.04 deg
+   over   3 s (598 windows): horiz med 0.000 p95 0.000 max 0.034 m, yaw p95 0.00 max 0.06 deg
+   over  10 s (565 windows): horiz med 0.000 p95 0.027 max 0.032 m, yaw p95 0.04 max 0.07 deg
+   over  30 s (476 windows): horiz med 0.006 p95 0.022 max 0.024 m, yaw p95 0.03 max 0.07 deg
+   over  60 s (358 windows): horiz med 0.010 p95 0.029 max 0.040 m, yaw p95 0.04 max 0.04 deg
+== 20261019_123731_dc7b4c8a  rows 4679 (9.9 per s)  same stamps True  duration 470.3 s  path 356.5 m
+   whole run (start aligned): horizontal 0.054 m, yaw 0.01 deg
+   row gaps > 1.5 s: 1
+     at 127.7 s: 1.99 s
+   over   5 m (4422 windows): horiz med 0.008 p95 0.028 max 0.047 m (p95 0.57 %), yaw med 0.03 p95 0.11 max 0.29 deg
+   over  10 m (4373 windows): horiz med 0.012 p95 0.035 max 0.058 m (p95 0.35 %), yaw med 0.03 p95 0.10 max 0.27 deg
+   over  20 m (4264 windows): horiz med 0.018 p95 0.045 max 0.113 m (p95 0.22 %), yaw med 0.04 p95 0.10 max 0.18 deg
+   over  50 m (3930 windows): horiz med 0.028 p95 0.069 max 0.187 m (p95 0.14 %), yaw med 0.04 p95 0.12 max 0.22 deg
+   over   3 s (4648 windows): horiz med 0.004 p95 0.020 max 0.033 m, yaw p95 0.10 max 0.21 deg
+   over  10 s (4578 windows): horiz med 0.010 p95 0.032 max 0.048 m, yaw p95 0.11 max 0.25 deg
+   over  30 s (4378 windows): horiz med 0.019 p95 0.041 max 0.068 m, yaw p95 0.12 max 0.28 deg
+   over  60 s (4078 windows): horiz med 0.026 p95 0.061 max 0.155 m, yaw p95 0.13 max 0.33 deg
+   across the gap at 127.7 s (1 s before to 1 s after): horiz 0.006 m, yaw 0.14 deg; moved 4.33 m
+== 20261022_014810_39f5620e  rows 655 (4.6 per s)  same stamps True  duration 143.0 s  path 110.8 m
+   whole run (start aligned): horizontal 0.209 m, yaw 0.62 deg
+   row gaps > 1.5 s: 1
+     at 16.4 s: 2.00 s
+   over   5 m (568 windows): horiz med 0.015 p95 0.115 max 0.160 m (p95 2.31 %), yaw med 0.05 p95 0.17 max 0.28 deg
+   over  10 m (545 windows): horiz med 0.025 p95 0.152 max 0.180 m (p95 1.52 %), yaw med 0.10 p95 0.21 max 0.27 deg
+   over  20 m (500 windows): horiz med 0.042 p95 0.184 max 0.201 m (p95 0.92 %), yaw med 0.06 p95 0.24 max 0.36 deg
+   over  50 m (336 windows): horiz med 0.152 p95 0.281 max 0.301 m (p95 0.56 %), yaw med 0.13 p95 0.41 max 0.50 deg
+   over   3 s (640 windows): horiz med 0.008 p95 0.050 max 0.115 m, yaw p95 0.11 max 0.19 deg
+   over  10 s (609 windows): horiz med 0.029 p95 0.113 max 0.162 m, yaw p95 0.22 max 0.31 deg
+   over  30 s (513 windows): horiz med 0.046 p95 0.180 max 0.194 m, yaw p95 0.37 max 0.46 deg
+   over  60 s (368 windows): horiz med 0.150 p95 0.296 max 0.318 m, yaw p95 0.47 max 0.56 deg
+   across the gap at 16.4 s (1 s before to 1 s after): horiz 0.012 m, yaw 0.13 deg; moved 5.89 m
+== 20261022_031430_5e5b16fc  rows 589 (10.0 per s)  same stamps True  duration 58.8 s  path 8.3 m
+   whole run (start aligned): horizontal 0.000 m, yaw 0.00 deg
+   row gaps > 1.5 s: 0
+   over   5 m (101 windows): horiz med 0.000 p95 0.000 max 0.000 m (p95 0.00 %), yaw med 0.00 p95 0.00 max 0.00 deg
+   over  10 m: no window (path too short)
+   over  20 m: no window (path too short)
+   over  50 m: no window (path too short)
+   over   3 s (559 windows): horiz med 0.000 p95 0.000 max 0.000 m, yaw p95 0.00 max 0.00 deg
+   over  10 s (489 windows): horiz med 0.000 p95 0.000 max 0.000 m, yaw p95 0.00 max 0.00 deg
+   over  30 s (289 windows): horiz med 0.000 p95 0.000 max 0.000 m, yaw p95 0.00 max 0.00 deg

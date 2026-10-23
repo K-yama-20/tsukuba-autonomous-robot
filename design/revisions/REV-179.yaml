@@ -1,0 +1,32 @@
+# 変更セット REV-179（2026-10-24 第155便: PRM-92 を暫定 0.7 m に、DEC-358）
+# 適用: design/tools/apply_revision.py REV-179
+id: REV-179
+date: '2026-10-24'
+summary: >-
+  第155便：人の指示「DEC-358を承認するから、実装せよ。」で、EKF の位置の標準偏差の上限 PRM-92 を 0.5 m から 0.7 m（実測で決めるまでの暫定）に変える。生成物の gouda_global_localization.yaml の値が変わる。コードは変えていない。
+basis_refs:
+- DEC-358
+- DEC-208
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-92
+  set:
+    approval_decision_ref: DEC-358
+  set_nested:
+    parameter.value: 0.7
+    parameter.measurement: >-
+      人の決定（DEC-358、暫定）：「判断1~3は推奨案を許可。」（DEC-382）と「DEC-358を承認するから、実装せよ。」。実測で決めるまでの暫定の値。根拠：止まっているだけで 0.50〜0.54 m に留まった記録（第123便・第124便）から、0.5 m は EKF の設定と NDT の姿勢の遅れで決まるモデル上の値の可能性が高い（推測）。測定値ではない。DEC-360 の計測で見直す。前の値は DEC-208 の 0.5 m（autoware 1.9.0 の既定 error_ellipse_size 1.5 m ÷ ellipse_scale 3）。
+  interpretation_append: 'REV-179: DEC-358 で 0.7 m（暫定）に変更（DEC-208 の 0.5 m から）。'
+decision_updates:
+- id: DEC-358
+  set:
+    answer_verbatim: |
+      判断1~3は推奨案を許可。
+      （2026-10-24 第155便）DEC-358を承認するから、実装せよ。別チャットでDEC-385を承認、実装中なので、気をつけてね。
+    resulting_refs:
+    - PRM-92
+    note: >-
+      推奨は承認（暫定）。根拠：止まっているだけで 0.50〜0.54 m に留まり（第123便、第124便の一時停止中も NVTL 3.23 で 0.503 m）、実際のずれではなく EKF の設定（上流の既定：pose_smoothing_steps 5、proc_stddev_vx_c 10.0、 NDT の出力の共分散 0.0225 m²）と、NDT の姿勢の遅れ（VM で最大 0.991 s、第134便）で決まるモデル上の値の可能性が高い（推測）。0.5 m は Autoware の error_ellipse_size 1.5 ÷ ellipse_scale 3 から来た既定。 リスク：本当にずれたときの検出が遅れる。DEC-305・306・342 で自動の待機をなくすと、このしきい値は警告の意味になる。値は DEC-360 の計測で見直す。EKF の設定や使い方（EKF をやめて NDT と GLIM を直接つなぐ案を含む）の見直しは、 推定の補い方の調査（別のチャット）とあわせて行う。決まらない場合に止まる作業：PRM-92 の値の変更。 REV-176（第152便）：人の回答「判断1~3は推奨案を許可。」（DEC-382 に全文）。判断 1〜3 は、第151便の後のチャットで AI が示した自己位置推定の判断の材料の項目：判断 2（推定不能の判定のしきい値と EKF の扱い）の推奨「PRM-92 を暫定 0.7 m（DEC-358）。EKF の共分散はずれの目安にしない（DEC-352）。EKF の使い方の見直しは本番の後」。 PRM-92 の値の変更（正本・生成物・VM への反映）はまだしていない（次の作業。DEC-106 の許可はこの回答）。DEC-365 の実装の後は、このしきい値は待機の契機でなく原因の区分・記録に使う。 REV-179（第155便）：人の指示（原文）「DEC-358を承認するから、実装せよ。別チャットでDEC-385を承認、実装中なので、気をつけてね。」で PRM-92 を 0.5 → 0.7 m（暫定）に変えた。正本と生成物 gouda_global_localization.yaml の値だけが変わり、コードは変えていない（localization_core.py は生成物の値を読む）。
