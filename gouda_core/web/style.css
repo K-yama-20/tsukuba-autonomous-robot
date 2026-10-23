@@ -113,7 +113,9 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); f
 .popup-body { font-family: var(--mono); font-size: 12px; color: var(--fg); white-space: pre-wrap; }
 
 /* waypoint_manager */
-.grid-wp { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; height: 100%; }
+.grid-wp { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 8px; height: 100%; min-height: 0; }
+.grid-wp .panel { overflow: auto; }   /* the section and saved-set tables grow with the route: scroll inside the panel */
+#wp-edit-panel .events { flex: 0 0 auto; max-height: 8em; }
 .wp-canvas-wrap { flex: 1; min-height: 0; overflow: auto; background: #03100f; border: 1px solid var(--line); }
 #wp-canvas { image-rendering: pixelated; cursor: crosshair; display: block; }
 input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px solid var(--line); padding: 3px 6px; font: inherit; font-family: var(--mono); }
@@ -149,5 +151,9 @@ input.num { width: 110px; background: #03100f; color: var(--cyan); border: 1px s
 .subtab.active { color: var(--bg); background: var(--cyan); border-color: var(--cyan); }
 .subpane { display: none; }
 .subpane.active { display: block; }
+/* keep the sub-pane below the sub-tab row and scroll inside it: the field lists grow with the config (DEC-364) */
+.tabpane[data-pane="config"].active { display: flex; flex-direction: column; }
+.tabpane[data-pane="config"] .subpane.active { display: flex; flex: 1; min-height: 0; overflow: auto; }
+.subpane .cfg { flex: 0 0 auto; }
 .note.amber { color: var(--amber); }
 .cfg.mc { margin-top: 8px; }
