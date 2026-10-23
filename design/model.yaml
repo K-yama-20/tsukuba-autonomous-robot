@@ -45934,24 +45934,25 @@ entities:
     related_refs: []
     issue_refs:
       - Q-02
-    interpretation: REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 
-      0.5 を承認。
+    interpretation: 'REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 0.5
+      を承認。 REV-179: DEC-358 で 0.7 m（暫定）に変更（DEC-208 の 0.5 m から）。'
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I084
       - RQ-I076
-    revision_ref: REV-132
+    revision_ref: REV-179
     parameter:
       owner_ref: ND-07
-      value: 0.5
+      value: 0.7
       value_state: approved
       unit: m
       stage: 自己位置推定（A3）
       purpose: EKF の姿勢（ekf_pose_with_covariance）の x・y の共分散の大きい方の固有値の平方根がこれを超えたら「推定不能」（ekf_covariance_large）
-      measurement: 人の決定（DEC-208）：「DEC-208は全て既定値で良い。」。DEC-208 で示した推奨の値（autoware 1.9.0 
-        の既定値（評価でも同じ）から。実車採用値ではない（error_ellipse_size 1.5 m ÷ ellipse_scale 3））を採った。測定値ではない。実走で確かめる
+      measurement: 人の決定（DEC-358、暫定）：「判断1~3は推奨案を許可。」（DEC-382）と「DEC-358を承認するから、実装せよ。」。実測で決めるまでの暫定の値。根拠：止まっているだけで
+        0.50〜0.54 m に留まった記録（第123便・第124便）から、0.5 m は EKF の設定と NDT の姿勢の遅れで決まるモデル上の値の可能性が高い（推測）。測定値ではない。DEC-360 
+        の計測で見直す。前の値は DEC-208 の 0.5 m（autoware 1.9.0 の既定 error_ellipse_size 1.5 m ÷ ellipse_scale 3）。
       decision_deadline: 決定済み（DEC-208）
       software_trial_value: 0.5
       software_trial_basis: autoware 1.9.0 の既定値（評価でも同じ）から。実車採用値ではない（error_ellipse_size 1.5 m ÷ ellipse_scale 
@@ -45961,7 +45962,7 @@ entities:
       param_key: ekf_xy_stddev_max_m
       value_type: double
       apply_timing: lifecycle_configure
-    approval_decision_ref: DEC-208
+    approval_decision_ref: DEC-358
   - id: PRM-93
     kind: parameter
     name: 推定の状態が届かないとみなす時間（mode_manager）
@@ -57943,7 +57944,9 @@ decisions:
       収束していないときも開始ボタンは拒否せず、警告だけを出して人の判断で開始できる（TR-05 に条件を足さない）。(4) GNSS が使えないときの人の指定（今の初期位置の入力）は残す。(5) 静止の判定に何を使うかと
       (6) 判定の値は、実機での検証の後に決める（それまで tbd）。(7) 対象は GNSS との対応（DEC-135）がある地図だけ。(8) PC 再起動後も同じ流れを使う（再開は人の操作の後。DEC-009 は書き換えない）。(9)
       自己位置推定の方式によらない形にする（初期姿勢を送って収束の結果を受け取ることだけを ND-07 との契約にする）。実装の前提（ND-07 の方式 DEC-115、対応 DEC-135）は変わらない。 REV-176（第152便）：開始の初期位置の順（DEC-385）は、条件
-      (2)「収束の確認に失敗したら止めて理由を表示し、人がやり直す（自動でやり直さない）」を、発進の前の準備の段階で自動で次の段に進む形に変える案を含む。DEC-385 で確認する。'
+      (2)「収束の確認に失敗したら止めて理由を表示し、人がやり直す（自動でやり直さない）」を、発進の前の準備の段階で自動で次の段に進む形に変える案を含む。DEC-385 で確認する。 REV-178（第154便）：DEC-385
+      が承認された（人の原文「DEC-385を承認する。」）。条件 (2)「収束の確認に失敗したら止めて理由を表示し、人がやり直す（自動でやり直さない）」は、発進の前の準備の段階では DEC-385 の順で自動で次の段に進む形に置き換わる（DEC-133
+      の回答そのものは書き換えない）。'
     disposition: answered
   - id: DEC-134
     kind: approval
@@ -61665,13 +61668,13 @@ decisions:
     disposition: answered
   - id: DEC-356
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-23'
-    answered_on:
+    answered_on: '2026-10-24'
     channel: chat
     question: 【承認】初期位置の探索の範囲を段階的に広げるか：ND-07 が ndt_align_srv を初めは水平の標準偏差 1 m で呼び、推定ができなかった（照合の良さ PRM-90 
       未満など）ら、標準偏差を段階的に上限まで広げて呼び直す。 段階の値・上限・各段の時間は tbd（DEC-360 の試験で決める）。
-    answer_verbatim: ''
+    answer_verbatim: "DEC-385を承認する。\n"
     affected_refs:
       - ND-07
       - PRM-84
@@ -61681,8 +61684,9 @@ decisions:
     note: 推奨は承認。注意：広げるほど 1 回の探索が長くなり（今の実車で初期化 17〜30 s）、似た景色の所で誤った位置に合う恐れが増える。探索の点の数（上流の particles_num 
       200）を段に合わせて増やすかも決める。 向きは一周を試すので、向きの段階は不要。スタートの規則（1 分以内にスタートライン）との関係は DEC-359 と組。決まらない場合に止まる作業：ND-07 
       の探索の作りの変更。 REV-176（第152便）：人の指示で判断 4 を再考した（DEC-382）。段階的な探索は、開始の初期位置の順の S3 として DEC-385 に組み込んだ。この項目は 
-      pending のまま（DEC-385 と一緒に答える）。
-    disposition: open_human
+      pending のまま（DEC-385 と一緒に答える）。 REV-178（第154便）：DEC-385 の承認（人の原文「DEC-385を承認する。」）に含まれるので answered 
+      とした（S3）。段階の値・上限・探索の点の数（particles_num）は tbd（DEC-360）。
+    disposition: answered
   - id: DEC-357
     kind: approval
     status: pending
@@ -61711,13 +61715,14 @@ decisions:
     answered_on: '2026-10-24'
     channel: chat
     question: 【承認】PRM-92（EKF の位置の標準偏差の上限、0.5 m）を、実測で決めるまでの暫定として 0.7 m に広げるか（人の案、DEC-355）。
-    answer_verbatim: "判断1~3は推奨案を許可。\n"
+    answer_verbatim: "判断1~3は推奨案を許可。\n（2026-10-24 第155便）DEC-358を承認するから、実装せよ。別チャットでDEC-385を承認、実装中なので、気をつけてね。\n"
     affected_refs:
       - PRM-92
       - DEC-286
       - DEC-208
       - ND-07
-    resulting_refs: []
+    resulting_refs:
+      - PRM-92
     note: 推奨は承認（暫定）。根拠：止まっているだけで 0.50〜0.54 m に留まり（第123便、第124便の一時停止中も NVTL 3.23 で 0.503 m）、実際のずれではなく EKF 
       の設定（上流の既定：pose_smoothing_steps 5、proc_stddev_vx_c 10.0、 NDT の出力の共分散 0.0225 m²）と、NDT の姿勢の遅れ（VM で最大 0.991 
       s、第134便）で決まるモデル上の値の可能性が高い（推測）。0.5 m は Autoware の error_ellipse_size 1.5 ÷ ellipse_scale 3 から来た既定。 
@@ -61725,7 +61730,9 @@ decisions:
       NDT と GLIM を直接つなぐ案を含む）の見直しは、 推定の補い方の調査（別のチャット）とあわせて行う。決まらない場合に止まる作業：PRM-92 の値の変更。 
       REV-176（第152便）：人の回答「判断1~3は推奨案を許可。」（DEC-382 に全文）。判断 1〜3 は、第151便の後のチャットで AI が示した自己位置推定の判断の材料の項目：判断 
       2（推定不能の判定のしきい値と EKF の扱い）の推奨「PRM-92 を暫定 0.7 m（DEC-358）。EKF の共分散はずれの目安にしない（DEC-352）。EKF の使い方の見直しは本番の後」。 
-      PRM-92 の値の変更（正本・生成物・VM への反映）はまだしていない（次の作業。DEC-106 の許可はこの回答）。DEC-365 の実装の後は、このしきい値は待機の契機でなく原因の区分・記録に使う。
+      PRM-92 の値の変更（正本・生成物・VM への反映）はまだしていない（次の作業。DEC-106 の許可はこの回答）。DEC-365 の実装の後は、このしきい値は待機の契機でなく原因の区分・記録に使う。 
+      REV-179（第155便）：人の指示（原文）「DEC-358を承認するから、実装せよ。別チャットでDEC-385を承認、実装中なので、気をつけてね。」で PRM-92 を 0.5 → 0.7 
+      m（暫定）に変えた。正本と生成物 gouda_global_localization.yaml の値だけが変わり、コードは変えていない（localization_core.py は生成物の値を読む）。
     disposition: answered
   - id: DEC-359
     kind: approval
@@ -62460,14 +62467,14 @@ decisions:
     disposition: open_human
   - id: DEC-385
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-24'
-    answered_on:
+    answered_on: '2026-10-24'
     channel: chat
     question: 【承認】開始の初期位置の順：S1 GNSS（門が『使える』かつ地図と対応あり、狭い探索）→ S2 登録した開始姿勢（waypoint セットに保存したスタートの姿勢。DEC-289 
       の地図作成の始め・終わりの姿勢を候補に人が登録）→ S3 範囲を段階的に広げる（DEC-356、上限は DEC-360 の試験で）→ S4 
       人が地図の上で与える（発進の前だけ）。どの段で決まったかを記録・表示する。DEC-133 の条件 (2)（自動でやり直さない）を、発進の前の準備の段階では自動で次の段に進む形に変える。
-    answer_verbatim: ''
+    answer_verbatim: "DEC-385を承認する。\n"
     affected_refs:
       - DEC-133
       - DEC-289
@@ -62478,13 +62485,17 @@ decisions:
       - DEC-383
       - ND-07
       - ND-03
-    resulting_refs: []
+    resulting_refs:
+      - DEC-356
     note: 推奨は承認。理由：GNSS がどの状態でも、S2 で必ず種がある（つくばチャレンジのスタートは決まった場所：DEC-355）。S1 と S2 の差が大きいときは人に知らせる。S3 
       の上限：第148便では 3 m は正しく、5 m は 5.86 m 離れた誤った位置に『正常』で合った。 人は 
       rviz2（DEC-357）で推定の位置を見て確かめてから発進する。発進の後の人の操作は失格（DEC-345）なので S4 は発進の前だけ。代替案：S2 を使わない（今の作り）、DEC-133 の条件 (2)
       を保つ（自動で次の段に進まない）。提案 design/proposals/localization_start_gnss_states_2026-10-24.md 
-      §2。決まらない場合に止まる作業：開始の手順の変更。
-    disposition: open_human
+      §2。決まらない場合に止まる作業：開始の手順の変更。 REV-178（第154便）：人の回答（原文）「DEC-385を承認する。」。開始の初期位置の順 S1 GNSS → S2 登録した開始姿勢 → S3 
+      範囲を段階的に広げる → S4 人の入力、どの段で決まったかの記録・表示、DEC-133 の条件 (2) を発進の前の準備の段階では自動で次の段に進む形に変える、を採用。S3 の段階の値・上限・各段の時間は 
+      tbd（DEC-360 の試験。第148便では 3 m は正しく、5 m は誤った位置に『正常』で合った）。S1 は GNSS 
+      の門（DEC-384、pending）と地図との対応（DEC-388、pending）が決まるまで使えない（S2 から始める）。実装はまだ（値が未定）。
+    disposition: answered
   - id: DEC-386
     kind: approval
     status: pending
@@ -66412,6 +66423,31 @@ revisions:
     added_entity_ids: []
     modified_entity_ids:
       - PRM-71
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-178
+    date: '2026-10-24'
+    summary: 第154便：人の回答「DEC-385を承認する。」を記録する。開始の初期位置の順（S1 GNSS → S2 登録した開始姿勢 → S3 段階的な探索 → S4 
+      人）を採用し、DEC-356（段階的な探索）も answered。DEC-133 の条件 (2) の置き換えを note に記録。コード・設定は変えていない。
+    basis_refs:
+      - DEC-385
+      - DEC-382
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-179
+    date: '2026-10-24'
+    summary: 第155便：人の指示「DEC-358を承認するから、実装せよ。」で、EKF の位置の標準偏差の上限 PRM-92 を 0.5 m から 0.7 m（実測で決めるまでの暫定）に変える。生成物の 
+      gouda_global_localization.yaml の値が変わる。コードは変えていない。
+    basis_refs:
+      - DEC-358
+      - DEC-208
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-92
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

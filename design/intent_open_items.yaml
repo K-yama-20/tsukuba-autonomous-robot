@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 83
+pending_decision_count: 81
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1354,12 +1354,6 @@ pending_decisions:
     question: 【実測】横断歩道の面と歩道の面の段差を降りる・乗り上げるとき（車体の傾きが急に変わる）、GLIM の odometry と NDT・EKF 
       の推定がずれる・推定不能になる・落ちることがないかを確かめる。
     resulting_refs: []
-  - id: DEC-356
-    kind: approval
-    status: pending
-    question: 【承認】初期位置の探索の範囲を段階的に広げるか：ND-07 が ndt_align_srv を初めは水平の標準偏差 1 m で呼び、推定ができなかった（照合の良さ PRM-90 
-      未満など）ら、標準偏差を段階的に上限まで広げて呼び直す。 段階の値・上限・各段の時間は tbd（DEC-360 の試験で決める）。
-    resulting_refs: []
   - id: DEC-357
     kind: approval
     status: pending
@@ -1509,13 +1503,6 @@ pending_decisions:
     status: pending
     question: 【承認】GNSS の品質の門の作り：受信機の値（解の種類、受信機の誤差の推定、衛星の数、方位の有無）で判定し、K 秒続けて良いときに『使える』、1 
       回でも悪ければ『使えない』にする（入りにくく出やすい）。値は tbd（DEC-390）。
-    resulting_refs: []
-  - id: DEC-385
-    kind: approval
-    status: pending
-    question: 【承認】開始の初期位置の順：S1 GNSS（門が『使える』かつ地図と対応あり、狭い探索）→ S2 登録した開始姿勢（waypoint セットに保存したスタートの姿勢。DEC-289 
-      の地図作成の始め・終わりの姿勢を候補に人が登録）→ S3 範囲を段階的に広げる（DEC-356、上限は DEC-360 の試験で）→ S4 
-      人が地図の上で与える（発進の前だけ）。どの段で決まったかを記録・表示する。DEC-133 の条件 (2)（自動でやり直さない）を、発進の前の準備の段階では自動で次の段に進む形に変える。
     resulting_refs: []
   - id: DEC-386
     kind: approval

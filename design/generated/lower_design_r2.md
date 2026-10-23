@@ -253,7 +253,7 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-89 | 推定が古いとみなす時間 | ND-07 | 1.0 | approved | s | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 1.0 を承認。 | `Q-02` |
 | PRM-90 | NDT の照合の良さの下限（nearest_voxel_transformation_likelihood） | ND-07 | 2.3 | approved | — | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 2.3 を承認。 | `Q-02` |
 | PRM-91 | EKF の姿勢の更新がない回数の上限 | ND-07 | 50 | approved | 回 | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 50 を承認。 | `Q-02` |
-| PRM-92 | EKF の位置の標準偏差の上限 | ND-07 | 0.5 | approved | m | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 0.5 を承認。 | `Q-02` |
+| PRM-92 | EKF の位置の標準偏差の上限 | ND-07 | 0.7 | approved | m | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 0.5 を承認。 REV-179: DEC-358 で 0.7 m（暫定）に変更（DEC-208 の 0.5 m から）。 | `Q-02` |
 | PRM-93 | 推定の状態が届かないとみなす時間（mode_manager） | ND-03 | 1.0 | approved | s | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 1.0 を承認。 | `Q-02` |
 | PRM-94 | 3D 点群地図の格子（変換） | ND-05 | 0.2 | approved | m | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-132：DEC-208 で 0.2 を承認。 | `Q-02` |
 | PRM-95 | 3D 点群地図の分割の大きさ（変換） | ND-05 | 20.0 | approved | m | REV-128（DEC-203）で追加。design/proposals/nd07_a3_trial_design_2026-10-21.md REV-129：整数の m に限ることを足した（第99便の VM の確認で見つかった実装の誤りの修正に合わせた）。 REV-132：DEC-208 で 20.0 を承認。 | `Q-02` |

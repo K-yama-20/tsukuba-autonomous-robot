@@ -9888,6 +9888,26 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-178",
+      "date": "2026-10-24",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-179",
+      "date": "2026-10-24",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -10187,9 +10207,9 @@
   "decisions": {
     "count": 339,
     "by_status": {
-      "answered": 182,
+      "answered": 184,
       "recorded": 74,
-      "pending": 83
+      "pending": 81
     },
     "pending": [
       "DEC-021",
@@ -10246,7 +10266,6 @@
       "DEC-344",
       "DEC-346",
       "DEC-349",
-      "DEC-356",
       "DEC-357",
       "DEC-359",
       "DEC-360",
@@ -10269,7 +10288,6 @@
       "DEC-380",
       "DEC-383",
       "DEC-384",
-      "DEC-385",
       "DEC-386",
       "DEC-387",
       "DEC-388",
