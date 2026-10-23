@@ -1,0 +1,41 @@
+# 2026-10-23 第145便: NTRIP の中継（str2str）が「input waiting」のまま補正を受けない原因の調べ（AI。診断用で、Gouda の製品のコードではない）
+# 実行: VM（aya@10.211.55.4）、~/claude_scratch/ntrip_probe*.py を python3 -I で実行。接続の情報は各スクリプトが gnss_rtk.yaml から自分で読み、
+#   種類・状態の番号・バイト数だけを出す（caster・port・mountpoint・user・password・位置は出さない。DEC-139）。出力は下に写す（値を含まない。ntrip_probe.py は同じ形の行を一部省いた抜粋、ほかは全行）。
+# 時刻: 2026-10-23 20:0x（JST）。Gouda は手動走行モードで動いていた。受信機・Gouda の設定には触れていない。
+
+## ntrip_probe.py（平文の TCP で v1・v2 の要求。注意：位置が渡らず GGA は送っていないのに「GGA sent: True」と出る表示の誤りがある）
+keys present: ['caster', 'mountpoint', 'password', 'port', 'user'] missing: []
+position for GGA available: False
+[v1] TCP connected
+[v1] recv error ConnectionResetError
+[v1] first answer after None s: no bytes; total 0 bytes in 8 s; GGA sent: False
+[v1 + GGA right after the request] TCP connected
+[v1 + GGA right after the request] recv error ConnectionResetError
+[v2] TCP connected
+[v2] recv error ConnectionResetError
+[v2 + GGA right after the request] TCP connected
+[v2 + GGA right after the request] recv error ConnectionResetError
+
+## ntrip_probe2.py（同じ host・port で、要求なし／平文／TLS）
+DNS: resolved to 3 address(es); IPv6 among them: False
+[plain, no request]  no bytes | still open
+[plain, source table request]  no bytes | ConnectionResetError after 0.13 s
+[plain, v1 mountpoint request]  no bytes | ConnectionResetError after 0.13 s
+[TLS same port, source table] handshake OK, protocol TLSv1.3
+[TLS same port, source table]  SOURCETABLE | closed after 0.13 s | bytes 836
+[TLS same port, v1] handshake OK, protocol TLSv1.3
+[TLS same port, v1]  ICY 200 OK (v1 accepted) | still open | bytes 14
+[TLS same port, v2] handshake OK, protocol TLSv1.3
+[TLS same port, v2]  HTTP HTTP/1.1 status 200 | still open | bytes 171
+
+## ntrip_probe3.py（TLS で GGA を送り RTCM が流れるか）
+no position
+（20:06 ごろ受信機の USB が VM から外れ、/sensors/gnss/navsatfix が来なくなったため未実行。ドライバは device_absent の後に
+ "terminate called after throwing an instance of 'std::system_error' what(): Invalid argument" で落ちた記録がある）
+
+## 上流のソース（RTKLIB）
+- apt の str2str は rtklib 2.4.3.b34+dfsg-1build2（dpkg -S /usr/bin/str2str）。
+- tomojitakasu/RTKLIB ブランチ rtklib_2.4.3 の src/stream.c（2026-10-23 に取得）: NTRIP の client は平文の TCP（reqntrip_c 1537 行で
+  "GET /<mnt> HTTP/1.0" と Basic 認証を送る、rspntrip_c 1607 行は "ICY 200 OK"・"SOURCETABLE"・"HTTP/" だけを見る）。TLS の処理はない（ssl・tls の語なし）。
+  writentrip（1758 行）は接続が済むまで何も書かない（GGA も送れない）。
+- VM の MRTKLIB（src/stream/mrtk_stream.c）にも openssl・TLS の処理はない（grep）。

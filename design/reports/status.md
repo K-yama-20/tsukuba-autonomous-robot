@@ -1,8 +1,182 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-22（REV-155、第126便）。
+最終更新：2026-10-24（REV-177、第153便。REV-176・第152便も同じ日）。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第153便: 障害物の高さの帯の上端 PRM-71 を地上 1.25 m に（REV-177、DEC-324）**（作業記録 `reports/worklog/2026-10-24_bin153_prm71_dec324.md`）。
+- 人の指示「DEC-324は1250mmに変更せよ。」で PRM-71 を 1.185 → 1.085 m（base_link 基準、地面から 1.25 m、余裕なし）。生成物 gouda_nav2.yaml に反映、Nav2 の設定の単体試験 14 件合格。人の指示で VM に写した（Gouda は停止中・最後のモードは manual だったので起動していない。次の起動で読み込む、未確認）。
+- PRM-03（全高）は intent.md の記録（AR-017）のときに、PRM-36（地図の上限 1.35 m）は変えていない。設計検査 違反 0・未判定 5（intent 由来の既存の失敗はそのまま）。コミットはまだ。
+
+**第152便: 自己位置推定の判断 1〜3 の回答の記録、DEC-291 の保留、判断 4 の作り直し（REV-176、DEC-382〜390）**（作業記録 `reports/worklog/2026-10-24_bin152_localization_answers_gnss_states.md`、提案 `proposals/localization_start_gnss_states_2026-10-24.md`）。
+- 人の回答（DEC-382）：判断 1〜3 は推奨案を許可 → DEC-365・350・342・306（故障の種類で分ける、待機に入らない）、DEC-286・358（PRM-92 暫定 0.7 m）・352、DEC-351・353（再初期化は予算の中の探索）を answered。DEC-291 は保留。
+- 判断 4 は人の指示で作り直し：GNSS の状態 G1〜G5（良い・悪い・出ない・揺らぐ・地図と対応なし）でも動く作り。承認待ち DEC-383〜388、確認待ち DEC-389（intent.md 11 行の Nav2 の文と DEC-359）、実測 DEC-390。
+- PRM-92 の値の変更（許可済み）は未反映。D・T などの暫定値は未定。intent.md は人が改善した（SHA-256 857661bd…）が未記録（AR-017。誤字・未完の文があり、編集の終わりの確認待ち）。設計検査 違反 0・未判定 5、intent 由来の既存の失敗あり（intent_identity も）。コミットはまだ。
+
+**第151便: KUAMS の調査の証拠の登録と、トラブルシューティング台帳への TRB-006〜012 の登録（REV-175）**（作業記録 `reports/worklog/2026-10-23_bin151_kuams_evidence_troubleshooting.md`、証拠 `research/kuams_tc2025_2026-10-23/`）。
+- 人の指示「判断台帳等への登録を進めよ」で行った。
+- **証拠の登録**：FILE-KUAMS-TC2025-* の 6 件
+  - 本走行の結果の CSV。個人名の 2 列を除いた（notes.txt に明記）
+  - 読んだ KUAMS の commit の一覧
+  - 比較・まとめ・文献の写し
+- **トラブルシューティング台帳**
+  - TRB-006：塞がれた waypoint の後の U ターン
+  - **TRB-007（発生）**：回復が効かない種類の失敗で、PRM-18 に関係なく中止され待機に入る。第104便の VM で 1 回起き、未解決
+  - TRB-008：waypoint の向きがすべて 0 で、最後の点でその場で回る
+  - TRB-009：RPP の検査と local costmap が既定値のままで、急に現れた物の前で止まり切れない
+  - TRB-010：途切れの間の EKF の外挿で、戻ったときに map→odom に段差が入る
+  - TRB-011：幅の広い物で計画が失敗し続け、滞留する
+  - TRB-012：速い旋回で、deskew していない点群が NDT を乱す
+- 新しい DEC はない。コード・設定は変えていない。設計検査は違反 0・未判定 5（既存の intent.md 由来の失敗はそのまま）。コミットはまだ。
+
+**第150便: KUAMS（関西大、TC2025 で完走）の工夫を取り入れるかの検討の登録（REV-174、DEC-365〜381）**（作業記録 `reports/worklog/2026-10-23_bin150_kuams_adoption_review.md`、提案 `proposals/kuams_adoption_review_2026-10-23.md`）。
+- 6 つのトピックをエージェントで検討し、人の指示で承認・確認・実測と記録の訂正を登録した。コード・設定は変えていない。
+- **承認待ち**
+  - DEC-365：推定不能を故障の種類で分ける（DEC-342 c の具体化）
+  - DEC-366：stop で区切った区間ごとの goal と、その区間だけの自動の出し直し（DEC-307）
+  - DEC-367：opt-in で waypoint を飛ばす（DEC-344 (2) の再確認を含む）
+  - DEC-370：待機列の段階 queue_follow
+  - DEC-371：大域の上限は変えず区間の速度上限で遅くする。RPP と local costmap の値を PRM にする
+  - DEC-373：軌跡から waypoint の候補を作る道具
+- **確認待ち**
+  - DEC-368：TK-70 は本走行に適用されるか
+  - DEC-369：待機列の扱い
+  - DEC-372：collision_monitor は intent の範囲に入るか
+  - DEC-380：実装の抜け（Mission が kind を落とす、waypoint の向きが 0）
+- **実測待ち**：DEC-374〜379
+- **記録の訂正**：DEC-381。DEC-343・345 の「規則の原文を読んでいない」を置き換える
+- 設計検査は違反 0・未判定 5（既存の移行の違反 2 件・test_real_model の不合格・input_integrity の FAIL はそのまま）。コミットはまだ。
+
+**第149便: monitor の /config で入力欄と保存ボタンに届かない不具合の修正（REV-173、DEC-364）**（作業記録 `reports/worklog/2026-10-23_bin149_config_tab_scroll.md`）。
+- 原因：サブタブのパネルが overflow hidden で、高さ 100% のままサブタブの行の下に置かれてはみ出し、display block が縦並びを上書きしていた（実装の誤り）。
+- 人の指示で、/config タブの中を縦に並べ、表示中のサブタブのパネルを中でスクロールできるようにした（style.css のみ、3 つのサブタブ）。デモの monitor で 3 つとも確認（ホイールも）、monitor の単体試験 27 件 OK。人の指示で VM に写して `gouda.sh start`（止まっていたため）、VM の画面で 3 つとも確認（センサ取付は入力欄 20、ホイールで保存ボタンまで届く）。Gouda は MANUAL で起動したまま。第146便とあわせて web の 2 ファイルだけを PR #19（fix/monitor-panel-scroll-2026-10-23、8aa1d9d）に出した。記録（REV-171・173 ほか）は未コミット。
+- 設計検査 違反 0・未判定 5（既存の移行の違反 2 件・検査器の試験の不合格 1 件はそのまま）。
+
+**第148便: 初期位置の探索の切り分けの試験（DEC-360 (1)）**（作業記録 `reports/worklog/2026-10-23_bin148_initial_search_offsets.md`、記録 `research/vehicle_pc/2026-10-23_initial_search_offsets/`）。
+- VM の模擬の試験（ROS_DOMAIN_ID 89、動いている Gouda には触れず）：0 m・90°、0 m・180°、1 m・90°、3 m・0° は正しく合った（誤差 0.07 m）。**5 m・0° は 5.86 m 離れた誤った位置に合い、NVTL 2.67 で「正常」**と判定した。向きのずれは原因ではなく、位置のずれが原因。
+- 3 m・0° では、合った後に推定不能と正常を数回行き来した（原因は未調査）。トラブルシューティング台帳に TRB-005 を足した。コード・設定は変えていない。
+
+**第146便: monitor の waypoint タブで waypoint セットの選択欄に届かない不具合の修正（REV-171、DEC-363）**（作業記録 `reports/worklog/2026-10-23_bin146_waypoint_tab_scroll.md`）。
+- 原因：画面とパネルが overflow hidden で、右パネルの表が長くなると「AUTO 自律走行の準備」がパネルの外に押し出されていた（実装の誤り）。
+- 人の回答「Bで」：AUTO の欄を右パネルの一番上に移し、waypoint タブの両パネルを中でスクロールできるようにした（web の index.html・style.css）。デモの monitor で確認、monitor の単体試験 27 件 OK。人の指示で VM の Gouda に反映し（MANUAL・idle を確かめてから。2 ファイルの上書きだけで再起動なし）、VM の monitor の画面で確認した。コミットはまだ。
+- 設計検査 違反 0・未判定 5（既存の移行の違反 2 件・検査器の試験の不合格 1 件はそのまま）。
+
+**第147便: NTRIP の中継を TLS で包む実装（REV-172、DEC-361 回答：stunnel4）**（作業記録 `reports/worklog/2026-10-23_bin147_ntrip_tls_relay.md`）。
+- 人の指示「認証系を直して」と選択「stunnel4 で包む」で実装。str2str は 127.0.0.1 の stunnel4 にだけつなぎ、stunnel4 が caster へ TLS（証明書とホスト名を確認）。stunnel4 がなければ中継を起動しない（平文の道なし）。TLS の出来事は ntrip_tls_state で記録。setup.sh に stunnel4・ca-certificates。
+- 試験：Mac 293 件・VM 293 件 OK。実の stunnel4＋str2str で caster から 30 秒に RTCM3 181 frame を受けた（出力はファイル。受信機は外れていた）。
+- VM の Gouda に反映（手動モードを確認して再起動）。1 回目の反映で、起動しない中継が見張りの thread を落とす回帰（既知の host_ip の不具合に落ちる）を起こし、直して再反映。今は Traceback なし、中継は「stunnel4 is not installed」で止まっている。
+- 追記（23:48〜）：stunnel4 を入れ、受信機を VM につないだ後、中継は自動で起動し TLS connected・input connected になった。受信機は衛星を受けておらず（PVT mode 0・error 1）、RTK は未確認。DEC-362 は回答待ち。コミットはまだ。
+
+**第145便: NTRIP が使えない原因（REV-170、DEC-361・362）**（作業記録 `reports/worklog/2026-10-23_bin145_ntrip_tls_cause.md`、証拠 `research/vehicle_pc/2026-10-23_ntrip_tls_probe/`）。
+- 原因：caster の port は TLS 専用。平文の要求は 0.13 s でリセット。TLS では認証・mountpoint とも受け付けられた（v1 ICY 200 OK、v2 HTTP 200）。apt の str2str（RTKLIB 2.4.3 b34）には TLS がなく、今の中継ではつながらない。
+- 承認待ち DEC-361（TLS 対応：推奨 stunnel4 で包む）。確認 DEC-362（str2str と AI の診断が認証を平文で送っていた。パスワードの変更の検討）。
+- 未確認：TLS で GGA を送った後の RTCM の受信（20:06 に受信機の USB が VM から外れ、ドライバが落ちたため未実行）。
+
+**第144便: GNSS の 2 アンテナと NTRIP の状態の確認（読むだけ）**（作業記録 `reports/worklog/2026-10-23_bin144_gnss_dual_ntrip_check.md`）。
+- 2 アンテナ：ドライバの設定は multi_antenna true で、受信機も向きを計算しようとしているが、AttEuler は mode 0・error 1（Main-Aux1 の測定が足りない。Reference Guide で確認）。向きは出ていない。
+- NTRIP：中継（str2str）は動いているが「input waiting」のまま。補正が届かず、単独測位（衛星 16、水平精度 8.2 m）。RTK は効いていない。
+- 受信機・設定には触れていない。原因（副アンテナの配線・設置、caster への接続）は未確認。
+
+**第143便: 初期位置の推定・開始の速さ・確認用の表示（REV-169、DEC-355〜360）**（作業記録 `reports/worklog/2026-10-23_bin143_initial_localization_questions.md`）。
+- 人の発言を記録（DEC-355）。以前の失敗は「5 m・90 度」で、探索は向きを一周試すため、主因は位置のずれ 5 m（探索の広がりは標準偏差 0.5 m）と推測。
+- 承認待ち：DEC-356（探索の範囲を 1 m から段階的に広げる）、DEC-357（確認用の表示に VM の rviz2 を使う。新しいプログラムなし）、DEC-358（PRM-92 を暫定 0.7 m）、DEC-359（準備の段階で推定と Nav2 の起動を済ませる＋DEC-287 の推奨案）。試験・実測 DEC-360。
+- コード・設定は変えていない。設計検査 違反 0・未判定 5。
+
+**第142便: 推定不能の間の補い方の調べと提案（REV-168、DEC-350〜354）**（作業記録 `reports/worklog/2026-10-23_bin142_localization_gap_bridging.md`、提案 `proposals/localization_gap_bridging_2026-10-23.md`、証拠 `research/vehicle_pc/2026-10-23_glim_odom_drift/`）。
+- 推奨：新しいフィルタ（IMU の予測・因子グラフ）は今は足さない（エンコーダ・GNSS がなく、使える情報が増えない）。原因で分ける：LiDAR の途切れ（GLIM も止まる、2.7〜4.2 s）は止まって待つ。照合の質の低下は map→odom を固定して GLIM で進み、距離 D・時間 T を超えたら止まって待つ → 止まったまま再初期化。戻すときは NDT と GLIM の一致を連続 N 回確かめてから寄せる。値はすべて rosbag の再生に故障を入れて測る（DEC-354）。
+- 記録から：GLIM の odometry のずれの下限は 50 m あたり p95 0.06〜1.18 %（基準は真値でない）。止まっている間はずれない。人混み・段差・走行中の推定の失敗の記録はない。
+- 上流のソースで確かめた：NDT は収束しないと姿勢を出さない。EKF の棄却は 2 乗でない距離と 49.5 を比べるので実質ない（PRM-91 の説明は実態と違う）。
+- 承認待ち DEC-350〜353、実測 DEC-354（外付けの接続と新しい記録は人の作業）。第143便の DEC-356（探索の範囲）・DEC-358（PRM-92 暫定 0.7 m）と関係する（再初期化 DEC-353、ずれの目安に EKF の共分散を使わない DEC-352）。
+- 実装なし。設計検査 違反 0・未判定 5。移行の違反 2 件・検査器の試験の不合格 1 件は intent.md の未記録の編集による（既存）。コミットはまだ。
+
+**第141便: 規則の操作の範囲、経路の引き直しの頻度 PRM-103 の実装、障害物の扱いと段差（REV-167、DEC-347〜349）**（作業記録 `reports/worklog/2026-10-23_bin141_replan_rate_and_rules.md`）。
+- 人の回答（DEC-345）：異常のときにチームメンバーがボタンを押すと走行失敗。再開ボタンは停止線で止まった後か信号が青になった後だけ。停止線での再開に PC のボタンは使ってよい。
+- 人の指示で、Nav2 の経路の引き直しの頻度を PRM-103＝1 Hz（暫定、上流は 0.333 Hz）にし、monitor の /config「Nav2」タブで変えられるようにした（nav2_config・monitor・web、試験つき）。Mac 287 件・VM 287 件の単体試験は合格。VM の Gouda に反映済み（手動モードを確かめてから再起動。生成された BT の hz 1.0、Nav2 タブの表示、不正な値の拒否を確認）。VM にセンサーはつながっていない。
+- 記録：障害物を遠くから認識して近づくにつれて更新する人の案（DEC-348）、段差での GLIM・NDT の確認（DEC-349、実測待ち、TRB-004）。
+- 設計検査 違反 0・未判定 5。コミットはまだ。
+
+**第140便: 状態遷移の再設計の提案（REV-166、DEC-342〜346）**（作業記録 `reports/worklog/2026-10-23_bin140_state_transition_redesign.md`、提案 `proposals/state_transition_redesign_2026-10-23.md`）。
+- モードは 4 つのまま。自動で待機に入るのは最後の waypoint だけ。推定不能・Nav2 の失敗・滞留・部品の復帰・停止線の待ちは、自律走行モードの中の処理の段階で表す（TR-07・TR-09 をなくす）。DEC-305〜314 と DEC-340・DEC-332 をまとめた。
+- 横断歩道：既存の waypoint の kind: stop を使い、区切りごとに goal を出す。止まったら人の「横断を始める」操作で次へ（DEC-343）。
+- 承認・確認・実測待ち：DEC-342（推定不能は「少し進んでから待つ」案）、DEC-343、DEC-344（場所ごとの inflation、waypoint を飛ばす段の制限）、DEC-345（待機ボタンは規則上許されるか）、DEC-346（実測）。実装なし。
+
+**第139便: 規則の読みの訂正と、推定不能での自動の待機についての人の発言の記録（REV-165、DEC-339〜341）**（作業記録 `reports/worklog/2026-10-23_bin139_rule_corrections.md`）。
+- 人が規則を確認：3 分以上の滞留が失敗なのは確認走行区間（ほかは記載なし）。確認走行中の緑のコーンへの接触は失敗。歩行者にぶつかると失敗。制限時間 100 分、スタートは 1 分以内にスタートライン・2 分以内に 20 m。狭い所は迂回すればよい（DEC-339）。
+- 人の発言：推定不能で即待機に入るのは良くない。自動の待機は削除してよい気がするが、状態遷移の再設計が要る（DEC-340）。
+- 確認待ち：DEC-341（コーン・歩行者のため、DEC-321 の local の 2 次元化と DEC-322 を見直すか）。トラブルシューティング台帳に接触が失敗になることを書き足した。
+- intent.md が人に編集された（15:08、全高 1250 mm、monitor の表示の行の追加）。未記録（AR-017 は編集の終わりの確認待ち）。このため移行の違反 2 件。設計検査は違反 0・未判定 5。
+
+**第138便: costmap 第2版・第134便の問いへの人の回答の記録と、トラブルシューティング台帳の作成（REV-164、DEC-319〜338）**（作業記録 `reports/worklog/2026-10-23_bin138_answers_troubleshooting.md`）。
+- 人の回答 A1〜A9・B1〜B5 と、第130便でチャットにしか残っていなかった回答（A〜E）を原文で記録した。
+- 決まったこと：帯の段は rosbag で比べる（人が rosbag を用意するまで待つ）、local は 2 次元の ObstacleLayer（一旦採用）、点のない方位を消去に使う、点群の途絶を Nav2 で検出しない（保護の削減）、costmap の凍結は 12/1（暫定）、**モード名「一時停止」を「待機」に変える**、**横断歩道の状態遷移を最優先で作る**（waypoint の属性で止まり、人が再開）、走行・実験は VM で行う（人が指示するまで）、LAN はハードウェアを改良済み、Nebula は後回し。
+- 人の申告：コーンの課題（目の前に置かれたコーンの回避、ランダムに置かれた区間の通過）があり、XT-32 だけでは無理。第2版の「本番前は XT-32 だけ」は取り下げ、MID-360 を入れる第3版を作る。車両の最大高さは実測でおよそ 1.25 m。
+- トラブルシューティング台帳 `design/troubleshooting/ledger.yaml` を作り、TRB-001（2 次元の local で低い物に衝突）・TRB-002（点のない方位の消去で反射の弱い物に衝突）・TRB-003（途絶を検出せず古い costmap で走る）を登録した。
+- 確認・承認待ち：DEC-324（帯の上端）、DEC-331（名称変更の範囲）、DEC-336（base_link の帯）、DEC-337（距離の PRM 化）、DEC-338（案 A〜E の扱い）。
+- 検査：設計検査 違反 0・未判定 5。移行の違反は既存の 6 件。検査器の試験 88 件のうち既存の 1 件（test_real_model）だけ不合格。新しい台帳の試験 5 件は合格。実装なし。コミットはまだ。
+
+**第137便: intent.md 第16版の記録（REV-163、AR-016、DEC-318）**（作業記録 `reports/worklog/2026-10-23_bin137_intent_v16.md`）。
+- 人の編集（1 行目の目的の文：「自動的にgoudaが一時停止モードに入って自律走行が出来なくなったり」）を記録した。新しい要求は RQ-I095。RQ-I089 を superseded にした（C-031）。
+- 検査：設計検査は違反 0・未判定 5。intent の照合は合格。移行の違反は既存の 6 件。検査器の試験は既存の 1 件だけが不合格。コミットはまだ。
+
+**第135便: 検査器の試験の見本の差し替え（REV-162、DEC-317）**（作業記録 `reports/worklog/2026-10-22_bin135_test_fixture.md`）。
+- 人の許可（原文）で、`test_superseded_requirement_needs_intent_justification` の見本を RQ-I001 から RQ-I002 に替えた。合否の基準は変えていない。この試験は合格し、規則を壊した写しで検出されることも確かめた。
+- 検査の途中（23:45）に、人が intent.md の 1 行目をもう一度編集した（SHA-256 23170969…）。まだ AR-016 に記録していない（人が編集を終えたかの確認待ち）。このため、intent の照合と移行の検査は違反、検査器の試験は 2 件不合格。設計検査は違反 0・未判定 5。コミットはまだ。
+
+**第133便: intent.md 第15版の記録（REV-161、AR-015、DEC-315・316）**（作業記録 `reports/worklog/2026-10-22_bin133_intent_v15.md`）。
+- 人の編集を記録した。目的に本番の失格の条件、必達は 2.2 km の完走、16 行に Nav2 の失敗で「一時停止モードに入らずとも良い」、33 行に優先順位「0. 本番で完走できる」、39 行に保護削減は報告し台帳に記録、94 行に PC 再起動の後は自律走行に戻る。
+- 新しい要求は RQ-I089〜094。旧要求 5 件を superseded にした（C-030）。
+- 確認待ち DEC-316：事前地図作成からの PC 再起動の復帰先、一時停止しない場合の振る舞い、優先順位の 0、39 行と DEC-106 の関係。回答までは DEC-106 に従い、実装しない。
+- 検査：設計検査は違反 0・未判定 5。移行の違反は HEAD と同じ既存の 6 件。検査器の試験で、新しく 1 件が不合格（RQ-I001 を見本に使う試験の前提が崩れた。直すのは許可の後）。コミットはまだ。
+
+**第132便: 本番で自動で一時停止しない方針の承認事項（REV-160、DEC-304〜314）**（作業記録 `reports/worklog/2026-10-22_bin132_competition_no_auto_pause.md`、提案 `proposals/competition_no_auto_pause_2026-10-22.md`、intent.md の編集依頼 `proposals/intent_edit_request_competition_2026-10-22.md`）。
+- 人の発言（DEC-304、原文）：本番では、一時停止モードに入ること、3 分の滞留が失格になる。衝突は失格ではない。必達は 2.2 km の完走。大会の規則の原文は未照合。
+- 確定済みの DEC-200 と intent.md の 15・93・38 行と衝突するため、次を pending で登録した。
+  - DEC-305：方針と intent.md の修正案
+  - DEC-306：推定不能
+  - DEC-307：Nav2 の失敗
+  - DEC-308：ドライバの作り直し
+  - DEC-309：PC 再起動の後の自動復帰
+  - DEC-310：滞留の段階
+  - DEC-311：motion_hold
+  - DEC-312：ESP32 の再許可
+  - DEC-313：回避の設定
+  - DEC-314：実測
+- 作業中に、人が intent.md の 15 行を編集した（「一時停止モードに入らずとも良い」）。第133便で、編集を終えた版を AR-015 として記録した。
+- 設計検査：違反 0・未判定 5。実装はしていない。コミットもまだ。
+
+**第131便: RxTools での検査の手順（REV-159、DEC-303）**（作業記録 `reports/worklog/2026-10-22_bin131_rxtools_checklist.md`、手順 `research/rxtools_inspection_checklist_2026-10-22.md`）。
+- 人の指示: RxTools（Windows の VM）でまず検査する。測位を繰り返し試さない。受信機は屋内。
+- 手順: 受信機を Windows の VM に渡し、検査の間は Ubuntu で Gouda を起動しない。設定の全体（Current・Boot・RxDefault）、アンテナの給電と過電流、前段ごとの AGC、スペクトル、追尾を止めうる設定を、変えずに読む。受信機には触れていない。コミットはまだ。
+
+**第136便: costmap の入力の直しの提案 第2版（完走優先）**（作業記録 `reports/worklog/2026-10-22_bin136_costmap_proposal_v2.md`、提案 `proposals/costmap_inputs_completion_v2_2026-10-22.md`。第1版を置き換え）。
+- 本番前は XT-32 だけ。高さの帯を base_link で当てる（pcl_ros PassThrough と pointcloud_to_laserscan を rosbag で比べて選ぶ）、local を ObstacleLayer に、距離 2.5・3.0 m を PRM で明示、expected_update_rate は 0 のまま（保護の削減として記録）。STVL・MID-360・Nebula・PTP・地面の推定は本番の後。
+- 承認事項 V2-1〜V2-6・人の判断 1〜9 は台帳に未登録。実装・計測なし。
+
+**第134便: 点群・costmap・時刻・計算資源の、完走優先での再検討（4 つのエージェント）**（作業記録 `reports/worklog/2026-10-22_bin134_costmap_review_completion.md`）。
+- 690 件の時刻差の警告は LiDAR の LAN のリンク断（2.7〜3.5 s の途切れ）と合う。本番では推定不能 → 一時停止になる。Nebula・PTP は本番の後へ。
+- 第130便の提案は完走優先では P-1・P-3・P-6・P-8 の向きが逆（提案の冒頭に注）。残すのは base_link の帯（P-4）と距離の明示（P-7）。
+- costmap の待ちの打ち切り（CONTROLLER_TIMED_OUT）は BT の回復の対象外（Nav2 1.3.13 で確認）。
+- 規則: 停止線・道路端での停止（EV-22）は未設計、スタートの後の操作は失格（EV-19）。計算資源の数値は VM のもので、G15 では未計測。台帳には未登録。
+
+**第130便: 点群の送受信の無駄の調べと、costmap の入力の作り直しの提案**（作業記録 `reports/worklog/2026-10-22_bin130_costmap_inputs_proposal.md`、提案 `proposals/costmap_inputs_stvl_mid360_2026-10-22.md`）。
+- 生の XT-32 点群を自律走行中に 4 プロセスが購読。costmap は全点を変換してから大半を捨てる。高さの帯は base_link 基準の定義なのに odom・map の z で当たっている（標高で低い物が見えなくなる）。点群の途絶を Nav2 が検出しない。
+- 提案（段階 1）: pcl_ros で base_link の帯・距離を切り、local costmap は STVL、global は ObstacleLayer のまま。MID-360 は livox_ros_driver2。承認事項 P-1〜P-9・実測 M-1〜M-11 は**台帳に未登録**（仮の番号）。人の回答 A・C・D・E（チャット）も未登録。
+- 実装・計測なし（VM に接続できず）。コミットはまだ。
+
+**第129便: GNSS が衛星を追尾しない件の調べ（REV-158、DEC-299〜302）**（作業記録 `reports/worklog/2026-10-22_bin129_gnss_no_tracking.md`、記録 `research/gnss_no_tracking_investigation_2026-10-22.md`）。
+- 受信機は屋外でも衛星の信号を 1 つも受けていない。2026-10-19 朝は屋内で衛星 13〜17 を捕まえていたが、AI が勧めた DualAnt と reset の後から捕まえなくなった。Gouda のコードが原因の証拠はない。
+- AI の誤り: 2026-10-20 の観測 0 を「屋内だから」とした（確かめていない仮定）。
+- 承認待ち: DEC-299（T1 読むだけで AGC・アンテナの状態）、DEC-300（T2 Nominal に戻す）、DEC-301（caster の確かめ）、DEC-302（monitor・中継の改善）。人の確認: 10-19 の後にアンテナ・ケーブルを替えたか。コミットはまだ。
+
+**第128便: GNSS まわりの現状と改善点の提案（REV-157、DEC-294〜298）**（作業記録 `reports/worklog/2026-10-22_bin128_gnss_improvements.md`、提案 `proposals/gnss_improvements_2026-10-22.md`）。
+- 2026-10-22 の実の地図作成 3 回の GNSS はすべて解なし・方位なし。今の地図はどれも GNSS と対応づけられない。屋外の方位の確認と RTK（中継）は未確認（VM に str2str と gnss_rtk.yaml はある）。
+- 提案: 屋外で方位と RTK を 1 回で確かめる、RTK fix を確かめてから地図作成。小さな実装の承認待ち: DEC-294（地図作成の GNSS の警告と manifest の質の要約）、DEC-295（副アンテナの見張り）、DEC-296（ntp_server false）、DEC-297（受信機の状態の記録）、DEC-298（NTRIP v1・TLS なしの受け入れ）。
+- 検査: 設計検査 違反 0・未判定 5、移行の違反は既存の 6 件。コード・設定は変えていない。コミットはまだ。
+
+**第127便: 人混み・他のロボットの中での自己位置推定の対策の提案（REV-156、DEC-290〜293）**（作業記録 `reports/worklog/2026-10-22_bin127_crowd_localization.md`、提案 `proposals/crowd_robust_localization_2026-10-22.md`）。
+- 車輪のエンコーダがないため、GNSS が切れると位置を保てるのは LiDAR だけ。「GNSS＋IMU が主、LiDAR は補助」は危ないと判断。
+- 推奨：NDT の入力を人の頭より高い点に絞る（DEC-291）→ 人混みの記録で評価（DEC-293、実測）→ RTK fix の GNSS と NDT を品質で重み付けして融合（DEC-290）。エンコーダは評価の後に判断（DEC-292）。
+- 検査：design_check 違反 0・未判定 5、run_checks の違反は既存の 6 件。コード・設定は変えていない。コミットはまだ。
 
 **第126便: DEC-289 の実装（REV-155、地図作成の終わりの姿勢）**（作業記録 `reports/worklog/2026-10-22_bin126_dec289_end_pose.md`）。
 - 人の指示（原文）で案 a。waypoint タブに、地図作成の終わりの車体の姿勢（黄の矢印）と「地図作成の終わりの姿勢を初期位置にする」ボタン。
@@ -108,6 +282,12 @@
   - ND-07 が、A3 の起動から 1.5〜3 秒で点群を待たずに呼ぶ。
   - XT-32 の 1.66 MB の点群は、BEST_EFFORT では既定の受信バッファでほとんど届かない。pcl_ros の CropBox は 18 秒で 3 通しか出さなかった。受信バッファを 4 MB にすると、10 秒で 75 通届いた。
 - 対応は承認待ち：DEC-279（Fast DDS の profile で受信バッファを大きくする）、DEC-280（NDT が点群を受け取るまで待つ）。コードと設定は変えていない。実車での自律走行は、これが決まるまで止まる。
+
+**第114便: VM のセンサーの状態**（作業記録 `reports/worklog/2026-10-22_bin114_sensor_status.md`）。
+- XT-32 は待機（standby 1）で点群が来ていなかったが、確認の途中で運転に戻り、10 Hz で届いている（切り替えたのは Claude ではない）。IMU は受信あり。GNSS は衛星 0 で測位なし。NTRIP の補正は 0 バイトで、ネットワーク RTK は使えていない。人がアンテナを外に出した後も、2 分半のあいだ衛星の信号 0（アンテナの信号が届いていない可能性）。接続を直した後（10-22 00:5x）、LiDAR は 10 Hz、IMU は受信あり、GNSS はなお信号 0。
+
+**第113便: VM のセンサーの接続の確認と Parallels の設定の点検**（作業記録 `reports/worklog/2026-10-21_bin113_sensors_parallels.md`）。
+- IMU は受信あり。GNSS はドライバ起動・測位なし。ESP32 は手動走行では開かない。XT-32 は、VM の起動のときに USB-LAN の結び付きが失敗していて未受信（付け直しは人の作業）。Claude のアプリが Mac の眠りを止めているので、閉じると 1 分で眠る見込み（DEC-104）。Parallels の設定の案は人の判断待ち。
 
 **第112便: monitor の「発進準備」タブを実装済みの手順に合わせた**（作業記録 `reports/worklog/2026-10-21_bin112_prep_tab.md`）。
 - 文面だけのタブが「未実装」のまま古かった。waypoint タブでの選択と初期位置、自律走行ボタン、その後の自動の起動の順に書き直した。未実装は GNSS による初期位置（DEC-124）だけ。Mac 258 合格。VM には未反映。
@@ -543,7 +723,7 @@
 
 第87便（REV-119、2026-10-21）で書き直した（DEC-185、人の許可の転記）。件数は `design/reports/design_check.txt` の要約行と、各便の作業記録から取った。
 
-- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第14版で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
+- **移行が正確**: 違反。入力の照合（`reports/input_integrity.json`、76 件）のうち不一致は 3 件。人が編集中の `design/docs/SystemArchitecture.drawio` と、Finder が作る `design/docs/extraction_20261008_01a11af4/.DS_Store`・`raw_xlsx/.DS_Store`（第87便で 2 件と書いたのは誤り）。ほかの原資料・抽出結果・baseline は一致する。intent.md は第16版（AR-016、第137便）で、記録済みの版として検証している。drawio を新版として記録するか、変更を戻すかは人の判断。
 - **設計検査に合格**: 未判定。17 ルールのうち合格 12・違反 0・未判定 5。未判定の内訳は、DR-04 が 5 件、DR-05 が 2 件、DR-10 が 2 件（版の照合）、DR-11 が 30 件（未確定の値）、DR-15 が 30 件（コードの中の数値。偶然の一致を含む、`reports/dr15_literal_audit_2026-10-21.md`）。違反 0 件は、未判定の解消や実車への適合の証明ではない。
 - **ソフト試験**:
   - 工程 5-1〜5-5 は合格（stub・Ubuntu・VM。ESP32 の実機・ゲームパッド・車体なし）。
@@ -571,7 +751,12 @@
 
 ## 承認待ち・実測待ち・人の作業・提案
 
-判断台帳の pending（21 件）:
+判断台帳の pending（2026-10-22 第132便の時点で 46 件。下の一覧は REV-142 の時点の 21 件で、その後の分は各便の要約を見る）:
+
+- 本番の方針（第132便）：DEC-305〜313（承認）、DEC-314（実測）。DEC-305 が決まるまで DEC-306〜311 の実装は止まる。
+- KUAMS の工夫の取り入れ（第150便）：承認 DEC-365〜367・370・371・373、確認 DEC-368・369・372・380、実測 DEC-374〜379。
+- intent.md 第15版の確認（第133便）：DEC-316。
+- 許可待ち（第133便）：RQ-I074 を superseded にする（既存の移行の違反 1 件の解消）。試験の見本の差し替えは第135便で済んだ。
 
 - 方式・照合: DEC-021（Q-02 自己位置推定の方式）、DEC-022（Q-03 車両通信と制御の校正）、DEC-024（Q-09 Bluetooth 切断時の P 状態）、DEC-050（配線・firmware・操作結果の実機照合）。
 - 自己位置・GNSS: DEC-127（GNSS と地図の対応）、DEC-129（再起動後の初期位置の画面）、DEC-134（発散の監視と再初期化）、DEC-148（intent.md への運用の条件の追記）、DEC-152（NTRIP の検査ルール）。
@@ -600,6 +785,8 @@
 
 ## 原本未照合
 
+- つくばチャレンジの規則（一時停止・3 分の滞留が失格、衝突は失格でない）は、人の発言（DEC-304）だけによる。規則の原文は読んでいない（第132便）。
+  - 第150便の注：その後、`docs/regulations_2026.md` の本文は原本照合済になっている。この行の記述は古い可能性がある（DEC-381）。照合の範囲は同じファイルの冒頭を見る。
 - 実車 PC の Nav2 はパッケージ版（1.3.13）で照合した。バイナリの中の IDL は直接読んでいない。
 - 実機の ESP32 の配線と、書き込まれた firmware（DEC-050 は未実施。どのビルドを書いたかは未確認）。
 - 詳細設計書は、2026-10-21 に Google スプレッドシートの「モジュール定義」「使用モード定義」を読んだ（gviz の CSV）。それ以外のシートは今回読んでいない。リポジトリの xlsx の写しは最新ではない（人の指摘）。
@@ -618,6 +805,7 @@
 | 正本（YAML） | `design/model.yaml`、`design/schema.json` | 変更は `revisions/REV-xxx.yaml` → `tools/apply_revision.py REV-xxx --dry-run --check` → 本適用。最新 REV-136。番号は `tools/reserve_ids.py` で予約する |
 | 正本（Markdown） | `design/docs/` | `implementation_stages.md`、`esp32_protocol_v4.md`、`vehicle_output_timing.md`、`speed_filter_design.md`、`map_conversion.md`、`sensor_supervision.md`、`regulations_2026.md`、`git_management_plan.md`、`deferred_verification.md` |
 | 判断台帳 | `model.yaml: decisions`（DEC-001〜226） | ビュー: `generated/pending_classification.md`、`conflicts.yaml`、`intent_open_items.yaml` |
+| トラブルシューティング台帳 | `design/troubleshooting/ledger.yaml`（TRB-001〜）、スキーマ `design/troubleshooting/schema.json` | DEC-321 で作成（第138便）。検査は `rules/test_troubleshooting_ledger.py`。承認した設定が原因になりうる症状を先に登録し、起きたら `occurrences` に追記する |
 | 検査器・ルール一覧・試験 | `tools/validate_model.py`、`tools/check_design.py`、`rules/` | `rules/README.md` |
 | スクリプト | `tools/` | `run_checks.py`、`render_views.py`、`generate_params.py`、`render_migration_review.py`、`apply_revision.py`、`reserve_ids.py`、`hardcode_scan.py` |
 | 生成物（手で編集しない） | `generated/`（`params/` に node ごとの設定、`firmware_config.yaml`）、`conflicts.yaml`、`intent_*.yaml`、`reports/*.json` | firmware のビルド時のヘッダはビルドのときに生成する（コミットしない） |

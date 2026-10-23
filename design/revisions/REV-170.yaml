@@ -1,0 +1,78 @@
+# 変更セット REV-170（2026-10-23 第145便: NTRIP が使えない原因の調べ。承認事項 DEC-361・確認 DEC-362）
+# 適用: design/tools/apply_revision.py REV-170
+id: REV-170
+date: '2026-10-23'
+summary: >-
+  第145便：人の指示「NTRIPが使えない原因を徹底的に調べろ」で、中継（str2str）が input waiting のまま補正を受けない原因を調べた。
+  gnss_rtk.yaml の caster の port は TLS 専用で、平文の要求は 0.13 s でリセットされる。同じ port に TLS でつなぐと、認証と mountpoint は受け付けられた
+  （v1 で ICY 200 OK、v2 で HTTP 200、source table も返る）。apt の str2str（RTKLIB 2.4.3 b34）と MRTKLIB には TLS の処理がない。
+  証拠 research/vehicle_pc/2026-10-23_ntrip_tls_probe/。直し方の承認 DEC-361、平文で認証が送られていた件の確認 DEC-362 を登録する。コード・設定は変えていない。
+basis_refs:
+- DEC-139
+- DEC-156
+- DEC-298
+- DEC-301
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-NTRIP-TLS-PROBE-RESULTS
+  path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/results.txt
+  role: evidence
+- id: FILE-NTRIP-TLS-PROBE-1
+  path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/ntrip_probe.py
+  role: evidence
+- id: FILE-NTRIP-TLS-PROBE-2
+  path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/ntrip_probe2.py
+  role: evidence
+- id: FILE-NTRIP-TLS-PROBE-3
+  path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/ntrip_probe3.py
+  role: evidence
+decisions:
+- id: DEC-361
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】caster の port が TLS 専用で、今の中継（apt の str2str、TLS なし）では補正を受けられない。中継を TLS に対応させる方法を次から選ぶ：
+    a. stunnel4（apt）を PC の中に置き、str2str は 127.0.0.1 の平文の口につなぎ、stunnel が caster へ TLS でつなぐ（supervisor が stunnel も起動する）、
+    b. socat（apt）で a と同じ TLS の中継、
+    c. Gouda の中に小さな中継（Python の標準の ssl で caster に TLS でつなぎ、RTCM を USB2 に書き、USB2 の GGA を返す。提案 ntrip_gga_proposal の案 B3）、
+    d. Point One に平文の port があればそれを使う（認証が平文で流れる。DEC-298）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - DEC-139
+  - DEC-156
+  - DEC-298
+  resulting_refs: []
+  note: >-
+    推奨は a（str2str の実績のある中継をそのまま使い、足すのは TLS の包みだけ。認証は TLS の中だけを流れる。stunnel の設定ファイルには秘密を書かない：
+    caster の名前と port は gnss_rtk.yaml から supervisor が起動のときに渡す形を設計する）。a・b は apt の導入（sudo、人の作業、setup.sh への追加）が要る。
+    c は導入が要らないが、NTRIP の接続・再接続・途切れの検出を自作して試験する必要がある。d は認証が暗号化されずに流れる。
+    事実（第145便）：平文の要求は 0.13 s でリセット、TLS（TLSv1.3）では v1 で ICY 200 OK、v2 で HTTP 200、source table 836 バイト。
+    未確認：TLS で GGA を送った後に RTCM が流れること（受信機の USB が VM から外れて GGA の位置が得られず未実行）。決まらない場合に止まる作業：RTK、地図と GNSS の対応づけ。
+  disposition: open_human
+- id: DEC-362
+  kind: confirmation
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】中継（str2str）は起動のたびに、TLS 専用の port へ平文で NTRIP の要求（Basic 認証＝ユーザー名とパスワードの base64）を送っていた。
+    第145便の診断でも、認証つきの平文の要求を 5 回送った（caster はすぐリセットしたが、要求のバイトはネットワークを流れた）。パスワードの変更を検討するか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-139
+  - DEC-298
+  - ND-19
+  resulting_refs: []
+  note: >-
+    事実：RTKLIB の reqntrip_c は Basic 認証を平文で送る。caster は要求を読んでからリセットしたか、読まずにリセットしたかは外から分からない。
+    経路は VM → Mac の共有ネットワーク → インターネット（大学・家庭などの回線）。盗まれた証拠はない。AI の推奨：直し方（DEC-361）を入れる前に、念のため人がパスワードを変える。
+    変える場合は gnss_rtk.yaml を人が書き直す（AI は読まない）。AI の誤り：診断の最初の 2 つのスクリプトで、TLS を先に試さず平文の要求を送った。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

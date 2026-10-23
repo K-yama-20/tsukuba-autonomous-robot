@@ -1,0 +1,158 @@
+# 変更セット REV-169（2026-10-23 第143便: 初期位置の推定・開始の速さ・確認用の表示についての人の発言と、その承認事項）
+# 適用: design/tools/apply_revision.py REV-169
+id: REV-169
+date: '2026-10-23'
+summary: >-
+  第143便：人の発言（推定の結果と経路を地図に出す確認用の表示、探索の半径を 1 m から広げていく案、90 度ずれの失敗の問い、地図との違い・人混み・スタート地点ののぼりと観客、
+  DEC-286 を暫定 0.7 m にする案、DEC-287 の推奨案の受け入れの向き）を原文で記録した（DEC-355）。承認事項 DEC-356〜359・試験と実測 DEC-360 を登録する。コード・設定は変えていない。
+basis_refs:
+- DEC-286
+- DEC-287
+- DEC-289
+- DEC-342
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-355
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第142便の AI の説明への人の発言）初期位置の推定、確認用の表示、DEC-286・DEC-287
+  answer_verbatim: |
+    ・推定した自己位置を地図上に出し、行動経路を地図に表示してみる機能を付けてみるのはどうか？本走行では意味のない機能だが、実験走行時やデバッグの際に人間が見て性能を判断するのに便利だと思う。rvizに既にその機能がある場合は新規実装しなくて良いし、ネットに既に似たプログラムがあればそれを使ってくれてもいい。また、探索時は最初は1mにして、初期位置推定が出来なかったら徐々に上限値まで探索半径を広げていくというのはどうか？
+    また、以前のVM内での君のテストで、90度ずれていた場合に初期位置の推定に失敗していた気がする。初期位置推定のアルゴリズムに問題があるのではないか？また、地図作成時にあった自転車や車が、自律走行開始時になくなっていたり、周囲に人がたくさん立っていた場合はどうなってしまうの？また、つくばチャレンジでは決められた場所からスタートする。スタート位置には左右にのぼりが立っていて、コースの縁には観客が並んで立っている。lidarでの自己位置推定は出来ない可能性がある。数メートルまっすぐ進めばgnss測位やlidarでの自己位置推定ができるようになる可能性があるんだよね。
+    ・DEC-286: EKFのパラメータ調整がおかしいか、あるいはEKFを用いるのが不適切である可能性はないか？さしあたっては、0.7mに拡大して走れるようにしてみるのも一案かと思う。
+    ・DEC-287: 自律走行開始ボタンを押した後はなるべく早く動き出すことが望ましいが、その解決案が応急処置としては最善だというなら、それでも良いかもしれない。
+  affected_refs:
+  - ND-07
+  - ND-02
+  - PRM-84
+  - PRM-87
+  - PRM-92
+  - DEC-286
+  - DEC-287
+  - DEC-289
+  - DEC-291
+  resulting_refs:
+  - DEC-356
+  - DEC-357
+  - DEC-358
+  - DEC-359
+  - DEC-360
+  note: >-
+    AI の説明（第143便の作業記録）：(1) 以前の失敗は「5 m・90 度」（模擬、REV-128）で、1 m・10 度と 2.8 m・30 度は成功していた。探索は向きを一周一様に試す（Autoware main のソースで確認、apt 1.9.0 は未照合）ので、
+    失敗の主因は 5 m の位置のずれ（探索の広がり PRM-84 は標準偏差 0.5 m）と推測。(2) 確認用の表示は、VM に rviz2・nav2_rviz_plugins・nav2_default_view.rviz が入っているので新しい実装は要らない見込み。
+    (3) DEC-286・287 は人の明示の承認ではないので、それぞれ pending のまま。暫定 0.7 m は DEC-358、DEC-287 は推奨案の実装の許可を人に確認する。
+  disposition: answered
+- id: DEC-356
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】初期位置の探索の範囲を段階的に広げるか：ND-07 が ndt_align_srv を初めは水平の標準偏差 1 m で呼び、推定ができなかった（照合の良さ PRM-90 未満など）ら、標準偏差を段階的に上限まで広げて呼び直す。
+    段階の値・上限・各段の時間は tbd（DEC-360 の試験で決める）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - PRM-84
+  - PRM-90
+  - DEC-355
+  resulting_refs: []
+  note: >-
+    推奨は承認。注意：広げるほど 1 回の探索が長くなり（今の実車で初期化 17〜30 s）、似た景色の所で誤った位置に合う恐れが増える。探索の点の数（上流の particles_num 200）を段に合わせて増やすかも決める。
+    向きは一周を試すので、向きの段階は不要。スタートの規則（1 分以内にスタートライン）との関係は DEC-359 と組。決まらない場合に止まる作業：ND-07 の探索の作りの変更。
+  disposition: open_human
+- id: DEC-357
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】実験走行・デバッグで、推定した自己位置・その軌跡・Nav2 の経路・costmap・NDT の照合の点群を地図に重ねて見るために、VM に入っている rviz2（nav2_rviz_plugins）を使い、Gouda 用の表示の設定ファイルと起動の手順を用意するか。
+    新しいプログラムは作らない。rviz2 は Gouda の起動経路（gouda.sh start）とは別に、人が必要なときに開く道具とする。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-02
+  - ND-07
+  - ND-10
+  - DEC-355
+  resulting_refs: []
+  note: >-
+    推奨は承認。根拠：VM に ros-jazzy-rviz2 14.1.23、ros-jazzy-nav2-rviz-plugins 1.3.13、nav2_bringup の nav2_default_view.rviz がある（dpkg で確認）。軌跡は Autoware の EKF が出す ekf_odom（map の座標）を rviz の Odometry の表示で
+    履歴つきで出す案（topic 名は確かめる）。rviz2 の CPU が自己位置推定を圧迫しうる（VM、第134便）ので、本走行・計測の間は閉じる。代替：monitor に自己位置と軌跡を出す（実装が要る）。決まらない場合に止まる作業：設定ファイルの作成。
+  disposition: open_human
+- id: DEC-358
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】PRM-92（EKF の位置の標準偏差の上限、0.5 m）を、実測で決めるまでの暫定として 0.7 m に広げるか（人の案、DEC-355）。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-92
+  - DEC-286
+  - DEC-208
+  - ND-07
+  resulting_refs: []
+  note: >-
+    推奨は承認（暫定）。根拠：止まっているだけで 0.50〜0.54 m に留まり（第123便、第124便の一時停止中も NVTL 3.23 で 0.503 m）、実際のずれではなく EKF の設定（上流の既定：pose_smoothing_steps 5、proc_stddev_vx_c 10.0、
+    NDT の出力の共分散 0.0225 m²）と、NDT の姿勢の遅れ（VM で最大 0.991 s、第134便）で決まるモデル上の値の可能性が高い（推測）。0.5 m は Autoware の error_ellipse_size 1.5 ÷ ellipse_scale 3 から来た既定。
+    リスク：本当にずれたときの検出が遅れる。DEC-305・306・342 で自動の待機をなくすと、このしきい値は警告の意味になる。値は DEC-360 の計測で見直す。EKF の設定や使い方（EKF をやめて NDT と GLIM を直接つなぐ案を含む）の見直しは、
+    推定の補い方の調査（別のチャット）とあわせて行う。決まらない場合に止まる作業：PRM-92 の値の変更。
+  disposition: open_human
+- id: DEC-359
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】自律走行開始ボタンを押してから速く動き出すため、準備の段階（手動走行モード、地図と waypoint を選び初期位置を入れた後）で、自己位置推定の初期化と Nav2 の起動（STARTUP）を先に済ませ、
+    開始ボタンでは goal を出すだけにするか。あわせて DEC-287 は推奨案 a（STARTUP の前に記録し、終了で必ず RESET。開始のときも Nav2 が動いていれば先に RESET）とする。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-287
+  - TR-05
+  - ND-03
+  - ND-07
+  - ND-10
+  - DEC-355
+  resulting_refs: []
+  note: >-
+    根拠（記録）：第123便の開始では、推定の初期化に 17.5 s、その後の Nav2 の STARTUP に約 7.5 s（11 ノード）かかった。準備の段階で済ませれば、開始ボタンから goal までは数 s の見込み（推測）。
+    DEC-287 の RESET は、ふだんの開始の時間を増やさない（今も開始のたびに STARTUP している）。規則：スタートコールの後 1 分以内にスタートライン、2 分以内に 20 m（DEC-339）。
+    注意：準備の段階で Nav2 が動いていても、手動走行モードでは motion_hold で指令を出さない（基本契約）。決まらない場合に止まる作業：開始の手順の変更、DEC-287 の実装。
+  disposition: open_human
+- id: DEC-360
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【試験・実測】(1) 初期位置の探索が向きと位置のどちらのずれで失敗するかを、VM の模擬の試験（ubuntu_nd07_synthetic.sh など）で切り分ける：位置 0 m・向き 90°、0 m・180°、1 m・90°、3 m・0°、5 m・0°。
+    (2) 実車の記録で、EKF の位置の標準偏差と NDT の姿勢の遅れの関係を調べる。(3) 地図にない物・人混み・スタート地点ののぼりと観客で、照合の良さ（NVTL）がどう下がるか。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - PRM-84
+  - PRM-90
+  - PRM-92
+  - DEC-356
+  - DEC-358
+  - DEC-291
+  resulting_refs: []
+  note: >-
+    (1) は AI が VM で行える（実車を動かさない。ROS_DOMAIN_ID を分ける）。(2)(3) は実車の記録が要る（人）。計算機は VM（DEC-333）。決まらない場合に止まる作業：DEC-356 の段階の値、DEC-358 の値の見直し。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

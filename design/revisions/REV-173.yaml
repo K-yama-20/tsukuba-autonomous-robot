@@ -1,0 +1,34 @@
+# 変更セット REV-173（2026-10-23 第149便: monitor の /config で入力欄に届かない不具合の修正。承認 DEC-364）
+# 適用: design/tools/apply_revision.py REV-173
+id: REV-173
+date: '2026-10-23'
+summary: >-
+  第149便：人の指摘「/configのセンサ取り付け方向・座標の設定項目においてスクロールできないため値が入力できない」の原因を調べた。サブタブのパネルが overflow hidden で、
+  高さ 100% のままサブタブの行の下に置かれてタブからはみ出し、表示中のサブタブの display block が縦並びの指定を上書きして入力欄の並びのスクロールも効かなかった。
+  人の指示（DEC-364）で、/config タブの中を縦に並べ、表示中のサブタブのパネルを中でスクロールできるようにした（gouda_core/web/style.css のみ、3 つのサブタブに効く）。
+  画面の配置だけの変更で、保存の処理・値の扱いは変えていない。
+basis_refs:
+- DEC-106
+- DEC-363
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-364
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第149便）monitor の /config「センサ取付・座標方向」で、パネルが画面の下で切れて入力欄と保存ボタンに届かない。CSS で /config タブの中を縦に並べ、
+    表示中のサブタブのパネルを中でスクロールできるようにする案（3 つのサブタブすべてに効く）を実装するか。
+  answer_verbatim: |
+    Implement the proposed /config scroll fix and check it in the demo monitor.
+  affected_refs:
+  - M-002
+  resulting_refs: []
+  note: >-
+    原因の分類は実装（画面の CSS の誤り）。デモの monitor（gouda_core/test/demo_monitor_server.py、1600×900）で、自分のタブの DOM にだけ試験用の入力欄 40 と表の行 10 を入れ、
+    3 つのサブタブとも、パネルがタブの中に収まること、入力欄の並びが縮まないこと、一番下までスクロールして保存ボタンに届くことを確かめた。センサ取付ではマウスのホイールでも確かめた。
+    VM の Gouda は確認の時点で止まっていたので、実際の画面ではまだ見ていない。
+  disposition: answered

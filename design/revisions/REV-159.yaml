@@ -1,0 +1,35 @@
+# 変更セット REV-159（2026-10-22 第131便: RxTools での検査の手順）
+# 適用: design/tools/apply_revision.py REV-159
+id: REV-159
+date: '2026-10-22'
+summary: 人の指示（DEC-303、原文）：RxTools を Windows の VM に入れ、まずそれで受信機を検査する。衛星測位を繰り返し試すのはやめる。受信機は屋内。AI は測位を試さずに受信機の側から原因を調べる手順（FILE-RXTOOLS-INSPECTION-CHECKLIST：設定の全体の写し、アンテナの給電、前段ごとの AGC、スペクトル、追尾を止めうる設定）を書いた。受信機には触れていない。
+basis_refs:
+- DEC-299
+- DEC-300
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-RXTOOLS-INSPECTION-CHECKLIST
+  path: design/research/rxtools_inspection_checklist_2026-10-22.md
+  role: evidence
+decisions:
+- id: DEC-303
+  kind: confirmation
+  status: recorded
+  asked_on: null
+  answered_on: '2026-10-22'
+  channel: chat
+  question: GNSS の追尾の問題の調べ方（人の指示）
+  answer_verbatim: 'RXtoolsをvmのwindowsにいれた。まずこれで色々検査したい。衛星測位を何度も試したって無駄なことです。受信機は今屋内にあります
+
+    '
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  - DEC-299
+  - DEC-300
+  resulting_refs:
+  - FILE-RXTOOLS-INSPECTION-CHECKLIST
+  note: DEC-299（mrtk relay での読むだけの記録）は、RxControl での検査で代えられる（人が RxControl を操作する）。AI は手順と結果の読み取りを担当する。検査の間、Ubuntu の VM で Gouda を起動しない（ドライバが受信機を設定し直し Boot に保存するため）。
+entities: []
+modifications: []
+decision_updates: []

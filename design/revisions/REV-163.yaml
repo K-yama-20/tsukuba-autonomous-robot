@@ -1,0 +1,90 @@
+# 変更セット REV-163（2026-10-23 第137便: intent.md 第16版、AR-016、DEC-318）
+# 適用: design/tools/apply_revision.py REV-163
+id: REV-163
+date: '2026-10-23'
+summary: 第137便：intent.md 第16版（人の編集、SHA-256 23170969…、108 行。1 行の目的の文の言い換え）を AR-016 として記録（DEC-318、RQ-I095、C-031）。設計・実装は変えていない。
+basis_refs:
+- DEC-318
+- DEC-315
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+authority_revision:
+  id: AR-016
+  file_id: FILE-INTENT-V16
+  previous_file_id: FILE-INTENT-V15
+  archived_previous_copy: design/baselines/intent_history/intent_v15_b24fce29a261.md
+  current_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    1: RQ-I095
+  decision_ref: DEC-318
+  note: 人の編集（リポジトリ側の design/intent.md、2026-10-22 23:45）。第15版との差は 1 行（目的）だけ（人の編集。AI は intent.md を編集していない。current_copy は一字も変えない写し）：「よって、自動的に一時停止モードに入ったり、」を「よって、自動的にgoudaが一時停止モードに入って自律走行が出来なくなったり、」に置換。ほかの文は同一。
+requirement_ref_replacements:
+  RQ-I089: RQ-I095
+files: []
+decisions:
+- id: DEC-318
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-10-23'
+  channel: chat + intent.md
+  question: intent.md 第16版（人の編集：1 行の目的の文で、自動の一時停止を「goudaが一時停止モードに入って自律走行が出来なくなる」と言い換え）
+  answer_verbatim: |
+    intent.md の編集は終わった。AR-016 として記録して。
+  affected_refs:
+  - FILE-INTENT-V15
+  - RQ-I089
+  - DEC-305
+  - DEC-316
+  resulting_refs:
+  - AR-016
+  - RQ-I095
+  - C-031
+  note: 第15版との差は 1 行（目的）だけ（人の編集。AI は intent.md を編集していない。current_copy は一字も変えない写し）：「よって、自動的に一時停止モードに入ったり、」を「よって、自動的にgoudaが一時停止モードに入って自律走行が出来なくなったり、」に置換。ほかの文は同一。 意味：致命的なのは、Gouda が自動で一時停止モードに入り自律走行を続けられなくなること、と明確になった（人の一時停止ボタンによる一時停止は含まない、と読める。推測）。DEC-305・DEC-316 は pending のまま。
+entities:
+- id: C-031
+  kind: reconciliation
+  name: 目的の文の言い換え（intent.md 第15版 1 行 → 第16版 1 行）
+  intent_lines:
+  - 1
+  source_from_affected: true
+  related_refs:
+  - DEC-318
+  - AR-016
+  - C-030
+  - DEC-315
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs:
+    - RQ-I089
+    adopted_requirement_refs:
+    - RQ-I095
+    scope: 第15版 1 行の「自動的に一時停止モードに入ったり」を「自動的にgoudaが一時停止モードに入って自律走行が出来なくなったり」に置換した第16版 1 行（人の編集）。
+    retained_scope: 目的、失格の条件、衝突は失格でない、監視、安全機構の削減の文は同一。
+    rationale: 人が intent.md を編集（DEC-318）。設計・実装は変えていない。
+    issue_refs: []
+modifications:
+- id: RQ-I089
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-163: intent.md 第16版で目的の文を言い換え（C-031、DEC-318）。後継は RQ-I095。'
+- id: C-030
+  append:
+    related_refs:
+    - C-031
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I095
+    - RQ-I090
+    - RQ-I091
+    - RQ-I092
+    - RQ-I093
+    - RQ-I094
+decision_updates: []

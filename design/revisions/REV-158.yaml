@@ -1,0 +1,81 @@
+# 変更セット REV-158（2026-10-22 第129便: GNSS が衛星を追尾しない件の調べ）
+# 適用: design/tools/apply_revision.py REV-158
+id: REV-158
+date: '2026-10-22'
+summary: 人の指示（屋外でも衛星測位が一切できない、プログラムを徹底的に調べよ、勝手な仮定はないか）により調べた（FILE-GNSS-NO-TRACKING-INVESTIGATION）。受信機は衛星の信号を 1 つも受けていない。2026-10-19 の DualAnt と reset の後から捕まえなくなった。2026-10-20 に AI が観測 0 を「屋内だから」とした判断は誤り。Gouda のコードが原因の証拠はなく、AI が条件を確かめずに勧めた DualAnt が最も疑わしい。確かめの試験と改善を DEC-299〜302 にした。
+basis_refs:
+- DEC-145
+- DEC-146
+- DEC-139
+intent_version_copy: design/baselines/intent_history/intent_v11_a7a03a313c6d.md
+files:
+- id: FILE-GNSS-NO-TRACKING-INVESTIGATION
+  path: design/research/gnss_no_tracking_investigation_2026-10-22.md
+  role: evidence
+decisions:
+- id: DEC-299
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】試験 T1（読むだけ）：受信機を VM につなぎ、Gouda を止めたまま（mode を先に確かめる）受信機の電源を入れ直し、USB1 を mrtk relay で 60 秒ほど生のまま記録する（コマンドは送らない）。ReceiverStatus の AGC・RxError と MeasEpoch の観測の数を読む（記録 gnss_no_tracking_investigation_2026-10-22.md §4）。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  resulting_refs: []
+  note: 推奨は承認。受信機のポートに触るので人の許可が要る（DEC-141）。場所は 10-19 に衛星 13〜17 を捕まえた屋内の同じ所か屋外。生の記録は位置を含みうるので VM にだけ置く。決まらない場合に止まる作業：原因の確定、RTK・方位・地図の対応のすべて。
+  disposition: open_human
+- id: DEC-300
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】試験 T2（受信機の設定の変更）：frontend mode を元の Nominal に戻す（USB2 で sfm, Nominal → eccf, Current, Boot → exeResetReceiver, Hard, none）。衛星を捕まえるようになれば、DualAnt が原因と決まる。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - G-GNSS-NO-HEADING
+  - DEC-145
+  - DEC-146
+  resulting_refs: []
+  note: 推奨は T1 の後に承認。T1 で AGC・アンテナの給電の異常が分かれば、T2 の前に人がアンテナの条件を確かめる案もある。DualAnt に戻すかは、原因が分かった後に人が決める（方位のために減衰器で条件を満たすか、方位をあきらめるか）。決まらない場合に止まる作業：測位のすべて。
+  disposition: open_human
+- id: DEC-301
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】試験 T3（caster への接続だけ）：gnss_rtk.yaml を読み、caster に NTRIP の要求を 1 回送って、応答の状態の種類（接続できない・HTTP の状態の番号など）だけを出す小さな確かめ。値（認証・caster・マウントポイント）は出さない。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - DEC-139
+  - DEC-298
+  resulting_refs: []
+  note: 推奨は承認。第114便で中継の入力が待機のまま 0 バイトで、caster につながったかが分からなかった。DEC-298（NTRIP v1・TLS なし）の回答が前提。決まらない場合に止まる作業：RTK。
+  disposition: open_human
+- id: DEC-302
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】今回の調べで見えたプログラムの改善：(1) monitor の GNSS の欄に MeasEpoch の観測の数と受信機の時刻の有無を出し「衛星 0」を区別する、(2) 中継の str2str の msg を秘密を含まない種類（connect error の番号・timeout・disconnected・HTTP の状態の番号）に分けて記録する、(3) 受信機の AGC・アンテナの給電の状態を読む道具（T1 の方法）を用意する。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-19
+  - ND-18
+  - DEC-156
+  resulting_refs: []
+  note: 推奨は承認（それぞれ実装の許可を段ごとに求める）。(2) は DEC-156 の「msg は捨てる」を変えるので承認事項。決まらない場合に止まる作業：なし（試験 T1〜T3 は進められる）。
+  disposition: open_human
+entities: []
+modifications:
+- id: G-GNSS-NO-HEADING
+  set_nested:
+    issue.next_action: '2026-10-19 屋外（FILE-GNSS-OUTDOOR-CHECK）: 単独測位は出るが方位は出ない。MeasEpoch の観測は主アンテナだけ。人がアンテナを入れ替えても main 側だけ受信（アンテナ・ケーブルは正常）。MRTKLIB での照会（FILE-MOSAIC-MRTK-QUERY）: 能力 Main+Aux1、許可は 2 本・方位、方位の計算は MultiAntenna, Fixed、frontend mode は Nominal だった。DEC-145 で sfm, DualAnt（REV-077）、DEC-146 で Boot 保存と reset（REV-078）。reset の後の gfm は DualAnt。2026-10-20 屋内の検査（FILE-GNSS-DRIVER-INDOOR-CHECK-DUALANT、REV-083）: ドライバは起動して設定を終え、方位のオフセット 90 度（/config revision 18）。屋内のため観測 0。次: 屋外で MeasEpoch に副アンテナ（番号 1）の観測があり AttEuler の mode が 0 でないこと、AGC（main・Aux1）、AuxAntPositions の基線 0.34 m（DEC-149）を確かめる。 2026-10-22（REV-157）: 屋外の確認はまだ。2026-10-22 の実の地図作成 3 回の GNSS 記録はすべて mode 0・方位 error 1（屋内か空が見えない所と推測）。提案 gnss_improvements_2026-10-22.md §2.1 で、方位と RTK（中継）を 1 回の屋外の確認でまとめて確かめる案。 2026-10-22（REV-158、FILE-GNSS-NO-TRACKING-INVESTIGATION）：屋外（第114便）でも衛星を 1 つも追尾しない（MeasEpoch n 0、時刻不明）。2026-10-19 朝は屋内で衛星 13〜17 を捕まえており、捕まえなくなったのは DualAnt と reset の後から。REV-083（2026-10-20）の「屋内のため観測 0（期待どおり）」は AI の誤り（確かめていない仮定）。Gouda のコード（ドライバの設定・中継）が追尾を止めている証拠はない。最も疑わしいのは DualAnt（AI が利得などの条件を確かめずに勧めた）。次：DEC-299（T1 読むだけ）、DEC-300（T2 Nominal に戻す）。'
+decision_updates: []

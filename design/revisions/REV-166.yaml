@@ -1,0 +1,135 @@
+# 変更セット REV-166（2026-10-23 第140便: 状態遷移の再設計の提案と、その承認事項 DEC-342〜346）
+# 適用: design/tools/apply_revision.py REV-166
+id: REV-166
+date: '2026-10-23'
+summary: >-
+  第140便：人の指示で、状態遷移の再設計の提案 design/proposals/state_transition_redesign_2026-10-23.md を作った（DEC-305〜314、DEC-340、DEC-332 をまとめる）。
+  自動で待機に入るのは最後の waypoint だけにし、ほかは自律走行モードの中の処理の段階（processing_state）で表す。新しい承認事項・確認・実測 DEC-342〜346 を登録する。
+  コード・設定は変えていない。
+basis_refs:
+- DEC-305
+- DEC-332
+- DEC-340
+- DEC-010
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-342
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】推定不能（ND-07 の状態が正常でない）のとき、待機に入らず自律走行モードの段階 localization_wait で扱う。中身を次から選ぶ：a. 最後の map→odom を保って GLIM の odometry で走り続ける、
+    b. その場で止まって推定の回復を待ち、回復したら自動で走り出す、c. 推定不能になってから距離 D（tbd）までは a、超えたら b。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-306
+  - DEC-340
+  - DEC-286
+  - ND-07
+  - ND-03
+  - TR-07
+  - PRM-89
+  - PRM-90
+  - PRM-91
+  - PRM-92
+  - PRM-93
+  resulting_refs: []
+  note: >-
+    推奨は c。理由：人に囲まれた数秒の推定不能では止まらず、長く続くときはずれが大きくなる前に止まる。人の発言（DEC-340）の「時間がたつと推定できるようになる」に合う。
+    回復の判定に連続 N 回（tbd）を置く。D と N は DEC-346 で実測。どの案でも待機には入らない。DEC-306（pending、推奨は a）の具体化。決まらない場合に止まる作業：localization_wait の実装。
+    提案 §3。
+  disposition: open_human
+- id: DEC-343
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】横断歩道・道路端の一時停止（DEC-332）の作り：waypoint の kind: stop（既存の属性）を規則の一時停止の位置とし、次の stop までの区切りごとに NavigateThroughPoses の goal を出す。
+    区切りの goal が成功したら自律走行モードのまま段階 rule_stop_hold で止まり、人の「横断を始める」操作で次の区切りを出す。「横断を始める」操作を、待機からの再開ボタン（TR-10）と別のボタンにするか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-332
+  - ND-03
+  - ND-02
+  - IFD-04
+  - TR-10
+  - DG-f3b9a12f-0113-5b35-b129-02da773d4025
+  resulting_refs: []
+  note: >-
+    推奨は承認、ボタンは別にする（押し間違いで待機の再開と取り違えない。ログの区分が明確）。waypoint のデータの形は変えない（kind は waypoints.py:43 に既にある）。止まる位置の精度は Nav2 の goal の判定
+    （上流の雛形 xy 0.25 m）で、規則の指定された領域に入るかは DEC-346 で実測。rule_stop_hold は時間の上限なし。PC 再起動の後は rule_stop_hold に戻る。決まらない場合に止まる作業：横断歩道の一時停止の実装。
+    提案 §4。
+  disposition: open_human
+- id: DEC-344
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】(1) 場所ごとの inflation：waypoint の区間の属性に inflation を足し、区間が変わったら mode_manager が local・global の inflation_radius を走行中に変える（確認走行区間では大きく、狭い歩道では小さく）。
+    (2) 滞留から抜ける段階（DEC-310）の段 3（waypoint を飛ばす）は、kind: stop の waypoint では行わず、確認走行区間の外だけで行う。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-310
+  - DEC-313
+  - DEC-339
+  - PRM-72
+  - ND-03
+  - ND-10
+  - IFD-41
+  resulting_refs: []
+  note: >-
+    人の問い「inflationの範囲を場所毎に異なる値に設定することは可能か」への答えとして提案。上流 Nav2 1.3.13 の InflationLayer は inflation_radius・cost_scaling_factor を走行中に変えられる
+    （inflation_layer.cpp の dynamicParametersCallback）。代替：上流の BinaryFilter（マスクの中にいるかを topic で出す）で切り替える。(2) の理由：stop を飛ばすと停止線で止まれず失敗（EV-22）、
+    角の waypoint を飛ばすとコースを外れる恐れ。値は DEC-314 で実測。決まらない場合に止まる作業：区間の属性の追加と切り替えの実装。提案 §5。
+  disposition: open_human
+- id: DEC-345
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】本番で、チームメンバーが gouda_monitor の待機ボタン（自律走行を止める操作）を押すことは、規則の「スタートの後にロボットに操作を加えた」（EV-19）として失敗になるか。
+    また、停止線での「横断を始める」操作に、PC の画面のボタンを使ってよいか（規則の「簡単な操作」に当たるか）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-339
+  - DEC-332
+  - TR-06
+  - IFD-03
+  - IFD-04
+  resulting_refs: []
+  note: >-
+    AI は規則の原文を読んでいない。自動で待機に入らない設計（DEC-305）では、異常のときに止める手段は人の待機ボタン・終了ボタン・ゲームパッドになる。ゲームパッドはスタートの後に使うと失敗（EV-19）。
+    待機ボタンも失敗なら、本番では止める手段は失敗を受け入れる場合だけになる。人が規則を確かめる。決まらない場合に止まる作業：本番の運用の手順。
+  disposition: open_human
+- id: DEC-346
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】(1) kind: stop の waypoint で Nav2 が止まる位置のずれ（規則の指定された領域に入るか）。(2) 推定不能のまま GLIM の odometry で走ったときのずれと、DEC-342 の案 c の距離 D。
+    (3) 推定の回復の判定の連続回数 N（正常と異常の行き来の実際の様子）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-343
+  - ND-07
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。証拠（ログ・条件・日付）のない値は確定扱いにしない。
+    計算機は VM（DEC-333）。決まらない場合に止まる作業：D・N の値の確定、停止位置の受入。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

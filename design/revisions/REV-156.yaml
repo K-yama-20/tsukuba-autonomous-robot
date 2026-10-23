@@ -1,0 +1,75 @@
+# 変更セット REV-156（2026-10-22 第127便: 人混み・他のロボットの中での自己位置推定の対策の提案と DEC-290〜293 の登録）
+# 適用: design/tools/apply_revision.py REV-156
+id: REV-156
+date: '2026-10-22'
+summary: 第127便：人の指示（原文「現状だと、slamベースのナビゲーションとなっているが、当日は観客や他のロボットが周囲にたくさんいる為、lidarによるslamは性能が悪くなる恐れがある。これに対する対処を考えよ。例えば、事前地図とimuとgpsによるナビゲーションをメインとし、lidarは何らかの方法で補助的に活用する、など。」）を受けて、対策を検討し提案 design/proposals/crowd_robust_localization_2026-10-22.md を作った。自律走行中は事前地図の上での自己位置推定（GLIM の odometry と NDT・EKF）で、GNSS は初期位置にだけ使う設計。車輪のエンコーダがないため、GNSS が切れると位置を保てるのは LiDAR だけで、GNSS＋IMU を主にして LiDAR を補助に下げる案は危ないと判断した。推奨は、NDT の入力を人の頭より高い点に絞る LiDAR の対策を先に行い、人混みの記録で評価した後、GNSS（RTK fix）と NDT を品質で重み付けして融合する。承認事項 DEC-290〜292 と実測の項目 DEC-293 を登録する。コードと設定は変えていない。
+basis_refs:
+- ND-07
+- ND-08
+- ND-19
+- DEC-130
+- DEC-134
+intent_version_copy: design/baselines/intent_history/intent_v14_9bf08d3ebe24.md
+files: []
+decisions:
+- id: DEC-290
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認・方針】観客・他のロボットが多い本番で、自己位置推定を LiDAR だけに頼らないための方針を、提案 crowd_robust_localization_2026-10-22.md §5 の a（品質で重みを変える GNSS・NDT・GLIM の融合）、b（GNSS＋IMU が主、LiDAR は補助）、c（NDT が主のまま、LiDAR の対策と食い違いの見張りだけ）、d（区間ごとの切り替え）のどれにするか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - ND-08
+  - ND-19
+  resulting_refs: []
+  note: 推奨は c をすぐ、評価（DEC-293）の後に a。理由：車輪のエンコーダがなく（M-008）、GNSS が切れたときに IMU だけでは位置を数秒しか保てない（加速度の偏り 0.01 m/s² で 10 秒 0.5 m、30 秒 4.5 m。AI の計算）。b は GNSS の切れ目で結局 NDT に頼り、切り替えの瞬間に跳ぶ。a は GNSS が fix の開けた場所では人の例示の案と同じ動きになる。a に進むには DEC-139・DEC-144 の (c)（RTK fix と方位の屋外の確認）と DEC-131・135（enu→map）が前提。a を採ると DEC-130 の仕様 T5（EKF での融合）を対象に入れることになり、ND-07 の契約が変わる。決まらない場合に止まる作業：GNSS を走行中に使う設計。LiDAR の側の対策（DEC-291）と評価（DEC-293）は止まらない。第127便で登録。
+  disposition: open_human
+- id: DEC-291
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認】NDT に入れる点を、地面からの高さ h 以上（人の頭より上）に絞る設定を gouda_a3_points に足すか。h の値は tbd（DEC-293 で決める）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - PRM-79
+  resulting_refs: []
+  note: 推奨は足す（帯なしも選べる形で、評価で比べられるように）。事前地図の側は今のまま全部の点。地面の高さは車体の高さから一定で近似する（坂では誤差）。目安：LiDAR の高さ 1.18 m から +15° の光線は約 3.1 m 先で 2.0 m を越える（+15° は XT-32 の仕様の記憶で原本未照合、AI の計算）。弱点は頭より上の構造が少ない開けた場所で点が足りなくなること。障害物（costmap）には全点を使い続ける（自己位置推定の入力だけの変更）。代わりの案：足さない、地図の側も同じ帯にする。決まらない場合に止まる作業：評価（DEC-293）のうち帯の比較のオフラインの部分は、試験用のスクリプトでできるため止まらない。止まるのは実装。第127便で登録。
+  disposition: open_human
+- id: DEC-292
+  kind: approval
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【承認・ハードウェア】LiDAR と GNSS の両方が弱いときに位置を保つ手段として、車輪のエンコーダを足す検討を始めるか
+  answer_verbatim: ''
+  affected_refs:
+  - ND-08
+  - ND-19
+  resulting_refs: []
+  note: 推奨は、評価（DEC-293）で「GNSS も NDT も弱い時間」が何秒続くかを見てから決める。ただしハードの準備に時間がかかるので評価は早めに。足すと ESP32 の通信（esp32_protocol_v4）と local_odometry（M-008）の変更になる。代わりの案：すぐ始める、足さない（GNSS の速度を、GNSS が使える間の速度の観測として使う）。決まらない場合に止まる作業：なし。第127便で登録。
+  disposition: open_human
+- id: DEC-293
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-22'
+  answered_on: null
+  channel: chat
+  question: 【実測】人混みの中の自己位置推定を評価するため、XT-32・IMU・GNSS（RTK）を同時に記録するか。いつ・どこで記録するか（本番のコースの区間で人の多い時と少ない時、チームの人が車体の周りを歩く試験）
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - ND-08
+  - ND-19
+  resulting_refs: []
+  note: 推奨は取る。AI はオフラインで、NDT（今の前処理）と NDT（高さの帯 h をいくつか）を同じ rosbag に通し、RTK fix の GNSS との差、0.5 m を超える跳ねの回数、NDT のスコア・点の数、コースに沿った RTK fix の割合と切れる場所・長さ、人が同じ向きに歩く場面の GLIM の速度の誤りを比べる。これで決める値：高さ h、近くの点を捨てる距離（PRM-79）、NDT の品質のしきい値、GNSS の採否の規則、食い違いの判定（DEC-134 の T4）の値。証拠（rosbag、条件、解析のスクリプト、日付）がない値は確定にしない。代わりの案：試走会の記録だけ。決まらない場合に止まる作業：上の値の決定、DEC-290 の a に進むかの判断。第127便で登録。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

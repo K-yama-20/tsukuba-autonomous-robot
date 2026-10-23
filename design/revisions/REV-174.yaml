@@ -1,0 +1,436 @@
+# 変更セット REV-174（2026-10-23 第150便: KUAMS の工夫を取り入れるかの検討の、承認・確認・実測の項目と記録の訂正 DEC-365〜381）
+# 適用: design/tools/apply_revision.py REV-174
+id: REV-174
+date: '2026-10-23'
+summary: >-
+  第150便：関西大学 KUAMS（TC2025 チーム2564、選択課題を実施せず 2200 m を完走）の工夫を gouda に取り入れるかを、6 つのトピックごとにエージェントで検討した
+  （提案 design/proposals/kuams_adoption_review_2026-10-23.md、各トピックの全文は同じ名前のフォルダの topic1〜6.md）。
+  人の指示（原文）「Reserve IDs and register the approval and measurement items from KUAMS取り入れ検討.md, plus the record corrections, in the decision ledger. No implementation.」
+  により、承認・確認・実測の項目 DEC-365〜379、検討で見つかった実装の抜け DEC-380、記録の訂正 DEC-381 を登録する。コード・設定・正本の値は変えていない（DEC-106）。
+basis_refs:
+- DEC-106
+- DEC-304
+- DEC-305
+- DEC-332
+- DEC-340
+- DEC-342
+- DEC-343
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-365
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】推定不能の扱いを、故障の種類で分ける（DEC-342 の案 c の具体化）。(a) NDT だけが悪く GLIM の odometry は正常なときは、map→odom を固定して GLIM で進み、
+    距離 D・時間 T（tbd）の予算を超えたら止まって待つ。(b) NDT と GLIM の両方が劣化した疑いのとき、(c) LiDAR の点群が来ないときは、自律走行モードのまま止まって待ち、回復したら自動で走り出す。
+    KUAMS の「照合のスコアが悪くても警告だけで姿勢を採用する」は採らない。止まらない扱いは、人が推定の位置を確かめて開始した後に限る。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-342
+  - DEC-306
+  - DEC-340
+  - DEC-350
+  - DEC-352
+  - DEC-292
+  - ND-07
+  - ND-08
+  - ND-03
+  - TR-07
+  - IFD-53
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：KUAMS は WHILL の車輪オドメトリ（LiDAR と独立）で推測航法をしていた（lidar_localization_component.cpp の cloudReceived・odomReceived、KUAMS のコードで確認）。
+    gouda の GLIM は LiDAR と同じ原因（LAN の途切れ・人混み・特徴の少ない所）で一緒に壊れるので、KUAMS の根拠が成り立つのは (a) だけ。規則上、確認走行区間の外で自律的に止まることは
+    失敗ではなく時間を使うだけで（必要な平均は 2.2 km／100 分で約 0.37 m/s、計算）、ずれた位置で走るとコース外れ・車道への進入・非常停止で失敗になる（regulations_2026.md の EV-15・16・18・26）。
+    (a) と (b) は独立な odometry がないと走りながら確実には見分けられない。補助の信号の案（ジャイロと GLIM の yaw の速さ、cmd_vel と GLIM の速さ、近い点の割合、NDT と GLIM の食い違い）は
+    DEC-374 で評価する。EKF の共分散は使わない（DEC-352）。第121〜125便の停止は実装の誤り・しきい値・初期姿勢が原因で、この方針では直らない種類だった。
+    車輪のエンコーダ（DEC-292）は (b)・(c) を橋渡しできる唯一の安い手段で、この案と矛盾しない。
+    提案 kuams_adoption_review_2026-10-23.md §1 の 1、topic1.md §5。決まらない場合に止まる作業：localization_wait の実装。
+  disposition: open_human
+- id: DEC-366
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】DEC-307（Nav2 の失敗）の新しい答えとして、kind: stop で区切った区間ごとに NavigateThroughPoses の goal を出し（DEC-343 と同じ区切り）、goal が中止されたら、
+    今の区間の残りの waypoint だけを自動で出し直す。stop を越えて出し直さない。出し直すのは ND-07 が正常のときだけで、出し直しの間に最小の間隔 T_retry（tbd）を置く。
+    回数の上限は置かず、一定回数ごとに理由を記録する。KUAMS の「waypoint ごとに NavigateToPose」は採らない。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-307
+  - DEC-343
+  - DEC-310
+  - DEC-305
+  - TR-07
+  - ND-03
+  - ND-10
+  - PRM-11
+  - PRM-18
+  - PRM-103
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：Nav2 1.3.13 の navigate_through_poses の BT は、回復の前に WouldAControllerRecoveryHelp・WouldAPlannerRecoveryHelp で「回復が効く失敗か」を確かめ、
+    対象外の失敗（action の受け付けの時間切れ・CONTROLLER_TIMED_OUT・TF_ERROR など）は PRM-18 に関係なくすぐ中止になる（上流のソースで確認）。このときは出し直せば直る。
+    一方、NO_VALID_PATH などの塞がりは中止にならず BT の中で回復を繰り返すので、滞留への対策は出し直しではなく DEC-310 の段階で行う。全経路を 1 つの goal にすると、
+    1 Hz の引き直しのたびに残りの全区間を計画し、遠くの区間が 1 つ計画できないだけで全体が失敗する。waypoint ごとに送ると、各点で減速・停止・その場の回転が起きる。
+    前提の抜け：Mission が waypoint の kind を落としている（DEC-380）。topic2.md。決まらない場合に止まる作業：区間ごとの goal と出し直しの実装。
+  disposition: open_human
+- id: DEC-367
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】滞留から抜ける段階（DEC-310）の段 3（waypoint を飛ばす）を、人が waypoint に付ける属性 skip_allowed（既定は false）の点だけで行う。条件は、滞留の時計 T3 と recovery の増加、
+    global costmap で見た waypoint の footprint の cost が閾値 C 以上の状態が T_occ 続くこと、ND-07 が正常なこと。kind: stop・確認走行区間・横断歩道・待機列では行わず、
+    連続で飛ばすのは 1 点まで。飛ばしたら残りで goal を出し直し、理由を記録と monitor に出す（値はすべて tbd）。
+    あわせて、DEC-344 (2) の「確認走行区間の外だけで行う」は、3 分の滞留で失敗になる唯一の区間で段 3 を使わないことを意味するが、それでよいか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-310
+  - DEC-344
+  - DEC-314
+  - DEC-339
+  - ND-03
+  - ND-10
+  - PRM-11
+  - IFD-30
+  resulting_refs: []
+  note: >-
+    推奨は承認（opt-in）。理由：NavigateThroughPoses は塞がれた途中の点を自動では飛ばさない（ComputePathThroughPoses は 1 区間でも計画に失敗すると全体を失敗にする、エージェントが上流のソースで確認、
+    私は未照合）。KUAMS の skip_server は 1 回の 2 次元の scan で「waypoint の 2.5 m 以内に点が 5 個以上」で飛ばしていた（コードで確認）が、gouda の 3 次元点群・壁・縁石・芝では誤って飛ばしやすいので、
+    生の点ではなく costmap の cost と持続時間で判定する。重大なハザード：角を飛ばしてコース・車道に出る、stop を飛ばす（EV-22）、待機列の前のロボットを障害物とみなして列を飛ばす。
+    値は DEC-376 で実測。topic3.md。決まらない場合に止まる作業：段 3 の実装。
+  disposition: open_human
+- id: DEC-368
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】本走行で、信号あり横断歩道をマニュアル走行や手押しで渡ってよいか。TK-70（データ取得や単なる移動のためにマニュアル走行・手押しで横断する場合は待機列に並ばなくてよい）は本走行に適用されるか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-332
+  - DEC-343
+  - DEC-345
+  - DEC-339
+  resulting_refs: []
+  note: >-
+    AI の読み（推測）：本走行には適用されない。根拠：スタートラインを越えた後の操作は、一時停止から走行再開するための操作などを除いて失敗（EV-19）、本走行ではコントローラを操作できない状態にする（SP-32）、
+    課題 B を実施しない場合もオペレータ操作で走行を開始して横断する（TK-77）。いずれも regulations_2026.md（原本照合済）。ただし本文に「本走行に適用しない」とは書いていない。
+    リポジトリの外の調査メモ（KUAMSの工夫まとめ.md:64）の「横断を手動にすれば待機列に並ばなくてよい」は、この読みと合わない（回答の後に直す）。必要なら大会に問い合わせる。
+    決まらない場合に止まる作業：横断歩道の方式（DEC-370）の確定。
+  disposition: open_human
+- id: DEC-369
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】信号待ちの待機列で、前のロボットが動かない・人が列に入るなどで前が空かないときの扱い（追い越しの禁止 TK-69 と、前が空いているのに 90 秒停滞すると失敗の EV-25 の関係）。
+    また、過去の大会で待機列は何台くらいになったか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-332
+  - DEC-343
+  - DEC-339
+  resulting_refs: []
+  note: >-
+    待機列の段階（DEC-370）の待ち方と、列の区間の長さを決めるのに要る。AI は大会の過去の記録を読んでいない。決まらない場合に止まる作業：列の区間の長さと待ち方の確定。
+  disposition: open_human
+- id: DEC-370
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】横断歩道の状態遷移（DEC-343）の停止線の手前に、待機列の段階 queue_follow を足す。列の区間では経路を固定し、前方の箱が塞がっていれば止まり、空けば自律で進み、停止線に着いたら rule_stop_hold に入る。
+    列の区間では、経路の引き直し・recovery（spin・backup）・滞留から抜ける段階（DEC-310）を止める。列の入口を waypoint の属性で表すため、waypoint のデータの形を変える（DEC-343 の「形は変えない」の変更）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-343
+  - DEC-332
+  - DEC-310
+  - DEC-345
+  - ND-03
+  - ND-10
+  - IFD-30
+  - TR-10
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：自律走行で横断するすべてのロボットは待機列に一列に並ぶ（TK-66）。課題 B を実施しない場合も、オペレータ操作で走行を開始して横断する（TK-77）ので対象になる。
+    前が空いているのに 90 秒停滞すると失敗（EV-25 の制限時間の項目）。DEC-345 の回答（再開ボタンを押してよいのは停止線で停止した後か信号が青になった後のみ）からの読み（推測）では、
+    列の中で人がボタンで少しずつ進めることは許されないので、列の中の前進は自律である必要がある。規則の条文は regulations_2026.md（原本照合済）。
+    Nav2 のままだと止まっているロボットを回り込む経路を引くので、追い越しの禁止を経路の固定で守る。KUAMS の lineup（前方 ±0.5 m・2 m の箱が空いたら cmd_vel に 0.2 m/s を直接出して直進）は、
+    待機列のためという確証がなく、この写しはヘッダの include のパスが合わずビルドできない（照合済）ので、そのまま移さない。重大なハザード：回り込んで車道に入る、前のロボットへの衝突、
+    滞留から抜ける段階の誤作動、停止線の奥 0.5 m を越える（EV-22）。PC の出力の中立化と受信の watchdog は、列の中の停止の保証にならない。
+    DEC-343 は待機列と独立に先に進められる。値は DEC-377 で実測。topic4.md。決まらない場合に止まる作業：待機列の実装。
+  disposition: open_human
+- id: DEC-371
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】(1) Nav2 の大域の上限（PRM-66 前進 1.25 m/s、PRM-67 角速度 1.0 rad/s）は下げず、遅くしたい区間（確認走行区間・横断歩道の手前・人の多い所・段差）は、すでにある区間の速度上限（速度マスク）で下げる。
+    (2) RPP の lookahead・衝突の検査の時間と、local costmap の大きさ（今は上流の既定値のまま）を PRM として明示し、停止距離（実測）と検査の範囲が整合するかを確かめる。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-66
+  - PRM-67
+  - PRM-17
+  - PRM-19
+  - PRM-20
+  - DEC-313
+  - DEC-314
+  - ND-10
+  - IFD-41
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：KUAMS の 0.3 rad/s は MPPI だから成り立つ値で、gouda の RPP では角速度＝速度×曲率になり、0.3 rad/s に下げると曲がれる最小の半径が 2.67 m（0.8 m/s のとき、計算）になって、
+    角で外へふくらむ恐れがある（推測）。区間の速度上限はすでにあるが、PRM-19（帯の半幅）と PRM-20（刻み）が決まらないと保存を断られるので、先にこの二つを決める（DEC-378 で実測）。
+    PC 側の周期と smoother の減速だけで計算すると 1.25 m/s から止まるまでに約 1.3 m で、RPP の検査の範囲（約 1.15 m）を超える。これは停止距離ではなく、停止距離は tbd（DEC-378、Q-06）。
+    点群は動きの歪みを補正していないので、推定を乱すのは並進より回転（計算：1.0 rad/s で 20 m 先の点が最大約 2 m ずれる）。その場の回転の上限を分けるかは DEC-378 の後に決める。
+    topic5.md。決まらない場合に止まる作業：区間の速度上限の運用、新しい PRM の追加。
+  disposition: open_human
+- id: DEC-372
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】Nav2 の collision_monitor（KUAMS は前方 1.0 m の四角で停止、2 秒先の衝突の予測で減速）を、確認走行区間だけ approach 型（減速）で使う案を検討の対象にしてよいか。
+    intent.md の「PC 側で非常停止機構は存在させない（絶対決定事項）」と「cmd_vel の後段で独自に速度を抑える処理は加えない」の範囲に入るか（intent.md は人が所有する）。
+  answer_verbatim: ''
+  affected_refs:
+  - RQ-I072
+  - DEC-341
+  - DEC-325
+  - DEC-339
+  - ND-10
+  resulting_refs: []
+  note: >-
+    AI の推奨は、今は戻さない（RQ-I072 のまま）。急に置かれたコーンへの対策は、MID-360 を入れる costmap 第3版（DEC-341）と区間の速度上限で行う。intent.md の該当の行（今の intent.md の 102 行と 27 行、照合済）は人が所有する。
+    collision_monitor の失敗のしかた（推測）：stop の四角は進む向きを見ないので、中に物があると後退も回転もできず確認走行区間では 3 分の滞留で失敗になる。点群が古くなると止まる設定は、途絶で止めないと決めた DEC-325 とぶつかる。
+    XT-32 を源にすると近くの低い物は見えないまま（TRB-001）。collision_monitor も PC の上の node で、車体全体の停止の保証ではない（手動優先・ESP32 の watchdog・駆動系の故障・慣性・坂の前提は変わらない）。
+    KUAMS の停止の四角は footprint の前端から 0.2 m しか出ておらず、中の点の多くは range_min 0.45 m で捨てられる（計算）。topic5.md。決まらない場合に止まる作業：なし（今は戻さない）。
+  disposition: open_human
+- id: DEC-373
+  kind: approval
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】地図作成の軌跡（変換後の地図の trajectory_imu.txt）から waypoint の候補を作り、waypoint タブの編集欄に読み込む道具を作る。弧長の順に間引き（間隔 Δd・角度 θ は人が入れて記録に残す）、
+    向きは間引いた後の線の接線、kind はすべて pass、区間の速度上限は空欄のまま（既存の検査で保存を断る）。跳び・止まっていた所・逆走・同じ所の再通過は消さずに印を付ける。保存は今のまま人が押す。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-289
+  - IFD-30
+  - IFD-29
+  - PRM-94
+  - RQ-I078
+  resulting_refs: []
+  note: >-
+    推奨は承認。理由：軌跡は同じ地図の map frame にあり（ループ閉じ込みの補正後の GLIM の IMU の姿勢、map_convert.py の説明で照合済）、位置合わせが要らない。今の waypoint タブはクリックで置いた点の向きが
+    すべて 0 になる（app.js:529、照合済）ので、最後の点と stop の点でその場で回る恐れがある（推測）。KUAMS の waypoint_editor の自動追加は、直前の点から 1.0 m を超えるたびに自己位置の姿勢を足す方式
+    （本走行の 9 日前に追加）。挙動を変えない道具だが、作業の手順（intent.md の作業の手順）が変わり、作ったセットが走行の入力になるので承認に回す（CLAUDE.md 1.2）。
+    代替：地図ができた後に経路を教える走行（手動モードで推定を動かすので承認が要る）、地図作成の走行中に停止線のボタンを押して時刻を記録する。値は DEC-379 で実測。topic6.md。
+    決まらない場合に止まる作業：道具の実装。
+  disposition: open_human
+- id: DEC-374
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-365 のための計測。(1) NDT と GLIM の両方が弱い時間の長さと頻度（人混み・特徴の少ない所・LiDAR の途切れ）。(2) 人混みでの GLIM のずれ（DEC-293・DEC-346 (2) と同じ計測で取る）。
+    (3) (a) と (b) を見分ける補助の信号（ジャイロと GLIM の yaw の速さ、cmd_vel と GLIM の速さ、近い点の割合、NDT と GLIM の食い違い）の有効さ。
+    (4) 仮説の確認：LiDAR の途切れの間も EKF が最後の速度で外挿し、戻ったときの map→odom に最大で速度×途切れの時間の誤差が入るか（rosbag の再生と test/stack.sh で確かめる）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-365
+  - DEC-342
+  - DEC-346
+  - DEC-293
+  - DEC-354
+  - DEC-292
+  - ND-07
+  - ND-08
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。予算 D は人混みでのずれにほぼ反比例する（計算の例で 30 m 対 7 m）。
+    (1) の結果で車輪のエンコーダ（DEC-292）の要否を判断する。DEC-354（rosbag の再生に故障を入れる）と同じ道具で行える。証拠（ログ・条件・日付）のない値は確定扱いにしない。topic1.md §8。
+    決まらない場合に止まる作業：D・T・N の値の確定、DEC-292 の判断。
+  disposition: open_human
+- id: DEC-375
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-366 のための計測。(1) 出し直しの最小の間隔 T_retry。(2) 1 つの区間の長さ・点の数の上限（1 Hz の引き直しで planner が間に合うか）。(3) 実際に起きる中止の error_code の種類と頻度。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-366
+  - DEC-307
+  - PRM-103
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。VM の模擬（test/stack.sh）で (2)・(3) の下調べができる。topic2.md。
+    決まらない場合に止まる作業：T_retry と区間の長さの上限の確定。
+  disposition: open_human
+- id: DEC-376
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-367 のための計測。(1) waypoint の上に物を置いたときの Nav2 の挙動。(2) コースの rosbag で、何もない走行での waypoint の footprint の cost の分布（閾値 C）。
+    (3) 人が waypoint の上に立ち止まる時間の分布（T_occ）。(4) 角の waypoint を飛ばしたときの経路が帯の外へ出ないか。
+    (5) 仮説の確認：NavFn の tolerance（0.5 m の正方形、対角 0.71 m）と RemovePassedGoals（PRM-11、0.7 m）がそろっていないため、塞がれた点の代わりの終点が残り、通り過ぎた後に戻る経路ができるか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-367
+  - DEC-310
+  - DEC-314
+  - PRM-11
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。第121〜126便の記録には waypoint が塞がれた場面はない。rosbag は人の用意待ち。
+    閾値 C・T_occ・近づいたとみなす距離・T3・連続の上限はすべて tbd。topic3.md §7。決まらない場合に止まる作業：段 3 の値の確定。
+  disposition: open_human
+- id: DEC-377
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-370 のための計測。(1) 停止線・道路端で止まる位置のずれ（DEC-346 (1) に足す。前端を帯に入れるには base_link を停止線の手前 0.05〜1.55 m、道路端の手前 0.55〜2.05 m に置く必要がある、PRM-69 からの計算）。
+    (2) 列の中の速度、前のロボットとの間隔、前方の箱の大きさ、空いたと判定する連続回数、空いてから進み出すまでの時間。(3) 列の入口の位置。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-370
+  - DEC-346
+  - DEC-343
+  - PRM-69
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。値はすべて tbd。前が空いているのに 90 秒停滞すると失敗（EV-25 の制限時間の項目）なので、
+    進み出すまでの時間には上限がある。topic4.md §7。決まらない場合に止まる作業：待機列の値の確定。
+  disposition: open_human
+- id: DEC-378
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-371・DEC-372 のための計測。(1) 速度ごとの停止距離（実車で ESP32 を経由して）。(2) 倒す量と速度の対応。(3) 速度・旋回の速さと推定の質の関係。
+    (4) 誤って止まる率（rosbag を流して数える）。(5) 信号・列・横断の待ち時間の合計。(6) コーンが見える距離。(7) 速度マスクの帯の半幅（PRM-19）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-371
+  - DEC-372
+  - DEC-314
+  - PRM-19
+  - PRM-20
+  - PRM-66
+  - PRM-67
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。(1) は停止距離の実測 Q-06 と同じ計測。(5) は時間の予算に要る
+    （計算：2.2 km を 80 分で走るには、走っている間の平均が待ち 10 分で 0.52 m/s、20 分で 0.61 m/s）。証拠のない値は確定扱いにしない。topic5.md。
+    決まらない場合に止まる作業：区間の速度上限の値、PRM-19・PRM-20 の確定、その場の回転の上限の判断。
+  disposition: open_human
+- id: DEC-379
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】DEC-373 のための計測。(1) waypoint の点の数と planner の計算の時間。(2) 点の間隔と追従のずれ。(3) stop の点で止まる位置（DEC-346 (1) と同じ）。
+    (4) 地図作成の軌跡と、同じ地図での推定の位置が一致するか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-373
+  - DEC-346
+  - PRM-103
+  - ND-07
+  - ND-10
+  resulting_refs: []
+  note: >-
+    担当：人が実車を操作し、試験の条件と合否を決める。AI は計測の手順・解析のスクリプト・設定への反映を担当する。(1) は VM の模擬で下調べができる。topic6.md。
+    決まらない場合に止まる作業：間引きの値の推奨。
+  disposition: open_human
+- id: DEC-380
+  kind: question
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【確認】検討で見つかった実装の抜けを直すか。(1) autonomy_core.py:100 の Mission が waypoint の kind を落とし、(x, y, yaw) だけを Nav2 に渡している（stop の点を区切りに使えない）。
+    (2) monitor の waypoint タブで置いた点の向きがすべて 0 になる（gouda_core/web/app.js:529）。
+    (3) Nav2 の RPP の lookahead・衝突の検査の時間と、local costmap の大きさが、上流の既定値のままで設計されていない（DEC-371 (2) で扱う）。
+  answer_verbatim: ''
+  affected_refs:
+  - IFD-30
+  - IFD-13
+  - ND-03
+  - ND-02
+  - ND-10
+  - DEC-343
+  - DEC-366
+  - DEC-371
+  - DEC-373
+  resulting_refs: []
+  note: >-
+    (1)・(2) は AI がコードで照合した（HEAD 31a6e1d と未コミットの作業ツリー）。(1) は DEC-343・DEC-366・DEC-370 の前提、(2) は DEC-373 で解消しうる。直すのは人の承認の後（DEC-106）。
+    原因の分類（CLAUDE.md 1.6）：(1) 実装（設計の DEC-343 は kind を使う前提だが、Mission の作りが追いついていない）、(2) 実装、(3) 設定（値が設計されていない）。
+    決まらない場合に止まる作業：DEC-343・DEC-366・DEC-370 の実装、waypoint の向きの入力。
+  disposition: technical_pending
+- id: DEC-381
+  kind: question
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    （記録の訂正）DEC-343・DEC-345 の note にある「規則の原文を読んでいない」は今も正しいか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-343
+  - DEC-345
+  resulting_refs: []
+  note: >-
+    正しくない。design/docs/regulations_2026.md は本文が原本照合済で、停止線・道路端・待機列・横断の条文（TK-22〜24、TK-66〜71、TK-77・78）と失格の条件（EV-19、EV-25）、SP-32 を含む。
+    DEC-345 は人が回答済み（確定）なので書き換えず、DEC-343 も pending のまま書き換えない。両者の note のこの一文は、この項目で置き換える。
+    なお、TK-70 が本走行に適用されるかは DEC-368 で確認する。第150便の検討で見つかった（topic4.md）。
+  disposition: resolved_by_existing
+entities: []
+modifications: []
+decision_updates: []

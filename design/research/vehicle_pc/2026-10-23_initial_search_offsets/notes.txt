@@ -1,0 +1,22 @@
+# DEC-360 (1), bin 148 (2026-10-23 20:24-20:40 on the VM). Recorded by Claude from the command output.
+# Scripts: offset_case.sh, run_all.sh (this folder; copied to ~/nd07_offsets_scripts on the VM). ROS_DOMAIN_ID 89; the running Gouda
+# (domain 0, manual mode, idle) was not touched. Code: the gouda_core installed in ~/gouda_ws (symlink install, VM tree c2b8d65 + work tree).
+# Map: gouda_data/maps/20261019_123731_dc7b4c8a/converted/002, trajectory row 200 (the same as bin 120/122). Synthetic point clouds
+# (a3_synthetic_feed.py: the map's points seen from the true pose, radius 10 m, 10 Hz, odometry stamped 0.15 s late). The robot stands still.
+# True pose (-11.19, -1.68), yaw -75.6 deg. Offsets: dx along the map x axis, dyaw added to the true yaw. Window 150 s after activate.
+# Settings: the generated values (PRM-84 horizontal variance 0.25 m^2 = 0.5 m std, PRM-87 yaw variance 0.07 rad^2, PRM-90 NVTL 2.3).
+#
+# case      given pose          aligned to        first 正常   final estimate           error         NVTL     verdict
+# 0 m/90    (-11.19,-1.68) 14.4  (-11.24,-1.63)    by 15 s      (-11.24,-1.63) -75.6     0.07 m 0.0    3.07     correct
+# 0 m/180   (-11.19,-1.68) 104.4 (-11.24,-1.63)    by 30 s      (-11.24,-1.63) -75.6     0.07 m 0.0    3.07     correct
+# 1 m/90    (-10.19,-1.68) 14.4  (-11.20,-1.63)    by 30 s      (-11.24,-1.63) -75.6     0.07 m 0.0    3.07     correct
+# 3 m/0     (-8.19,-1.68) -75.6  (-11.21,-1.63)    by 30 s      (-11.24,-1.63) -75.6     0.07 m 0.0    3.07     correct (state flapped, below)
+# 5 m/0     (-6.19,-1.68) -75.6  (-4.99,-1.77)     by 40 s      (-5.33,-1.77) -75.0      5.86 m 0.5    2.67     WRONG, judged 正常
+#
+# 3 m/0: between the 5 s samples the state went 正常 -> 推定不能 (input_stale: ndt_diagnostics older than PRM-89) -> 正常 -> 推定不能
+#   (input_stale, ekf_pose_not_updated 80 > 50) -> 正常 (decision events). The 5 s samples were all 正常. Cause not checked (VM load suspected).
+# 5 m/0: the search converged near the given pose, 5.86 m from the true pose, with NVTL 2.67 above PRM-90 (2.3): a wrong pose reported as 正常.
+#   (REV-128's synthetic 5 m/90 case converged to a wrong pose with NVTL 2.03 and was 推定不能.)
+# "gouda_a3_points ... process has died, exit code -2" in every case: printed at the end by the A3 launch when the node was cleaned up (SIGINT);
+#   the point clouds reached the NDT during the window (NVTL and EKF values every 5 s).
+# Limits: one map, one pose, synthetic clouds from the map itself (no people, no changes, no noise); one run per case.

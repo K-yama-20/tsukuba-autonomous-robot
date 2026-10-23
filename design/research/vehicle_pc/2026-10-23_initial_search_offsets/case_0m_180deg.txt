@@ -1,0 +1,55 @@
+Fast DDS profile: /home/aya/gouda_ws/gouda_data/run/fastdds_profile.xml
+case: dx 0 m, dyaw 180 deg, row 200, map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002, window 150 s, ROS_DOMAIN_ID 89
+true pose (x y z qx qy qz qw): -11.186694 -1.675947 -0.359678 -0.001940 -0.012853 -0.612681 0.790224
+initial pose given: {header: {frame_id: map}, pose: {pose: {position: {x: -11.186694, y: -1.675947}, orientation: {x: 0.012853, y: -0.001940, z: 0.790224, w: 0.612681}}}}
+Transitioning successful
+Transitioning successful
+=== point clouds within 10 m from activate, odometry stamped 0.15 s late
+  t=5 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=10 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=15 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=20 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=25 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=30 s: state: 2 reason: '' ndt_nvtl: 3.069913 ekf_xy_stddev_m: 0.11418872005984398 
+  t=35 s: state: 2 reason: '' ndt_nvtl: 3.070357 ekf_xy_stddev_m: 0.10833138625758255 
+  t=40 s: state: 2 reason: '' ndt_nvtl: 3.0704 ekf_xy_stddev_m: 0.09738762882103866 
+  t=45 s: state: 2 reason: '' ndt_nvtl: 3.070226 ekf_xy_stddev_m: 0.1115007887839467 
+  t=50 s: state: 2 reason: '' ndt_nvtl: 3.070115 ekf_xy_stddev_m: 0.11710725889679008 
+  t=55 s: state: 2 reason: '' ndt_nvtl: 3.070376 ekf_xy_stddev_m: 0.14886160188265882 
+  t=60 s: state: 2 reason: '' ndt_nvtl: 3.07023 ekf_xy_stddev_m: 0.1128751598562704 
+  t=65 s: state: 2 reason: '' ndt_nvtl: 3.07037 ekf_xy_stddev_m: 0.0849727636946705 
+  t=70 s: state: 2 reason: '' ndt_nvtl: 3.069595 ekf_xy_stddev_m: 0.12790895366621394 
+  t=75 s: state: 2 reason: '' ndt_nvtl: 3.070389 ekf_xy_stddev_m: 0.12043186181521569 
+  t=80 s: state: 2 reason: '' ndt_nvtl: 3.070261 ekf_xy_stddev_m: 0.11601702409030673 
+  t=85 s: state: 2 reason: '' ndt_nvtl: 3.070348 ekf_xy_stddev_m: 0.10162363062268517 
+  t=90 s: state: 2 reason: '' ndt_nvtl: 3.070226 ekf_xy_stddev_m: 0.11626266763915129 
+  t=95 s: state: 2 reason: '' ndt_nvtl: 3.069727 ekf_xy_stddev_m: 0.11136268630241464 
+  t=100 s: state: 2 reason: '' ndt_nvtl: 3.070389 ekf_xy_stddev_m: 0.0801366870444517 
+  t=105 s: state: 2 reason: '' ndt_nvtl: 3.070418 ekf_xy_stddev_m: 0.11911145930084178 
+  t=110 s: state: 2 reason: '' ndt_nvtl: 3.070341 ekf_xy_stddev_m: 0.11562223342318823 
+  t=115 s: state: 2 reason: '' ndt_nvtl: 3.070199 ekf_xy_stddev_m: 0.12010940619519762 
+  t=120 s: state: 2 reason: '' ndt_nvtl: 3.070219 ekf_xy_stddev_m: 0.11893192766981366 
+  t=125 s: state: 2 reason: '' ndt_nvtl: 3.070381 ekf_xy_stddev_m: 0.11577345150429405 
+  t=130 s: state: 2 reason: '' ndt_nvtl: 3.070405 ekf_xy_stddev_m: 0.12379061329622561 
+  t=135 s: state: 2 reason: '' ndt_nvtl: 3.070375 ekf_xy_stddev_m: 0.10881676521623007 
+  t=140 s: state: 2 reason: '' ndt_nvtl: 3.070237 ekf_xy_stddev_m: 0.11898269305515652 
+  t=145 s: state: 2 reason: '' ndt_nvtl: 3.070281 ekf_xy_stddev_m: 0.11359070866841965 
+  t=150 s: state: 2 reason: '' ndt_nvtl: 3.070373 ekf_xy_stddev_m: 0.11583976464530457 
+=== final localization/pose (IFD-33)
+  estimate (-11.24, -1.63) yaw -75.6 deg; true (-11.19, -1.68) yaw -75.6 deg; error 0.07 m, 0.0 deg
+Transitioning successful
+Transitioning successful
+=== decision events (event: reason)
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+  configured: A3 launch started (pid 17578); map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002
+  estimator_state: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+  estimator_state: '初期化中 (initializing: waiting for the initial pose (IFD-34))'
+  initial_pose_received: initial pose (-11.19, -1.68); height -0.36 m from the mapping trajectory (nearest point 0.00 m away)
+  ndt_points_waiting: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet'
+  ndt_points_kept: the NDT holds a point cloud; ndt_align_srv can be called
+  initial_pose_aligned: aligned to (-11.24, -1.63)
+  initialized: EKF and NDT active; the state follows the checks (IFD-53)
+  estimator_state: '初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map...'
+  estimator_state: 正常
+=== node and A3 log (errors)
+[ERROR] [gouda_a3_points-1]: process has died [pid 17583, exit code -2, cmd '/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points --ros-args -r __node:=points_filter -r __ns:=/localization/a3 --params-fil

@@ -1,0 +1,140 @@
+# 変更セット REV-167（2026-10-23 第141便: 規則の操作の範囲（DEC-345 の回答）、経路の引き直しの頻度 PRM-103、障害物の扱いと段差の確認）
+# 適用: design/tools/apply_revision.py REV-167
+id: REV-167
+date: '2026-10-23'
+summary: >-
+  第141便：DEC-345 に人の回答を記録した（異常のときにチームメンバーがボタンを押すと走行失敗、再開ボタンは停止線で止まった後か信号が青になった後だけ、停止線での再開に PC のボタンは使ってよい）。
+  人の指示で、Nav2 の経路の引き直しの頻度（BT の RateController）を PRM-103＝1 Hz（暫定）とし、monitor の /config「Nav2」タブ（IFD-54）で変えられるようにする（DEC-347）。
+  障害物を遠くから認識して近づくにつれて更新する案と距離の推奨（DEC-348）、横断歩道の段差での GLIM・NDT の確認（DEC-349）を記録した。
+basis_refs:
+- DEC-345
+- DEC-209
+- DEC-217
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-347
+  kind: approval
+  status: answered
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第140便の説明への人の指示）経路の引き直しの間隔（Nav2 の BT の RateController、上流の雛形 0.333 Hz＝3 秒おき）を変えるか
+  answer_verbatim: |
+    costmapの更新頻度は暫定的に1Hzとしたい。また、この値は/configで変更できるようにせよ。
+  affected_refs:
+  - ND-10
+  - IFD-54
+  - PRM-18
+  resulting_refs:
+  - PRM-103
+  note: >-
+    AI の解釈：第140便で「costmap の更新は local 5 Hz・global 1 Hz、3 秒おきなのは経路の引き直し（BT の RateController 0.333 Hz）」と説明した後の指示なので、「costmapの更新頻度」は
+    経路の引き直しの頻度と読んだ（global costmap はすでに 1 Hz）。違っていれば人が訂正する。PRM-103＝1 Hz（暫定）。monitor の /config「Nav2」タブ（IFD-54）に値があれば、次の gouda.sh start から
+    その値で BT を作る（PRM-98 と同じ仕組み）。この指示を、この項目の実装の許可（DEC-106）として扱う。
+  disposition: answered
+- id: DEC-348
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-10-23'
+  answered_on: '2026-10-23'
+  channel: chat
+  question: >-
+    （第140便）障害物を costmap に付ける距離（今は上流の既定 obstacle_max_range 2.5 m・raytrace_max_range 3.0 m）を広げるか。AI の推奨は、global の印の距離を 6〜8 m 程度、消す距離をそれより 1〜2 m 長くし、
+    rosbag で誤検出と残像を確かめてから決める。
+  answer_verbatim: |
+    障害物自体は遠くから認識しつつ、近づくにつれて更新していく（更新にはカルマンフィルタなどの数理手法を用いる）のはどうか？それ以外は君の推奨案でいいような気がする。
+  affected_refs:
+  - ND-09
+  - ND-10
+  - DEC-337
+  - DEC-339
+  resulting_refs: []
+  note: >-
+    人の案：障害物は遠くから認識し、近づくにつれて更新する（カルマンフィルタなどの数理手法で）。距離は AI の推奨でよい気がする（値は rosbag で確かめてから決める）。
+    AI の説明（第141便）：Nav2 の costmap は格子ごとに「ある・ない」を付けるだけで、物ごとの追跡やカルマンフィルタはない。止まっている物（コーン）は、遠くで付けた印を近づいても消さない
+    （3 次元で印を保つ）ことで目的を果たせる。動く物（歩行者・ほかのロボット）は、点群を物にまとめてカルマンフィルタで位置と速度を追い、先の位置を costmap に入れる仕組みが要り、Nav2 1.3.13 には
+    ない（別の部品と自作が要る）。costmap の提案 第3版で、止まっている物と動く物を分けて扱う。距離の推奨（global 6〜8 m、消す距離 ＋1〜2 m）は DEC-337 とあわせて第3版で値を示す。
+  disposition: answered
+- id: DEC-349
+  kind: measurement
+  status: pending
+  asked_on: '2026-10-23'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】横断歩道の面と歩道の面の段差を降りる・乗り上げるとき（車体の傾きが急に変わる）、GLIM の odometry と NDT・EKF の推定がずれる・推定不能になる・落ちることがないかを確かめる。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-07
+  - ND-08
+  - ND-09
+  - ND-14
+  - DEC-342
+  - DEC-346
+  resulting_refs: []
+  note: >-
+    人の発言（原文）「横断歩道のある面と歩道の面の間には、当然段差がある。日本の歩道は車道より少し高く作られているためだ。横断歩道の面に降りたときと、歩道に乗り上げたとき、機体の角度が大きく変わるが、その瞬間にGLIMやndtが飛んだりクラッシュしたりしないかが心配だ。」
+    この懸念を実測の項目にした。手順（案）：手動走行で段差の降り・乗り上げを数回ずつ（速さを変えて）行い、rosbag（点群・IMU・tf・ND-07 の状態・/diagnostics）を記録する。見るもの：GLIM の
+    odometry の跳び（位置・姿勢の不連続）、IMU の加速度の頭打ち、NDT のスコア（NVTL）と推定不能の判定、EKF の共分散、プロセスの終了、帯の段での地面の誤検出（車体が傾いた瞬間）。
+    推測：段差の高さで傾きの大きさが決まる（後輪軸と前のキャスタの間 0.415 m に対して、2 cm で約 2.8°、5 cm で約 6.9°）。今の作りでは、推定不能の判定が出ると即待機に入る（TR-07）ので、
+    状態遷移の再設計（DEC-342 の localization_wait）が入るまでは、一瞬の推定不能でも失敗につながる。トラブルシューティング台帳 TRB-004 に登録した。計算機は VM（DEC-333）。
+  disposition: open_human
+entities:
+- id: PRM-103
+  kind: parameter
+  name: Nav2 の経路の引き直しの頻度（BT の RateController hz）
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-18
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: REV-167（DEC-347）で追加。上流の雛形は 0.333 Hz（3 秒おき）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: 1.0
+    value_state: approved
+    unit: Hz
+    stage: 自律走行の為の最小構成
+    purpose: >-
+      navigate_through_poses の BT で、ComputePathThroughPoses を囲む RateController の hz（global の経路を引き直す頻度）。monitor の /config「Nav2」タブ（IFD-54）に正の値があれば、
+      次の gouda.sh start からその値。
+    measurement: '人の決定（DEC-347）：「costmapの更新頻度は暫定的に1Hzとしたい。また、この値は/configで変更できるようにせよ。」（暫定。経路の引き直しの頻度と解釈）'
+    decision_deadline: 決定済み（DEC-347、暫定）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: bt_xml
+    target: navigate_through_poses BT（RateController hz）
+    param_key: replan_rate_hz
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-347
+modifications:
+- id: IFD-54
+  interpretation_append: 'REV-167（DEC-347）：経路の引き直しの頻度 replan_rate_hz（PRM-103）を足した。'
+  append:
+    related_refs:
+    - PRM-103
+  set_nested:
+    designed_interface.message_type: 'JSON {values: {recovery_number_of_retries: 整数 or ''UNKNOWN'', inflate_around_unknown: true／false or ''UNKNOWN'', replan_rate_hz: 正の数 or ''UNKNOWN''}, config_revision, updated_at}（SensorConfig と同じ形）'
+decision_updates:
+- id: DEC-345
+  set:
+    status: answered
+    answered_on: '2026-10-23'
+    disposition: answered
+    answer_verbatim: |
+      異常の時にチームメンバーがボタンを押すなどの操作を加えると、走行失敗になる。再開ボタンを押しても良いのは一時停止線で停止した後や、信号が青になった後のみである。
+      停止線での再開にpcのボタンを使って良いと考えられる。
