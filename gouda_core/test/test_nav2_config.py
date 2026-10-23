@@ -158,8 +158,14 @@ class Nav2ConfigTests(unittest.TestCase):
         out = ET.fromstring(nc.build_bt(xml, self.values)); src = ET.fromstring(xml)
         self.assertEqual(out.find('.//RemovePassedGoals').get('radius'), repr(float(v['remove_passed_goals_radius_m'])))
         self.assertEqual(out.find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']").get('number_of_retries'), str(v['recovery_number_of_retries']))
-        a = [(e.tag, {k: x for k, x in e.attrib.items() if not (e.tag == 'RemovePassedGoals' and k == 'radius') and not (e.get('name') == 'NavigateRecovery' and k == 'number_of_retries')}) for e in src.iter()]
-        b = [(e.tag, {k: x for k, x in e.attrib.items() if not (e.tag == 'RemovePassedGoals' and k == 'radius') and not (e.get('name') == 'NavigateRecovery' and k == 'number_of_retries')}) for e in out.iter()]
+        replan = [r for r in out.iter('RateController') if r.find('.//ComputePathThroughPoses') is not None]
+        self.assertEqual(len(replan), 1)
+        self.assertEqual(replan[0].get('hz'), repr(float(v['replan_rate_hz'])))   # PRM-103 (REV-167)
+        def changed(e, k):
+            return ((e.tag == 'RemovePassedGoals' and k == 'radius') or (e.get('name') == 'NavigateRecovery' and k == 'number_of_retries')
+                    or (e.tag == 'RateController' and k == 'hz'))
+        a = [(e.tag, {k: x for k, x in e.attrib.items() if not changed(e, k)}) for e in src.iter()]
+        b = [(e.tag, {k: x for k, x in e.attrib.items() if not changed(e, k)}) for e in out.iter()]
         self.assertEqual(a, b, 'no other change to the BT')
 
     def test_write(self):
@@ -203,6 +209,28 @@ class Nav2ConfigTests(unittest.TestCase):
             with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f: f.write('{broken')
             r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'e'), cfg)
             self.assertEqual(bt_count(r), str(prm18)); self.assertIn('could not be read', r['recovery']['note'])
+
+
+    def test_replan_rate_from_the_monitor(self):
+        """REV-167 (DEC-347): a positive replanning rate saved in the monitor goes into the BT's RateController; otherwise PRM-103."""
+        prm103 = self.values[('bt_params', 'replan_rate_hz')]
+        def bt_hz(r):
+            root = ET.parse(r['bt']).getroot()
+            return [x for x in root.iter('RateController') if x.find('.//ComputePathThroughPoses') is not None][0].get('hz')
+        with tempfile.TemporaryDirectory() as d:
+            cfg = os.path.join(d, 'config'); os.makedirs(cfg)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'a'), cfg)
+            self.assertEqual(bt_hz(r), repr(float(prm103))); self.assertIn('does not exist', r['replan_rate_hz']['note'])
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': {'replan_rate_hz': 2.5}, 'config_revision': 8}, f)
+            r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'b'), cfg)
+            self.assertEqual(bt_hz(r), '2.5'); self.assertIn('config_revision 8', r['replan_rate_hz']['source'])
+            with open(os.path.join(d, 'b', 'overrides.json')) as f: self.assertEqual(json.load(f)['replan_rate_hz']['value'], 2.5)
+            for bad in (0, -1, True, 'UNKNOWN', '2', float('inf')):
+                with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                    json.dump({'values': {'replan_rate_hz': bad}}, f)
+                r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'c'), cfg)
+                self.assertEqual(bt_hz(r), repr(float(prm103)), repr(bad))
 
 
 if __name__ == '__main__':

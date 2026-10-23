@@ -166,6 +166,19 @@ class Nav2RecoveryConfigTests(unittest.TestCase):
             ok, msg = c.update({'inflate_around_unknown': 'false'}, 3.0); self.assertTrue(ok, msg); self.assertIs(c.values['inflate_around_unknown'], False)
             ok, msg = c.update({'inflate_around_unknown': ''}, 4.0); self.assertTrue(ok, msg); self.assertEqual(c.values['inflate_around_unknown'], 'UNKNOWN')
 
+    def test_replan_rate_is_a_number_above_zero(self):
+        """REV-167 (DEC-347): the tab's replanning rate overrides PRM-103."""
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'n.json'
+            c = SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            for bad in ('0', '-1', 'fast', 'nan', 'inf', True):
+                ok, msg = c.update({'replan_rate_hz': bad}, 1.0); self.assertFalse(ok, bad)
+            self.assertEqual(c.config_revision, 0)
+            ok, msg = c.update({'replan_rate_hz': '2'}, 2.0); self.assertTrue(ok, msg); self.assertEqual(c.values['replan_rate_hz'], 2.0)
+            ok, msg = c.update({'replan_rate_hz': '0.5'}, 3.0); self.assertTrue(ok, msg); self.assertEqual(c.values['replan_rate_hz'], 0.5)
+            self.assertEqual(SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)}).values['replan_rate_hz'], 0.5)
+            ok, msg = c.update({'replan_rate_hz': ''}, 4.0); self.assertTrue(ok, msg); self.assertEqual(c.values['replan_rate_hz'], 'UNKNOWN')
+
     def test_nothing_is_saved_without_the_upper_limit(self):
         with tempfile.TemporaryDirectory() as d:
             c = SensorConfig(Path(d) / 'n.json', NAV2_RECOVERY_FIELDS)   # PRM-18 unresolved

@@ -461,11 +461,14 @@ class MonitorNode(Node):
         prm98 = bt.get(('gouda_nav2', nav2_config.INFLATE_KEY))
         snap['prm98'] = prm98
         snap['next_start_inflate'] = nav2_config.inflate_from_config(str(self.config_dir), prm98) if prm98 is not None else None
+        prm103 = bt.get(('bt_params', nav2_config.REPLAN_KEY))   # REV-167 (DEC-347)
+        snap['prm103'] = prm103
+        snap['next_start_replan'] = nav2_config.replan_from_config(str(self.config_dir), prm103) if prm103 is not None else None
         try:   # what the running Nav2 was built with (written at this gouda.sh start)
             o = json.loads((self.run_dir / 'nav2' / 'overrides.json').read_text(encoding='utf-8'))
-            snap['in_use'], snap['in_use_inflate'] = o.get(nav2_config.RECOVERY_KEY), o.get(nav2_config.INFLATE_KEY)
+            snap['in_use'], snap['in_use_inflate'], snap['in_use_replan'] = o.get(nav2_config.RECOVERY_KEY), o.get(nav2_config.INFLATE_KEY), o.get(nav2_config.REPLAN_KEY)
         except (OSError, ValueError):
-            snap['in_use'], snap['in_use_inflate'] = None, None
+            snap['in_use'], snap['in_use_inflate'], snap['in_use_replan'] = None, None, None
         return snap
 
     def _save_nav2_recovery(self, rest, body):

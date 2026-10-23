@@ -73,17 +73,19 @@ def executable(package: str, name: str):
 
 class Driver:
     """One driver child process and the device it belongs to.
-    command is what is recorded; launch (when set) is what is started instead, because it holds a secret (the NTRIP relay).
+    command is what is recorded; launch (when set) is what is started instead, and launch_input (when set) is written to its
+    stdin, because they hold a secret (the NTRIP relay: the connection data goes on stdin, DEC-361).
     serial_path (when set) is the by-id device whose identity and users are watched. stderr_reader (when set) receives the
     process and must drain its stderr (the stream is piped instead of going to the launch log). exit_event names the record
     written when the process ends by itself."""
 
-    def __init__(self, key, label, device, command, not_started_reason=None, *, launch=None, serial_path=None,
+    def __init__(self, key, label, device, command, not_started_reason=None, *, launch=None, launch_input=None, serial_path=None,
                  stderr_reader=None, exit_event='driver_exited'):
         self.key, self.label, self.device, self.command = key, label, device, command
         self.not_started_reason = not_started_reason
         self.proc = None
         self.launch, self.serial_path, self.stderr_reader, self.exit_event = launch, serial_path, stderr_reader, exit_event
+        self.launch_input = launch_input
         self.exit_details = dict   # extra details for the exit record
 
     @property
@@ -212,9 +214,9 @@ class SensorSupervisorNode(Node):
     def _build_relay(self, gnss):
         """The NTRIP relay (DEC-156). Its recorded command and reasons never contain NTRIP data."""
         device, ntrip, baud = gnss.relay_input
-        r = nr.build_relay(shutil.which('str2str'), ntrip, device, baud, gnss.command is not None)
+        r = nr.build_relay(shutil.which('str2str'), ntrip, device, baud, gnss.command is not None, shutil.which('stunnel4'))
         name = device or f"relay connection ({prm('rtk_relay_device', GNSS_PRM)}) unresolved"
-        d = Driver('ntrip', 'NTRIP relay (ND-19)', dw.WatchedDevice(name), r['public'], r['reason'], launch=r['launch'],
+        d = Driver('ntrip', 'NTRIP relay (ND-19)', dw.WatchedDevice(name), r['public'], r['reason'], launch=r['launch'], launch_input=r['launch_input'],
                    serial_path=r['serial_path'], stderr_reader=self._read_relay, exit_event='ntrip_relay_exited')
         d.status = nr.StatusTracker()
         d.exit_details = lambda: {'unparsed_status_lines': d.status.unparsed, 'status_callback_errors': d.status.callback_errors}
@@ -316,7 +318,10 @@ class SensorSupervisorNode(Node):
             # same process group: gouda.sh stop signals it too. With a stderr reader, stdout is dropped and stderr is piped to it
             # (the NTRIP relay: its message field holds secret data and must not reach the launch log)
             if d.stderr_reader is not None:
-                d.proc = subprocess.Popen(d.launch or d.command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors='replace')
+                stdin = subprocess.PIPE if d.launch_input is not None else subprocess.DEVNULL
+                d.proc = subprocess.Popen(d.launch or d.command, stdin=stdin, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors='replace')
+                if d.launch_input is not None:
+                    d.proc.stdin.write(d.launch_input); d.proc.stdin.close()
                 threading.Thread(target=d.stderr_reader, args=(d, d.proc), daemon=True).start()
             else:
                 d.proc = subprocess.Popen(d.launch or d.command)
@@ -327,14 +332,18 @@ class SensorSupervisorNode(Node):
         return True
 
     def _read_relay(self, d, proc):
-        """Record only the relay's state changes (input / output states, byte count, bps); never its message field.
+        """Record only the relay's state changes (input / output states, byte count, bps) and its TLS event categories
+        (connected, certificate_rejected, ...); never str2str's message field nor stunnel's text.
         A new tracker per process: a re-created relay starts again from no state and zero bytes."""
         d.status = nr.StatusTracker()
 
         def changed(st):
             self._decision('ntrip_relay_state', f"{d.label}: input {st['input']}, output {', '.join(st['outputs'])}",
                            {'driver': d.key, 'input': st['input'], 'outputs': st['outputs'], 'bytes': st['bytes'], 'bps': st['bps']})
-        nr.read_status(proc.stderr, d.status, changed)
+
+        def tls(category):
+            self._decision('ntrip_tls_state', f'{d.label}: TLS {category}', {'driver': d.key, 'tls': category})
+        nr.read_status(proc.stderr, d.status, changed, tls)
 
     def _wait_exit(self, d, proc):
         code = proc.wait()

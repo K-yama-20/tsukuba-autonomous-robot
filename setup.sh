@@ -6,8 +6,9 @@
 #
 #   1. system packages: ROS 2 Jazzy (desktop, as on the verified VM), build tools, Python modules, GLIM 1.2.2 from the
 #      GLIM PPA (the version the design was checked with: DEC-062, IFD-35), the Nav2 packages Gouda uses (DEC-121, DEC-122)
-#      and the GNSS driver septentrio_gnss_driver (ND-19, DEC-123) from the ROS 2 apt repository, and rtklib (Ubuntu universe)
-#      for str2str, the NTRIP relay the sensor supervisor starts (DEC-139 option B1, DEC-151 step 4), and the parts of the
+#      and the GNSS driver septentrio_gnss_driver (ND-19, DEC-123) from the ROS 2 apt repository, rtklib (Ubuntu universe)
+#      for str2str, the NTRIP relay the sensor supervisor starts (DEC-139 option B1, DEC-151 step 4), and stunnel4, which
+#      carries the relay's caster connection over TLS (the caster takes TLS only; DEC-361), and the parts of the
 #      global localization trial A3 (ND-07, DEC-115 / DEC-202 / DEC-205): Autoware Core's map loader, NDT scan matcher and EKF
 #      localizer, and pcl_ros (the point filters). Their version is not checked (DEC-205: checked on the VM with 1.9.0)
 #   2. the sensor drivers at the commits in third_party/drivers.repos, unmodified (DEC-075). A clean checkout is moved to
@@ -67,8 +68,8 @@ wanted=(git curl ros-jazzy-desktop ros-dev-tools python3-colcon-common-extension
         ros-jazzy-nav2-bringup ros-jazzy-nav2-lifecycle-manager ros-jazzy-nav2-bt-navigator ros-jazzy-nav2-planner ros-jazzy-nav2-navfn-planner
         ros-jazzy-nav2-controller ros-jazzy-nav2-regulated-pure-pursuit-controller ros-jazzy-nav2-behaviors ros-jazzy-nav2-smoother
         ros-jazzy-nav2-velocity-smoother ros-jazzy-nav2-costmap-2d ros-jazzy-nav2-map-server
-        # GNSS driver (ND-19, DEC-123) and the NTRIP relay str2str (DEC-139 option B1, DEC-151 step 4)
-        ros-jazzy-septentrio-gnss-driver rtklib
+        # GNSS driver (ND-19, DEC-123), the NTRIP relay str2str (DEC-139 option B1, DEC-151 step 4) and its TLS (DEC-361)
+        ros-jazzy-septentrio-gnss-driver rtklib stunnel4 ca-certificates
         # global localization trial A3 (ND-07, DEC-202 / DEC-205; no version check, the VM has 1.9.0)
         ros-jazzy-autoware-map-loader ros-jazzy-autoware-ndt-scan-matcher ros-jazzy-autoware-ekf-localizer ros-jazzy-pcl-ros)
 missing=(); for p in "${wanted[@]}"; do installed "$p" || missing+=("$p"); done
