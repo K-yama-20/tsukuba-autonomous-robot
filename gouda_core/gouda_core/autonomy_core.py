@@ -8,6 +8,8 @@
   for the record only (RQ-I030). Passing is judged by Nav2 (RQ-I011).
 - speed_limit_application_state (DEC-047): observed from the latched mask (IFD-42), the robot position and the last speed_limit
   (IFD-14). Gouda never publishes a speed limit (RQ-I020). The hold is released only in 'applied' (DEC-056, TR-05).
+- nav2_failure_reason (E-4, REV-183, DEC-393): the stop reason of a failed Nav2 goal from its error code. The code table comes
+  from the nav2_msgs action constants (autonomy_client.error_code_table); only the rule by action and constant name is here.
 """
 from __future__ import annotations
 
@@ -49,6 +51,32 @@ class Mission:
     keepout_yaml: str = ''                              # the drawn areas' KeepoutFilter mask (IFD-41, REV-137)
     keepout_sha256: str = ''                            # hash of the cell values map_server publishes (DEC-224 (a))
     keepout_size: tuple = (0, 0)                        # (width, height) of that mask
+
+
+FOLLOW_PATH_BLOCKED = ('PATIENCE_EXCEEDED', 'FAILED_TO_MAKE_PROGRESS', 'NO_VALID_CONTROL')
+
+
+def stop_reason_for(action: str, name: str) -> Optional[str]:
+    """The stop reason of one nav2_msgs error constant (action 'FollowPath' / 'ComputePathThroughPoses' / 'ComputePathToPose');
+    None for NONE."""
+    from gouda_core import mode_core
+    if name == 'NONE':
+        return None
+    if name == 'TF_ERROR':
+        return mode_core.STOP_REASON_NAV2_TF
+    if action == 'FollowPath':
+        return mode_core.STOP_REASON_BLOCKED if name in FOLLOW_PATH_BLOCKED else mode_core.STOP_REASON_CONTROLLER
+    return mode_core.STOP_REASON_PLAN_FAILURE
+
+
+def nav2_failure_reason(error_code: int, table: dict) -> tuple:
+    """(stop reason, code name) of a failed goal. table: {code: (stop reason, 'Action.NAME')} from error_code_table."""
+    from gouda_core import mode_core
+    if error_code == 0:
+        return mode_core.STOP_REASON_NAV2_NO_CODE, 'NONE (no error code)'
+    if error_code in table:
+        return table[error_code]
+    return mode_core.STOP_REASON_NAV2_OTHER, f'unknown code {error_code}'
 
 
 def _int(text) -> Optional[int]:

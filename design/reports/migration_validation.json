@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 6072,
+    "executed_checks": 6103,
     "violations": [
       {
         "code": "MIGRATION",
@@ -674,6 +674,37 @@
       "model file hash FILE-KUAMS-TC2025-COMPARISON",
       "model file hash FILE-KUAMS-TC2025-SUMMARY",
       "model file hash FILE-KUAMS-TC2025-LITERATURE",
+      "model file hash FILE-SEARCH-RANGE-CASE-1M-VAR0P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-1M-VAR1P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-1M-VAR2P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-1M-VAR4P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-2M-VAR0P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-2M-VAR1P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-2M-VAR2P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-2M-VAR4P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-3M-VAR0P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-3M-VAR1P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-3M-VAR2P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-3M-VAR4P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-3M-VAR4P0-RERUN",
+      "model file hash FILE-SEARCH-RANGE-CASE-4M-VAR0P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-4M-VAR1P0",
+      "model file hash FILE-SEARCH-RANGE-CASE-4M-VAR2P25",
+      "model file hash FILE-SEARCH-RANGE-CASE-4M-VAR4P0",
+      "model file hash FILE-SEARCH-RANGE-NOTES",
+      "model file hash FILE-SEARCH-RANGE-OFFSET-CASE",
+      "model file hash FILE-SEARCH-RANGE-RUN-MATRIX",
+      "model file hash FILE-AUTONOMY-STOP-FF780D47-DECISIONS",
+      "model file hash FILE-AUTONOMY-STOP-FF780D47-ABORT",
+      "model file hash FILE-AUTONOMY-STOP-FF780D47-NAV2",
+      "model file hash FILE-AUTONOMY-STOP-FF780D47-LOCALIZATION",
+      "model file hash FILE-MONITOR-CPU-RESULTS",
+      "model file hash FILE-MONITOR-CPU-PROBE",
+      "model file hash FILE-NAV2-RUNTIME-PARAMS-20261024",
+      "model file hash FILE-NAV2-RUNTIME-BT-20261024",
+      "model file hash FILE-NAV2-UPSTREAM-DEFAULTS-1313",
+      "model file hash FILE-RUN-574FE6D7-DECISIONS",
+      "model file hash FILE-RUN-574FE6D7-NAV2",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -8125,8 +8156,8 @@
   },
   "design_maturity": {
     "未設計": 424,
-    "案": 434,
-    "承認済み": 91
+    "案": 459,
+    "承認済み": 92
   },
   "revisions": [
     {
@@ -9908,6 +9939,56 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-180",
+      "date": "2026-10-24",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 20,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-181",
+      "date": "2026-10-24",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 4,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-182",
+      "date": "2026-10-24",
+      "basis_refs": 3,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 2,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-183",
+      "date": "2026-10-24",
+      "basis_refs": 3,
+      "added_entity_ids": 25,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 5,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-184",
+      "date": "2026-10-26",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -10205,9 +10286,9 @@
     }
   ],
   "decisions": {
-    "count": 339,
+    "count": 343,
     "by_status": {
-      "answered": 184,
+      "answered": 188,
       "recorded": 74,
       "pending": 81
     },
@@ -10300,7 +10381,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 949,
+    "entity_count": 975,
     "source_count": 512,
     "id_map_count": 202,
     "legacy_198_count": 198,

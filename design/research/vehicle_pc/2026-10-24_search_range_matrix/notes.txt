@@ -1,0 +1,45 @@
+# DEC-385 S3 / DEC-360 (1) continued, bin 156 (2026-10-24 01:55-02:45 on the VM). Recorded by Claude from the command output.
+# Scripts: offset_case.sh (bin 148's, plus XYVAR: -p initial_xy_variance:=<v> to the test node only; the generated files are not
+# changed), run_matrix.sh. The copies on the VM (~/nd07_search_matrix_scripts) say "bin 155" in their header comment; the copies
+# here were relabelled "bin 156" afterwards (only that comment differs). ROS_DOMAIN_ID 91.
+# Running Gouda: not running when the matrix started (gouda.sh status "not running"); it was started by someone else during the
+# run (02:36 it was running, mode 1 = 手動走行, idle; load average 8.7). The test never touched domain 0.
+# Code: the gouda_core installed in ~/gouda_ws (VM tree c2b8d65 + work tree). Generated values: PRM-92 0.7 m (bin 155 copy),
+# PRM-87 yaw variance 0.07 rad^2, PRM-90 NVTL 2.3; upstream particles_num 200 (not changed).
+# Map: gouda_data/maps/20261019_123731_dc7b4c8a/converted/002, trajectory row 200 (same as bin 120/122/148). Synthetic point clouds
+# (a3_synthetic_feed.py: the map's points seen from the true pose, radius 10 m, 10 Hz, odometry 0.15 s late). The robot stands still.
+# True pose (-11.19, -1.68), yaw -75.6 deg. Offset: dx along the map x axis, yaw offset 0. Window 90 s after activate. One run each.
+# Search spread: initial_xy_variance v = sigma^2 (0.25 = PRM-84 now, 1.0, 2.25, 4.0 m^2 -> sigma 0.5, 1.0, 1.5, 2.0 m).
+# first 正常 = the first 5 s sample in state 2 (正常), seconds after activate (5 s resolution).
+#
+# sigma  dx   aligned to         first 正常  final error     NVTL   推定不能 events after alignment
+# 0.5    1    (-11.20,-1.63)     20 s        0.07 m 0.0 deg  3.07   0
+# 0.5    2    (-11.21,-1.63)     40 s        0.07 m 0.0      3.07   0
+# 0.5    3    (-11.21,-1.63)     35 s        0.07 m 0.0      3.07   0
+# 0.5    4    (-11.02,-1.65)     45 s        0.07 m 0.0      3.07   0
+# 1.0    1    (-11.21,-1.63)     55 s        0.07 m 0.0      3.07   0
+# 1.0    2    (-11.20,-1.63)     40 s        0.07 m 0.1      3.07   0
+# 1.0    3    (-11.20,-1.63)     30 s        0.07 m 0.0      3.07   0
+# 1.0    4    (-11.20,-1.63)     25 s        0.07 m 0.0      3.07   0
+# 1.5    1    (-11.21,-1.63)     20 s        0.07 m 0.0      3.07   0
+# 1.5    2    (-11.22,-1.63)     20 s        0.07 m 0.0      3.07   0
+# 1.5    3    (-11.21,-1.63)     30 s        0.07 m 0.0      3.07   0
+# 1.5    4    (-11.22,-1.63)     30 s        0.07 m 0.0      3.07   0
+# 2.0    1    (-11.23,-1.63)     25 s        0.07 m 0.0      3.07   2 (input_stale ekf_diagnostics/odometry; ekf_covariance_large 6.58 > 0.7)
+# 2.0    2    (-11.22,-1.63)     20 s        0.07 m 0.0      3.07   0
+# 2.0    3    run 1: not run (the test node was not up when "configure" was sent: "Node not found"; Gouda was being
+#               started on the VM about then - not checked). Rerun (case_3m_var4.0_rerun.txt, Gouda running in manual/idle):
+#               (-11.23,-1.63)   65 s        0.07 m 0.0      3.07   1 (ekf_covariance_large 2.00 > 0.7)
+# 2.0    4    (-11.22,-1.63)     25 s        0.07 m 0.0      3.07   1 (input_stale ndt_diagnostics)
+#
+# Findings:
+# - Every case aligned to the true pose (0.07 m, as with no offset). No wrong pose was reported as 正常. NVTL 3.07 in all cases,
+#   so NVTL did not separate the cases (bin 148: the wrong 5 m case had NVTL 2.67, also above PRM-90 2.3).
+# - sigma 0.5 m (the current PRM-84) already found the true pose from 4 m (bin 148: 3 m correct, 5 m wrong with the same sigma).
+# - Time to the first 正常 was 20-55 s with no trend in sigma; 65 s in the rerun while Gouda was also running on the VM.
+# - With sigma 2.0 m, short 推定不能 states appeared right after alignment in 3 of 4 cases (EKF covariance above PRM-92 for a
+#   moment, inputs late). Inferred: the large initial covariance reaches the EKF. With the current instant pause this would
+#   matter only after the start reached 正常; with DEC-365 it would not pause.
+# Limits: one map, one pose, offsets only along +x with yaw 0, synthetic clouds made from the map itself (no people, changes or
+#   noise: more favourable than reality), one run per case, 5 s sampling. Offsets of 5 m and more were not tested with the
+#   wider spreads, so this run does not show where wrong convergence starts for sigma 1.0-2.0 m.

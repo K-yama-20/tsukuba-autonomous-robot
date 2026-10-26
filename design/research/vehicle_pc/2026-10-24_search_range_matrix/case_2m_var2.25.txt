@@ -1,0 +1,51 @@
+Fast DDS profile: /home/aya/gouda_ws/gouda_data/run/fastdds_profile.xml
+case: xy variance 2.25 m^2, dx 2 m, dyaw 0 deg, row 200, map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002, window 90 s, ROS_DOMAIN_ID 91
+true pose (x y z qx qy qz qw): -11.186694 -1.675947 -0.359678 -0.001940 -0.012853 -0.612681 0.790224
+initial pose given: {header: {frame_id: map}, pose: {pose: {position: {x: -9.186694, y: -1.675947}, orientation: {x: -0.001940, y: -0.012853, z: -0.612681, w: 0.790224}}}}
+Transitioning successful
+Transitioning successful
+=== point clouds within 10 m from activate, odometry stamped 0.15 s late
+  t=5 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=10 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=15 s: state: 1 reason: initializing ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=20 s: state: 2 reason: '' ndt_nvtl: 3.070256 ekf_xy_stddev_m: 0.0952848935840716 
+  t=25 s: state: 2 reason: '' ndt_nvtl: 3.070071 ekf_xy_stddev_m: 0.12594131436819758 
+  t=30 s: state: 2 reason: '' ndt_nvtl: 3.070432 ekf_xy_stddev_m: 0.09367302993737263 
+  t=35 s: state: 2 reason: '' ndt_nvtl: 3.070317 ekf_xy_stddev_m: 0.09368623548742439 
+  t=40 s: state: 2 reason: '' ndt_nvtl: 3.069788 ekf_xy_stddev_m: 0.0873862744802708 
+  t=45 s: state: 2 reason: '' ndt_nvtl: 3.070447 ekf_xy_stddev_m: 0.1023825685649363 
+  t=50 s: state: 2 reason: '' ndt_nvtl: 3.070449 ekf_xy_stddev_m: 0.12035740767363824 
+  t=55 s: state: 2 reason: '' ndt_nvtl: 3.069971 ekf_xy_stddev_m: 0.09365170315959517 
+  t=60 s: state: 2 reason: '' ndt_nvtl: 3.070342 ekf_xy_stddev_m: 0.09548733193059103 
+  t=65 s: state: 2 reason: '' ndt_nvtl: 3.070505 ekf_xy_stddev_m: 0.094625841259266 
+  t=70 s: state: 2 reason: '' ndt_nvtl: 3.070423 ekf_xy_stddev_m: 0.12792468601358825 
+  t=75 s: state: 2 reason: '' ndt_nvtl: 3.07039 ekf_xy_stddev_m: 0.08825038660847276 
+  t=80 s: state: 2 reason: '' ndt_nvtl: 3.069954 ekf_xy_stddev_m: 0.08810937998049649 
+  t=85 s: state: 2 reason: '' ndt_nvtl: 3.070523 ekf_xy_stddev_m: 0.1189039555460371 
+  t=90 s: state: 2 reason: '' ndt_nvtl: 3.070458 ekf_xy_stddev_m: 0.08732226197954551 
+=== final localization/pose (IFD-33)
+  estimate (-11.24, -1.63) yaw -75.5 deg; true (-11.19, -1.68) yaw -75.6 deg; error 0.07 m, 0.0 deg
+Transitioning successful
+Transitioning successful
+=== decision events (event: reason)
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+  configured: A3 launch started (pid 105017); map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002
+  estimator_state: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+  estimator_state: '初期化中 (initializing: waiting for the initial pose (IFD-34))'
+  initial_pose_received: initial pose (-9.19, -1.68); height -0.30 m from the mapping trajectory (nearest point 0.09 m away)
+  ndt_points_waiting: 'waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet'
+  ndt_points_dropped: 'the NDT dropped a point cloud: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF x...'
+  ndt_points_kept: the NDT holds a point cloud; ndt_align_srv can be called
+  initial_pose_aligned: aligned to (-11.22, -1.63)
+  initialized: EKF and NDT active; the state follows the checks (IFD-53)
+  estimator_state: '初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map...'
+  estimator_state: 正常
+  deactivated: map->odom is no longer published
+  estimator_state: '未初期化 (not_initialized: waiting for the initial pose and the initialization (activate))'
+  trigger_off: 'ekf trigger_node false: True '
+  trigger_off: 'ndt trigger_node false: True '
+  cleaned_up: A3 launch stopped
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+=== node and A3 log (errors)
+[autoware_ndt_scan_matcher_node-3] [ERROR] [1792775633.088454886] [localization.a3.ndt_scan_matcher]: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link
+[autoware_ndt_scan_matcher_node-3] [ERROR] [1792775634.186302261] [localization.a3.ndt_scan_matcher]: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link

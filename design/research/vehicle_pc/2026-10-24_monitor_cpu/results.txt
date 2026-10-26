@@ -1,0 +1,13 @@
+第161便 gouda_monitor の CPU の調査の結果（VM、2026-10-24 03:4x JST、Gouda は manual・待機中、XT-32・IMU・ESP32 接続、GNSS なし）
+
+1. top（03:33・03:4x）：gouda_monitor 84〜91 %（top -H で主の thread 13057 が 99.9 %）、ブラウザの Isolated Web Co 27〜100 %、firefox 9 %
+   /proc/13057/stat の utime+stime の差：10 s で 830 tick（CLK_TCK 100）＝ 83 %
+2. perf：perf_event_paranoid 4 で使えない。ptrace_scope 1 で gdb・strace・py-spy の attach もできない（sudo なし）
+3. 同じ購読をする別のプロセス（monitor_load_probe.py。何も publish しない。購読・QoS・raw は monitor と同じ。20 s）
+   imu  single  cpu 5 %   msgs/s {imu: 100.0}
+   all  single  cpu 16 %  msgs/s {imu: 100.0, loss: 10.0, esp32: 20.0, mode: 5.0}
+   imu  multi   cpu 65 %  msgs/s {imu: 99.8}
+   all  multi   cpu 69 %  msgs/s {imu: 99.0, mode: 5.0, esp32: 20.0, loss: 10.0}
+   （single = rclpy SingleThreadedExecutor、multi = MultiThreadedExecutor(num_threads=4)。monitor は multi）
+4. SSE（curl -N http://127.0.0.1:8080/api/events を 10 s）：event: state 240 回（24 回/s）、15,063,246 byte（1 回 約 63 KB、約 1.5 MB/s）
+5. 設定：PRM-49 status_period_ms 50（DEC-169）→ /esp32/status は 20 Hz。monitor_core.on_esp32 は受信ごとに connection_revision を上げ、SSE は revision が変わるたびに全体の snapshot（maps/index.json と routes の index をファイルから読む）を送る

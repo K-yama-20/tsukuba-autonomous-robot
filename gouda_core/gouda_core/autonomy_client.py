@@ -5,7 +5,8 @@ What it talks to (all names from the design):
 - Nav2 (ND-10): lifecycle_manager_navigation/manage_nodes (STARTUP at TR-05, RESET at TR-11 / TR-12; IFD-36), the parameters
   of map_server (map, IFD-24), filter_mask_server and costmap_filter_info_server (the waypoint set's mask, IFD-41 / IFD-42) set
   before STARTUP, and navigate_through_poses (IFD-13: goal, feedback, result, cancel).
-- the vehicle output ND-11 / ND-12: lifecycle configure + activate at TR-05, deactivate at TR-11 / TR-12 (IFD-36). vehicle_bridge
+- the vehicle output ND-11 / ND-12: lifecycle configure + activate as the first step of TR-05 (DEC-391: neutral reaches the
+  ESP32 while the rest starts), deactivate at TR-11 / TR-12 (IFD-36). vehicle_bridge
   (ND-12) alone is also configured (not activated: no COMMAND) after TR-03, so that the ESP32 STATUS with the gamepad input is
   published and recorded while mapping (DEC-169, DEC-180); it stays configured after TR-04.
 - localization/initial_pose (IFD-34, transient_local: REV-128): the human's initial pose, sent once at TR-05 before ND-07 is
@@ -33,7 +34,7 @@ from lifecycle_msgs.msg import Transition, State
 from lifecycle_msgs.srv import ChangeState, GetState
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from nav_msgs.msg import OccupancyGrid
-from nav2_msgs.action import NavigateThroughPoses
+from nav2_msgs.action import NavigateThroughPoses, FollowPath, ComputePathThroughPoses, ComputePathToPose
 from nav2_msgs.msg import SpeedLimit, CostmapFilterInfo
 from nav2_msgs.srv import ManageLifecycleNodes
 
@@ -45,6 +46,20 @@ SPEED_LIMIT_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=
 VEHICLE_NODES = ('gouda_motion_controller', 'vehicle_bridge')   # ND-11, ND-12
 LOCALIZATION_NODE = 'gouda_global_localization'                  # ND-07
 STATE_NORMAL, STATE_UNAVAILABLE = 2, 3                           # gouda_interfaces/EstimatorStatus
+
+
+def error_code_table() -> dict:
+    """{code: (stop reason, 'Action.NAME')} from the nav2_msgs action result constants (E-4, DEC-393); no code is typed here."""
+    table = {}
+    for action in (FollowPath, ComputePathThroughPoses, ComputePathToPose):
+        result = action.Result
+        for name in dir(result):
+            value = getattr(result, name)
+            if name.isupper() and isinstance(value, int) and not isinstance(value, bool):
+                reason = ac.stop_reason_for(action.__name__, name)
+                if reason is not None:
+                    table[value] = (reason, f'{action.__name__}.{name}')
+    return table
 
 
 class StepFailed(Exception):
@@ -249,9 +264,16 @@ class AutonomyClient:
         except StepFailed as e:
             record('localization_stop_failed', str(e), {})
 
+    def activate_vehicle_output(self, token, record: Callable) -> None:
+        """TR-05, first step (DEC-391): ND-11 / ND-12 configured + activated before ND-08, ND-07 and Nav2 are started. motion_hold
+        is still true, so neutral COMMANDs with pc_enable_request reach the ESP32 while the rest starts; the firmware enables the
+        PC source only on a neutral COMMAND (run-ff780d47: the first COMMAND was not neutral and the PC source stayed off 20 s)."""
+        steps = self._vehicle_activate(token)
+        record('vehicle_output_active', f'ND-11 / ND-12 active ({", ".join(steps) or "already active"}); neutral is sent while the start continues (DEC-391)', {'steps': steps})
+
     def start(self, token, mission: ac.Mission, initial_pose: PoseWithCovarianceStamped, record: Callable) -> None:
-        """TR-05 after the transition: ND-07 (localize, until 正常), parameters, Nav2 STARTUP, vehicle output, goal. Raises
-        StepFailed / EstimatorUnavailable / Abandoned."""
+        """TR-05 after the transition and activate_vehicle_output: ND-07 (localize, until 正常), parameters, Nav2 STARTUP, goal.
+        Raises StepFailed / EstimatorUnavailable / Abandoned."""
         self.localize(token, mission, initial_pose, record)
         self._set('map_server', {'yaml_filename': mission.map_yaml}, 'map_server yaml_filename', token)
         self._set('filter_mask_server', {'yaml_filename': mission.mask_yaml}, 'filter_mask_server yaml_filename', token)
@@ -265,8 +287,6 @@ class AutonomyClient:
             raise StepFailed('Nav2 STARTUP failed (a server did not configure / activate; see the Nav2 logs)')
         self.nav2_active = True
         record('nav2_started', 'Nav2 servers active (lifecycle_manager_navigation STARTUP)', {})
-        steps = self._vehicle_activate(token)
-        record('vehicle_output_active', f'ND-11 / ND-12 active ({", ".join(steps) or "already active"})', {'steps': steps})
         self.send_goal(token, mission, 0, record)
 
     def send_goal(self, token, mission: ac.Mission, offset: int, record: Callable) -> None:

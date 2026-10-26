@@ -1,0 +1,239 @@
+02:16:25.534 record_start auto:map_start
+02:16:25.540 gouda_mode_manager vehicle_bridge_configured TR-03  | vehicle_bridge configured for mapping: ESP32 STATUS (gamepad input) is published and recorded; no COMMAND is sent (not activated) | {}
+02:16:25.543 gouda_mode_manager record_auto_start TR-03  | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_pre_mapping", "kind": "map_start", "ok": true}
+02:16:25.554 vehicle_bridge hello_reply   | boot_token=0xb6cd4467 config_valid=True generation=3 protocol=4 | {"session_id": 1792775504, "boot_token": 3066905703, "config_valid": true, "config_generation": 3, "protocol_version": 4}
+02:16:25.555 vehicle_bridge config_sent   | SET_CONFIG sent (apply_timing=runtime_set) | {"config": {"pc_command_watchdog_ms": 1000, "bt_report_timeout_ms": 250, "dac_neutral_mv": 2500, "dac_min_mv": 280, "dac_max_mv": 4720, "dac_full_scale_mv": 4720, "manual_deadzone_q10000": 800, "manua
+02:16:25.606 vehicle_bridge esp32_event   | config_set | {"code": 3, "name": "config_set", "arg": 4, "esp_ms": 168746}
+02:16:25.607 vehicle_bridge esp32_ack   | request 0x03: accepted | {"request_type": 3, "result": 0, "result_name": "accepted"}
+02:16:25.668 STATE (2, 'idle', '', False)  0 -1
+02:16:27.076 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 170248}
+02:16:28.092 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 171258}
+02:16:28.395 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 171553}
+02:16:34.937 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 178093}
+02:16:35.599 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 178763}
+02:16:44.726 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 187863}
+02:16:44.931 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 188078}
+02:16:48.628 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 191783}
+02:16:48.781 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 191938}
+02:16:49.544 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 192693}
+02:16:49.595 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 192758}
+02:16:50.152 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 193303}
+02:16:55.621 gouda_mode_manager human_request TR-04  | TR-04: mapping -> manual | {"event": "end_mapping", "accepted": true, "mode": "mapping"}
+02:16:55.630 STATE (1, 'idle', '', False)  0 -1
+02:16:55.631 vehicle_bridge link_count_ended   | USB link counts of the mapping session: 0 disconnects | {"kind": "mapping", "started_at": 1792775785.457752, "ended_at": 1792775815.631093, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:16:55.633 STATE (1, 'map_saving', '', False)  0 -1
+02:16:56.034 gouda_mode_manager mapping_stopped TR-04  | dump complete (1 submap(s)) | {"origin_id": "20261024_021625_668825d0", "dump_ok": true, "submaps": 1, "exit_code": 0, "save_duration_s": 0.40023040771484375, "glim_exited_unexpectedly_at": null, "wait_limit_s": "none (PRM-37 unre
+02:16:56.035 gouda_mode_manager gnss_record_stopped TR-04  | GNSS record closed: {} (no GNSS message: no alignment can be made from this map) | {"path": "/home/aya/gouda_ws/gouda_data/mapping/20261024_021625_668825d0/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "c
+02:16:56.049 gouda_mode_manager source_map_registered TR-04  | source map registered as 20261024_021625_668825d0 (hash a3a28c62b262…, 1 submap(s)) | {"origin_id": "20261024_021625_668825d0", "content_hash": "a3a28c62b262fb6d6a4a52bec007aa4beba7887ddfe712ee56b62ca6bec63a45"}
+02:16:56.052 STATE (1, 'map_converting', '', False)  0 -1
+02:16:56.072 record_stop auto:stop
+02:19:57.324 record_start auto:autonomy_start
+02:19:57.327 gouda_mode_manager record_auto_start TR-05 run-54a3fca8 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+02:19:57.329 gouda_mode_manager odometry_started TR-05 run-54a3fca8 | ND-08 GLIM (odometry only) started (pid 108400) | {"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-54a3fca8/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]}
+02:19:57.329 gouda_mode_manager initial_pose_sent TR-05 run-54a3fca8 | IFD-34 localization/initial_pose sent once (transient_local) | {"x": -0.475, "y": -0.169}
+02:19:57.426 gouda_global_localization configured   | A3 launch started (pid 108402); map /home/aya/gouda_ws/gouda_data/maps/20261024_021625_668825d0/converted/001 | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_021625_668825d0/converted/001", "log": "/home/aya/gouda_ws/gouda_data/run/localization/a3_20261024_021957.log", "settings": {"points_near
+02:19:57.426 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:19:57.444 gouda_global_localization estimator_state   | 初期化中 (initializing: waiting for the initial pose (IFD-34)) | {"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261
+02:19:57.444 gouda_global_localization initial_pose_received   | initial pose (-0.47, -0.17); height -0.99 m from the mapping trajectory (nearest point 0.13 m away) | {"x": -0.475, "y": -0.169, "z": -0.9874390000000001, "trajectory_distance_m": 0.12973091967607414}
+02:19:57.446 gouda_mode_manager localization_activated TR-05 run-54a3fca8 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261024_021625_668825d0/converted/001 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_021625_668825d0/converted/001"}
+02:19:57.465 STATE (3, 'idle', '', False) run-54a3fca8 3 0
+02:19:58.459 gouda_global_localization ndt_points_waiting   | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet | {}
+02:20:01.931 gouda_global_localization ndt_points_kept   | the NDT holds a point cloud; ndt_align_srv can be called | {}
+02:20:08.335 gouda_global_localization initial_pose_aligned   | aligned to (-0.46, -0.14) | {"x": -0.4605114459991455, "y": -0.140174001455307, "z": -0.9909806847572327}
+02:20:08.341 gouda_global_localization initialized   | EKF and NDT active; the state follows the checks (IFD-53) | {}
+02:20:08.341 gouda_global_localization estimator_state   | 初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map_odom) | {"state": 1, "reason": "awaiting_inputs", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:20:08.636 gouda_global_localization estimator_state   | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.362378, "ekf_pose_no_update_count": 10, "ekf_xy_stddev_m": 0.5036383748692128, "last_input_age_s": 0.08780097961425781, "map_directory": "/home/aya/gouda_ws/go
+02:20:08.638 gouda_mode_manager localization_normal TR-05 run-54a3fca8 | gouda_global_localization: 正常; Nav2 is started next | {}
+02:20:08.653 gouda_mode_manager nav2_parameters_set TR-05 run-54a3fca8 | map /home/aya/gouda_ws/gouda_data/maps/20261024_021625_668825d0/converted/001/map.yaml, mask /home/aya/gouda_ws/gouda_data/routes/20261024_021815_228809/001/speed_mask.yaml, base 0.0, multiplier 0.1, keepout /home/aya/gouda_ws/gou | {}
+02:20:10.754 gouda_mode_manager speed_limit_application_state TR-05 run-54a3fca8 | unknown (不明) | {"speed_limit": null, "robot_xy": null}
+02:20:10.877 gouda_mode_manager keepout_mask_not_confirmed TR-05 run-54a3fca8 | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | {"received_sha256": "10c5485ea5007113632050330782fe8fff45393f887d4bca348b4c15bce9879f", "received_size": [42, 34], "mask_state": "match", "info_received": false}
+02:20:11.027 gouda_mode_manager keepout_mask_confirmed TR-05 run-54a3fca8 | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | {"info_type": 0, "info_mask_topic": "/keepout_filter_mask", "info_base": 0.0, "info_multiplier": 1.0, "mask_state": "match", "info_received": true}
+02:20:13.600 gouda_mode_manager nav2_started TR-05 run-54a3fca8 | Nav2 servers active (lifecycle_manager_navigation STARTUP) | {}
+02:20:13.661 gouda_motion_controller settings   | configured from generated parameters | {"cmd_vel_timeout_s": 0.7, "max_linear_speed_mps": 1.25, "max_angular_speed_radps": 0.97, "command_publish_period_s": 0.05, "motion_hold_timeout_s": 0.5, "max_reverse_speed_mps": 0.472, "compensation"
+02:20:13.671 gouda_motion_controller activated   | joystick_command publication started (period PRM-41) | {}
+02:20:13.690 vehicle_bridge activated   | COMMAND transmission started (period PRM-14, pc_enable_request set) | {}
+02:20:13.694 gouda_mode_manager vehicle_output_active TR-05 run-54a3fca8 | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:3) | {"steps": ["gouda_motion_controller:1", "gouda_motion_controller:3", "vehicle_bridge:3"]}
+02:20:13.723 gouda_motion_controller output_neutral   | motion_hold=true (mode=autonomy speed_limit=unknown (waiting for 適用中)) | {"cmd_vel_age_s": null, "hold": true, "hold_reason": "mode=autonomy speed_limit=unknown (waiting for 適用中)", "hold_mode": 3, "hold_age_s": 0.05343341827392578, "compensation_revision": 0, "compensated_
+02:20:13.728 gouda_mode_manager nav2_goal_sent TR-05 run-54a3fca8 | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | {"offset": 0, "poses": 3}
+02:20:13.732 gouda_mode_manager speed_limit_application_state TR-05 run-54a3fca8 | applied (適用中) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.45748724923206463, -0.1400038246630143]}
+02:20:13.733 gouda_mode_manager motion_hold_released TR-05 run-54a3fca8 | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.45748724923206463, -0.1400038246630143]}
+02:20:13.791 gouda_motion_controller output_neutral   | cmd_vel not received | {"cmd_vel_age_s": null, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.04447484016418457, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.0, "nor
+02:20:13.792 vehicle_bridge command_output   | joystick_command forwarded | {"x_q10000": 0, "y_q10000": 0, "flags": 1}
+02:20:13.827 vehicle_bridge esp32_event   | pc_enabled | {"code": 10, "name": "pc_enabled", "arg": 0, "esp_ms": 396983}
+02:20:14.022 gouda_motion_controller output_drive   | drive | {"cmd_vel_age_s": 0.046905517578125, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.1524064540863037, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn
+02:20:31.523 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.04542279243469238, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.05105113983154297, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "t
+02:20:33.142 gouda_motion_controller output_neutral   | cmd_vel stale | {"cmd_vel_age_s": 0.7000424861907959, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.07411336898803711, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "tu
+02:20:36.623 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.045583486557006836, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.15388727188110352, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "
+02:20:37.075 gouda_motion_controller output_drive   | drive | {"cmd_vel_age_s": 0.04715609550476074, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.008705377578735352, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "
+02:20:38.572 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.0465853214263916, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.09891676902770996, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "tu
+02:20:39.721 gouda_motion_controller output_neutral   | cmd_vel stale | {"cmd_vel_age_s": 0.7478084564208984, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.054506778717041016, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "t
+02:20:43.122 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.04735708236694336, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.05174422264099121, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "t
+02:20:43.622 gouda_motion_controller output_drive   | drive | {"cmd_vel_age_s": 0.04607987403869629, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.15606117248535156, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "t
+02:20:48.223 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.04603910446166992, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.15354347229003906, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "t
+02:20:49.974 gouda_motion_controller output_neutral   | cmd_vel stale | {"cmd_vel_age_s": 0.7476282119750977, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.1044626235961914, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "tur
+02:20:53.018 gouda_mode_manager human_request TR-11 run-54a3fca8 | TR-11: autonomy -> manual | {"event": "end_autonomy", "accepted": true, "mode": "autonomy"}
+02:20:53.019 STATE (1, 'idle', 'human', False)  1 1
+02:20:53.021 vehicle_bridge link_count_ended   | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792775997.3146484, "ended_at": 1792776053.0213091, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:20:53.023 gouda_motion_controller output_neutral   | motion_hold=true (mode=manual stop_reason=human) | {"cmd_vel_age_s": 3.7970712184906006, "hold": true, "hold_reason": "mode=manual stop_reason=human", "hold_mode": 1, "hold_age_s": 0.00039768218994140625, "compensation_revision": 0, "compensated_direc
+02:20:53.029 gouda_mode_manager nav2_goal_cancelled TR-11  | cancel answered (1 goal(s) cancelling) | {}
+02:20:53.041 gouda_motion_controller deactivated   | joystick_command publication stopped; nothing is sent while inactive | {}
+02:20:53.058 gouda_mode_manager vehicle_output_deactivated TR-11  | gouda_motion_controller deactivate: True | {"node": "gouda_motion_controller"}
+02:20:53.093 vehicle_bridge deactivated   | COMMAND transmission stopped; the firmware PC source expires (PRM-13) and goes neutral | {}
+02:20:53.098 gouda_mode_manager vehicle_output_deactivated TR-11  | vehicle_bridge deactivate: True | {"node": "vehicle_bridge"}
+02:20:54.138 vehicle_bridge esp32_event   | pc_disabled_stale | {"code": 11, "name": "pc_disabled_stale", "arg": 0, "esp_ms": 437288}
+02:20:56.356 gouda_mode_manager nav2_reset TR-11  | Nav2 RESET: True | {}
+02:20:56.364 gouda_global_localization deactivated   | map->odom is no longer published | {}
+02:20:56.364 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": 3.26442, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.1617997079403655, "last_input_age_s": 0.08448553085327148, "map_directory": "/home/ay
+02:20:56.369 gouda_global_localization trigger_off   | ekf trigger_node false: True  | {}
+02:20:56.370 gouda_global_localization trigger_off   | ndt trigger_node false: True  | {}
+02:20:56.863 gouda_global_localization cleaned_up   | A3 launch stopped | {}
+02:20:56.863 gouda_global_localization estimator_state   | 未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured)) | {"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": ""}
+02:20:56.872 gouda_mode_manager localization_stopped TR-11  | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | {}
+02:20:57.273 gouda_mode_manager odometry_stopped TR-11  | ND-08 GLIM (odometry only) stopped (exit code 0) | {}
+02:20:57.275 record_stop auto:stop
+02:27:08.416 record_start auto:autonomy_start
+02:27:08.420 gouda_mode_manager odometry_started TR-05 run-dd3e5054 | ND-08 GLIM (odometry only) started (pid 110152) | {"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-dd3e5054/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]}
+02:27:08.420 gouda_mode_manager initial_pose_sent TR-05 run-dd3e5054 | IFD-34 localization/initial_pose sent once (transient_local) | {"x": 0.882, "y": 2.488}
+02:27:08.426 gouda_mode_manager record_auto_start TR-05 run-dd3e5054 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+02:27:08.466 STATE (3, 'idle', '', False) run-dd3e5054 16 0
+02:27:08.522 gouda_global_localization configured   | A3 launch started (pid 110153); map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002 | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002", "log": "/home/aya/gouda_ws/gouda_data/run/localization/a3_20261024_022708.log", "settings": {"points_near
+02:27:08.523 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:27:08.549 gouda_global_localization estimator_state   | 初期化中 (initializing: waiting for the initial pose (IFD-34)) | {"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261
+02:27:08.551 gouda_global_localization initial_pose_received   | initial pose (0.88, 2.49); height -0.96 m from the mapping trajectory (nearest point 0.09 m away) | {"x": 0.882, "y": 2.488, "z": -0.961453, "trajectory_distance_m": 0.08722544566810762}
+02:27:08.557 gouda_mode_manager localization_activated TR-05 run-dd3e5054 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002"}
+02:27:09.054 gouda_global_localization ndt_points_waiting   | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet | {}
+02:27:56.154 gouda_mode_manager human_request TR-11 run-dd3e5054 | TR-11: autonomy -> manual | {"event": "end_autonomy", "accepted": true, "mode": "autonomy"}
+02:27:56.155 STATE (1, 'idle', 'human', False)  16 0
+02:27:56.156 vehicle_bridge link_count_ended   | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792776428.4133801, "ended_at": 1792776476.1562629, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:27:56.156 gouda_mode_manager autonomy_start_abandoned TR-05  | a human pause / end came first; the remaining start steps were not run | {}
+02:27:56.157 gouda_mode_manager navigation_goal_check TR-11  | no active Nav2 goal | {}
+02:27:56.161 gouda_global_localization deactivated   | map->odom is no longer published | {}
+02:27:56.161 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:27:56.163 gouda_global_localization trigger_off   | ekf trigger_node false: True  | {}
+02:27:56.163 gouda_global_localization trigger_off   | ndt trigger_node false: True  | {}
+02:27:56.407 gouda_global_localization cleaned_up   | A3 launch stopped | {}
+02:27:56.407 gouda_global_localization estimator_state   | 未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured)) | {"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": ""}
+02:27:56.409 gouda_mode_manager localization_stopped TR-11  | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | {}
+02:27:56.610 gouda_mode_manager odometry_stopped TR-11  | ND-08 GLIM (odometry only) stopped (exit code 0) | {}
+02:27:56.611 record_stop auto:stop
+02:30:03.894 record_start auto:map_start
+02:30:03.892 gouda_mode_manager human_request TR-03  | TR-03: manual -> mapping | {"event": "start_mapping", "accepted": true, "mode": "manual"}
+02:30:03.894 vehicle_bridge link_count_started   | USB link counting started for the mapping session (DEC-177) | {"session": "mapping", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:30:03.897 gouda_mode_manager vehicle_bridge_configure_skipped TR-03  | vehicle_bridge is already configured (lifecycle state 2); nothing to do | {"state": 2}
+02:30:03.900 gouda_mode_manager record_auto_start TR-03  | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_pre_mapping", "kind": "map_start", "ok": true}
+02:30:04.066 STATE (2, 'idle', '', False)  16 0
+02:30:11.567 gouda_mode_manager human_request TR-04  | TR-04: mapping -> manual | {"event": "end_mapping", "accepted": true, "mode": "mapping"}
+02:30:11.568 STATE (1, 'idle', '', False)  16 0
+02:30:11.568 vehicle_bridge link_count_ended   | USB link counts of the mapping session: 0 disconnects | {"kind": "mapping", "started_at": 1792776603.8940916, "ended_at": 1792776611.568864, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:30:11.569 STATE (1, 'map_saving', '', False)  16 0
+02:30:11.988 gouda_mode_manager mapping_stopped TR-04  | dump complete (0 submap(s)); no submap: no sensor data was received | {"origin_id": "20261024_023003_02c2eec7", "dump_ok": true, "submaps": 0, "exit_code": 0, "save_duration_s": 0.418290376663208, "glim_exited_unexpectedly_at": null, "wait_limit_s": "none (PRM-37 unreso
+02:30:11.988 gouda_mode_manager gnss_record_stopped TR-04  | GNSS record closed: {'sensors/gnss/pvtgeodetic': 81, 'sensors/gnss/atteuler': 81, 'sensors/gnss/attcoveuler': 81} | {"path": "/home/aya/gouda_ws/gouda_data/mapping/20261024_023003_02c2eec7/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256": "3c27e5cb130bd4b0fe956172c3e061ad4bbc61a31f5cff5a1899050a0f91502a", "c
+02:30:11.990 gouda_mode_manager source_map_registered TR-04  | source map registered as 20261024_023003_02c2eec7 (hash 33e70cd5f82f…, 0 submap(s)) | {"origin_id": "20261024_023003_02c2eec7", "content_hash": "33e70cd5f82fe4b35c9581c4838e7b6b77e9078f513f5070216f8983f0623410"}
+02:30:11.991 STATE (1, 'map_converting', '', False)  16 0
+02:30:11.991 record_stop auto:stop
+02:31:03.212 record_start auto:map_start
+02:31:03.213 gouda_mode_manager human_request TR-03  | TR-03: manual -> mapping | {"event": "start_mapping", "accepted": true, "mode": "manual"}
+02:31:03.213 STATE (2, 'idle', '', False)  16 0
+02:31:03.214 vehicle_bridge link_count_started   | USB link counting started for the mapping session (DEC-177) | {"session": "mapping", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:31:03.216 gouda_mode_manager record_auto_start TR-03  | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_pre_mapping", "kind": "map_start", "ok": true}
+02:31:03.218 gouda_mode_manager vehicle_bridge_configure_skipped TR-03  | vehicle_bridge is already configured (lifecycle state 2); nothing to do | {"state": 2}
+02:31:27.656 gouda_sensor_supervisor device_absent   | GNSS (ND-19): serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00 -> absent (the driver is started when it appears) | {"driver": "gnss", "identity": null}
+02:31:30.259 gouda_sensor_supervisor driver_stopped   | GNSS (ND-19): device absent; the driver is started again when the device re-appears | {"driver": "gnss"}
+02:31:30.261 gouda_sensor_supervisor device_absent   | NTRIP relay (ND-19): serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if02 -> absent (the driver is started when it appears) | {"driver": "ntrip", "identity": null}
+02:31:30.294 gouda_sensor_supervisor driver_stopped   | NTRIP relay (ND-19): device absent; the driver is started again when the device re-appears | {"driver": "ntrip"}
+02:33:13.875 vehicle_bridge serial_disconnected   | ESP32 USB link lost: no COMMAND reaches the ESP32, which neutralises the PC source after PRM-13, so the vehicle stops; the mode is unchanged (autonomy continues, DEC-176); the gamepad still works; waiting for the by-id device to c | {"cause": "serial read failed: device reports readiness to read but returned no data (device disconnected or multiple access on port?)", "vehicle": "stopped by the firmware PC-source expiry (PRM-13)",
+02:33:19.388 gouda_mode_manager human_request TR-04  | TR-04: mapping -> manual | {"event": "end_mapping", "accepted": true, "mode": "mapping"}
+02:33:19.391 STATE (1, 'idle', '', False)  16 0
+02:33:19.392 STATE (1, 'map_saving', '', False)  16 0
+02:33:19.392 vehicle_bridge link_count_ended   | USB link counts of the mapping session: 1 disconnects | {"kind": "mapping", "started_at": 1792776663.214851, "ended_at": 1792776799.392266, "disconnects": 1, "reconnects": 0, "down_total_s": 5.517}
+02:33:19.556 gouda_mode_manager human_request TR-04  | refused: end_mapping is not accepted in mode manual (accepted in mapping) | {"event": "end_mapping", "accepted": false, "mode": "manual"}
+02:33:19.735 gouda_mode_manager human_request TR-04  | refused: end_mapping is not accepted in mode manual (accepted in mapping) | {"event": "end_mapping", "accepted": false, "mode": "manual"}
+02:33:19.953 gouda_mode_manager human_request TR-04  | refused: end_mapping is not accepted in mode manual (accepted in mapping) | {"event": "end_mapping", "accepted": false, "mode": "manual"}
+02:33:19.993 gouda_mode_manager mapping_stopped TR-04  | dump complete (1 submap(s)) | {"origin_id": "20261024_023103_e660f3ff", "dump_ok": true, "submaps": 1, "exit_code": 0, "save_duration_s": 0.6004693508148193, "glim_exited_unexpectedly_at": null, "wait_limit_s": "none (PRM-37 unres
+02:33:19.994 gouda_mode_manager gnss_record_stopped TR-04  | GNSS record closed: {'sensors/gnss/pvtgeodetic': 244, 'sensors/gnss/atteuler': 244, 'sensors/gnss/attcoveuler': 244} | {"path": "/home/aya/gouda_ws/gouda_data/mapping/20261024_023103_e660f3ff/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256": "d036a32c6dd61b2364255b36b8a1ff1ca6a2112b7f97be07feac9f3e88b5dfff", "c
+02:33:20.000 gouda_mode_manager source_map_registered TR-04  | source map registered as 20261024_023103_e660f3ff (hash 2c68b80f6bf6…, 1 submap(s)) | {"origin_id": "20261024_023103_e660f3ff", "content_hash": "2c68b80f6bf6436546996159cdd4c1009f1b10dd52048c819e8f6ff76e9e4f15"}
+02:33:20.002 STATE (1, 'map_converting', '', False)  16 0
+02:33:20.003 record_stop auto:stop
+02:39:28.236 record_start auto:map_start
+02:39:28.240 STATE (2, 'idle', '', False)  16 0
+02:39:28.234 gouda_mode_manager human_request TR-03  | TR-03: manual -> mapping | {"event": "start_mapping", "accepted": true, "mode": "manual"}
+02:39:28.242 vehicle_bridge link_count_started   | USB link counting started for the mapping session (DEC-177) | {"session": "mapping", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:39:28.269 gouda_mode_manager record_auto_start TR-03  | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_pre_mapping", "kind": "map_start", "ok": true}
+02:39:28.269 gouda_mode_manager vehicle_bridge_configure_skipped TR-03  | vehicle_bridge is already configured (lifecycle state 2); nothing to do | {"state": 2}
+02:39:36.368 vehicle_bridge esp32_event   | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 277041}
+02:40:50.831 vehicle_bridge esp32_event   | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 351521}
+02:41:01.322 gouda_mode_manager human_request TR-04  | TR-04: mapping -> manual | {"event": "end_mapping", "accepted": true, "mode": "mapping"}
+02:41:01.324 STATE (1, 'idle', '', False)  16 0
+02:41:01.324 vehicle_bridge link_count_ended   | USB link counts of the mapping session: 0 disconnects | {"kind": "mapping", "started_at": 1792777168.2427814, "ended_at": 1792777261.3246872, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:41:01.325 STATE (1, 'map_saving', '', False)  16 0
+02:41:01.926 gouda_mode_manager mapping_stopped TR-04  | dump complete (29 submap(s)) | {"origin_id": "20261024_023928_de02d093", "dump_ok": true, "submaps": 29, "exit_code": 0, "save_duration_s": 0.6003930568695068, "glim_exited_unexpectedly_at": null, "wait_limit_s": "none (PRM-37 unre
+02:41:01.927 gouda_mode_manager gnss_record_stopped TR-04  | GNSS record closed: {} (no GNSS message: no alignment can be made from this map) | {"path": "/home/aya/gouda_ws/gouda_data/mapping/20261024_023928_de02d093/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "c
+02:41:01.989 gouda_mode_manager source_map_registered TR-04  | source map registered as 20261024_023928_de02d093 (hash 8aeb04032a65…, 29 submap(s)) | {"origin_id": "20261024_023928_de02d093", "content_hash": "8aeb04032a65d3b4422630851d9b201ac6924b6c479d2a0440bff5d91095e141"}
+02:41:01.990 STATE (1, 'map_converting', '', False)  16 0
+02:41:01.991 record_stop auto:stop
+02:45:21.748 record_start auto:autonomy_start
+02:45:21.755 gouda_mode_manager odometry_started TR-05 run-ff780d47 | ND-08 GLIM (odometry only) started (pid 117654) | {"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-ff780d47/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]}
+02:45:21.755 gouda_mode_manager initial_pose_sent TR-05 run-ff780d47 | IFD-34 localization/initial_pose sent once (transient_local) | {"x": -0.719, "y": -1.004}
+02:45:21.757 gouda_mode_manager record_auto_start TR-05 run-ff780d47 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_021625 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+02:45:21.867 STATE (3, 'idle', '', False) run-ff780d47 23 0
+02:45:21.886 gouda_global_localization configured   | A3 launch started (pid 117655); map /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001 | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001", "log": "/home/aya/gouda_ws/gouda_data/run/localization/a3_20261024_024521.log", "settings": {"points_near
+02:45:21.887 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:45:21.899 gouda_global_localization estimator_state   | 初期化中 (initializing: waiting for the initial pose (IFD-34)) | {"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261
+02:45:21.901 gouda_global_localization initial_pose_received   | initial pose (-0.72, -1.00); height -0.98 m from the mapping trajectory (nearest point 0.05 m away) | {"x": -0.719, "y": -1.004, "z": -0.9845900000000001, "trajectory_distance_m": 0.053284831631525385}
+02:45:21.906 gouda_mode_manager localization_activated TR-05 run-ff780d47 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001"}
+02:45:24.594 gouda_global_localization ndt_points_dropped   | the NDT dropped a point cloud: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link | {"message": "\"base_link\" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link"}
+02:45:24.664 gouda_global_localization ndt_points_waiting   | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: last cloud dropped: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link | {}
+02:45:24.803 gouda_global_localization ndt_points_kept   | the NDT holds a point cloud; ndt_align_srv can be called | {}
+02:46:08.883 gouda_global_localization initial_pose_aligned   | aligned to (-0.72, -1.02) | {"x": -0.7214264273643494, "y": -1.0170185565948486, "z": -0.9667853116989136}
+02:46:08.891 gouda_global_localization initialized   | EKF and NDT active; the state follows the checks (IFD-53) | {}
+02:46:08.893 gouda_global_localization estimator_state   | 初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map_odom) | {"state": 1, "reason": "awaiting_inputs", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20
+02:46:09.187 gouda_global_localization estimator_state   | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.226061, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.15984512904424833, "last_input_age_s": 0.09346342086791992, "map_directory": "/home/aya/gouda_ws/go
+02:46:09.190 gouda_mode_manager localization_normal TR-05 run-ff780d47 | gouda_global_localization: 正常; Nav2 is started next | {}
+02:46:09.223 gouda_mode_manager nav2_parameters_set TR-05 run-ff780d47 | map /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001/map.yaml, mask /home/aya/gouda_ws/gouda_data/routes/20261024_021815_228809/007/speed_mask.yaml, base 0.0, multiplier 0.1, keepout /home/aya/gouda_ws/gou | {}
+02:46:10.503 gouda_mode_manager speed_limit_application_state TR-05 run-ff780d47 | unknown (不明) | {"speed_limit": null, "robot_xy": null}
+02:46:10.675 gouda_mode_manager keepout_mask_not_confirmed TR-05 run-ff780d47 | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | {"received_sha256": "5a4b231220736530ff6982e8128b7ac441c5005559611bb48cb6df2acdc8a96e", "received_size": [164, 106], "mask_state": "match", "info_received": false}
+02:46:10.771 gouda_mode_manager keepout_mask_confirmed TR-05 run-ff780d47 | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | {"info_type": 0, "info_mask_topic": "/keepout_filter_mask", "info_base": 0.0, "info_multiplier": 1.0, "mask_state": "match", "info_received": true}
+02:46:12.985 gouda_mode_manager nav2_started TR-05 run-ff780d47 | Nav2 servers active (lifecycle_manager_navigation STARTUP) | {}
+02:46:13.002 gouda_motion_controller activated   | joystick_command publication started (period PRM-41) | {}
+02:46:13.021 vehicle_bridge activated   | COMMAND transmission started (period PRM-14, pc_enable_request set) | {}
+02:46:13.031 gouda_mode_manager vehicle_output_active TR-05 run-ff780d47 | ND-11 / ND-12 active (gouda_motion_controller:3, vehicle_bridge:3) | {"steps": ["gouda_motion_controller:3", "vehicle_bridge:3"]}
+02:46:13.042 gouda_mode_manager nav2_goal_sent TR-05 run-ff780d47 | NavigateThroughPoses goal accepted (23 poses from waypoint 0) | {"offset": 0, "poses": 23}
+02:46:13.049 gouda_mode_manager speed_limit_application_state TR-05 run-ff780d47 | applied (適用中) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.723344418430201, -1.0137321598772133]}
+02:46:13.051 gouda_mode_manager motion_hold_released TR-05 run-ff780d47 | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.723344418430201, -1.0137321598772133]}
+02:46:13.056 gouda_motion_controller output_neutral   | motion_hold=true (mode=autonomy speed_limit=unknown (waiting for 適用中)) | {"cmd_vel_age_s": 1519.8272218704224, "hold": true, "hold_reason": "mode=autonomy speed_limit=unknown (waiting for 適用中)", "hold_mode": 3, "hold_age_s": 0.18368005752563477, "compensation_revision": 0,
+02:46:13.104 gouda_motion_controller output_drive   | drive | {"cmd_vel_age_s": 0.0075914859771728516, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.03259634971618652, "compensation_revision": 0, "compensated_directions": [], "forward": 0.048
+02:46:13.122 vehicle_bridge command_output   | joystick_command forwarded | {"x_q10000": -459, "y_q10000": 480, "flags": 1}
+02:46:33.638 vehicle_bridge esp32_event   | pc_enabled | {"code": 10, "name": "pc_enabled", "arg": 0, "esp_ms": 694325}
+02:46:33.651 gouda_motion_controller output_neutral   | drive | {"cmd_vel_age_s": 0.008322000503540039, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.18449139595031738, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "
+02:46:34.803 gouda_motion_controller output_neutral   | cmd_vel stale | {"cmd_vel_age_s": 0.7121891975402832, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.13362383842468262, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "tu
+02:46:38.253 gouda_motion_controller output_drive   | drive | {"cmd_vel_age_s": 0.011828899383544922, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.1857924461364746, "compensation_revision": 0, "compensated_directions": [], "forward": 0.048, 
+02:46:51.642 gouda_mode_manager automatic_pause TR-07 run-ff780d47 | Nav2 goal ended with status 6: error_code 102 | {"status": 6, "error_code": 102, "error_msg": "", "stop_reason": "plan_failure"}
+02:46:51.648 STATE (4, 'idle', 'plan_failure', False) run-ff780d47 21 1
+02:46:51.652 gouda_motion_controller output_neutral   | motion_hold=true (mode=pause stop_reason=plan_failure) | {"cmd_vel_age_s": 0.009918212890625, "hold": true, "hold_reason": "mode=pause stop_reason=plan_failure", "hold_mode": 4, "hold_age_s": 0.0007531642913818359, "compensation_revision": 0, "compensated_d
+02:47:31.522 gouda_global_localization estimator_state   | 推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.713028278048087 > 0.7) | {"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.22113, "ekf_pose_no_update_count": 4, "ekf_xy_stddev_m": 0.713028278048087, "last_input_age_s": 0.14449429512023926, "map_directory": "/hom
+02:47:57.796 gouda_global_localization estimator_state   | 推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 55 > 50) | {"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.218554, "ekf_pose_no_update_count": 55, "ekf_xy_stddev_m": 5.338294744923965, "last_input_age_s": 0.11127901077270508, "map_directory": "/h
+02:47:58.490 gouda_global_localization estimator_state   | 推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 4.158851403471824 > 0.7) | {"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.219107, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 4.158851403471824, "last_input_age_s": 0.07413244247436523, "map_directory": "/ho
+02:48:08.394 gouda_global_localization estimator_state   | 推定不能 (ekf_pose_not_updated: pose_no_update_count above ekf_pose_no_update_max (PRM-91): 52 > 50) | {"state": 3, "reason": "ekf_pose_not_updated", "ndt_nvtl": 3.220962, "ekf_pose_no_update_count": 52, "ekf_xy_stddev_m": 4.242245725139786, "last_input_age_s": 0.042948007583618164, "map_directory": "/
+02:48:08.610 gouda_global_localization estimator_state   | 推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 1.8450121455816988 > 0.7) | {"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.22088, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 1.8450121455816988, "last_input_age_s": 0.15779995918273926, "map_directory": "/ho
+02:48:17.640 gouda_mode_manager human_request TR-12 run-ff780d47 | TR-12: pause -> manual | {"event": "end_autonomy", "accepted": true, "mode": "pause"}
+02:48:17.645 STATE (1, 'idle', 'human', False)  21 1
+02:48:17.646 vehicle_bridge link_count_ended   | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792777521.7457464, "ended_at": 1792777697.6463392, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+02:48:17.648 gouda_mode_manager navigation_goal_check TR-12  | no active Nav2 goal | {}
+02:48:17.651 gouda_motion_controller output_neutral   | motion_hold=true (mode=manual stop_reason=human) | {"cmd_vel_age_s": 85.06080031394958, "hold": true, "hold_reason": "mode=manual stop_reason=human", "hold_mode": 1, "hold_age_s": 0.0027997493743896484, "compensation_revision": 0, "compensated_directi
+02:48:17.662 gouda_motion_controller deactivated   | joystick_command publication stopped; nothing is sent while inactive | {}
+02:48:17.668 gouda_mode_manager vehicle_output_deactivated TR-12  | gouda_motion_controller deactivate: True | {"node": "gouda_motion_controller"}
+02:48:17.674 vehicle_bridge deactivated   | COMMAND transmission stopped; the firmware PC source expires (PRM-13) and goes neutral | {}
+02:48:17.685 gouda_mode_manager vehicle_output_deactivated TR-12  | vehicle_bridge deactivate: True | {"node": "vehicle_bridge"}
+02:48:18.665 vehicle_bridge esp32_event   | pc_disabled_stale | {"code": 11, "name": "pc_disabled_stale", "arg": 0, "esp_ms": 799326}
+02:48:19.295 gouda_global_localization estimator_state   | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.222584, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.6976975991702598, "last_input_age_s": 0.09452533721923828, "map_directory": "/home/aya/gouda_ws/gou
+02:48:19.387 gouda_global_localization estimator_state   | 推定不能 (ekf_covariance_large: EKF x-y standard deviation above ekf_xy_stddev_max_m (PRM-92): 0.7281096974477375 > 0.7) | {"state": 3, "reason": "ekf_covariance_large", "ndt_nvtl": 3.223166, "ekf_pose_no_update_count": 2, "ekf_xy_stddev_m": 0.7281096974477375, "last_input_age_s": 0.06079721450805664, "map_directory": "/h
+02:48:20.290 gouda_global_localization estimator_state   | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.223725, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.6890624599684663, "last_input_age_s": 0.06134438514709473, "map_directory": "/home/aya/gouda_ws/gou
+02:48:21.965 gouda_mode_manager nav2_reset TR-12  | Nav2 RESET: True | {}
+02:48:22.185 gouda_global_localization deactivated   | map->odom is no longer published | {}
+02:48:22.186 gouda_global_localization estimator_state   | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": 3.223057, "ekf_pose_no_update_count": 6, "ekf_xy_stddev_m": 0.2561081395292148, "last_input_age_s": 0.33881354331970215, "map_directory": "/home/a
+02:48:22.205 gouda_global_localization trigger_off   | ekf trigger_node false: True  | {}
+02:48:22.822 gouda_global_localization cleaned_up   | A3 launch stopped | {}
+02:48:22.823 gouda_global_localization estimator_state   | 未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured)) | {"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": ""}
+02:48:22.831 gouda_mode_manager localization_stopped TR-12  | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | {}
+02:48:23.233 gouda_mode_manager odometry_stopped TR-12  | ND-08 GLIM (odometry only) stopped (exit code 0) | {}
+02:48:23.235 record_stop auto:stop

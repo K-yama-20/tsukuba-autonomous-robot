@@ -8,6 +8,7 @@ import json
 import socket
 import sys
 import threading
+import time
 import unittest
 import urllib.request
 import urllib.error
@@ -32,7 +33,7 @@ class MonitorServerTests(unittest.TestCase):
         def config_update(body):
             self.cfg['values'].update(body); self.cfg['config_revision'] += 1
             return {'ok': True, 'message': 'saved', 'config': self.cfg}
-        self.server = MonitorServer(WEB, self.core.snapshot, lambda: self.cfg, command, config_update, port=0, keepalive_s=0.5)
+        self.server = MonitorServer(WEB, self.core.snapshot, lambda: self.cfg, command, config_update, port=0, keepalive_s=0.5, max_rate_hz=1000.0)
         self.url = self.server.start()
 
     def tearDown(self): self.server.stop()
@@ -95,11 +96,45 @@ class MonitorServerTests(unittest.TestCase):
         s.close()
 
 
+class SseRateLimitTests(unittest.TestCase):
+    """PRM-104 (DEC-392): at most max_rate_hz snapshots a second; changes in between are coalesced, the latest is never lost."""
+    def test_burst_of_changes_is_coalesced_and_the_latest_arrives(self):
+        core = MonitorCore()
+        srv = MonitorServer(WEB, core.snapshot, lambda: {}, lambda n, b: {}, lambda b: {}, port=0, keepalive_s=5.0, max_rate_hz=1.0)
+        url = srv.start()
+        try:
+            core.on_mode({'mode': 1, 'state_revision': 1})
+            host, port = url[len('http://'):].rstrip('/').split(':')
+            s = socket.create_connection((host, int(port)), timeout=5)
+            s.sendall(b'GET /api/events HTTP/1.1\r\nHost: x\r\n\r\n')
+            buf = b''
+            def read_for(seconds):
+                nonlocal buf
+                s.settimeout(0.05); end = time.monotonic() + seconds
+                while time.monotonic() < end:
+                    try: chunk = s.recv(65536)
+                    except socket.timeout: continue
+                    if not chunk: break
+                    buf += chunk
+            read_for(0.2)
+            self.assertEqual(buf.count(b'event: state'), 1)            # the current state at once
+            for r in range(2, 22):                                        # 20 changes within about 0.2 s
+                core.on_mode({'mode': 1, 'state_revision': r}); srv.notify(core.connection_revision); time.sleep(0.01)
+            read_for(0.15)
+            self.assertEqual(buf.count(b'event: state'), 1)            # still inside 1 / max_rate_hz: nothing more yet
+            read_for(1.2)
+            self.assertEqual(buf.count(b'event: state'), 2)            # one coalesced snapshot ...
+            self.assertIn(b'"state_revision": 21', buf)                  # ... carrying the latest change
+            s.close()
+        finally:
+            srv.stop()
+
+
 class ExtraRouteTests(unittest.TestCase):
     """Route hooks used by the waypoint_manager API (stage 5-4): a handler may return raw bytes or a JSON dict."""
     def test_get_and_post_hooks(self):
         core = MonitorCore()
-        srv = MonitorServer(WEB, core.snapshot, lambda: {}, lambda n, b: {'ok': True, 'message': ''}, lambda b: {'ok': True}, port=0, keepalive_s=0.5,
+        srv = MonitorServer(WEB, core.snapshot, lambda: {}, lambda n, b: {'ok': True, 'message': ''}, lambda b: {'ok': True}, port=0, keepalive_s=0.5, max_rate_hz=1000.0,
                             get_routes={'/api/map/': lambda rest, q: (200, 'image/png', b'\x89PNG' + rest.encode()) if rest.endswith('map.png') else {'ok': False, 'message': 'no'}},
                             post_routes={'/api/waypoints/save': lambda rest, body: {'ok': bool(body.get('set')), 'message': 'saved' if body.get('set') else 'invalid'}})
         url = srv.start()
@@ -125,7 +160,7 @@ class SymlinkWebDirTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             src = Path(d) / 'src'; src.mkdir(); (src / 'index.html').write_text('<html>linked</html>'); (Path(d) / 'secret.txt').write_text('secret')
             web = Path(d) / 'share' / 'web'; web.mkdir(parents=True); os.symlink(src / 'index.html', web / 'index.html')
-            srv = MonitorServer(web, lambda: {}, lambda: {}, lambda n, b: {}, lambda b: {}, port=0, keepalive_s=0.5); url = srv.start()
+            srv = MonitorServer(web, lambda: {}, lambda: {}, lambda n, b: {}, lambda b: {}, port=0, keepalive_s=0.5, max_rate_hz=1000.0); url = srv.start()
             try:
                 host, port = url.split('//')[1].strip('/').split(':')
                 def raw(path):

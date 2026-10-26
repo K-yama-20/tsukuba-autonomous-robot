@@ -1,0 +1,85 @@
+# 変更セット REV-182（2026-10-24 第162便: gouda_monitor の CPU を減らす。M1・M2、DEC-392、PRM-104）
+# 適用: design/tools/apply_revision.py REV-182
+id: REV-182
+date: '2026-10-24'
+summary: >-
+  第162便：第161便の調査（gouda_monitor が CPU 83〜91 %、画面の全体を 24 回/s 送る、MultiThreadedExecutor が重い）の案を、人の指示
+  「M1,M2の推奨案を採用。また、monitorの更新周期を5Hzくらいに下げてみることも検討」で実装する。M1：monitor の executor を SingleThreadedExecutor にする。
+  M2：SSE で画面へ送る snapshot を最大 5 Hz に間引き、その間の変化はまとめて次の snapshot で送る（新しい PRM-104）。第161便の証拠も登録する。
+basis_refs:
+- DEC-392
+- DEC-073
+- DEC-169
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-MONITOR-CPU-RESULTS
+  path: design/research/vehicle_pc/2026-10-24_monitor_cpu/results.txt
+  role: evidence
+- id: FILE-MONITOR-CPU-PROBE
+  path: design/research/vehicle_pc/2026-10-24_monitor_cpu/monitor_load_probe.py
+  role: evidence
+decisions:
+- id: DEC-392
+  kind: approval
+  status: answered
+  asked_on: '2026-10-24'
+  answered_on: '2026-10-24'
+  channel: chat
+  question: >-
+    （第161便）gouda_monitor の CPU を減らすか。M1：executor を MultiThreadedExecutor(4) から SingleThreadedExecutor にする（同じ購読の probe で 69 % → 16 %）。
+    M2：SSE で画面へ送る回数を抑える（ESP32 の STATUS 20 Hz のたびに約 63 KB の snapshot を送り 24 回/s。PRM-49 は変えず、表示の側で間引く）。
+  answer_verbatim: |
+    M1,M2の推奨案を採用。また、monitorの更新周期を5Hzくらいに下げてみることも検討
+  affected_refs:
+  - ND-02
+  - PRM-49
+  resulting_refs:
+  - PRM-104
+  - ND-02
+  note: >-
+    採用したもの：M1（SingleThreadedExecutor。HTTP の thread が待つ future は主の thread の spin で進む）と、M2 のうち「表示の側で間引く」を、人が挙げた 5 Hz で
+    実装した（PRM-104＝5 Hz。送る頻度の上限。間の変化はまとめて最新を送るので、変化は落とさない）。PRM-49（ESP32 の STATUS 50 ms、DEC-169）は変えていない。
+    M2 の (a) ESP32 の STATUS で表示が変わらないときは送らない、は採らなかった：STATUS には毎回変わる値（経過時間・uptime）があり効果が小さい。(c) 地図・routes の一覧を
+    変わったときだけ送る、も採らなかった：snapshot 約 63 KB のうち 46 KB は decision の一覧で、地図・routes は約 9 KB。5 Hz は人が「検討」と言った試しの値で、
+    VM での CPU の計測の後に見直す。
+  disposition: answered
+entities:
+- id: PRM-104
+  kind: parameter
+  name: monitor の画面の更新（SSE の snapshot）の頻度の上限
+  source_refs:
+  - SRC-I045
+  - SRC-I103-V4
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-28
+  - PRM-49
+  issue_refs: []
+  interpretation: REV-182（DEC-392）で追加。宣言先は中継ノード gouda_monitor。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I033
+  - RQ-I076
+  parameter:
+    owner_ref: ND-02
+    value: 5.0
+    value_state: approved
+    unit: Hz
+    stage: gouda_monitor
+    purpose: >-
+      SSE（/api/events）で画面へ snapshot を送る頻度の上限（送る間隔は 1／この値以上）。この間に起きた変化はまとめて、次の snapshot で最新を送る。表示のためだけの値で、停止条件ではない。
+    measurement: '人の決定（DEC-392）：「M1,M2の推奨案を採用。また、monitorの更新周期を5Hzくらいに下げてみることも検討」（試しの値。VM の CPU の計測の後に見直す）'
+    decision_deadline: 決定済み（DEC-392、試し）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_monitor
+    param_key: ui_sse_max_rate_hz
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-392
+modifications: []
+decision_updates: []

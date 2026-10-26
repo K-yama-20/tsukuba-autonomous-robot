@@ -37,6 +37,14 @@ invalid value falls back to the PRM with the reason. The values used and where t
 <out_dir>/overrides.json (and the count also to recovery.json) and returned.
 The BT's replanning rate (the RateController around ComputePathThroughPoses; upstream 0.333 Hz) is PRM-103 unless the human
 saved a positive number in the same tab (REV-167, DEC-347).
+REV-183 (DEC-393):
+- A-1: the outer RecoveryNode's recovery branch runs after every failure, not only when WouldAControllerRecoveryHelp /
+  WouldAPlannerRecoveryHelp say so: a failure without an error code (an action server that did not acknowledge within
+  default_server_timeout, run-574fe6d7) no longer ends the goal without one recovery (the guard Fallback is removed).
+- TUNABLES: more values of the same tab (bt_navigator default_server_timeout, the recovery actions, the inner retries, RPP,
+  local costmap size, observation ranges, voxel mark_threshold, global update rate, inflation). Each comes from its PRM
+  (PRM-105..129) or from the tab when the saved value is valid; inflation_radius_m overrides PRM-72 the same way. While a value
+  is unresolved and nothing is saved, nothing is written and the Nav2 1.3.13 template / plugin value stays (no behaviour change).
 """
 from __future__ import annotations
 
@@ -45,6 +53,7 @@ import json
 import math
 import os
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
 from typing import Optional
 
 import yaml
@@ -80,6 +89,94 @@ REQUIRED = {  # key in the generated files -> PRM (vehicle values that must be d
     ('gouda_motion_controller', 'max_reverse_speed_mps'): 'PRM-78', ('gouda_nav2', 'inflate_around_unknown'): 'PRM-98',
     ('bt_params', 'replan_rate_hz'): 'PRM-103'}
 OBSTACLE_COMBINATION_GLOBAL = 2   # DEC-216 (a design choice like DEC-122, not a vehicle value): MaxWithoutUnknownOverwrite
+
+# REV-183 (DEC-393): values of the /config 「Nav2」 tab (IFD-54). key -> (PRM, kind, generated file). Kinds as in the monitor:
+# positive (a number above zero), positive_int (a whole number from 1), whole (a whole number from 0), boolean.
+TUNABLES = OrderedDict([
+    ('bt_default_server_timeout_ms', ('PRM-105', 'positive_int', 'gouda_nav2')),      # A-2
+    ('recovery_spin_enabled', ('PRM-106', 'boolean', 'bt_params')),                   # A-4
+    ('recovery_spin_dist_rad', ('PRM-107', 'positive', 'bt_params')),
+    ('recovery_wait_s', ('PRM-108', 'positive', 'bt_params')),
+    ('recovery_backup_enabled', ('PRM-109', 'boolean', 'bt_params')),
+    ('recovery_backup_dist_m', ('PRM-110', 'positive', 'bt_params')),
+    ('recovery_backup_speed_mps', ('PRM-111', 'positive', 'bt_params')),
+    ('replan_recovery_retries', ('PRM-112', 'whole', 'bt_params')),                   # A-5
+    ('follow_path_recovery_retries', ('PRM-113', 'whole', 'bt_params')),
+    ('rpp_use_collision_detection', ('PRM-114', 'boolean', 'gouda_nav2')),            # B-3
+    ('rpp_max_time_to_collision_s', ('PRM-115', 'positive', 'gouda_nav2')),
+    ('rpp_lookahead_dist_m', ('PRM-116', 'positive', 'gouda_nav2')),                  # B-4
+    ('rpp_min_lookahead_dist_m', ('PRM-117', 'positive', 'gouda_nav2')),
+    ('rpp_max_lookahead_dist_m', ('PRM-118', 'positive', 'gouda_nav2')),
+    ('rpp_lookahead_time_s', ('PRM-119', 'positive', 'gouda_nav2')),
+    ('rpp_use_velocity_scaled_lookahead_dist', ('PRM-120', 'boolean', 'gouda_nav2')),
+    ('rpp_use_regulated_linear_velocity_scaling', ('PRM-121', 'boolean', 'gouda_nav2')),
+    ('rpp_use_cost_regulated_linear_velocity_scaling', ('PRM-122', 'boolean', 'gouda_nav2')),
+    ('rpp_regulated_linear_scaling_min_speed_mps', ('PRM-123', 'positive', 'gouda_nav2')),
+    ('local_costmap_size_m', ('PRM-124', 'positive_int', 'gouda_nav2')),              # C-2
+    ('obstacle_max_range_m', ('PRM-125', 'positive', 'gouda_nav2')),                  # C-3
+    ('raytrace_max_range_m', ('PRM-126', 'positive', 'gouda_nav2')),
+    ('voxel_mark_threshold', ('PRM-127', 'whole', 'gouda_nav2')),                     # C-4
+    ('global_costmap_update_hz', ('PRM-128', 'positive', 'gouda_nav2')),              # C-6
+    ('inflation_cost_scaling_factor', ('PRM-129', 'positive', 'gouda_nav2')),         # D-4
+    ('inflation_radius_m', ('PRM-72', 'positive', 'gouda_nav2')),                     # D-4: overrides the approved PRM-72
+])
+# The RPP keys of the controller plugin (FollowPath) for the rpp_* tunables
+RPP_KEYS = {'rpp_use_collision_detection': 'use_collision_detection', 'rpp_max_time_to_collision_s': 'max_allowed_time_to_collision_up_to_carrot',
+            'rpp_lookahead_dist_m': 'lookahead_dist', 'rpp_min_lookahead_dist_m': 'min_lookahead_dist', 'rpp_max_lookahead_dist_m': 'max_lookahead_dist',
+            'rpp_lookahead_time_s': 'lookahead_time', 'rpp_use_velocity_scaled_lookahead_dist': 'use_velocity_scaled_lookahead_dist',
+            'rpp_use_regulated_linear_velocity_scaling': 'use_regulated_linear_velocity_scaling',
+            'rpp_use_cost_regulated_linear_velocity_scaling': 'use_cost_regulated_linear_velocity_scaling',
+            'rpp_regulated_linear_scaling_min_speed_mps': 'regulated_linear_scaling_min_speed'}
+
+
+def valid_tunable(kind: str, v) -> bool:
+    if isinstance(v, bool): return kind == 'boolean'
+    if kind == 'boolean': return False
+    if not isinstance(v, (int, float)) or not math.isfinite(v): return False
+    if kind == 'positive': return v > 0
+    if not float(v).is_integer(): return False
+    return v >= 1 if kind == 'positive_int' else v >= 0
+
+
+def read_tunables(params_dir: str, trial: bool) -> dict:
+    """{key: the PRM's value from the generated files, or None when the PRM has no value}."""
+    files = {'gouda_nav2': sc.read_node_params(params_dir, 'gouda_nav2', trial), 'bt_params': read_bt_params(params_dir, trial)}
+    return {k: files[f].get(k) for k, (_, _, f) in TUNABLES.items()}
+
+
+def tunable_from_config(config_dir: Optional[str], key: str, prm_value) -> dict:
+    """{'value', 'source', 'note'}: the value saved in the monitor (IFD-54) when valid for the key's kind, else the PRM's value."""
+    prm, kind, _ = TUNABLES[key]
+    base = {'value': prm_value, 'source': f'{prm} (generated parameter file)',
+            'note': '' if prm_value is not None else f'{prm} has no value: not written, the Nav2 template / plugin value stays'}
+    v, rev, note = _saved(config_dir, key)
+    if v is None:
+        return dict(base, note=note if prm_value is not None else base['note'])
+    if valid_tunable(kind, v):
+        v = v if kind in ('boolean', 'positive') else int(v)
+        return {'value': float(v) if kind == 'positive' else v, 'source': f'monitor /config Nav2 tab (IFD-54, config_revision {rev})', 'note': ''}
+    return dict(base, note=f'the saved {key} {v!r} is not valid ({kind}): {prm} used')
+
+
+def apply_tunables(params: dict, t: dict) -> None:
+    """Write the tunables that have a value into the Nav2 parameter dict (keys without a value keep the template / plugin value)."""
+    def has(k): return t.get(k) is not None
+    bt = params['bt_navigator']['ros__parameters']
+    if has('bt_default_server_timeout_ms'): bt['default_server_timeout'] = int(t['bt_default_server_timeout_ms'])
+    follow = params['controller_server']['ros__parameters']['FollowPath']
+    for k, rk in RPP_KEYS.items():
+        if has(k): follow[rk] = t[k] if isinstance(t[k], bool) else float(t[k])
+    lc = params['local_costmap']['local_costmap']['ros__parameters']
+    gc = params['global_costmap']['global_costmap']['ros__parameters']
+    if has('local_costmap_size_m'): lc['width'] = lc['height'] = int(t['local_costmap_size_m'])
+    for src in (lc['voxel_layer']['points'], gc['obstacle_layer']['points']):
+        if has('obstacle_max_range_m'): src['obstacle_max_range'] = float(t['obstacle_max_range_m'])
+        if has('raytrace_max_range_m'): src['raytrace_max_range'] = float(t['raytrace_max_range_m'])
+    if has('voxel_mark_threshold'): lc['voxel_layer']['mark_threshold'] = int(t['voxel_mark_threshold'])
+    if has('global_costmap_update_hz'): gc['update_frequency'] = float(t['global_costmap_update_hz'])
+    for c in (lc, gc):
+        if has('inflation_cost_scaling_factor'): c['inflation_layer']['cost_scaling_factor'] = float(t['inflation_cost_scaling_factor'])
+        if has('inflation_radius_m'): c['inflation_layer']['inflation_radius'] = float(t['inflation_radius_m'])
 
 
 def read_bt_params(params_dir: str, trial: bool) -> dict:
@@ -248,9 +345,11 @@ def replan_from_config(config_dir: Optional[str], prm103) -> dict:
     return dict(base, note=f'the saved {REPLAN_KEY} {v!r} is not a positive number: PRM-103 used')
 
 
-def build_bt(template_xml: str, values: dict) -> str:
-    """The upstream navigate-through-poses BT with PRM-11, PRM-18 and PRM-103 inserted (no other change)."""
+def build_bt(template_xml: str, values: dict, tunables: Optional[dict] = None) -> str:
+    """The upstream navigate-through-poses BT with PRM-11, PRM-18 and PRM-103 inserted, the outer recovery run after every failure
+    (A-1, DEC-393) and the recovery tunables (A-4, A-5) applied when they have a value."""
     v = {k: val for (_, k), val in values.items()}
+    t = tunables or {}
     root = ET.fromstring(template_xml)
     outer = root.find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']")
     rpg = root.findall('.//RemovePassedGoals')
@@ -260,6 +359,28 @@ def build_bt(template_xml: str, values: dict) -> str:
     outer.set('number_of_retries', str(int(v['recovery_number_of_retries'])))
     rpg[0].set('radius', repr(float(v['remove_passed_goals_radius_m'])))
     replan[0].set('hz', repr(float(v[REPLAN_KEY])))
+    # A-1: drop the guard (a Fallback of WouldA*RecoveryHelp) in front of the outer recovery actions
+    branch = list(outer)[1] if len(outer) == 2 else None
+    guard = [c for c in (branch if branch is not None else []) if c.tag == 'Fallback'
+             and {g.tag for g in c} == {'WouldAControllerRecoveryHelp', 'WouldAPlannerRecoveryHelp'}]
+    if branch is None or len(guard) != 1:
+        raise ValueError('the upstream BT does not have the expected recovery guard (Fallback of WouldA*RecoveryHelp) in NavigateRecovery')
+    branch.remove(guard[0])
+    actions = root.find(".//RoundRobin[@name='RecoveryActions']")
+    spin, wait, backup = (actions.find(n) if actions is not None else None for n in ('Spin', 'Wait', 'BackUp'))
+    if spin is None or wait is None or backup is None:
+        raise ValueError('the upstream BT does not have the expected Spin / Wait / BackUp recovery actions')
+    if t.get('recovery_spin_dist_rad') is not None: spin.set('spin_dist', repr(float(t['recovery_spin_dist_rad'])))
+    if t.get('recovery_wait_s') is not None: wait.set('wait_duration', repr(float(t['recovery_wait_s'])))
+    if t.get('recovery_backup_dist_m') is not None: backup.set('backup_dist', repr(float(t['recovery_backup_dist_m'])))
+    if t.get('recovery_backup_speed_mps') is not None: backup.set('backup_speed', repr(float(t['recovery_backup_speed_mps'])))
+    if t.get('recovery_spin_enabled') is False: actions.remove(spin)
+    if t.get('recovery_backup_enabled') is False: actions.remove(backup)
+    for name, key in (('ComputePathThroughPoses', 'replan_recovery_retries'), ('FollowPath', 'follow_path_recovery_retries')):
+        inner = root.find(f".//RecoveryNode[@name='{name}']")
+        if inner is None:
+            raise ValueError(f'the upstream BT does not have the expected inner RecoveryNode {name}')
+        if t.get(key) is not None: inner.set('number_of_retries', str(int(t[key])))
     return ET.tostring(root, encoding='unicode')
 
 
@@ -276,23 +397,29 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
     replan = replan_from_config(config_dir, values[('bt_params', REPLAN_KEY)])
     values = dict(values); values[('bt_params', RECOVERY_KEY)] = recovery['value']; values[('gouda_nav2', INFLATE_KEY)] = inflate['value']
     values[('bt_params', REPLAN_KEY)] = replan['value']
+    prm_tunables = read_tunables(params_dir, trial)
+    prm_tunables['inflation_radius_m'] = values[('gouda_nav2', 'inflation_radius_m')]   # PRM-72 is required, read with the others
+    tunables = {k: tunable_from_config(config_dir, k, prm_tunables[k]) for k in TUNABLES}
+    t = {k: r['value'] for k, r in tunables.items()}
     with open(os.path.join(out_dir, 'recovery.json'), 'w', encoding='utf-8') as f:
         json.dump(recovery, f, ensure_ascii=False, indent=1)
     with open(os.path.join(out_dir, 'overrides.json'), 'w', encoding='utf-8') as f:
-        json.dump({RECOVERY_KEY: recovery, INFLATE_KEY: inflate, REPLAN_KEY: replan}, f, ensure_ascii=False, indent=1)
+        json.dump(dict({RECOVERY_KEY: recovery, INFLATE_KEY: inflate, REPLAN_KEY: replan}, **tunables), f, ensure_ascii=False, indent=1)
     with open(bt_template_path, encoding='utf-8') as f:
-        bt = build_bt(f.read(), values)
+        bt = build_bt(f.read(), values, t)
     bt_path = os.path.join(out_dir, 'navigate_through_poses.xml')
     with open(bt_path, 'w', encoding='utf-8') as f:
-        f.write('<!-- GENERATED by gouda_core.nav2_config from the upstream BT with PRM-11 / PRM-18 / PRM-103 -->\n' + bt + '\n')
+        f.write('<!-- GENERATED by gouda_core.nav2_config from the upstream BT with PRM-11 / PRM-18 / PRM-103, A-1 and the recovery tunables (DEC-393) -->\n' + bt + '\n')
     with open(nav2_template_path, encoding='utf-8') as f:
         template = yaml.safe_load(f)
     params = nav2_parameters(template, values, bt_path)
+    apply_tunables(params, t)
     params_path = os.path.join(out_dir, 'nav2_params.yaml')
     with open(params_path, 'w', encoding='utf-8') as f:
         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')
         yaml.safe_dump(params, f, sort_keys=False, allow_unicode=True)
-    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate, REPLAN_KEY: replan}
+    return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate, REPLAN_KEY: replan,
+            'tunables': tunables}
 
 
 def find_templates(bringup_share: Optional[str], bt_navigator_share: Optional[str]) -> tuple:

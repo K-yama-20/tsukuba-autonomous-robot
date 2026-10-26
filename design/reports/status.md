@@ -1,8 +1,56 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-24（REV-178、第154便。REV-176・177、第152・153便も同じ日）。
+最終更新：2026-10-26（REV-184、第166便。REV-176〜183・第152〜165便は 2026-10-24）。
+
+**第166便: monitor のモードの表示「一時停止」を「待機」に（REV-184、DEC-394）と、変更の push**（作業記録 `reports/worklog/2026-10-26_bin166_monitor_label_taiki.md`）。
+- 人の指示で、画面の表示名だけを「待機」に（正本の MODE-PAUSE・IFD-01・ボタンの文字は変えていない）。第156〜166便の変更をコミットして push（§5）。VM の Gouda には第165・166便は未反映（待機中の run-83d10ac0 の扱いが人の判断待ち）。
+
+**第165便: A-1・E-4 の実装と、/config で変えられる Nav2 の値（REV-183、DEC-393、PRM-105〜129）**（作業記録 `reports/worklog/2026-10-24_bin165_a1_e4_nav2_tunables.md`、提案 `proposals/failure_handling_E1-E3_2026-10-24.md`）。
+- 人の回答「A1, E4: 採用／E1,2,3; 検討／A2,4,5,B3,4,C2,3,4,6D1,4: /configで設定できるようにする。推奨値も考えて」。A-1：BT の外側の回復を error_code のない失敗でも試す。E-4：一時停止の理由を error_code で分ける（blocked・nav2_tf_error ほか）。25 の値を /config「Nav2」タブで変えられるようにした（PRM は未確定。値がない間は Nav2 1.3.13 の値のまま）。推奨値は PRM の interpretation と作業記録の表（承認待ち）。E-1〜3 は提案。
+- 単体試験 Mac 305 件・VM 全件 OK、模擬の結合試験（stage5-6）は今の値・推奨値とも T1〜T6 合格。設計検査 違反 0・未判定 5（DR-11 の未確定の項目 +25）。VM の Gouda には未反映。コミットはまだ。
+
+**第164便: ロバストな自律走行を妨げる設定・構成の列挙（読むだけ）**（作業記録 `reports/worklog/2026-10-24_bin164_robustness_blockers.md`、証拠 `research/vehicle_pc/2026-10-24_nav2_runtime_config/`）。
+- 8 群 32 項目。主なもの：BT の回復が error_code のない失敗（受け付けの 20 ms の時間切れ）で 1 回も試されない（A-1・A-2）、controller が障害物を見て 0.3 s で中止（B-1）、進みの監視 0.5 m／10 s（B-2）、高さの帯の不一致で人の印が消えない恐れ（C-1、DEC-336）、Nav2 の失敗・1 回の推定不能で必ず一時停止（E-1・E-2）。
+- 優先の案を挙げた（すべて承認事項）。コード・設定は変えていない。
+
+**第163便: run-574fe6d7 がしばらく走って止まった原因（読むだけ）**（作業記録 `reports/worklog/2026-10-24_bin163_run_574fe6d7_stop.md`、証拠 `research/vehicle_pc/2026-10-24_autonomy_stop_run-574fe6d7/`）。
+- 12 s 走って waypoint を 2 つ過ぎた後、RPP が「collision ahead」を出し続けて前進が 0 になり、回復（spin・wait・backup は Collision Ahead で中止）の後、63 s で planner が 20 ms 以内に受け付けを返さず BT が失敗（error_code 0）。
+- map→odom の遅れは最大 0.18 s で、TF エラーは出ていない（第162便の後）。障害物が何かは rosbag がなく不明。候補は高さの帯の不一致（DEC-336、承認待ち）。次の走行で rosbag を取ってほしい。
+
+**第162便: gouda_monitor の CPU を減らす（REV-182、DEC-392、PRM-104）**（作業記録 `reports/worklog/2026-10-24_bin162_monitor_m1_m2.md`）。
+- 人の指示「M1,M2の推奨案を採用。また、monitorの更新周期を5Hzくらいに下げてみることも検討」で、monitor の executor を単一の thread にし（M1）、SSE で画面へ送る snapshot を最大 5 Hz に間引いた（M2、PRM-104 `ui_sse_max_rate_hz` 5.0、間の変化は最新にまとめて送る）。
+- 単体試験 Mac 297 件 OK（skip 14）・VM 297 件 OK、設計検査 違反 0・未判定 5（intent 由来の既存の失敗はそのまま）。monitor を単体で起動して stub のサービスの答えが 22〜30 ms で返ることを確認。人の指示で VM の Gouda に反映（manual を確認、04:1x 再起動）：gouda_monitor 99.4 % → 2.8 %、SSE 16.6 → 5.0 回/s。IMU の差し直しの後（IMU あり、ESP32 の STATUS なし、manual）で 8.7 %。地図作成は始まっておらず、ESP32 の STATUS がある条件は未計測。ESP32・IMU の USB の差し直しが要る（人）。コミットはまだ。
+
+**第161便: gouda_monitor の CPU 100 % の原因（調査だけ）**（作業記録 `reports/worklog/2026-10-24_bin161_monitor_cpu.md`、証拠 `research/vehicle_pc/2026-10-24_monitor_cpu/`）。
+- (1) ESP32 の STATUS（PRM-49 50 ms＝20 Hz）を受けるたびに、画面の全体（約 63 KB、地図と routes の index をファイルから読む）を SSE で送っている：24 回/s・1.5 MB/s。ブラウザも 27〜100 % を使う。(2) rclpy の MultiThreadedExecutor が重い：同じ購読の probe で multi 65〜69 %、single 5〜16 %。
+- 案 M1（single に）・M2（SSE の回数を抑える）は承認待ち。コード・設定は変えていない。
+
+**第160便: run-cdde4c29 が走った後に止まった原因（読むだけ）**（作業記録 `reports/worklog/2026-10-24_bin160_tf_lag_run_cdde4c29.md`、証拠 `research/vehicle_pc/2026-10-24_autonomy_stop_run-cdde4c29/`）。
+- 約 12 s 走って waypoint を 3 つ過ぎた後、第157便と同じ TF エラー（error_code 102、map→odom が 0.39 s 古い）で一時停止。遅れは累積ではなく一時的（ふだん 0.13 s、16〜22 s に 0.24〜0.64 s、その後 0.13 s に戻る）。
+- CPU：controller は平均 10 Hz（設定 20 Hz）、gouda_monitor の主の thread が待機中でも 100 %。原因は未調査（B'）。今回は ESP32 の再起動で seq の棄却はなかった。
+- 候補 C（map→odom の時刻の決め方）などは人の判断待ち。コード・設定は変えていない。
+- 追記：走り出しの「collision ahead」の距離は rosbag がなく不明（2.5 m 以内、経路の先 1 s ぶん以内）。高さの帯が odom・map の z（原点は IMU の高さ）で当たり、実際は地面から約 1.0〜2.2 m の物を障害物にしている可能性が高い（DEC-336、承認待ち）。低い障害物が見えていない恐れ。
+
+**第159便: 再び車両が動かなかった原因（ESP32 が PC の指令をすべて棄却）と DAC の勾配の確認（読むだけ）**（作業記録 `reports/worklog/2026-10-24_bin159_esp32_seq_rejection.md`、証拠 `research/vehicle_pc/2026-10-24_esp32_seq_rejection/`）。
+- 03:10・03:17・03:19 の自律走行で、ESP32 が COMMAND を 1210 回「seq が新しくない」で棄却し、PC の出力は一度も使われなかった（DAC は中立のまま）。VM・Gouda だけが再起動し、bridge の seq が 1 から数え直された一方、ESP32（02:35 から起動したまま）は last_pc_seq 1643 を覚えていた。分類は実装（＋プロトコルの文書の不足）。
+- 電圧を急に上げてはいない（今回は出力なし）。勾配は Nav2 の velocity_smoother（PRM-68 1.2 m/s²、PRM-73 2.0 rad/s²。前進 ≒2130 mV/s、旋回 ≒4580 mV/s 相当）だけで、ESP32 と motion controller にはない。「勾配をつけろ」の指示は記録に見つからなかった。
+- 候補 F（bridge が ESP32 の last_pc_seq から続ける）・G（pc_enabled を走り出しの条件に）・H（DAC の勾配の決め方）は人の判断待ち。回避は ESP32 の USB の差し直し（人の作業、未確認）。コード・設定は変えていない。
+
+**第158便: 自律走行開始で中立を先に送る（REV-181、DEC-391）**（作業記録 `reports/worklog/2026-10-24_bin158_early_neutral_dec391.md`）。
+- 人の指示「Aを実行せよ。自律走行開始を押したら、中立信号をまず送る。その間にNav2とが立ち上がったりする」で、TR-05 の最初に ND-11・ND-12 を活性化するようにした（motion_hold は true のままなので中立が ESP32 に届き、その間に GLIM・ND-07・Nav2 が起動する）。autonomy_client・mode_manager_node と新しい試験 test_tr05_start_order（3 件）。
+- 単体試験 Mac 296 件 OK（skip 14）、VM 296 件 OK。設計検査 違反 0・未判定 5（intent 由来の既存の失敗はそのまま）。結合試験・実車は未実行。人の指示で VM の Gouda に反映し起動した（停止中・manual を確認、03:06、Traceback なし、manual）。XT-32・GNSS は absent（人の接続待ち）。コミットはまだ。
 
 **引き継ぎ: `reports/handover_2026-10-21_2.md`**（次のチャットの最初に貼るプロンプトは §0。人の判断待ちの一覧は §5。前回の引き継ぎは `handover_2026-10-21.md`。`handover_2026-10-17.md` §5「Global_localization または Navigation のノードの実装の検討」は未着手）。
+
+**第157便: 自律走行 run-ff780d47 が少し動いて止まった原因の調査（読むだけ）**（作業記録 `reports/worklog/2026-10-24_bin157_autonomy_stop_cause.md`、証拠 `research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/`）。
+- 止まった直接の原因：Nav2 の controller が map→odom の古さ（0.43 s）で TF エラー（error_code 102）を出して中止、TR-07 で一時停止。map→odom は GLIM の odometry の時刻で出るので、GLIM の遅れがそのまま効く。controller は走行中ずっと 10 Hz（設定 20 Hz）、待機中でも gouda_monitor が CPU 91 %。VM の CPU 不足による GLIM の遅れと推測（止まった瞬間の CPU は未測定）。
+- 開始直後の 20 s、ESP32 が PC を有効にしなかった（最初の COMMAND が中立でなかった。中立のときだけ有効になる）。進みの監視と spin の回復が無駄に 1 回走り、有効になってから 13 s 走った。
+- 別の問題：local costmap の keepout フィルタが毎周期 TF で失敗（keepout が効いていない可能性、安全に関わる）、voxel layer が raytrace できない時間、102 を plan_failure と記録。
+- 承認・確認の候補 A〜E は DEC にしていない（人の指示待ち）。コード・設定は変えていない。試験・設計検査は未実行。
+
+**第156便: 探索の範囲の試験と S3 の段・上限の案（REV-180）**（作業記録 `reports/worklog/2026-10-24_bin156_search_range_matrix.md`、証拠 `research/vehicle_pc/2026-10-24_search_range_matrix/`）。
+- VM の模擬の試験（ROS_DOMAIN_ID 91）：ずれ 1〜4 m × 探索の広がり σ 0.5〜2.0 m の 16 通りすべて正しい位置に合った（誤差 0.07 m）。σ 0.5 m でも 4 m から合う（第148便では 5 m は誤り）。σ 2.0 m は合った直後に短い推定不能が 4 回中 3 回。
+- 案（人の判断待ち）：S2 σ 0.5 → S3-1 σ 1.0 → S3-2 σ 1.5（上限）、1 段 90 s。上限の確定には 5 m 以上・他の向き・実の点群の試験が要る。コード・設定は変えていない。
 
 **第154便: 開始の初期位置の順 DEC-385 の承認の記録（REV-178）**（作業記録 `reports/worklog/2026-10-24_bin154_dec385_approval.md`）。
 - 人の回答「DEC-385を承認する。」：S1 GNSS → S2 登録した開始姿勢 → S3 範囲を段階的に広げる → S4 人。DEC-356（段階的な探索）も answered。DEC-133 の条件 (2) は準備の段階では自動で次の段に進む形に置き換わる。

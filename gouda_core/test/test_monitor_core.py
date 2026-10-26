@@ -40,7 +40,7 @@ class MonitorCoreTests(unittest.TestCase):
     def test_mode_snapshot_and_labels(self):
         self.core.on_mode({'mode': 4, 'state_revision': 6, 'initial_pose_required': True}); self.clock.t += 2.5
         s = self.core.snapshot()
-        self.assertEqual(s['mode']['name'], 'PAUSE'); self.assertEqual(s['mode']['label'], '一時停止')
+        self.assertEqual(s['mode']['name'], 'PAUSE'); self.assertEqual(s['mode']['label'], '待機')   # DEC-394
         self.assertAlmostEqual(s['mode']['freshness']['age_s'], 2.5); self.assertEqual(s['mode']['fields']['state_revision'], 6)
 
     def test_identical_events_keep_count_and_last_time(self):
@@ -183,6 +183,26 @@ class Nav2RecoveryConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             c = SensorConfig(Path(d) / 'n.json', NAV2_RECOVERY_FIELDS)   # PRM-18 unresolved
             ok, msg = c.update({self.KEY: '5'}, 1.0); self.assertFalse(ok); self.assertIn('PRM-18', msg)
+
+
+    def test_tunable_kinds(self):
+        """REV-183 (DEC-393): the PRM-105..129 fields and the PRM-72 override take their kind's values only."""
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'n.json'
+            c = SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            for key, bad in (('local_costmap_size_m', '0'), ('local_costmap_size_m', '2.5'), ('voxel_mark_threshold', '-1'),
+                             ('replan_recovery_retries', '1.5'), ('recovery_spin_enabled', 'yes'), ('obstacle_max_range_m', '0'),
+                             ('bt_default_server_timeout_ms', 'fast'), ('inflation_radius_m', '-0.1')):
+                ok, msg = c.update({key: bad}, 1.0); self.assertFalse(ok, (key, bad))
+            self.assertEqual(c.config_revision, 0)
+            ok, msg = c.update({'local_costmap_size_m': '6', 'voxel_mark_threshold': '0', 'follow_path_recovery_retries': '2.0',
+                                'recovery_spin_enabled': 'false', 'raytrace_max_range_m': '4', 'bt_default_server_timeout_ms': '200'}, 2.0)
+            self.assertTrue(ok, msg)
+            self.assertEqual((c.values['local_costmap_size_m'], c.values['voxel_mark_threshold'], c.values['follow_path_recovery_retries']), (6, 0, 2))
+            self.assertIs(c.values['recovery_spin_enabled'], False); self.assertEqual(c.values['raytrace_max_range_m'], 4.0)
+            self.assertIsInstance(c.values['bt_default_server_timeout_ms'], int)
+            c2 = SensorConfig(p, NAV2_RECOVERY_FIELDS, {self.KEY: (1, 9999999)})
+            self.assertEqual(c2.values['local_costmap_size_m'], 6)
 
 
 if __name__ == '__main__': unittest.main()

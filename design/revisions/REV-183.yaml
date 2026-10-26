@@ -1,0 +1,956 @@
+# 変更セット REV-183（2026-10-24 第165便: 第164便の A-1・E-4 の採用、/config で変えられる Nav2 の値（PRM-105〜129）、DEC-393）
+# 適用: design/tools/apply_revision.py REV-183
+id: REV-183
+date: '2026-10-24'
+summary: >-
+  第165便：第164便（ロバストな自律走行を妨げる設定・構成の列挙）への人の回答で、A-1（BT の外側の回復を、error_code のない失敗でも試す）と
+  E-4（一時停止の理由を Nav2 の error_code で分ける）を実装し、A-2・A-4・A-5・B-3・B-4・C-2・C-3・C-4・C-6・D-4 の値を monitor の /config「Nav2」タブで
+  変えられるようにする（PRM-105〜129。値は未確定で、値がない間は Nav2 1.3.13 の値がそのまま効くので、今の振る舞いは変えない。D-4 の膨らませの半径は PRM-72 を上書き）。D-1 は
+  PRM-103 で既に変えられる。推奨値は案として各 PRM の interpretation に書き、承認を待つ。E-1〜3 は検討（提案）。
+basis_refs:
+- DEC-393
+- DEC-209
+- DEC-347
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-NAV2-RUNTIME-PARAMS-20261024
+  path: design/research/vehicle_pc/2026-10-24_nav2_runtime_config/nav2_params.yaml
+  role: evidence
+- id: FILE-NAV2-RUNTIME-BT-20261024
+  path: design/research/vehicle_pc/2026-10-24_nav2_runtime_config/navigate_through_poses.xml
+  role: evidence
+- id: FILE-NAV2-UPSTREAM-DEFAULTS-1313
+  path: design/research/vehicle_pc/2026-10-24_nav2_runtime_config/upstream_defaults_1.3.13.txt
+  role: evidence
+- id: FILE-RUN-574FE6D7-DECISIONS
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-574fe6d7/decision_timeline.txt
+  role: evidence
+- id: FILE-RUN-574FE6D7-NAV2
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-574fe6d7/nav2_log_042356_042502.txt
+  role: evidence
+decisions:
+- id: DEC-393
+  kind: approval
+  status: answered
+  asked_on: '2026-10-24'
+  answered_on: '2026-10-24'
+  channel: chat
+  question: >-
+    （第164便）ロバストな自律走行を妨げる設定・構成 32 項目（A〜H）のうち、どれを直すか。
+  answer_verbatim: |
+    A1, E4: 採用
+    E1,2,3; 検討
+
+    A2,4,5,B3,4,C2,3,4,6D1,4: /configで設定できるようにする。推奨値も考えて
+  affected_refs:
+  - ND-03
+  - ND-10
+  - TR-07
+  - IFD-54
+  - PRM-72
+  resulting_refs:
+  - TR-07
+  - IFD-54
+  - PRM-105
+  - PRM-106
+  - PRM-107
+  - PRM-108
+  - PRM-109
+  - PRM-110
+  - PRM-111
+  - PRM-112
+  - PRM-113
+  - PRM-114
+  - PRM-115
+  - PRM-116
+  - PRM-117
+  - PRM-118
+  - PRM-119
+  - PRM-120
+  - PRM-121
+  - PRM-122
+  - PRM-123
+  - PRM-124
+  - PRM-125
+  - PRM-126
+  - PRM-127
+  - PRM-128
+  - PRM-129
+  note: "解釈：「採用」は実装の承認。「検討」は提案を作る（実装しない）。「/configで設定できるようにする」は monitor の /config「Nav2」タブの項目にすること。PRM の値は未確定にし（値がない間は Nav2 1.3.13 の値がそのまま効く）、推奨値は案として示して承認を待つ（値を黙って変えない）。記載値（source_value）にしなかったのは、上流の既定値を出典として登録する手段が正本にないため（DR-11）。B-3（RPP は障害物を避けない）は、RPP の衝突の検査の 2 つの値（PRM-114・115）を変えられるようにすることと解釈した（controller の種類の変更は含めない）。D-1（再計画の頻度）は PRM-103 で既に変えられるので変更なし。D-4 は cost_scaling_factor（PRM-129）と、膨らませの半径（PRM-72 の上書き）。B-1・B-2（controller の失敗の許容・進みの監視）は回答に含まれていないので変えていない。A-1：外側の RecoveryNode の回復の前の Fallback（WouldAControllerRecoveryHelp・WouldAPlannerRecoveryHelp）を除いた。回復できない失敗でも回復を繰り返す（PRM-18 の回数まで）。E-4：一時停止の理由を nav2_msgs の error 定数で分ける（plan_failure・blocked・controller_failure・nav2_tf_error・nav2_no_error_code・nav2_unclassified）。第165便。"
+  disposition: answered
+entities:
+- id: PRM-105
+  kind: parameter
+  name: "Nav2 BT が action server の受け付けを待つ時間（bt_navigator default_server_timeout）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-2。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（nav2_bringup 1.3.13 の nav2_params.yaml）の値 20 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：200（処理の一時的な詰まり（controller が 1.6 Hz まで落ちた）に耐える。A-1 で時間切れの後も回復するので、短すぎる値の害は減っている）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "ms"
+    stage: 自律走行の為の最小構成
+    purpose: "bt_navigator の default_server_timeout。BT の action の呼び出しが、この時間内に受け付けられないと失敗になる。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（nav2_bringup 1.3.13 の nav2_params.yaml）の値 20（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: bt_default_server_timeout_ms
+    value_type: int
+    apply_timing: launch
+- id: PRM-106
+  kind: parameter
+  name: "Nav2 BT の回復でその場の旋回（Spin）をするか"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（navigate_through_poses_w_replanning_and_recovery.xml）の値 true がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：false（人のそばでその場で 90° 回らない。LiDAR は全周を見ているので、回って見直す利点は小さい）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "回復の RoundRobin に Spin を入れるか。false なら Spin の節を除く。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（navigate_through_poses_w_replanning_and_recovery.xml）の値 true（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_spin_enabled）"
+    param_key: recovery_spin_enabled
+    value_type: bool
+    apply_timing: launch
+- id: PRM-107
+  kind: parameter
+  name: "Nav2 BT の回復の旋回の角度（Spin spin_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 1.57 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：1.57（変えない。PRM-106 を false にすれば使われない）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "rad"
+    stage: 自律走行の為の最小構成
+    purpose: "回復の Spin の角度。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 1.57（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_spin_dist_rad）"
+    param_key: recovery_spin_dist_rad
+    value_type: double
+    apply_timing: launch
+- id: PRM-108
+  kind: parameter
+  name: "Nav2 BT の回復の待ち時間（Wait wait_duration）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 5.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：5.0（変えない。人が前を横切るのを待つ）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "s"
+    stage: 自律走行の為の最小構成
+    purpose: "回復の Wait の時間。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 5.0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_wait_s）"
+    param_key: recovery_wait_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-109
+  kind: parameter
+  name: "Nav2 BT の回復で後退（BackUp）をするか"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 true がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：true（変えない。前を塞がれたときの逃げ道。後ろの衝突の検査は behavior server が行う）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "回復の RoundRobin に BackUp を入れるか。false なら BackUp の節を除く。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 true（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_backup_enabled）"
+    param_key: recovery_backup_enabled
+    value_type: bool
+    apply_timing: launch
+- id: PRM-110
+  kind: parameter
+  name: "Nav2 BT の回復の後退の距離（BackUp backup_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 0.3 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0.30（変えない）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "回復の BackUp の距離。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 0.3（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_backup_dist_m）"
+    param_key: recovery_backup_dist_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-111
+  kind: parameter
+  name: "Nav2 BT の回復の後退の速さ（BackUp backup_speed）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 0.15 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0.15（変えない）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m/s"
+    stage: 自律走行の為の最小構成
+    purpose: "回復の BackUp の速さ。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 0.15（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（recovery_backup_speed_mps）"
+    param_key: recovery_backup_speed_mps
+    value_type: double
+    apply_timing: launch
+- id: PRM-112
+  kind: parameter
+  name: "Nav2 BT の経路の計画の失敗のやり直しの回数（内側の RecoveryNode ComputePathThroughPoses）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-5。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 1 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：2"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "回"
+    stage: 自律走行の為の最小構成
+    purpose: "経路の計画に失敗したとき、global costmap を消してやり直す回数（外側の回復に落ちる前）。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 1（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（replan_recovery_retries）"
+    param_key: replan_recovery_retries
+    value_type: int
+    apply_timing: launch
+- id: PRM-113
+  kind: parameter
+  name: "Nav2 BT の追従の失敗のやり直しの回数（内側の RecoveryNode FollowPath）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の A-5。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（BT）の値 1 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：2"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "回"
+    stage: 自律走行の為の最小構成
+    purpose: "追従に失敗したとき、local costmap を消してやり直す回数（外側の回復に落ちる前）。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（BT）の値 1（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: bt_xml
+    target: "navigate_through_poses BT（follow_path_recovery_retries）"
+    param_key: follow_path_recovery_retries
+    value_type: int
+    apply_timing: launch
+- id: PRM-114
+  kind: parameter
+  name: "RPP の衝突の検査（use_collision_detection）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-3。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（parameter_handler.cpp 101〜103 行）の値 true がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：true（変えない。安全）"
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "RPP が経路の先の衝突を調べて止まるか。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（parameter_handler.cpp 101〜103 行）の値 true（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_use_collision_detection
+    value_type: bool
+    apply_timing: launch
+- id: PRM-115
+  kind: parameter
+  name: "RPP の衝突を見る時間（max_allowed_time_to_collision_up_to_carrot）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-3。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（61〜63 行）の値 1.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：1.0（変えない）"
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "s"
+    stage: 自律走行の為の最小構成
+    purpose: "RPP が衝突を調べる、経路の先の時間。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（61〜63 行）の値 1.0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_max_time_to_collision_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-116
+  kind: parameter
+  name: "RPP の先読みの距離（lookahead_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（41〜42 行）の値 0.6 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0.6（変えない。PRM-120 を true にすれば使われない）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "先読みを速度で伸ばさないときの先読みの距離。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（41〜42 行）の値 0.6（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_lookahead_dist_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-117
+  kind: parameter
+  name: "RPP の先読みの最小（min_lookahead_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（43〜44 行）の値 0.3 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0.5（車体の前端 0.55 m より短いと、ふらつきやすい）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "速度で伸ばすときの先読みの下限。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（43〜44 行）の値 0.3（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_min_lookahead_dist_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-118
+  kind: parameter
+  name: "RPP の先読みの最大（max_lookahead_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（45〜46 行）の値 0.9 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：1.8（1.0〜1.25 m/s で 1.5〜1.8 m 先を見る）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "速度で伸ばすときの先読みの上限。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（45〜46 行）の値 0.9（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_max_lookahead_dist_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-119
+  kind: parameter
+  name: "RPP の先読みの時間（lookahead_time）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（47〜48 行）の値 1.5 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：1.5（変えない）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "s"
+    stage: 自律走行の為の最小構成
+    purpose: "速度で伸ばすとき、先読みの距離＝速度×この時間。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（47〜48 行）の値 1.5（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_lookahead_time_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-120
+  kind: parameter
+  name: "RPP の先読みを速度で伸ばすか（use_velocity_scaled_lookahead_dist）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（53〜55 行）の値 false がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：true（速いときに 0.6 m 先しか見ないと、曲がりで振れやすい）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "true なら先読みの距離を速度×PRM-119 にし、PRM-117〜118 で制限する。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（53〜55 行）の値 false（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_use_velocity_scaled_lookahead_dist
+    value_type: bool
+    apply_timing: launch
+- id: PRM-121
+  kind: parameter
+  name: "RPP の曲がりでの減速（use_regulated_linear_velocity_scaling）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（64〜65 行）の値 true がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：true（変えない）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "曲がりが急なところで前進を遅くするか。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（64〜65 行）の値 true（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_use_regulated_linear_velocity_scaling
+    value_type: bool
+    apply_timing: launch
+- id: PRM-122
+  kind: parameter
+  name: "RPP の障害物の近くでの減速（use_cost_regulated_linear_velocity_scaling）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（66〜68 行）の値 true がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：true（変えない）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "costmap の費用が高い所（障害物の近く）で前進を遅くするか。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（66〜68 行）の値 true（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_use_cost_regulated_linear_velocity_scaling
+    value_type: bool
+    apply_timing: launch
+- id: PRM-123
+  kind: parameter
+  name: "RPP の減速の下限（regulated_linear_scaling_min_speed）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の B-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のRPP の既定値（77〜78 行）の値 0.25 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0.25（変えない）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m/s"
+    stage: 自律走行の為の最小構成
+    purpose: "曲がり・障害物の近くで遅くするときの下限。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のRPP の既定値（77〜78 行）の値 0.25（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: rpp_regulated_linear_scaling_min_speed_mps
+    value_type: double
+    apply_timing: launch
+- id: PRM-124
+  kind: parameter
+  name: "local costmap の一辺（width・height）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の C-2。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（local_costmap width 3・height 3）の値 3 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：6（前に 3 m。1.25 m/s で約 2.4 s 先。CPU は増える）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "local costmap（rolling window）の一辺。Nav2 では整数。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（local_costmap width 3・height 3）の値 3（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: local_costmap_size_m
+    value_type: int
+    apply_timing: launch
+- id: PRM-125
+  kind: parameter
+  name: "障害物の印を付ける距離（obstacle_max_range、local・global）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の C-3。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のObstacleLayer の既定値（obstacle_layer.cpp 154 行）の値 2.5 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：3.0（PRM-124 を 6 にしたとき、窓の端まで）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "この距離より遠い点では印を付けない。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のObstacleLayer の既定値（obstacle_layer.cpp 154 行）の値 2.5（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: obstacle_max_range_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-126
+  kind: parameter
+  name: "障害物の印を消す距離（raytrace_max_range、local・global）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の C-3。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のObstacleLayer の既定値（obstacle_layer.cpp 156 行）の値 3.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：4.0（印を付ける距離より長くして、窓の端の古い印も消す）"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "m"
+    stage: 自律走行の為の最小構成
+    purpose: "この距離までの光線で、印を消す。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のObstacleLayer の既定値（obstacle_layer.cpp 156 行）の値 3.0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: raytrace_max_range_m
+    value_type: double
+    apply_timing: launch
+- id: PRM-127
+  kind: parameter
+  name: "voxel layer の印の閾値（mark_threshold）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の C-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のVoxelLayer の既定値（voxel_layer.cpp 73 行）の値 0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：0（変えない。C-1（高さの帯）を直すまで、低い物を見落とす方向には変えない）"
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "個"
+    stage: 自律走行の為の最小構成
+    purpose: "高さ方向の格子のうち、この数を超えて埋まった列を障害物にする（0 なら 1 つで障害物）。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のVoxelLayer の既定値（voxel_layer.cpp 73 行）の値 0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: voxel_mark_threshold
+    value_type: int
+    apply_timing: launch
+- id: PRM-128
+  kind: parameter
+  name: "global costmap の更新の頻度（update_frequency）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の C-6。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（global_costmap update_frequency 1.0）の値 1.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：2.0（再計画（PRM-103 1 Hz）に新しい障害物が早く入る。CPU は増える）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: "Hz"
+    stage: 自律走行の為の最小構成
+    purpose: "global costmap の更新の頻度。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（global_costmap update_frequency 1.0）の値 1.0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: global_costmap_update_hz
+    value_type: double
+    apply_timing: launch
+- id: PRM-129
+  kind: parameter
+  name: "膨らませの費用の減り方（cost_scaling_factor、local・global）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  issue_refs:
+  - G-TUNING
+  interpretation: "REV-183（DEC-393）で追加。第164便の D-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（inflation_layer cost_scaling_factor 3.0）の値 3.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：3.0（変えない）"
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value:
+    value_state: unresolved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "InflationLayer の費用が、障害物から離れるにつれて減る速さ。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値"
+    measurement: "未確定。今は Nav2 1.3.13 のテンプレート（inflation_layer cost_scaling_factor 3.0）の値 3.0（出典 upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める"
+    decision_deadline: 推奨値の承認か、実車の走行の試験の後
+    software_trial_value:
+    software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: inflation_cost_scaling_factor
+    value_type: double
+    apply_timing: launch
+modifications:
+- id: TR-07
+  set_nested:
+    transition.actions:
+    - motion_hold=true を発行（IFD-40）。中立化の担当は ND-11（RQ-I063）
+    - Nav2 の失敗では結果（error_code・error_msg）をログに記録（RQ-I012）。result の受信をもって旧 goal の終了を確認し active_nav2_goal を消す。推定不能では goal がまだ動いているので取り消し、取消の結果を記録する
+    - 停止原因区分を、Nav2 の失敗は error_code で「計画の失敗」（plan_failure、ComputePath の error）、「塞がれた」（blocked、FollowPath の PATIENCE_EXCEEDED・FAILED_TO_MAKE_PROGRESS・NO_VALID_CONTROL）、「追従の失敗」（controller_failure、FollowPath のその他）、「TF の誤り」（nav2_tf_error）、「error_code なし」（nav2_no_error_code）、「分類外」（nav2_unclassified）に分け、「推定不能」（estimator_unavailable）、「node の異常」（node_failure）と区別して記録（RQ-I012・RQ-I029、REV-183・DEC-393）。推定不能は IFD-53 の理由の区分と数値も残す
+    - 残 waypoint は保持（再開で同じ目標へ：RQ-I014）。直前モード記録は MODE-PAUSE（人の操作なし）
+  interpretation_append: 'REV-183（DEC-393）：停止原因を Nav2 の error_code で分けた（E-4）。BT の外側の回復は error_code のない失敗でも試す（A-1）。'
+- id: IFD-54
+  interpretation_append: 'REV-183（DEC-393）：PRM-105〜129 の値と inflation_radius_m（PRM-72 の上書き）を足した。'
+  set_nested:
+    designed_interface.message_type: 'JSON {values: {recovery_number_of_retries: 整数 or ''UNKNOWN'', inflate_around_unknown: true／false or ''UNKNOWN'', replan_rate_hz: 正の数 or ''UNKNOWN'', PRM-105〜129 と inflation_radius_m の各キー: 型（正の数・1 以上の整数・0 以上の整数・true／false）に合う値 or ''UNKNOWN''}, config_revision, updated_at}（SensorConfig と同じ形）'
+decision_updates: []

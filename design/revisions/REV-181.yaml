@@ -1,0 +1,68 @@
+# 変更セット REV-181（2026-10-24 第158便: 自律走行開始で中立を先に送る。DEC-391。第157便の調査の証拠）
+# 適用: design/tools/apply_revision.py REV-181
+id: REV-181
+date: '2026-10-24'
+summary: >-
+  第158便：第157便の調査（run-ff780d47 で、最初の COMMAND が中立でなかったため ESP32 が 20 s の間 PC を有効にしなかった）の候補 A を、人の指示
+  「Aを実行せよ。自律走行開始を押したら、中立信号をまず送る。その間にNav2とが立ち上がったりする」で実装する。TR-05 の最初に ND-11・ND-12 を configure・activate し、
+  motion_hold を true のまま中立の COMMAND を送り続けて、その間に ND-08・ND-07・Nav2 を起動する。第157便の証拠も登録する。
+basis_refs:
+- DEC-391
+- DEC-056
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-AUTONOMY-STOP-FF780D47-DECISIONS
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/decision_timeline.txt
+  role: evidence
+- id: FILE-AUTONOMY-STOP-FF780D47-ABORT
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/abort_context.txt
+  role: evidence
+- id: FILE-AUTONOMY-STOP-FF780D47-NAV2
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/nav2_warn_error_1792777570-1792777619.txt
+  role: evidence
+- id: FILE-AUTONOMY-STOP-FF780D47-LOCALIZATION
+  path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/localization_glim_warnings.txt
+  role: evidence
+decisions:
+- id: DEC-391
+  kind: approval
+  status: answered
+  asked_on: '2026-10-24'
+  answered_on: '2026-10-24'
+  channel: chat
+  question: >-
+    （第157便の候補 A）開始の手順で、ESP32 が PC を有効にする前に motion_hold が解かれ、最初の COMMAND が中立でないと ESP32 は PC を有効にしない
+    （firmware は pc_enable_request つきの中立の COMMAND でだけ有効にする）。run-ff780d47 では 20 s の間 PC が無効で、Nav2 の進みの監視と spin の回復が無駄に 1 回走った。
+    開始の手順を変えて、ESP32 が PC を有効にしてから走り出すようにするか。
+  answer_verbatim: |
+    Aを実行せよ。自律走行開始を押したら、中立信号をまず送る。その間にNav2とが立ち上がったりする
+  affected_refs:
+  - TR-05
+  - ND-03
+  - ND-11
+  - ND-12
+  resulting_refs:
+  - TR-05
+  note: >-
+    人の指示の前に、ほぼ同じ文（「Nav2十かが」）が途中で中断されて送られ、すぐに上の文で送り直された。上の文を回答とする。原因の分類は設計（開始の手順の順序）。
+    実装：TR-05 の作業の最初に ND-11・ND-12 を configure・activate する（autonomy_client.activate_vehicle_output）。motion_hold は true のまま（drive_released は
+    false）なので、ND-11 は中立を出し、ND-12 は pc_enable_request つきの中立の COMMAND を周期 PRM-14 で送る。その間に ND-08（GLIM）、ND-07（正常まで）、Nav2 の起動、
+    goal の送信を行い、motion_hold は今までどおり 適用中 と keepout の確認（DEC-056・DEC-224）の後に解く。ESP32 が PC を有効にしたこと（STATUS の F_PC_ENABLED・
+    event pc_enabled）を motion_hold を解く条件に加えることはしていない（人の指示の範囲外。必要なら新しい判断事項にする）。数値は足していない。
+    証拠 design/research/vehicle_pc/2026-10-24_autonomy_stop_run-ff780d47/、作業記録 第157便・第158便。
+  disposition: answered
+entities: []
+modifications:
+- id: TR-05
+  set_nested:
+    transition.actions:
+    - 最初に ND-11・ND-12 を configure・activate する（DEC-391）。motion_hold は true のままなので、ND-11 は中立を出し、ND-12 は pc_enable_request つきの中立の COMMAND を送り続ける。ESP32 は中立の COMMAND でだけ PC を有効にするので、以下の起動の間に有効になる
+    - 初期位置を ND-07 へ送る（IFD-34、transient_local）
+    - run_id を発行し、remaining_waypoints を全区間で初期化
+    - ND-08（GLIM の odometry だけ）を起動し、ND-07 に選んだ地図の変換の rev を設定して configure・activate する。IFD-53 が正常になるまで Nav2 を起動しない。推定不能になったら TR-07（estimator_unavailable）
+    - 選択した waypoint セットの速度マスクと filter info を Nav2 に読み込ませる（IFD-41・IFD-42）。speed_limit は Nav2 の SpeedFilter が位置から発行する（IFD-14、DEC-031）。Gouda は発行しない
+    - NavigateThroughPoses goal を送信し active_nav2_goal を記録（IFD-13）。speed_limit_application_state=適用中 を確認してから motion_hold=false を発行（IFD-40）。確認できない間は hold=true のまま（DEC-056）
+    - 記録の自動開始を要求（IFD-44 record/log/start_autodrive。契機は人の自律走行開始ボタン：RQ-I015）。非同期で呼び、失敗・無応答でも走行開始を止めない。失敗は DecisionEvent と monitor のポップアップ。設定状況を記録
+    - 直前モード記録を MODE-AUTO に更新
+  interpretation_append: REV-181（DEC-391）：ND-11・ND-12 の活性化を Nav2 の起動の後から開始の手順の最初に移し、起動の間は中立の COMMAND を ESP32 に送り続ける。
+decision_updates: []

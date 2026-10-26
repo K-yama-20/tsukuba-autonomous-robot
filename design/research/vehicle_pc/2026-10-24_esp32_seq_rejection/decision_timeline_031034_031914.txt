@@ -1,0 +1,1363 @@
+03:10:34.107 record_start auto:autonomy_start
+03:10:34.104 gouda_global_localization initial_pose_received  | initial pose (-0.72, -1.00); height -0.98 m from the mapping trajectory (nearest point 0.05 m away) | {"x": -0.719, "y": -1.004, "z": -0.9845900000000001, "trajectory_distance_m": 0.053284831631525385}
+03:10:34.106 gouda_mode_manager localization_activated TR-05 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001"}
+03:10:34.112 gouda_mode_manager record_auto_start TR-05 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_031034 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+03:10:34.144 vehicle_bridge esp32_event  | config_set | {"code": 3, "name": "config_set", "arg": 8, "esp_ms": 2134362}
+03:10:34.144 vehicle_bridge esp32_ack  | request 0x03: accepted | {"request_type": 3, "result": 0, "result_name": "accepted"}
+03:10:34.147 vehicle_bridge command_output  | joystick_command forwarded | {"x_q10000": 0, "y_q10000": 0, "flags": 1}
+03:10:34.195 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134416}
+03:10:34.242 STATE (3, 'idle', '') run-b437e849 23 0
+03:10:34.296 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134516}
+03:10:34.398 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134617}
+03:10:34.500 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134716}
+03:10:34.601 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134816}
+03:10:34.605 gouda_global_localization ndt_points_waiting  | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet | {}
+03:10:34.702 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2134916}
+03:10:34.753 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135016}
+03:10:34.854 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135116}
+03:10:34.955 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135216}
+03:10:35.056 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135316}
+03:10:35.157 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135417}
+03:10:35.259 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135516}
+03:10:35.360 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135616}
+03:10:35.460 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135716}
+03:10:35.561 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135818}
+03:10:35.662 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2135916}
+03:10:35.681 gouda_global_localization ndt_points_kept  | the NDT holds a point cloud; ndt_align_srv can be called | {}
+03:10:35.763 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136017}
+03:10:35.866 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136119}
+03:10:35.967 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136216}
+03:10:36.070 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136316}
+03:10:36.171 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136416}
+03:10:36.273 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136517}
+03:10:36.373 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136617}
+03:10:36.474 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136716}
+03:10:36.576 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136817}
+03:10:36.677 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2136918}
+03:10:36.777 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137017}
+03:10:36.878 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137116}
+03:10:36.982 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137219}
+03:10:37.083 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137318}
+03:10:37.185 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137416}
+03:10:37.287 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137518}
+03:10:37.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137616}
+03:10:37.490 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137716}
+03:10:37.593 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137816}
+03:10:37.695 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2137916}
+03:10:37.796 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138016}
+03:10:37.897 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138116}
+03:10:37.998 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138217}
+03:10:38.099 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138316}
+03:10:38.199 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138416}
+03:10:38.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138516}
+03:10:38.400 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138616}
+03:10:38.501 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138716}
+03:10:38.602 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138818}
+03:10:38.655 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2138916}
+03:10:38.756 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139016}
+03:10:38.858 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139119}
+03:10:38.958 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139216}
+03:10:39.060 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139316}
+03:10:39.163 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139416}
+03:10:39.264 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139516}
+03:10:39.364 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139617}
+03:10:39.465 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139716}
+03:10:39.566 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139817}
+03:10:39.667 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2139916}
+03:10:39.768 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140017}
+03:10:39.871 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140116}
+03:10:39.971 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140216}
+03:10:40.074 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140316}
+03:10:40.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140419}
+03:10:40.276 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140516}
+03:10:40.377 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140617}
+03:10:40.479 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140718}
+03:10:40.579 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140818}
+03:10:40.681 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2140916}
+03:10:40.783 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141018}
+03:10:40.884 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141118}
+03:10:40.986 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141217}
+03:10:41.087 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141317}
+03:10:41.189 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141417}
+03:10:41.293 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141516}
+03:10:41.396 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141617}
+03:10:41.497 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141716}
+03:10:41.598 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141816}
+03:10:41.700 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2141916}
+03:10:41.802 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142016}
+03:10:41.853 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142116}
+03:10:41.956 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142216}
+03:10:42.057 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142316}
+03:10:42.158 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142417}
+03:10:42.259 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142517}
+03:10:42.359 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142616}
+03:10:42.460 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142718}
+03:10:42.561 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142817}
+03:10:42.663 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2142916}
+03:10:42.765 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143016}
+03:10:42.867 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143116}
+03:10:42.968 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143216}
+03:10:43.069 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143316}
+03:10:43.171 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143416}
+03:10:43.273 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143516}
+03:10:43.374 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143616}
+03:10:43.477 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143716}
+03:10:43.580 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143816}
+03:10:43.682 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2143916}
+03:10:43.783 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144016}
+03:10:43.883 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144116}
+03:10:43.984 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144216}
+03:10:44.086 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144316}
+03:10:44.189 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144418}
+03:10:44.290 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144516}
+03:10:44.394 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144616}
+03:10:44.494 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144716}
+03:10:44.595 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144817}
+03:10:44.698 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2144916}
+03:10:44.799 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145016}
+03:10:44.900 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145118}
+03:10:45.001 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145217}
+03:10:45.101 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145316}
+03:10:45.153 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145416}
+03:10:45.255 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145516}
+03:10:45.356 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145616}
+03:10:45.457 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145717}
+03:10:45.559 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145816}
+03:10:45.661 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2145916}
+03:10:45.762 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146017}
+03:10:45.863 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146116}
+03:10:45.964 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146216}
+03:10:46.065 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146316}
+03:10:46.166 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146416}
+03:10:46.270 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146516}
+03:10:46.371 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146617}
+03:10:46.472 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146717}
+03:10:46.574 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146816}
+03:10:46.677 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2146917}
+03:10:46.779 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147016}
+03:10:46.881 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147119}
+03:10:46.982 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147218}
+03:10:47.083 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147318}
+03:10:47.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147418}
+03:10:47.284 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147516}
+03:10:47.388 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147616}
+03:10:47.490 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147717}
+03:10:47.591 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147818}
+03:10:47.693 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2147916}
+03:10:47.794 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148016}
+03:10:47.895 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148116}
+03:10:47.997 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148218}
+03:10:48.100 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148316}
+03:10:48.159 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148416}
+03:10:48.260 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148516}
+03:10:48.362 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148616}
+03:10:48.463 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148717}
+03:10:48.565 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148816}
+03:10:48.667 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2148916}
+03:10:48.770 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149016}
+03:10:48.872 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149117}
+03:10:48.972 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149216}
+03:10:49.073 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149316}
+03:10:49.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149416}
+03:10:49.276 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149517}
+03:10:49.376 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149617}
+03:10:49.477 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149717}
+03:10:49.578 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149816}
+03:10:49.683 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2149916}
+03:10:49.784 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150017}
+03:10:49.888 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150116}
+03:10:49.990 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150218}
+03:10:50.091 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150316}
+03:10:50.192 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150417}
+03:10:50.295 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150516}
+03:10:50.372 gouda_global_localization initial_pose_aligned  | aligned to (-0.26, -0.68) | {"x": -0.26215365529060364, "y": -0.6761149764060974, "z": -0.9351277947425842}
+03:10:50.378 gouda_global_localization initialized  | EKF and NDT active; the state follows the checks (IFD-53) | {}
+03:10:50.378 gouda_global_localization estimator_state  | 初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, map_odom) | {"state": 1, "reason": "awaiting_inputs", "ndt_nvtl": null, "ekf_pose_no_update_count": 1, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/
+03:10:50.397 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150616}
+03:10:50.501 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150716}
+03:10:50.602 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150818}
+03:10:50.603 gouda_global_localization estimator_state  | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.226718, "ekf_pose_no_update_count": 7, "ekf_xy_stddev_m": 0.28395883910190467, "last_input_age_s": 0.06681275367736816, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/202610
+03:10:50.609 gouda_mode_manager localization_normal TR-05 | gouda_global_localization: 正常; Nav2 is started next | {}
+03:10:50.619 gouda_mode_manager nav2_parameters_set TR-05 | map /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001/map.yaml, mask /home/aya/gouda_ws/gouda_data/routes/20261024_021815_228809/007/spe | {}
+03:10:50.653 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2150916}
+03:10:50.754 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151016}
+03:10:50.855 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151118}
+03:10:50.958 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151216}
+03:10:51.059 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151316}
+03:10:51.159 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151416}
+03:10:51.260 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151516}
+03:10:51.335 gouda_mode_manager speed_limit_application_state TR-05 | unknown (不明) | {"speed_limit": null, "robot_xy": null}
+03:10:51.361 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151616}
+03:10:51.382 gouda_motion_controller output_neutral  | motion_hold=true (mode=autonomy speed_limit=unknown (waiting for 適用中)) | {"cmd_vel_age_s": null, "hold": true, "hold_reason": "mode=autonomy speed_limit=unknown (waiting for 適用中)", "hold_mode": 3, "hold_age_s": 0.04568338394165039, "compensation_revision": 0, "compensated_directions": [], "fo
+03:10:51.457 gouda_mode_manager keepout_mask_not_confirmed TR-05 | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | {"received_sha256": "5a4b231220736530ff6982e8128b7ac441c5005559611bb48cb6df2acdc8a96e", "received_size": [164, 106], "mask_state": "match", "info_received": false}
+03:10:51.464 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151716}
+03:10:51.564 gouda_mode_manager keepout_mask_confirmed TR-05 | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | {"info_type": 0, "info_mask_topic": "/keepout_filter_mask", "info_base": 0.0, "info_multiplier": 1.0, "mask_state": "match", "info_received": true}
+03:10:51.565 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151817}
+03:10:51.666 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2151916}
+03:10:51.766 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152016}
+03:10:51.867 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152116}
+03:10:51.968 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152216}
+03:10:52.068 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152316}
+03:10:52.169 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152416}
+03:10:52.270 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152516}
+03:10:52.371 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152616}
+03:10:52.471 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152716}
+03:10:52.572 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152816}
+03:10:52.673 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2152916}
+03:10:52.774 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153016}
+03:10:52.876 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153116}
+03:10:52.977 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153217}
+03:10:53.078 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153316}
+03:10:53.178 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153416}
+03:10:53.279 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153516}
+03:10:53.381 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153616}
+03:10:53.482 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153716}
+03:10:53.583 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153816}
+03:10:53.684 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2153916}
+03:10:53.784 gouda_mode_manager nav2_started TR-05 | Nav2 servers active (lifecycle_manager_navigation STARTUP) | {}
+03:10:53.786 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154016}
+03:10:53.786 gouda_mode_manager nav2_goal_sent TR-05 | NavigateThroughPoses goal accepted (23 poses from waypoint 0) | {"offset": 0, "poses": 23}
+03:10:53.787 gouda_mode_manager speed_limit_application_state TR-05 | applied (適用中) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.26109984878029835, -0.6770588985577864]}
+03:10:53.787 gouda_mode_manager motion_hold_released TR-05 | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | {"speed_limit": 0.5000000074505806, "robot_xy": [-0.26109984878029835, -0.6770588985577864]}
+03:10:53.832 gouda_motion_controller output_drive  | drive | {"cmd_vel_age_s": 0.00570988655090332, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.044083595275878906, "compensation_revision": 0, "compensated_directions": [], "forward": 0.048, "turn": -0.10309278
+03:10:53.888 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154116}
+03:10:53.989 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154216}
+03:10:54.089 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154316}
+03:10:54.190 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154416}
+03:10:54.292 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154518}
+03:10:54.392 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154616}
+03:10:54.493 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154716}
+03:10:54.594 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154816}
+03:10:54.695 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2154917}
+03:10:54.796 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155018}
+03:10:54.897 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155116}
+03:10:54.998 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155216}
+03:10:55.098 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155316}
+03:10:55.199 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155416}
+03:10:55.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155516}
+03:10:55.401 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155616}
+03:10:55.502 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155716}
+03:10:55.553 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155816}
+03:10:55.654 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2155916}
+03:10:55.754 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156017}
+03:10:55.855 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156116}
+03:10:55.956 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156216}
+03:10:56.057 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156316}
+03:10:56.158 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156416}
+03:10:56.259 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156516}
+03:10:56.360 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156616}
+03:10:56.461 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156716}
+03:10:56.562 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156816}
+03:10:56.663 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2156916}
+03:10:56.763 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157016}
+03:10:56.864 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157116}
+03:10:56.965 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157216}
+03:10:57.066 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157317}
+03:10:57.166 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157416}
+03:10:57.268 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157518}
+03:10:57.369 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157616}
+03:10:57.470 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157717}
+03:10:57.571 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157816}
+03:10:57.672 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2157916}
+03:10:57.773 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158016}
+03:10:57.873 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158117}
+03:10:57.974 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158216}
+03:10:58.075 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158316}
+03:10:58.176 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158417}
+03:10:58.278 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158517}
+03:10:58.379 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158617}
+03:10:58.480 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158716}
+03:10:58.580 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158816}
+03:10:58.682 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2158916}
+03:10:58.782 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159016}
+03:10:58.883 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159116}
+03:10:58.984 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159216}
+03:10:59.086 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159316}
+03:10:59.187 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159417}
+03:10:59.288 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159516}
+03:10:59.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159616}
+03:10:59.491 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159716}
+03:10:59.592 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159817}
+03:10:59.693 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2159916}
+03:10:59.793 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160016}
+03:10:59.895 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160116}
+03:10:59.996 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160216}
+03:11:00.098 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160316}
+03:11:00.199 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160417}
+03:11:00.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160516}
+03:11:00.400 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160617}
+03:11:00.501 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160716}
+03:11:00.602 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160817}
+03:11:00.653 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2160916}
+03:11:00.754 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161017}
+03:11:00.857 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161116}
+03:11:00.958 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161216}
+03:11:01.058 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161317}
+03:11:01.160 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161418}
+03:11:01.260 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161516}
+03:11:01.361 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161617}
+03:11:01.462 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161716}
+03:11:01.563 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161817}
+03:11:01.663 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2161916}
+03:11:01.764 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162016}
+03:11:01.865 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162116}
+03:11:01.966 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162216}
+03:11:02.066 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162316}
+03:11:02.168 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162418}
+03:11:02.269 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162519}
+03:11:02.369 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162617}
+03:11:02.470 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162716}
+03:11:02.571 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162818}
+03:11:02.672 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2162916}
+03:11:02.773 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163017}
+03:11:02.874 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163117}
+03:11:02.975 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163216}
+03:11:03.076 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163316}
+03:11:03.177 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163416}
+03:11:03.278 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163517}
+03:11:03.382 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163616}
+03:11:03.483 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163719}
+03:11:03.583 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163817}
+03:11:03.684 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2163917}
+03:11:03.788 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164016}
+03:11:03.889 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164117}
+03:11:03.990 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164217}
+03:11:04.091 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164316}
+03:11:04.192 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164416}
+03:11:04.293 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164516}
+03:11:04.393 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164616}
+03:11:04.496 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164716}
+03:11:04.597 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164816}
+03:11:04.700 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2164916}
+03:11:04.801 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165016}
+03:11:04.902 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165116}
+03:11:04.953 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165216}
+03:11:05.054 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165316}
+03:11:05.155 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165416}
+03:11:05.257 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165516}
+03:11:05.357 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165618}
+03:11:05.458 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165717}
+03:11:05.559 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165816}
+03:11:05.660 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2165916}
+03:11:05.760 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166016}
+03:11:05.861 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166116}
+03:11:05.962 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166216}
+03:11:06.062 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166316}
+03:11:06.163 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166417}
+03:11:06.264 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166516}
+03:11:06.366 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166616}
+03:11:06.466 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166716}
+03:11:06.568 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166816}
+03:11:06.668 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2166916}
+03:11:06.770 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167017}
+03:11:06.870 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167116}
+03:11:06.972 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167216}
+03:11:07.072 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167316}
+03:11:07.173 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167418}
+03:11:07.277 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167517}
+03:11:07.378 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167616}
+03:11:07.479 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167716}
+03:11:07.580 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167816}
+03:11:07.680 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2167916}
+03:11:07.781 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168017}
+03:11:07.883 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168116}
+03:11:07.984 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168216}
+03:11:08.084 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168316}
+03:11:08.188 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168416}
+03:11:08.288 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168516}
+03:11:08.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168617}
+03:11:08.489 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168716}
+03:11:08.590 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168816}
+03:11:08.691 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2168916}
+03:11:08.792 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169016}
+03:11:08.893 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169116}
+03:11:08.994 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169216}
+03:11:09.095 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169316}
+03:11:09.197 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169416}
+03:11:09.298 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169516}
+03:11:09.399 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169616}
+03:11:09.500 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169716}
+03:11:09.601 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169816}
+03:11:09.702 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2169916}
+03:11:09.752 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170016}
+03:11:09.853 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170116}
+03:11:09.954 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170218}
+03:11:10.054 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170316}
+03:11:10.155 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170416}
+03:11:10.256 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170518}
+03:11:10.357 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170616}
+03:11:10.458 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170716}
+03:11:10.560 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170816}
+03:11:10.661 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2170916}
+03:11:10.762 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171016}
+03:11:10.862 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171116}
+03:11:10.963 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171216}
+03:11:11.064 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171316}
+03:11:11.164 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171416}
+03:11:11.266 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171516}
+03:11:11.367 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171616}
+03:11:11.468 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171716}
+03:11:11.568 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171816}
+03:11:11.669 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2171916}
+03:11:11.770 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172016}
+03:11:11.871 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172116}
+03:11:11.971 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172216}
+03:11:12.072 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172318}
+03:11:12.173 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172416}
+03:11:12.274 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172516}
+03:11:12.375 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172616}
+03:11:12.476 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172716}
+03:11:12.577 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172816}
+03:11:12.678 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2172917}
+03:11:12.778 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173017}
+03:11:12.880 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173117}
+03:11:12.981 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173216}
+03:11:13.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173316}
+03:11:13.183 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173416}
+03:11:13.286 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173516}
+03:11:13.387 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173616}
+03:11:13.488 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173717}
+03:11:13.589 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173816}
+03:11:13.691 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2173916}
+03:11:13.792 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174018}
+03:11:13.893 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174116}
+03:11:13.993 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174216}
+03:11:14.096 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174316}
+03:11:14.197 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174416}
+03:11:14.298 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174516}
+03:11:14.399 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174616}
+03:11:14.500 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174716}
+03:11:14.601 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174817}
+03:11:14.702 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2174916}
+03:11:14.802 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175018}
+03:11:14.853 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175116}
+03:11:14.954 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175216}
+03:11:15.054 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175316}
+03:11:15.155 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175416}
+03:11:15.255 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175516}
+03:11:15.356 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175616}
+03:11:15.457 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175716}
+03:11:15.559 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175816}
+03:11:15.659 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2175916}
+03:11:15.761 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176017}
+03:11:15.861 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176116}
+03:11:15.962 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176216}
+03:11:16.063 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176316}
+03:11:16.164 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176416}
+03:11:16.265 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176517}
+03:11:16.365 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176616}
+03:11:16.466 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176716}
+03:11:16.567 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176816}
+03:11:16.668 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2176916}
+03:11:16.768 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177016}
+03:11:16.869 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177116}
+03:11:16.970 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177216}
+03:11:17.071 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177316}
+03:11:17.171 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177416}
+03:11:17.272 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177516}
+03:11:17.374 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177616}
+03:11:17.474 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177716}
+03:11:17.575 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177816}
+03:11:17.676 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2177916}
+03:11:17.779 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178016}
+03:11:17.880 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178118}
+03:11:17.980 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178217}
+03:11:18.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178316}
+03:11:18.183 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178416}
+03:11:18.284 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178518}
+03:11:18.385 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178618}
+03:11:18.488 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178716}
+03:11:18.589 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178817}
+03:11:18.691 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2178916}
+03:11:18.792 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179016}
+03:11:18.893 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179116}
+03:11:18.994 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179218}
+03:11:19.095 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179316}
+03:11:19.196 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179416}
+03:11:19.297 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179516}
+03:11:19.398 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179616}
+03:11:19.499 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179716}
+03:11:19.600 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179817}
+03:11:19.700 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2179916}
+03:11:19.801 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180016}
+03:11:19.902 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180116}
+03:11:19.952 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180216}
+03:11:20.053 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180316}
+03:11:20.154 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180416}
+03:11:20.255 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180516}
+03:11:20.355 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180616}
+03:11:20.456 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180716}
+03:11:20.558 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180816}
+03:11:20.659 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2180916}
+03:11:20.760 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181016}
+03:11:20.861 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181116}
+03:11:20.961 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181217}
+03:11:21.062 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181316}
+03:11:21.163 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181416}
+03:11:21.263 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181516}
+03:11:21.364 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181616}
+03:11:21.465 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181718}
+03:11:21.566 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181817}
+03:11:21.667 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2181916}
+03:11:21.768 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182016}
+03:11:21.869 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182116}
+03:11:21.970 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182216}
+03:11:22.071 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182316}
+03:11:22.171 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182416}
+03:11:22.272 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182516}
+03:11:22.373 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182616}
+03:11:22.474 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182717}
+03:11:22.574 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182816}
+03:11:22.675 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2182916}
+03:11:22.777 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183016}
+03:11:22.878 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183116}
+03:11:22.978 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183217}
+03:11:23.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183317}
+03:11:23.182 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183418}
+03:11:23.283 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183516}
+03:11:23.384 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183616}
+03:11:23.485 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183716}
+03:11:23.586 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183816}
+03:11:23.688 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2183916}
+03:11:23.790 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184016}
+03:11:23.891 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184116}
+03:11:23.991 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184216}
+03:11:24.093 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184316}
+03:11:24.195 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184416}
+03:11:24.296 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184516}
+03:11:24.397 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184616}
+03:11:24.498 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184717}
+03:11:24.600 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184816}
+03:11:24.701 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2184916}
+03:11:24.802 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185016}
+03:11:24.852 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185116}
+03:11:24.953 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185216}
+03:11:25.055 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185316}
+03:11:25.157 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185416}
+03:11:25.259 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185516}
+03:11:25.360 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185616}
+03:11:25.461 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185716}
+03:11:25.562 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185816}
+03:11:25.663 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2185917}
+03:11:25.764 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186017}
+03:11:25.865 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186116}
+03:11:25.965 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186216}
+03:11:26.066 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186316}
+03:11:26.167 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186416}
+03:11:26.268 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186516}
+03:11:26.368 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186616}
+03:11:26.469 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186716}
+03:11:26.570 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186816}
+03:11:26.671 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2186916}
+03:11:26.771 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2187016}
+03:11:26.872 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2187116}
+03:11:26.973 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2187218}
+03:11:27.073 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2187316}
+03:11:27.135 gouda_mode_manager human_request TR-11 | TR-11: autonomy -> manual | {"event": "end_autonomy", "accepted": true, "mode": "autonomy"}
+03:11:27.136 STATE (1, 'idle', 'human')  22 0
+03:11:27.139 gouda_mode_manager nav2_goal_cancelled TR-11 | cancel answered (1 goal(s) cancelling) | {}
+03:11:27.140 vehicle_bridge link_count_ended  | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792779034.0198529, "ended_at": 1792779087.1400158, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:11:27.144 gouda_motion_controller deactivated  | joystick_command publication stopped; nothing is sent while inactive | {}
+03:11:27.145 gouda_mode_manager vehicle_output_deactivated TR-11 | gouda_motion_controller deactivate: True | {"node": "gouda_motion_controller"}
+03:11:27.150 vehicle_bridge deactivated  | COMMAND transmission stopped; the firmware PC source expires (PRM-13) and goes neutral | {}
+03:11:27.154 gouda_mode_manager vehicle_output_deactivated TR-11 | vehicle_bridge deactivate: True | {"node": "vehicle_bridge"}
+03:11:27.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2187416}
+03:11:29.713 gouda_mode_manager nav2_reset TR-11 | Nav2 RESET: True | {}
+03:11:29.719 gouda_global_localization deactivated  | map->odom is no longer published | {}
+03:11:29.719 gouda_global_localization estimator_state  | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": 3.226155, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.09292086940606822, "last_input_age_s": 0.05664205551147461, "map_directory": "/home/aya/gouda_ws/gouda_d
+03:11:29.721 gouda_global_localization trigger_off  | ekf trigger_node false: True  | {}
+03:11:29.721 gouda_global_localization trigger_off  | ndt trigger_node false: True  | {}
+03:11:29.864 gouda_mode_manager human_request TR-03 | refused: TR-03 actions failed: the odometry GLIM of autonomy (ND-08) is still running; mapping GLIM is not started together with it (RQ-I004) | {"event": "start_mapping", "accepted": false, "mode": "manual"}
+03:11:29.974 gouda_global_localization cleaned_up  | A3 launch stopped | {}
+03:11:29.975 gouda_global_localization estimator_state  | 未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured)) | {"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": ""}
+03:11:30.009 gouda_mode_manager localization_stopped TR-11 | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | {}
+03:11:30.209 gouda_mode_manager odometry_stopped TR-11 | ND-08 GLIM (odometry only) stopped (exit code 0) | {}
+03:11:30.213 record_stop auto:stop
+03:13:31.605 record_start auto:map_start
+03:13:31.605 STATE (2, 'idle', '')  22 0
+03:13:31.604 gouda_mode_manager human_request TR-03 | TR-03: manual -> mapping | {"event": "start_mapping", "accepted": true, "mode": "manual"}
+03:13:31.607 gouda_mode_manager record_auto_start TR-03 | log recording started (auto:map_start) in /home/aya/gouda_ws/gouda_data/records/20261024_031034 | {"service": "record/log/start_pre_mapping", "kind": "map_start", "ok": true}
+03:13:31.608 vehicle_bridge link_count_started  | USB link counting started for the mapping session (DEC-177) | {"session": "mapping", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:13:31.610 gouda_mode_manager vehicle_bridge_configure_skipped TR-03 | vehicle_bridge is already configured (lifecycle state 2); nothing to do | {"state": 2}
+03:13:36.761 vehicle_bridge esp32_event  | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2317003}
+03:13:36.862 vehicle_bridge esp32_event  | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2317108}
+03:13:36.912 vehicle_bridge esp32_event  | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2317158}
+03:13:39.678 vehicle_bridge esp32_event  | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2319933}
+03:13:41.841 vehicle_bridge esp32_event  | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2322058}
+03:14:24.734 vehicle_bridge esp32_event  | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2364993}
+03:14:25.136 vehicle_bridge esp32_event  | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2365358}
+03:14:48.334 vehicle_bridge esp32_event  | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2388598}
+03:14:48.737 vehicle_bridge esp32_event  | manual_override_begin | {"code": 8, "name": "manual_override_begin", "arg": 0, "esp_ms": 2388968}
+03:14:49.593 vehicle_bridge esp32_event  | manual_override_end | {"code": 9, "name": "manual_override_end", "arg": 0, "esp_ms": 2389818}
+03:14:53.587 gouda_mode_manager human_request TR-04 | TR-04: mapping -> manual | {"event": "end_mapping", "accepted": true, "mode": "mapping"}
+03:14:53.588 STATE (1, 'idle', '')  22 0
+03:14:53.588 vehicle_bridge link_count_ended  | USB link counts of the mapping session: 0 disconnects | {"kind": "mapping", "started_at": 1792779211.6084337, "ended_at": 1792779293.5888362, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:14:53.589 STATE (1, 'map_saving', '')  22 0
+03:14:54.190 gouda_mode_manager mapping_stopped TR-04 | dump complete (30 submap(s)) | {"origin_id": "20261024_031331_9cde85da", "dump_ok": true, "submaps": 30, "exit_code": 0, "save_duration_s": 0.6003260612487793, "glim_exited_unexpectedly_at": null, "wait_limit_s": "none (PRM-37 unresolved)"}
+03:14:54.190 gouda_mode_manager gnss_record_stopped TR-04 | GNSS record closed: {} (no GNSS message: no alignment can be made from this map) | {"path": "/home/aya/gouda_ws/gouda_data/mapping/20261024_031331_9cde85da/gnss.jsonl", "summary": {"file": "gnss.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "counts": {}}}
+03:14:54.260 gouda_mode_manager source_map_registered TR-04 | source map registered as 20261024_031331_9cde85da (hash aff28d9e8a3e…, 30 submap(s)) | {"origin_id": "20261024_031331_9cde85da", "content_hash": "aff28d9e8a3ecefedce3ad26e98859e75a2ec5869e173e2e32a0b19001ece521"}
+03:14:54.260 STATE (1, 'map_converting', '')  22 0
+03:14:54.261 record_stop auto:stop
+03:17:19.701 record_start auto:autonomy_start
+03:17:19.701 vehicle_bridge link_count_started  | USB link counting started for the autonomy session (DEC-177) | {"session": "autonomy", "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:17:19.703 gouda_mode_manager record_auto_start TR-05 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_031034 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+03:17:19.703 gouda_motion_controller activated  | joystick_command publication started (period PRM-41) | {}
+03:17:19.705 vehicle_bridge activated  | COMMAND transmission started (period PRM-14, pc_enable_request set) | {}
+03:17:19.706 gouda_mode_manager vehicle_output_active TR-05 | ND-11 / ND-12 active (gouda_motion_controller:3, vehicle_bridge:3); neutral is sent while the start continues (DEC-391) | {"steps": ["gouda_motion_controller:3", "vehicle_bridge:3"]}
+03:17:19.708 gouda_mode_manager odometry_started TR-05 | ND-08 GLIM (odometry only) started (pid 10032) | {"config_dir": "/home/aya/gouda_ws/gouda_data/run/glim_odometry/run-4fb641a7/glim_config", "T_lidar_imu": [0.0, 0.0, -0.08, 0.0, 0.0, 0.0, 1.0]}
+03:17:19.708 gouda_mode_manager initial_pose_sent TR-05 | IFD-34 localization/initial_pose sent once (transient_local) | {"x": 0.003, "y": 0.157}
+03:17:19.738 gouda_global_localization configured  | A3 launch started (pid 10033); map /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001 | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001", "log": "/home/aya/gouda_ws/gouda_data/run/localization/a3_20261024_031719.log", "settings": {"points_near_crop_m": 1.0, "poin
+03:17:19.739 gouda_global_localization estimator_state  | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d0
+03:17:19.750 gouda_global_localization estimator_state  | 初期化中 (initializing: waiting for the initial pose (IFD-34)) | {"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/
+03:17:19.751 gouda_global_localization initial_pose_received  | initial pose (0.00, 0.16); height -0.93 m from the mapping trajectory (nearest point 0.16 m away) | {"x": 0.003, "y": 0.157, "z": -0.9286570000000001, "trajectory_distance_m": 0.15594159714777836}
+03:17:19.754 gouda_mode_manager localization_activated TR-05 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d093/converted/001"}
+03:17:19.754 gouda_motion_controller output_neutral  | motion_hold=true (mode=autonomy speed_limit=not_loaded (waiting for 適用中)) | {"cmd_vel_age_s": 352.4759621620178, "hold": true, "hold_reason": "mode=autonomy speed_limit=not_loaded (waiting for 適用中)", "hold_mode": 3, "hold_age_s": 0.05252790451049805, "compensation_revision": 0, "compensated_dire
+03:17:19.806 vehicle_bridge command_output  | joystick_command forwarded | {"x_q10000": 0, "y_q10000": 0, "flags": 1}
+03:17:19.836 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540075}
+03:17:19.842 STATE (3, 'idle', '') run-4fb641a7 23 0
+03:17:19.936 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540174}
+03:17:20.037 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540275}
+03:17:20.138 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540375}
+03:17:20.238 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540474}
+03:17:20.339 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540574}
+03:17:20.439 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540674}
+03:17:20.540 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540774}
+03:17:20.641 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540874}
+03:17:20.741 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2540974}
+03:17:20.842 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541075}
+03:17:20.943 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541175}
+03:17:21.044 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541274}
+03:17:21.144 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541374}
+03:17:21.245 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541474}
+03:17:21.346 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541574}
+03:17:21.447 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541674}
+03:17:21.547 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541774}
+03:17:21.648 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541874}
+03:17:21.749 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2541974}
+03:17:21.850 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542074}
+03:17:21.950 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542176}
+03:17:22.051 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542274}
+03:17:22.151 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542374}
+03:17:22.252 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542474}
+03:17:22.353 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542574}
+03:17:22.454 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542674}
+03:17:22.555 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542774}
+03:17:22.655 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542874}
+03:17:22.753 gouda_global_localization ndt_points_waiting  | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet | {}
+03:17:22.757 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2542974}
+03:17:22.857 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2543074}
+03:17:22.880 gouda_global_localization ndt_points_dropped  | the NDT dropped a point cloud: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link | {"message": "\"base_link\" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link"}
+03:17:22.905 gouda_global_localization ndt_points_kept  | the NDT holds a point cloud; ndt_align_srv can be called | {}
+03:17:22.958 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2543174}
+03:17:23.059 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2543275}
+03:17:23.110 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2543374}
+03:17:23.211 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2543475}
+03:17:23.252 STATE (1, 'idle', 'human')  23 0
+03:17:23.252 gouda_mode_manager human_request TR-11 | TR-11: autonomy -> manual | {"event": "end_autonomy", "accepted": true, "mode": "autonomy"}
+03:17:23.253 vehicle_bridge link_count_ended  | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792779439.7017636, "ended_at": 1792779443.2533479, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:17:23.254 gouda_motion_controller output_neutral  | motion_hold=true (mode=manual stop_reason=human) | {"cmd_vel_age_s": 355.97563648223877, "hold": true, "hold_reason": "mode=manual stop_reason=human", "hold_mode": 1, "hold_age_s": 0.0009245872497558594, "compensation_revision": 0, "compensated_directions": [], "forward"
+03:17:23.254 gouda_mode_manager autonomy_start_abandoned TR-05 | a human pause / end came first; the remaining start steps were not run | {}
+03:17:23.254 gouda_mode_manager navigation_goal_check TR-11 | no active Nav2 goal | {}
+03:17:23.258 gouda_motion_controller deactivated  | joystick_command publication stopped; nothing is sent while inactive | {}
+03:17:23.259 gouda_mode_manager vehicle_output_deactivated TR-11 | gouda_motion_controller deactivate: True | {"node": "gouda_motion_controller"}
+03:17:23.260 vehicle_bridge deactivated  | COMMAND transmission stopped; the firmware PC source expires (PRM-13) and goes neutral | {}
+03:17:23.262 gouda_mode_manager vehicle_output_deactivated TR-11 | vehicle_bridge deactivate: True | {"node": "vehicle_bridge"}
+03:17:23.266 gouda_global_localization deactivated  | map->odom is no longer published | {}
+03:17:23.267 gouda_global_localization estimator_state  | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_023928_de02d0
+03:17:23.270 gouda_global_localization trigger_off  | ekf trigger_node false: True  | {}
+03:19:14.022 record_start auto:autonomy_start
+03:19:14.023 gouda_global_localization configured  | A3 launch started (pid 11038); map /home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/converted/001 | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/converted/001", "log": "/home/aya/gouda_ws/gouda_data/run/localization/a3_20261024_031913.log", "settings": {"points_near_crop_m": 1.0, "poin
+03:19:14.023 gouda_global_localization estimator_state  | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85
+03:19:14.027 gouda_mode_manager record_auto_start TR-05 | log recording started (auto:autonomy_start) in /home/aya/gouda_ws/gouda_data/records/20261024_031914 | {"service": "record/log/start_autodrive", "kind": "autonomy_start", "ok": true}
+03:19:14.029 gouda_global_localization estimator_state  | 初期化中 (initializing: waiting for the initial pose (IFD-34)) | {"state": 1, "reason": "initializing", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/
+03:19:14.030 gouda_global_localization initial_pose_received  | initial pose (0.00, 0.16); height -0.84 m from the mapping trajectory (nearest point 0.09 m away) | {"x": 0.003, "y": 0.157, "z": -0.842068, "trajectory_distance_m": 0.08798879292841787}
+03:19:14.032 gouda_mode_manager localization_activated TR-05 | gouda_global_localization configured with /home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/converted/001 and activated; waiting for 正常 (IFD-53) | {"map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/converted/001"}
+03:19:14.053 STATE (3, 'idle', '') run-1fc0f7b7 23 0
+03:19:14.066 vehicle_bridge esp32_event  | config_set | {"code": 3, "name": "config_set", "arg": 9, "esp_ms": 2654285}
+03:19:14.066 vehicle_bridge esp32_ack  | request 0x03: accepted | {"request_type": 3, "result": 0, "result_name": "accepted"}
+03:19:14.071 vehicle_bridge command_output  | joystick_command forwarded | {"x_q10000": 0, "y_q10000": 0, "flags": 1}
+03:19:14.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654340}
+03:19:14.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654439}
+03:19:14.319 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654540}
+03:19:14.419 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654639}
+03:19:14.520 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654739}
+03:19:14.621 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654839}
+03:19:14.721 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2654939}
+03:19:14.822 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655039}
+03:19:14.923 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655139}
+03:19:15.023 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655239}
+03:19:15.124 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655339}
+03:19:15.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655439}
+03:19:15.275 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655539}
+03:19:15.287 gouda_global_localization ndt_points_waiting  | waiting for the NDT to keep a point cloud (IFD-21) before ndt_align_srv: no scan status from the NDT yet | {}
+03:19:15.379 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655639}
+03:19:15.480 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655739}
+03:19:15.580 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655839}
+03:19:15.681 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2655939}
+03:19:15.782 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656039}
+03:19:15.882 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656139}
+03:19:15.983 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656239}
+03:19:16.075 gouda_global_localization ndt_points_dropped  | the NDT dropped a point cloud: "base_link" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link | {"message": "\"base_link\" passed to lookupTransform argument target_frame does not exist. . Please publish TF xt32_link to base_link"}
+03:19:16.084 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656339}
+03:19:16.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656439}
+03:19:16.285 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656539}
+03:19:16.386 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656639}
+03:19:16.488 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656739}
+03:19:16.589 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656839}
+03:19:16.690 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2656939}
+03:19:16.791 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657039}
+03:19:16.892 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657139}
+03:19:16.993 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657239}
+03:19:17.093 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657339}
+03:19:17.194 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657439}
+03:19:17.295 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657539}
+03:19:17.395 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657639}
+03:19:17.496 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657739}
+03:19:17.598 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657840}
+03:19:17.699 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2657940}
+03:19:17.800 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658039}
+03:19:17.900 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658139}
+03:19:18.001 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658239}
+03:19:18.102 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658339}
+03:19:18.203 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658440}
+03:19:18.304 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658539}
+03:19:18.404 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658639}
+03:19:18.495 gouda_global_localization ndt_points_kept  | the NDT holds a point cloud; ndt_align_srv can be called | {}
+03:19:18.505 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658739}
+03:19:18.606 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658839}
+03:19:18.708 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2658942}
+03:19:18.809 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659039}
+03:19:18.910 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659140}
+03:19:19.011 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659240}
+03:19:19.114 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659339}
+03:19:19.215 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659441}
+03:19:19.316 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659539}
+03:19:19.417 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659639}
+03:19:19.518 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659739}
+03:19:19.619 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659840}
+03:19:19.720 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2659939}
+03:19:19.824 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660040}
+03:19:19.877 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660139}
+03:19:19.978 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660240}
+03:19:20.079 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660340}
+03:19:20.180 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660441}
+03:19:20.281 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660539}
+03:19:20.382 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660639}
+03:19:20.483 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660739}
+03:19:20.583 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660840}
+03:19:20.684 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2660940}
+03:19:20.785 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661039}
+03:19:20.887 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661140}
+03:19:20.989 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661239}
+03:19:21.094 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661340}
+03:19:21.198 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661439}
+03:19:21.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661540}
+03:19:21.402 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661639}
+03:19:21.504 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661739}
+03:19:21.608 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661839}
+03:19:21.709 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2661939}
+03:19:21.810 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662040}
+03:19:21.910 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662139}
+03:19:22.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662240}
+03:19:22.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662339}
+03:19:22.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662439}
+03:19:22.317 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662541}
+03:19:22.419 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662640}
+03:19:22.522 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662741}
+03:19:22.623 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662840}
+03:19:22.724 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2662942}
+03:19:22.825 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663040}
+03:19:22.876 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663140}
+03:19:22.980 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663239}
+03:19:23.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663341}
+03:19:23.183 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663439}
+03:19:23.287 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663540}
+03:19:23.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663639}
+03:19:23.490 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663740}
+03:19:23.591 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663840}
+03:19:23.692 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2663940}
+03:19:23.794 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664039}
+03:19:23.895 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664139}
+03:19:23.997 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664240}
+03:19:24.099 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664339}
+03:19:24.201 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664440}
+03:19:24.302 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664542}
+03:19:24.405 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664639}
+03:19:24.507 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664739}
+03:19:24.607 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664841}
+03:19:24.708 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2664939}
+03:19:24.809 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665039}
+03:19:24.911 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665139}
+03:19:25.012 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665239}
+03:19:25.112 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665339}
+03:19:25.213 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665439}
+03:19:25.315 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665539}
+03:19:25.417 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665639}
+03:19:25.518 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665740}
+03:19:25.619 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665841}
+03:19:25.720 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2665939}
+03:19:25.823 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666040}
+03:19:25.926 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666139}
+03:19:25.976 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666239}
+03:19:26.077 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666339}
+03:19:26.178 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666439}
+03:19:26.280 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666539}
+03:19:26.381 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666639}
+03:19:26.483 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666739}
+03:19:26.584 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666839}
+03:19:26.685 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2666940}
+03:19:26.789 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667040}
+03:19:26.889 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667140}
+03:19:26.992 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667240}
+03:19:27.094 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667340}
+03:19:27.195 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667440}
+03:19:27.298 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667539}
+03:19:27.401 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667639}
+03:19:27.502 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667739}
+03:19:27.605 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667839}
+03:19:27.706 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2667941}
+03:19:27.808 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668039}
+03:19:27.912 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668141}
+03:19:28.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668239}
+03:19:28.115 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668339}
+03:19:28.216 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668439}
+03:19:28.318 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668540}
+03:19:28.422 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668640}
+03:19:28.523 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668740}
+03:19:28.624 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668839}
+03:19:28.674 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2668939}
+03:19:28.778 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669040}
+03:19:28.880 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669140}
+03:19:28.981 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669240}
+03:19:29.083 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669339}
+03:19:29.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669439}
+03:19:29.285 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669541}
+03:19:29.386 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669639}
+03:19:29.487 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669739}
+03:19:29.589 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669839}
+03:19:29.693 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2669939}
+03:19:29.796 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670039}
+03:19:29.897 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670141}
+03:19:29.998 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670239}
+03:19:30.099 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670340}
+03:19:30.202 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670439}
+03:19:30.303 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670541}
+03:19:30.407 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670639}
+03:19:30.508 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670740}
+03:19:30.610 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670839}
+03:19:30.711 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2670940}
+03:19:30.813 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671039}
+03:19:30.914 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671139}
+03:19:31.017 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671240}
+03:19:31.117 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671339}
+03:19:31.219 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671439}
+03:19:31.320 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671540}
+03:19:31.422 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671640}
+03:19:31.523 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671742}
+03:19:31.576 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671840}
+03:19:31.678 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2671939}
+03:19:31.780 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672040}
+03:19:31.881 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672140}
+03:19:31.983 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672239}
+03:19:32.084 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672340}
+03:19:32.185 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672440}
+03:19:32.288 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672540}
+03:19:32.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672639}
+03:19:32.489 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672739}
+03:19:32.593 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672842}
+03:19:32.694 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2672939}
+03:19:32.797 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673039}
+03:19:32.900 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673139}
+03:19:33.003 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673239}
+03:19:33.105 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673339}
+03:19:33.206 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673439}
+03:19:33.308 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673539}
+03:19:33.409 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673639}
+03:19:33.509 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673739}
+03:19:33.610 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673839}
+03:19:33.711 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2673939}
+03:19:33.759 gouda_global_localization initial_pose_aligned  | aligned to (-0.05, 0.12) | {"x": -0.049286872148513794, "y": 0.12189273536205292, "z": -0.9285993576049805}
+03:19:33.786 gouda_global_localization initialized  | EKF and NDT active; the state follows the checks (IFD-53) | {}
+03:19:33.786 gouda_global_localization estimator_state  | 初期化中 (awaiting_inputs: initialized; waiting for the first message of each input: ekf_pose, ndt_diagnostics, ekf_diagnostics, map_odom) | {"state": 1, "reason": "awaiting_inputs", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85
+03:19:33.812 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674039}
+03:19:33.913 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674139}
+03:19:34.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674239}
+03:19:34.024 gouda_global_localization estimator_state  | 正常 | {"state": 2, "reason": "", "ndt_nvtl": 3.202976, "ekf_pose_no_update_count": 9, "ekf_xy_stddev_m": 0.2239258793562511, "last_input_age_s": 0.08739066123962402, "map_directory": "/home/aya/gouda_ws/gouda_data/maps/2026102
+03:19:34.035 gouda_mode_manager localization_normal TR-05 | gouda_global_localization: 正常; Nav2 is started next | {}
+03:19:34.045 gouda_mode_manager nav2_parameters_set TR-05 | map /home/aya/gouda_ws/gouda_data/maps/20261024_031331_9cde85da/converted/001/map.yaml, mask /home/aya/gouda_ws/gouda_data/routes/20261024_031703_b8b639/001/spe | {}
+03:19:34.115 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674339}
+03:19:34.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674440}
+03:19:34.318 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674539}
+03:19:34.420 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674639}
+03:19:34.522 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674740}
+03:19:34.623 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674839}
+03:19:34.723 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2674939}
+03:19:34.735 gouda_mode_manager speed_limit_application_state TR-05 | unknown (不明) | {"speed_limit": null, "robot_xy": null}
+03:19:34.751 gouda_motion_controller output_neutral  | motion_hold=true (mode=autonomy speed_limit=unknown (waiting for 適用中)) | {"cmd_vel_age_s": null, "hold": true, "hold_reason": "mode=autonomy speed_limit=unknown (waiting for 適用中)", "hold_mode": 3, "hold_age_s": 0.014768838882446289, "compensation_revision": 0, "compensated_directions": [], "f
+03:19:34.824 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675039}
+03:19:34.833 gouda_mode_manager keepout_mask_not_confirmed TR-05 | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | {"received_sha256": "7abfdb0169408da9f0fc88b5b531f77bd0747eabb1ec7087bc76f1af4d848aff", "received_size": [113, 145], "mask_state": "match", "info_received": false}
+03:19:34.875 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675139}
+03:19:34.948 gouda_mode_manager keepout_mask_confirmed TR-05 | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | {"info_type": 0, "info_mask_topic": "/keepout_filter_mask", "info_base": 0.0, "info_multiplier": 1.0, "mask_state": "match", "info_received": true}
+03:19:34.976 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675239}
+03:19:35.077 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675339}
+03:19:35.178 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675439}
+03:19:35.278 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675539}
+03:19:35.384 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675639}
+03:19:35.485 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675739}
+03:19:35.586 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675839}
+03:19:35.689 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2675940}
+03:19:35.790 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676039}
+03:19:35.891 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676139}
+03:19:35.991 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676239}
+03:19:36.092 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676339}
+03:19:36.194 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676439}
+03:19:36.296 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676539}
+03:19:36.397 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676640}
+03:19:36.498 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676739}
+03:19:36.601 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676839}
+03:19:36.702 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2676939}
+03:19:36.803 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677039}
+03:19:36.904 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677139}
+03:19:37.005 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677239}
+03:19:37.107 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677341}
+03:19:37.208 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677439}
+03:19:37.209 gouda_mode_manager nav2_started TR-05 | Nav2 servers active (lifecycle_manager_navigation STARTUP) | {}
+03:19:37.211 gouda_mode_manager nav2_goal_sent TR-05 | NavigateThroughPoses goal accepted (23 poses from waypoint 0) | {"offset": 0, "poses": 23}
+03:19:37.215 gouda_mode_manager speed_limit_application_state TR-05 | applied (適用中) | {"speed_limit": 0.9000000134110451, "robot_xy": [-0.047797453854962826, 0.12409656329512772]}
+03:19:37.215 gouda_mode_manager motion_hold_released TR-05 | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | {"speed_limit": 0.9000000134110451, "robot_xy": [-0.047797453854962826, 0.12409656329512772]}
+03:19:37.252 gouda_motion_controller output_neutral  | cmd_vel not received | {"cmd_vel_age_s": null, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.03506064414978027, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.0, "normalized_forward": 0.
+03:19:37.301 gouda_motion_controller output_drive  | drive | {"cmd_vel_age_s": 0.034010887145996094, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.045081138610839844, "compensation_revision": 0, "compensated_directions": [], "forward": 0.048, "turn": 0.10309278
+03:19:37.308 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677539}
+03:19:37.409 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677639}
+03:19:37.510 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677739}
+03:19:37.612 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677839}
+03:19:37.713 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2677939}
+03:19:37.814 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678039}
+03:19:37.915 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678140}
+03:19:38.015 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678240}
+03:19:38.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678339}
+03:19:38.216 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678439}
+03:19:38.317 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678540}
+03:19:38.419 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678639}
+03:19:38.519 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678739}
+03:19:38.620 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678840}
+03:19:38.721 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2678939}
+03:19:38.822 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679039}
+03:19:38.922 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679139}
+03:19:39.023 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679239}
+03:19:39.124 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679339}
+03:19:39.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679439}
+03:19:39.275 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679539}
+03:19:39.376 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679639}
+03:19:39.477 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679739}
+03:19:39.578 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679839}
+03:19:39.679 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2679939}
+03:19:39.780 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680039}
+03:19:39.881 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680139}
+03:19:39.982 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680239}
+03:19:40.083 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680339}
+03:19:40.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680439}
+03:19:40.286 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680539}
+03:19:40.387 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680639}
+03:19:40.488 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680740}
+03:19:40.590 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680839}
+03:19:40.690 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2680939}
+03:19:40.791 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681040}
+03:19:40.892 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681139}
+03:19:40.993 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681241}
+03:19:41.093 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681339}
+03:19:41.194 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681439}
+03:19:41.296 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681539}
+03:19:41.396 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681639}
+03:19:41.497 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681739}
+03:19:41.598 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681840}
+03:19:41.699 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2681940}
+03:19:41.800 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682039}
+03:19:41.901 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682139}
+03:19:42.002 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682240}
+03:19:42.103 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682340}
+03:19:42.204 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682439}
+03:19:42.305 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682539}
+03:19:42.406 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682639}
+03:19:42.507 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682740}
+03:19:42.607 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682839}
+03:19:42.708 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2682939}
+03:19:42.812 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683039}
+03:19:42.914 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683139}
+03:19:43.015 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683239}
+03:19:43.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683340}
+03:19:43.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683440}
+03:19:43.317 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683539}
+03:19:43.418 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683639}
+03:19:43.519 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683739}
+03:19:43.620 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683839}
+03:19:43.720 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2683940}
+03:19:43.821 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684040}
+03:19:43.922 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684140}
+03:19:44.023 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684239}
+03:19:44.123 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684340}
+03:19:44.224 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684439}
+03:19:44.275 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684539}
+03:19:44.376 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684639}
+03:19:44.476 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684739}
+03:19:44.577 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684840}
+03:19:44.682 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2684939}
+03:19:44.783 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685039}
+03:19:44.885 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685140}
+03:19:44.986 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685240}
+03:19:45.087 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685339}
+03:19:45.188 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685439}
+03:19:45.289 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685540}
+03:19:45.391 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685640}
+03:19:45.493 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685740}
+03:19:45.593 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685840}
+03:19:45.694 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2685940}
+03:19:45.796 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686039}
+03:19:45.898 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686140}
+03:19:46.000 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686239}
+03:19:46.101 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686339}
+03:19:46.202 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686439}
+03:19:46.302 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686539}
+03:19:46.403 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686639}
+03:19:46.504 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686739}
+03:19:46.605 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686840}
+03:19:46.705 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2686939}
+03:19:46.806 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687039}
+03:19:46.907 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687140}
+03:19:47.007 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687240}
+03:19:47.108 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687340}
+03:19:47.209 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687439}
+03:19:47.309 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687539}
+03:19:47.410 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687639}
+03:19:47.511 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687739}
+03:19:47.612 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687839}
+03:19:47.712 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2687940}
+03:19:47.813 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688039}
+03:19:47.914 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688140}
+03:19:48.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688239}
+03:19:48.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688339}
+03:19:48.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688439}
+03:19:48.318 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688539}
+03:19:48.419 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688639}
+03:19:48.520 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688739}
+03:19:48.620 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688840}
+03:19:48.721 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2688939}
+03:19:48.822 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689040}
+03:19:48.923 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689139}
+03:19:49.023 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689239}
+03:19:49.124 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689339}
+03:19:49.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689439}
+03:19:49.276 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689539}
+03:19:49.376 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689639}
+03:19:49.477 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689739}
+03:19:49.579 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689839}
+03:19:49.680 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2689939}
+03:19:49.781 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690040}
+03:19:49.883 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690139}
+03:19:49.984 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690239}
+03:19:50.085 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690340}
+03:19:50.186 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690439}
+03:19:50.287 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690539}
+03:19:50.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690639}
+03:19:50.490 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690740}
+03:19:50.591 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690840}
+03:19:50.692 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2690939}
+03:19:50.793 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691039}
+03:19:50.894 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691139}
+03:19:50.996 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691239}
+03:19:51.096 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691339}
+03:19:51.197 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691439}
+03:19:51.298 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691539}
+03:19:51.399 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691639}
+03:19:51.501 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691739}
+03:19:51.602 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691839}
+03:19:51.703 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2691939}
+03:19:51.804 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692040}
+03:19:51.905 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692140}
+03:19:52.005 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692240}
+03:19:52.106 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692339}
+03:19:52.207 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692439}
+03:19:52.308 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692539}
+03:19:52.408 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692640}
+03:19:52.509 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692739}
+03:19:52.610 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692840}
+03:19:52.711 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2692940}
+03:19:52.811 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693039}
+03:19:52.913 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693140}
+03:19:53.013 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693239}
+03:19:53.114 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693339}
+03:19:53.215 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693439}
+03:19:53.316 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693540}
+03:19:53.416 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693640}
+03:19:53.517 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693739}
+03:19:53.618 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693840}
+03:19:53.720 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2693939}
+03:19:53.821 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694040}
+03:19:53.921 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694139}
+03:19:54.022 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694239}
+03:19:54.123 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694339}
+03:19:54.224 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694439}
+03:19:54.325 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694540}
+03:19:54.376 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694639}
+03:19:54.477 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694739}
+03:19:54.578 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694840}
+03:19:54.679 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2694939}
+03:19:54.780 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695039}
+03:19:54.880 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695139}
+03:19:54.981 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695239}
+03:19:55.084 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695339}
+03:19:55.185 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695439}
+03:19:55.288 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695539}
+03:19:55.389 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695639}
+03:19:55.490 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695739}
+03:19:55.591 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695839}
+03:19:55.692 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2695939}
+03:19:55.793 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696040}
+03:19:55.895 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696139}
+03:19:55.998 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696239}
+03:19:56.099 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696339}
+03:19:56.199 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696440}
+03:19:56.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696539}
+03:19:56.401 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696640}
+03:19:56.502 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696740}
+03:19:56.603 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696839}
+03:19:56.703 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2696939}
+03:19:56.804 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697039}
+03:19:56.905 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697140}
+03:19:57.005 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697239}
+03:19:57.106 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697339}
+03:19:57.207 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697439}
+03:19:57.308 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697540}
+03:19:57.408 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697639}
+03:19:57.509 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697740}
+03:19:57.610 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697840}
+03:19:57.711 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2697939}
+03:19:57.811 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698039}
+03:19:57.901 gouda_motion_controller output_neutral  | drive | {"cmd_vel_age_s": 0.03390192985534668, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.04675412178039551, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.0, "normaliz
+03:19:57.913 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698140}
+03:19:58.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698240}
+03:19:58.115 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698339}
+03:19:58.216 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698440}
+03:19:58.317 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698541}
+03:19:58.417 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698640}
+03:19:58.518 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698739}
+03:19:58.619 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698840}
+03:19:58.719 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2698939}
+03:19:58.820 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699039}
+03:19:58.921 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699139}
+03:19:59.022 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699240}
+03:19:59.051 gouda_motion_controller output_neutral  | cmd_vel stale | {"cmd_vel_age_s": 0.7342157363891602, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.19805550575256348, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.0, "normalize
+03:19:59.124 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699340}
+03:19:59.224 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699440}
+03:19:59.276 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699539}
+03:19:59.377 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699639}
+03:19:59.478 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699739}
+03:19:59.579 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699840}
+03:19:59.680 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2699939}
+03:19:59.782 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700040}
+03:19:59.882 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700140}
+03:19:59.983 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700239}
+03:20:00.084 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700340}
+03:20:00.187 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700440}
+03:20:00.289 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700541}
+03:20:00.390 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700640}
+03:20:00.491 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700740}
+03:20:00.593 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700839}
+03:20:00.694 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2700939}
+03:20:00.795 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701039}
+03:20:00.896 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701140}
+03:20:00.997 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701239}
+03:20:01.098 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701340}
+03:20:01.199 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701439}
+03:20:01.300 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701539}
+03:20:01.401 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701640}
+03:20:01.502 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701739}
+03:20:01.603 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701840}
+03:20:01.704 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2701939}
+03:20:01.804 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702040}
+03:20:01.905 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702139}
+03:20:02.006 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702240}
+03:20:02.106 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702340}
+03:20:02.207 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702439}
+03:20:02.308 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702540}
+03:20:02.409 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702640}
+03:20:02.451 gouda_motion_controller output_neutral  | drive | {"cmd_vel_age_s": 0.03413891792297363, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.1971421241760254, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.0, "normalize
+03:20:02.509 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702740}
+03:20:02.610 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702840}
+03:20:02.710 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2702940}
+03:20:02.812 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703039}
+03:20:02.913 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703140}
+03:20:03.014 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703239}
+03:20:03.051 gouda_motion_controller output_drive  | drive | {"cmd_vel_age_s": 0.0342254638671875, "hold": false, "hold_reason": "", "hold_mode": 3, "hold_age_s": 0.19348931312561035, "compensation_revision": 0, "compensated_directions": [], "forward": 0.0, "turn": 0.1030927835051
+03:20:03.114 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703340}
+03:20:03.215 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703439}
+03:20:03.316 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703540}
+03:20:03.417 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703640}
+03:20:03.518 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703739}
+03:20:03.618 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703840}
+03:20:03.719 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2703940}
+03:20:03.820 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704039}
+03:20:03.921 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704140}
+03:20:04.022 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704239}
+03:20:04.123 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704339}
+03:20:04.224 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704440}
+03:20:04.324 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704540}
+03:20:04.425 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704640}
+03:20:04.476 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704739}
+03:20:04.577 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704840}
+03:20:04.678 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2704939}
+03:20:04.779 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705039}
+03:20:04.880 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705139}
+03:20:04.981 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705240}
+03:20:05.083 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705339}
+03:20:05.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705439}
+03:20:05.284 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705540}
+03:20:05.385 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705640}
+03:20:05.487 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705740}
+03:20:05.588 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705839}
+03:20:05.690 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2705939}
+03:20:05.791 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706041}
+03:20:05.892 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706140}
+03:20:05.992 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706240}
+03:20:06.093 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706340}
+03:20:06.194 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706439}
+03:20:06.295 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706539}
+03:20:06.396 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706639}
+03:20:06.497 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706739}
+03:20:06.597 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706839}
+03:20:06.698 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2706939}
+03:20:06.800 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707040}
+03:20:06.902 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707139}
+03:20:07.003 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707239}
+03:20:07.104 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707339}
+03:20:07.205 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707440}
+03:20:07.306 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707541}
+03:20:07.407 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707640}
+03:20:07.507 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707740}
+03:20:07.609 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707840}
+03:20:07.709 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2707940}
+03:20:07.810 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708040}
+03:20:07.911 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708140}
+03:20:08.011 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708240}
+03:20:08.112 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708339}
+03:20:08.213 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708439}
+03:20:08.314 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708539}
+03:20:08.415 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708639}
+03:20:08.515 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708740}
+03:20:08.616 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708839}
+03:20:08.717 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2708939}
+03:20:08.817 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709040}
+03:20:08.918 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709140}
+03:20:09.019 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709239}
+03:20:09.119 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709340}
+03:20:09.220 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709440}
+03:20:09.321 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709540}
+03:20:09.423 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709640}
+03:20:09.523 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709740}
+03:20:09.625 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709839}
+03:20:09.675 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2709940}
+03:20:09.776 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710040}
+03:20:09.877 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710140}
+03:20:09.978 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710239}
+03:20:10.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710340}
+03:20:10.183 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710440}
+03:20:10.284 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710540}
+03:20:10.385 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710639}
+03:20:10.486 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710740}
+03:20:10.587 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710840}
+03:20:10.689 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2710939}
+03:20:10.790 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711039}
+03:20:10.891 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711140}
+03:20:10.992 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711240}
+03:20:11.092 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711339}
+03:20:11.193 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711439}
+03:20:11.294 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711539}
+03:20:11.395 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711639}
+03:20:11.495 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711740}
+03:20:11.596 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711839}
+03:20:11.697 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2711939}
+03:20:11.798 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712039}
+03:20:11.899 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712139}
+03:20:12.000 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712239}
+03:20:12.100 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712339}
+03:20:12.201 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712439}
+03:20:12.302 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712539}
+03:20:12.403 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712639}
+03:20:12.504 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712739}
+03:20:12.605 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712840}
+03:20:12.706 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2712940}
+03:20:12.806 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713039}
+03:20:12.907 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713140}
+03:20:13.008 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713239}
+03:20:13.108 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713341}
+03:20:13.210 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713439}
+03:20:13.310 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713540}
+03:20:13.411 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713639}
+03:20:13.512 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713740}
+03:20:13.613 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713840}
+03:20:13.713 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2713939}
+03:20:13.814 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714039}
+03:20:13.915 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714139}
+03:20:14.015 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714240}
+03:20:14.116 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714340}
+03:20:14.217 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714439}
+03:20:14.318 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714539}
+03:20:14.418 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714639}
+03:20:14.520 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714740}
+03:20:14.620 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714840}
+03:20:14.721 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2714939}
+03:20:14.822 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715039}
+03:20:14.923 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715139}
+03:20:15.024 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715239}
+03:20:15.125 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715340}
+03:20:15.175 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715439}
+03:20:15.276 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715539}
+03:20:15.377 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715640}
+03:20:15.478 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715739}
+03:20:15.578 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715839}
+03:20:15.679 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2715940}
+03:20:15.780 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716039}
+03:20:15.881 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716139}
+03:20:15.982 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716240}
+03:20:16.082 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716340}
+03:20:16.184 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716439}
+03:20:16.285 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716540}
+03:20:16.386 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716639}
+03:20:16.487 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716739}
+03:20:16.588 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716840}
+03:20:16.689 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2716940}
+03:20:16.789 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717039}
+03:20:16.891 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717140}
+03:20:16.991 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717239}
+03:20:17.092 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717339}
+03:20:17.193 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717440}
+03:20:17.294 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717540}
+03:20:17.396 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717640}
+03:20:17.497 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717740}
+03:20:17.598 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717840}
+03:20:17.699 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2717939}
+03:20:17.800 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718040}
+03:20:17.901 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718139}
+03:20:18.002 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718240}
+03:20:18.103 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718340}
+03:20:18.204 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718439}
+03:20:18.305 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718539}
+03:20:18.383 gouda_mode_manager human_request TR-11 | TR-11: autonomy -> manual | {"event": "end_autonomy", "accepted": true, "mode": "autonomy"}
+03:20:18.384 STATE (1, 'idle', 'human')  22 0
+03:20:18.384 vehicle_bridge link_count_ended  | USB link counts of the autonomy session: 0 disconnects | {"kind": "autonomy", "started_at": 1792779553.9357119, "ended_at": 1792779618.3844392, "disconnects": 0, "reconnects": 0, "down_total_s": 0.0}
+03:20:18.388 gouda_mode_manager nav2_goal_cancelled TR-11 | cancel answered (1 goal(s) cancelling) | {}
+03:20:18.389 gouda_motion_controller deactivated  | joystick_command publication stopped; nothing is sent while inactive | {}
+03:20:18.391 gouda_mode_manager vehicle_output_deactivated TR-11 | gouda_motion_controller deactivate: True | {"node": "gouda_motion_controller"}
+03:20:18.393 vehicle_bridge deactivated  | COMMAND transmission stopped; the firmware PC source expires (PRM-13) and goes neutral | {}
+03:20:18.394 gouda_mode_manager vehicle_output_deactivated TR-11 | vehicle_bridge deactivate: True | {"node": "vehicle_bridge"}
+03:20:18.405 vehicle_bridge esp32_event  | pc_frame_rejected | {"code": 13, "name": "pc_frame_rejected", "arg": 5, "esp_ms": 2718639}
+03:20:21.109 gouda_mode_manager nav2_reset TR-11 | Nav2 RESET: True | {}
+03:20:21.112 gouda_global_localization deactivated  | map->odom is no longer published | {}
+03:20:21.112 gouda_global_localization estimator_state  | 未初期化 (not_initialized: waiting for the initial pose and the initialization (activate)) | {"state": 0, "reason": "not_initialized", "ndt_nvtl": 3.204639, "ekf_pose_no_update_count": 0, "ekf_xy_stddev_m": 0.09246873707246993, "last_input_age_s": 0.05732226371765137, "map_directory": "/home/aya/gouda_ws/gouda_d
+03:20:21.120 gouda_global_localization trigger_off  | ekf trigger_node false: True  | {}
+03:20:21.120 gouda_global_localization trigger_off  | ndt trigger_node false: True  | {}
+03:20:21.439 gouda_global_localization cleaned_up  | A3 launch stopped | {}
+03:20:21.439 gouda_global_localization estimator_state  | 未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured)) | {"state": 0, "reason": "not_configured", "ndt_nvtl": null, "ekf_pose_no_update_count": null, "ekf_xy_stddev_m": null, "last_input_age_s": null, "map_directory": ""}
+03:20:21.446 gouda_mode_manager localization_stopped TR-11 | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | {}
+03:20:21.647 gouda_mode_manager odometry_stopped TR-11 | ND-08 GLIM (odometry only) stopped (exit code 0) | {}
+03:20:21.652 record_stop auto:stop

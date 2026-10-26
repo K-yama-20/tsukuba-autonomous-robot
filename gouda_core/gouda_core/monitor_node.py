@@ -57,7 +57,7 @@ from gouda_core import sensor_config
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 LIDAR_STATUS_QOS = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)  # IFD-56
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
-# UI periods and waits (PRM-27..32): declared here (the relay node), values come from the generated parameter file.
+# UI periods and waits (PRM-27..32, PRM-104): declared here (the relay node), values come from the generated parameter file.
 def optional_double(node, name):
     """Value of a declared-but-possibly-unset DOUBLE parameter, or None (rclpy raises on an uninitialised parameter)."""
     try:
@@ -79,7 +79,8 @@ def header_stamp(raw: bytes):
         return None
 
 
-UI_PARAMS = ['ui_node_list_poll_period_s', 'ui_sse_keepalive_s', 'ui_service_ready_wait_s', 'ui_service_response_wait_s', 'ui_pause_service_ready_wait_s', 'ui_pause_service_response_wait_s']
+UI_PARAMS = ['ui_node_list_poll_period_s', 'ui_sse_keepalive_s', 'ui_service_ready_wait_s', 'ui_service_response_wait_s', 'ui_pause_service_ready_wait_s', 'ui_pause_service_response_wait_s',
+             'ui_sse_max_rate_hz']
 
 # Button -> service. Mode operations go to gouda_mode_manager (ND-03), record operations to gouda_recorder (ND-04).
 TRIGGER_COMMANDS = {
@@ -108,10 +109,10 @@ class MonitorNode(Node):
         for key in UI_PARAMS:
             v = optional_double(self, key)
             if v is None:
-                raise RuntimeError(f'{key} is not set: pass design/generated/params/gouda_monitor.yaml (PRM-27..32 are declared there)')
+                raise RuntimeError(f'{key} is not set: pass design/generated/params/gouda_monitor.yaml (PRM-27..32 and PRM-104 are declared there)')
             self.ui[key] = v
         self.core = MonitorCore(clock=self._now)
-        self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
+        self.core.settings = {'ui': dict(self.ui), 'declared_by': 'gouda_monitor (relay node; the browser page declares nothing)', 'source': 'design/generated/params/gouda_monitor.yaml (PRM-27..32, DEC-073; PRM-104, DEC-392)', 'auto_retry': 'none: a timed-out call is shown as a failure'}
         self.config = SensorConfig(data_root / 'config' / 'sensor_config.json')
         self.motion_comp = SensorConfig(data_root / 'config' / 'motion_compensation.json', MOTION_COMPENSATION_FIELDS)   # IFD-52
         self.motion_comp_pub = self.create_publisher(MotionCompensation, 'config/motion_compensation', LATCHED)
@@ -165,6 +166,7 @@ class MonitorNode(Node):
         self.server = MonitorServer(web_dir, self._state, self._config_snapshot, self._command, self._config_update,
                                     port=self.get_parameter('monitor_port').get_parameter_value().integer_value,
                                     url_file=data_root / 'run' / 'monitor.url', keepalive_s=self.ui['ui_sse_keepalive_s'],   # PRM-28
+                                    max_rate_hz=self.ui['ui_sse_max_rate_hz'],   # PRM-104 (DEC-392)
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
                                                 '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving,
                                                 '/api/motion_compensation': self._get_motion_comp, '/api/nav2_recovery': self._get_nav2_recovery},
@@ -468,7 +470,14 @@ class MonitorNode(Node):
             o = json.loads((self.run_dir / 'nav2' / 'overrides.json').read_text(encoding='utf-8'))
             snap['in_use'], snap['in_use_inflate'], snap['in_use_replan'] = o.get(nav2_config.RECOVERY_KEY), o.get(nav2_config.INFLATE_KEY), o.get(nav2_config.REPLAN_KEY)
         except (OSError, ValueError):
+            o = {}
             snap['in_use'], snap['in_use_inflate'], snap['in_use_replan'] = None, None, None
+        # REV-183 (DEC-393): the other values of the tab, each with its PRM, the value of the next start and the value in use
+        prm_t = nav2_config.read_tunables(self.params_dir, self.trial)
+        prm_t['inflation_radius_m'] = bt.get(('gouda_nav2', 'inflation_radius_m'))   # PRM-72
+        snap['tunables'] = [{'key': k, 'prm': prm, 'kind': kind, 'prm_value': prm_t[k],
+                             'next_start': nav2_config.tunable_from_config(str(self.config_dir), k, prm_t[k]), 'in_use': o.get(k)}
+                            for k, (prm, kind, _) in nav2_config.TUNABLES.items()]
         return snap
 
     def _save_nav2_recovery(self, rest, body):
@@ -566,7 +575,9 @@ class MonitorNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MonitorNode()
-    executor = rclpy.executors.MultiThreadedExecutor(num_threads=4)  # service futures complete while HTTP threads wait
+    # DEC-392 (M1): one executor thread. The HTTP threads wait on service / action / parameter futures that this thread completes
+    # while spinning; no executor callback waits on a future. The 4-thread executor cost about 4x the CPU (第161便).
+    executor = rclpy.executors.SingleThreadedExecutor()
     executor.add_node(node)
     try: executor.spin()
     except KeyboardInterrupt: pass

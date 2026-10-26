@@ -1,0 +1,11 @@
+第162便 再計測（04:11 JST、cpu_sample_bin162.sh、60 s）。IMU の差し直しの後：IMU RECEIVED、XT-32 RECEIVED、GNSS NOT_RECEIVED。
+mode は manual・idle（地図作成は始まっていない：再起動の後に TR-03 の記録も新しい records もない）。/esp32/status は NOT_RECEIVED（bridge が configure されていない）
+   12.4% hesai_ros_drive
+    8.7% gouda_monitor
+    3.5% firefox
+    2.9% gnome-shell
+    1.2% gouda_mode_mana
+    1.2% adis_rcv_bin_no
+  loadavg: 2.48 3.68 4.93
+  SSE（10 s）：event: state 50 回（5.0 回/s）
+反映前の 99.4 % と比べて、IMU（100 Hz）がある条件では 8.7 %。ESP32 の STATUS（20 Hz）がある条件はまだ測っていない。
