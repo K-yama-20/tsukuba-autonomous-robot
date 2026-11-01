@@ -1,0 +1,135 @@
+# 変更セット REV-185（2026-11-01 第167便: A案＝障害物の高さの帯を base_link で切る（pointcloud_to_laserscan）。DEC-336 の回答、DEC-395）
+# 適用: design/tools/apply_revision.py REV-185
+id: REV-185
+date: '2026-11-01'
+summary: >-
+  第167便：人の回答「A案で試そう。これは既製品を最大限活用する案だよね」で DEC-336 を承認として記録し、costmap の入力の第2版の案 Y を、rosbag の比べ方の前に試す
+  （DEC-395）。XT-32 の点群を上流の pointcloud_to_laserscan（ND-09）で base_link の高さの帯（PRM-70・71）で切って LaserScan（IFD-57）にし、local
+  （VoxelLayer を ObstacleLayer に、DEC-321）・global の ObstacleLayer の観測源にする。Nav2 側の帯は実質無効、点のない方位は消去に使う（DEC-322）。
+basis_refs:
+- DEC-336
+- DEC-395
+- DEC-320
+- DEC-321
+- DEC-322
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-P2L-2-0-2-EXCERPT
+  path: design/research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
+  role: evidence
+decisions:
+- id: DEC-395
+  kind: approval
+  status: answered
+  asked_on: '2026-11-01'
+  answered_on: '2026-11-01'
+  channel: chat
+  question: >-
+    （第167便）DEC-320 の回答（rosbag で案 X と案 Y を比べてから決める）の前に、案 Y（pointcloud_to_laserscan）を入れて実車で試すか。
+  answer_verbatim: |
+    mid260は今週水曜までに統合する。
+    A案で試そう。これは既製品を最大限活用する案だよね
+    （2026-11-01、主のチャット）試験用にブランチを作って、A案を試す準備をせよ。
+  affected_refs:
+  - DEC-320
+  - ND-09
+  - ND-10
+  resulting_refs:
+  - ND-09
+  - IFD-57
+  note: >-
+    「A案」は AI が直前に説明した A 案（高さの帯を base_link で当てる、案 Y＝pointcloud_to_laserscan → ObstacleLayer）。「試そう」なので、rosbag の比べ方
+    （DEC-320）は取り下げず後に回す。DEC-320 は書き換えない。「mid260」は MID-360 と解釈した（今週水曜＝2026-11-04 までに統合する人の予定。統合の構成は第167便の
+    作業記録の案で、まだ承認事項にしていない）。範囲の下限 PRM-70 は変えていない（AI の推奨の 0.15 m は未承認）。PRM-127（voxel の mark_threshold）は VoxelLayer が
+    なくなったので使われない。前の 2 行は分けたチャット（local_65aa941e）での人の回答で、引き継ぎで受け取った。主のチャットで人が「試験用にブランチを作って、A案を試す準備をせよ。」と指示したので、試験用のブランチ（test/plan-a-scan-band-2026-11-01）で準備する。VM の Gouda への反映は人の許可の後。第167便。
+  disposition: answered
+entities:
+- id: IFD-57
+  kind: designed_interface
+  name: sensors/xt32/scan（XT-32 の点群を base_link の高さの帯で切った LaserScan）
+  source_refs:
+  - SRC-I015
+  - SRC-I010
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-21
+  - PRM-70
+  - PRM-71
+  issue_refs:
+  - Q-04
+  - G-DDS
+  interpretation: REV-185（DEC-336・DEC-395）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I091
+  - RQ-I007
+  revision_ref: REV-185
+  designed_interface:
+    transport: topic
+    name: sensors/xt32/scan
+    message_type: sensor_msgs/msg/LaserScan
+    standard_type: true
+    custom_type_reason:
+    purpose: data
+    owner_ref: ND-09
+    publisher_refs:
+    - ND-09
+    consumer_refs:
+    - ND-10
+    unit: m
+    frame: base_link（pointcloud_to_laserscan の target_frame。距離は base_link の x・y の平面）
+    time_semantics: header.stamp は元の点群（IFD-21）の stamp のまま。高さ（base_link の z）が PRM-70 と PRM-71 の間の点だけを使い、方位ごとに一番近い点の距離。範囲の中に点のない方位は inf（use_inf）
+    qos:
+      reliability: best_effort
+      durability: volatile
+      history_depth: 5
+    version_dependency:
+      status: confirmed_upstream
+      evidence:
+      - research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
+      note: 上流 pointcloud_to_laserscan 2.0.2 のソース（SensorDataQoS）で照合。実車PC に導入された版との一致は導入時に確認する
+    legacy_refs: []
+modifications:
+- id: ND-09
+  set:
+    name: 障害物の扱い（上流の pointcloud_to_laserscan で base_link の高さの帯を切り、Nav2 costmap の ObstacleLayer に渡す。DEC-336・DEC-395）
+  set_nested:
+    ros_node.node_name: xt32_scan
+    ros_node.responsibilities:
+    - XT-32 点群（IFD-21）を上流の pointcloud_to_laserscan（node xt32_scan）で base_link に変換し、高さの帯（PRM-70・PRM-71、base_link 基準）の中の点だけを方位ごとの LaserScan（IFD-57）にする。独自の点群処理は作らない（DEC-336・DEC-395）
+    - local・global の costmap は IFD-57 を ObstacleLayer の観測源にし、Nav2 側の高さの帯は実質無効にする（Nav2 は帯を odom・map の z で当て、その原点は GLIM の最初の IMU の姿勢のため。DEC-336）。local は 2 次元（DEC-321、TRB-001）
+    - 帯の中に点のない方位は空きとして消去に使う（inf_is_valid、DEC-322、TRB-002）。これは「観測外を安全とみなさない」（RQ-I012）の人が認めた例外。それ以外の観測外（track_unknown_space）は今のまま
+    - pointcloud_to_laserscan が入っていなければ Nav2 を起動しない（障害物の入力なしで走らない）
+    - 坂で地面が帯に入り障害物になる場合は、実車の記録で確かめてから既製の地面の除去（patchwork++ など）を提案する
+    ros_node.lifecycle: external
+    ros_node.publishes_refs:
+    - IFD-57
+  interpretation_append: 'REV-185（DEC-336・DEC-395）：帯を base_link で切る既製の pointcloud_to_laserscan を ND-09 とした（node xt32_scan、Nav2 と一緒に起動）。'
+- id: ND-10
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-14
+    - IFD-23
+    - IFD-25
+    - IFD-18
+    - IFD-19
+    - IFD-20
+    - IFD-42
+    - IFD-54
+    - IFD-57
+  interpretation_append: 'REV-185（DEC-336・DEC-395）：costmap の障害物の観測源を IFD-57（LaserScan）にした。local の VoxelLayer を ObstacleLayer に替えた（DEC-321）。'
+decision_updates:
+- id: DEC-336
+  set:
+    status: answered
+    answered_on: '2026-11-01'
+    disposition: answered
+    answer_verbatim: |
+      mid260は今週水曜までに統合する。
+      A案で試そう。これは既製品を最大限活用する案だよね
+    resulting_refs:
+    - ND-09
+    - IFD-57

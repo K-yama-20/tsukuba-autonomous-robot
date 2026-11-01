@@ -96,7 +96,8 @@
       "undetermined": [
         "IFD-21: 版・QoSの照合待ち",
         "IFD-38: 版・QoSの照合待ち",
-        "IFD-55: 版・QoSの照合待ち"
+        "IFD-55: 版・QoSの照合待ち",
+        "IFD-57: 版・QoSの照合待ち"
       ]
     },
     {
@@ -212,7 +213,7 @@
         "gouda_core/gouda_core/monitor_server.py:40: 1 — 時間の値（待ち・期限・周期）。`self.host,self.port,self.url_file,self.keepalive_s,self.min_interval_s=host,port,url_file,keepalive_s,1/max_rate_hz`",
         "gouda_core/gouda_core/monitor_server.py:66: 5 — 時間の値（待ち・期限・周期）。`if self._thread:self._thread.join(timeout=5)`",
         "gouda_core/gouda_core/motion_controller_node.py:36: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
-        "gouda_core/gouda_core/nav2_config.py:281: 1.0 — 承認値と同じ数（PRM-103・PRM-13・PRM-29・PRM-31・PRM-38・PRM-57・PRM-58・PRM-64・PRM-67・PRM-72・PRM-79・PRM-89・PRM-93・PRM-96・PRM-99）。`:0.0,:1.0}}`",
+        "gouda_core/gouda_core/nav2_config.py:301: 1.0 — 承認値と同じ数（PRM-103・PRM-13・PRM-29・PRM-31・PRM-38・PRM-57・PRM-58・PRM-64・PRM-67・PRM-72・PRM-79・PRM-89・PRM-93・PRM-96・PRM-99）。`:0.0,:1.0}}`",
         "gouda_core/gouda_core/recorder_node.py:34: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
         "gouda_core/gouda_core/sensor_supervisor_node.py:47: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
         "gouda_core/gouda_core/septentrio_query.py:86: 0.01 — 承認値と同じ数（PRM-83・PRM-85・PRM-86）。`time.sleep(0.01)`",
@@ -229,7 +230,7 @@
         "gouda.sh:105: 20 — 時間の値（待ち・期限・周期）。`for _ in $(seq 1 20); do [[ -s \"\" ]] && break; running || break; sleep 1; done`",
         "gouda.sh:123: 1 — 時間の値（待ち・期限・周期）。`sleep 1`",
         "setup.sh:56: 3 — 時間の値（待ち・期限・周期）。`curl -fL --retry 3 -o \"\" \"\"`",
-        "setup.sh:153: 50 — 承認値と同じ数（PRM-10・PRM-91）。`lidar_ip=\"\"value\"\"parameters\"\"id\"\"PRM-50\"\"$params_index\"\"`"
+        "setup.sh:155: 50 — 承認値と同じ数（PRM-10・PRM-91）。`lidar_ip=\"\"value\"\"parameters\"\"id\"\"PRM-50\"\"$params_index\"\"`"
       ]
     },
     {

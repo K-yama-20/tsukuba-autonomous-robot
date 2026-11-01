@@ -11,8 +11,11 @@ design/research/upstream_jazzy/nav2_bringup/params/nav2_params.yaml for 1.3.13) 
   obstacles from sensors/xt32/points (IFD-21) in the local VoxelLayer and the global ObstacleLayer, track_unknown_space true
   (RQ-I012), the SpeedFilter on the global costmap (IFD-14 / IFD-42, DEC-031), the navigate-through-poses BT built from the
   upstream BT with PRM-11 (RemovePassedGoals radius) and PRM-18 (outer RecoveryNode retries);
-- vehicle values PRM-17, PRM-66..73 (speeds, accelerations, footprint, obstacle heights, inflation); the local VoxelLayer's
-  z_resolution is derived so that its column reaches PRM-71 (the template's 16 x 0.05 m would cut it at 0.8 m);
+- vehicle values PRM-17, PRM-66..73 (speeds, accelerations, footprint, obstacle heights, inflation);
+- REV-185 (DEC-336, DEC-321, DEC-322, DEC-395, plan A / v2 plan Y): the obstacle height band PRM-70 / PRM-71 is cut in base_link by
+  the upstream pointcloud_to_laserscan (node xt32_scan, its section in the same parameter file) and published as a LaserScan
+  (IFD-57); the local VoxelLayer is replaced by an ObstacleLayer and both costmaps read that scan with Nav2's own band made
+  ineffective (Nav2 applies it in odom / map z, whose origin is GLIM's first IMU pose) and inf_is_valid true;
 - plan C (REV-134): the global costmap's obstacle_layer combination_method is 2 (MaxWithoutUnknownOverwrite: what the LiDAR sees
   while driving never turns an unknown cell outside the swept corridor into free; DEC-216; upstream default 1), and both
   inflation layers get inflate_around_unknown = PRM-98 (false: unknown cells are not inflated, so allow_unknown, left at the
@@ -64,6 +67,10 @@ from gouda_core import sensor_config as sc
 MAP_FRAME, ODOM_FRAME, BASE_FRAME = 'map', 'odom', 'base_link'
 ODOM_TOPIC = 'localization/odometry'          # IFD-25
 POINTS_TOPIC = '/sensors/xt32/points'          # IFD-21
+SCAN_TOPIC = '/sensors/xt32/scan'              # IFD-57 (REV-185, DEC-336 / DEC-395): the band cut in base_link, as a LaserScan
+SCAN_NODE = 'xt32_scan'                        # pointcloud_to_laserscan (ND-09, an upstream package)
+SCAN_PACKAGE, SCAN_EXECUTABLE = 'pointcloud_to_laserscan', 'pointcloud_to_laserscan_node'
+NO_BAND = float('inf')   # DEC-336: Nav2's own height band is made ineffective (the band is cut before, in base_link)
 # Absolute names: the SpeedFilter lives in the global_costmap namespace, where a relative name would become
 # /global_costmap/... and miss the servers and the controller (found in the VM test of 2026-10-17).
 SPEED_LIMIT_TOPIC = '/speed_limit'             # IFD-14
@@ -169,10 +176,11 @@ def apply_tunables(params: dict, t: dict) -> None:
     lc = params['local_costmap']['local_costmap']['ros__parameters']
     gc = params['global_costmap']['global_costmap']['ros__parameters']
     if has('local_costmap_size_m'): lc['width'] = lc['height'] = int(t['local_costmap_size_m'])
-    for src in (lc['voxel_layer']['points'], gc['obstacle_layer']['points']):
+    for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
         if has('obstacle_max_range_m'): src['obstacle_max_range'] = float(t['obstacle_max_range_m'])
         if has('raytrace_max_range_m'): src['raytrace_max_range'] = float(t['raytrace_max_range_m'])
-    if has('voxel_mark_threshold'): lc['voxel_layer']['mark_threshold'] = int(t['voxel_mark_threshold'])
+    if has('voxel_mark_threshold') and 'voxel_layer' in lc:   # PRM-127: no voxel layer since REV-185 (DEC-321), so unused
+        lc['voxel_layer']['mark_threshold'] = int(t['voxel_mark_threshold'])
     if has('global_costmap_update_hz'): gc['update_frequency'] = float(t['global_costmap_update_hz'])
     for c in (lc, gc):
         if has('inflation_cost_scaling_factor'): c['inflation_layer']['cost_scaling_factor'] = float(t['inflation_cost_scaling_factor'])
@@ -202,9 +210,20 @@ def missing(values: dict) -> list:
     return [f'{k} ({REQUIRED[(f, k)]})' for (f, k) in REQUIRED if values.get((f, k)) is None]
 
 
-def _observation(height_min: float, height_max: float) -> dict:
-    return {'topic': POINTS_TOPIC, 'data_type': 'PointCloud2', 'clearing': True, 'marking': True,
-            'min_obstacle_height': height_min, 'max_obstacle_height': height_max}
+def _scan_observation(template_scan: dict) -> dict:
+    """The ObstacleLayer source of the base_link-band scan (DEC-336): the template's scan source (its ranges kept) on SCAN_TOPIC,
+    no height band in Nav2, and directions without a point used for clearing (inf_is_valid, DEC-322; TRB-002)."""
+    s = dict(template_scan)
+    s.update({'topic': SCAN_TOPIC, 'data_type': 'LaserScan', 'clearing': True, 'marking': True, 'inf_is_valid': True,
+              'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND})
+    return s
+
+
+def scan_parameters(height_min: float, height_max: float) -> dict:
+    """pointcloud_to_laserscan (ND-09): the XT-32 points in base_link between PRM-70 and PRM-71, the whole circle, no point -> inf.
+    Every other value stays the package's own."""
+    return {'target_frame': BASE_FRAME, 'min_height': height_min, 'max_height': height_max,
+            'angle_min': -math.pi, 'angle_max': math.pi, 'use_inf': True, 'use_sim_time': False}
 
 
 def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
@@ -236,16 +255,17 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
         c['inflation_layer']['inflation_radius'] = infl
         c['inflation_layer']['inflate_around_unknown'] = bool(v['inflate_around_unknown'])   # PRM-98 (DEC-217)
     lc = p['local_costmap']['local_costmap']['ros__parameters']
-    vl = lc['voxel_layer']
-    vl.update({'observation_sources': 'points', 'max_obstacle_height': hmax, 'min_obstacle_height': hmin, 'points': _observation(hmin, hmax),
-               # the voxel column (z_voxels x z_resolution above origin_z) must reach PRM-71, or points below it are dropped
-               'z_resolution': (hmax - float(vl['origin_z'])) / int(vl['z_voxels'])})
-    vl.pop('scan', None)
     gc = p['global_costmap']['global_costmap']['ros__parameters']
+    template_scan = template['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']
+    # DEC-321 / DEC-336 (REV-185): local VoxelLayer -> ObstacleLayer; both layers read the base_link-band scan (IFD-57)
+    lc['plugins'] = ['obstacle_layer' if x == 'voxel_layer' else x for x in lc['plugins']]
+    lc.pop('voxel_layer', None)
+    lc['obstacle_layer'] = {'plugin': 'nav2_costmap_2d::ObstacleLayer', 'enabled': True, 'observation_sources': 'scan',
+                            'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND, 'scan': _scan_observation(template_scan)}
     ol = gc['obstacle_layer']
-    ol.update({'observation_sources': 'points', 'max_obstacle_height': hmax, 'min_obstacle_height': hmin, 'points': _observation(hmin, hmax),
+    ol.update({'observation_sources': 'scan', 'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND, 'scan': _scan_observation(template_scan),
                'combination_method': OBSTACLE_COMBINATION_GLOBAL})
-    ol.pop('scan', None)
+    p[SCAN_NODE] = {'ros__parameters': scan_parameters(hmin, hmax)}
     plugins = list(gc['plugins'])
     plugins.insert(plugins.index('inflation_layer'), KEEPOUT_LAYER)
     gc['plugins'] = plugins

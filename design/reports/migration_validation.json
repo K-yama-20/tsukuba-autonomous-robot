@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 6103,
+    "executed_checks": 6104,
     "violations": [
       {
         "code": "MIGRATION",
@@ -705,6 +705,7 @@
       "model file hash FILE-NAV2-UPSTREAM-DEFAULTS-1313",
       "model file hash FILE-RUN-574FE6D7-DECISIONS",
       "model file hash FILE-RUN-574FE6D7-NAV2",
+      "model file hash FILE-P2L-2-0-2-EXCERPT",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -8156,7 +8157,7 @@
   },
   "design_maturity": {
     "未設計": 424,
-    "案": 459,
+    "案": 460,
     "承認済み": 92
   },
   "revisions": [
@@ -9989,6 +9990,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-185",
+      "date": "2026-11-01",
+      "basis_refs": 5,
+      "added_entity_ids": 1,
+      "modified_entity_ids": 2,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -10286,11 +10297,11 @@
     }
   ],
   "decisions": {
-    "count": 343,
+    "count": 344,
     "by_status": {
-      "answered": 188,
+      "answered": 190,
       "recorded": 74,
-      "pending": 81
+      "pending": 80
     },
     "pending": [
       "DEC-021",
@@ -10339,7 +10350,6 @@
       "DEC-314",
       "DEC-316",
       "DEC-331",
-      "DEC-336",
       "DEC-337",
       "DEC-338",
       "DEC-341",
@@ -10381,7 +10391,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 975,
+    "entity_count": 976,
     "source_count": 512,
     "id_map_count": 202,
     "legacy_198_count": 198,

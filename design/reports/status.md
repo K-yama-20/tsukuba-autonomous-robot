@@ -1,6 +1,10 @@
 # 現状の要約（status.md）
 
-最終更新：2026-10-26（REV-184、第166便。REV-176〜183・第152〜165便は 2026-10-24）。
+最終更新：2026-11-01（REV-185、第167便。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
+
+**第167便: A案（障害物の高さの帯を base_link で切る、pointcloud_to_laserscan）の試験の準備（REV-185、DEC-395、DEC-336 回答）**（作業記録 `reports/worklog/2026-11-01_bin167_plan_a_scan_band.md`、ブランチ test/plan-a-scan-band-2026-11-01）。
+- 上流の pointcloud_to_laserscan で XT-32 の点群を base_link の帯（PRM-70・71）で切って LaserScan（IFD-57）にし、local（ObstacleLayer に）・global の costmap の観測源にした。Nav2 側の帯は無効、点のない方位は消去に使う。
+- Mac・VM の単体試験 OK、帯の確かめ（合成の点群で箱だけが出る）、模擬の結合試験 T1〜T6 合格。設計検査 違反 0・未判定 5。実車は未実行。VM にパッケージは未導入（update.sh、sudo、人の作業）。コミットはまだ。
 
 **第166便: monitor のモードの表示「一時停止」を「待機」に（REV-184、DEC-394）と、変更の push**（作業記録 `reports/worklog/2026-10-26_bin166_monitor_label_taiki.md`）。
 - 人の指示で、画面の表示名だけを「待機」に（正本の MODE-PAUSE・IFD-01・ボタンの文字は変えていない）。第156〜166便の変更をコミットして push（§5）。VM の Gouda には第165・166便は未反映（待機中の run-83d10ac0 の扱いが人の判断待ち）。

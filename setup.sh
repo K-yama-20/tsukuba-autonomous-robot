@@ -71,7 +71,9 @@ wanted=(git curl ros-jazzy-desktop ros-dev-tools python3-colcon-common-extension
         # GNSS driver (ND-19, DEC-123), the NTRIP relay str2str (DEC-139 option B1, DEC-151 step 4) and its TLS (DEC-361)
         ros-jazzy-septentrio-gnss-driver rtklib stunnel4 ca-certificates
         # global localization trial A3 (ND-07, DEC-202 / DEC-205; no version check, the VM has 1.9.0)
-        ros-jazzy-autoware-map-loader ros-jazzy-autoware-ndt-scan-matcher ros-jazzy-autoware-ekf-localizer ros-jazzy-pcl-ros)
+        ros-jazzy-autoware-map-loader ros-jazzy-autoware-ndt-scan-matcher ros-jazzy-autoware-ekf-localizer ros-jazzy-pcl-ros
+        # obstacle input of the costmaps (ND-09, REV-185, DEC-336): the base_link height band as a LaserScan
+        ros-jazzy-pointcloud-to-laserscan)
 missing=(); for p in "${wanted[@]}"; do installed "$p" || missing+=("$p"); done
 for p in ros-jazzy-glim ros-jazzy-glim-ros; do
   v="$(version_of "$p")"

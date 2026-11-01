@@ -571,6 +571,10 @@ files:
     path: design/research/vehicle_pc/2026-10-24_autonomy_stop_run-574fe6d7/nav2_log_042356_042502.txt
     sha256: 7492a119210527b7c02e986f4dc6af113d09348656736e3395e6446b68c7ddcf
     role: evidence
+  - id: FILE-P2L-2-0-2-EXCERPT
+    path: design/research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
+    sha256: 241172e72a49677fe0331404f68e5199afc0dc27c25e18655f781cb27d994f58
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -35520,7 +35524,8 @@ entities:
         が止まっているので車体の指令は生まれない（DEC-182）。lifecycle 化と作り方の見直し（A3 の EKF と役割が重なるか）は ND-07 の設計のときに必要なら判断する。
   - id: ND-09
     kind: ros_node
-    name: 障害物の扱い（独自の node なし。Nav2 costmap の VoxelLayer・ObstacleLayer の設定、DEC-122）
+    name: 障害物の扱い（上流の pointcloud_to_laserscan で base_link の高さの帯を切り、Nav2 costmap の ObstacleLayer 
+      に渡す。DEC-336・DEC-395）
     source_refs:
       - SRC-I015
       - SRC-I010
@@ -35532,20 +35537,24 @@ entities:
       - Q-04
       - G-ARCH
       - H-003
-    interpretation: ''
+    interpretation: REV-185（DEC-336・DEC-395）：帯を base_link で切る既製の pointcloud_to_laserscan を ND-09 とした（node 
+      xt32_scan、Nav2 と一緒に起動）。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I091
       - RQ-I007
-    revision_ref: REV-161
+    revision_ref: REV-185
     ros_node:
-      node_name: gouda_obstacle_filter
+      node_name: xt32_scan
       responsibilities:
-        - XT-32 点群（IFD-21）を Nav2 の costmap の観測源として直接使い、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。独自の node は作らない（DEC-122 の案 
-          a）
-        - 無点群を周囲安全の証拠にしない（観測外を安全とみなさない：RQ-I012。track_unknown_space）
-        - 坂で地面が帯に入り障害物になる場合は、実車の記録で確かめてから独自の地面の除去（旧案、DEC-107 と同じ課題）を提案する
+        - XT-32 点群（IFD-21）を上流の pointcloud_to_laserscan（node xt32_scan）で base_link 
+          に変換し、高さの帯（PRM-70・PRM-71、base_link 基準）の中の点だけを方位ごとの LaserScan（IFD-57）にする。独自の点群処理は作らない（DEC-336・DEC-395）
+        - local・global の costmap は IFD-57 を ObstacleLayer の観測源にし、Nav2 側の高さの帯は実質無効にする（Nav2 は帯を odom・map の z 
+          で当て、その原点は GLIM の最初の IMU の姿勢のため。DEC-336）。local は 2 次元（DEC-321、TRB-001）
+        - 帯の中に点のない方位は空きとして消去に使う（inf_is_valid、DEC-322、TRB-002）。これは「観測外を安全とみなさない」（RQ-I012）の人が認めた例外。それ以外の観測外（track_unknown_space）は今のまま
+        - pointcloud_to_laserscan が入っていなければ Nav2 を起動しない（障害物の入力なしで走らない）
+        - 坂で地面が帯に入り障害物になる場合は、実車の記録で確かめてから既製の地面の除去（patchwork++ など）を提案する
       absorbs_module_refs:
         - M-023
       active_in_mode_refs:
@@ -35553,7 +35562,8 @@ entities:
         - MODE-PAUSE
       lifecycle: external
       process_group: nav2
-      publishes_refs: []
+      publishes_refs:
+        - IFD-57
       subscribes_refs:
         - IFD-21
       serves_refs: []
@@ -35592,7 +35602,8 @@ entities:
       inactive（map→odom の持ち主がない）。 REV-119（DEC-183、A2 の (4)）：起動する server の名前（smoother_server・filter_mask_server・costmap_filter_info_server・lifecycle_manager_navigation
       を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。
       REV-132（DEC-209）：recovery の回数を IFD-54 から読む。 REV-134（DEC-214・216〜218）：costmap の合成と膨らませの設定。 REV-137（DEC-222）：keepout
-      の server と filter。 REV-140（DEC-227 案 A）：global costmap に keepout_layer（StaticLayer、inflation の前）。'
+      の server と filter。 REV-140（DEC-227 案 A）：global costmap に keepout_layer（StaticLayer、inflation の前）。 REV-185（DEC-336・DEC-395）：costmap
+      の障害物の観測源を IFD-57（LaserScan）にした。local の VoxelLayer を ObstacleLayer に替えた（DEC-321）。'
     sensitivity:
       - safety
       - operation
@@ -35604,7 +35615,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-161
+    revision_ref: REV-185
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35661,6 +35672,7 @@ entities:
         - IFD-20
         - IFD-42
         - IFD-54
+        - IFD-57
       serves_refs:
         - IFD-13
       calls_refs: []
@@ -48225,6 +48237,55 @@ entities:
       param_key: inflation_cost_scaling_factor
       value_type: double
       apply_timing: launch
+  - id: IFD-57
+    kind: designed_interface
+    name: sensors/xt32/scan（XT-32 の点群を base_link の高さの帯で切った LaserScan）
+    source_refs:
+      - SRC-I015
+      - SRC-I010
+    design_status: 案
+    adoption: designed_proposal
+    field_bindings: {}
+    related_refs:
+      - IFD-21
+      - PRM-70
+      - PRM-71
+    issue_refs:
+      - Q-04
+      - G-DDS
+    interpretation: REV-185（DEC-336・DEC-395）で追加。
+    sensitivity:
+      - safety
+    requirement_refs:
+      - RQ-I091
+      - RQ-I007
+    revision_ref: REV-185
+    designed_interface:
+      transport: topic
+      name: sensors/xt32/scan
+      message_type: sensor_msgs/msg/LaserScan
+      standard_type: true
+      custom_type_reason:
+      purpose: data
+      owner_ref: ND-09
+      publisher_refs:
+        - ND-09
+      consumer_refs:
+        - ND-10
+      unit: m
+      frame: base_link（pointcloud_to_laserscan の target_frame。距離は base_link の x・y の平面）
+      time_semantics: header.stamp は元の点群（IFD-21）の stamp のまま。高さ（base_link の z）が PRM-70 と PRM-71 
+        の間の点だけを使い、方位ごとに一番近い点の距離。範囲の中に点のない方位は inf（use_inf）
+      qos:
+        reliability: best_effort
+        durability: volatile
+        history_depth: 5
+      version_dependency:
+        status: confirmed_upstream
+        evidence:
+          - research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
+        note: 上流 pointcloud_to_laserscan 2.0.2 のソース（SensorDataQoS）で照合。実車PC に導入された版との一致は導入時に確認する
+      legacy_refs: []
 migration:
   baseline_definition_count: 198
   id_map:
@@ -62488,23 +62549,25 @@ decisions:
     disposition: answered
   - id: DEC-336
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-10-23'
-    answered_on:
+    answered_on: '2026-11-01'
     channel: chat
     question: 【承認】（第2版 V2-1）高さの帯 PRM-70・71（正本では base_link 基準）を、帯の段（DEC-320 の案 X か Y）で base_link に当て、Nav2 の観測源の
       min/max_obstacle_height は帯を実質無効にする広い値 （新しい PRM）にするか。今は Nav2 が odom・map の z で当てている（設計と実装の不一致）。
-    answer_verbatim: ''
+    answer_verbatim: "mid260は今週水曜までに統合する。\nA案で試そう。これは既製品を最大限活用する案だよね\n"
     affected_refs:
       - PRM-70
       - PRM-71
       - ND-09
       - ND-10
       - IFD-21
-    resulting_refs: []
+    resulting_refs:
+      - ND-09
+      - IFD-57
     note: 推奨は承認。DEC-320 の回答（rosbag で比較検討）は、帯の段の 2 案がどちらも base_link に当てる前提の問いへの答えだが、base_link 
       で当てること自体の承認は明示されていないので確認する。 決まらない場合に止まる作業：帯の段の実装。
-    disposition: open_human
+    disposition: answered
   - id: DEC-337
     kind: approval
     status: pending
@@ -63885,6 +63948,28 @@ decisions:
     note: 変えたのは monitor の表示名だけ（monitor_core.MODE_LABELS_JA の 4、/config「Nav2」タブの説明の 1 か所）。正本のモードの名前（MODE-PAUSE 
       一時停止）、intent.md、 IFD-01 の値（mode code 4・名前 PAUSE）、記録（stop_reason など）、一時停止ボタン（TR-06 
       の操作。押すと待機に入る）の文字は変えていない。第166便。
+    disposition: answered
+  - id: DEC-395
+    kind: approval
+    status: answered
+    asked_on: '2026-11-01'
+    answered_on: '2026-11-01'
+    channel: chat
+    question: （第167便）DEC-320 の回答（rosbag で案 X と案 Y を比べてから決める）の前に、案 Y（pointcloud_to_laserscan）を入れて実車で試すか。
+    answer_verbatim: "mid260は今週水曜までに統合する。\nA案で試そう。これは既製品を最大限活用する案だよね\n（2026-11-01、主のチャット）試験用にブランチを作って、A案を試す準備をせよ。\n"
+    affected_refs:
+      - DEC-320
+      - ND-09
+      - ND-10
+    resulting_refs:
+      - ND-09
+      - IFD-57
+    note: 「A案」は AI が直前に説明した A 案（高さの帯を base_link で当てる、案 Y＝pointcloud_to_laserscan → 
+      ObstacleLayer）。「試そう」なので、rosbag の比べ方 （DEC-320）は取り下げず後に回す。DEC-320 は書き換えない。「mid260」は MID-360 
+      と解釈した（今週水曜＝2026-11-04 までに統合する人の予定。統合の構成は第167便の 作業記録の案で、まだ承認事項にしていない）。範囲の下限 PRM-70 は変えていない（AI の推奨の 0.15 m
+      は未承認）。PRM-127（voxel の mark_threshold）は VoxelLayer が なくなったので使われない。前の 2 
+      行は分けたチャット（local_65aa941e）での人の回答で、引き継ぎで受け取った。主のチャットで人が「試験用にブランチを作って、A案を試す準備をせよ。」と指示したので、試験用のブランチ（test/plan-a-scan-band-2026-11-01）で準備する。VM
+      の Gouda への反映は人の許可の後。第167便。
     disposition: answered
 revisions:
   - id: REV-002
@@ -67854,4 +67939,25 @@ revisions:
       - ND-02
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-185
+    date: '2026-11-01'
+    summary: 第167便：人の回答「A案で試そう。これは既製品を最大限活用する案だよね」で DEC-336 を承認として記録し、costmap の入力の第2版の案 Y を、rosbag の比べ方の前に試す 
+      （DEC-395）。XT-32 の点群を上流の pointcloud_to_laserscan（ND-09）で base_link の高さの帯（PRM-70・71）で切って 
+      LaserScan（IFD-57）にし、local （VoxelLayer を ObstacleLayer に、DEC-321）・global の ObstacleLayer の観測源にする。Nav2 
+      側の帯は実質無効、点のない方位は消去に使う（DEC-322）。
+    basis_refs:
+      - DEC-336
+      - DEC-395
+      - DEC-320
+      - DEC-321
+      - DEC-322
+    added_entity_ids:
+      - IFD-57
+    modified_entity_ids:
+      - ND-09
+      - ND-10
+    added_source_ids: []
+    added_file_ids:
+      - FILE-P2L-2-0-2-EXCERPT
     removed_entity_ids: []

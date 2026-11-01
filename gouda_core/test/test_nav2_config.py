@@ -8,6 +8,7 @@ vehicle value is decided: a copy of the generated files with one vehicle value r
 than run with general values, intent.md:85), the real generated files (all decided since REV-122) build (REV-125, DEC-199)."""
 import copy
 import json
+import math
 import os
 import shutil
 import sys
@@ -128,14 +129,25 @@ class Nav2ConfigTests(unittest.TestCase):
             self.assertEqual(c['global_frame'], frame); self.assertTrue(c['track_unknown_space']); self.assertNotIn('robot_radius', c)
             self.assertEqual(c['footprint'], v['footprint']); self.assertEqual(c['inflation_layer']['inflation_radius'], v['inflation_radius_m'])
             self.assertIs(c['inflation_layer']['inflate_around_unknown'], bool(v['inflate_around_unknown']))   # PRM-98 (DEC-217)
-        vl = self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer']
-        self.assertEqual(vl['points']['topic'], nc.POINTS_TOPIC); self.assertNotIn('scan', vl)
-        self.assertEqual((vl['points']['min_obstacle_height'], vl['points']['max_obstacle_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))
-        self.assertAlmostEqual(vl['origin_z'] + vl['z_voxels'] * vl['z_resolution'], v['obstacle_max_height_m'])
+        # REV-185 (DEC-336 / DEC-321 / DEC-322): the band is cut in base_link by pointcloud_to_laserscan; both costmaps read its scan
+        lc = self.p['local_costmap']['local_costmap']['ros__parameters']
+        self.assertNotIn('voxel_layer', lc); self.assertEqual(lc['plugins'][0], 'obstacle_layer')
         g = self.p['global_costmap']['global_costmap']['ros__parameters']
+        for layer in (lc['obstacle_layer'], g['obstacle_layer']):
+            self.assertEqual(layer['plugin'], 'nav2_costmap_2d::ObstacleLayer'); self.assertEqual(layer['observation_sources'], 'scan')
+            s = layer['scan']
+            self.assertEqual((s['topic'], s['data_type']), (nc.SCAN_TOPIC, 'LaserScan')); self.assertIs(s['inf_is_valid'], True)
+            self.assertEqual((s['min_obstacle_height'], s['max_obstacle_height']), (-float('inf'), float('inf')))   # no band in Nav2
+            self.assertEqual((layer['min_obstacle_height'], layer['max_obstacle_height']), (-float('inf'), float('inf')))
+            ts = template()['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']
+            self.assertEqual((s['obstacle_max_range'], s['raytrace_max_range']), (ts['obstacle_max_range'], ts['raytrace_max_range']))
+        sc = self.p[nc.SCAN_NODE]['ros__parameters']
+        self.assertEqual(sc['target_frame'], 'base_link')
+        self.assertEqual((sc['min_height'], sc['max_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))   # PRM-70 / PRM-71
+        self.assertEqual((sc['angle_min'], sc['angle_max'], sc['use_inf']), (-math.pi, math.pi, True))
         # DEC-216: what the LiDAR sees never turns the unknown outside of the swept corridor into free (global only)
         self.assertEqual(g['obstacle_layer']['combination_method'], 2)
-        self.assertNotIn('combination_method', self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer'])
+        self.assertNotIn('combination_method', lc['obstacle_layer'])
         self.assertEqual(g['filters'], ['speed_filter', 'keepout_filter']); self.assertEqual(g['speed_filter']['plugin'], 'nav2_costmap_2d::SpeedFilter')   # keepout: DEC-222 (REV-137)
         # the filter lives in the global_costmap namespace: its topics must be absolute to meet the servers and the controller
         self.assertTrue(g['speed_filter']['filter_info_topic'].startswith('/')); self.assertTrue(g['speed_filter']['speed_limit_topic'].startswith('/'))
@@ -261,8 +273,9 @@ class TunableTests(unittest.TestCase):
             tl, tg = t['local_costmap']['local_costmap']['ros__parameters'], t['global_costmap']['global_costmap']['ros__parameters']
             self.assertEqual((lc['width'], lc['height']), (tl['width'], tl['height']))
             self.assertEqual(gc['update_frequency'], tg['update_frequency'])
-            self.assertNotIn('obstacle_max_range', lc['voxel_layer']['points']); self.assertNotIn('raytrace_max_range', gc['obstacle_layer']['points'])
-            self.assertEqual(lc['voxel_layer']['mark_threshold'], tl['voxel_layer']['mark_threshold'])
+            ts = tg['obstacle_layer']['scan']   # the ranges stay the template's (REV-185)
+            for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
+                self.assertEqual((src['obstacle_max_range'], src['raytrace_max_range']), (ts['obstacle_max_range'], ts['raytrace_max_range']))
             self.assertEqual(lc['inflation_layer']['cost_scaling_factor'], tl['inflation_layer']['cost_scaling_factor'])
             src = ET.parse(str(BT_TEMPLATE)).getroot()
             for tag in ('Spin', 'Wait', 'BackUp'):
@@ -290,9 +303,9 @@ class TunableTests(unittest.TestCase):
             self.assertNotIn('lookahead_dist', follow)   # not saved and unresolved: the plugin value stays
             lc, gc = p['local_costmap']['local_costmap']['ros__parameters'], p['global_costmap']['global_costmap']['ros__parameters']
             self.assertEqual((lc['width'], lc['height']), (6, 6))
-            for src in (lc['voxel_layer']['points'], gc['obstacle_layer']['points']):
+            for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
                 self.assertEqual((src['obstacle_max_range'], src['raytrace_max_range']), (3.0, 4.0))
-            self.assertEqual(lc['voxel_layer']['mark_threshold'], 1); self.assertEqual(gc['update_frequency'], 2.0)
+            self.assertNotIn('voxel_layer', lc); self.assertEqual(gc['update_frequency'], 2.0)   # PRM-127 unused since REV-185
             for c in (lc, gc):
                 self.assertEqual((c['inflation_layer']['cost_scaling_factor'], c['inflation_layer']['inflation_radius']), (5.0, 0.8))
             self.assertIsNone(bt.find('.//Spin')); self.assertIsNotNone(bt.find('.//BackUp'))   # spin removed, backup kept
@@ -311,7 +324,7 @@ class TunableTests(unittest.TestCase):
             lc = p['local_costmap']['local_costmap']['ros__parameters']
             self.assertEqual(lc['width'], t['local_costmap']['local_costmap']['ros__parameters']['width'])
             self.assertIsNotNone(bt.find('.//Spin'))
-            self.assertNotIn('obstacle_max_range', lc['voxel_layer']['points'])
+            self.assertEqual(lc['obstacle_layer']['scan']['obstacle_max_range'], t['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']['obstacle_max_range'])
             for k in bad:
                 self.assertIn('is not valid', r['tunables'][k]['note'], k)
 

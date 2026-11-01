@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 81
+pending_decision_count: 80
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1303,12 +1303,6 @@ pending_decisions:
     question: 【確認】モード名「一時停止」→「待機」（DEC-330）を、どこまで変えるか。(1) intent.md（人が直す）、(2) 正本 model.yaml 
       の名前・説明（MODE-PAUSE、TR-07〜09・TR-13〜16 など）と生成物、 (3) monitor の表示（ボタン「一時停止」「再開」など）、(4) コードの識別子（モードの値 
       pause、メッセージの定数、topic・service 名）。
-    resulting_refs: []
-  - id: DEC-336
-    kind: approval
-    status: pending
-    question: 【承認】（第2版 V2-1）高さの帯 PRM-70・71（正本では base_link 基準）を、帯の段（DEC-320 の案 X か Y）で base_link に当て、Nav2 の観測源の
-      min/max_obstacle_height は帯を実質無効にする広い値 （新しい PRM）にするか。今は Nav2 が odom・map の z で当てている（設計と実装の不一致）。
     resulting_refs: []
   - id: DEC-337
     kind: approval
