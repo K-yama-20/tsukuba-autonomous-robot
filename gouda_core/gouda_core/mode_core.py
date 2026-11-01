@@ -181,10 +181,16 @@ def request_transition(event: str, state: ModeState, implemented: frozenset = fr
 # 一時停止 without a human flag (RQ-I017, RQ-I012); resuming needs the human resume (TR-10, RQ-I025). TR-07 also covers 推定不能
 # (REV-128, DEC-200) with its own stop reason, so that it is told apart from the plan failure (RQ-I029).
 # ---------------------------------------------------------------------------------------------------------------------
-STOP_REASON_PLAN_FAILURE = 'plan_failure'       # 計画の失敗／blocked (Nav2 BT failed after its own recovery: RQ-I012)
+STOP_REASON_PLAN_FAILURE = 'plan_failure'       # 計画の失敗 (ComputePath* error codes since REV-183; Nav2 BT failed after its own recovery: RQ-I012)
 STOP_REASON_NODE_FAILURE = 'node_failure'       # node の異常 (the autonomy start failed: Nav2 / vehicle output / goal)
 STOP_REASON_GOAL_REACHED = 'goal_reached'       # 最終 waypoint 到達 (TR-08)
 STOP_REASON_ESTIMATOR = 'estimator_unavailable'   # 推定不能 (ND-07 state IFD-53 not 正常, or no state: DEC-200, REV-128)
+# E-4 (REV-183, DEC-393): a Nav2 goal failure is told apart by its error code (autonomy_core.nav2_failure_reason)
+STOP_REASON_BLOCKED = 'blocked'                   # FollowPath: patience exceeded / no progress / no valid control (an obstacle)
+STOP_REASON_CONTROLLER = 'controller_failure'     # FollowPath: other codes (unknown, invalid controller / path, timed out)
+STOP_REASON_NAV2_TF = 'nav2_tf_error'             # FollowPath / ComputePath*: TF_ERROR (a transform too old or missing)
+STOP_REASON_NAV2_NO_CODE = 'nav2_no_error_code'   # no error code (e.g. an action server that did not acknowledge in time)
+STOP_REASON_NAV2_OTHER = 'nav2_unclassified'      # a code that is in none of the tables above
 
 
 def automatic_pause(state: ModeState, transition_id: str, stop_reason: str, remaining_waypoints: int) -> Optional[ModeState]:

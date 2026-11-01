@@ -13,9 +13,10 @@ confirm they are inactive before GLIM starts (guard kept in the design).
 
 Stage 5-6 (REV-061, DEC-120 / DEC-122): TR-05 (自律走行開始) — the waypoint set, its mask and the map are checked by hash
 (autonomy_core.resolve_mission), Nav2 must be configured (nav2_config: no unresolved vehicle value) and an initial pose in the
-map frame must be given; then the mode becomes 自律走行 with motion_hold still true, and a worker sets the Nav2 parameters,
-sends the initial pose (IFD-34), starts Nav2 (IFD-36), activates ND-11 / ND-12 and sends the NavigateThroughPoses goal
-(IFD-13). The hold is released only when speed_limit_application_state is 適用中 (DEC-056). A failed start goes to 一時停止
+map frame must be given; then the mode becomes 自律走行 with motion_hold still true, and a worker first activates ND-11 / ND-12
+(DEC-391: neutral reaches the ESP32 while the rest starts), then sets the Nav2 parameters, sends the initial pose (IFD-34), starts
+Nav2 (IFD-36) and sends the NavigateThroughPoses goal (IFD-13). The hold is released only when speed_limit_application_state is
+適用中 (DEC-056). A failed start goes to 一時停止
 (stop_reason node_failure, recorded with TR-07). TR-06 一時停止 (hold, goal cancel), TR-10 再開 in the same process (a new goal
 from the first waypoint not yet passed; after a PC restart the resume is refused: 5-7), TR-11 / TR-12 終了 (cancel, ND-11 /
 ND-12 deactivate, Nav2 RESET, auto log stop), TR-07 (Nav2 failed) and TR-08 (last waypoint reached) from the result.
@@ -129,8 +130,9 @@ class ModeManagerNode(Node):
         self.drive_released = False         # hold released in 自律走行 only after 適用中 (DEC-056)
         self.goal_active = False
         self._pending_start = None
-        from gouda_core.autonomy_client import AutonomyClient
+        from gouda_core.autonomy_client import AutonomyClient, error_code_table
         self.auto = AutonomyClient(self, self._on_nav_feedback, self._on_nav_result, self._on_speed_state, self._on_keepout)
+        self._error_codes = error_code_table()   # E-4 (DEC-393): stop reasons from the nav2_msgs error constants
         # ND-07's state (IFD-53, REV-128): fed to the start, and watched while driving
         self.estimator_rx = None   # receive time of the last IFD-53 (node clock)
         self.create_subscription(EstimatorStatus, 'localization/status', self._on_estimator_status, LATCHED)
@@ -352,6 +354,7 @@ class ModeManagerNode(Node):
                                    'initial_pose_required': False, 'speed_limit_application_state': ac.SL_NOT_LOADED}
         token = self.auto.new_token()
         def steps(rec):
+            self.auto.activate_vehicle_output(token, rec)   # first: neutral to the ESP32 while the rest starts (DEC-391)
             self._start_odometry(rec, run_id)
             self.auto.start(token, mission, pose, rec)
         def job():
@@ -511,8 +514,9 @@ class ModeManagerNode(Node):
                 return
             if status == GoalStatus.STATUS_CANCELED:
                 self._publish_decision('nav2_goal_ended', '', 'Nav2 goal cancelled', {'status': status}); return
-            self._auto_pause('TR-07', mode_core.STOP_REASON_PLAN_FAILURE, f'Nav2 goal ended with status {status}: error_code {error_code} {error_msg}'.strip(),
-                             {'status': status, 'error_code': error_code, 'error_msg': error_msg})
+            reason, code_name = ac.nav2_failure_reason(error_code, self._error_codes)   # E-4 (DEC-393)
+            self._auto_pause('TR-07', reason, f'Nav2 goal ended with status {status}: error_code {error_code} ({code_name}) {error_msg}'.strip(),
+                             {'status': status, 'error_code': error_code, 'error_code_name': code_name, 'error_msg': error_msg})
 
     def _on_speed_state(self, state, details):
         with self._lock:

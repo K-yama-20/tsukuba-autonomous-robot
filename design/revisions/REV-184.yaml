@@ -1,0 +1,36 @@
+# 変更セット REV-184（2026-10-26 第166便: gouda_monitor のモードの表示「一時停止」を「待機」に、DEC-394）
+# 適用: design/tools/apply_revision.py REV-184
+id: REV-184
+date: '2026-10-26'
+summary: >-
+  第166便：人の指示「gouda_monitorのモード「一時停止」を「待機」に変更せよ。」で、monitor の画面のモードの表示名（MODE-PAUSE、mode code 4）を「待機」にする。
+  正本のモードの名前（MODE-PAUSE 一時停止）・状態遷移・IFD-01 の値（PAUSE）・一時停止ボタンの文字は変えない。
+basis_refs:
+- DEC-394
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-394
+  kind: approval
+  status: answered
+  asked_on: '2026-10-26'
+  answered_on: '2026-10-26'
+  channel: chat
+  question: >-
+    （人の指示）gouda_monitor の画面に出るモードの名前「一時停止」を変えるか。
+  answer_verbatim: |
+    gouda_monitorのモード「一時停止」を「待機」に変更せよ。そして、これまでの変更を一度pushせよ。
+  affected_refs:
+  - ND-02
+  - MODE-PAUSE
+  resulting_refs:
+  - ND-02
+  note: >-
+    変えたのは monitor の表示名だけ（monitor_core.MODE_LABELS_JA の 4、/config「Nav2」タブの説明の 1 か所）。正本のモードの名前（MODE-PAUSE 一時停止）、intent.md、
+    IFD-01 の値（mode code 4・名前 PAUSE）、記録（stop_reason など）、一時停止ボタン（TR-06 の操作。押すと待機に入る）の文字は変えていない。第166便。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-02
+  interpretation_append: 'REV-184（DEC-394）：画面のモードの表示名で MODE-PAUSE を「待機」と出す。'
+decision_updates: []

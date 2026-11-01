@@ -1,0 +1,31 @@
+[controller_server-7] [INFO] [1792777579.263364984] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777580.312464651] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777581.314280443] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777582.436869860] [controller_server]: Passing new path to controller.
+[controller_server-7] [ERROR] [1792777583.067085777] [controller_server]: Failed to make progress
+[controller_server-7] [WARN] [1792777583.068022611] [controller_server]: [follow_path] [ActionServer] Aborting handle.
+[controller_server-7] [INFO] [1792777583.090643944] [local_costmap.local_costmap]: Received request to clear entirely the local_costmap
+[bt_navigator-11] [WARN] [1792777583.109613611] [bt_navigator_navigate_through_poses_rclcpp_node]: Node timed out while executing service call to local_costmap/clear_entirely_local_costmap.
+[controller_server-7] [INFO] [1792777583.128161902] [local_costmap.local_costmap]: KeepoutFilter: Subscribing to "/keepout_costmap_filter_info" topic for filter info...
+[bt_navigator-11] [WARN] [1792777583.131687819] [bt_navigator_navigate_through_poses_rclcpp_node]: Node timed out while executing service call to local_costmap/clear_entirely_local_costmap.
+[behavior_server-10] [INFO] [1792777583.133030361] [behavior_server]: Running spin
+[behavior_server-10] [INFO] [1792777583.133164444] [behavior_server]: Turning 1.57 for spin behavior.
+[controller_server-7] [INFO] [1792777583.133510861] [local_costmap.local_costmap]: Received request to clear entirely the local_costmap
+[controller_server-7] [INFO] [1792777583.143005986] [local_costmap.local_costmap]: KeepoutFilter: Subscribing to "/keepout_costmap_filter_info" topic for filter info...
+[controller_server-7] [INFO] [1792777583.157048069] [local_costmap.local_costmap]: KeepoutFilter: Received filter info from /keepout_costmap_filter_info topic.
+[controller_server-7] [INFO] [1792777583.157096152] [local_costmap.local_costmap]: KeepoutFilter: Subscribing to "/keepout_filter_mask" topic for filter mask...
+[controller_server-7] [WARN] [1792777583.280415444] [local_costmap.local_costmap]: KeepoutFilter: New filter mask arrived from /keepout_filter_mask topic. Updating old filter mask.
+[controller_server-7] [INFO] [1792777607.469717164] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777608.507178664] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777609.527375332] [controller_server]: Passing new path to controller.
+[controller_server-7] [INFO] [1792777610.598637957] [controller_server]: Passing new path to controller.
+[planner_server-9] [INFO] [1792777611.010200332] [global_costmap.global_costmap]: Message Filter dropping message: frame 'xt32_link' at time 1792777610.601 for reason 'the timestamp on the message is earlier than all the data in the transform cache'
+[controller_server-7] [INFO] [1792777611.013906416] [local_costmap.local_costmap]: Message Filter dropping message: frame 'xt32_link' at time 1792777610.601 for reason 'the timestamp on the message is earlier than all the data in the transform cache'
+[controller_server-7] [INFO] [1792777611.598037708] [controller_server]: Passing new path to controller.
+[controller_server-7] [ERROR] [1792777611.598170999] [tf_help]: Transform data too old when converting from map to odom
+[controller_server-7] [ERROR] [1792777611.598193583] [tf_help]: Data time: 1792777611s 528391041ns, Transform time: 1792777611s 100043058ns
+[controller_server-7] [ERROR] [1792777611.598230708] [controller_server]: Failed to transform end pose to global frame
+[controller_server-7] [WARN] [1792777611.599552124] [controller_server]: [follow_path] [ActionServer] Aborting handle.
+[bt_navigator-11] [WARN] [1792777611.638673749] [bt_navigator]: [navigate_through_poses] [ActionServer] Aborting handle.
+[bt_navigator-11] [ERROR] [1792777611.638998666] [bt_navigator]: Goal failed
+[gouda_mode_manager-14] [WARN] [1792777611.646607291] [gouda_mode_manager]: TR-07: Nav2 goal ended with status 6: error_code 102

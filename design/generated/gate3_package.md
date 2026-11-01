@@ -2,15 +2,15 @@
 
 # ゲート3 承認資料
 
-状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 169 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
+状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 195 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
 
 ## 1. 承認対象
 
-### 1.1 下位設計案（adoption=designed_proposal、169 件）
+### 1.1 下位設計案（adoption=designed_proposal、195 件）
 
-- designed_interface（55）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`, `IFD-56`
+- designed_interface（56）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`, `IFD-56`, `IFD-57`
 - issue（11）: `G-DDS`, `G-DUP-START`, `G-FLOOR-REFLECTION`, `G-LIDAR-DROPOUT`, `G-MAP-TILT`, `G-REC-ROSBAG-RESTART`, `G-GLIM-EXIT`, `G-INIT-POSE-GNSS`, `G-NAV2-FIRST-GOAL`, `G-GNSS-NO-HEADING`, `G-RECOVERY-COUNT`
-- parameter（9）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-19`, `PRM-20`, `PRM-37`
+- parameter（34）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-19`, `PRM-20`, `PRM-37`, `PRM-105`, `PRM-106`, `PRM-107`, `PRM-108`, `PRM-109`, `PRM-110`, `PRM-111`, `PRM-112`, `PRM-113`, `PRM-114`, `PRM-115`, `PRM-116`, `PRM-117`, `PRM-118`, `PRM-119`, `PRM-120`, `PRM-121`, `PRM-122`, `PRM-123`, `PRM-124`, `PRM-125`, `PRM-126`, `PRM-127`, `PRM-128`, `PRM-129`
 - ros_node（19）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`, `ND-18`, `ND-19`
 - state_owner（12）: `SO-01`, `SO-02`, `SO-03`, `SO-04`, `SO-05`, `SO-06`, `SO-07`, `SO-08`, `SO-09`, `SO-10`, `SO-11`, `SO-12`
 - test（47）: `TS-01`, `TS-02`, `TS-03`, `TS-04`, `TS-05`, `TS-06`, `TS-07`, `TS-08`, `TS-09`, `TS-10`, `TS-11`, `TS-12`, `TS-13`, `TS-14`, `TS-15`, `TS-16`, `TS-17`, `TS-18`, `TS-19`, `TS-20`, `TS-21`, `TS-22`, `TS-23`, `TS-24`, `TS-25`, `TS-26`, `TS-27`, `TS-28`, `TS-29`, `TS-30`, `TS-31`, `TS-32`, `TS-33`, `TS-34`, `TS-35`, `TS-36`, `TS-37`, `TS-38`, `TS-39`, `TS-40`, `TS-41`, `TS-42`, `TS-43`, `TS-44`, `TS-45`, `TS-46`, `TS-47`
@@ -18,7 +18,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、184 件）を根拠にした要素
+### 1.2 人の決定（answered、190 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -192,6 +192,7 @@
 | DEC-330 | B1： goudaのモードとしての一時停止と、自律走行中に道路端に達した際の一時停止が用語としてかぶっており、AIが混乱しているようだから、モード名を"待機"モードと名称変更する。その上で、君の現状の | `DEC-331` |
 | DEC-332 | B2: 横断歩道の状態遷移は最優先で作ること。waypointの属性で止まり、人が再開ボタンを押して再開させる形が良い。<br> | モデル外: 人の決定：横断歩道の状態遷移を最優先で作る。形は、waypoint の属性で止まり、人が再開ボタンを押して再開する。次に設計の提案を出す。実装の許可（DEC-106）は、 設計を示したときに項目ごとに確認する。モードの名前は DEC-330（待機）と組で決める。 |
 | DEC-335 | B5: nebulaは後回しで良い。<br> | モデル外: Nebula は後回し。PTP は回答に含まれていないが、Nebula と組で後回しの扱いとして記録する（AI の解釈）。今のドライバ（DEC-080）と受信時刻（DEC-083・PRM-55）は変えない。 |
+| DEC-336 | mid260は今週水曜までに統合する。<br>A案で試そう。これは既製品を最大限活用する案だよね<br> | `ND-09`, `IFD-57` |
 | DEC-342 | 判断1~3は推奨案を許可。<br> | モデル外: 推奨は c。理由：人に囲まれた数秒の推定不能では止まらず、長く続くときはずれが大きくなる前に止まる。人の発言（DEC-340）の「時間がたつと推定できるようになる」に合う。 回復の判定に連続 N 回（tbd）を置く。D と N は DEC-346 で実測。どの案でも待機には入らない。DEC-306（pending、推奨 |
 | DEC-345 | 異常の時にチームメンバーがボタンを押すなどの操作を加えると、走行失敗になる。再開ボタンを押しても良いのは一時停止線で停止した後や、信号が青になった後のみである。<br>停止線での再開にpcのボタンを使って良 | モデル外: AI は規則の原文を読んでいない。自動で待機に入らない設計（DEC-305）では、異常のときに止める手段は人の待機ボタン・終了ボタン・ゲームパッドになる。ゲームパッドはスタートの後に使うと失敗（EV-19）。 待機ボタンも失敗なら、本番では止める手段は失敗を受け入れる場合だけになる。人が規則を確かめる。決まらない場合に |
 | DEC-347 | costmapの更新頻度は暫定的に1Hzとしたい。また、この値は/configで変更できるようにせよ。<br> | `PRM-103` |
@@ -206,8 +207,13 @@
 | DEC-364 | Implement the proposed /config scroll fix and check it in the demo monitor.<br> | モデル外: 原因の分類は実装（画面の CSS の誤り）。デモの monitor（gouda_core/test/demo_monitor_server.py、1600×900）で、自分のタブの DOM にだけ試験用の入力欄 40 と表の行 10 を入れ、 3 つのサブタブとも、パネルがタブの中に収まること、入力欄の並びが縮まないこ |
 | DEC-365 | 判断1~3は推奨案を許可。<br> | モデル外: 推奨は承認。理由：KUAMS は WHILL の車輪オドメトリ（LiDAR と独立）で推測航法をしていた（lidar_localization_component.cpp の cloudReceived・odomReceived、KUAMS のコードで確認）。 gouda の GLIM は LiDAR と同じ原因（LA |
 | DEC-385 | DEC-385を承認する。<br> | `DEC-356` |
+| DEC-391 | Aを実行せよ。自律走行開始を押したら、中立信号をまず送る。その間にNav2とが立ち上がったりする<br> | `TR-05` |
+| DEC-392 | M1,M2の推奨案を採用。また、monitorの更新周期を5Hzくらいに下げてみることも検討<br> | `PRM-104`, `ND-02` |
+| DEC-393 | A1, E4: 採用<br>E1,2,3; 検討<br><br>A2,4,5,B3,4,C2,3,4,6D1,4: /configで設定できるようにする。推奨値も考えて<br> | `TR-07`, `IFD-54`, `PRM-105`, `PRM-106`, `PRM-107`, `PRM-108`, `PRM-109`, `PRM-110` |
+| DEC-394 | gouda_monitorのモード「一時停止」を「待機」に変更せよ。そして、これまでの変更を一度pushせよ。<br> | `ND-02` |
+| DEC-395 | mid260は今週水曜までに統合する。<br>A案で試そう。これは既製品を最大限活用する案だよね<br>（2026-11-01、主のチャット）試験用にブランチを作って、A案を試す準備をせよ。<br> | `ND-09`, `IFD-57` |
 
-### 1.3 承認済み（91 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`, `PRM-101`, `PRM-102`, `PRM-103`
+### 1.3 承認済み（92 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`, `PRM-101`, `PRM-102`, `PRM-103`, `PRM-104`
 
 ## 2. 承認によって着手する作業（工程と完了条件は docs/implementation_stages.md）
 

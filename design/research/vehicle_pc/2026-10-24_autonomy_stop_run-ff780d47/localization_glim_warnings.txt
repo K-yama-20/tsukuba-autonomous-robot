@@ -1,0 +1,260 @@
+[autoware_ekf_localizer_node-4] [WARN] [1792777542.746606341] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[autoware_ekf_localizer_node-4] [WARN] [1792777562.844238476] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[autoware_ekf_localizer_node-4] [WARN] [1792777564.846510852] [localization.a3.ekf_localizer]: [EKF] Twist queue size (3) is exceeding max_queue_size (2). Consider increasing max_queue_size or reducing input frequency.
+[autoware_ekf_localizer_node-4] [WARN] [1792777655.138817437] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 1.438[s], limit: 1.038[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777657.140051896] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 2.240[s], limit: 0.979[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777661.318533356] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 3.418[s], limit: 1.074[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777673.399698737] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 6.900[s], limit: 0.981[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777675.478569113] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 7.277[s], limit: 0.975[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777679.582853490] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 9.182[s], limit: 1.001[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777681.642548283] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 8.840[s], limit: 0.981[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777683.664022992] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 8.063[s], limit: 0.983[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777687.788849202] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 7.589[s], limit: 1.270[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777689.798635328] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 7.597[s], limit: 0.979[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777691.798652704] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 7.198[s], limit: 0.977[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777693.879670497] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 7.274[s], limit: 0.981[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777695.880882956] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 5.980[s], limit: 0.981[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777697.898930249] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 4.396[s], limit: 0.980[s]
+[autoware_ekf_localizer_node-4] [WARN] [1792777699.900072791] [localization.a3.ekf_localizer]: Twist delay exceeds the compensation limit, ignored. delay: 1.498[s], limit: 0.981[s]
+[2026-10-24 02:45:23.123] [glim] [warning] large point timestamp (min=1792777523.000053 max=1792777523.099921 > 1.0) found!!
+[2026-10-24 02:45:23.123] [glim] [warning] assume that point times are absolute and convert them to relative
+[2026-10-24 02:45:23.123] [glim] [warning] frame timestamp will be overwritten by the first point timestamp!!
+[2026-10-24 02:45:24.140] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.150] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.161] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.172] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.182] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.192] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.202] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.212] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.222] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=11)
+[2026-10-24 02:45:24.233] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.243] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.253] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.263] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.273] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.284] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.294] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.304] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.314] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.324] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=12)
+[2026-10-24 02:45:24.335] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.345] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.355] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.365] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.375] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.385] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.396] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.408] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.418] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=13)
+[2026-10-24 02:45:24.428] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.438] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.449] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.459] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.469] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.479] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.489] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.500] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.510] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.520] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=14)
+[2026-10-24 02:45:24.530] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.540] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.551] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.561] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.571] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.581] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.591] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.601] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.611] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.622] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=15)
+[2026-10-24 02:45:24.632] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.642] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.652] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.663] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.673] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.683] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.695] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.705] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.715] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.725] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=16)
+[2026-10-24 02:45:24.736] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.746] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.756] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.766] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.777] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.787] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.798] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.808] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.818] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.828] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.838] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=17)
+[2026-10-24 02:45:24.849] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.859] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.870] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.882] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.893] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.903] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.913] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.923] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.934] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.944] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=18)
+[2026-10-24 02:45:24.954] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:24.964] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:24.974] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:24.984] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:24.995] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.006] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.016] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.026] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.037] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.047] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=19)
+[2026-10-24 02:45:25.057] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.067] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.077] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.087] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.097] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.108] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.118] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.128] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.138] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.149] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.159] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.170] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=20)
+[2026-10-24 02:45:25.180] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.190] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.201] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.212] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.222] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.232] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.242] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:45:25.252] [odom] [warning] waiting for IMU data (scan_end_time=1792777523.099921, last_imu_time=0.000000 |frames|=21)
+[2026-10-24 02:47:47.850] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:47:47.850] [glim] [warning] current=1792777667.768202 last=1792777667.661672 diff=0.106530
+[2026-10-24 02:47:51.098] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:47:51.098] [glim] [warning] current=1792777671.091014 last=1792777670.956390 diff=0.134624
+[2026-10-24 02:47:53.935] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:47:53.936] [glim] [warning] current=1792777673.907172 last=1792777673.769320 diff=0.137852
+[2026-10-24 02:47:57.752] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:47:57.752] [glim] [warning] current=1792777676.091053 last=1792777675.941184 diff=0.149869
+[2026-10-24 02:47:57.837] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:57.837] [glim] [warning] points=1792777677.472262 imu=1792777676.116415 diff=-1.355847
+[2026-10-24 02:47:57.901] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:57.901] [glim] [warning] points=1792777677.472933 imu=1792777676.137574 diff=-1.335359
+[2026-10-24 02:47:57.945] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:57.945] [glim] [warning] points=1792777677.507648 imu=1792777676.145665 diff=-1.361983
+[2026-10-24 02:47:57.993] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:57.993] [glim] [warning] points=1792777677.600559 imu=1792777676.155852 diff=-1.444707
+[2026-10-24 02:47:58.031] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.032] [glim] [warning] points=1792777677.700565 imu=1792777676.179206 diff=-1.521359
+[2026-10-24 02:47:58.068] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.068] [glim] [warning] points=1792777677.800019 imu=1792777676.187041 diff=-1.612978
+[2026-10-24 02:47:58.113] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.113] [glim] [warning] points=1792777677.899790 imu=1792777676.198340 diff=-1.701450
+[2026-10-24 02:47:58.113] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.208530 diff=-1.691260
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.215971 diff=-1.683820
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.225481 diff=-1.674309
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.294504 diff=-1.605286
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.388546 diff=-1.511244
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.408507 diff=-1.491283
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.423072 diff=-1.476718
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.431359 diff=-1.468431
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.448515 diff=-1.451275
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.466646 diff=-1.433144
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.476621 diff=-1.423169
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.491332 diff=-1.408458
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.495910 diff=-1.403880
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.514129 diff=-1.385661
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.517594 diff=-1.382196
+[2026-10-24 02:47:58.114] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.114] [glim] [warning] points=1792777677.899790 imu=1792777676.528638 diff=-1.371152
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.540055 diff=-1.359735
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.559024 diff=-1.340766
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.565534 diff=-1.334256
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.581628 diff=-1.318162
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.585570 diff=-1.314220
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.595886 diff=-1.303904
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.611646 diff=-1.288144
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.615716 diff=-1.284074
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.625489 diff=-1.274301
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.660634 diff=-1.239156
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.668624 diff=-1.231166
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.676153 diff=-1.223637
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.695139 diff=-1.204651
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.701655 diff=-1.198135
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.705513 diff=-1.194277
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.718763 diff=-1.181027
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.731616 diff=-1.168174
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.735395 diff=-1.164395
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.745567 diff=-1.154223
+[2026-10-24 02:47:58.115] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.115] [glim] [warning] points=1792777677.899790 imu=1792777676.757610 diff=-1.142180
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.767254 diff=-1.132536
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.780591 diff=-1.119199
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.797311 diff=-1.102479
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.832565 diff=-1.067225
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.839804 diff=-1.059986
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.846316 diff=-1.053474
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.856443 diff=-1.043347
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.866059 diff=-1.033731
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.875559 diff=-1.024231
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.887365 diff=-1.012425
+[2026-10-24 02:47:58.116] [glim] [warning] large time difference between points and imu!!
+[2026-10-24 02:47:58.116] [glim] [warning] points=1792777677.899790 imu=1792777676.895383 diff=-1.004407
+[2026-10-24 02:47:58.116] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:47:58.116] [glim] [warning] current=1792777677.514247 last=1792777677.229808 diff=0.284439
+[2026-10-24 02:48:02.584] [odom] [warning] insufficient number of IMU data between LiDAR scans!! (odometry_estimation)
+[2026-10-24 02:48:02.584] [odom] [warning] t_last=1792777673.903592 t_current=1792777673.903599 num_imu=0
+[2026-10-24 02:48:04.073] [odom] [warning] insufficient number of IMU data between LiDAR scans!! (odometry_estimation)
+[2026-10-24 02:48:04.073] [odom] [warning] t_last=1792777676.392012 t_current=1792777676.399754 num_imu=0
+[2026-10-24 02:48:04.687] [odom] [warning] insufficient number of IMU data between LiDAR scans!! (odometry_estimation)
+[2026-10-24 02:48:04.687] [odom] [warning] t_last=1792777677.472262 t_current=1792777677.472933 num_imu=0
+[2026-10-24 02:48:04.753] [odom] [warning] insufficient number of IMU data between LiDAR scans!! (odometry_estimation)
+[2026-10-24 02:48:04.753] [odom] [warning] t_last=1792777677.472933 t_current=1792777677.507648 num_imu=0
+[2026-10-24 02:48:07.405] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:48:07.405] [glim] [warning] current=1792777686.938711 last=1792777686.775946 diff=0.162765
+[2026-10-24 02:48:07.607] [glim] [warning] large time gap between consecutive IMU data!!
+[2026-10-24 02:48:07.608] [glim] [warning] current=1792777687.546341 last=1792777687.429373 diff=0.116968

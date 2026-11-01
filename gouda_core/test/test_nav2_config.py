@@ -8,6 +8,7 @@ vehicle value is decided: a copy of the generated files with one vehicle value r
 than run with general values, intent.md:85), the real generated files (all decided since REV-122) build (REV-125, DEC-199)."""
 import copy
 import json
+import math
 import os
 import shutil
 import sys
@@ -128,14 +129,25 @@ class Nav2ConfigTests(unittest.TestCase):
             self.assertEqual(c['global_frame'], frame); self.assertTrue(c['track_unknown_space']); self.assertNotIn('robot_radius', c)
             self.assertEqual(c['footprint'], v['footprint']); self.assertEqual(c['inflation_layer']['inflation_radius'], v['inflation_radius_m'])
             self.assertIs(c['inflation_layer']['inflate_around_unknown'], bool(v['inflate_around_unknown']))   # PRM-98 (DEC-217)
-        vl = self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer']
-        self.assertEqual(vl['points']['topic'], nc.POINTS_TOPIC); self.assertNotIn('scan', vl)
-        self.assertEqual((vl['points']['min_obstacle_height'], vl['points']['max_obstacle_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))
-        self.assertAlmostEqual(vl['origin_z'] + vl['z_voxels'] * vl['z_resolution'], v['obstacle_max_height_m'])
+        # REV-185 (DEC-336 / DEC-321 / DEC-322): the band is cut in base_link by pointcloud_to_laserscan; both costmaps read its scan
+        lc = self.p['local_costmap']['local_costmap']['ros__parameters']
+        self.assertNotIn('voxel_layer', lc); self.assertEqual(lc['plugins'][0], 'obstacle_layer')
         g = self.p['global_costmap']['global_costmap']['ros__parameters']
+        for layer in (lc['obstacle_layer'], g['obstacle_layer']):
+            self.assertEqual(layer['plugin'], 'nav2_costmap_2d::ObstacleLayer'); self.assertEqual(layer['observation_sources'], 'scan')
+            s = layer['scan']
+            self.assertEqual((s['topic'], s['data_type']), (nc.SCAN_TOPIC, 'LaserScan')); self.assertIs(s['inf_is_valid'], True)
+            self.assertEqual((s['min_obstacle_height'], s['max_obstacle_height']), (-float('inf'), float('inf')))   # no band in Nav2
+            self.assertEqual((layer['min_obstacle_height'], layer['max_obstacle_height']), (-float('inf'), float('inf')))
+            ts = template()['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']
+            self.assertEqual((s['obstacle_max_range'], s['raytrace_max_range']), (ts['obstacle_max_range'], ts['raytrace_max_range']))
+        sc = self.p[nc.SCAN_NODE]['ros__parameters']
+        self.assertEqual(sc['target_frame'], 'base_link')
+        self.assertEqual((sc['min_height'], sc['max_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))   # PRM-70 / PRM-71
+        self.assertEqual((sc['angle_min'], sc['angle_max'], sc['use_inf']), (-math.pi, math.pi, True))
         # DEC-216: what the LiDAR sees never turns the unknown outside of the swept corridor into free (global only)
         self.assertEqual(g['obstacle_layer']['combination_method'], 2)
-        self.assertNotIn('combination_method', self.p['local_costmap']['local_costmap']['ros__parameters']['voxel_layer'])
+        self.assertNotIn('combination_method', lc['obstacle_layer'])
         self.assertEqual(g['filters'], ['speed_filter', 'keepout_filter']); self.assertEqual(g['speed_filter']['plugin'], 'nav2_costmap_2d::SpeedFilter')   # keepout: DEC-222 (REV-137)
         # the filter lives in the global_costmap namespace: its topics must be absolute to meet the servers and the controller
         self.assertTrue(g['speed_filter']['filter_info_topic'].startswith('/')); self.assertTrue(g['speed_filter']['speed_limit_topic'].startswith('/'))
@@ -164,6 +176,11 @@ class Nav2ConfigTests(unittest.TestCase):
         def changed(e, k):
             return ((e.tag == 'RemovePassedGoals' and k == 'radius') or (e.get('name') == 'NavigateRecovery' and k == 'number_of_retries')
                     or (e.tag == 'RateController' and k == 'hz'))
+        # A-1 (DEC-393): the guard in front of the outer recovery actions is the only removed node
+        outer = out.find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']")
+        self.assertEqual([c.tag for c in list(outer)[1]], ['ReactiveFallback'])
+        src_branch = list(src.find("./BehaviorTree/RecoveryNode[@name='NavigateRecovery']"))[1]
+        src_branch.remove([c for c in src_branch if c.tag == 'Fallback'][0])
         a = [(e.tag, {k: x for k, x in e.attrib.items() if not changed(e, k)}) for e in src.iter()]
         b = [(e.tag, {k: x for k, x in e.attrib.items() if not changed(e, k)}) for e in out.iter()]
         self.assertEqual(a, b, 'no other change to the BT')
@@ -231,6 +248,91 @@ class Nav2ConfigTests(unittest.TestCase):
                     json.dump({'values': {'replan_rate_hz': bad}}, f)
                 r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, 'c'), cfg)
                 self.assertEqual(bt_hz(r), repr(float(prm103)), repr(bad))
+
+
+class TunableTests(unittest.TestCase):
+    """REV-183 (DEC-393): the /config 「Nav2」 tab values (PRM-105..129 and the PRM-72 override). While a PRM is unresolved and nothing
+    is saved, nothing is written (the template / plugin value stays); a valid saved value is written; an invalid one is not."""
+    def build(self, d, name, saved=None):
+        cfg = os.path.join(d, 'config'); os.makedirs(cfg, exist_ok=True)
+        if saved is not None:
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': saved, 'config_revision': 4}, f)
+        r = nc.write(PARAMS, True, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, name), cfg)
+        with open(r['params']) as f: params = yaml.safe_load(f)
+        return r, params, ET.parse(r['bt']).getroot()
+
+    def test_unresolved_and_unsaved_change_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'a')
+            t = template()
+            self.assertEqual(p['bt_navigator']['ros__parameters']['default_server_timeout'], t['bt_navigator']['ros__parameters']['default_server_timeout'])
+            follow = p['controller_server']['ros__parameters']['FollowPath']
+            self.assertEqual(set(follow), {'plugin', 'desired_linear_vel', 'rotate_to_heading_angular_vel', 'allow_reversing'})
+            lc, gc = p['local_costmap']['local_costmap']['ros__parameters'], p['global_costmap']['global_costmap']['ros__parameters']
+            tl, tg = t['local_costmap']['local_costmap']['ros__parameters'], t['global_costmap']['global_costmap']['ros__parameters']
+            self.assertEqual((lc['width'], lc['height']), (tl['width'], tl['height']))
+            self.assertEqual(gc['update_frequency'], tg['update_frequency'])
+            ts = tg['obstacle_layer']['scan']   # the ranges stay the template's (REV-185)
+            for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
+                self.assertEqual((src['obstacle_max_range'], src['raytrace_max_range']), (ts['obstacle_max_range'], ts['raytrace_max_range']))
+            self.assertEqual(lc['inflation_layer']['cost_scaling_factor'], tl['inflation_layer']['cost_scaling_factor'])
+            src = ET.parse(str(BT_TEMPLATE)).getroot()
+            for tag in ('Spin', 'Wait', 'BackUp'):
+                self.assertEqual(bt.find('.//' + tag).attrib, src.find('.//' + tag).attrib, tag)
+            for name in ('ComputePathThroughPoses', 'FollowPath'):
+                q = f".//RecoveryNode[@name='{name}']"
+                self.assertEqual(bt.find(q).get('number_of_retries'), src.find(q).get('number_of_retries'))
+            with open(os.path.join(d, 'a', 'overrides.json')) as f: o = json.load(f)
+            self.assertIsNone(o['rpp_lookahead_dist_m']['value']); self.assertIn('not written', o['rpp_lookahead_dist_m']['note'])
+            self.assertEqual(o['inflation_radius_m']['source'], 'PRM-72 (generated parameter file)')
+
+    def test_saved_values_are_written(self):
+        saved = {'bt_default_server_timeout_ms': 200, 'recovery_spin_enabled': False, 'recovery_wait_s': 3.5, 'recovery_backup_dist_m': 0.4,
+                 'recovery_backup_speed_mps': 0.2, 'replan_recovery_retries': 2, 'follow_path_recovery_retries': 0,
+                 'rpp_use_collision_detection': True, 'rpp_max_time_to_collision_s': 1.5, 'rpp_min_lookahead_dist_m': 0.5,
+                 'rpp_max_lookahead_dist_m': 1.8, 'rpp_use_velocity_scaled_lookahead_dist': True, 'local_costmap_size_m': 6,
+                 'obstacle_max_range_m': 3.0, 'raytrace_max_range_m': 4.0, 'voxel_mark_threshold': 1, 'global_costmap_update_hz': 2.0,
+                 'inflation_cost_scaling_factor': 5.0, 'inflation_radius_m': 0.8}
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'b', saved)
+            self.assertEqual(p['bt_navigator']['ros__parameters']['default_server_timeout'], 200)
+            follow = p['controller_server']['ros__parameters']['FollowPath']
+            self.assertEqual((follow['use_collision_detection'], follow['max_allowed_time_to_collision_up_to_carrot'], follow['min_lookahead_dist'],
+                              follow['max_lookahead_dist'], follow['use_velocity_scaled_lookahead_dist']), (True, 1.5, 0.5, 1.8, True))
+            self.assertNotIn('lookahead_dist', follow)   # not saved and unresolved: the plugin value stays
+            lc, gc = p['local_costmap']['local_costmap']['ros__parameters'], p['global_costmap']['global_costmap']['ros__parameters']
+            self.assertEqual((lc['width'], lc['height']), (6, 6))
+            for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
+                self.assertEqual((src['obstacle_max_range'], src['raytrace_max_range']), (3.0, 4.0))
+            self.assertNotIn('voxel_layer', lc); self.assertEqual(gc['update_frequency'], 2.0)   # PRM-127 unused since REV-185
+            for c in (lc, gc):
+                self.assertEqual((c['inflation_layer']['cost_scaling_factor'], c['inflation_layer']['inflation_radius']), (5.0, 0.8))
+            self.assertIsNone(bt.find('.//Spin')); self.assertIsNotNone(bt.find('.//BackUp'))   # spin removed, backup kept
+            self.assertEqual(bt.find('.//Wait').get('wait_duration'), '3.5')
+            self.assertEqual((bt.find('.//BackUp').get('backup_dist'), bt.find('.//BackUp').get('backup_speed')), ('0.4', '0.2'))
+            self.assertEqual(bt.find(".//RecoveryNode[@name='ComputePathThroughPoses']").get('number_of_retries'), '2')
+            self.assertEqual(bt.find(".//RecoveryNode[@name='FollowPath']").get('number_of_retries'), '0')
+            self.assertIn('config_revision 4', r['tunables']['local_costmap_size_m']['source'])
+
+    def test_invalid_saved_values_are_not_written(self):
+        bad = {'local_costmap_size_m': 2.5, 'recovery_spin_enabled': 'yes', 'voxel_mark_threshold': -1, 'obstacle_max_range_m': 0,
+               'bt_default_server_timeout_ms': True, 'global_costmap_update_hz': float('inf')}
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'c', bad)
+            t = template()
+            lc = p['local_costmap']['local_costmap']['ros__parameters']
+            self.assertEqual(lc['width'], t['local_costmap']['local_costmap']['ros__parameters']['width'])
+            self.assertIsNotNone(bt.find('.//Spin'))
+            self.assertEqual(lc['obstacle_layer']['scan']['obstacle_max_range'], t['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']['obstacle_max_range'])
+            for k in bad:
+                self.assertIn('is not valid', r['tunables'][k]['note'], k)
+
+    def test_valid_tunable_kinds(self):
+        self.assertTrue(nc.valid_tunable('positive_int', 3)); self.assertTrue(nc.valid_tunable('positive_int', 3.0))
+        self.assertFalse(nc.valid_tunable('positive_int', 0)); self.assertFalse(nc.valid_tunable('positive_int', 2.5))
+        self.assertTrue(nc.valid_tunable('whole', 0)); self.assertFalse(nc.valid_tunable('whole', -1))
+        self.assertFalse(nc.valid_tunable('positive', True)); self.assertFalse(nc.valid_tunable('boolean', 1))
 
 
 if __name__ == '__main__':

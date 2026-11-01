@@ -1,0 +1,169 @@
+fixture: {"waypoint_set_id": "20261024_050639_af04d6", "waypoint_set_revision": "1", "waypoint_set_hash": "73b6edb15062da9f5ceafe470772fa4ec3f929415214ae06fa761bf8499bf8ce", "map_id": "origin_st56", "map_revision": "1", "map_hash": "synthetic-free-map-stage56"}
+test stack started (ROS_DOMAIN_ID=77, data_root=/tmp/st56, monitor http://127.0.0.1:44039/)
+monitor http://127.0.0.1:44039/
+=== Nav2 lifecycle after the stack start (expected: servers present, inactive; autostart false)
+  controller_server: Node not found
+  bt_navigator: Node not found
+  map_server: Node not found
+  velocity_smoother: unconfigured [1]
+=== ESP32 simulator behind vehicle_bridge (PRM-61 is unresolved in the model; the test gives the pty)
+Set parameter successful
+=== the stack's real ND-07 is stopped for this sensorless test (REV-128; by its PID)
+  ND-07 pid: 44606
+=== T1 before the start (TS-21) and the TR-05 guards
+mode=MANUAL stop= remaining=0 section=-1 speed_limit=unknown
+hold: true reason: mode=manual 
+  start_autonomy ok=False refused: TR-05: initial pose frame '' is not map (no initial pose given?)
+  (without ND-07: the loopback simulator is not running yet)
+  start_autonomy ok=False refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (DEC-115)
+=== loopback simulator (map->odom->base_link) and the ND-07 stand-in nd07_stub.py (node name gouda_global_localization)
+=== T2 start with selection and initial pose -> drive to the last waypoint (TR-05 -> TR-08)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=3 section=0 speed_limit=not_loaded
+hold: false reason: '' 
+mode=AUTONOMY stop= remaining=2 section=0 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+  reached PAUSE
+mode=PAUSE stop=goal_reached remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=goal_reached 
+   TR-05 human_request | refused: TR-05: initial pose frame '' is not map (no initial pose given?) | x1
+   TR-05 human_request | refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (DEC-115) | x1
+   TR-05 human_request | TR-05: manual -> autonomy | x1
+   TR-05 record_auto_start | log recording started (auto:autonomy_start) in /tmp/st56/records/20261024_050718 | x1
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:1, vehicle_bridge:3); neutral is sent while the start conti | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45267) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 initial_pose_sent | IFD-34 localization/initial_pose sent once (transient_local) | x1
+   TR-05 localization_activated | gouda_global_localization configured with /tmp/st56/maps/origin_st56/converted/001 and activated; waiting for 正常 (IFD-53) | x1
+   TR-05 localization_normal | gouda_global_localization: 正常; Nav2 is started next | x1
+   TR-05 nav2_parameters_set | map /tmp/st56/maps/origin_st56/converted/001/map.yaml, mask /tmp/st56/routes/20261024_050639_af04d6/001/speed_mask.yaml, base 0.0, multiplier 0.05, ke | x1
+   TR-05 speed_limit_application_state | unknown (不明) | x1
+   TR-05 keepout_mask_not_confirmed | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | x1
+   TR-05 keepout_mask_confirmed | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | x1
+   TR-05 nav2_started | Nav2 servers active (lifecycle_manager_navigation STARTUP) | x1
+   TR-05 nav2_goal_sent | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | x1
+   TR-05 speed_limit_application_state | applied (適用中) | x1
+   TR-05 motion_hold_released | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | x1
+   TR-08 goal_reached | Nav2 reached the last waypoint | x1
+  final pose (map->base_link):
+- Translation: [3.870, 2.799, 0.000]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.119, 0.993]
+=== T3 end from pause (TR-12)
+  end_autonomy ok=True TR-12: pause -> manual
+mode=MANUAL stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=manual stop_reason=human 
+  controller_server: unconfigured [1]
+  bt_navigator: unconfigured [1]
+  gouda_motion_controller: inactive [2]
+  vehicle_bridge: inactive [2]
+=== T4 start, pause (TR-06), resume (TR-10), end while driving (TR-11)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+  pause ok=True TR-06: autonomy -> pause
+mode=PAUSE stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=human 
+  resume ok=True TR-10: pause -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+hold: false reason: '' 
+  end_autonomy ok=True TR-11: autonomy -> manual
+mode=MANUAL stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=manual stop_reason=human 
+   TR-05 human_request | refused: TR-05: initial pose frame '' is not map (no initial pose given?) | x1
+   TR-05 human_request | refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (DEC-115) | x1
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:1, vehicle_bridge:3); neutral is sent while the start conti | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45267) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-08 goal_reached | Nav2 reached the last waypoint | x1
+   TR-12 human_request | TR-12: pause -> manual | x1
+   TR-12 navigation_goal_check | no active Nav2 goal | x1
+   TR-12 vehicle_output_deactivated | gouda_motion_controller deactivate: True | x1
+   TR-12 vehicle_output_deactivated | vehicle_bridge deactivate: True | x1
+   TR-12 nav2_reset | Nav2 RESET: True | x1
+   TR-12 localization_stopped | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | x1
+   TR-12 odometry_stopped | ND-08 GLIM (odometry only) stopped (exit code 0) | x1
+   TR-12 record_auto_stop | log recording stopped | x1
+   TR-05 human_request | TR-05: manual -> autonomy | x2
+   TR-05 record_auto_start | log recording started (auto:autonomy_start) in /tmp/st56/records/20261024_050718 | x2
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:3, vehicle_bridge:3); neutral is sent while the start continues (DEC-391) | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45735) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 initial_pose_sent | IFD-34 localization/initial_pose sent once (transient_local) | x2
+   TR-05 localization_activated | gouda_global_localization configured with /tmp/st56/maps/origin_st56/converted/001 and activated; waiting for 正常 (IFD-53) | x2
+   TR-05 localization_normal | gouda_global_localization: 正常; Nav2 is started next | x2
+   TR-05 nav2_parameters_set | map /tmp/st56/maps/origin_st56/converted/001/map.yaml, mask /tmp/st56/routes/20261024_050639_af04d6/001/speed_mask.yaml, base 0.0, multiplier 0.05, ke | x2
+   TR-05 speed_limit_application_state | unknown (不明) | x2
+   TR-05 keepout_mask_not_confirmed | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | x2
+   TR-05 keepout_mask_confirmed | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | x2
+   TR-05 nav2_started | Nav2 servers active (lifecycle_manager_navigation STARTUP) | x2
+   TR-05 nav2_goal_sent | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | x2
+   TR-06 human_request | TR-06: autonomy -> pause | x1
+   TR-06 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-10 human_request | TR-10: pause -> autonomy | x1
+   TR-10 nav2_goal_sent | NavigateThroughPoses goal accepted (1 poses from waypoint 2) | x1
+   TR-05 speed_limit_application_state | applied (適用中) | x3
+   TR-05 motion_hold_released | speed limit applied (適用中) and the keepout mask confirmed: motion_hold=false (DEC-056, DEC-224) | x3
+   TR-11 human_request | TR-11: autonomy -> manual | x1
+   TR-11 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-11 vehicle_output_deactivated | gouda_motion_controller deactivate: True | x1
+   TR-11 vehicle_output_deactivated | vehicle_bridge deactivate: True | x1
+   TR-11 nav2_reset | Nav2 RESET: True | x1
+   TR-11 localization_stopped | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | x1
+   TR-11 odometry_stopped | ND-08 GLIM (odometry only) stopped (exit code 0) | x1
+   TR-11 record_auto_stop | log recording stopped | x1
+=== T5 推定不能 while driving -> 一時停止 estimator_unavailable (TR-07); resume refused until 正常 (TR-10 guard)
+  start_autonomy ok=True TR-05: manual -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+mode=PAUSE stop=estimator_unavailable remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=estimator_unavailable 
+  resume ok=False refused: TR-10 actions failed: the global localization is not 正常: test_stub: nd07_stub (test only) (TR-10 guard)
+  resume ok=True TR-10: pause -> autonomy
+mode=AUTONOMY stop= remaining=1 section=1 speed_limit=applied
+hold: false reason: '' 
+=== T6 no localization/status -> 一時停止 estimator_unavailable after PRM-93 (trial); end (TR-12)
+mode=PAUSE stop=estimator_unavailable remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=pause stop_reason=estimator_unavailable 
+  end_autonomy ok=True TR-12: pause -> manual
+mode=MANUAL stop=human remaining=1 section=1 speed_limit=applied
+hold: true reason: mode=manual stop_reason=human 
+  gouda_global_localization: unconfigured [1]
+  gouda_motion_controller: inactive [2]
+  vehicle_bridge: inactive [2]
+   TR-05 human_request | refused: TR-05: initial pose frame '' is not map (no initial pose given?) | x1
+   TR-05 human_request | refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (DEC-115) | x1
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:1, gouda_motion_controller:3, vehicle_bridge:1, vehicle_bridge:3); neutral is sent while the start conti | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45267) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-08 goal_reached | Nav2 reached the last waypoint | x1
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45735) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-06 human_request | TR-06: autonomy -> pause | x1
+   TR-06 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-11 human_request | TR-11: autonomy -> manual | x1
+   TR-11 nav2_goal_cancelled | cancel answered (1 goal(s) cancelling) | x1
+   TR-11 vehicle_output_deactivated | gouda_motion_controller deactivate: True | x1
+   TR-11 vehicle_output_deactivated | vehicle_bridge deactivate: True | x1
+   TR-11 nav2_reset | Nav2 RESET: True | x1
+   TR-11 localization_stopped | gouda_global_localization deactivated and cleaned up (A3 launch stopped) | x1
+   TR-11 odometry_stopped | ND-08 GLIM (odometry only) stopped (exit code 0) | x1
+   TR-11 record_auto_stop | log recording stopped | x1
+   TR-05 human_request | TR-05: manual -> autonomy | x3
+   TR-05 record_auto_start | log recording started (auto:autonomy_start) in /tmp/st56/records/20261024_050718 | x3
+   TR-05 vehicle_output_active | ND-11 / ND-12 active (gouda_motion_controller:3, vehicle_bridge:3); neutral is sent while the start continues (DEC-391) | x2
+   TR-05 odometry_started | ND-08 GLIM (odometry only) started (pid 45988) (UNKNOWN in /config, neutral used: lidar_mount_x_m, lidar_mount_y_m, lidar_mount_z_m, lidar_mount_roll_ | x1
+   TR-05 initial_pose_sent | IFD-34 localization/initial_pose sent once (transient_local) | x3
+   TR-05 localization_activated | gouda_global_localization configured with /tmp/st56/maps/origin_st56/converted/001 and activated; waiting for 正常 (IFD-53) | x3
+   TR-05 localization_normal | gouda_global_localization: 正常; Nav2 is started next | x3
+   TR-05 nav2_parameters_set | map /tmp/st56/maps/origin_st56/converted/001/map.yaml, mask /tmp/st56/routes/20261024_050639_af04d6/001/speed_mask.yaml, base 0.0, multiplier 0.05, ke | x3
+   TR-05 speed_limit_application_state | unknown (不明) | x3
+   TR-05 keepout_mask_not_confirmed | keepout mask not confirmed yet: match, filter info not received; motion_hold stays true | x3
+   TR-05 keepout_mask_confirmed | keepout mask and filter info received, mask hash matches the waypoint set (DEC-224 (a)) | x3
+   TR-05 nav2_started | Nav2 servers active (lifecycle_manager_navigation STARTUP) | x3
+   TR-05 nav2_goal_sent | NavigateThroughPoses goal accepted (3 poses from waypoint 0) | x3
+   TR-07 automatic_pause | ND-07 test_stub: nd07_stub (test only) | x1
+=== warnings / errors in the launch log
+[gouda_mode_manager-14] [WARN] [1792786028.353286294] [gouda_mode_manager]: start_autonomy: refused: TR-05: initial pose frame '' is not map (no initial pose given?)
+[gouda_mode_manager-14] [WARN] [1792786028.420401378] [gouda_mode_manager]: start_autonomy: refused: TR-05: gouda_global_localization (ND-07) is not running: no self-localisation (DEC-115)
+[gouda_mode_manager-14] [WARN] [1792786159.096068690] [gouda_mode_manager]: TR-07: ND-07 test_stub: nd07_stub (test only)
+[gouda_mode_manager-14] [WARN] [1792786165.109503651] [gouda_mode_manager]: resume: refused: TR-10 actions failed: the global localization is not 正常: test_stub: nd07_stub (test only) (TR-10 guard)
+[gouda_mode_manager-14] [WARN] [1792786181.658758826] [gouda_mode_manager]: TR-07: no localization/status (IFD-53) for more than estimator_status_timeout_s (1.0 s, PRM-93)
+6
+test stack stopped

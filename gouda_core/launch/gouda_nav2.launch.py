@@ -8,6 +8,8 @@ the generated parameter files (trial files only in test scripts). When a vehicle
 started and the reason is logged; ND-03 records it and refuses 自律走行開始 (intent.md:85: no general values).
 Wiring as upstream navigation_launch.py without collision_monitor (RQ-I072): controller_server and behavior_server publish
 cmd_vel_nav; velocity_smoother reads cmd_vel_nav and publishes cmd_vel (IFD-15, TwistStamped PRM-12) for ND-11.
+REV-185 (DEC-336): pointcloud_to_laserscan (ND-09) turns the XT-32 points into the base_link-band scan the costmaps read; without
+the package Nav2 is not started.
 
 The BT's recovery count is the one saved in the monitor's /config 「Nav2」 tab (config_dir/nav2_recovery.json, IFD-54) when it is
 valid, else PRM-18 (REV-132, DEC-207 (a)); the count used and its source are logged and written to run_dir/nav2/recovery.json.
@@ -34,6 +36,10 @@ def _nodes(context, *args, **kwargs):
         tpl, bt = None, None
     if tpl is None or bt is None:
         return [LogInfo(msg='[gouda_nav2] Nav2 is not installed (nav2_bringup / nav2_bt_navigator): Nav2 is not started (setup.sh installs it)')]
+    try:   # REV-185 (DEC-336): the obstacle band is cut by pointcloud_to_laserscan; without it the costmaps would see nothing
+        get_package_share_directory(nc.SCAN_PACKAGE)
+    except PackageNotFoundError:
+        return [LogInfo(msg=f'[gouda_nav2] {nc.SCAN_PACKAGE} is not installed: Nav2 is not started (no obstacle input; setup.sh installs it)')]
     r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'), config_dir or None)
     if r['missing']:
         return [LogInfo(msg=f"[gouda_nav2] unresolved vehicle values {r['missing']}: Nav2 is not started (no general values: intent.md:85)")]
@@ -60,6 +66,10 @@ def _nodes(context, *args, **kwargs):
         Node(package='nav2_velocity_smoother', executable='velocity_smoother', name='velocity_smoother', output=out, parameters=p,
              remappings=[('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
         Node(package='nav2_lifecycle_manager', executable='lifecycle_manager', name='lifecycle_manager_navigation', output=out, parameters=p),
+        # ND-09 (REV-185, DEC-336): the XT-32 points in the base_link band as a LaserScan for both costmaps (IFD-21 -> IFD-57). Not a
+        # lifecycle node; it subscribes to the points only while the costmaps (active Nav2) subscribe to the scan.
+        Node(package=nc.SCAN_PACKAGE, executable=nc.SCAN_EXECUTABLE, name=nc.SCAN_NODE, output=out, parameters=p,
+             remappings=[('cloud_in', nc.POINTS_TOPIC), ('scan', nc.SCAN_TOPIC)]),
     ]
 
 

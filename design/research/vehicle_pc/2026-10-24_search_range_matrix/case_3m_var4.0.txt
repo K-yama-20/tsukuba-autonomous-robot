@@ -1,0 +1,39 @@
+Fast DDS profile: /home/aya/gouda_ws/gouda_data/run/fastdds_profile.xml
+case: xy variance 4.0 m^2, dx 3 m, dyaw 0 deg, row 200, map /home/aya/gouda_ws/gouda_data/maps/20261019_123731_dc7b4c8a/converted/002, window 90 s, ROS_DOMAIN_ID 91
+true pose (x y z qx qy qz qw): -11.186694 -1.675947 -0.359678 -0.001940 -0.012853 -0.612681 0.790224
+initial pose given: {header: {frame_id: map}, pose: {pose: {position: {x: -8.186694, y: -1.675947}, orientation: {x: -0.001940, y: -0.012853, z: -0.612681, w: 0.790224}}}}
+Node not found
+Unknown transition requested, available ones are:
+- configure [1]
+- shutdown [5]
+=== point clouds within 10 m from activate, odometry stamped 0.15 s late
+  t=5 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=10 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=15 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=20 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=25 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=30 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=35 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=40 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=45 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=50 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=55 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=60 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=65 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=70 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=75 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=80 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=85 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+  t=90 s: state: 0 reason: not_configured ndt_nvtl: .nan ekf_xy_stddev_m: .nan 
+=== final localization/pose (IFD-33)
+  no localization/pose received
+Unknown transition requested, available ones are:
+- configure [1]
+- shutdown [5]
+Unknown transition requested, available ones are:
+- configure [1]
+- shutdown [5]
+=== decision events (event: reason)
+  estimator_state: '未初期化 (not_configured: no map is configured (gouda_global_localization is unconfigured))'
+=== node and A3 log (errors)
+grep: /tmp/nd07_offset/run/localization/*.log: No such file or directory

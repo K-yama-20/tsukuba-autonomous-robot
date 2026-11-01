@@ -350,7 +350,34 @@
     const NAV2_LABELS = {
       recovery_number_of_retries: `recovery の回数 <span class="dim">(recovery_number_of_retries${lim ? `, ${lim[0]}〜${lim[1]}` : ', PRM-18 未確定のため保存できない'})</span>`,
       inflate_around_unknown: '不明の格子の周りを膨らませる <span class="dim">(inflate_around_unknown, true／false。false なら帯の外を「通れるが高い費用」のまま：DEC-217)</span>',
-      replan_rate_hz: '経路の引き直しの頻度（Hz）' };
+      replan_rate_hz: '経路の引き直しの頻度（Hz）',
+      // REV-183 (DEC-393): the item IDs are those of the robustness list (第164便)
+      bt_default_server_timeout_ms: 'A-2 BT が action の受け付けを待つ時間（ms、整数）',
+      recovery_spin_enabled: 'A-4 回復でその場の旋回をする（true／false）',
+      recovery_spin_dist_rad: 'A-4 回復の旋回の角度（rad）',
+      recovery_wait_s: 'A-4 回復の待ち時間（s）',
+      recovery_backup_enabled: 'A-4 回復で後退する（true／false）',
+      recovery_backup_dist_m: 'A-4 回復の後退の距離（m）',
+      recovery_backup_speed_mps: 'A-4 回復の後退の速さ（m/s）',
+      replan_recovery_retries: 'A-5 経路の計画の失敗のやり直しの回数（整数、0 以上）',
+      follow_path_recovery_retries: 'A-5 追従の失敗のやり直しの回数（整数、0 以上）',
+      rpp_use_collision_detection: 'B-3 RPP の衝突の検査（true／false）',
+      rpp_max_time_to_collision_s: 'B-3 RPP の衝突を見る時間（s）',
+      rpp_lookahead_dist_m: 'B-4 RPP の先読みの距離（m）',
+      rpp_min_lookahead_dist_m: 'B-4 RPP の先読みの最小（m）',
+      rpp_max_lookahead_dist_m: 'B-4 RPP の先読みの最大（m）',
+      rpp_lookahead_time_s: 'B-4 RPP の先読みの時間（s、速度で伸ばすとき）',
+      rpp_use_velocity_scaled_lookahead_dist: 'B-4 RPP の先読みを速度で伸ばす（true／false）',
+      rpp_use_regulated_linear_velocity_scaling: 'B-4 RPP の曲がりで減速する（true／false）',
+      rpp_use_cost_regulated_linear_velocity_scaling: 'B-4 RPP の障害物の近くで減速する（true／false）',
+      rpp_regulated_linear_scaling_min_speed_mps: 'B-4 RPP の減速の下限（m/s）',
+      local_costmap_size_m: 'C-2 local costmap の一辺（m、整数）',
+      obstacle_max_range_m: 'C-3 障害物の印を付ける距離（m）',
+      raytrace_max_range_m: 'C-3 障害物の印を消す距離（m）',
+      voxel_mark_threshold: 'C-4 印を付けるのに要る高さ方向の格子の数を超える数（整数、0 なら 1 つで印）',
+      global_costmap_update_hz: 'C-6 global costmap の更新の頻度（Hz）',
+      inflation_cost_scaling_factor: 'D-4 膨らませの費用の減り方（cost_scaling_factor）',
+      inflation_radius_m: 'D-4 膨らませの半径（m、PRM-72 を上書き）' };
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;
@@ -365,7 +392,9 @@
       + row('inflate_around_unknown：今の起動で使っている値', fmt(c.in_use_inflate, '不明（Nav2 が起動していない）'))
       + row('経路の引き直しの頻度：PRM-103（既定）', c.prm103 ?? '未確定')
       + row('経路の引き直しの頻度：次の gouda.sh start で使う値', fmt(c.next_start_replan, '—'))
-      + row('経路の引き直しの頻度：今の起動で使っている値', fmt(c.in_use_replan, '不明（Nav2 が起動していない）'));
+      + row('経路の引き直しの頻度：今の起動で使っている値', fmt(c.in_use_replan, '不明（Nav2 が起動していない）'))
+      + (c.tunables || []).map((x) => row(`${x.key}：${x.prm} の値（既定）／次の gouda.sh start／今の起動`,
+          `${x.prm_value ?? '未確定'} ／ ${fmt(x.next_start, '—')} ／ ${fmt(x.in_use, '不明（Nav2 が起動していない）')}`)).join('');
   }
   $('nav2-save').addEventListener('click', async () => {
     const data = {}; new FormData($('nav2-form')).forEach((v, k) => { data[k] = v; });

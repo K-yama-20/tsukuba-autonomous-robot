@@ -1,0 +1,11 @@
+第167便 A案の帯の確かめ（VM、2026-11-01、ROS_DOMAIN_ID 96、試験だけ）
+pointcloud_to_laserscan 2.0.2-3noble（apt-get download ＋ dpkg -x で ~/upstream_pkgs/p2l に展開。導入はしていない）を、REV-185 と同じ設定
+（target_frame base_link、min_height -0.065、max_height 1.085、angle ±pi、use_inf true）で node 名 xt32_scan として起動し、
+p2l_band_probe.py で base_link の点群（地面 z -0.165 の 0.1〜4.9 m、2.0 m 先の箱 z -0.1〜0.5、左 1.0 m の張り出し z 1.5）を送った。
+
+結果：
+frame base_link beams 360 finite 5
+ahead 0 deg: 2.0 | left 90 deg (overhang above band): inf | 45 deg (ground only): inf
+finite beams (deg, m): [(-6.0, 2.01), (-3.0, 2.0), (-0.0, 2.0), (2.0, 2.0), (5.0, 2.01)]
+
+→ 帯の中の箱だけが 2.0 m に出た。帯より下の地面・上の張り出しは出ない。点のない方位は inf。

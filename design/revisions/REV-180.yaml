@@ -1,0 +1,83 @@
+# 変更セット REV-180（2026-10-24 第156便: 探索の範囲の試験の証拠、DEC-360・385 の note）
+# 適用: design/tools/apply_revision.py REV-180
+id: REV-180
+date: '2026-10-24'
+summary: >-
+  第156便：DEC-385 の S3（探索の範囲を段階的に広げる）の段と上限を決めるための VM の模擬の試験（1〜4 m のずれ × σ 0.5〜2.0 m の 16 通り）の証拠を登録し、DEC-360・385 の note に結果を記録する。コード・設定は変えていない。
+basis_refs:
+- DEC-385
+- DEC-360
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-SEARCH-RANGE-CASE-1M-VAR0P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_1m_var0.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-1M-VAR1P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_1m_var1.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-1M-VAR2P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_1m_var2.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-1M-VAR4P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_1m_var4.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-2M-VAR0P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_2m_var0.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-2M-VAR1P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_2m_var1.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-2M-VAR2P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_2m_var2.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-2M-VAR4P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_2m_var4.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-3M-VAR0P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_3m_var0.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-3M-VAR1P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_3m_var1.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-3M-VAR2P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_3m_var2.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-3M-VAR4P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_3m_var4.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-3M-VAR4P0-RERUN
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_3m_var4.0_rerun.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-4M-VAR0P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_4m_var0.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-4M-VAR1P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_4m_var1.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-4M-VAR2P25
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_4m_var2.25.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-CASE-4M-VAR4P0
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/case_4m_var4.0.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-NOTES
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/notes.txt
+  role: evidence
+- id: FILE-SEARCH-RANGE-OFFSET-CASE
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/offset_case.sh
+  role: evidence
+- id: FILE-SEARCH-RANGE-RUN-MATRIX
+  path: design/research/vehicle_pc/2026-10-24_search_range_matrix/run_matrix.sh
+  role: evidence
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-360
+  set:
+    note: >-
+      (1) は AI が VM で行える（実車を動かさない。ROS_DOMAIN_ID を分ける）。(2)(3) は実車の記録が要る（人）。計算機は VM（DEC-333）。決まらない場合に止まる作業：DEC-356 の段階の値、DEC-358 の値の見直し。 REV-180（第156便）：VM の模擬の試験（ROS_DOMAIN_ID 91、地図 20261019_123731_dc7b4c8a/002 の軌跡 200 行目、模擬の点群、止まったまま、各 1 回）で、位置のずれ 1・2・3・4 m（地図の x 方向、向きのずれ 0）と探索の広がり σ 0.5・1.0・1.5・2.0 m（initial_xy_variance 0.25・1.0・2.25・4.0、試験の node にだけ -p で渡した）の 16 通りを試した。16 通りとも本当の姿勢に合い（誤差 0.07 m、NVTL 3.07）、誤った位置を正常にした例はない。σ 0.5 m（今の PRM-84）でも 4 m から合った（第148便では同じ σ で 5 m は誤り）。最初の正常までは 20〜55 s（σ との関係は見えない。Gouda が同時に動いていた再試行は 65 s）。σ 2.0 m では合った直後に短い推定不能（EKF の標準偏差が PRM-92 を一時超える・入力の遅れ）が 4 回中 3 回。限界：地図 1 つ・姿勢 1 つ・ずれは +x だけ・模擬の点群（人・変化・雑音なし）・各 1 回。5 m 以上のずれを広い σ で試していないので、誤った収束が始まる所はこの試験では分からない。証拠 design/research/vehicle_pc/2026-10-24_search_range_matrix/notes.txt。
+- id: DEC-385
+  set:
+    note: >-
+      推奨は承認。理由：GNSS がどの状態でも、S2 で必ず種がある（つくばチャレンジのスタートは決まった場所：DEC-355）。S1 と S2 の差が大きいときは人に知らせる。S3 の上限：第148便では 3 m は正しく、5 m は 5.86 m 離れた誤った位置に『正常』で合った。 人は rviz2（DEC-357）で推定の位置を見て確かめてから発進する。発進の後の人の操作は失格（DEC-345）なので S4 は発進の前だけ。代替案：S2 を使わない（今の作り）、DEC-133 の条件 (2) を保つ（自動で次の段に進まない）。提案 design/proposals/localization_start_gnss_states_2026-10-24.md §2。決まらない場合に止まる作業：開始の手順の変更。 REV-178（第154便）：人の回答（原文）「DEC-385を承認する。」。開始の初期位置の順 S1 GNSS → S2 登録した開始姿勢 → S3 範囲を段階的に広げる → S4 人の入力、どの段で決まったかの記録・表示、DEC-133 の条件 (2) を発進の前の準備の段階では自動で次の段に進む形に変える、を採用。S3 の段階の値・上限・各段の時間は tbd（DEC-360 の試験。第148便では 3 m は正しく、5 m は誤った位置に『正常』で合った）。S1 は GNSS の門（DEC-384、pending）と地図との対応（DEC-388、pending）が決まるまで使えない（S2 から始める）。実装はまだ（値が未定）。 REV-180（第156便）：VM の模擬の試験（ROS_DOMAIN_ID 91、地図 20261019_123731_dc7b4c8a/002 の軌跡 200 行目、模擬の点群、止まったまま、各 1 回）で、位置のずれ 1・2・3・4 m（地図の x 方向、向きのずれ 0）と探索の広がり σ 0.5・1.0・1.5・2.0 m（initial_xy_variance 0.25・1.0・2.25・4.0、試験の node にだけ -p で渡した）の 16 通りを試した。16 通りとも本当の姿勢に合い（誤差 0.07 m、NVTL 3.07）、誤った位置を正常にした例はない。σ 0.5 m（今の PRM-84）でも 4 m から合った（第148便では同じ σ で 5 m は誤り）。最初の正常までは 20〜55 s（σ との関係は見えない。Gouda が同時に動いていた再試行は 65 s）。σ 2.0 m では合った直後に短い推定不能（EKF の標準偏差が PRM-92 を一時超える・入力の遅れ）が 4 回中 3 回。限界：地図 1 つ・姿勢 1 つ・ずれは +x だけ・模擬の点群（人・変化・雑音なし）・各 1 回。5 m 以上のずれを広い σ で試していないので、誤った収束が始まる所はこの試験では分からない。証拠 design/research/vehicle_pc/2026-10-24_search_range_matrix/notes.txt。 S3 の段・上限の案は第156便の作業記録（人の判断待ち。値は未確定）。

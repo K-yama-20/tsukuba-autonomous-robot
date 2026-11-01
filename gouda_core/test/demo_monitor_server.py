@@ -89,7 +89,7 @@ def main():
     settings = {'ok': True, 'settings': [dict(x, default=None) for x in map_tab.CONVERSION_SETTINGS], 'note': 'DEMO: gouda_map_creator に接続していない'}
     server = MonitorServer(Path(__file__).resolve().parents[1] / 'web', snapshot, lambda: cfg,
                            lambda name, body: {'ok': False, 'message': f'DEMO: {name} is not connected to a robot'},
-                           lambda body: {'ok': False, 'message': 'DEMO: config is not saved', 'config': cfg}, port=port, keepalive_s=float(sys.argv[2]) if len(sys.argv) > 2 else 3.0,  # demo only
+                           lambda body: {'ok': False, 'message': 'DEMO: config is not saved', 'config': cfg}, port=port, keepalive_s=float(sys.argv[2]) if len(sys.argv) > 2 else 3.0, max_rate_hz=5.0,  # demo only
                            get_routes={'/api/map/': demo_map, '/api/map_settings': lambda r, q: settings},
                            post_routes={'/api/map_reconvert': lambda r, b: {'ok': False, 'message': 'DEMO: not connected to gouda_map_creator'}})
     print('DEMO monitor at', server.start(), flush=True)

@@ -24,9 +24,10 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from gouda_core import sensor_extrinsics
+from gouda_core import nav2_config
 
 MODE_NAMES = {0: 'UNKNOWN', 1: 'MANUAL', 2: 'MAPPING', 3: 'AUTONOMY', 4: 'PAUSE'}
-MODE_LABELS_JA = {0: '不明', 1: '手動走行', 2: '事前地図作成', 3: '自律走行', 4: '一時停止'}
+MODE_LABELS_JA = {0: '不明', 1: '手動走行', 2: '事前地図作成', 3: '自律走行', 4: '待機'}   # 4 (MODE-PAUSE): shown as 待機 (DEC-394)
 NOT_RECEIVED = 'NOT_RECEIVED'
 UNAVAILABLE = 'UNAVAILABLE'
 UNKNOWN = 'UNKNOWN'
@@ -59,8 +60,9 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
 # REV-134 (DEC-217): inflate_around_unknown ('boolean': true / false) overrides PRM-98 the same way.
 # REV-167 (DEC-347): replan_rate_hz ('positive': a number above zero) overrides PRM-103 the same way.
 NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count'), ('inflate_around_unknown', 'boolean'),
-                                    ('replan_rate_hz', 'positive')])
-NUMERIC_KINDS = ('number', 'fraction', 'count', 'positive')
+                                    ('replan_rate_hz', 'positive')]
+                                   + [(k, kind) for k, (_, kind, _) in nav2_config.TUNABLES.items()])   # REV-183 (DEC-393)
+NUMERIC_KINDS = ('number', 'fraction', 'count', 'positive', 'positive_int', 'whole')
 
 
 @dataclass
@@ -307,6 +309,7 @@ class SensorConfig:
         if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
         if kind == 'boolean': return isinstance(value, bool)
         if kind == 'positive': return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+        if kind in ('positive_int', 'whole'): return nav2_config.valid_tunable(kind, value)
         if kind == 'count':
             lim = self.limits.get(key)
             return lim is not None and isinstance(value, int) and not isinstance(value, bool) and lim[0] <= value <= lim[1]
@@ -325,9 +328,11 @@ class SensorConfig:
             if self.fields[k] == 'boolean' and isinstance(v, str) and v != UNKNOWN:
                 if v.strip().lower() not in ('true', 'false'): return False, f'{k}: {v!r} is not true / false'
                 v = v.strip().lower() == 'true'
-            if self.fields[k] == 'count' and isinstance(v, float):
+            if self.fields[k] in ('count', 'positive_int', 'whole') and isinstance(v, float):
                 if not v.is_integer(): return False, f'{k}: {v!r} is not a whole number'
                 v = int(v)
+            if self.fields[k] in ('positive_int', 'whole') and v != UNKNOWN and not self._valid(k, v):
+                return False, f'{k}: {v!r} is not a whole number from {1 if self.fields[k] == "positive_int" else 0}'
             if self.fields[k] == 'count' and v != UNKNOWN and not self._valid(k, v):
                 lim = self.limits.get(k)
                 return False, (f'{k}: {v!r} is outside {lim[0]}..{lim[1]}' if lim else f'{k}: no upper limit is known (PRM-18 unresolved): not saved')

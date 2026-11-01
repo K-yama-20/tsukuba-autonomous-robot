@@ -4,7 +4,8 @@ Serves the static page from the package's web/ directory and a small JSON API:
   GET  /                     the monitor page (16:9 operating screen, design/docs/gouda_gui_design_rules.md)
   GET  /static/<file>        page assets
   GET  /api/state            current snapshot (JSON)
-  GET  /api/events           server-sent events: a snapshot whenever the revision changes, plus a keep-alive
+  GET  /api/events           server-sent events: a snapshot whenever the revision changes (at most max_rate_hz snapshots a
+                             second, PRM-104: changes in between are coalesced into the next snapshot), plus a keep-alive
   GET  /api/config           /config values
   POST /api/command/<name>   human operation; JSON body is passed to the command handler
   POST /api/config           update /config fields (JSON object of field: value)
@@ -29,12 +30,14 @@ class MonitorServer:
     def __init__(self, web_dir: Path, state_provider: Callable[[], dict], config_provider: Callable[[], dict],
                  command_handler: Callable[[str, dict], dict], config_handler: Callable[[dict], dict],
                  host: str = '127.0.0.1', port: int = 0, url_file: Optional[Path] = None, keepalive_s: float = None,
-                 get_routes: Optional[dict] = None, post_routes: Optional[dict] = None):
+                 get_routes: Optional[dict] = None, post_routes: Optional[dict] = None, max_rate_hz: float = None):
         if keepalive_s is None:
             raise ValueError('keepalive_s must be given by the node from its ROS parameter (PRM-28); the server has no default')
+        if not max_rate_hz or max_rate_hz <= 0:
+            raise ValueError('a positive max_rate_hz must be given by the node from its ROS parameter (PRM-104); the server has no default')
         self.web_dir = Path(web_dir); self.state_provider = state_provider; self.config_provider = config_provider
         self.command_handler = command_handler; self.config_handler = config_handler
-        self.host, self.port, self.url_file, self.keepalive_s = host, port, url_file, keepalive_s
+        self.host, self.port, self.url_file, self.keepalive_s, self.min_interval_s = host, port, url_file, keepalive_s, 1 / max_rate_hz
         # Extra routes: {'/api/prefix/': handler(path_rest, query) -> (status, content_type, bytes) | dict}
         self.get_routes = get_routes or {}; self.post_routes = post_routes or {}
         self._cv = threading.Condition(); self._revision = -1
@@ -158,12 +161,15 @@ class _Handler(BaseHTTPRequestHandler):
         s = self.server_ref
         self.send_response(200); self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
         self.send_header('Cache-Control', 'no-store'); self.send_header('Connection', 'keep-alive'); self.end_headers()
-        seen = -1
+        seen, sent_at = -1, None
         try:
             while True:
+                if sent_at is not None:   # PRM-104 (DEC-392): at most max_rate_hz snapshots a second; later changes are coalesced
+                    rest = s.min_interval_s - (time.monotonic() - sent_at)
+                    if rest > 0: time.sleep(rest)
                 snap = s.state_provider(); rev = snap.get('revision', 0)
                 if rev != seen:
-                    seen = rev
+                    seen, sent_at = rev, time.monotonic()
                     self.wfile.write(f'event: state\ndata: {json.dumps(snap, ensure_ascii=False, default=str)}\n\n'.encode('utf-8')); self.wfile.flush()
                 if not s.wait_change(seen, s.keepalive_s):
                     self.wfile.write(f': keepalive {time.time():.0f}\n\n'.encode('utf-8')); self.wfile.flush()

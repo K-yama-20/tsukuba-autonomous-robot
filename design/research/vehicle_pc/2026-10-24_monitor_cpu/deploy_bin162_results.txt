@@ -1,0 +1,25 @@
+第162便 VM の Gouda に M1・M2（PRM-104 5 Hz）を反映した前後の CPU（cpu_sample_bin162.sh、/proc の utime+stime、60 s、プロセス名ごと、1 % 以上）
+
+前（04:0x JST、pgid 13017、manual・idle。IMU 100 Hz と /esp32/status 20 Hz が流れていた）
+   99.4% gouda_monitor
+   11.3% hesai_ros_drive
+    5.7% firefox
+    3.8% gnome-shell
+    1.2% vehicle_bridge
+    1.1% adis_rcv_bin_no
+  loadavg: 3.59 5.29 5.70
+  SSE（curl -N /api/events 10 s）：event: state 166 回（16.6 回/s）
+
+後（04:1x JST、gouda.sh stop → start、pgid 25611、manual・idle。IMU は NOT_RECEIVED（driver の再起動で止まる既知の件、USB の差し直し待ち）、/esp32/status は NOT_RECEIVED（bridge は地図作成・自律走行で configure されるまで止まっている）。XT-32 は RECEIVED）
+   13.3% hesai_ros_drive
+    4.1% firefox
+    4.0% gnome-shell
+    2.8% gouda_monitor
+    1.5% gouda_mode_mana
+    1.0% ros2
+  loadavg: 2.68 4.55 5.38
+  SSE（10 s）：event: state 50 回（5.0 回/s。上限どおり）
+
+注意：前と後で monitor に流れる topic が違う（後は IMU と ESP32 の STATUS がない）ので、99.4 % → 2.8 % は M1・M2 の効果だけではない。
+同じ条件の比較は、IMU の差し直しと地図作成（または自律走行）の開始の後に測り直す。
+参考（第161便の probe、同じ購読、単一の thread の executor）：16 %。
