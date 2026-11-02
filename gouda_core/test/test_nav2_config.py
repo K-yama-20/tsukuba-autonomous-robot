@@ -145,6 +145,9 @@ class Nav2ConfigTests(unittest.TestCase):
         self.assertEqual(sc['target_frame'], 'base_link')
         self.assertEqual((sc['min_height'], sc['max_height']), (v['obstacle_min_height_m'], v['obstacle_max_height_m']))   # PRM-70 / PRM-71
         self.assertEqual((sc['angle_min'], sc['angle_max'], sc['use_inf']), (-math.pi, math.pi, True))
+        # REV-186 (DEC-396): an inf beam must become a point: finite range_max beyond what the layer marks and clears
+        self.assertTrue(math.isfinite(sc['range_max']))
+        self.assertGreater(sc['range_max'], max(ts['obstacle_max_range'], ts['raytrace_max_range']))
         # DEC-216: what the LiDAR sees never turns the unknown outside of the swept corridor into free (global only)
         self.assertEqual(g['obstacle_layer']['combination_method'], 2)
         self.assertNotIn('combination_method', lc['obstacle_layer'])
@@ -305,6 +308,7 @@ class TunableTests(unittest.TestCase):
             self.assertEqual((lc['width'], lc['height']), (6, 6))
             for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
                 self.assertEqual((src['obstacle_max_range'], src['raytrace_max_range']), (3.0, 4.0))
+            self.assertGreater(p[nc.SCAN_NODE]['ros__parameters']['range_max'], 4.0)   # REV-186: follows the saved ranges
             self.assertNotIn('voxel_layer', lc); self.assertEqual(gc['update_frequency'], 2.0)   # PRM-127 unused since REV-185
             for c in (lc, gc):
                 self.assertEqual((c['inflation_layer']['cost_scaling_factor'], c['inflation_layer']['inflation_radius']), (5.0, 0.8))

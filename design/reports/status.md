@@ -1,10 +1,19 @@
 # 現状の要約（status.md）
 
-最終更新：2026-11-01（REV-185、第167便。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
+最終更新：2026-11-02（REV-186、第169便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
+
+**第169便: A案の scan の range_max を有限にする（REV-186、DEC-396）**（作業記録 `reports/worklog/2026-11-02_bin169_scan_range_max.md`）。
+- 人の回答「修正を実装」。range_max を obstacle_max_range・raytrace_max_range の大きい方の 2 倍に（既定の範囲で 6.0 m、/config に追従）。
+- 単体試験 Mac 305 件 OK（skip 15）、設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。VM の試験・実の costmap の消去の確認・実車は未実行（VM に ssh がつながらない）。コミットはまだ。
+
+**第168便: main の現状と、回避機動が遅い原因の調査（読むだけ）**（作業記録 `reports/worklog/2026-11-01_bin168_main_status_avoidance_latency.md`）。
+- main 8ee7162：単体試験 Mac 305 件 OK（skip 15）、設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。A案の実車は未実行。VM は ssh がつながらない。x86 の PC は AI から接続方法が不明。
+- A案の設定は `range_max` が既定値（inf）で、点のない方位が costmap の消去に使われない疑い（上流のソースと計算で確認、実機は未実行、承認の候補）。
+- 記録の訂正：controller の「平均 10 Hz」は遅れた回だけの値（0.2 s ごとに約 0.1 s の詰まり）で、「1.6 Hz」は planner_server の行。計画は 50 ms 以内がほとんど。見えてから RPP が止めるまでの猶予 1.08 s に対し、避ける経路まで最悪 2.15 s（計算）。一番長い遅れは回復（約 50 s）。コード・設定は変えていない。
 
 **第167便: A案（障害物の高さの帯を base_link で切る、pointcloud_to_laserscan）の試験の準備（REV-185、DEC-395、DEC-336 回答）**（作業記録 `reports/worklog/2026-11-01_bin167_plan_a_scan_band.md`、ブランチ test/plan-a-scan-band-2026-11-01）。
 - 上流の pointcloud_to_laserscan で XT-32 の点群を base_link の帯（PRM-70・71）で切って LaserScan（IFD-57）にし、local（ObstacleLayer に）・global の costmap の観測源にした。Nav2 側の帯は無効、点のない方位は消去に使う。
-- Mac・VM の単体試験 OK、帯の確かめ（合成の点群で箱だけが出る）、模擬の結合試験 T1〜T6 合格。設計検査 違反 0・未判定 5。実車は未実行。VM にパッケージは未導入（update.sh、sudo、人の作業）。コミットはまだ。
+- Mac・VM の単体試験 OK、帯の確かめ（合成の点群で箱だけが出る）、模擬の結合試験 T1〜T6 合格。設計検査 違反 0・未判定 5。実車は未実行。追記：人の指示で PR #22 として main に merge（8ee7162、作者 ryoya-1）。#21 も同時に main に入った。VM（aarch64）にはパッケージ未導入。人は x86 の PC に pointcloud_to_laserscan を入れた（AI はその PC につなぐ方法を知らない）。
 
 **第166便: monitor のモードの表示「一時停止」を「待機」に（REV-184、DEC-394）と、変更の push**（作業記録 `reports/worklog/2026-10-26_bin166_monitor_label_taiki.md`）。
 - 人の指示で、画面の表示名だけを「待機」に（正本の MODE-PAUSE・IFD-01・ボタンの文字は変えていない）。第156〜166便の変更をコミットして push（§5）。VM の Gouda には第165・166便は未反映（待機中の run-83d10ac0 の扱いが人の判断待ち）。

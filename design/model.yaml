@@ -35538,13 +35538,13 @@ entities:
       - G-ARCH
       - H-003
     interpretation: REV-185（DEC-336・DEC-395）：帯を base_link で切る既製の pointcloud_to_laserscan を ND-09 とした（node 
-      xt32_scan、Nav2 と一緒に起動）。
+      xt32_scan、Nav2 と一緒に起動）。 REV-186（DEC-396）：scan の range_max を観測源の範囲より大きい有限の値にした。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I091
       - RQ-I007
-    revision_ref: REV-185
+    revision_ref: REV-186
     ros_node:
       node_name: xt32_scan
       responsibilities:
@@ -35552,7 +35552,9 @@ entities:
           に変換し、高さの帯（PRM-70・PRM-71、base_link 基準）の中の点だけを方位ごとの LaserScan（IFD-57）にする。独自の点群処理は作らない（DEC-336・DEC-395）
         - local・global の costmap は IFD-57 を ObstacleLayer の観測源にし、Nav2 側の高さの帯は実質無効にする（Nav2 は帯を odom・map の z 
           で当て、その原点は GLIM の最初の IMU の姿勢のため。DEC-336）。local は 2 次元（DEC-321、TRB-001）
-        - 帯の中に点のない方位は空きとして消去に使う（inf_is_valid、DEC-322、TRB-002）。これは「観測外を安全とみなさない」（RQ-I012）の人が認めた例外。それ以外の観測外（track_unknown_space）は今のまま
+        - 帯の中に点のない方位は空きとして消去に使う（inf_is_valid、DEC-322、TRB-002）。そのため scan の range_max は観測源の 
+          obstacle_max_range・raytrace_max_range 
+          より大きい有限の値にする（DEC-396）。これは「観測外を安全とみなさない」（RQ-I012）の人が認めた例外。それ以外の観測外（track_unknown_space）は今のまま
         - pointcloud_to_laserscan が入っていなければ Nav2 を起動しない（障害物の入力なしで走らない）
         - 坂で地面が帯に入り障害物になる場合は、実車の記録で確かめてから既製の地面の除去（patchwork++ など）を提案する
       absorbs_module_refs:
@@ -48253,13 +48255,13 @@ entities:
     issue_refs:
       - Q-04
       - G-DDS
-    interpretation: REV-185（DEC-336・DEC-395）で追加。
+    interpretation: REV-185（DEC-336・DEC-395）で追加。 REV-186（DEC-396）：range_max を有限にした。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I091
       - RQ-I007
-    revision_ref: REV-185
+    revision_ref: REV-186
     designed_interface:
       transport: topic
       name: sensors/xt32/scan
@@ -48275,7 +48277,7 @@ entities:
       unit: m
       frame: base_link（pointcloud_to_laserscan の target_frame。距離は base_link の x・y の平面）
       time_semantics: header.stamp は元の点群（IFD-21）の stamp のまま。高さ（base_link の z）が PRM-70 と PRM-71 
-        の間の点だけを使い、方位ごとに一番近い点の距離。範囲の中に点のない方位は inf（use_inf）
+        の間の点だけを使い、方位ごとに一番近い点の距離。範囲の中に点のない方位と range_max より遠い方位は inf（use_inf）。range_max は有限（DEC-396）
       qos:
         reliability: best_effort
         durability: volatile
@@ -63971,6 +63973,27 @@ decisions:
       行は分けたチャット（local_65aa941e）での人の回答で、引き継ぎで受け取った。主のチャットで人が「試験用にブランチを作って、A案を試す準備をせよ。」と指示したので、試験用のブランチ（test/plan-a-scan-band-2026-11-01）で準備する。VM
       の Gouda への反映は人の許可の後。第167便。
     disposition: answered
+  - id: DEC-396
+    kind: approval
+    status: answered
+    asked_on: '2026-11-01'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: （第168便）A案の実車試験の前に、pointcloud_to_laserscan の range_max を raytrace_max_range より大きい有限の値にする修正を実装するか。
+      今の既定値では点のない方位が消去に使われない疑いがある（DEC-322 と不一致）。
+    answer_verbatim: "修正を実装\n"
+    affected_refs:
+      - ND-09
+      - IFD-57
+      - DEC-322
+    resulting_refs:
+      - ND-09
+      - IFD-57
+    note: 人は「修正を実装」のボタンで答えた。値は新しい PRM にせず、obstacle_max_range・raytrace_max_range の大きい方の 2 
+      倍とした（自律判断）。理由：点のない方位の点は obstacle_max_range より遠いので印にならず、消去は raytrace_max_range までで切られるので、両方より大きければ値で 
+      costmap は変わらない（obstacle_layer.cpp の world_dist_sq の判定と raytraceFreespace の範囲）。/config で PRM-125・126 
+      を変えても追従する。実機の消去の確認は未実行（第169便の作業記録）。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -67960,4 +67983,20 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-P2L-2-0-2-EXCERPT
+    removed_entity_ids: []
+  - id: REV-186
+    date: '2026-11-02'
+    summary: 第169便：人の回答「修正を実装」で、pointcloud_to_laserscan（ND-09）の range_max を、ObstacleLayer の 
+      obstacle_max_range・raytrace_max_range より大きい有限の値にする （DEC-396）。既定値では LaserScan の range_max が inf 
+      になり、点のない方位の点が laser_geometry で捨てられて、DEC-322 の消去が効かない疑いがあった（上流のソースと計算で確認、第168便）。
+    basis_refs:
+      - DEC-396
+      - DEC-322
+      - DEC-336
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-09
+      - IFD-57
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

@@ -179,6 +179,7 @@ def apply_tunables(params: dict, t: dict) -> None:
     for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
         if has('obstacle_max_range_m'): src['obstacle_max_range'] = float(t['obstacle_max_range_m'])
         if has('raytrace_max_range_m'): src['raytrace_max_range'] = float(t['raytrace_max_range_m'])
+    params[SCAN_NODE]['ros__parameters']['range_max'] = scan_range_max(gc['obstacle_layer']['scan'])   # REV-186: follows PRM-125 / PRM-126
     if has('voxel_mark_threshold') and 'voxel_layer' in lc:   # PRM-127: no voxel layer since REV-185 (DEC-321), so unused
         lc['voxel_layer']['mark_threshold'] = int(t['voxel_mark_threshold'])
     if has('global_costmap_update_hz'): gc['update_frequency'] = float(t['global_costmap_update_hz'])
@@ -219,10 +220,18 @@ def _scan_observation(template_scan: dict) -> dict:
     return s
 
 
-def scan_parameters(height_min: float, height_max: float) -> dict:
+def scan_range_max(scan_source: dict) -> float:
+    """range_max of the scan (REV-186, DEC-396), finite and beyond both ranges of the ObstacleLayer source. The layer turns an inf beam
+    into a point at range_max just below it; the package's own value becomes inf in the message, so laser_geometry dropped those points
+    and a direction without a point cleared nothing (DEC-322). The point marks nothing (beyond obstacle_max_range) and clears up to
+    raytrace_max_range, so the exact value does not change the costmap."""
+    return float(max(scan_source['obstacle_max_range'], scan_source['raytrace_max_range']) * 2)
+
+
+def scan_parameters(height_min: float, height_max: float, range_max: float) -> dict:
     """pointcloud_to_laserscan (ND-09): the XT-32 points in base_link between PRM-70 and PRM-71, the whole circle, no point -> inf.
     Every other value stays the package's own."""
-    return {'target_frame': BASE_FRAME, 'min_height': height_min, 'max_height': height_max,
+    return {'target_frame': BASE_FRAME, 'min_height': height_min, 'max_height': height_max, 'range_max': range_max,
             'angle_min': -math.pi, 'angle_max': math.pi, 'use_inf': True, 'use_sim_time': False}
 
 
@@ -265,7 +274,7 @@ def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
     ol = gc['obstacle_layer']
     ol.update({'observation_sources': 'scan', 'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND, 'scan': _scan_observation(template_scan),
                'combination_method': OBSTACLE_COMBINATION_GLOBAL})
-    p[SCAN_NODE] = {'ros__parameters': scan_parameters(hmin, hmax)}
+    p[SCAN_NODE] = {'ros__parameters': scan_parameters(hmin, hmax, scan_range_max(template_scan))}
     plugins = list(gc['plugins'])
     plugins.insert(plugins.index('inflation_layer'), KEEPOUT_LAYER)
     gc['plugins'] = plugins
