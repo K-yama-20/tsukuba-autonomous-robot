@@ -1,0 +1,52 @@
+# 変更セット REV-189（2026-11-02 第176便: MPPI を使うこと、パスの平滑化を行うことの人の回答の記録。DEC-400・401）
+# 適用: design/tools/apply_revision.py REV-189
+id: REV-189
+date: '2026-11-02'
+summary: >-
+  第176便：人の回答「MPPI: 使用」「パスの平滑化：行う」を DEC-400・401 に原文で記録する。コード・設定は変えない。DEC-122（controller は RPP、確定済み）は書き換えず、
+  この 2 件が新しい判断として参照する。実装の範囲と値（提案 mppi_trial の B2〜B6）は未回答。
+basis_refs:
+- DEC-400
+- DEC-401
+- DEC-122
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-400
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    （第171便の提案 B1、DEC-122 の見直し）controller に MPPI を使うか。第171便の提案は「試験として /config で切り替え、既定は RPP」。
+  answer_verbatim: |
+    MPPI: 使用
+  affected_refs:
+  - DEC-122
+  - ND-10
+  - PRM-114
+  - PRM-124
+  resulting_refs:
+  - DEC-122
+  note: >-
+    回答は AI の Nav2 の機能の一覧（「MPPI 不使用、試験を提案中」）への返事。「使用」の範囲（既定を MPPI にするか、切り替えを残すか）と、実装の着手の許可（DEC-106）は人に確認する。
+    値は未確定（提案 B2・B3）。第171便の別のチャットで受けた人の指示の原文は同便の作業記録にある。第176便。
+  disposition: answered
+- id: DEC-401
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    パスの平滑化を行うか。今は smoother_server は起動しているが、BT に SmoothPath がなく呼ばれていない（DEC-122 は平滑化を判断していない）。
+  answer_verbatim: |
+    パスの平滑化：行う
+  affected_refs:
+  - ND-10
+  - DEC-122
+  resulting_refs:
+  - ND-10
+  note: >-
+    方法の案は第176便の作業記録（上流の BT の SmoothPath ノードと、雛形の simple_smoother。独自の処理を足さない）。実装の着手の許可（DEC-106）は人に確認する。第176便。
+  disposition: answered

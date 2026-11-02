@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import math
 from collections import deque
+import dataclasses
 from dataclasses import dataclass
 from typing import Optional
 
@@ -40,7 +41,8 @@ REASONS = {
 }
 DOUBLE_SETTINGS = ['points_near_crop_m', 'points_far_crop_m', 'points_voxel_leaf_m', 'twist_vx_variance', 'twist_wz_variance',
                    'initial_xy_variance', 'initial_z_variance', 'initial_roll_pitch_variance', 'initial_yaw_variance',
-                   'status_period_s', 'stale_timeout_s', 'ndt_nvtl_min', 'ekf_xy_stddev_max_m']   # PRM-79..90, PRM-92
+                   'status_period_s', 'stale_timeout_s', 'ndt_nvtl_min', 'ekf_xy_stddev_max_m',
+                   'map_odom_future_offset_s']   # PRM-79..90, PRM-92, PRM-135
 INT_SETTINGS = ['ekf_pose_no_update_max', 'points_voxel_min_points']                              # PRM-91, PRM-102
 NDT_SCORE_KEY = 'nearest_voxel_transformation_likelihood'
 EKF_NO_UPDATE_KEY = 'pose_no_update_count'
@@ -66,6 +68,7 @@ class Settings:
     stale_timeout_s: float
     ndt_nvtl_min: float
     ekf_xy_stddev_max_m: float
+    map_odom_future_offset_s: float
     ekf_pose_no_update_max: int
     points_voxel_min_points: int
 
@@ -82,9 +85,22 @@ class Settings:
             bad.append('points_voxel_min_points must be at least 1')
         if not s.points_near_crop_m < s.points_far_crop_m:
             bad.append('points_near_crop_m must be smaller than points_far_crop_m')
+        if not s.map_odom_future_offset_s < s.stale_timeout_s:   # the TF must not stay valid after the input is judged stale
+            bad.append('map_odom_future_offset_s must be smaller than stale_timeout_s')
         if bad:
             raise ValueError(f'settings out of range: {bad}')
         return s
+
+
+def with_map_odom_offset(s: Settings, value) -> Settings:
+    """The settings with the /config value of PRM-135 (REV-193, DEC-406). A value not below stale_timeout_s keeps the PRM's value."""
+    return dataclasses.replace(s, map_odom_future_offset_s=float(value)) if 0 < value < s.stale_timeout_s else s
+
+
+def future_stamp(sec: int, nanosec: int, offset_s: float) -> tuple:
+    """(sec, nanosec) of the map->odom TF: the odometry's time plus PRM-135, as AMCL and slam_toolbox do (REV-191, DEC-403)."""
+    total = sec * 10**9 + nanosec + round(offset_s * 1e9)
+    return total // 10**9, total % 10**9
 
 
 # ---------------------------------------------------------------- poses

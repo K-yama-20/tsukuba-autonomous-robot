@@ -48,6 +48,12 @@ REV-183 (DEC-393):
   local costmap size, observation ranges, voxel mark_threshold, global update rate, inflation). Each comes from its PRM
   (PRM-105..129) or from the tab when the saved value is valid; inflation_radius_m overrides PRM-72 the same way. While a value
   is unresolved and nothing is saved, nothing is written and the Nav2 1.3.13 template / plugin value stays (no behaviour change).
+REV-190 (DEC-400, DEC-401, DEC-402):
+- the controller FollowPath is the template's MPPI when PRM-130 is true (RPP stays the choice when it is false). MPPI's limits are PRM-131,
+  PRM-132, PRM-68 and PRM-73, no reversing (vx_min 0; the BackUp recovery still reverses), prune_distance scaled with the speed as in the
+  template, CostCritic with the footprint (PRM-69 is a long rectangle), no visualization. The other template values stay;
+- the replanning branch gets the upstream SmoothPath node after ComputePathThroughPoses when PRM-134 is true (simple_smoother of the
+  template, no collision check as in the node's default).
 """
 from __future__ import annotations
 
@@ -70,6 +76,8 @@ POINTS_TOPIC = '/sensors/xt32/points'          # IFD-21
 SCAN_TOPIC = '/sensors/xt32/scan'              # IFD-57 (REV-185, DEC-336 / DEC-395): the band cut in base_link, as a LaserScan
 SCAN_NODE = 'xt32_scan'                        # pointcloud_to_laserscan (ND-09, an upstream package)
 SCAN_PACKAGE, SCAN_EXECUTABLE = 'pointcloud_to_laserscan', 'pointcloud_to_laserscan_node'
+MPPI_PACKAGE, MPPI_PLUGIN = 'nav2_mppi_controller', 'nav2_mppi_controller::MPPIController'   # REV-190 (DEC-400)
+SMOOTHER_ID = 'simple_smoother'                # the template's smoother plugin (REV-190, DEC-401)
 NO_BAND = float('inf')   # DEC-336: Nav2's own height band is made ineffective (the band is cut before, in base_link)
 # Absolute names: the SpeedFilter lives in the global_costmap namespace, where a relative name would become
 # /global_costmap/... and miss the servers and the controller (found in the VM test of 2026-10-17).
@@ -126,6 +134,12 @@ TUNABLES = OrderedDict([
     ('global_costmap_update_hz', ('PRM-128', 'positive', 'gouda_nav2')),              # C-6
     ('inflation_cost_scaling_factor', ('PRM-129', 'positive', 'gouda_nav2')),         # D-4
     ('inflation_radius_m', ('PRM-72', 'positive', 'gouda_nav2')),                     # D-4: overrides the approved PRM-72
+    ('controller_use_mppi', ('PRM-130', 'boolean', 'gouda_nav2')),                    # REV-190 (DEC-400): false = RPP
+    ('mppi_vx_max_mps', ('PRM-131', 'positive', 'gouda_nav2')),
+    ('mppi_wz_max_radps', ('PRM-132', 'positive', 'gouda_nav2')),
+    ('local_costmap_update_hz', ('PRM-133', 'positive', 'gouda_nav2')),
+    ('path_smoothing_enabled', ('PRM-134', 'boolean', 'bt_params')),                  # REV-190 (DEC-401)
+    ('map_odom_future_offset_s', ('PRM-135', 'positive', 'gouda_global_localization')),   # REV-193 (DEC-406), used by ND-07, not by Nav2
 ])
 # The RPP keys of the controller plugin (FollowPath) for the rpp_* tunables
 RPP_KEYS = {'rpp_use_collision_detection': 'use_collision_detection', 'rpp_max_time_to_collision_s': 'max_allowed_time_to_collision_up_to_carrot',
@@ -147,7 +161,8 @@ def valid_tunable(kind: str, v) -> bool:
 
 def read_tunables(params_dir: str, trial: bool) -> dict:
     """{key: the PRM's value from the generated files, or None when the PRM has no value}."""
-    files = {'gouda_nav2': sc.read_node_params(params_dir, 'gouda_nav2', trial), 'bt_params': read_bt_params(params_dir, trial)}
+    files = {'gouda_nav2': sc.read_node_params(params_dir, 'gouda_nav2', trial), 'bt_params': read_bt_params(params_dir, trial),
+             'gouda_global_localization': sc.read_node_params(params_dir, 'gouda_global_localization', trial)}
     return {k: files[f].get(k) for k, (_, _, f) in TUNABLES.items()}
 
 
@@ -165,17 +180,38 @@ def tunable_from_config(config_dir: Optional[str], key: str, prm_value) -> dict:
     return dict(base, note=f'the saved {key} {v!r} is not valid ({kind}): {prm} used')
 
 
-def apply_tunables(params: dict, t: dict) -> None:
-    """Write the tunables that have a value into the Nav2 parameter dict (keys without a value keep the template / plugin value)."""
+def mppi_follow(template_follow: dict, t: dict, accel: float, wz_accel: float) -> dict:
+    """The template's MPPI controller with the vehicle's limits (REV-190, DEC-400); keys without a value keep the template value."""
+    if template_follow.get('plugin') != MPPI_PLUGIN:
+        raise ValueError(f'the upstream template FollowPath is not {MPPI_PLUGIN}')
+    f = copy.deepcopy(template_follow)
+    if t.get('mppi_vx_max_mps') is not None:
+        vx = float(t['mppi_vx_max_mps'])
+        f['prune_distance'] = f['prune_distance'] * vx / f['vx_max']   # the template's margin over the prediction horizon, kept with the speed
+        f['vx_max'] = vx
+    if t.get('mppi_wz_max_radps') is not None: f['wz_max'] = float(t['mppi_wz_max_radps'])
+    f.update({'vx_min': 0.0, 'ax_max': accel, 'ax_min': -accel, 'az_max': wz_accel, 'visualize': False})
+    f['CostCritic']['consider_footprint'] = True
+    return f
+
+
+def apply_tunables(params: dict, t: dict, template_follow: dict) -> None:
+    """Write the tunables that have a value into the Nav2 parameter dict (keys without a value keep the template / plugin value).
+    template_follow is the template's controller_server FollowPath (MPPI)."""
     def has(k): return t.get(k) is not None
     bt = params['bt_navigator']['ros__parameters']
     if has('bt_default_server_timeout_ms'): bt['default_server_timeout'] = int(t['bt_default_server_timeout_ms'])
-    follow = params['controller_server']['ros__parameters']['FollowPath']
-    for k, rk in RPP_KEYS.items():
-        if has(k): follow[rk] = t[k] if isinstance(t[k], bool) else float(t[k])
+    cs = params['controller_server']['ros__parameters']
+    if t.get('controller_use_mppi'):
+        vs = params['velocity_smoother']['ros__parameters']
+        cs['FollowPath'] = mppi_follow(template_follow, t, vs['max_accel'][0], vs['max_accel'][2])
+    else:
+        for k, rk in RPP_KEYS.items():
+            if has(k): cs['FollowPath'][rk] = t[k] if isinstance(t[k], bool) else float(t[k])
     lc = params['local_costmap']['local_costmap']['ros__parameters']
     gc = params['global_costmap']['global_costmap']['ros__parameters']
     if has('local_costmap_size_m'): lc['width'] = lc['height'] = int(t['local_costmap_size_m'])
+    if has('local_costmap_update_hz'): lc['update_frequency'] = float(t['local_costmap_update_hz'])
     for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
         if has('obstacle_max_range_m'): src['obstacle_max_range'] = float(t['obstacle_max_range_m'])
         if has('raytrace_max_range_m'): src['raytrace_max_range'] = float(t['raytrace_max_range_m'])
@@ -410,6 +446,19 @@ def build_bt(template_xml: str, values: dict, tunables: Optional[dict] = None) -
         if inner is None:
             raise ValueError(f'the upstream BT does not have the expected inner RecoveryNode {name}')
         if t.get(key) is not None: inner.set('number_of_retries', str(int(t[key])))
+    if t.get('path_smoothing_enabled'):   # REV-190 (DEC-401): a Sequence, so a running SmoothPath does not tick ComputePathThroughPoses again
+        inner = root.find(".//RecoveryNode[@name='ComputePathThroughPoses']")
+        plan = inner.find('ReactiveSequence')
+        compute = plan.find('ComputePathThroughPoses') if plan is not None else None
+        if compute is None or compute.get('path') != '{path}':
+            raise ValueError('the upstream BT does not have the expected ReactiveSequence / ComputePathThroughPoses nodes')
+        inner.remove(plan)
+        planned = ET.Element('Sequence', {'name': 'PlanAndSmooth'})
+        inner.insert(0, planned)
+        planned.append(plan)
+        compute.set('path', '{unsmoothed_path}')   # FollowPath reads {path}: it only ever gets the smoothed path
+        ET.SubElement(planned, 'SmoothPath', {'unsmoothed_path': '{unsmoothed_path}', 'smoothed_path': '{path}', 'smoother_id': SMOOTHER_ID,
+                                              'error_code_id': '{smoother_error_code}'})
     return ET.tostring(root, encoding='unicode')
 
 
@@ -442,7 +491,7 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
     with open(nav2_template_path, encoding='utf-8') as f:
         template = yaml.safe_load(f)
     params = nav2_parameters(template, values, bt_path)
-    apply_tunables(params, t)
+    apply_tunables(params, t, template['controller_server']['ros__parameters']['FollowPath'])
     params_path = os.path.join(out_dir, 'nav2_params.yaml')
     with open(params_path, 'w', encoding='utf-8') as f:
         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')

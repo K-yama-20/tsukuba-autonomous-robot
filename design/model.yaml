@@ -575,6 +575,10 @@ files:
     path: design/research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
     sha256: 241172e72a49677fe0331404f68e5199afc0dc27c25e18655f781cb27d994f58
     role: evidence
+  - id: FILE-MONITOR-PALETTE
+    path: design/docs/gouda_monitor_palette.md
+    sha256: 752ee598f41e8eb0994cf8b81315a1ac6a7eab17351eb7657a3a21282091e57f
+    role: evidence
 sources:
   - id: SRC-I001
     file_ref: FILE-INTENT
@@ -34927,7 +34931,8 @@ entities:
       を発行し、DecisionEvent（event=settings）に残す。 REV-132（DEC-209）：「Nav2」タブを足した。 REV-134（DEC-211・215・217）：waypoint 
       の警告、重ね図、Nav2 タブの真偽の項目。 REV-137（DEC-220〜223）：人が描く範囲。 REV-146（DEC-281 b）：点群の受信は IFD-56 で見る。 
       REV-155（DEC-289 案 a）：waypoint タブに地図作成の終わりの姿勢と、それを初期位置にするボタン。 REV-184（DEC-394）：画面のモードの表示名で MODE-PAUSE 
-      を「待機」と出す。
+      を「待機」と出す。 REV-188（DEC-399）：画面の配色は design/docs/gouda_monitor_palette.md（案 
+      A）に従う。地図作成の終わりの矢印は濃い黄。色は停止の保証ではない。
     sensitivity:
       - operation
     requirement_refs:
@@ -34940,7 +34945,7 @@ entities:
       - RQ-I044
       - RQ-I070
       - RQ-I082
-    revision_ref: REV-184
+    revision_ref: REV-188
     ros_node:
       node_name: gouda_monitor
       responsibilities:
@@ -35406,7 +35411,8 @@ entities:
       §2・§3）の正本への取込みと実装を人が許可。取込みは別の変更セット。 REV-128（DEC-203）：構成を正本に入れた。 REV-144（DEC-280 案 a）：ndt_align_srv 
       の前に、NDT が点群を保持するまで待つ。 REV-146（DEC-282 案 a）：初期化の後、入力が一度ずつ届くまで初期化中。 REV-148（DEC-283 案 a）：点群の前処理を Gouda の 
       gouda_a3_points にした（pcl_ros の VoxelGrid が実の点群で落ちたため）。 REV-151（DEC-285・284 案 a）：map→odom 
-      の計算の待ち方、初回の計算までは初期化中、立方体の最小の点の数（PRM-102）。
+      の計算の待ち方、初回の計算までは初期化中、立方体の最小の点の数（PRM-102）。 REV-191（DEC-403）：map→odom の stamp を odometry の時刻＋PRM-135 
+      にした。値の計算は DEC-285 のまま。
     sensitivity:
       - safety
       - operation
@@ -35414,7 +35420,7 @@ entities:
       - RQ-I084
       - RQ-I014
       - RQ-I004
-    revision_ref: REV-151
+    revision_ref: REV-191
     ros_node:
       node_name: gouda_global_localization
       responsibilities:
@@ -35605,7 +35611,8 @@ entities:
       を含む）を責務に補った。振る舞いは変えていない。 REV-124（DEC-198 案 A）：velocity_smoother の後退の上限を PRM-78 にした（以前は前進と同じ PRM-66 を負にした値）。
       REV-132（DEC-209）：recovery の回数を IFD-54 から読む。 REV-134（DEC-214・216〜218）：costmap の合成と膨らませの設定。 REV-137（DEC-222）：keepout
       の server と filter。 REV-140（DEC-227 案 A）：global costmap に keepout_layer（StaticLayer、inflation の前）。 REV-185（DEC-336・DEC-395）：costmap
-      の障害物の観測源を IFD-57（LaserScan）にした。local の VoxelLayer を ObstacleLayer に替えた（DEC-321）。'
+      の障害物の観測源を IFD-57（LaserScan）にした。local の VoxelLayer を ObstacleLayer に替えた（DEC-321）。 REV-190（DEC-400・401・402）：MPPI
+      を既定にし、SmoothPath を足した。'
     sensitivity:
       - safety
       - operation
@@ -35617,7 +35624,7 @@ entities:
       - RQ-I020
       - RQ-I056
       - RQ-I083
-    revision_ref: REV-185
+    revision_ref: REV-190
     ros_node:
       node_name: nav2_stack
       responsibilities:
@@ -35630,6 +35637,10 @@ entities:
         - '構成（DEC-122）: controller は Regulated Pure Pursuit、planner は NavFn、BT は上流の navigate_through_poses_w_replanning_and_recovery.xml
           の写しに PRM-11・PRM-18 を入れたもの、behaviors は spin・backup・wait、velocity_smoother を使う、collision_monitor は使わない（RQ-I072）、cmd_vel
           は TwistStamped（PRM-12）'
+        - REV-190（DEC-400・401・402）：controller の既定は上流の雛形の MPPI（PRM-130〜132。vx_min 0、CostCritic は 
+          footprint、visualize false、その他は雛形のまま）。PRM-130 が false なら上の RPP。local costmap は 
+          PRM-124・PRM-133。経路の引き直しは ComputePathThroughPoses の後に上流の SmoothPath（雛形の 
+          simple_smoother、PRM-134）。nav2_mppi_controller がなければ、MPPI のとき Nav2 を起動しない
         - 障害物は XT-32 の点群（IFD-21）を local の VoxelLayer・global の ObstacleLayer 
           に直接入れ、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。track_unknown_space を true にして観測していない所を空きとみなさない（RQ-I012、DEC-122）
         - 設定は上流の nav2_bringup の nav2_params.yaml を雛形に、plugin の選択、frame・topic（IF の名前）と PRM 
@@ -37223,14 +37234,14 @@ entities:
     issue_refs:
       - Q-02
       - H-005
-    interpretation: ''
+    interpretation: REV-191（DEC-403）：stamp を少し先の時刻にした。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I004
       - RQ-I058
       - RQ-I084
-    revision_ref: REV-059
+    revision_ref: REV-191
     designed_interface:
       transport: tf
       name: /tf (map→odom)
@@ -37247,7 +37258,7 @@ entities:
         - ND-16
       unit: m, rad
       frame: map → odom（base_link は REP-103。DEC-007）
-      time_semantics: stamp は推定に用いた観測時刻。自律走行・一時停止で単独発行（RQ-I004・RQ-I058）
+      time_semantics: stamp は推定に用いた odometry の時刻＋PRM-135（DEC-403）。自律走行・一時停止で単独発行（RQ-I004・RQ-I058）
       qos:
         reliability: reliable
         durability: volatile
@@ -46519,14 +46530,14 @@ entities:
       - G-RECOVERY-COUNT
     interpretation: REV-132（DEC-201・DEC-207 (a)・DEC-209）で追加。 REV-134（DEC-217）：inflate_around_unknown を足した。 
       REV-167（DEC-347）：経路の引き直しの頻度 replan_rate_hz（PRM-103）を足した。 REV-183（DEC-393）：PRM-105〜129 の値と 
-      inflation_radius_m（PRM-72 の上書き）を足した。
+      inflation_radius_m（PRM-72 の上書き）を足した。 REV-193（DEC-406）：ND-07 が PRM-135 の保存値を読む。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I091
       - RQ-I070
-    revision_ref: REV-183
+    revision_ref: REV-193
     designed_interface:
       transport: file
       name: <data_root>/config/nav2_recovery.json（monitor の /config「Nav2」タブ → gouda_nav2.launch.py）
@@ -46541,6 +46552,7 @@ entities:
         - ND-02
       consumer_refs:
         - ND-10
+        - ND-07
       unit: 回
       frame:
       time_semantics: 人が「Nav2」タブで保存したときに書く（1 以上 PRM-18 以下の整数。それ以外は保存を拒否）。gouda.sh start のときに 
@@ -48009,40 +48021,40 @@ entities:
     source_refs:
       - SRC-I015
       - SRC-I024
-    design_status: 案
-    adoption: designed_proposal
+    design_status: 承認済み
+    adoption: approved
     field_bindings: {}
     related_refs:
       - IFD-54
       - C-018
-    issue_refs:
-      - G-TUNING
+    issue_refs: []
     interpretation: REV-183（DEC-393）で追加。第164便の C-2。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（local_costmap 
-      width 3・height 3）の値 3 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：6（前に 3 m。1.25 m/s で約 2.4 s 先。CPU は増える）
+      width 3・height 3）の値 3 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：6（前に 3 m。1.25 m/s で約 2.4 s 先。CPU は増える） 
+      REV-190（DEC-402）：値を 8 m にした。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I091
-    revision_ref: REV-183
+    revision_ref: REV-190
     parameter:
       owner_ref: ND-10
-      value:
-      value_state: unresolved
+      value: 8
+      value_state: approved
       unit: m
       stage: 自律走行の為の最小構成
       purpose: local costmap（rolling window）の一辺。Nav2 では整数。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の 
         gouda.sh start からその値
-      measurement: 未確定。今は Nav2 1.3.13 のテンプレート（local_costmap width 3・height 3）の値 3（出典 
-        upstream_defaults_1.3.13.txt（design/research/vehicle_pc/2026-10-24_nav2_runtime_config/））。実車の走行の試験で推奨値と比べて決める
-      decision_deadline: 推奨値の承認か、実車の走行の試験の後
+      measurement: 人の回答「実装する」（DEC-402）で AI の提示の値 8 m を承認（MPPI の予測の距離 2.24 m の倍以上。CPU は未測定）
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
       software_trial_value:
-      software_trial_basis: 仮値なし（値がない間は Nav2 の値がそのまま効く）
+      software_trial_basis: 承認済みの値のため仮値なし
       declaration: ros_parameter
       target: gouda_nav2
       param_key: local_costmap_size_m
       value_type: int
       apply_timing: launch
+    approval_decision_ref: DEC-402
   - id: PRM-125
     kind: parameter
     name: 障害物の印を付ける距離（obstacle_max_range、local・global）
@@ -48288,6 +48300,234 @@ entities:
           - research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
         note: 上流 pointcloud_to_laserscan 2.0.2 のソース（SensorDataQoS）で照合。実車PC に導入された版との一致は導入時に確認する
       legacy_refs: []
+  - id: PRM-130
+    kind: parameter
+    name: Nav2 の controller に MPPI を使うか（false なら Regulated Pure Pursuit）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - C-018
+    issue_refs: []
+    interpretation: REV-190（DEC-400・401・402）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I091
+    revision_ref: REV-190
+    parameter:
+      owner_ref: ND-10
+      value: true
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: controller_server の FollowPath の plugin の選択。true は上流の雛形の MPPI、false は RPP（DEC-122 の構成）。 monitor
+        の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+      measurement: '人の回答「MPPI: 使用」（DEC-400）と「実装する」（DEC-402）。既定を MPPI とする構成を AI が提示して承認された'
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: controller_use_mppi
+      value_type: bool
+      apply_timing: launch
+    approval_decision_ref: DEC-402
+  - id: PRM-131
+    kind: parameter
+    name: MPPI の前進の速度の上限 vx_max
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - C-018
+    issue_refs: []
+    interpretation: REV-190（DEC-400・401・402）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I091
+    revision_ref: REV-190
+    parameter:
+      owner_ref: ND-10
+      value: 0.8
+      value_state: approved
+      unit: m/s
+      stage: 自律走行の為の最小構成
+      purpose: MPPI の vx_max。PRM-66（velocity_smoother の上限）は変えない。prune_distance は雛形の比のまま追従する。 monitor の 
+        /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+      measurement: 人の回答「実装する」（DEC-402）で AI の提示の値 0.8 m/s を承認（KUAMS と同じ値。実車で未検証）
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: mppi_vx_max_mps
+      value_type: double
+      apply_timing: launch
+    approval_decision_ref: DEC-402
+  - id: PRM-132
+    kind: parameter
+    name: MPPI の旋回の速度の上限 wz_max
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - C-018
+    issue_refs: []
+    interpretation: REV-190（DEC-400・401・402）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I091
+    revision_ref: REV-190
+    parameter:
+      owner_ref: ND-10
+      value: 1.0
+      value_state: approved
+      unit: rad/s
+      stage: 自律走行の為の最小構成
+      purpose: MPPI の wz_max。PRM-67 と同じ値で始める。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start 
+        からその値。
+      measurement: 人の回答「実装する」（DEC-402）で AI の提示の値 1.0 rad/s を承認（実車で未検証。速い旋回で自己位置が乱れる恐れ、TRB-012）
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: mppi_wz_max_radps
+      value_type: double
+      apply_timing: launch
+    approval_decision_ref: DEC-402
+  - id: PRM-133
+    kind: parameter
+    name: local costmap の更新の頻度（update_frequency）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - C-018
+    issue_refs: []
+    interpretation: REV-190（DEC-400・401・402）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I091
+    revision_ref: REV-190
+    parameter:
+      owner_ref: ND-10
+      value: 10.0
+      value_state: approved
+      unit: Hz
+      stage: 自律走行の為の最小構成
+      purpose: local costmap の update_frequency。MPPI は local costmap で軌道を選ぶ。 monitor の 
+        /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+      measurement: 人の回答「実装する」（DEC-402）で AI の提示の値 10 Hz を承認（CPU は未測定）
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: ros_parameter
+      target: gouda_nav2
+      param_key: local_costmap_update_hz
+      value_type: double
+      apply_timing: launch
+    approval_decision_ref: DEC-402
+  - id: PRM-134
+    kind: parameter
+    name: global の経路を平滑化するか（BT の SmoothPath）
+    source_refs:
+      - SRC-I015
+      - SRC-I024
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-54
+      - C-018
+    issue_refs: []
+    interpretation: REV-190（DEC-400・401・402）で追加。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I091
+    revision_ref: REV-190
+    parameter:
+      owner_ref: ND-10
+      value: true
+      value_state: approved
+      unit:
+      stage: 自律走行の為の最小構成
+      purpose: true なら BT の経路の引き直しで ComputePathThroughPoses の後に上流の SmoothPath（雛形の simple_smoother）を通す。 monitor
+        の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+      measurement: 人の回答「パスの平滑化：行う」（DEC-401）と「実装する」（DEC-402）
+      decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: bt_xml
+      target: navigate_through_poses BT（SmoothPath）
+      param_key: path_smoothing_enabled
+      value_type: bool
+      apply_timing: launch
+    approval_decision_ref: DEC-401
+  - id: PRM-135
+    kind: parameter
+    name: map→odom の TF を odometry の時刻より先の時刻で出す量
+    source_refs:
+      - SRC-I014
+      - SRC-I017
+    design_status: 承認済み
+    adoption: approved
+    field_bindings: {}
+    related_refs:
+      - IFD-18
+      - PRM-89
+    issue_refs: []
+    interpretation: REV-191（DEC-403）で追加。 REV-193（DEC-406）：/config「Nav2」タブで変えられる。
+    sensitivity:
+      - safety
+      - operation
+    requirement_refs:
+      - RQ-I084
+      - RQ-I076
+    revision_ref: REV-193
+    parameter:
+      owner_ref: ND-07
+      value: 0.5
+      value_state: approved
+      unit: s
+      stage: 自己位置推定（A3）
+      purpose: map→odom の stamp を odometry の時刻＋この値にする。推定が止まっても TF はこの時間だけ有効なので、PRM-89 より短くする
+      measurement: 人の回答「0.5秒でよいが、/configで変えられるようにせよ。」（DEC-406）。値の出どころは slam_toolbox の既定。実測の証拠はない
+      decision_deadline: 決定済み（DEC-406。実車の走行で見直す）
+      software_trial_value:
+      software_trial_basis: 承認済みの値のため仮値なし
+      declaration: ros_parameter
+      target: gouda_global_localization
+      param_key: map_odom_future_offset_s
+      value_type: double
+      apply_timing: lifecycle_configure
+    approval_decision_ref: DEC-406
 migration:
   baseline_definition_count: 198
   id_map:
@@ -63994,6 +64234,165 @@ decisions:
       costmap は変わらない（obstacle_layer.cpp の world_dist_sq の判定と raytraceFreespace の範囲）。/config で PRM-125・126 
       を変えても追従する。実機の消去の確認は未実行（第169便の作業記録）。
     disposition: answered
+  - id: DEC-397
+    kind: approval
+    status: pending
+    asked_on: '2026-11-02'
+    answered_on:
+    channel: chat
+    question: 【承認】（検査ルール案）上流の既定から外す選択を提案するときは、既定が担っていた機能のうち失うものを判断台帳の項目に必ず書く、という規則を足すか。
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-122
+    resulting_refs: []
+    note: 人の登録の指示（原文）「登録する」（AI の問い「再発防止の検査ルール案 2 件を承認事項にしますか？」への回答。ルールの内容の承認ではない）。推奨は承認。 理由：DEC-122 で Jazzy 
+      の既定の MPPI を RPP に替えたとき、controller による回避を失うことを書かず、「MPPI は回避が滑らか」とだけ書いた（第171便の追記）。 
+      機械で確かめられるのは記載の有無までで、書いた内容が正しいか、既定から外れていることの見落としは検出できない（既定との比較を検査器に持たせるかは実装の案を作るときに示す）。 代替案：検査にせず 
+      intent.md への追記案にする（人が編集する）。振る舞いの違い：車体の振る舞いは変わらない。提案と台帳の書き方の制約が増える。 決まらない場合に止まる作業：この規則の実装だけ。
+    disposition: open_human
+  - id: DEC-398
+    kind: approval
+    status: pending
+    asked_on: '2026-11-02'
+    answered_on:
+    channel: chat
+    question: 【承認】（検査ルール案）未解決の Q に関わる選択を提案するときは、その Q を affected_refs に挙げ、解決するか保留と明記する、という規則を足すか。
+    answer_verbatim: ''
+    affected_refs:
+      - DEC-122
+      - Q-07
+    resulting_refs: []
+    note: 人の登録の指示（原文）「登録する」（DEC-397 と同じ問いへの回答。ルールの内容の承認ではない）。推奨は承認。 理由：元資料の Q-07 は planner・controller 
+      の構成を未選定とし、「FollowPathだけで迂回を実現するとはしない」と書いていたが、DEC-122 は Q-07 を affected_refs に挙げずに controller を選んだ。 Q-07 
+      は今も未設計（第171便の追記）。機械で確かめるには、どの要素がどの Q に関わるかの対応が要る。今の正本にその対応が足りるかは未確認で、実装の案を作るときに確かめる。 代替案：検査にせず intent.md
+      への追記案にする（人が編集する）。振る舞いの違い：車体の振る舞いは変わらない。決まらない場合に止まる作業：この規則の実装だけ。
+    disposition: open_human
+  - id: DEC-399
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: gouda_monitor の配色を、現行と案 A〜D のどれにするか（人の指示「UIが見えにくい。配植案を複数パターン生成して、スクショを見せて。」で画面を示した）。
+    answer_verbatim: "A案でいこう。\n"
+    affected_refs:
+      - ND-02
+    resulting_refs:
+      - ND-02
+      - FILE-MONITOR-PALETTE
+    note: 変えたのは gouda_core/web の style.css と app.js の色（地図の上の印を含む）と、矢印の色の説明の文字（黄を濃い黄に）。状態の札の印（●▲■）を加えた。 
+      これまで効いていなかった上部の値の注意の色（.strip .v.amber）が出るようになった。文字の大きさは変えていない。明背景は人の判断で、実機の表示装置と照度の実測はしていない。 
+      第173便の調査と第175便の作業記録を参照。
+    disposition: answered
+  - id: DEC-400
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: （第171便の提案 B1、DEC-122 の見直し）controller に MPPI を使うか。第171便の提案は「試験として /config で切り替え、既定は RPP」。
+    answer_verbatim: "MPPI: 使用\n"
+    affected_refs:
+      - DEC-122
+      - ND-10
+      - PRM-114
+      - PRM-124
+    resulting_refs:
+      - DEC-122
+    note: 回答は AI の Nav2 の機能の一覧（「MPPI 不使用、試験を提案中」）への返事。「使用」の範囲（既定を MPPI 
+      にするか、切り替えを残すか）と、実装の着手の許可（DEC-106）は人に確認する。 値は未確定（提案 B2・B3）。第171便の別のチャットで受けた人の指示の原文は同便の作業記録にある。第176便。
+    disposition: answered
+  - id: DEC-401
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: パスの平滑化を行うか。今は smoother_server は起動しているが、BT に SmoothPath がなく呼ばれていない（DEC-122 は平滑化を判断していない）。
+    answer_verbatim: "パスの平滑化：行う\n"
+    affected_refs:
+      - ND-10
+      - DEC-122
+    resulting_refs:
+      - ND-10
+    note: 方法の案は第176便の作業記録（上流の BT の SmoothPath ノードと、雛形の 
+      simple_smoother。独自の処理を足さない）。実装の着手の許可（DEC-106）は人に確認する。第176便。
+    disposition: answered
+  - id: DEC-402
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: MPPI を既定にする構成で、MPPI と平滑化の実装に着手するか。AI の提示の値：速度 0.8 m/s、旋回の上限 1.0 rad/s、local costmap 8 m・更新 10 
+      Hz、 平滑化は BT の SmoothPath と simple_smoother、setup.sh に MPPI、RPP は /config で切り戻せるように残す。
+    answer_verbatim: "実装する\n"
+    affected_refs:
+      - DEC-400
+      - DEC-401
+      - DEC-122
+      - ND-10
+    resulting_refs:
+      - PRM-130
+      - PRM-131
+      - PRM-132
+      - PRM-133
+      - PRM-124
+      - PRM-134
+    note: 提示の値の承認として扱う（第176便の報告の表）。実車では未検証の値で、実車の走行で見直す。第171便の提案 B3 の推奨どおり wz_max は 1.0。B4（keepout の確認）・ 
+      B5（collision_monitor）・B6 は未回答で、この実装に含まない。第177便。
+    disposition: answered
+  - id: DEC-403
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: （第172便）map→odom の stamp を OSS（AMCL・slam_toolbox）と同じく少し先の時刻で出す実装を承認するか。
+    answer_verbatim: "OSS方式で実装\n"
+    affected_refs:
+      - ND-07
+      - IFD-18
+      - DEC-285
+    resulting_refs:
+      - ND-07
+      - IFD-18
+      - PRM-135
+    note: 値 0.5 s は人が指定していない。AI が slam_toolbox の transform_timeout の既定値から選んだ暫定の値で、実車で見直す。必要な下限は odometry の遅れ 
+      0.13〜0.17 s ＋周期 0.1 s （第121便、計算）。PRM-89（1.0 s）より短いことをコードで確かめる。
+    disposition: answered
+  - id: DEC-406
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: （第180便）map→odom を先の時刻で出す量 PRM-135 は、AI の暫定 0.5 s のまま実車で試すか。
+    answer_verbatim: "0.5秒でよいが、/configで変えられるようにせよ。また、これによる影響を台帳に記録せよ。トラブルシューティング台帳みたいなのがあったよね\n"
+    affected_refs:
+      - PRM-135
+      - IFD-54
+      - ND-07
+    resulting_refs:
+      - PRM-135
+      - IFD-54
+    note: /config の値は自己位置の次の起動（configure）で読む。PRM-89 以上の値は使わず PRM の値に戻す（自律判断）。「台帳」は 
+      design/troubleshooting/ledger.yaml と解釈した。
+    disposition: answered
+  - id: DEC-407
+    kind: approval
+    status: answered
+    asked_on: '2026-11-02'
+    answered_on: '2026-11-02'
+    channel: chat
+    question: Nav2 の調整のための走行シミュレータ（合成の点群と車体モデルで実際の Nav2 を動かす）と自動の採点の実装を始めるか。試験専用で、製品のコード・設定は変えない。
+    answer_verbatim: "実装を始める\n"
+    affected_refs:
+      - ND-10
+    resulting_refs: []
+    note: 人はボタンで答えた。同じ作業の中の人の指示の原文：「別のプログラムは止めてしまえ」（VM の別の試験 run_anim.sh と ROS_DOMAIN_ID 88 のスタックを止めた）。VM 
+      は止まっていたので AI が起動した（第179便の作業記録）。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -67997,6 +68396,108 @@ revisions:
     modified_entity_ids:
       - ND-09
       - IFD-57
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-187
+    date: '2026-11-02'
+    summary: 第174便：RPP を選んだ判断（DEC-122）の振り返り（第171便の追記）から出た再発防止の検査ルール案 2 件を、人の回答「登録する」で承認事項 DEC-397・398 として登録する。
+      回答は登録の指示で、ルールの承認ではない。検査器・コード・設定・正本の値は変えない。
+    basis_refs:
+      - DEC-106
+      - DEC-122
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-188
+    date: '2026-11-02'
+    summary: 第175便：人の回答「A案でいこう。」で、gouda_monitor の画面の配色を案 A（明るい灰の背景、赤・黄・緑の札と印、地図の上の印の色）にする。 色の表は 
+      design/docs/gouda_monitor_palette.md。gouda_gui_design_rules.md（証拠として固定）と gouda_gui 
+      の画面は変えない。モード・操作・状態遷移は変えない。
+    basis_refs:
+      - DEC-399
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-02
+    added_source_ids: []
+    added_file_ids:
+      - FILE-MONITOR-PALETTE
+    removed_entity_ids: []
+  - id: REV-189
+    date: '2026-11-02'
+    summary: '第176便：人の回答「MPPI: 使用」「パスの平滑化：行う」を DEC-400・401 に原文で記録する。コード・設定は変えない。DEC-122（controller は RPP、確定済み）は書き換えず、
+      この 2 件が新しい判断として参照する。実装の範囲と値（提案 mppi_trial の B2〜B6）は未回答。'
+    basis_refs:
+      - DEC-400
+      - DEC-401
+      - DEC-122
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-190
+    date: '2026-11-02'
+    summary: 第177便：人の回答「実装する」（DEC-402）で、controller の既定を上流の雛形の MPPI にし（PRM-130〜133、PRM-124＝8 m）、RPP は /config 
+      で選べるように残す。 BT の経路の引き直しに上流の SmoothPath を足す（PRM-134）。DEC-122 は書き換えない。collision_monitor と waypoint 
+      の渡し方は変えない（DEC-372・DEC-366 は未回答）。
+    basis_refs:
+      - DEC-400
+      - DEC-401
+      - DEC-402
+      - DEC-122
+    added_entity_ids:
+      - PRM-130
+      - PRM-131
+      - PRM-132
+      - PRM-133
+      - PRM-134
+    modified_entity_ids:
+      - ND-10
+      - PRM-124
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-191
+    date: '2026-11-02'
+    summary: 第180便：人の回答「OSS方式で実装」で、map→odom の TF の stamp を odometry の時刻＋PRM-135 にする（AMCL・slam_toolbox と同じ考え方）。
+      local の KeepoutFilter の判定が毎周期失敗し 0.1 s 待つ問題（第157・172便）の対策。値の計算（DEC-285）は変えない。
+    basis_refs:
+      - DEC-403
+      - DEC-285
+      - DEC-222
+    added_entity_ids:
+      - PRM-135
+    modified_entity_ids:
+      - ND-07
+      - IFD-18
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-193
+    date: '2026-11-02'
+    summary: 第182便：人の回答で PRM-135 の 0.5 s を認め、monitor の /config「Nav2」タブ（IFD-54）で変えられるようにした。影響をトラブルシューティング台帳 
+      TRB-013 に登録した。
+    basis_refs:
+      - DEC-406
+      - DEC-403
+    added_entity_ids: []
+    modified_entity_ids:
+      - IFD-54
+      - PRM-135
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-194
+    date: '2026-11-02'
+    summary: 第179便：人の回答「実装を始める」で、試験専用の走行シミュレータと採点（gouda_core/test の 
+      drive_sim*）を実装した。製品のコード・設定は変えていない。記録だけの変更セット。
+    basis_refs:
+      - DEC-407
+    added_entity_ids: []
+    modified_entity_ids: []
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

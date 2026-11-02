@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 80
+pending_decision_count: 82
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1531,4 +1531,14 @@ pending_decisions:
     question: 【実測】(1) コース全体とスタート地点での GNSS の品質の時系列（解の種類・受信機の誤差の推定・衛星の数・方位の有無。G1〜G4 の割合と、それぞれが続く長さ）。(2) 
       品質の門の値（DEC-384）。(3) スタート地点（のぼり・観客）での NDT の照合の良さ（DEC-360 (3) と同じ）。(4) スタートの区間の予算 
       D_start・T_start（区間の形とコースの幅）。
+    resulting_refs: []
+  - id: DEC-397
+    kind: approval
+    status: pending
+    question: 【承認】（検査ルール案）上流の既定から外す選択を提案するときは、既定が担っていた機能のうち失うものを判断台帳の項目に必ず書く、という規則を足すか。
+    resulting_refs: []
+  - id: DEC-398
+    kind: approval
+    status: pending
+    question: 【承認】（検査ルール案）未解決の Q に関わる選択を提案するときは、その Q を affected_refs に挙げ、解決するか保留と明記する、という規則を足すか。
     resulting_refs: []

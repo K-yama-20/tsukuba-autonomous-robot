@@ -1,0 +1,255 @@
+# 変更セット REV-190（2026-11-02 第177便: MPPI を既定の controller に、経路の平滑化を BT に。DEC-400・401・402）
+# 適用: design/tools/apply_revision.py REV-190
+id: REV-190
+date: '2026-11-02'
+summary: >-
+  第177便：人の回答「実装する」（DEC-402）で、controller の既定を上流の雛形の MPPI にし（PRM-130〜133、PRM-124＝8 m）、RPP は /config で選べるように残す。
+  BT の経路の引き直しに上流の SmoothPath を足す（PRM-134）。DEC-122 は書き換えない。collision_monitor と waypoint の渡し方は変えない（DEC-372・DEC-366 は未回答）。
+basis_refs:
+- DEC-400
+- DEC-401
+- DEC-402
+- DEC-122
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-402
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    MPPI を既定にする構成で、MPPI と平滑化の実装に着手するか。AI の提示の値：速度 0.8 m/s、旋回の上限 1.0 rad/s、local costmap 8 m・更新 10 Hz、
+    平滑化は BT の SmoothPath と simple_smoother、setup.sh に MPPI、RPP は /config で切り戻せるように残す。
+  answer_verbatim: |
+    実装する
+  affected_refs:
+  - DEC-400
+  - DEC-401
+  - DEC-122
+  - ND-10
+  resulting_refs:
+  - PRM-130
+  - PRM-131
+  - PRM-132
+  - PRM-133
+  - PRM-124
+  - PRM-134
+  note: >-
+    提示の値の承認として扱う（第176便の報告の表）。実車では未検証の値で、実車の走行で見直す。第171便の提案 B3 の推奨どおり wz_max は 1.0。B4（keepout の確認）・
+    B5（collision_monitor）・B6 は未回答で、この実装に含まない。第177便。
+  disposition: answered
+entities:
+- id: PRM-130
+  kind: parameter
+  name: "Nav2 の controller に MPPI を使うか（false なら Regulated Pure Pursuit）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: "REV-190（DEC-400・401・402）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: true
+    value_state: approved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "controller_server の FollowPath の plugin の選択。true は上流の雛形の MPPI、false は RPP（DEC-122 の構成）。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「MPPI: 使用」（DEC-400）と「実装する」（DEC-402）。既定を MPPI とする構成を AI が提示して承認された"
+    decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: controller_use_mppi
+    value_type: bool
+    apply_timing: launch
+  approval_decision_ref: DEC-402
+- id: PRM-131
+  kind: parameter
+  name: "MPPI の前進の速度の上限 vx_max"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: "REV-190（DEC-400・401・402）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: 0.8
+    value_state: approved
+    unit: "m/s"
+    stage: 自律走行の為の最小構成
+    purpose: "MPPI の vx_max。PRM-66（velocity_smoother の上限）は変えない。prune_distance は雛形の比のまま追従する。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「実装する」（DEC-402）で AI の提示の値 0.8 m/s を承認（KUAMS と同じ値。実車で未検証）"
+    decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: mppi_vx_max_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-402
+- id: PRM-132
+  kind: parameter
+  name: "MPPI の旋回の速度の上限 wz_max"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: "REV-190（DEC-400・401・402）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: 1.0
+    value_state: approved
+    unit: "rad/s"
+    stage: 自律走行の為の最小構成
+    purpose: "MPPI の wz_max。PRM-67 と同じ値で始める。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「実装する」（DEC-402）で AI の提示の値 1.0 rad/s を承認（実車で未検証。速い旋回で自己位置が乱れる恐れ、TRB-012）"
+    decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: mppi_wz_max_radps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-402
+- id: PRM-133
+  kind: parameter
+  name: "local costmap の更新の頻度（update_frequency）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: "REV-190（DEC-400・401・402）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: 10.0
+    value_state: approved
+    unit: "Hz"
+    stage: 自律走行の為の最小構成
+    purpose: "local costmap の update_frequency。MPPI は local costmap で軌道を選ぶ。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「実装する」（DEC-402）で AI の提示の値 10 Hz を承認（CPU は未測定）"
+    decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: local_costmap_update_hz
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-402
+- id: PRM-134
+  kind: parameter
+  name: "global の経路を平滑化するか（BT の SmoothPath）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  issue_refs: []
+  interpretation: "REV-190（DEC-400・401・402）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I091
+  parameter:
+    owner_ref: ND-10
+    value: true
+    value_state: approved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "true なら BT の経路の引き直しで ComputePathThroughPoses の後に上流の SmoothPath（雛形の simple_smoother）を通す。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「パスの平滑化：行う」（DEC-401）と「実装する」（DEC-402）"
+    decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: bt_xml
+    target: "navigate_through_poses BT（SmoothPath）"
+    param_key: path_smoothing_enabled
+    value_type: bool
+    apply_timing: launch
+  approval_decision_ref: DEC-401
+modifications:
+- id: PRM-124
+  set:
+    design_status: 承認済み
+    adoption: approved
+    issue_refs: []
+    approval_decision_ref: DEC-402
+  set_nested:
+    parameter.value: 8
+    parameter.value_state: approved
+    parameter.measurement: 人の回答「実装する」（DEC-402）で AI の提示の値 8 m を承認（MPPI の予測の距離 2.24 m の倍以上。CPU は未測定）
+    parameter.decision_deadline: 決定済み（DEC-402。実車の走行で見直す）
+    parameter.software_trial_basis: 承認済みの値のため仮値なし
+  interpretation_append: 'REV-190（DEC-402）：値を 8 m にした。'
+- id: ND-10
+  set_nested:
+    ros_node.responsibilities:
+    - 経路計画・追従・後退・再計画・通過／到達判定（RQ-I011・RQ-I018・RQ-I019）
+    - NavigateThroughPoses action の提供（IFD-13）と cmd_vel の発行（IFD-15。velocity_smoother を経た後の値）
+    - costmap の SpeedFilter による SpeedLimit の発行と controller への適用（IFD-14、DEC-031）。mask・filter info は標準 server で配信（IFD-42）
+    - map_server による静的地図の提供（IFD-24）
+    - 設定・プラグイン・BT で拡張し本体は改変しない（RQ-I056・RQ-I057）
+    - '構成（DEC-122）: controller は Regulated Pure Pursuit、planner は NavFn、BT は上流の navigate_through_poses_w_replanning_and_recovery.xml の写しに PRM-11・PRM-18 を入れたもの、behaviors は spin・backup・wait、velocity_smoother を使う、collision_monitor は使わない（RQ-I072）、cmd_vel は TwistStamped（PRM-12）'
+    - REV-190（DEC-400・401・402）：controller の既定は上流の雛形の MPPI（PRM-130〜132。vx_min 0、CostCritic は footprint、visualize false、その他は雛形のまま）。PRM-130 が false なら上の RPP。local costmap は PRM-124・PRM-133。経路の引き直しは ComputePathThroughPoses の後に上流の SmoothPath（雛形の simple_smoother、PRM-134）。nav2_mppi_controller がなければ、MPPI のとき Nav2 を起動しない
+    - 障害物は XT-32 の点群（IFD-21）を local の VoxelLayer・global の ObstacleLayer に直接入れ、高さの帯（PRM-70・PRM-71）で地面と頭上を除く。track_unknown_space を true にして観測していない所を空きとみなさない（RQ-I012、DEC-122）
+    - 設定は上流の nav2_bringup の nav2_params.yaml を雛形に、plugin の選択、frame・topic（IF の名前）と PRM の値だけを差し込んで起動時に作る。雛形のその他の値は変えない。実車の設定（trial なし）で PRM-11・17・18・66〜73 のどれかが未確定なら Nav2 を起動せず理由を記録する（RQ-I076、intent.md:85）
+    - 起動する server（gouda_nav2.launch.py。DEC-183 で名前を補足）：map_server（静的地図、IFD-24）、filter_mask_server（速度マスク用の map_server、IFD-42）、costmap_filter_info_server（IFD-42）、controller_server、smoother_server、planner_server、behavior_server、bt_navigator、velocity_smoother、lifecycle_manager_navigation（autostart false。ND-03 が IFD-36 で起動・停止）
+    - velocity_smoother の後退の速度の上限（min_velocity の x）は PRM-78（車椅子の後退の上限、倒し切ったときの後退の速さ）。前進の上限は PRM-66。後退の倒し量と速度の傾きは前進より小さく（DEC-197）、Nav2 が倒し切りより速い後退を指令しないようにする（DEC-198 案 A。回転と組み合わせたときの範囲は倒し量の円で決まり、Nav2 は知らない：reports/reverse_limit_study_2026-10-21.md）
+    - BT の recovery の回数は、起動のときに IFD-54（monitor で保存した値）があればその値、なければ PRM-18（DEC-207 (a)・DEC-209）。使った値と出所を <data_root>/run/nav2/recovery.json と起動の記録に残す。値の範囲は 1 以上 PRM-18 以下で、外れていれば PRM-18 を使い理由を残す
+    - 案 C（DEC-214・DEC-216・DEC-217・DEC-218）：経路の計画（NavFn）の allow_unknown は上流の既定 true のまま（帯の外は「通れるが高い費用」）。global costmap の obstacle_layer の combination_method は 2（走行中に見えた所でも、帯の外の「不明」を「空き」に上書きしない。上流の既定は 1）。local・global の inflation_layer の inflation_radius は PRM-72、inflate_around_unknown は PRM-98（IFD-54 に値があればその値）
+    - 人が描く範囲（DEC-222）：keepout_mask_server（map_server）と keepout_filter_info_server（costmap_filter_info_server、type 0、base 0、multiplier 1）を足し、global と local の costmap の両方に KeepoutFilter（override_lethal_cost true）を置く。global は SpeedFilter と KeepoutFilter の二つの filter
+  interpretation_append: 'REV-190（DEC-400・401・402）：MPPI を既定にし、SmoothPath を足した。'

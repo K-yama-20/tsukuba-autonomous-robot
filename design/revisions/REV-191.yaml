@@ -1,0 +1,80 @@
+# 変更セット REV-191（2026-11-02 第180便: map→odom を少し先の時刻で出す、DEC-403）
+# 適用: design/tools/apply_revision.py REV-191
+id: REV-191
+date: '2026-11-02'
+summary: >-
+  第180便：人の回答「OSS方式で実装」で、map→odom の TF の stamp を odometry の時刻＋PRM-135 にする（AMCL・slam_toolbox と同じ考え方）。
+  local の KeepoutFilter の判定が毎周期失敗し 0.1 s 待つ問題（第157・172便）の対策。値の計算（DEC-285）は変えない。
+basis_refs:
+- DEC-403
+- DEC-285
+- DEC-222
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-403
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    （第172便）map→odom の stamp を OSS（AMCL・slam_toolbox）と同じく少し先の時刻で出す実装を承認するか。
+  answer_verbatim: |
+    OSS方式で実装
+  affected_refs:
+  - ND-07
+  - IFD-18
+  - DEC-285
+  resulting_refs:
+  - ND-07
+  - IFD-18
+  - PRM-135
+  note: >-
+    値 0.5 s は人が指定していない。AI が slam_toolbox の transform_timeout の既定値から選んだ暫定の値で、実車で見直す。必要な下限は odometry の遅れ 0.13〜0.17 s ＋周期 0.1 s
+    （第121便、計算）。PRM-89（1.0 s）より短いことをコードで確かめる。
+  disposition: answered
+entities:
+- id: PRM-135
+  kind: parameter
+  name: map→odom の TF を odometry の時刻より先の時刻で出す量
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-18
+  - PRM-89
+  issue_refs: []
+  interpretation: REV-191（DEC-403）で追加。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  parameter:
+    owner_ref: ND-07
+    value: 0.5
+    value_state: approved
+    unit: s
+    stage: 自己位置推定（A3）
+    purpose: map→odom の stamp を odometry の時刻＋この値にする。推定が止まっても TF はこの時間だけ有効なので、PRM-89 より短くする
+    measurement: 人の回答「OSS方式で実装」（DEC-403）。値は AI の暫定（slam_toolbox の既定 0.5 s）で、人は値を指定していない。実車で見直す
+    decision_deadline: 決定済み（DEC-403。実車の走行で見直す）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_global_localization
+    param_key: map_odom_future_offset_s
+    value_type: double
+    apply_timing: lifecycle_configure
+  approval_decision_ref: DEC-403
+modifications:
+- id: ND-07
+  interpretation_append: 'REV-191（DEC-403）：map→odom の stamp を odometry の時刻＋PRM-135 にした。値の計算は DEC-285 のまま。'
+- id: IFD-18
+  set_nested:
+    designed_interface.time_semantics: stamp は推定に用いた odometry の時刻＋PRM-135（DEC-403）。自律走行・一時停止で単独発行（RQ-I004・RQ-I058）
+  interpretation_append: 'REV-191（DEC-403）：stamp を少し先の時刻にした。'

@@ -265,16 +265,65 @@ class TunableTests(unittest.TestCase):
         with open(r['params']) as f: params = yaml.safe_load(f)
         return r, params, ET.parse(r['bt']).getroot()
 
+    def test_mppi_is_the_default(self):   # REV-190 (DEC-400, DEC-402): PRM-130..133, PRM-124
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'm')
+            t = template(); tf = t['controller_server']['ros__parameters']['FollowPath']
+            follow = p['controller_server']['ros__parameters']['FollowPath']
+            vs = p['velocity_smoother']['ros__parameters']
+            self.assertEqual(follow['plugin'], nc.MPPI_PLUGIN)
+            self.assertEqual((follow['vx_max'], follow['vx_min'], follow['wz_max']), (0.8, 0.0, 1.0))
+            self.assertEqual((follow['ax_max'], follow['ax_min'], follow['az_max']), (vs['max_accel'][0], -vs['max_accel'][0], vs['max_accel'][2]))
+            self.assertAlmostEqual(follow['prune_distance'], tf['prune_distance'] * 0.8 / tf['vx_max'])
+            horizon = follow['vx_max'] * follow['time_steps'] * follow['model_dt']
+            self.assertGreater(follow['prune_distance'], horizon)
+            self.assertIs(follow['CostCritic']['consider_footprint'], True); self.assertIs(follow['visualize'], False)
+            lc = p['local_costmap']['local_costmap']['ros__parameters']
+            self.assertEqual((lc['width'], lc['height'], lc['update_frequency']), (8, 8, 10.0))
+            self.assertGreater(lc['width'] / 2, horizon)   # the prediction stays inside the costmap
+            changed = {'plugin', 'vx_max', 'vx_min', 'wz_max', 'ax_max', 'ax_min', 'az_max', 'prune_distance', 'visualize', 'CostCritic'}
+            self.assertEqual({k: v for k, v in follow.items() if k not in changed}, {k: v for k, v in tf.items() if k not in changed})
+
+    def test_rpp_stays_selectable(self):
+        saved = {'controller_use_mppi': False, 'rpp_lookahead_dist_m': 0.7}
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'r', saved)
+            follow = p['controller_server']['ros__parameters']['FollowPath']
+            self.assertEqual(follow['plugin'], 'nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController')
+            self.assertEqual(follow['lookahead_dist'], 0.7); self.assertNotIn('vx_max', follow)
+
+    def test_saved_mppi_limits(self):
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 's', {'mppi_vx_max_mps': 0.5, 'mppi_wz_max_radps': 0.3, 'local_costmap_update_hz': 5})
+            follow = p['controller_server']['ros__parameters']['FollowPath']
+            self.assertEqual((follow['vx_max'], follow['wz_max']), (0.5, 0.3))
+            self.assertEqual(p['local_costmap']['local_costmap']['ros__parameters']['update_frequency'], 5.0)
+
+    def test_smooth_path_in_the_replanning_branch(self):   # REV-190 (DEC-401)
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'p')
+            inner = bt.find(".//RecoveryNode[@name='ComputePathThroughPoses']")
+            planned = list(inner)[0]
+            self.assertEqual((planned.tag, len(list(inner))), ('Sequence', 2))
+            self.assertEqual([c.tag for c in planned], ['ReactiveSequence', 'SmoothPath'])   # not reactive around the smoother
+            self.assertEqual(planned.find('ReactiveSequence/ComputePathThroughPoses').get('path'), '{unsmoothed_path}')
+            s = planned.find('SmoothPath')
+            self.assertEqual((s.get('unsmoothed_path'), s.get('smoothed_path'), s.get('smoother_id')), ('{unsmoothed_path}', '{path}', nc.SMOOTHER_ID))
+            self.assertEqual(bt.find('.//FollowPath').get('path'), '{path}')
+            self.assertEqual(template()['smoother_server']['ros__parameters']['smoother_plugins'], [nc.SMOOTHER_ID])
+            r, p, off = self.build(d, 'q', {'path_smoothing_enabled': False})
+            self.assertIsNone(off.find('.//SmoothPath'))
+            self.assertEqual(off.find('.//ComputePathThroughPoses').get('path'), '{path}')
+
     def test_unresolved_and_unsaved_change_nothing(self):
         with tempfile.TemporaryDirectory() as d:
-            r, p, bt = self.build(d, 'a')
+            r, p, bt = self.build(d, 'a', {'controller_use_mppi': False})   # RPP: the values PRM-114..123 would go to
             t = template()
             self.assertEqual(p['bt_navigator']['ros__parameters']['default_server_timeout'], t['bt_navigator']['ros__parameters']['default_server_timeout'])
             follow = p['controller_server']['ros__parameters']['FollowPath']
             self.assertEqual(set(follow), {'plugin', 'desired_linear_vel', 'rotate_to_heading_angular_vel', 'allow_reversing'})
             lc, gc = p['local_costmap']['local_costmap']['ros__parameters'], p['global_costmap']['global_costmap']['ros__parameters']
             tl, tg = t['local_costmap']['local_costmap']['ros__parameters'], t['global_costmap']['global_costmap']['ros__parameters']
-            self.assertEqual((lc['width'], lc['height']), (tl['width'], tl['height']))
             self.assertEqual(gc['update_frequency'], tg['update_frequency'])
             ts = tg['obstacle_layer']['scan']   # the ranges stay the template's (REV-185)
             for src in (lc['obstacle_layer']['scan'], gc['obstacle_layer']['scan']):
@@ -296,7 +345,7 @@ class TunableTests(unittest.TestCase):
                  'rpp_use_collision_detection': True, 'rpp_max_time_to_collision_s': 1.5, 'rpp_min_lookahead_dist_m': 0.5,
                  'rpp_max_lookahead_dist_m': 1.8, 'rpp_use_velocity_scaled_lookahead_dist': True, 'local_costmap_size_m': 6,
                  'obstacle_max_range_m': 3.0, 'raytrace_max_range_m': 4.0, 'voxel_mark_threshold': 1, 'global_costmap_update_hz': 2.0,
-                 'inflation_cost_scaling_factor': 5.0, 'inflation_radius_m': 0.8}
+                 'inflation_cost_scaling_factor': 5.0, 'inflation_radius_m': 0.8, 'controller_use_mppi': False}
         with tempfile.TemporaryDirectory() as d:
             r, p, bt = self.build(d, 'b', saved)
             self.assertEqual(p['bt_navigator']['ros__parameters']['default_server_timeout'], 200)
@@ -326,7 +375,7 @@ class TunableTests(unittest.TestCase):
             r, p, bt = self.build(d, 'c', bad)
             t = template()
             lc = p['local_costmap']['local_costmap']['ros__parameters']
-            self.assertEqual(lc['width'], t['local_costmap']['local_costmap']['ros__parameters']['width'])
+            self.assertEqual(lc['width'], 8)   # PRM-124
             self.assertIsNotNone(bt.find('.//Spin'))
             self.assertEqual(lc['obstacle_layer']['scan']['obstacle_max_range'], t['global_costmap']['global_costmap']['ros__parameters']['obstacle_layer']['scan']['obstacle_max_range'])
             for k in bad:

@@ -377,7 +377,15 @@
       voxel_mark_threshold: 'C-4 印を付けるのに要る高さ方向の格子の数を超える数（整数、0 なら 1 つで印）',
       global_costmap_update_hz: 'C-6 global costmap の更新の頻度（Hz）',
       inflation_cost_scaling_factor: 'D-4 膨らませの費用の減り方（cost_scaling_factor）',
-      inflation_radius_m: 'D-4 膨らませの半径（m、PRM-72 を上書き）' };
+      inflation_radius_m: 'D-4 膨らませの半径（m、PRM-72 を上書き）',
+      // REV-190 (DEC-400, DEC-401)
+      controller_use_mppi: 'controller に MPPI を使う（true／false。false なら RPP）',
+      mppi_vx_max_mps: 'MPPI の速度の上限（m/s）',
+      mppi_wz_max_radps: 'MPPI の旋回の上限（rad/s）',
+      local_costmap_update_hz: 'local costmap の更新の頻度（Hz）',
+      path_smoothing_enabled: '経路を平滑化する（true／false）',
+      // REV-193 (DEC-406)
+      map_odom_future_offset_s: 'map→odom を先の時刻で出す量（s、PRM-89 より短く。自己位置の次の起動から）' };
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;

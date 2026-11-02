@@ -1,0 +1,45 @@
+# 変更セット REV-193（2026-11-02 第182便: PRM-135 を /config で変えられるように。DEC-406）
+# 適用: design/tools/apply_revision.py REV-193
+id: REV-193
+date: '2026-11-02'
+summary: >-
+  第182便：人の回答で PRM-135 の 0.5 s を認め、monitor の /config「Nav2」タブ（IFD-54）で変えられるようにした。影響をトラブルシューティング台帳 TRB-013 に登録した。
+basis_refs:
+- DEC-406
+- DEC-403
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-406
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    （第180便）map→odom を先の時刻で出す量 PRM-135 は、AI の暫定 0.5 s のまま実車で試すか。
+  answer_verbatim: |
+    0.5秒でよいが、/configで変えられるようにせよ。また、これによる影響を台帳に記録せよ。トラブルシューティング台帳みたいなのがあったよね
+  affected_refs:
+  - PRM-135
+  - IFD-54
+  - ND-07
+  resulting_refs:
+  - PRM-135
+  - IFD-54
+  note: >-
+    /config の値は自己位置の次の起動（configure）で読む。PRM-89 以上の値は使わず PRM の値に戻す（自律判断）。「台帳」は design/troubleshooting/ledger.yaml と解釈した。
+  disposition: answered
+modifications:
+- id: PRM-135
+  set:
+    approval_decision_ref: DEC-406
+  set_nested:
+    parameter.measurement: 人の回答「0.5秒でよいが、/configで変えられるようにせよ。」（DEC-406）。値の出どころは slam_toolbox の既定。実測の証拠はない
+    parameter.decision_deadline: 決定済み（DEC-406。実車の走行で見直す）
+  interpretation_append: 'REV-193（DEC-406）：/config「Nav2」タブで変えられる。'
+- id: IFD-54
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-10
+    - ND-07
+  interpretation_append: 'REV-193（DEC-406）：ND-07 が PRM-135 の保存値を読む。'
