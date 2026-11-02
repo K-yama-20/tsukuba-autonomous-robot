@@ -1,6 +1,52 @@
 # 現状の要約（status.md）
 
-最終更新：2026-11-02（REV-186、第169便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
+最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
+
+**第185便: main に入れる準備（確認だけ）**（作業記録 `reports/worklog/2026-11-03_bin185_main_merge_prep.md`）。
+- 単体試験 Mac・VM 328 件 OK、T1〜T6 合格（VM、模擬）、設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。実車は未実行。コミットはまだ。
+
+**第183便: x86 の PC で 30 パターン・各 4 回の回避の試験**（作業記録 `reports/worklog/2026-11-02_bin183_x86_30_patterns.md`、結果 K-yama-20/tsukuba-autonomous-robot#32）。
+- 有効 104 本：ゴール 96、接触 19、最高 0.67 m/s。高さ 0.5 m 以下と正面から来る人は全回接触。車体は合成で実車は未実行。コード・設定は変えていない。
+
+**第179便: 走行シミュレータと採点、MPPI・RPP の比較（REV-194、DEC-407）**（作業記録 `reports/worklog/2026-11-02_bin179_drive_sim.md`、証拠 `research/vehicle_pc/2026-11-02_drive_sim/`）。
+- `gouda_core/test/drive_sim*`：実際の Nav2 に合成の点群と車体モデルをつなぐ試験専用の道具。製品のコード・設定は変えていない。
+- VM で各 1 回の 16 本：MPPI＋印 5 m・消去 6 m が接触 0／3、最小の間隔 0.56 m、約 0.41 m/s。RPP は 2.5 m・5 m とも接触 3／3。値の採用は人の判断。実車・x86 の PC は未実行。コミットはまだ。
+
+**第182便: PRM-135 を /config で変えられるように（REV-193、DEC-406）、影響を TRB-013 に登録**（作業記録 `reports/worklog/2026-11-02_bin182_map_odom_offset_config.md`）。
+- 値は 0.5 s（人が承認）。単体試験 Mac OK、設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。画面の確認・VM・実車は未実行。コミットはまだ。
+
+**第180便: map→odom を少し先の時刻で出す（REV-191、DEC-403、PRM-135 暫定 0.5 s）**（作業記録 `reports/worklog/2026-11-02_bin180_map_odom_future_stamp.md`）。
+- 実機は未確認。コミットはまだ。
+
+**第178便: 経路追従のみの試験の案を GitHub Issue に登録**（作業記録 `reports/worklog/2026-11-02_bin178_following_test_issue.md`）。
+- K-yama-20/tsukuba-autonomous-robot#23。案 A・B と実装の承認は未回答。コード・設定は変えていない。
+
+**第177便: MPPI を既定にし、経路の平滑化を足す（REV-190、DEC-400〜402）**（作業記録 `reports/worklog/2026-11-02_bin177_mppi_smooth_impl.md`）。
+- MPPI：0.8 m/s・1.0 rad/s、local costmap 8 m・10 Hz（PRM-124・130〜133）。RPP は /config（PRM-130 false）で戻せる。BT に SmoothPath（PRM-134）。setup.sh に nav2-mppi-controller。
+- 単体試験 Mac 309 件 OK（skip 15）、設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。Nav2 での起動・模擬の試験・CPU の測定・実車は未実行（VM に ssh がつながらない）。コミットはまだ。
+
+**第176便: MPPI・平滑化の回答の記録と、waypoint の渡し方・衝突監視の検討（REV-189、DEC-400・401）**（作業記録 `reports/worklog/2026-11-02_bin176_mppi_smooth_answers_waypoint_cm.md`）。
+- 人の回答「MPPI: 使用」「パスの平滑化：行う」を記録。実装の着手は確認待ち。案：区間ごとの NavigateThroughPoses（DEC-366）、collision_monitor は approach のみ・途絶で止めない（DEC-372、intent との関係は人の判断）。
+- 設計検査 違反0件・未判定5件（intent 由来の FAIL はそのまま）。コード・設定は変えていない。
+
+**第175便: gouda_monitor の配色を案 A に（REV-188、DEC-399）**（作業記録 `reports/worklog/2026-11-02_bin175_monitor_palette_a.md`、色の表 `docs/gouda_monitor_palette.md`）。
+- 人の回答「A案でいこう。」。明るい灰の背景、赤・黄・緑の札と印、地図の上の印の色を `gouda_core/web` に反映。単体試験 Mac 305 件 OK（skip 15）、設計検査 違反 0・未判定 5（intent 由来とみられる既存の失敗はそのまま）、デモ画面で 6 タブを目視。人の指示で VM の gouda_ws の web に色だけ反映（Gouda は動いておらず止めていない。次の start から有効）。実機での見え方は未確認。コミットはまだ。
+
+**第174便: 検査ルール案 2 件を承認事項に登録（REV-187、DEC-397・398、承認待ち）**（作業記録 `reports/worklog/2026-11-02_bin174_check_rule_candidates.md`）。
+- 人の回答「登録する」。DEC-397：既定から外すときは失う機能を書く。DEC-398：未解決の Q に関わる選択はその Q を挙げる。設計検査 違反 0・未判定 5（intent 由来の FAIL はそのまま）。検査器は未実装。コミットはまだ。
+
+**第173便: gouda_monitor の配色の調査（調べるだけ）**（作業記録 `reports/worklog/2026-11-02_bin173_monitor_colour_research.md`、報告はリポジトリの外の `reports/HMI配色のJIS規格と推奨色.md`）。
+- JIS は色の意味と色以外の併用までで、画面の hex 値は読んだ範囲にない（JIS は全て原本未照合）。現行の活性文字は暗所の WCAG 比で 4.5:1 以上。原因の候補は小さな淡色の文字、青緑への集中、白い地図の上の線と文字、周囲光（実機では未確認）。配色の案は未承認で、明背景か暗背景かは人の決定と照度の実測の待ち。コード・設定は変えていない。
+
+**第172便: local の keepout フィルタの TF 失敗の判断材料（読むだけ）**（作業記録 `reports/worklog/2026-11-02_bin172_keepout_tf_materials.md`）。
+- ソースと log の読み：失敗しているのは override（DEC-222）の判定で、マスク自体は書かれている可能性が高い。0.1 s の待ちが controller の詰まりと時刻で一致。実機は未確認、コード・設定は変えていない。
+
+**第171便: MPPI の試験の提案（提案だけ、実装なし）**（作業記録 `reports/worklog/2026-11-02_bin171_mppi_trial_proposal.md`、提案 `proposals/mppi_trial_2026-11-02.md`）。
+- 既定は RPP のまま /config で切り替え、0.5→0.8 m/s、local 8 m で段階的に試す案。前提に local の keepout の確認（第157便の TF の失敗、未解決）。承認の候補 B1〜B6 は未登録。コード・設定は変えていない。
+
+**第170便: 再計画が間に合わない問題の先行事例（読むだけ）**（作業記録 `reports/worklog/2026-11-02_bin170_replan_precedents.md`）。
+- KUAMS（完走）は再計画 0.333 Hz・global 1 Hz・印 2.5 m で gouda と同じか遅い。回避は MPPI（local 10 Hz、8 m）に任せ、0.8 m/s と collision_monitor を組にしている。上流の既定も同じ組。RPP は動く障害物を考慮しないと上流に明記。
+- 完走 7 チームのうち設定を確かめられたのは KUAMS だけ。承認の候補：DEC-122 の見直し（MPPI の試験）。コード・設定は変えていない。
 
 **第169便: A案の scan の range_max を有限にする（REV-186、DEC-396）**（作業記録 `reports/worklog/2026-11-02_bin169_scan_range_max.md`）。
 - 人の回答「修正を実装」。range_max を obstacle_max_range・raytrace_max_range の大きい方の 2 倍に（既定の範囲で 6.0 m、/config に追従）。
