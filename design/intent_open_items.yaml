@@ -2,7 +2,7 @@
 # 未決事項の一覧ビュー。正本は model.yaml の issue と decisions。
 generated_from: design/model.yaml (kind=issue, state open/partially_superseded; decisions pending)
 issue_count: 26
-pending_decision_count: 82
+pending_decision_count: 83
 issues:
   - id: Q-02
     name: 自己位置推定の方式・成立条件
@@ -1541,4 +1541,10 @@ pending_decisions:
     kind: approval
     status: pending
     question: 【承認】（検査ルール案）未解決の Q に関わる選択を提案するときは、その Q を affected_refs に挙げ、解決するか保留と明記する、という規則を足すか。
+    resulting_refs: []
+  - id: DEC-412
+    kind: approval
+    status: pending
+    question: 【承認】車体試験の指令の経路。手動走行のモードで ND-20 が vehicle/joystick_command（IFD-16）へ直接出し、試験の間だけ vehicle_bridge 
+      を活性にしてよいか。手動走行で PC が COMMAND を送るのは、これまでの設計（ND-11 は手動走行で発行しない）に対する例外になる。
     resulting_refs: []
