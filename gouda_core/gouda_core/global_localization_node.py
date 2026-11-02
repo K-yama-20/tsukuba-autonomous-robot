@@ -45,6 +45,7 @@ from gouda_interfaces.msg import DecisionEvent, EstimatorStatus
 
 from gouda_core import localization_core as lc
 from gouda_core import map_convert
+from gouda_core import nav2_config
 from gouda_core.monitor_core import SensorConfig
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
@@ -111,6 +112,10 @@ class GlobalLocalizationNode(LifecycleNode):
             s = lc.Settings.from_values(values)
         except ValueError as e:
             return self._refuse(f'{e} (PRM-79..92: pass design/generated/params/gouda_global_localization.yaml; trial file only in tests)', values)
+        key = 'map_odom_future_offset_s'   # PRM-135, the monitor's /config Nav2 tab can replace it (REV-193, DEC-406)
+        saved = nav2_config.tunable_from_config(str(self.data_root / 'config'), key, s.map_odom_future_offset_s)
+        s = lc.with_map_odom_offset(s, saved['value'])
+        self.get_logger().info(f'{key} {s.map_odom_future_offset_s} (saved or PRM: {saved["source"]})')
         map_dir = Path(self.get_parameter('map_directory').get_parameter_value().string_value)
         meta, traj = map_dir / map_convert.POINTCLOUD_MAP_METADATA, map_dir / map_convert.TRAJECTORY_FILE
         if not meta.is_file():
@@ -317,7 +322,9 @@ class GlobalLocalizationNode(LifecycleNode):
             tw.twist.twist = msg.twist.twist; tw.twist.covariance = lc.twist_covariance(s)
             self.twist_pub.publish(tw)
         if running and map_odom is not None:
-            t_msg = TransformStamped(); t_msg.header.stamp = msg.header.stamp; t_msg.header.frame_id = MAP; t_msg.child_frame_id = ODOM
+            t_msg = TransformStamped(); t_msg.header.frame_id = MAP
+            t_msg.header.stamp.sec, t_msg.header.stamp.nanosec = lc.future_stamp(msg.header.stamp.sec, msg.header.stamp.nanosec, s.map_odom_future_offset_s)
+            t_msg.child_frame_id = ODOM
             tr, r = t_msg.transform.translation, t_msg.transform.rotation
             tr.x, tr.y, tr.z = map_odom[:3]; r.x, r.y, r.z, r.w = map_odom[3:]
             self.tf.sendTransform(t_msg)

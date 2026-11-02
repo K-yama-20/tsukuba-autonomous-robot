@@ -1,0 +1,40 @@
+# 変更セット REV-188（2026-11-02 第175便: gouda_monitor の配色を案 A に、DEC-399）
+# 適用: design/tools/apply_revision.py REV-188
+id: REV-188
+date: '2026-11-02'
+summary: >-
+  第175便：人の回答「A案でいこう。」で、gouda_monitor の画面の配色を案 A（明るい灰の背景、赤・黄・緑の札と印、地図の上の印の色）にする。
+  色の表は design/docs/gouda_monitor_palette.md。gouda_gui_design_rules.md（証拠として固定）と gouda_gui の画面は変えない。モード・操作・状態遷移は変えない。
+basis_refs:
+- DEC-399
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-MONITOR-PALETTE
+  path: design/docs/gouda_monitor_palette.md
+  role: evidence
+decisions:
+- id: DEC-399
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    gouda_monitor の配色を、現行と案 A〜D のどれにするか（人の指示「UIが見えにくい。配植案を複数パターン生成して、スクショを見せて。」で画面を示した）。
+  answer_verbatim: |
+    A案でいこう。
+  affected_refs:
+  - ND-02
+  resulting_refs:
+  - ND-02
+  - FILE-MONITOR-PALETTE
+  note: >-
+    変えたのは gouda_core/web の style.css と app.js の色（地図の上の印を含む）と、矢印の色の説明の文字（黄を濃い黄に）。状態の札の印（●▲■）を加えた。
+    これまで効いていなかった上部の値の注意の色（.strip .v.amber）が出るようになった。文字の大きさは変えていない。明背景は人の判断で、実機の表示装置と照度の実測はしていない。
+    第173便の調査と第175便の作業記録を参照。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-02
+  interpretation_append: 'REV-188（DEC-399）：画面の配色は design/docs/gouda_monitor_palette.md（案 A）に従う。地図作成の終わりの矢印は濃い黄。色は停止の保証ではない。'
+decision_updates: []

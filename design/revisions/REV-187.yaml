@@ -1,0 +1,54 @@
+# 変更セット REV-187（2026-11-02 第174便: 検査ルール案 2 件の承認事項の登録 DEC-397・398）
+# 適用: design/tools/apply_revision.py REV-187
+id: REV-187
+date: '2026-11-02'
+summary: >-
+  第174便：RPP を選んだ判断（DEC-122）の振り返り（第171便の追記）から出た再発防止の検査ルール案 2 件を、人の回答「登録する」で承認事項 DEC-397・398 として登録する。
+  回答は登録の指示で、ルールの承認ではない。検査器・コード・設定・正本の値は変えない。
+basis_refs:
+- DEC-106
+- DEC-122
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files: []
+decisions:
+- id: DEC-397
+  kind: approval
+  status: pending
+  asked_on: '2026-11-02'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】（検査ルール案）上流の既定から外す選択を提案するときは、既定が担っていた機能のうち失うものを判断台帳の項目に必ず書く、という規則を足すか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-122
+  resulting_refs: []
+  note: >-
+    人の登録の指示（原文）「登録する」（AI の問い「再発防止の検査ルール案 2 件を承認事項にしますか？」への回答。ルールの内容の承認ではない）。推奨は承認。
+    理由：DEC-122 で Jazzy の既定の MPPI を RPP に替えたとき、controller による回避を失うことを書かず、「MPPI は回避が滑らか」とだけ書いた（第171便の追記）。
+    機械で確かめられるのは記載の有無までで、書いた内容が正しいか、既定から外れていることの見落としは検出できない（既定との比較を検査器に持たせるかは実装の案を作るときに示す）。
+    代替案：検査にせず intent.md への追記案にする（人が編集する）。振る舞いの違い：車体の振る舞いは変わらない。提案と台帳の書き方の制約が増える。
+    決まらない場合に止まる作業：この規則の実装だけ。
+  disposition: open_human
+- id: DEC-398
+  kind: approval
+  status: pending
+  asked_on: '2026-11-02'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】（検査ルール案）未解決の Q に関わる選択を提案するときは、その Q を affected_refs に挙げ、解決するか保留と明記する、という規則を足すか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-122
+  - Q-07
+  resulting_refs: []
+  note: >-
+    人の登録の指示（原文）「登録する」（DEC-397 と同じ問いへの回答。ルールの内容の承認ではない）。推奨は承認。
+    理由：元資料の Q-07 は planner・controller の構成を未選定とし、「FollowPathだけで迂回を実現するとはしない」と書いていたが、DEC-122 は Q-07 を affected_refs に挙げずに controller を選んだ。
+    Q-07 は今も未設計（第171便の追記）。機械で確かめるには、どの要素がどの Q に関わるかの対応が要る。今の正本にその対応が足りるかは未確認で、実装の案を作るときに確かめる。
+    代替案：検査にせず intent.md への追記案にする（人が編集する）。振る舞いの違い：車体の振る舞いは変わらない。決まらない場合に止まる作業：この規則の実装だけ。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates: []

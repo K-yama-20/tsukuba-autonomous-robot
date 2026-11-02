@@ -21,7 +21,7 @@ def settings(**over):
     v = {'points_near_crop_m': 1.0, 'points_far_crop_m': 100.0, 'points_voxel_leaf_m': 0.5, 'twist_vx_variance': 0.04, 'twist_wz_variance': 0.01,
          'initial_xy_variance': 0.25, 'initial_z_variance': 0.01, 'initial_roll_pitch_variance': 0.01, 'initial_yaw_variance': 0.07,
          'status_period_s': 0.1, 'stale_timeout_s': 1.0, 'ndt_nvtl_min': 2.3, 'ekf_xy_stddev_max_m': 0.5, 'ekf_pose_no_update_max': 50,
-         'points_voxel_min_points': 2}
+         'points_voxel_min_points': 2, 'map_odom_future_offset_s': 0.5}
     v.update(over)
     return lc.Settings.from_values(v)
 
@@ -191,6 +191,16 @@ class InitAndCovarianceTests(unittest.TestCase):
     def test_settings_are_required_and_checked(self):
         with self.assertRaises(ValueError): lc.Settings.from_values({})
         with self.assertRaises(ValueError): settings(stale_timeout_s=0.0)
+        with self.assertRaises(ValueError): settings(map_odom_future_offset_s=-0.1)
+        with self.assertRaises(ValueError): settings(map_odom_future_offset_s=1.0)   # REV-191: not beyond stale_timeout_s
+
+    def test_map_odom_offset_from_config(self):
+        self.assertEqual(lc.with_map_odom_offset(settings(), 0.3).map_odom_future_offset_s, 0.3)
+        self.assertEqual(lc.with_map_odom_offset(settings(), 1.0).map_odom_future_offset_s, 0.5)   # not below stale_timeout_s: PRM-135
+
+    def test_future_stamp(self):
+        self.assertEqual(lc.future_stamp(10, 700000000, 0.5), (11, 200000000))
+        self.assertEqual(lc.future_stamp(10, 5, 0.0), (10, 5))
         with self.assertRaises(ValueError): settings(points_near_crop_m=200.0)
         with self.assertRaises(ValueError): settings(twist_vx_variance=-1.0)
         with self.assertRaises(ValueError): settings(points_voxel_min_points=0)

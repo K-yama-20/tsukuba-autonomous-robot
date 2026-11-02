@@ -1,0 +1,5 @@
+第179便 走行シミュレータの記録（VM aarch64、ROS_DOMAIN_ID 78、2026-11-02）。車体モデルの値は合成で、実測ではない。各条件 1 回。
+summary_clean.md・clean_run_output.txt：本番の比較。LiDAR 高さ 1.015 m。ピーク負荷 8.6、ほかのスタックの同時実行 0（110 回の見本）。
+summary_diag_a.md・summary_diag_b.md：診断。LiDAR 高さ 1.10 m の仮定で、esp32_sim の残り（後始末の不具合）がある負荷の下で実行。傾向の参考だけ。
+  diag_b は試験用の VM の写しだけで raytrace_min_range 2.2 m を入れた。リポジトリのコードには入っていない。
+捨てた比較：1 回目（config_revision の誤りで全滅）、2 回目・ds5（残ったプロセス 53 個と別の試験で負荷 20）、ds6（別の試験と同時）。

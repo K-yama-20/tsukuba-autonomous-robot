@@ -66,7 +66,7 @@ wanted=(git curl ros-jazzy-desktop ros-dev-tools python3-colcon-common-extension
         python3-numpy python3-serial python3-yaml libpcap-dev libyaml-cpp-dev libboost-all-dev network-manager iproute2 udev
         # Nav2 (ND-10, DEC-121 / DEC-122): bringup (the parameter template), the servers and the chosen plugins
         ros-jazzy-nav2-bringup ros-jazzy-nav2-lifecycle-manager ros-jazzy-nav2-bt-navigator ros-jazzy-nav2-planner ros-jazzy-nav2-navfn-planner
-        ros-jazzy-nav2-controller ros-jazzy-nav2-regulated-pure-pursuit-controller ros-jazzy-nav2-behaviors ros-jazzy-nav2-smoother
+        ros-jazzy-nav2-controller ros-jazzy-nav2-regulated-pure-pursuit-controller ros-jazzy-nav2-mppi-controller ros-jazzy-nav2-behaviors ros-jazzy-nav2-smoother
         ros-jazzy-nav2-velocity-smoother ros-jazzy-nav2-costmap-2d ros-jazzy-nav2-map-server
         # GNSS driver (ND-19, DEC-123), the NTRIP relay str2str (DEC-139 option B1, DEC-151 step 4) and its TLS (DEC-361)
         ros-jazzy-septentrio-gnss-driver rtklib stunnel4 ca-certificates

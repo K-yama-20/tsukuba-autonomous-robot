@@ -1,0 +1,6 @@
+{
+  "mppi_now": {},
+  "rpp_now": {"controller_use_mppi": false},
+  "mppi_range5": {"obstacle_max_range_m": 5.0, "raytrace_max_range_m": 6.0},
+  "rpp_range5": {"controller_use_mppi": false, "obstacle_max_range_m": 5.0, "raytrace_max_range_m": 6.0}
+}

@@ -51,3 +51,10 @@
 
 - 止まっている：VM の Gouda への反映（人の許可と、パッケージの導入。Gouda は待機中の run-83d10ac0）
 - コミット・push はまだ（試験用のブランチの作業ツリーにある）
+
+## 7. 追記：main への merge（人の指示「A案をmergeせよメアドはryoya-1」）
+
+- 試験用のブランチを cf24406 でコミットして push（作者・コミッターとも ryoya-1@g.ecc.u-tokyo.ac.jp）。人の指示「commit及びpushはryoya-1のメアドで行え」
+- PR K-yama-20/tsukuba-autonomous-robot#22（test/plan-a-scan-band-2026-11-01 → main）を作り、`gh pr merge --merge --author-email ryoya-1@g.ecc.u-tokyo.ac.jp` で merge した。merge commit 8ee7162（作者 ryoya-1@g.ecc.u-tokyo.ac.jp、コミッターは GitHub）
+- A案のブランチは PR #21 の上に積んでいたので、#21（955a242）も同時に main に入り、#21 も MERGED になった
+- x86 の PC は人の話では main の 249f34c が入っている。新しい main（8ee7162）を入れるには update.sh が要る。AI からは x86 の PC につなぐ方法が分からない（未確認）

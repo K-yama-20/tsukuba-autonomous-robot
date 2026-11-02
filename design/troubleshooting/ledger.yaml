@@ -398,3 +398,37 @@ entries:
     proposals/kuams_adoption_review_2026-10-23/topic5.md §2・H3。
   recorded_on: '2026-10-23'
   occurrences: []
+- id: TRB-013
+  name: map→odom を先の時刻で出すこと（PRM-135）の影響で、補正の遅れ・古い推定での走行・TF の段差が起きる
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-403
+  - DEC-406
+  - DEC-285
+  - DEC-222
+  related_refs:
+  - PRM-135
+  - PRM-89
+  - ND-07
+  - IFD-18
+  - IFD-54
+  symptom: >-
+    (a) NDT の補正の後、地図に対する車体の位置が少し遅れて動く。keepout・速度マスク・waypoint の境界が遅れて効く。(b) 推定が止まった直後も Nav2 が TF を受け付けて走り続ける。
+    (c) Gouda の起動の直後や /config で値を小さくした直後に、TF の古さの警告や「extrapolation into the future」が戻る。(d) 対策の目的の「CostmapFilter: failed」と 0.2 s ごとの controller の詰まりが消えない。
+  mechanism: >-
+    事実（第180便）：map→odom の stamp は odometry の時刻＋PRM-135（既定 0.5 s）。VM の tf2 の確かめで、今の時刻で引くと −0.15 s では 20 回とも失敗（待ち 0.104 s）、+0.35 s では 20 回とも成功（0.0008 s）。
+    計算：odometry の遅れ 0.13〜0.17 s なので、今の時刻で引く値は約 0.35 s 前に計算した補正になる（tf2 が前後の値を補間する）。推定が止まっても TF は最大約 0.35〜0.5 s 有効で、推定不能の判定は PRM-89（1.0 s）まで出ないことがある。
+    PRM-135 が遅れ＋周期（計算で約 0.27 s）より小さいと元の失敗に戻る。GLIM の遅れの跳ね（第160便 最大 0.64 s）が PRM-135 を超えると一時的に戻る。推測：1.25 m/s で 0.35 s は 0.44 m 進むが、遅れるのは map→odom の補正の分だけで、odom→base_link の動きは遅れない。
+  how_to_confirm: >-
+    (1) launch log で「CostmapFilter: failed」と「Control loop missed」の件数を前後で比べる。(2) rosbag の /tf で map→odom の stamp と受信時刻の差、補正の段差の大きさを見る。
+    (3) cmd_vel_nav の発行の回数で controller の周期を測る。(4) 走行中に odometry を止める模擬の試験で、TF が切れる時刻と推定不能の時刻を比べる。(5) ND-07 の log の「map_odom_future_offset_s」で使った値を確かめる。
+  countermeasures: >-
+    /config「Nav2」タブの map_odom_future_offset_s（PRM-135）を調整する。(a) が問題なら小さく、(c)(d) が問題なら大きく。PRM-89 以上の値は使われない。
+    効かなければ、一定の周期で今の時刻に出し直す方式（slam_toolbox の transform_publish_period）を検討する。どれも値の変更以外は承認事項。
+  source: >-
+    reports/worklog/2026-11-02_bin172_keepout_tf_materials.md、2026-11-02_bin180_map_odom_future_stamp.md。実車では未確認。
+  recorded_on: '2026-11-02'
+  occurrences: []

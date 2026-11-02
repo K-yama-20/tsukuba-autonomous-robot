@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "b3850057d50f4fe8d6f541f4a8eb5523b6cafddb968ee64f84462c343291f349",
+  "model_entities_sha256": "0a4317274aee3376ce0ec48d46e5b8d1ff49ce500cc61ad337a8776e144379a1",
   "parameters": [
     {
       "id": "PRM-54",
@@ -144,6 +144,18 @@
       "value_state": "unresolved",
       "value": null,
       "unit": "回"
+    },
+    {
+      "id": "PRM-134",
+      "file": "bt_params.yaml",
+      "key": "path_smoothing_enabled",
+      "target": "navigate_through_poses BT（SmoothPath）",
+      "declaration": "bt_xml",
+      "apply_timing": "launch",
+      "value_type": "bool",
+      "value_state": "approved",
+      "value": true,
+      "unit": null
     },
     {
       "id": "PRM-18",
@@ -336,6 +348,18 @@
       "value_state": "approved",
       "value": 2,
       "unit": "点"
+    },
+    {
+      "id": "PRM-135",
+      "file": "gouda_global_localization.yaml",
+      "key": "map_odom_future_offset_s",
+      "target": "gouda_global_localization",
+      "declaration": "ros_parameter",
+      "apply_timing": "lifecycle_configure",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.5,
+      "unit": "s"
     },
     {
       "id": "PRM-79",
@@ -1077,8 +1101,8 @@
       "declaration": "ros_parameter",
       "apply_timing": "launch",
       "value_type": "int",
-      "value_state": "unresolved",
-      "value": null,
+      "value_state": "approved",
+      "value": 8,
       "unit": "m"
     },
     {
@@ -1140,6 +1164,54 @@
       "value_state": "unresolved",
       "value": null,
       "unit": null
+    },
+    {
+      "id": "PRM-130",
+      "file": "gouda_nav2.yaml",
+      "key": "controller_use_mppi",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "bool",
+      "value_state": "approved",
+      "value": true,
+      "unit": null
+    },
+    {
+      "id": "PRM-131",
+      "file": "gouda_nav2.yaml",
+      "key": "mppi_vx_max_mps",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.8,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-132",
+      "file": "gouda_nav2.yaml",
+      "key": "mppi_wz_max_radps",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 1.0,
+      "unit": "rad/s"
+    },
+    {
+      "id": "PRM-133",
+      "file": "gouda_nav2.yaml",
+      "key": "local_costmap_update_hz",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 10.0,
+      "unit": "Hz"
     },
     {
       "id": "PRM-66",

@@ -377,7 +377,15 @@
       voxel_mark_threshold: 'C-4 印を付けるのに要る高さ方向の格子の数を超える数（整数、0 なら 1 つで印）',
       global_costmap_update_hz: 'C-6 global costmap の更新の頻度（Hz）',
       inflation_cost_scaling_factor: 'D-4 膨らませの費用の減り方（cost_scaling_factor）',
-      inflation_radius_m: 'D-4 膨らませの半径（m、PRM-72 を上書き）' };
+      inflation_radius_m: 'D-4 膨らませの半径（m、PRM-72 を上書き）',
+      // REV-190 (DEC-400, DEC-401)
+      controller_use_mppi: 'controller に MPPI を使う（true／false。false なら RPP）',
+      mppi_vx_max_mps: 'MPPI の速度の上限（m/s）',
+      mppi_wz_max_radps: 'MPPI の旋回の上限（rad/s）',
+      local_costmap_update_hz: 'local costmap の更新の頻度（Hz）',
+      path_smoothing_enabled: '経路を平滑化する（true／false）',
+      // REV-193 (DEC-406)
+      map_odom_future_offset_s: 'map→odom を先の時刻で出す量（s、PRM-89 より短く。自己位置の次の起動から）' };
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;
@@ -427,7 +435,7 @@
     wpState.endPose = null; endPoseNote('');
     try {
       const j = await (await fetch(`/api/map/${encodeURIComponent(origin)}/${rev}/end_pose.json`)).json();
-      if (j.ok) { wpState.endPose = j; endPoseNote(`地図作成の終わりの姿勢: x ${j.x.toFixed(3)} m, y ${j.y.toFixed(3)} m, 向き ${(j.yaw * 180 / Math.PI).toFixed(1)} 度（黄の矢印）。車体をその後動かしていなければ、これが今の位置`
+      if (j.ok) { wpState.endPose = j; endPoseNote(`地図作成の終わりの姿勢: x ${j.x.toFixed(3)} m, y ${j.y.toFixed(3)} m, 向き ${(j.yaw * 180 / Math.PI).toFixed(1)} 度（濃い黄の矢印）。車体をその後動かしていなければ、これが今の位置`
         + (j.defaulted_fields && j.defaulted_fields.length ? `。/config の未入力で既定値を使った項目: ${j.defaulted_fields.join(', ')}` : '')); }
       else endPoseNote(`地図作成の終わりの姿勢は出せない: ${j.message}`);
     } catch (err) { endPoseNote('地図作成の終わりの姿勢を取得できない'); }
@@ -495,10 +503,10 @@
     const cv = $('wp-canvas'); const ctx = cv.getContext('2d'); const g = wpState.geom;
     if (!g || !wpState.img) { ctx.clearRect(0, 0, cv.width, cv.height); return; }
     const scale = Math.min(cv.width / g.width, cv.height / g.height); wpState.scale = scale;
-    ctx.fillStyle = '#03100f'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, cv.width, cv.height);   // outside the map; marks below are coloured for the map image itself, not the page (DEC-399)
     ctx.imageSmoothingEnabled = false; ctx.drawImage(wpState.img, 0, 0, g.width * scale, g.height * scale);
     const toPx = (p) => [ (p.x - g.origin_x) / g.resolution * scale, (g.height - (p.y - g.origin_y) / g.resolution) * scale ];
-    const AREA_COLOR = { keepout: ['rgba(230,40,40,0.35)', '#e62828'], allowed: ['rgba(40,200,90,0.30)', '#28c85a'] };
+    const AREA_COLOR = { keepout: ['rgba(206,0,0,0.30)', '#ce0000'], allowed: ['rgba(25,122,75,0.25)', '#197a4b'] };
     const drawPoly = (kind, poly, closed) => {   // drawn areas (REV-137): filled when closed, a line while being drawn
       if (!poly.length) return; const [fill, line] = AREA_COLOR[kind];
       ctx.beginPath(); poly.forEach(([x, y], i) => { const [px, py] = toPx({ x, y }); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
@@ -511,24 +519,26 @@
     if (wpState.drawing) drawPoly(wpState.drawing.kind, wpState.drawing.polygon, false);
     (wpState.gaps || []).forEach((w) => {   // narrow gaps between keepout areas from the last save (DEC-227, PRM-99)
       const [ax, ay] = toPx({ x: w.from[0], y: w.from[1] }); const [bx, by] = toPx({ x: w.to[0], y: w.to[1] });
-      ctx.setLineDash([4, 3]); ctx.strokeStyle = '#f0b43c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#f0b43c'; ctx.font = '11px monospace'; ctx.fillText(`${w.gap_m.toFixed(2)} m`, (ax + bx) / 2 + 4, (ay + by) / 2 - 4);
+      ctx.setLineDash([4, 3]); ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#000000'; ctx.font = '11px monospace'; ctx.fillText(`${w.gap_m.toFixed(2)} m`, (ax + bx) / 2 + 4, (ay + by) / 2 - 4);
     });
-    ctx.lineWidth = 2; ctx.strokeStyle = '#39d5e0';
-    wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
-    wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f0b43c' : '#39d5e0'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a8e6ea'; ctx.font = '11px monospace'; ctx.fillText(String(i), px + 6, py - 6); });
+    [['#ffffff', 5], ['#000000', 2]].forEach(([color, width]) => {   // black line with a white edge: visible on any map cell
+      ctx.strokeStyle = color; ctx.lineWidth = width;
+      wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
+    });
+    wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f2e700' : '#000000'; ctx.strokeStyle = i === 0 ? '#000000' : '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.font = 'bold 13px monospace'; const t = String(i); ctx.fillStyle = '#ffffff'; ctx.fillRect(px + 5, py - 20, ctx.measureText(t).width + 6, 15); ctx.fillStyle = '#000000'; ctx.fillText(t, px + 8, py - 8); });
     const ep = wpState.endPose;
-    if (ep) {   // the end of the mapping run (DEC-289): a yellow arrow with a label, under the initial pose
+    if (ep) {   // the end of the mapping run (DEC-289): a dark yellow arrow with a label, under the initial pose
       const [px, py] = toPx(ep); const L = 22;
-      ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ep.yaw), py - L * Math.sin(ep.yaw)); ctx.stroke();
-      ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#6B5900'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ep.yaw), py - L * Math.sin(ep.yaw)); ctx.stroke();
+      ctx.fillStyle = '#6B5900'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
       ctx.font = '11px monospace'; ctx.fillText('地図作成の終わり', px + 8, py + 14);
     }
     const ip = autoPose();
     if (ip) {   // the initial pose (an arrow in the heading)
       const [px, py] = toPx(ip); const L = 18;
-      ctx.strokeStyle = '#ff5c8a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ip.yaw), py - L * Math.sin(ip.yaw)); ctx.stroke();
-      ctx.fillStyle = '#ff5c8a'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#A0006E'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + L * Math.cos(ip.yaw), py - L * Math.sin(ip.yaw)); ctx.stroke();
+      ctx.fillStyle = '#A0006E'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
     }
     wpTable();
   }

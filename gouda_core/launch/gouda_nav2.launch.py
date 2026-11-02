@@ -46,6 +46,11 @@ def _nodes(context, *args, **kwargs):
     rec, inf = r['recovery'], r['inflate_around_unknown']
     recovery_log = LogInfo(msg=f"[gouda_nav2] BT recovery count {rec['value']} from {rec['source']}" + (f" ({rec['note']})" if rec['note'] else '')
                            + f"; inflate_around_unknown {inf['value']} from {inf['source']}" + (f" ({inf['note']})" if inf['note'] else ''))
+    if r['tunables']['controller_use_mppi']['value']:   # REV-190 (DEC-400): the controller plugin must be there, or the servers would not configure
+        try:
+            get_package_share_directory(nc.MPPI_PACKAGE)
+        except PackageNotFoundError:
+            return [LogInfo(msg=f'[gouda_nav2] {nc.MPPI_PACKAGE} is not installed: Nav2 is not started (setup.sh installs it; PRM-130 false in the monitor selects RPP)')]
     p = [r['params']]
     out = 'screen'
     return [
