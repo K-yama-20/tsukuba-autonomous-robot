@@ -1,0 +1,26 @@
+# 変更セット REV-194（2026-11-02 第179便: 走行シミュレータの実装の回答の記録。DEC-407）
+# 適用: design/tools/apply_revision.py REV-194
+id: REV-194
+date: '2026-11-02'
+summary: >-
+  第179便：人の回答「実装を始める」で、試験専用の走行シミュレータと採点（gouda_core/test の drive_sim*）を実装した。製品のコード・設定は変えていない。記録だけの変更セット。
+basis_refs:
+- DEC-407
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-407
+  kind: approval
+  status: answered
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-02'
+  channel: chat
+  question: >-
+    Nav2 の調整のための走行シミュレータ（合成の点群と車体モデルで実際の Nav2 を動かす）と自動の採点の実装を始めるか。試験専用で、製品のコード・設定は変えない。
+  answer_verbatim: |
+    実装を始める
+  affected_refs:
+  - ND-10
+  resulting_refs: []
+  note: >-
+    人はボタンで答えた。同じ作業の中の人の指示の原文：「別のプログラムは止めてしまえ」（VM の別の試験 run_anim.sh と ROS_DOMAIN_ID 88 のスタックを止めた）。VM は止まっていたので AI が起動した（第179便の作業記録）。
+  disposition: answered
