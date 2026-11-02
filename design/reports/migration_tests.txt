@@ -104,15 +104,15 @@ Traceback (most recent call last):
   File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/.claude/worktrees/dev-tab-vehicle-test-6eb228/design/rules/test_validate_model.py", line 103, in test_real_model
     def test_real_model(self): self.assertEqual(self.errors(self.m), [])
                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'intent rev[24903 chars]4'}}] != []
+AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'intent rev[25144 chars]4'}}] != []
 
-First list contains 11 additional elements.
+First list contains 12 additional elements.
 First extra element 0:
 {'code': 'MIGRATION', 'path': 'intent revision chain reaches current file', 'detail': {'actual': '23170969d3388b0f58929d7c9edc7ad5bca640336f0da393d9232240041fac25', 'expected': 'ec6a0128361916cbfedc68f58dfa5a3149ca98e4e4d09cee076530799ba1dee5'}}
 
-Diff is 35630 characters long. Set self.maxDiff to None to see it.
+Diff is 35897 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 88 tests in 79.518s
+Ran 88 tests in 79.818s
 
 FAILED (failures=2)

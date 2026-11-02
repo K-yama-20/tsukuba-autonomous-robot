@@ -289,6 +289,14 @@
       },
       {
         "code": "MIGRATION",
+        "path": "model file hash FILE-MONITOR-PALETTE",
+        "detail": {
+          "actual": "b23f3221d5adea1fabcfb2d57eeceb9e154ea7839f3ecb79445c5a4e3c81ecce",
+          "expected": "752ee598f41e8eb0994cf8b81315a1ac6a7eab17351eb7657a3a21282091e57f"
+        }
+      },
+      {
+        "code": "MIGRATION",
         "path": "intent verbatim (its version) SRC-I001-V16",
         "detail": {
           "actual": {
@@ -10091,6 +10099,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-201",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -10388,9 +10406,9 @@
     }
   ],
   "decisions": {
-    "count": 356,
+    "count": 357,
     "by_status": {
-      "answered": 198,
+      "answered": 199,
       "recorded": 75,
       "pending": 83
     },
