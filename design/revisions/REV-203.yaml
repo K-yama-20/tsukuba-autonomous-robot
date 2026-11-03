@@ -1,0 +1,43 @@
+# 変更セット REV-203（2026-11-03 第190便: 車体試験の再試行と入力の継続、試験条件の初期値、TRB-014。DEC-414）
+# 適用: design/tools/apply_revision.py REV-203
+id: REV-203
+date: '2026-11-03'
+summary: >-
+  第190便：人の指示で、IMU・STATUS が止まっても試験を終えず中立で待って試行をやり直す。動き出しの後と T の最大の段で入力を続ける。試験条件の初期値を、結果を取る方向に直す。ESP32 の再起動の必要性を TRB-014 に登録する。値の安全の判断は人。
+basis_refs:
+- DEC-414
+- DEC-411
+- DEC-412
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-414
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第190便）動き出しの試験の pc_stale と imu_lost の後の人の指示
+  answer_verbatim: |
+    esp32の再起動必要性は、本番で致命的となる恐れがある為、トラブルシューティング台帳に記載せよ。
+    また、imu_lostが頻発する。
+    lostになったら再試行を繰り返せ。あと、ジョイスティック入力の最大値が閾値ギリギリで、最大入力をした後すぐ入力が終わってしまっているために、リレー投入後車体がほぼ動かず入力が終わってしまう。
+    最大入力値を入れたらもう少し長い時間入力を継続せよ。
+    他に勝手に安全側に設定を行った部分はあるか？試験で望ましい結果を最大限出せるような設定をせよ。その上で、パラメータを見て私が安全判断を下す。
+  affected_refs:
+  - ND-20
+  - DEC-412
+  resulting_refs:
+  - ND-20
+  note: >-
+    試験条件はすべて提案の初期値で、人が /dev タブで見て判断する。再試行は回数の上限なし（中止で終わる）。STATUS の途切れも同じ原因の恐れがあるので IMU と同じ扱いにした（AI の解釈）。実車は未実行。第190便。
+  disposition: answered
+modifications:
+- id: ND-20
+  set_nested:
+    ros_node.responsibilities:
+    - IFD-58 の要求で試験を 1 件ずつ実行する。待機中は何も発行しない
+    - 手動走行のモードでだけ開始し、モードが変わる、ゲームパッドが source になる、中止の要求のいずれかで終わって中立を送る。IMU・STATUS が止まったら中立を送って戻るまで待ち、その試行をやり直す（DEC-414）。PC の中立は車体の停止の保証ではない
+    - vehicle_bridge を試験の間だけ活性にし、見つけたときの状態へ戻す（自律走行に変わっていたら触らない）
+    - IMU・STATUS・指令を <data_root>/vehicle_tests/<run_id>/ に記録し、結果を計算する。合否は決めない
+  interpretation_append: 'REV-203（DEC-414）：IMU・STATUS の途切れで終わらず、中立で待って試行をやり直す。'

@@ -61,7 +61,7 @@ decisions:
     answered_on: '2026-10-08'
     channel: chat
     question: 実車PCのROS 2/Nav2版を読み取り専用で確認するための接続先と、人の申告する環境
-    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。aya@10.211.55.4
+    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。VM
     affected_refs: [Q-01]
     resulting_refs: [V-001]
     note: >-
@@ -438,7 +438,7 @@ entities:
       affected_refs: [Q-01, ND-10, IFD-13, IFD-14, IFD-15]
       resolution_refs: []
       question: >-
-        人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、
+        人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（VM）への鍵認証は拒否され、AIはパスワード認証を行わないため、
         実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。
       next_action: >-
         人が実車PCで `cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route)"` を実行して出力を渡す、

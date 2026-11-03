@@ -1,0 +1,50 @@
+# 変更セット REV-215（2026-11-04 第207便: 実車の測定結果と分析の文書の保管場所を台帳に記載する。DEC-426）
+# 適用: design/tools/apply_revision.py REV-215
+id: REV-215
+date: '2026-11-04'
+summary: >-
+  第207便：人の指示で、2026-11-03 の実車の測定結果と分析を 1 つの文書にまとめ、保管場所とファイル名を判断台帳に記載した。測定値は候補のままで、確定した値はない。コードと設定は変えていない。
+basis_refs:
+- DEC-426
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-VEHICLE-MEASUREMENTS-20261103
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/vehicle_measurements_2026-11-03.md
+  role: evidence
+- id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-055359
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_055359/result.json
+  role: evidence
+- id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-061316
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_061316/result.json
+  role: evidence
+- id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-074043
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_074043/result.json
+  role: evidence
+- id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-082639
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_082639/result.json
+  role: evidence
+decisions:
+- id: DEC-426
+  kind: confirmation
+  status: answered
+  asked_on: '2026-11-04'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    （第207便）実車の測定結果と分析の保管
+  answer_verbatim: |
+    実車での測定結果とその分析結果を文書にまとめて保管し、その場所やファイル名を台帳に記載せよ
+  affected_refs:
+  - DEC-378
+  - DEC-417
+  - DEC-422
+  - DEC-423
+  resulting_refs: []
+  note: >-
+    保管場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/。
+    文書のファイル名：vehicle_measurements_2026-11-03.md（FILE-VEHICLE-MEASUREMENTS-20261103）。
+    同じフォルダの runs/ に実行 4 件の result.json と meta.json、analysis/ に解析のスクリプト an.py、bagread.py、bag2.py、bag3.py を置いた。
+    imu.csv などの生データと rosbag は公開リポジトリに入れず、x86 の記録にある。
+    対象は 2026-11-03 の車体試験 8 件と自律走行 run-f890dddb。測定値は候補で、DEC-378、DEC-417 は未回答のまま。
+    文書はハッシュで固定するので、新しい測定は新しい日付のファイルに書く。第207便。
+  disposition: answered

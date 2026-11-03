@@ -49,7 +49,7 @@ test_without_revision (test_reserve_ids.ReserveIdsTests.test_without_revision) .
 test_written_change_set_is_not_a_reservation (test_reserve_ids.ReserveIdsTests.test_written_change_set_is_not_a_reservation) ... ok
 test_key_order (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_key_order) ... ok
 test_references_exist_in_model (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_references_exist_in_model) ... ok
-test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema) ... ok
+test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema) ... ERROR
 test_schema_rejects_unknown_status (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema_rejects_unknown_status) ... ok
 test_unique_ids (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_unique_ids) ... ok
 test_answered_decision_needs_verbatim (test_validate_model.CoreTests.test_answered_decision_needs_verbatim) ... ok
@@ -88,6 +88,23 @@ test_superseded_requirement_needs_intent_justification (test_validate_model.Migr
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
 ======================================================================
+ERROR: test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/.claude/worktrees/dev-tab-vehicle-test-6eb228/design/rules/test_troubleshooting_ledger.py", line 31, in test_schema
+    jsonschema.validate(self.ledger, self.schema)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 1332, in validate
+    raise error
+jsonschema.exceptions.ValidationError: '対策済み（模擬で確認、実車は未確認）' is not one of ['監視中', '発生', '解消']
+
+Failed validating 'enum' in schema['properties']['entries']['items']['properties']['status']:
+    {'enum': ['監視中', '発生', '解消']}
+
+On instance['entries'][13]['status']:
+    '対策済み（模擬で確認、実車は未確認）'
+
+======================================================================
 FAIL: test_current_intent_passes (test_check_intent_identity.IntentIdentityTests.test_current_intent_passes)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
@@ -113,6 +130,6 @@ First extra element 0:
 Diff is 35897 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 88 tests in 79.818s
+Ran 88 tests in 84.017s
 
-FAILED (failures=2)
+FAILED (failures=2, errors=1)

@@ -164,7 +164,7 @@ settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "inte
 total 0
 lrwxrwxrwx 1 root root 13 Oct 13 23:08 usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ../../ttyACM0
 lo               UNKNOWN        127.0.0.1/8 ::1/128 
-enp0s5           UP             10.211.55.4/24 
+enp0s5           UP             VM のアドレス/24 
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 Bus 002 Device 028: ID 203a:fffe PARALLELS Virtual USB1.1 HUB

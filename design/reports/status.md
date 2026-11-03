@@ -2,6 +2,65 @@
 
 最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
 
+**第207便: 実車の測定結果と分析の文書（REV-215、DEC-426）**（作業記録 `reports/worklog/2026-11-04_bin207_vehicle_measurements_doc.md`）。
+- 文書 `research/vehicle_pc/2026-11-03_vehicle_measurements/vehicle_measurements_2026-11-03.md`。測定値は候補で、DEC-378、DEC-417 は未回答。コードと設定は変えていない。
+- 生データ 4 件も同じフォルダの `runs/` に入れた（REV-216、DEC-427、一覧 `RAW_DATA.md`）。残りの試験 4 件と rosbag は x86 にだけある。台帳と記録は push した。`gouda_core` などのコードの変更（REV-202〜 の実装を含む）は未コミット。
+
+**第206便の追記（496 回の模擬）**：下限 0.10＋open_loop はゴール 97/111・接触 2、open_loop は 93/96・接触 18、下限だけは 23/101 と 0/102。起動失敗 86 回中 84 回は ros2 daemon が不調なドメイン 105 の枠に集中。早回しは負荷なしでも 2 倍まで（controller_server の WallRate が原因とみている。推測）。全て模擬で、本番と実車は変えていない。実車投入可能：人の判断待ち。
+
+**第206便の追記（REV-214、DEC-425）**：今のファイルから VM の接続先を置き換えた。履歴には残る。コミットと main への反映は人の指示待ち。
+
+**第206便: 発進の対策の模擬の比較（issue #61）**（作業記録 `reports/worklog/2026-11-03_bin206_start_sim_compare.md`）。
+- MPPI は実速度 0 だと指令の上限が 0.12 m/s（計算）で、不感帯を越えない。5 条件 × 2 場面 × 各 3 回の結果：open_loop は 6 回ともゴール（遅れて出るコーンで 1/3 接触）。Critic は回復の spin まで動かない。補償ありは 1.09 m/s まで出た。実車は未実行で、コードと設定は変えていない。
+
+**第205便: 実車で MPPI の発進を確かめる準備の確認（REV-212、DEC-423）**（作業記録 `reports/worklog/2026-11-03_bin205_real_mppi_start_prep.md`）。
+- 実車の走行 run-f890dddb（rosbag 解析済み）：MPPI、補償なしで 40 s 発進せず（平均 0.033 m/s、倒し量 0.04 以下、不感帯 0.20）。模擬と近い値。回復の spin（1 rad/s、約 92・104 度）と backup は実際に動いた。コードと設定は変えていない。
+
+**第204便: 実車の補償の設定と Nav2 の発進の指令の確認（読むだけ＋模擬 1 回）**（作業記録 `reports/worklog/2026-11-03_bin204_comp_start_check.md`、案 issue #61）。
+- x86 の補償は 6 項目すべて未設定。MPPI は x86 の記録では実車の走行なし（VM は未確認）。10-24 の実走（RPP、補償なし）は発進していて、RPP の模擬も発進する。MPPI の模擬だけが発進しない。RPP はカーブの小さい旋回で止まる。実車の MPPI は未確認。コードと設定は変えていない。
+
+**第203便: 走行の模擬の車体に実測の値を入れる（REV-211、DEC-422）**（作業記録 `reports/worklog/2026-11-03_bin203_sim_plant_measured.md`）。
+- 補償なしでは Nav2 の発進の指令が不感帯より小さく、模擬の 3 場面とも進まない。試しの補償では動くが最大横ずれ 4.4〜5.9 m。模擬の結果で、実車は未確認。単体試験 370 件 OK。本番のコードと設定は未変更。コミットはまだ。
+
+**第202便: 入力を長くした t_lock と模擬の車体の値の対応（x86、実車、読むだけ）**（作業記録 `reports/worklog/2026-11-03_bin202_long_input_t_lock.md`）。
+- 旋回は中立 2 s 以上で遅れが約 0.30〜0.41 s にそろう。止まった後に約 4.4 Hz の揺れが約 3 s 残る。模擬へは旋回の値と不感帯が入れられる見込みで、速度は未測定。模擬は未変更。
+
+**第201便: t_lock と T ロックの解析を方向別に（REV-210、DEC-421）**（作業記録 `reports/worklog/2026-11-03_bin201_lock_analysis.md`）。
+- 入力の直前に動いていた試行は遅れとして読まない。実車の 2 件で再計算し、T ロックは第200便と一致、t_lock は未確定。単体試験 361 件 OK。x86 の本番の作業領域には未反映。コミットはまだ。
+
+**第200便: T 解除と T ロックの結果（x86、実車、読むだけ）**（作業記録 `reports/worklog/2026-11-03_bin200_t_up_down_results.md`）。
+- 旋回の止まる段は左 0.26〜0.30、右 0.15〜0.18 で T 解除と同じ。止まる直前でも約 0.31〜0.35 rad/s。前進 0.18〜0.22、後退 0.18〜0.22。手動介入後のやり直しは実車で 4 回動いた。値は人の確認待ち。自動の `locked` は実態と合わない。
+
+**第199便: t_lock の結果（x86、実車、読むだけ）**（作業記録 `reports/worklog/2026-11-03_bin199_t_lock_results.md`）。
+- その場の旋回は中立から約 2 s で落ち着く。t_lock は未確定（表の 3〜4 s は根拠が弱い）。中立 1.5 s 以下の判定は基準の窓の影響で遅れとして使えない。前進・後退は未測定。
+
+**第198便: 遅れとパルスの結果（x86、実車、読むだけ）**（作業記録 `reports/worklog/2026-11-03_bin198_delay_pulse_results.md`）。
+- DAC コードの最大 3902 で 4500 mV の設定の到達を確認。その場の旋回は幅 0.5 s 未満のパルスではほぼ動かない。後退 0.4 の遅れは 0.85〜0.88 s。値は人の確認待ち。遅れの試験の順序の説明の誤りを訂正した。
+
+**第197便: ゲームパッドの介入で試験を終わらせない（REV-209、DEC-420）**（作業記録 `reports/worklog/2026-11-03_bin197_manual_override_retry.md`）。
+- 中立で待ち、PC が source に戻ったらその試行をやり直す。離すと試験の入力が自動で再開する。単体試験 358 件 OK。模擬・実車は未実行、x86 は未反映。コミットはまだ。
+
+**第196便: 遅れの試験を元の位置に戻る組の順序に（REV-208、DEC-419）**（作業記録 `reports/worklog/2026-11-03_bin196_delay_return_order.md`）。
+- 前進 2 回→後退 2 回、右 2 回→左 2 回。第195便の順序を置き換えた。単体試験 352 件 OK、設計検査 違反 0・未判定 5。x86 は未反映、実車は未実行。コミットはまだ。
+
+**第195便: 遅れの試験の順序を同じ方向の繰り返しに（REV-207、DEC-418）**（作業記録 `reports/worklog/2026-11-03_bin195_delay_order.md`）。
+- 各方向の 1 回目と 2 回目以降を表で分ける。単体試験 353 件 OK。x86 は測定中のため未反映、実車は未実行。コミットはまだ。
+
+**第194便: DAC 出力電圧の実測項目と手順（REV-206、DEC-417）**（作業記録 `reports/worklog/2026-11-03_bin194_dac_voltage_measurement.md`）。
+- 設定 4500 mV の実際の出力は USB 5V に比例するので、x86 接続で測る。手順は `research/vehicle_pc/2026-11-03_dac_voltage_measurement_procedure.md`。実測待ち（未実施）。設計検査 違反 0・未判定 5。コミットはまだ。
+
+**第193便: DAC 最大電圧 PRM-45 を 4500 mV に（REV-205、DEC-416）**（作業記録 `reports/worklog/2026-11-03_bin193_dac_max_4500.md`）。
+- 前進・右旋回の倒し量と電圧の傾きが約 10 % 小さくなる（計算）。x86 には未反映、実機は未確認。コミットはまだ。
+
+**第192便: 動き出しの試験の結果（x86、実車、読むだけ）**（作業記録 `reports/worklog/2026-11-03_bin192_vehicle_test_results.md`）。
+- T：前進・後退 約 0.22、左 0.30、右 0.18。遅れは前進 0.25〜0.8 s、後退 0.4 で約 0.9〜1.4 s。案 F と手動の優先は実車で動いた。値は人の確認待ち。
+
+**第191便: vehicle_bridge の seq を firmware に合わせる（REV-204、DEC-415、TRB-014）**（作業記録 `reports/worklog/2026-11-03_bin191_bridge_seq_follow.md`）。
+- 単体試験 350 件 OK、x86 の模擬の全項目 PASS（棄却 0 件）。設計検査 違反 0・未判定 5。実機の ESP32 は未実行。コミットはまだ。
+
+**第190便: 車体試験の再試行、入力の継続、初期値、TRB-014（REV-203、DEC-414）**（作業記録 `reports/worklog/2026-11-03_bin190_vehicle_test_retry_inputs.md`）。
+- 2 回目以降の試験は bridge の seq が戻って棄却されることを確認（TRB-014、未修正）。単体試験 OK、実車は未実行。コミットはまだ。
+
 **第188便: ボタンの表記を「待機」に（REV-201、DEC-413）**（作業記録 `reports/worklog/2026-11-03_bin188_button_taiki.md`）。動作は不変。画面の目視・実車は未実行、x86 は未反映。
 
 **第187便: /dev タブと車体試験、動き出しの試験（REV-200、DEC-411・412）**（作業記録 `reports/worklog/2026-11-03_bin187_dev_tab_vehicle_test.md`、手順 `docs/vehicle_tests.md`）。
@@ -837,7 +896,7 @@
 
 工程5-5 の内容: IFD-40 の独自型 `gouda_interfaces/msg/MotionHold` を確定、PC–ESP32 プロトコル v4 を設計（`docs/esp32_protocol_v4.md`、G-FIRMWARE）、ND-11 `gouda_motion_controller`・ND-12 `vehicle_bridge`（lifecycle node）、ND-17 新 firmware `firmware/gouda_esp32_v4`（PlatformIO、Bluepad32、MCP4922、NVS 設定）、mode_manager の `control/motion_hold` 発行、monitor の `/esp32/status` 表示。設定は generated/params から読み、未確定値は trial ファイル（stub 専用）。完了条件 (a) 手動優先 (b) 入力途絶時の中立化 (c) 一時停止中の中立出力 は、firmware 中核のホスト試験と PC 側の stub 試験で確認（実機・実車では未確認）。
 
-前便まで: 工程5-1〜5-4 はソフト試験合格（5-3・5-4 はセンサーなし・合成データの範囲）。ゲート3は条件付き承認（DEC-064・065）。intent.md は第7版（`f69dd98b…`）。GLIM 1.2.2-0noble（DEC-062）。試験環境は Parallels の Ubuntu 24.04（`ssh -o BatchMode=yes aya@10.211.55.4`、`~/gouda_ws`。DEC-067）。firmware のビルド環境は Mac の PlatformIO（`~/.platformio/penv/bin/pio`）。
+前便まで: 工程5-1〜5-4 はソフト試験合格（5-3・5-4 はセンサーなし・合成データの範囲）。ゲート3は条件付き承認（DEC-064・065）。intent.md は第7版（`f69dd98b…`）。GLIM 1.2.2-0noble（DEC-062）。試験環境は Parallels の Ubuntu 24.04（`ssh -o BatchMode=yes VM`、`~/gouda_ws`。DEC-067）。firmware のビルド環境は Mac の PlatformIO（`~/.platformio/penv/bin/pio`）。
 
 ## 三つの状態（CLAUDE.md 1.4）＋報告用の三区分（DEC-057）
 

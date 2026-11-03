@@ -1,0 +1,25 @@
+# 変更セット REV-213（2026-11-03 第206便: 導入は一括でできるべきという人の指摘の記録。DEC-424）
+# 適用: design/tools/apply_revision.py REV-213
+id: REV-213
+date: '2026-11-03'
+summary: >-
+  第206便：人の指摘で、PC に要るプログラムは一括で導入できるべきとした。既存の setup.sh を使う。検査ルールか intent への追記は案で、未承認。
+basis_refs:
+- DEC-424
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-424
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第206便）別の PC の準備で、AI が apt の一覧を手で渡したことへの人の指摘
+  answer_verbatim: |
+    全てのプログラムはローンチファイルで一括でいれられるべきである。
+  affected_refs: []
+  resulting_refs: []
+  note: >-
+    AI の解釈：launch ファイルは sudo を聞けないので、導入は既存の bash setup.sh（更新は bash update.sh）で一括で行う。人の確認待ち。足りないものは setup.sh に足す案にする。ルール案：setup.sh の一覧と launch・package.xml が使うパッケージの一致を機械で検査する（未承認）。第206便。
+  disposition: answered

@@ -33986,7 +33986,7 @@ entities:
       resolution_refs:
         - DEC-012
         - FILE-VEHICLE-PC
-      question: 人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、 
+      question: 人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（VM）への鍵認証は拒否され、AIはパスワード認証を行わないため、 
         実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 
         1.3.13）の仕様を暫定の照合先にしている。
       next_action: '解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。
@@ -47368,7 +47368,7 @@ decisions:
     answered_on: '2026-10-08'
     channel: chat
     question: 実車PCのROS 2/Nav2版を読み取り専用で確認するための接続先と、人の申告する環境
-    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。aya@10.211.55.4
+    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。VM
     affected_refs:
       - Q-01
     resulting_refs:

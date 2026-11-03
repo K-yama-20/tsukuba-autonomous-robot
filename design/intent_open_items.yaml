@@ -1542,9 +1542,9 @@ pending_decisions:
     status: pending
     question: 【承認】（検査ルール案）未解決の Q に関わる選択を提案するときは、その Q を affected_refs に挙げ、解決するか保留と明記する、という規則を足すか。
     resulting_refs: []
-  - id: DEC-412
-    kind: approval
+  - id: DEC-417
+    kind: measurement
     status: pending
-    question: 【承認】車体試験の指令の経路。手動走行のモードで ND-20 が vehicle/joystick_command（IFD-16）へ直接出し、試験の間だけ vehicle_bridge 
-      を活性にしてよいか。手動走行で PC が COMMAND を送るのは、これまでの設計（ND-11 は手動走行で発行しない）に対する例外になる。
+    question: 【実測】x86 に接続した状態で、ESP32 の 5V、DAC 出力、EMC 入力の電圧を中立と全倒しで測る。あわせて EMC 側の電源電圧と、できれば純正ジョイスティックの電圧を測る。手順は
+      design/research/vehicle_pc/2026-11-03_dac_voltage_measurement_procedure.md。
     resulting_refs: []

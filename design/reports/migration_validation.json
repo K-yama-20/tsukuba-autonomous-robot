@@ -1,7 +1,7 @@
 {
   "format_and_migration": {
     "result": "違反",
-    "executed_checks": 6105,
+    "executed_checks": 6111,
     "violations": [
       {
         "code": "MIGRATION",
@@ -715,6 +715,12 @@
       "model file hash FILE-RUN-574FE6D7-NAV2",
       "model file hash FILE-P2L-2-0-2-EXCERPT",
       "model file hash FILE-MONITOR-PALETTE",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-055359",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-061316",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-074043",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-082639",
+      "model file hash FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX",
       "immutable initial entity ID inventory",
       "immutable initial source ID inventory",
       "revision-added entity IDs unique",
@@ -7709,7 +7715,7 @@
           "DEC-012",
           "FILE-VEHICLE-PC"
         ],
-        "question": "人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。",
+        "question": "人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（VM）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。",
         "next_action": "解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。 上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。"
       },
       {
@@ -10109,6 +10115,156 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-202",
+      "date": "2026-11-03",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-203",
+      "date": "2026-11-03",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-204",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-205",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-206",
+      "date": "2026-11-03",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-207",
+      "date": "2026-11-03",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-208",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-209",
+      "date": "2026-11-03",
+      "basis_refs": 3,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 1,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-210",
+      "date": "2026-11-03",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-211",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-212",
+      "date": "2026-11-03",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-213",
+      "date": "2026-11-03",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-214",
+      "date": "2026-11-03",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-215",
+      "date": "2026-11-04",
+      "basis_refs": 1,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 5,
+      "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-216",
+      "date": "2026-11-04",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 1,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -10406,9 +10562,9 @@
     }
   ],
   "decisions": {
-    "count": 357,
+    "count": 371,
     "by_status": {
-      "answered": 199,
+      "answered": 213,
       "recorded": 75,
       "pending": 83
     },
@@ -10495,7 +10651,7 @@
       "DEC-390",
       "DEC-397",
       "DEC-398",
-      "DEC-412"
+      "DEC-417"
     ]
   },
   "vehicle_verification": {

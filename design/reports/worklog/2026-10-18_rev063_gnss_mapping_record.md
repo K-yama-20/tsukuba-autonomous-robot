@@ -36,7 +36,7 @@
 
 - Mac の単体: `cd gouda_core && python3 -m unittest discover -s test -p "test_*.py"` → 168 件 OK・1 件 skip（新規 test_gnss_log.py 2 件）。
 - 全検査 `design/.venv/bin/python design/tools/run_checks.py` → 終了コード 1。不合格は人の drawio の SHA だけ。設計整合性 違反 0、未判定 4（DR-04 5、DR-05 2、DR-10 2、DR-11 67）。DR-15 合格。
-- ROS 上の試験: 最初は VM（10.211.55.4）が ssh でつながらず未実行。人が VM を起動した後、`gouda_core/test/ubuntu_gnss_mapping_record.sh` で合格（REV-064、FILE-GNSS-MAPPING-RECORD-VM-TEST）。G1: 合成の GNSS 4 種類 × 20 通 → gnss.jsonl 80 行が原図の横に置かれ、manifest の SHA-256（2076c942…）と一致、原図の content_hash は GLIM の dump だけ。G2: GNSS なしの地図作成は空の記録と「対応を作れない」の記録で、地図作成は止まらない。VM の単体試験も全件 OK・1 件 skip。
+- ROS 上の試験: 最初は VM（VM のアドレス）が ssh でつながらず未実行。人が VM を起動した後、`gouda_core/test/ubuntu_gnss_mapping_record.sh` で合格（REV-064、FILE-GNSS-MAPPING-RECORD-VM-TEST）。G1: 合成の GNSS 4 種類 × 20 通 → gnss.jsonl 80 行が原図の横に置かれ、manifest の SHA-256（2076c942…）と一致、原図の content_hash は GLIM の dump だけ。G2: GNSS なしの地図作成は空の記録と「対応を作れない」の記録で、地図作成は止まらない。VM の単体試験も全件 OK・1 件 skip。
 - 未実行: 受信機（mosaic-go）をつないだ実機での記録（DEC-125 の回答と x86 機への反映の後）。
 
 ## 6. 承認事項と実測待ち

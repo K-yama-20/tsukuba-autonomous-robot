@@ -1,5 +1,5 @@
 # 2026-10-23 第145便: NTRIP の中継（str2str）が「input waiting」のまま補正を受けない原因の調べ（AI。診断用で、Gouda の製品のコードではない）
-# 実行: VM（aya@10.211.55.4）、~/claude_scratch/ntrip_probe*.py を python3 -I で実行。接続の情報は各スクリプトが gnss_rtk.yaml から自分で読み、
+# 実行: VM（VM）、~/claude_scratch/ntrip_probe*.py を python3 -I で実行。接続の情報は各スクリプトが gnss_rtk.yaml から自分で読み、
 #   種類・状態の番号・バイト数だけを出す（caster・port・mountpoint・user・password・位置は出さない。DEC-139）。出力は下に写す（値を含まない。ntrip_probe.py は同じ形の行を一部省いた抜粋、ほかは全行）。
 # 時刻: 2026-10-23 20:0x（JST）。Gouda は手動走行モードで動いていた。受信機・Gouda の設定には触れていない。
 

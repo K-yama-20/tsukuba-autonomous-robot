@@ -224,7 +224,7 @@
         "gouda_core/gouda_core/vehicle_bridge_node.py:43: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
         "gouda_core/gouda_core/vehicle_bridge_node.py:97: 0.05 — 承認値と同じ数（PRM-41）。`ser=self._serial.Serial(self.port,SERIAL_BAUD,timeout=0.05,exclusive=True)`",
         "gouda_core/gouda_core/vehicle_bridge_node.py:167: 1 — 時間の値（待ち・期限・周期）。`self.thread.join(timeout=1)`",
-        "gouda_core/gouda_core/vehicle_test_core.py:251: 1.0 — 承認値と同じ数（PRM-103・PRM-13・PRM-132・PRM-29・PRM-31・PRM-38・PRM-57・PRM-58・PRM-64・PRM-67・PRM-72・PRM-79・PRM-89・PRM-93・PRM-96・PRM-99）。`return cur,(max(self.ti,0)/len(self.trials)if self.trials else 1.0)`",
+        "gouda_core/gouda_core/vehicle_test_core.py:263: 1.0 — 承認値と同じ数（PRM-103・PRM-13・PRM-132・PRM-29・PRM-31・PRM-38・PRM-57・PRM-58・PRM-64・PRM-67・PRM-72・PRM-79・PRM-89・PRM-93・PRM-96・PRM-99）。`return cur,(max(self.ti,0)/len(self.trials)if self.trials else 1.0)`",
         "gouda_core/gouda_core/vehicle_test_node.py:39: 50 — 承認値と同じ数（PRM-10・PRM-91）。`DECISION_QOS=QoSProfile(reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL,history=Histo`",
         "gouda_core/gouda_core/vehicle_test_node.py:42: 50 — 承認値と同じ数（PRM-10・PRM-91）。`SENSOR_QOS=QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,durability=DurabilityPolicy.VOLATILE,history=HistoryPoli`",
         "firmware/gouda_esp32_v4/src/main.cpp:20: 5 — 時間の値（待ち・期限・周期）。`constexpr uint32_t kControlPeriodMs = 5;`",

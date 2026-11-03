@@ -100,7 +100,7 @@ decisions:
     affected_refs: [DEC-019, DEC-025, H-009, DEC-050, Q-04, Q-05, Q-06]
     resulting_refs: [FILE-GATE3-MODEL]
     note: >-
-      承認対象は REV-009 適用後の design/model.yaml（SHA-256 6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f。凍結コピー
+      承認対象は REV-009 適用後の design/model.yaml（SHA-256 ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856。凍結コピー
       baselines/gate3_2026-10-09/model.yaml＝FILE-GATE3-MODEL。Git は未コミット）。122 件の design_status は「案」のまま（個別最終承認ではない。DR-12）。
       維持する方針: DEC-031・045・046・047（Speed Filter）、DEC-042（手動経路）、DEC-037（リレー不使用・DAC 常時出力）、DEC-048（時間値）。
       DEC-050（実機照合）と Q-04〜Q-06（未確定値）は承認済み・実測済みとして扱わない。

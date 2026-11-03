@@ -1,0 +1,243 @@
+{"t": 1793659243.7629964, "event": "baseline_start"}
+{"t": 1793659248.7891095, "event": "baseline_end", "sigma": {"accel": 0.019289921414595967, "yaw": 0.000654570239959717}}
+{"t": 1793659248.7891095, "event": "trial_start", "trial": "gap_0.1_0"}
+{"t": 1793659256.8730035, "event": "segment_start", "trial": "gap_0.1_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659257.4271753, "event": "segment_end", "trial": "gap_0.1_0", "segment": 0, "first": 1793659257.2825456, "sustained": 1793659257.3424945, "peaks": {"yaw": 0.1079104242966796}}
+{"t": 1793659257.4271753, "event": "segment_start", "trial": "gap_0.1_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659258.5018656, "event": "segment_start", "trial": "gap_0.1_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659258.6102772, "event": "segment_start", "trial": "gap_0.1_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659259.81072, "event": "segment_end", "trial": "gap_0.1_0", "segment": 3, "first": 1793659258.6125152, "sustained": 1793659258.7325137, "peaks": {"yaw": 0.17189119474568637}}
+{"t": 1793659259.81072, "event": "trial_end", "trial": "gap_0.1_0"}
+{"t": 1793659259.81072, "event": "trial_start", "trial": "gap_0.1_1"}
+{"t": 1793659267.894842, "event": "segment_start", "trial": "gap_0.1_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659268.1925929, "event": "segment_end", "trial": "gap_0.1_1", "segment": 0, "first": 1793659268.092512, "sustained": 1793659268.1525126, "peaks": {"yaw": 0.018196104639225597}}
+{"t": 1793659268.1925929, "event": "segment_start", "trial": "gap_0.1_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659269.2225568, "event": "segment_start", "trial": "gap_0.1_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659269.3679063, "event": "segment_start", "trial": "gap_0.1_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659270.4947402, "event": "segment_end", "trial": "gap_0.1_1", "segment": 3, "first": 1793659269.3725197, "sustained": 1793659269.4325082, "peaks": {"yaw": 0.4218374397228831}}
+{"t": 1793659270.4947402, "event": "trial_end", "trial": "gap_0.1_1"}
+{"t": 1793659270.4947402, "event": "trial_start", "trial": "gap_0.1_2"}
+{"t": 1793659278.5442872, "event": "segment_start", "trial": "gap_0.1_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659278.9127254, "event": "segment_end", "trial": "gap_0.1_2", "segment": 0, "first": 1793659278.8225164, "sustained": 1793659278.882512, "peaks": {"yaw": 0.027593482653433664}}
+{"t": 1793659278.9127254, "event": "segment_start", "trial": "gap_0.1_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659279.9194214, "event": "segment_start", "trial": "gap_0.1_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659280.020022, "event": "segment_start", "trial": "gap_0.1_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659281.238842, "event": "segment_end", "trial": "gap_0.1_2", "segment": 3, "first": 1793659280.0225132, "sustained": 1793659280.0824995, "peaks": {"yaw": 0.22949823013589277}}
+{"t": 1793659281.238842, "event": "trial_end", "trial": "gap_0.1_2"}
+{"t": 1793659281.238842, "event": "trial_start", "trial": "gap_0.25_0"}
+{"t": 1793659289.4027793, "event": "segment_start", "trial": "gap_0.25_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659289.8135262, "event": "segment_end", "trial": "gap_0.25_0", "segment": 0, "first": 1793659289.6225207, "sustained": 1793659289.6824973, "peaks": {"yaw": 0.03184586505032554}}
+{"t": 1793659289.8135262, "event": "segment_start", "trial": "gap_0.25_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659290.8632152, "event": "segment_start", "trial": "gap_0.25_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659291.2137187, "event": "segment_start", "trial": "gap_0.25_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659292.4780557, "event": "segment_end", "trial": "gap_0.25_0", "segment": 3, "first": 1793659291.2225244, "sustained": 1793659291.282512, "peaks": {"yaw": 0.6075211178831333}}
+{"t": 1793659292.4780557, "event": "trial_end", "trial": "gap_0.25_0"}
+{"t": 1793659292.4780557, "event": "trial_start", "trial": "gap_0.25_1"}
+{"t": 1793659300.512395, "event": "segment_start", "trial": "gap_0.25_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659300.8813996, "event": "segment_end", "trial": "gap_0.25_1", "segment": 0, "first": 1793659300.7324948, "sustained": 1793659300.7825124, "peaks": {"yaw": 0.022868306114884752}}
+{"t": 1793659300.8813996, "event": "segment_start", "trial": "gap_0.25_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659301.8907988, "event": "segment_start", "trial": "gap_0.25_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659302.147801, "event": "segment_start", "trial": "gap_0.25_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659303.3421614, "event": "segment_end", "trial": "gap_0.25_1", "segment": 3, "first": 1793659302.152547, "sustained": 1793659302.2124918, "peaks": {"yaw": 0.4600017699203616}}
+{"t": 1793659303.3421614, "event": "trial_end", "trial": "gap_0.25_1"}
+{"t": 1793659303.3421614, "event": "trial_start", "trial": "gap_0.25_2"}
+{"t": 1793659311.3799987, "event": "segment_start", "trial": "gap_0.25_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659311.8673854, "event": "segment_end", "trial": "gap_0.25_2", "segment": 0, "first": 1793659311.7725463, "sustained": 1793659311.8325126, "peaks": {"yaw": 0.08533796013008316}}
+{"t": 1793659311.8673854, "event": "segment_start", "trial": "gap_0.25_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659312.9254427, "event": "segment_start", "trial": "gap_0.25_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659313.2302306, "event": "segment_start", "trial": "gap_0.25_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659314.3529823, "event": "segment_end", "trial": "gap_0.25_2", "segment": 3, "first": 1793659313.2324936, "sustained": 1793659313.2825077, "peaks": {"yaw": 0.5934534185103207}}
+{"t": 1793659314.3529823, "event": "trial_end", "trial": "gap_0.25_2"}
+{"t": 1793659314.3529823, "event": "trial_start", "trial": "gap_0.5_0"}
+{"t": 1793659322.4234996, "event": "segment_start", "trial": "gap_0.5_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659322.6728857, "event": "segment_end", "trial": "gap_0.5_0", "segment": 0, "first": 1793659322.5424988, "sustained": 1793659322.632521, "peaks": {"yaw": 0.0217342360968528}}
+{"t": 1793659322.6728857, "event": "segment_start", "trial": "gap_0.5_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659323.6779764, "event": "segment_start", "trial": "gap_0.5_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659324.311847, "event": "segment_start", "trial": "gap_0.5_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659325.5340679, "event": "segment_end", "trial": "gap_0.5_0", "segment": 3, "first": 1793659324.312513, "sustained": 1793659324.3725019, "peaks": {"yaw": 0.3577952889818016}}
+{"t": 1793659325.5340679, "event": "trial_end", "trial": "gap_0.5_0"}
+{"t": 1793659325.5340679, "event": "trial_start", "trial": "gap_0.5_1"}
+{"t": 1793659333.6004174, "event": "segment_start", "trial": "gap_0.5_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659334.0315661, "event": "segment_end", "trial": "gap_0.5_1", "segment": 0, "first": 1793659333.8929858, "sustained": 1793659334.002809, "peaks": {"yaw": 0.030480430039464}}
+{"t": 1793659334.0315661, "event": "segment_start", "trial": "gap_0.5_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659335.0703607, "event": "segment_start", "trial": "gap_0.5_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659335.5929472, "event": "segment_start", "trial": "gap_0.5_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659336.8161678, "event": "segment_end", "trial": "gap_0.5_1", "segment": 3, "first": 1793659335.6025138, "sustained": 1793659335.6625004, "peaks": {"yaw": 0.5035986983469407}}
+{"t": 1793659336.8161678, "event": "trial_end", "trial": "gap_0.5_1"}
+{"t": 1793659336.8161678, "event": "trial_start", "trial": "gap_0.5_2"}
+{"t": 1793659344.8532205, "event": "segment_start", "trial": "gap_0.5_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659345.3025937, "event": "segment_end", "trial": "gap_0.5_2", "segment": 0, "first": 1793659345.1324933, "sustained": 1793659345.1825163, "peaks": {"yaw": 0.033965503487860794}}
+{"t": 1793659345.3025937, "event": "segment_start", "trial": "gap_0.5_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659346.34263, "event": "segment_start", "trial": "gap_0.5_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659346.8753717, "event": "segment_start", "trial": "gap_0.5_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659348.0566177, "event": "segment_end", "trial": "gap_0.5_2", "segment": 3, "first": 1793659346.8825002, "sustained": 1793659346.9325035, "peaks": {"yaw": 0.49277207193713757}}
+{"t": 1793659348.0566177, "event": "trial_end", "trial": "gap_0.5_2"}
+{"t": 1793659348.0566177, "event": "trial_start", "trial": "gap_0.75_0"}
+{"t": 1793659356.059724, "event": "segment_start", "trial": "gap_0.75_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659356.42609, "event": "segment_end", "trial": "gap_0.75_0", "segment": 0, "first": 1793659356.3225458, "sustained": 1793659356.382532, "peaks": {"yaw": 0.030125779135660797}}
+{"t": 1793659356.42609, "event": "segment_start", "trial": "gap_0.75_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659357.4568412, "event": "segment_start", "trial": "gap_0.75_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659358.242031, "event": "segment_start", "trial": "gap_0.75_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659359.3644001, "event": "segment_end", "trial": "gap_0.75_0", "segment": 3, "first": 1793659358.2424974, "sustained": 1793659358.2925105, "peaks": {"yaw": 0.340917754670975}}
+{"t": 1793659359.3644001, "event": "trial_end", "trial": "gap_0.75_0"}
+{"t": 1793659359.3644001, "event": "trial_start", "trial": "gap_0.75_1"}
+{"t": 1793659367.4648964, "event": "segment_start", "trial": "gap_0.75_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659367.7803943, "event": "segment_end", "trial": "gap_0.75_1", "segment": 0, "first": 1793659367.6524963, "sustained": 1793659367.712492, "peaks": {"yaw": 0.0321950414956464}}
+{"t": 1793659367.7803943, "event": "segment_start", "trial": "gap_0.75_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659368.80584, "event": "segment_start", "trial": "gap_0.75_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659369.6124668, "event": "segment_start", "trial": "gap_0.75_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659370.7888868, "event": "segment_end", "trial": "gap_0.75_1", "segment": 3, "first": 1793659369.612528, "sustained": 1793659369.6725428, "peaks": {"yaw": 0.31485739688039993}}
+{"t": 1793659370.7888868, "event": "trial_end", "trial": "gap_0.75_1"}
+{"t": 1793659370.7888868, "event": "trial_start", "trial": "gap_0.75_2"}
+{"t": 1793659378.789819, "event": "segment_start", "trial": "gap_0.75_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659379.2232091, "event": "segment_end", "trial": "gap_0.75_2", "segment": 0, "first": 1793659379.0124948, "sustained": 1793659379.0624955, "peaks": {"yaw": 0.016643459737535997}}
+{"t": 1793659379.2232091, "event": "segment_start", "trial": "gap_0.75_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659380.2365985, "event": "segment_start", "trial": "gap_0.75_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659380.9948869, "event": "segment_start", "trial": "gap_0.75_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659382.3053954, "event": "segment_end", "trial": "gap_0.75_2", "segment": 3, "first": 1793659381.002512, "sustained": 1793659381.0625224, "peaks": {"yaw": 0.4331376620889696}}
+{"t": 1793659382.3053954, "event": "trial_end", "trial": "gap_0.75_2"}
+{"t": 1793659382.3053954, "event": "trial_start", "trial": "gap_1_0"}
+{"t": 1793659390.3086836, "event": "segment_start", "trial": "gap_1_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659390.777921, "event": "segment_end", "trial": "gap_1_0", "segment": 0, "first": 1793659390.6625316, "sustained": 1793659390.7224987, "peaks": {"yaw": 0.09330390549505921}}
+{"t": 1793659390.777921, "event": "segment_start", "trial": "gap_1_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659391.7885492, "event": "segment_start", "trial": "gap_1_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659392.8325932, "event": "segment_start", "trial": "gap_1_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659394.0226243, "event": "segment_end", "trial": "gap_1_0", "segment": 3, "first": 1793659392.8425071, "sustained": 1793659392.9025154, "peaks": {"yaw": 0.2924138589759408}}
+{"t": 1793659394.0226243, "event": "trial_end", "trial": "gap_1_0"}
+{"t": 1793659394.0226243, "event": "trial_start", "trial": "gap_1_1"}
+{"t": 1793659402.0329494, "event": "segment_start", "trial": "gap_1_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659402.6323617, "event": "segment_end", "trial": "gap_1_1", "segment": 0, "first": 1793659402.452526, "sustained": 1793659402.512493, "peaks": {"yaw": 0.09890012920546559}}
+{"t": 1793659402.6323617, "event": "segment_start", "trial": "gap_1_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659403.632599, "event": "segment_start", "trial": "gap_1_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659404.6909559, "event": "segment_start", "trial": "gap_1_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659405.8320014, "event": "segment_end", "trial": "gap_1_1", "segment": 3, "first": 1793659404.6925101, "sustained": 1793659404.7524981, "peaks": {"yaw": 0.3331316922700704}}
+{"t": 1793659405.8320014, "event": "trial_end", "trial": "gap_1_1"}
+{"t": 1793659405.8320014, "event": "trial_start", "trial": "gap_1_2"}
+{"t": 1793659413.8666623, "event": "segment_start", "trial": "gap_1_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659414.3731163, "event": "segment_end", "trial": "gap_1_2", "segment": 0, "first": 1793659414.2525012, "sustained": 1793659414.3025024, "peaks": {"yaw": 0.12814346987182082}}
+{"t": 1793659414.3731163, "event": "segment_start", "trial": "gap_1_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659415.410136, "event": "segment_start", "trial": "gap_1_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659416.4821658, "event": "segment_start", "trial": "gap_1_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659417.6878457, "event": "segment_end", "trial": "gap_1_2", "segment": 3, "first": 1793659416.482508, "sustained": 1793659416.5325232, "peaks": {"yaw": 0.5023448538130223}}
+{"t": 1793659417.6878457, "event": "trial_end", "trial": "gap_1_2"}
+{"t": 1793659417.6878457, "event": "trial_start", "trial": "gap_1.5_0"}
+{"t": 1793659425.7440844, "event": "segment_start", "trial": "gap_1.5_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659426.1012175, "event": "segment_end", "trial": "gap_1.5_0", "segment": 0, "first": 1793659426.0324948, "sustained": 1793659426.0825133, "peaks": {"yaw": 0.029463950283681598}}
+{"t": 1793659426.1012175, "event": "segment_start", "trial": "gap_1.5_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659427.1475961, "event": "segment_start", "trial": "gap_1.5_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659428.6825128, "event": "segment_start", "trial": "gap_1.5_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659430.0507965, "event": "segment_end", "trial": "gap_1.5_0", "segment": 3, "first": 1793659428.7525215, "sustained": 1793659428.942513, "peaks": {"yaw": 0.687184995337728}}
+{"t": 1793659430.0507965, "event": "trial_end", "trial": "gap_1.5_0"}
+{"t": 1793659430.0507965, "event": "trial_start", "trial": "gap_1.5_1"}
+{"t": 1793659438.0980418, "event": "segment_start", "trial": "gap_1.5_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659438.5122492, "event": "segment_end", "trial": "gap_1.5_1", "segment": 0, "first": 1793659438.4324975, "sustained": 1793659438.4825096, "peaks": {"yaw": 0.0659423408100594}}
+{"t": 1793659438.5122492, "event": "segment_start", "trial": "gap_1.5_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659439.577822, "event": "segment_start", "trial": "gap_1.5_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659441.1821444, "event": "segment_start", "trial": "gap_1.5_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659442.5942056, "event": "segment_end", "trial": "gap_1.5_1", "segment": 3, "first": 1793659441.1925282, "sustained": 1793659441.45252, "peaks": {"yaw": 0.6086898594715535}}
+{"t": 1793659442.5942056, "event": "trial_end", "trial": "gap_1.5_1"}
+{"t": 1793659442.5942056, "event": "trial_start", "trial": "gap_1.5_2"}
+{"t": 1793659450.6148486, "event": "segment_start", "trial": "gap_1.5_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659451.048699, "event": "segment_end", "trial": "gap_1.5_2", "segment": 0, "first": 1793659450.9225006, "sustained": 1793659450.9725115, "peaks": {"yaw": 0.07399916771559839}}
+{"t": 1793659451.048699, "event": "segment_start", "trial": "gap_1.5_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659452.1325924, "event": "segment_start", "trial": "gap_1.5_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659453.635885, "event": "segment_start", "trial": "gap_1.5_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659454.7625897, "event": "segment_end", "trial": "gap_1.5_2", "segment": 3, "first": 1793659453.6425002, "sustained": 1793659453.6925027, "peaks": {"yaw": 0.5411225721995453}}
+{"t": 1793659454.7625897, "event": "trial_end", "trial": "gap_1.5_2"}
+{"t": 1793659454.7625897, "event": "trial_start", "trial": "gap_2_0"}
+{"t": 1793659462.776842, "event": "segment_start", "trial": "gap_2_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659463.0920053, "event": "segment_end", "trial": "gap_2_0", "segment": 0, "first": 1793659462.9925134, "sustained": 1793659463.0425332, "peaks": {"yaw": 0.0145714048507488}}
+{"t": 1793659463.0920053, "event": "segment_start", "trial": "gap_2_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659464.199843, "event": "segment_start", "trial": "gap_2_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659466.2464092, "event": "segment_start", "trial": "gap_2_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659467.5910237, "event": "segment_end", "trial": "gap_2_0", "segment": 3, "first": 1793659466.4425056, "sustained": 1793659466.502497, "peaks": {"yaw": 0.6167044113921456}}
+{"t": 1793659467.5910237, "event": "trial_end", "trial": "gap_2_0"}
+{"t": 1793659467.5910237, "event": "trial_start", "trial": "gap_2_1"}
+{"t": 1793659475.629214, "event": "segment_start", "trial": "gap_2_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659476.0596569, "event": "segment_end", "trial": "gap_2_1", "segment": 0, "first": 1793659475.8825057, "sustained": 1793659475.9424944, "peaks": {"yaw": 0.11490556569078653}}
+{"t": 1793659476.0596569, "event": "segment_start", "trial": "gap_2_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659477.0614963, "event": "segment_start", "trial": "gap_2_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659479.0904465, "event": "segment_start", "trial": "gap_2_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659480.46496, "event": "segment_end", "trial": "gap_2_1", "segment": 3, "first": 1793659479.2425122, "sustained": 1793659479.3624918, "peaks": {"yaw": 0.6307709771649693}}
+{"t": 1793659480.46496, "event": "trial_end", "trial": "gap_2_1"}
+{"t": 1793659480.46496, "event": "trial_start", "trial": "gap_2_2"}
+{"t": 1793659488.5095873, "event": "segment_start", "trial": "gap_2_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659488.9414206, "event": "segment_end", "trial": "gap_2_2", "segment": 0, "first": 1793659488.8725, "sustained": 1793659488.922516, "peaks": {"yaw": 0.055499396523283964}}
+{"t": 1793659488.9414206, "event": "segment_start", "trial": "gap_2_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659489.9519367, "event": "segment_start", "trial": "gap_2_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659491.989611, "event": "segment_start", "trial": "gap_2_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659493.251839, "event": "segment_end", "trial": "gap_2_2", "segment": 3, "first": 1793659492.132493, "sustained": 1793659492.182531, "peaks": {"yaw": 0.5585744822705345}}
+{"t": 1793659493.251839, "event": "trial_end", "trial": "gap_2_2"}
+{"t": 1793659493.251839, "event": "trial_start", "trial": "gap_3_0"}
+{"t": 1793659501.3241186, "event": "segment_start", "trial": "gap_3_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659501.7819784, "event": "segment_end", "trial": "gap_3_0", "segment": 0, "first": 1793659501.6725128, "sustained": 1793659501.722516, "peaks": {"yaw": 0.0781963354984032}}
+{"t": 1793659501.7819784, "event": "segment_start", "trial": "gap_3_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659502.8263338, "event": "segment_start", "trial": "gap_3_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659505.8622262, "event": "segment_start", "trial": "gap_3_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659507.22588, "event": "segment_end", "trial": "gap_3_0", "segment": 3, "first": 1793659506.0225165, "sustained": 1793659506.132513, "peaks": {"yaw": 0.6616222049958816}}
+{"t": 1793659507.22588, "event": "trial_end", "trial": "gap_3_0"}
+{"t": 1793659507.22588, "event": "trial_start", "trial": "gap_3_1"}
+{"t": 1793659515.2385342, "event": "segment_start", "trial": "gap_3_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659515.6155279, "event": "segment_end", "trial": "gap_3_1", "segment": 0, "first": 1793659515.4825122, "sustained": 1793659515.5325282, "peaks": {"yaw": 0.01144935988656}}
+{"t": 1793659515.6155279, "event": "segment_start", "trial": "gap_3_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659516.6669197, "event": "segment_start", "trial": "gap_3_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659519.6918433, "event": "segment_start", "trial": "gap_3_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659521.0015745, "event": "segment_end", "trial": "gap_3_1", "segment": 3, "first": 1793659519.8225124, "sustained": 1793659519.872516, "peaks": {"yaw": 0.5576480545919088}}
+{"t": 1793659521.0015745, "event": "trial_end", "trial": "gap_3_1"}
+{"t": 1793659521.0015745, "event": "trial_start", "trial": "gap_3_2"}
+{"t": 1793659529.0573654, "event": "segment_start", "trial": "gap_3_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659529.5426128, "event": "segment_end", "trial": "gap_3_2", "segment": 0, "first": 1793659529.4424975, "sustained": 1793659529.492502, "peaks": {"yaw": 0.09189072104076833}}
+{"t": 1793659529.5426128, "event": "segment_start", "trial": "gap_3_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659530.5492678, "event": "segment_start", "trial": "gap_3_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659533.59732, "event": "segment_start", "trial": "gap_3_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659535.1076863, "event": "segment_end", "trial": "gap_3_2", "segment": 3, "first": 1793659533.7425113, "sustained": 1793659533.932492, "peaks": {"yaw": 0.658980474641568}}
+{"t": 1793659535.1076863, "event": "trial_end", "trial": "gap_3_2"}
+{"t": 1793659535.1076863, "event": "trial_start", "trial": "gap_4_0"}
+{"t": 1793659543.152656, "event": "segment_start", "trial": "gap_4_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659543.6537192, "event": "segment_end", "trial": "gap_4_0", "segment": 0, "first": 1793659543.5325143, "sustained": 1793659543.592513, "peaks": {"yaw": 0.10639247861415839}}
+{"t": 1793659543.6537192, "event": "segment_start", "trial": "gap_4_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659544.707546, "event": "segment_start", "trial": "gap_4_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659548.7671428, "event": "segment_start", "trial": "gap_4_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659550.0840535, "event": "segment_end", "trial": "gap_4_0", "segment": 3, "first": 1793659548.952513, "sustained": 1793659549.012512, "peaks": {"yaw": 0.5860480521641809}}
+{"t": 1793659550.0840535, "event": "trial_end", "trial": "gap_4_0"}
+{"t": 1793659550.0840535, "event": "trial_start", "trial": "gap_4_1"}
+{"t": 1793659558.1191123, "event": "segment_start", "trial": "gap_4_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659558.582907, "event": "segment_end", "trial": "gap_4_1", "segment": 0, "first": 1793659558.3725126, "sustained": 1793659558.4425128, "peaks": {"yaw": 0.0960182415462144}}
+{"t": 1793659558.582907, "event": "segment_start", "trial": "gap_4_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659559.6179533, "event": "segment_start", "trial": "gap_4_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659563.6758595, "event": "segment_start", "trial": "gap_4_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659565.1174521, "event": "segment_end", "trial": "gap_4_1", "segment": 3, "first": 1793659563.9825127, "sustained": 1793659564.0425177, "peaks": {"yaw": 0.6527047545086258}}
+{"t": 1793659565.1174521, "event": "trial_end", "trial": "gap_4_1"}
+{"t": 1793659565.1174521, "event": "trial_start", "trial": "gap_4_2"}
+{"t": 1793659573.161922, "event": "segment_start", "trial": "gap_4_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659573.6450996, "event": "segment_end", "trial": "gap_4_2", "segment": 0, "first": 1793659573.5725145, "sustained": 1793659573.6325154, "peaks": {"yaw": 0.10446815116005385}}
+{"t": 1793659573.6450996, "event": "segment_start", "trial": "gap_4_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659574.688573, "event": "segment_start", "trial": "gap_4_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659578.7435381, "event": "segment_start", "trial": "gap_4_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659580.267225, "event": "segment_end", "trial": "gap_4_2", "segment": 3, "first": 1793659578.9325218, "sustained": 1793659579.1525197, "peaks": {"yaw": 0.6081874534862874}}
+{"t": 1793659580.267225, "event": "trial_end", "trial": "gap_4_2"}
+{"t": 1793659580.267225, "event": "trial_start", "trial": "gap_6_0"}
+{"t": 1793659588.2898567, "event": "segment_start", "trial": "gap_6_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659588.734318, "event": "segment_end", "trial": "gap_6_0", "segment": 0, "first": 1793659588.6125126, "sustained": 1793659588.6625245, "peaks": {"yaw": 0.0553528579881505}}
+{"t": 1793659588.734318, "event": "segment_start", "trial": "gap_6_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659589.773841, "event": "segment_start", "trial": "gap_6_0", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659595.8090532, "event": "segment_start", "trial": "gap_6_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659597.248238, "event": "segment_end", "trial": "gap_6_0", "segment": 3, "first": 1793659596.0825198, "sustained": 1793659596.1425214, "peaks": {"yaw": 0.6305995547276436}}
+{"t": 1793659597.248238, "event": "trial_end", "trial": "gap_6_0"}
+{"t": 1793659597.248238, "event": "trial_start", "trial": "gap_6_1"}
+{"t": 1793659605.257893, "event": "segment_start", "trial": "gap_6_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793659605.6236744, "event": "segment_end", "trial": "gap_6_1", "segment": 0, "first": 1793659605.5124922, "sustained": 1793659605.572501, "peaks": {"yaw": 0.02696032558653624}}
+{"t": 1793659605.6236744, "event": "segment_start", "trial": "gap_6_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793659606.6316364, "event": "segment_start", "trial": "gap_6_1", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659612.6558223, "event": "segment_start", "trial": "gap_6_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793659614.1026225, "event": "segment_end", "trial": "gap_6_1", "segment": 3, "first": 1793659612.9625165, "sustained": 1793659613.0225196, "peaks": {"yaw": 0.6327726106085519}}
+{"t": 1793659614.1026225, "event": "trial_end", "trial": "gap_6_1"}
+{"t": 1793659614.1026225, "event": "trial_start", "trial": "gap_6_2"}
+{"t": 1793659622.1498976, "event": "segment_start", "trial": "gap_6_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793659622.551152, "event": "segment_end", "trial": "gap_6_2", "segment": 0, "first": 1793659622.462789, "sustained": 1793659622.522519, "peaks": {"yaw": 0.03662080939325941}}
+{"t": 1793659622.551152, "event": "segment_start", "trial": "gap_6_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793659623.5926332, "event": "segment_start", "trial": "gap_6_2", "segment": 2, "label": "gap", "forward": 0.0, "turn": 0.0}
+{"t": 1793659629.6058426, "event": "segment_start", "trial": "gap_6_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793659630.9278464, "event": "segment_end", "trial": "gap_6_2", "segment": 3, "first": 1793659629.8225045, "sustained": 1793659629.872512, "peaks": {"yaw": 0.6478772774832855}}
+{"t": 1793659630.9278464, "event": "trial_end", "trial": "gap_6_2"}
+{"t": 1793659630.9278464, "event": "finished"}

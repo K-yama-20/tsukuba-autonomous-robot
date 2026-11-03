@@ -68,7 +68,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v5_81d71f07cc72.md
   - id: FILE-GATE3-MODEL
     path: design/baselines/gate3_2026-10-09/model.yaml
-    sha256: 6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f
+    sha256: ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856
     role: evidence
   - id: FILE-CLAUDE-MD-ORIGINAL
     path: design/research/claude_md/CLAUDE.md.original_2c90ed21
@@ -120,7 +120,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-STAGE55
     path: design/research/vehicle_pc/2026-10-10_stage5-5_ubuntu_test.txt
-    sha256: 0dce60d5e66cfe2747de426b777e2f1434151cebf85a1df4e6ba916c7a6ff94d
+    sha256: 70cbfa3615bf47689219725bcdda23a901b2bc8f9390a0f2dffbecbcadd3997f
     role: evidence
   - id: FILE-PANDAR-CONSOLE-XT32
     path: design/research/vehicle_pc/2026-10-13_pandar_console_xt32.pdf
@@ -134,7 +134,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v8_09732d2f5997.md
   - id: FILE-VEHICLE-PC-IMU-BYID
     path: design/research/vehicle_pc/2026-10-13_imu_serial_by_id.txt
-    sha256: 30a5ac54230e0a5161c50ee2cbbfd86478f3dca9e3f6dab5a8d9926131cc0d2a
+    sha256: 13291cdd190fcbf90b6695934f7f29ac4284a614772aa10599c096fa88771450
     role: evidence
   - id: FILE-VEHICLE-PC-MM-CRASH
     path: design/research/vehicle_pc/2026-10-13_gouda_mode_manager_crash_launch_log.txt
@@ -142,7 +142,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-GLIM-START
     path: design/research/vehicle_pc/2026-10-13_glim_start_vm_test.txt
-    sha256: f19ad39a48741d092f85d79992f1c1b80568ea8956bcbd3e0a0c22ef7fc5af2b
+    sha256: 708bc36dc487f13fb1a9d32ef77970b724c5ae31377b49bc9c6d69fe3a416525
     role: evidence
   - id: FILE-VEHICLE-PC-SENSOR-SUPERVISION
     path: design/research/vehicle_pc/2026-10-13_sensor_supervision_vm_test.txt
@@ -150,7 +150,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-SINGLE-START
     path: design/research/vehicle_pc/2026-10-14_single_start_path_vm_test.txt
-    sha256: 473013a6118acdbf76ff123cfc33d141e343586d0e6ea22aaf63b4b6ed301f3b
+    sha256: a89adf3bef6999ee5d70203426d2038519d8e8678646d31733999ebaba68fe92
     role: evidence
   - id: FILE-INTENT-V9
     path: design/intent.md
@@ -408,7 +408,7 @@ files:
     role: evidence
   - id: FILE-NTRIP-TLS-PROBE-RESULTS
     path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/results.txt
-    sha256: df9f392b06ca4edf14e9dcc5a092000b5b8220d1f4e9cd0c776df570671c4921
+    sha256: 0681f35d19f156d1422a1dce90e39394a6c0dcea4a6db9942da0e2a85147486f
     role: evidence
   - id: FILE-NTRIP-TLS-PROBE-1
     path: design/research/vehicle_pc/2026-10-23_ntrip_tls_probe/ntrip_probe.py
@@ -578,6 +578,34 @@ files:
   - id: FILE-MONITOR-PALETTE
     path: design/docs/gouda_monitor_palette.md
     sha256: 752ee598f41e8eb0994cf8b81315a1ac6a7eab17351eb7657a3a21282091e57f
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103
+    path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/vehicle_measurements_2026-11-03.md
+    sha256: c267902308b001bca4669c0f0e561dd6b9703e6d522a772fdfc01543087d5eb7
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-055359
+    path: 
+      design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_055359/result.json
+    sha256: 68ed8242d1aedc7395019faa2ecb2cd3082807eda1b9bda64c02b2a7d9159c10
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-061316
+    path: 
+      design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_061316/result.json
+    sha256: b19c355b5873d2669b4252c60301bd688ff064060615a88eea544fd1cf46dc40
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-074043
+    path: 
+      design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_074043/result.json
+    sha256: 48d3f0ccdccd3a25f8a7ad419a8a8a7240e5f1e3c4cab772a7f5931dcf04f61f
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-082639
+    path: 
+      design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/motion_start_20261103_082639/result.json
+    sha256: ca0457ca21e82e9ed7e397005cd4c184e9ce2aaacc2f795411ebb4eddb60a784
+    role: evidence
+  - id: FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX
+    path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/RAW_DATA.md
+    sha256: cef73144691087de60c529174bfe03eac68fb5c5ef2fdf8ab755df78f0ef8e1b
     role: evidence
 sources:
   - id: SRC-I001
@@ -34830,8 +34858,8 @@ entities:
       resolution_refs:
         - DEC-012
         - FILE-VEHICLE-PC
-      question: 人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、 
-        実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 
+      question: 人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（VM）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の 
+        /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 
         1.3.13）の仕様を暫定の照合先にしている。
       next_action: '解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。
         上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。'
@@ -35794,7 +35822,8 @@ entities:
       に出す。切断の記録（serial_disconnected）の理由の文は固定にし、原因と回数は details に入れる（monitor の 
       ×回数が切断回数になる）。セッションの始まりと終わりも記録する（link_count_started・link_count_ended）。 
       REV-118（DEC-169・DEC-180）：事前地図作成の開始で configure される。目的は、事前地図作成中のゲームパッドの指令（/esp32/status の 
-      manual_x・manual_y など）を rosbag に記録すること（人の発言）。あわせて事前地図作成のセッションの USB の切断回数（IFD-51）を数えられる。
+      manual_x・manual_y など）を rosbag に記録すること（人の発言）。あわせて事前地図作成のセッションの USB の切断回数（IFD-51）を数えられる。 
+      REV-204（DEC-415）：COMMAND の seq を STATUS の last_pc_seq に合わせて進める。
     sensitivity:
       - safety
       - operation
@@ -35805,7 +35834,7 @@ entities:
       - RQ-I068
       - RQ-I036
       - RQ-I076
-    revision_ref: REV-118
+    revision_ref: REV-204
     ros_node:
       node_name: vehicle_bridge
       responsibilities:
@@ -35820,6 +35849,8 @@ entities:
           で登録する（apply_timing=runtime_set）。登録失敗は記録し、走行系の停止条件にはしない
         - 活性の間だけ PRM-14 の周期で COMMAND（flags bit0=1）を送る。値は IFD-16 が PRM-09 以内に受信されていればその値、そうでなければ中立。非活性では 
           COMMAND を送らず、STATUS の受信と IFD-38 の発行は続ける
+        - COMMAND の seq は STATUS の last_pc_seq より新しくする。bridge の新しい session で 0 に戻っても、起動したままの firmware 
+          に棄却されないように、STATUS の値まで進める（DEC-415、TRB-014）
         - IFD-38 は diagnostic_msgs/DiagnosticArray。プロトコルは docs/esp32_protocol_v4.md（REV-027）
       absorbs_module_refs:
         - M-015
@@ -42713,22 +42744,22 @@ entities:
       - Q-03
       - G-FIRMWARE
     interpretation: 'REV-095: DEC-077 で旧 firmware の値 4700 mV を承認。 REV-096: DEC-159 で 4700 mV から 4800 mV に変更。PRM-46（4700
-      mV）を超えるため、DEC-160 の回答まで firmware の設定は不正（DAC に書かない）。 REV-099: DEC-160 で 4800 mV から 4720 mV に変更。フルスケールと等しく、設定の検査に合格する。'
+      mV）を超えるため、DEC-160 の回答まで firmware の設定は不正（DAC に書かない）。 REV-099: DEC-160 で 4800 mV から 4720 mV に変更。フルスケールと等しく、設定の検査に合格する。
+      REV-205（DEC-416）：4720 mV から 4500 mV に変更（DEC-160 の値から）。'
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I068
       - RQ-I076
-    revision_ref: REV-099
+    revision_ref: REV-205
     parameter:
       owner_ref: ND-17
-      value: 4720
+      value: 4500
       value_state: approved
       unit: mV
       stage: 車体出力
       purpose: 円形制限写像の最大端（右・前）の要求電圧
-      measurement: 人の指示の値（DEC-160）。コード 4095 の無負荷の実測 4.72 
-        V（FILE-ESP32-DAC-WIRING-20261020）と同じ。実車の端点の確認（Q-03）は残る
+      measurement: 人の決定（DEC-416）：「電圧の最大値を4500mvに限定する。」。電圧の測定値ではない。実車の端点の確認（Q-03）は残る
       decision_deadline: 決定済み（DEC-160。DEC-159 の 4800 mV を置き換え）
       software_trial_value: 4700
       software_trial_basis: 旧 firmware の kMaximumMv=4700。卓上 stub 試験専用で実車採用値ではない
@@ -42737,7 +42768,7 @@ entities:
       param_key: dac_max_mv
       value_type: int
       apply_timing: runtime_set
-    approval_decision_ref: DEC-160
+    approval_decision_ref: DEC-416
   - id: PRM-46
     kind: parameter
     name: DAC フルスケール電圧（firmware 設定）
@@ -48539,18 +48570,20 @@ entities:
     field_bindings: {}
     related_refs: []
     issue_refs: []
-    interpretation: ''
+    interpretation: REV-203（DEC-414）：IMU・STATUS の途切れで終わらず、中立で待って試行をやり直す。 
+      REV-209（DEC-420）：ゲームパッドの介入で終わらず、待って試行をやり直す。
     sensitivity:
       - safety
       - operation
     requirement_refs:
       - RQ-I078
-    revision_ref: REV-200
+    revision_ref: REV-209
     ros_node:
       node_name: gouda_vehicle_test
       responsibilities:
         - IFD-58 の要求で試験を 1 件ずつ実行する。待機中は何も発行しない
-        - 手動走行のモードでだけ開始し、モードが変わる、ゲームパッドが source になる、IMU・STATUS が止まる、中止の要求のいずれかで終わって中立を送る。PC の中立は車体の停止の保証ではない
+        - 手動走行のモードでだけ開始し、モードが変わる、中止の要求のいずれかで終わって中立を送る。ゲームパッドが source になったとき（DEC-420）と IMU・STATUS 
+          が止まったとき（DEC-414）は中立を送って待ち、戻ったらその試行をやり直す。ゲームパッドを離すと試験の入力が自動で再開する。PC の中立は車体の停止の保証ではない
         - vehicle_bridge を試験の間だけ活性にし、見つけたときの状態へ戻す（自律走行に変わっていたら触らない）
         - IMU・STATUS・指令を <data_root>/vehicle_tests/<run_id>/ に記録し、結果を計算する。合否は決めない
       absorbs_module_refs: []
@@ -56578,7 +56611,7 @@ decisions:
     answered_on: '2026-10-08'
     channel: chat
     question: 実車PCのROS 2/Nav2版を読み取り専用で確認するための接続先と、人の申告する環境
-    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。aya@10.211.55.4
+    answer_verbatim: ROS2 jazzyをubuntu 24.0.5上で動かしています。VM
     affected_refs:
       - Q-01
     resulting_refs:
@@ -57483,7 +57516,7 @@ decisions:
       - Q-06
     resulting_refs:
       - FILE-GATE3-MODEL
-    note: '承認対象は REV-009 適用後の design/model.yaml（SHA-256 6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f。凍結コピー
+    note: '承認対象は REV-009 適用後の design/model.yaml（SHA-256 ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856。凍結コピー
       baselines/gate3_2026-10-09/model.yaml＝FILE-GATE3-MODEL。Git は未コミット）。122 件の design_status は「案」のまま（個別最終承認ではない。DR-12）。
       維持する方針: DEC-031・045・046・047（Speed Filter）、DEC-042（手動経路）、DEC-037（リレー不使用・DAC 常時出力）、DEC-048（時間値）。 DEC-050（実機照合）と
       Q-04〜Q-06（未確定値）は承認済み・実測済みとして扱わない。'
@@ -57856,9 +57889,8 @@ decisions:
     answered_on: '2026-10-09'
     channel: chat
     question: 試験環境（Parallels 上の Ubuntu 24.04）への接続方法と、以後のコマンド実行・試験の方針
-    answer_verbatim: "Parallels上のUbuntu 24.04に、Macから ssh -o BatchMode=yes aya@10.211.55.4 でパスワードなしで接続できる。開発対象はUbuntu内の
-      ~/gouda_ws。まずSSH経由でそのディレクトリとGitの状態を確認して。以後、Ubuntu上のコマンド実行はSSH経由で行って。ROS 2 Jazzyのコマンドを実行する際は、先に /opt/ros/jazzy/setup.bash
-      を読み込む必要がある。\n\nこのubuntu環境を使って試験して。（センサー類はまだつながっていない）\n"
+    answer_verbatim: "Parallels上のUbuntu 24.04に、Macから ssh -o BatchMode=yes VM でパスワードなしで接続できる。開発対象はUbuntu内の ~/gouda_ws。まずSSH経由でそのディレクトリとGitの状態を確認して。以後、Ubuntu上のコマンド実行はSSH経由で行って。ROS
+      2 Jazzyのコマンドを実行する際は、先に /opt/ros/jazzy/setup.bash を読み込む必要がある。\n\nこのubuntu環境を使って試験して。（センサー類はまだつながっていない）\n"
     affected_refs:
       - ND-01
       - ND-03
@@ -57867,7 +57899,7 @@ decisions:
       - TS-24
     resulting_refs: []
     note: 以前の記録（鍵認証不可、パスワードは使わない）を更新する指示。パスワードは引き続き使わない。センサー未接続のため、試験は ROS 上の 
-      node・サービス・記録（stub）までで、センサー・実車の確認は含まない。 第11便の接続試行では 10.211.55.4 が応答せず（ping 不達、ssh "Host is down"）。VM 
+      node・サービス・記録（stub）までで、センサー・実車の確認は含まない。 第11便の接続試行では VM のアドレス が応答せず（ping 不達、ssh "Host is down"）。VM 
       の起動後に再試行する。
     disposition: answered
   - id: DEC-068
@@ -64497,13 +64529,13 @@ decisions:
     disposition: answered
   - id: DEC-412
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-11-03'
-    answered_on:
+    answered_on: '2026-11-03'
     channel: chat
     question: 【承認】車体試験の指令の経路。手動走行のモードで ND-20 が vehicle/joystick_command（IFD-16）へ直接出し、試験の間だけ vehicle_bridge 
       を活性にしてよいか。手動走行で PC が COMMAND を送るのは、これまでの設計（ND-11 は手動走行で発行しない）に対する例外になる。
-    answer_verbatim: ''
+    answer_verbatim: "承認する。\n"
     affected_refs:
       - IFD-16
       - ND-11
@@ -64514,7 +64546,7 @@ decisions:
     note: 推奨：この経路（実装済み、人の指示の範囲で試験だけで使う）。理由：motion_hold は手動走行で常に true で、自律走行のモードは Nav2 ごと起動する。不感帯の補償は軸ごとで T 
       の測定を歪める。下流の bridge・ファーム・DAC・車体は実走と同じ。代替：自律走行のモードの中で cmd_vel に出す（Nav2 と競合、補償を切る必要あり）。 振る舞いの違い：motion_hold
       を通らない。手動の優先は ESP32 のままで、受信途絶の中立も PRM-09・ファームのまま。止まる作業：回答まで実車の試験の実行は人の判断。
-    disposition: open_human
+    disposition: answered
   - id: DEC-413
     kind: approval
     status: answered
@@ -64531,6 +64563,245 @@ decisions:
     note: 変えたのは gouda_core/web/index.html のボタンの文字と title、design/docs/gouda_monitor_palette.md の 1 語。Issue 
       K-yama-20/tsukuba-autonomous-robot#59。 人の指摘の扱い（CLAUDE.md 1.2）：走行中の一時停止とモードの待機の区別は、機械で判定しにくいので intent.md 
       への追記案（人が判断）。
+    disposition: answered
+  - id: DEC-414
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第190便）動き出しの試験の pc_stale と imu_lost の後の人の指示
+    answer_verbatim: "esp32の再起動必要性は、本番で致命的となる恐れがある為、トラブルシューティング台帳に記載せよ。\nまた、imu_lostが頻発する。\nlostになったら再試行を繰り返せ。あと、ジョイスティック入力の最大値が閾値ギリギリで、最大入力をした後すぐ入力が終わってしまっているために、リレー投入後車体がほぼ動かず入力が終わってしまう。\n\
+      最大入力値を入れたらもう少し長い時間入力を継続せよ。\n他に勝手に安全側に設定を行った部分はあるか？試験で望ましい結果を最大限出せるような設定をせよ。その上で、パラメータを見て私が安全判断を下す。\n"
+    affected_refs:
+      - ND-20
+      - DEC-412
+    resulting_refs:
+      - ND-20
+    note: 試験条件はすべて提案の初期値で、人が /dev タブで見て判断する。再試行は回数の上限なし（中止で終わる）。STATUS の途切れも同じ原因の恐れがあるので IMU と同じ扱いにした（AI 
+      の解釈）。実車は未実行。第190便。
+    disposition: answered
+  - id: DEC-415
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第190便）vehicle_bridge が STATUS の last_pc_seq を読み、その次から seq を数える修正（第159便の案 F）を実装するか。ファームは変えない。
+    answer_verbatim: "案 F を実装する\n"
+    affected_refs:
+      - ND-12
+    resulting_refs:
+      - ND-12
+    note: 試験の間の bridge の cleanup、Gouda・PC の再起動の後に、ESP32 の差し直しなしで PC の指令が受け付けられる見込み。seq は戻さず進めるだけ。実車は未実行。第191便。
+    disposition: answered
+  - id: DEC-416
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第193便）DAC の電圧の上限についての人の指示
+    answer_verbatim: "電圧の最大値を4500mvに限定する。\n"
+    affected_refs:
+      - PRM-45
+      - DEC-160
+      - PRM-39
+      - PRM-40
+    resulting_refs:
+      - PRM-45
+    note: PRM-45 の値の変更として実装した（AI の解釈）。ファームの mapVoltage は上限と下限から円を作るので、前進と右旋回の倒し量と電圧の傾きが約 10 % 
+      小さくなり、後退と左旋回はほぼ変わらない（計算）。手動操作にも同じ設定が効く。DEC-192 の前進 1.25 m/s（PRM-39）が倒し量 1.0 に対応するかは未確認。第193便。
+    disposition: answered
+  - id: DEC-417
+    kind: measurement
+    status: pending
+    asked_on: '2026-11-03'
+    answered_on:
+    channel: chat
+    question: 【実測】x86 に接続した状態で、ESP32 の 5V、DAC 出力、EMC 入力の電圧を中立と全倒しで測る。あわせて EMC 側の電源電圧と、できれば純正ジョイスティックの電圧を測る。手順は
+      design/research/vehicle_pc/2026-11-03_dac_voltage_measurement_procedure.md。
+    answer_verbatim: ''
+    affected_refs:
+      - PRM-43
+      - PRM-44
+      - PRM-45
+      - PRM-46
+      - DEC-416
+      - DEC-161
+      - DEC-160
+      - ND-17
+    resulting_refs: []
+    note: 人の発言（原文）「dacが高すぎる電圧を誤って出していた場合、emc-270が段々壊れてしまうと思うから、電圧を下げようと思う」。登録の指示（原文）「登録して手順も作る」。 背景：DAC の基準は 
+      USB 5V なので、設定 4500 mV の実際の出力は USB 5V に比例する（計算：4.72 V で 4496 mV、5.00 V で 4763 mV、5.25 V で 5001 mV）。x86 の 
+      USB 5V は未測定。 DEC-161 では人がフルスケールの実測を不要と回答した。この項目は DEC-416 の目的（電圧を下げて EMC-270 を守る）を確かめるための別の計測で、DEC-161 
+      を書き換えない。 推奨：手順の A と B を駆動電源を切って行う。理由は、設定の上限が実際の電圧でも守られているかと、4500 mV が ESP32 に届いたかを、走らせずに確かめられるため。 
+      代替：測らずに今の設定を使う（実際の上限と中立は不明のまま）。振る舞いの違い：計測だけでは変わらない。PRM-46 などの変更は結果を見て別の項目で人に諮る。 担当：人が測定し、安全の条件を決める。AI 
+      は手順、計算、設定への反映案を担当する。EMC-270 の許容入力電圧の資料は見つかっていない。 決まらない場合に止まる作業：PRM-46 の見直しと、PRM-45 
+      の根拠づけ。走行の試験は止めない。第194便。
+    disposition: open_human
+  - id: DEC-418
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第195便）前輪の向きの影響を切り分けるため、遅れの試験を同じ方向を続けて測る順序に変えるか
+    answer_verbatim: "指導の前に揺れているのは私が車椅子を動かしたからです。順序を変えて試験管を作成せよ。今x86では遅れの測定中です。毎回5秒も待つ必要あるかな？ベースを取っているのかな\n"
+    affected_refs:
+      - ND-20
+    resulting_refs:
+      - ND-20
+    note: 人の発言（原文、直前の発言）「回転した後だと、前輪が横や後ろを向いているため、動き始めの加速度が少し変になるのは仕方が無い。例えば最初が少し右に動いたり。」。 
+      「試験管」は「試験」の誤変換と解釈した（AI の解釈）。遅れの区間だけを変えた。T 解除、パルス、t_lock、T ロックの順序は変えていない。表に changed_s（その方向の 1 回目）と 
+      same_mean_s（2 回目以降の平均）を加えた。 2 
+      回目以降で前輪がそろうことは確かめていない（推測）。同じ方向に続けて進むので、移動距離は交互のときより伸びる。第192便で無効とした指令前の揺れは人が車椅子を動かしたもの（人の発言）。第195便。
+    disposition: answered
+  - id: DEC-419
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第196便）DEC-418 の順序で車体が元の位置から離れることへの人の発言
+    answer_verbatim: "なるべく元の位置から外れないようにしてほしいな。。\n"
+    affected_refs:
+      - ND-20
+      - DEC-418
+    resulting_refs:
+      - ND-20
+    note: AI の解釈：方向の一覧を 2 つずつ組にし、各方向を 2 回ずつ測って戻る順序にした。各方向の 1 回目は前輪の向きが変わった状態、2 回目は同じ方向の状態で、繰り返しごとに両方の値がとれる。 
+      試行数は繰り返し 1 回につき方向ごとに 2 回で、DEC-418 の順序の 2 倍になる。表の列は changed_mean_s と 
+      same_mean_s。前進と後退の速さが違う分のずれは残り、位置の補正はしていない。第196便。
+    disposition: answered
+  - id: DEC-420
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第197便）試験中のゲームパッドの介入（manual_override）の扱いについての人の指示
+    answer_verbatim: "manual_overrideが入ったからと言って試験を中断しないで。\n"
+    affected_refs:
+      - ND-20
+      - DEC-414
+      - RQ-I023
+    resulting_refs:
+      - ND-20
+    note: IMU・STATUS の途絶と同じ扱い（DEC-414）にした（AI の解釈）。待ちに上限はなく、/dev の中止かモードの変更で終わる。回数は結果の retries。 
+      振る舞いの違い：ゲームパッドを離すと、ESP32 
+      の解除の時間と試行前の中立（settle_s）の後に、車体は試験の入力で自動で動き出す。前は試験が終わっていたので動き出さなかった。人が車体の近くにいるときの危険の管理は人が行う。 
+      静止の記録の間に介入したら、静止の記録をやり直す。ESP32 の手動優先は変えていない。単体試験だけで確かめた。模擬と実車は未実行。第197便。
+    disposition: answered
+  - id: DEC-421
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第201便）T ロックと t_lock の解析を、方向別で直前のヨーを見る形に直すか
+    answer_verbatim: "解析を直す\n"
+    affected_refs:
+      - ND-20
+    resulting_refs:
+      - ND-20
+    note: 実車の 2 件で再計算した（motion_start_20261103_074043、motion_start_20261103_082639）。T ロックは、止まる段が左 0.26〜0.30、右 
+      0.15〜0.18 で第200便の読みと一致した。 t_lock は、中立 1 s 以下が判定不可になり、1.5 s 以上は方向ごとに 1〜2 回で ○ と × が混ざる。t_lock は未確定のまま。 
+      判定の窓は基準の窓（baseline_tail_s）で、旋回はヨーの平均、前後は加速度のばらつきを noise_k × 静止時の σ と比べる。前後の判定は実車で確かめていない。パルスの locked 
+      は変えていない。 試験の期待値の変更：窓より短い中立は locked が False から None になる（窓に走行が入り、遅れを読めないため）。第201便。
+    disposition: answered
+  - id: DEC-422
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第203便）旋回の値と不感帯を模擬の車体モデルに入れるか
+    answer_verbatim: "模擬に入れる\n"
+    affected_refs:
+      - DEC-378
+    resulting_refs: []
+    note: 試験専用のコードだけを変えた。実測から入れた値：遅れ 0.35 s（止まった状態から）、旋回の応答 立ち上がり 0.3 s・止まるとき 0.18 s、旋回の下限 0.3 
+      rad/s、方向別の不感帯。走行中の遅れと前後の応答は仮の値のまま（DEC-378 は未回答）。 補償は模擬の引数 --comp で ND-11 と同じ計算を通せる。模擬の結果：補償なしでは Nav2 
+      の発進の指令（約 0.045 m/s）が不感帯より小さく、3 場面とも進み 3 % 以下。試しの補償（値は AI が仮に置いた。人は承認していない）では動くが、最大横ずれ 4.4〜5.9 m。 
+      模擬の結果であり、実車の振る舞いの確認ではない。第203便。
+    disposition: answered
+  - id: DEC-423
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第205便）次は実車で MPPI の発進を確かめるか、先に模擬で比べるか
+    answer_verbatim: "実車で確かめる\n"
+    affected_refs:
+      - DEC-422
+    resulting_refs: []
+    note: issue 61 の案 1 にあたる。実装は伴わない。補償は入れない。実車の操作、走らせる場所、経路、速度上限は人が決める。結果は未取得。第205便。
+    disposition: answered
+  - id: DEC-424
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第206便）別の PC の準備で、AI が apt の一覧を手で渡したことへの人の指摘
+    answer_verbatim: "全てのプログラムはローンチファイルで一括でいれられるべきである。\n"
+    affected_refs: []
+    resulting_refs: []
+    note: AI の解釈：launch ファイルは sudo を聞けないので、導入は既存の bash setup.sh（更新は bash update.sh）で一括で行う。人の確認待ち。足りないものは 
+      setup.sh に足す案にする。ルール案：setup.sh の一覧と launch・package.xml が使うパッケージの一致を機械で検査する（未承認）。第206便。
+    disposition: answered
+  - id: DEC-425
+    kind: approval
+    status: answered
+    asked_on: '2026-11-03'
+    answered_on: '2026-11-03'
+    channel: chat
+    question: （第206便）公開済みの VM の接続先を、今のファイルから消すか、履歴からも消すか
+    answer_verbatim: "今のファイルから消す\n"
+    affected_refs:
+      - DEC-003
+      - DEC-067
+    resulting_refs: []
+    note: 過去の人の原文（answer_verbatim）と hash 固定の証拠・基準線も、この指示に基づいて置き換えた。置き換え以外の内容は変えていない。git の履歴には残る。main 
+      への反映は人の指示待ち。第206便。
+    disposition: answered
+  - id: DEC-426
+    kind: confirmation
+    status: answered
+    asked_on: '2026-11-04'
+    answered_on: '2026-11-04'
+    channel: chat
+    question: （第207便）実車の測定結果と分析の保管
+    answer_verbatim: "実車での測定結果とその分析結果を文書にまとめて保管し、その場所やファイル名を台帳に記載せよ\n"
+    affected_refs:
+      - DEC-378
+      - DEC-417
+      - DEC-422
+      - DEC-423
+    resulting_refs: []
+    note: 保管場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/。 
+      文書のファイル名：vehicle_measurements_2026-11-03.md（FILE-VEHICLE-MEASUREMENTS-20261103）。 同じフォルダの runs/ に実行 4 件の 
+      result.json と meta.json、analysis/ に解析のスクリプト an.py、bagread.py、bag2.py、bag3.py を置いた。 imu.csv などの生データと 
+      rosbag は公開リポジトリに入れず、x86 の記録にある。 対象は 2026-11-03 の車体試験 8 件と自律走行 run-f890dddb。測定値は候補で、DEC-378、DEC-417 
+      は未回答のまま。 文書はハッシュで固定するので、新しい測定は新しい日付のファイルに書く。第207便。
+    disposition: answered
+  - id: DEC-427
+    kind: confirmation
+    status: answered
+    asked_on: '2026-11-04'
+    answered_on: '2026-11-04'
+    channel: chat
+    question: （第207便）実車の生データの保管
+    answer_verbatim: "生データもpushせよ。\n"
+    affected_refs:
+      - DEC-426
+    resulting_refs: []
+    note: DEC-426 の note の「生データと rosbag は公開リポジトリに入れない」を、生データについて置き換える。 
+      場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/ の 4 件。一覧とハッシュは同じフォルダの 
+      RAW_DATA.md（FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX）。 x86 に接続できないので、試験 4 件と rosbag bag_02 は x86 
+      にしかなく、入っていない。 push の前にアドレス、ユーザー名、認証情報の文字列がないことを grep で確かめた。第207便。
     disposition: answered
 revisions:
   - id: REV-002
@@ -68667,4 +68938,188 @@ revisions:
     modified_entity_ids: []
     added_source_ids: []
     added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-202
+    date: '2026-11-03'
+    summary: 第189便：人の回答「承認する。」で DEC-412（車体試験の指令の経路、手動走行で ND-20 が IFD-16 へ直接出す）を answered にする。コード・設定は変えない。
+    basis_refs:
+      - DEC-412
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-203
+    date: '2026-11-03'
+    summary: 第190便：人の指示で、IMU・STATUS が止まっても試験を終えず中立で待って試行をやり直す。動き出しの後と T 
+      の最大の段で入力を続ける。試験条件の初期値を、結果を取る方向に直す。ESP32 の再起動の必要性を TRB-014 に登録する。値の安全の判断は人。
+    basis_refs:
+      - DEC-414
+      - DEC-411
+      - DEC-412
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-20
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-204
+    date: '2026-11-03'
+    summary: 第191便：人の回答「案 F を実装する」で、vehicle_bridge が STATUS の last_pc_seq より古い seq を使わないようにする。ESP32 
+      の再起動なしで、bridge の新しい session の COMMAND が受け付けられる。TRB-014 の対策。
+    basis_refs:
+      - DEC-415
+      - DEC-414
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-12
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-205
+    date: '2026-11-03'
+    summary: 第193便：人の指示で PRM-45（DAC 最大電圧）を 4720 mV から 4500 mV にする。DEC-160 は書き換えない。PRM-46（フルスケール）は DAC 
+      の換算なので変えない。
+    basis_refs:
+      - DEC-416
+      - DEC-160
+    added_entity_ids: []
+    modified_entity_ids:
+      - PRM-45
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-206
+    date: '2026-11-03'
+    summary: 第194便：人の指示で、x86 に接続した状態の DAC 出力電圧と EMC 入力電圧の実測項目を登録する。値は変えない。DEC-161 と DEC-416 は書き換えない。
+    basis_refs:
+      - DEC-416
+      - DEC-161
+      - DEC-160
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-207
+    date: '2026-11-03'
+    summary: 第195便：人の指示で、動き出しの試験の遅れの区間を、同じ方向を繰り返してから次の方向へ移る順序にする。結果の表に各方向の 1 回目と 2 
+      回目以降の値を加える。電圧、倒し量、待ち時間は変えない。
+    basis_refs:
+      - DEC-418
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-208
+    date: '2026-11-03'
+    summary: 第196便：人の希望で、遅れの区間の順序を前進 2 回→後退 2 回、右 2 回→左 2 回の組にする。DEC-418 
+      の順序（同じ方向を繰り返しの回数だけ続ける）を置き換える。電圧、倒し量、待ち時間は変えない。
+    basis_refs:
+      - DEC-419
+      - DEC-418
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-209
+    date: '2026-11-03'
+    summary: 第197便：人の指示で、車体の動きの試験（ND-20）はゲームパッドが source になっても終わらず、中立を送って待ち、PC が source 
+      に戻ったらその試行をやり直す。手動優先（RQ-I023）は ESP32 のままで変えない。
+    basis_refs:
+      - DEC-420
+      - DEC-414
+      - RQ-I023
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-20
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-210
+    date: '2026-11-03'
+    summary: 第201便：人の指示で、動き出しの試験の t_lock と T ロックの解析を方向別にする。入力の直前に動いていた試行は遅れとして読まない。T ロックの locked 
+      は直前に止まっていたかで決める。試験の入力は変えない。
+    basis_refs:
+      - DEC-421
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-211
+    date: '2026-11-03'
+    summary: 
+      第203便：人の指示で、試験専用の走行の模擬（drive_sim_core.Plant）に、第199〜202便の実測の旋回の値、不感帯、止まった状態からの遅れを入れる。本番のコードと設定は変えない。
+    basis_refs:
+      - DEC-422
+      - DEC-378
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-212
+    date: '2026-11-03'
+    summary: 第205便：人の指示で、MPPI の発進を実車で確かめる。コードと設定は変えない。車体の操作と試験条件は人が決める。今の x86 は LiDAR が未接続、waypoint 
+      なし、変換済みの地図は古い 1 件だけなので、準備が要る。
+    basis_refs:
+      - DEC-423
+      - DEC-422
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-213
+    date: '2026-11-03'
+    summary: 第206便：人の指摘で、PC に要るプログラムは一括で導入できるべきとした。既存の setup.sh を使う。検査ルールか intent への追記は案で、未承認。
+    basis_refs:
+      - DEC-424
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-214
+    date: '2026-11-03'
+    summary: 第206便：人の指示で、作業ツリーの全ファイルから VM の SSH の宛先とアドレスを「VM」「VM のアドレス」に置き換えた。証拠ファイルと基準線も置き換え、記録していた sha256 
+      を更新した。履歴は書き換えない。
+    basis_refs:
+      - DEC-425
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-215
+    date: '2026-11-04'
+    summary: 第207便：人の指示で、2026-11-03 の実車の測定結果と分析を 1 
+      つの文書にまとめ、保管場所とファイル名を判断台帳に記載した。測定値は候補のままで、確定した値はない。コードと設定は変えていない。
+    basis_refs:
+      - DEC-426
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-MEASUREMENTS-20261103
+      - FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-055359
+      - FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-061316
+      - FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-074043
+      - FILE-VEHICLE-MEASUREMENTS-20261103-RESULT-082639
+    removed_entity_ids: []
+  - id: REV-216
+    date: '2026-11-04'
+    summary: 第207便：人の指示で、手元に写しがある実車の試験 4 件の生データを保管フォルダに入れて push する。DEC-426 
+      の「生データは公開リポジトリに入れない」を置き換える。コードと設定は変えていない。
+    basis_refs:
+      - DEC-427
+      - DEC-426
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids:
+      - FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX
     removed_entity_ids: []
