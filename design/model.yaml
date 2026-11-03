@@ -46,7 +46,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v2_1e087b30ddb6.md
   - id: FILE-VEHICLE-PC
     path: design/research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt
-    sha256: a7d7dd65cba9f883f465b842da1ce5feebd6cd59ce8f6dc8a0bdcaa75e509861
+    sha256: 2a6d6f776b9716e4b11059e7c8924234bd07b112650dd4e59491b04ab302faef
     role: evidence
   - id: FILE-INTENT-V3
     path: design/intent.md
@@ -68,7 +68,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v5_81d71f07cc72.md
   - id: FILE-GATE3-MODEL
     path: design/baselines/gate3_2026-10-09/model.yaml
-    sha256: ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856
+    sha256: 5b54c5d8f1e1275624a8100a1532edae0632be1d80cbb6862d50fd94206a2df6
     role: evidence
   - id: FILE-CLAUDE-MD-ORIGINAL
     path: design/research/claude_md/CLAUDE.md.original_2c90ed21
@@ -82,7 +82,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v6_4f9f8606689b.md
   - id: FILE-VEHICLE-PC-GLIM
     path: design/research/vehicle_pc/2026-10-09_glim_version.txt
-    sha256: 1a3cf8659a4039d38e974c358ba44727dd6d2c7318c1ab03269670827c541bfd
+    sha256: d3cf5ce82c98237657794867cebb9d2edfd675c5df17b26de879d3b2e4f614d0
     role: evidence
   - id: FILE-INTENT-V7
     path: design/intent.md
@@ -92,7 +92,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v7_f69dd98b9529.md
   - id: FILE-VEHICLE-PC-STAGE51
     path: design/research/vehicle_pc/2026-10-09_stage5-1_ubuntu_test.txt
-    sha256: e17dbd0d28bebce16dcf02e6504bd58bc210b7b1247d13d33d7567137b476659
+    sha256: f1c9a6cd6ad885dc100ee6f6e74d9718fddd76ef03bbfea2b98afc8956c1468a
     role: evidence
   - id: FILE-GUI-DESIGN-RULES
     path: design/docs/gouda_gui_design_rules.md
@@ -100,7 +100,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-STAGE52
     path: design/research/vehicle_pc/2026-10-09_stage5-2_ubuntu_test.txt
-    sha256: 41d1b39a9e46e1a73b150b7341e066e913051136fb61c6ac9cea36f86f8216d5
+    sha256: c82598f40b19186b06db85e75d5a4782380ed4e252a0e9972bf1c8ec285482b1
     role: evidence
   - id: FILE-VEHICLE-PC-GLIM-RUN
     path: design/research/vehicle_pc/2026-10-09_glim_dump_format.txt
@@ -108,15 +108,15 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-REV020
     path: design/research/vehicle_pc/2026-10-09_rev020_ubuntu_test.txt
-    sha256: 6937aad1c5aea4f53219870bf276e9bfefe9f099814384569d2951f7b875bdc4
+    sha256: d987e4f37db4e61d351a7fb060919fd0b72814e2c245c73297075c668e37b541
     role: evidence
   - id: FILE-VEHICLE-PC-STAGE53
     path: design/research/vehicle_pc/2026-10-09_stage5-3_ubuntu_test.txt
-    sha256: 005abe0264ca33f35289fb4c1ebad6577edf4ac8ab6789a40eae30b40b112421
+    sha256: 72074ea51658eacde801761dd40f7a65cfdb8025aab2b6ab52630969833f7b3a
     role: evidence
   - id: FILE-VEHICLE-PC-STAGE54
     path: design/research/vehicle_pc/2026-10-09_stage5-4_ubuntu_test.txt
-    sha256: 9d55602de27f533e357db79e7b1616a94ca7e46e24cc7f1dbbd0acff6df5aec2
+    sha256: 0064c47f06fbe42fdddf9437a2f61506291c5991a11ddee1ed6e01c34c5f8980
     role: evidence
   - id: FILE-VEHICLE-PC-STAGE55
     path: design/research/vehicle_pc/2026-10-10_stage5-5_ubuntu_test.txt
@@ -138,7 +138,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-MM-CRASH
     path: design/research/vehicle_pc/2026-10-13_gouda_mode_manager_crash_launch_log.txt
-    sha256: ba06bbcf9601fe27b1ad7e1ebe2366a197f364e3006b7928eeeb6cd9eca6ccbf
+    sha256: 4ac4ffd94e9034a01d3e5e4f6238a5050c42274834cece0a7db2f0ba5690996e
     role: evidence
   - id: FILE-VEHICLE-PC-GLIM-START
     path: design/research/vehicle_pc/2026-10-13_glim_start_vm_test.txt
@@ -150,7 +150,7 @@ files:
     role: evidence
   - id: FILE-VEHICLE-PC-SINGLE-START
     path: design/research/vehicle_pc/2026-10-14_single_start_path_vm_test.txt
-    sha256: a89adf3bef6999ee5d70203426d2038519d8e8678646d31733999ebaba68fe92
+    sha256: a84f7e804aa007bb7c93d8206c152e515cbf656b33f4f27d9a9e6f5c4f354b5a
     role: evidence
   - id: FILE-INTENT-V9
     path: design/intent.md
@@ -160,7 +160,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v9_183f8ee16455.md
   - id: FILE-VEHICLE-PC-MAP-TAB
     path: design/research/vehicle_pc/2026-10-14_map_tab_and_supervisor_field.txt
-    sha256: cc72125008d3b660d2095ed544e7f7f9705d33a1bcc3b2e9f32331cf802b9581
+    sha256: e06805a8a64cfe2780175bac23ee1be19cb09a01e22df0f2c8ee3936f40fdf01
     role: evidence
   - id: FILE-VEHICLE-PC-SOURCE-MAPS
     path: design/research/vehicle_pc/2026-10-14_source_maps_survey.txt
@@ -56791,11 +56791,10 @@ decisions:
     answered_on: '2026-10-09'
     channel: chat
     question: 実車PC の OS・ROS 2・Nav2 版の確認コマンドの出力（V-001）
-    answer_verbatim: "aya@aya-Parallels-ARM-Virtual-Machine:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep
-      -E \"ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)\"\nPRETTY_NAME=\"\
-      Ubuntu 24.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.5 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\n\
-      ID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\n\
-      BUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\
+    answer_verbatim: "VM:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E \"ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)\"\
+      \nPRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.5 LTS (Noble
+      Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"\
+      https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\
       \nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\njazzy\nii  ros-jazzy-nav2-bringup                           1.3.13-1noble.20260907.050450\
       \                    arm64        Bringup scripts and configurations for the Nav2 stack\nii  ros-jazzy-nav2-bt-navigator\
       \                      1.3.13-1noble.20260903.005322                    arm64        Nav2 BT Navigator Server\n\
@@ -57516,7 +57515,7 @@ decisions:
       - Q-06
     resulting_refs:
       - FILE-GATE3-MODEL
-    note: '承認対象は REV-009 適用後の design/model.yaml（SHA-256 ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856。凍結コピー
+    note: '承認対象は REV-009 適用後の design/model.yaml（SHA-256 5b54c5d8f1e1275624a8100a1532edae0632be1d80cbb6862d50fd94206a2df6。凍結コピー
       baselines/gate3_2026-10-09/model.yaml＝FILE-GATE3-MODEL。Git は未コミット）。122 件の design_status は「案」のまま（個別最終承認ではない。DR-12）。
       維持する方針: DEC-031・045・046・047（Speed Filter）、DEC-042（手動経路）、DEC-037（リレー不使用・DAC 常時出力）、DEC-048（時間値）。 DEC-050（実機照合）と
       Q-04〜Q-06（未確定値）は承認済み・実測済みとして扱わない。'
@@ -57767,11 +57766,10 @@ decisions:
     answered_on: '2026-10-09'
     channel: chat
     question: 実車PC の GLIM 版の確認コマンドの出力（IFD-35 の版固定、DEC-033）
-    answer_verbatim: "GLIMの版は次の通り。\naya@aya-Parallels-ARM-Virtual-Machine:~$ dpkg -l | grep glim\nii  ros-jazzy-glim\
-      \                                   1.2.2-0noble                                     arm64        3D LiDAR-IMU
-      mapping framework\nii  ros-jazzy-glim-ros                               1.2.2-0noble                     \
-      \                arm64        LiDAR-IMU odometry based on tight coupling of geometric and inertial constraints\n\
-      これでなくとも、LTS版を使用するのでもよい。\n"
+    answer_verbatim: "GLIMの版は次の通り。\nVM:~$ dpkg -l | grep glim\nii  ros-jazzy-glim                              \
+      \     1.2.2-0noble                                     arm64        3D LiDAR-IMU mapping framework\nii  ros-jazzy-glim-ros\
+      \                               1.2.2-0noble                                     arm64        LiDAR-IMU odometry
+      based on tight coupling of geometric and inertial constraints\nこれでなくとも、LTS版を使用するのでもよい。\n"
     affected_refs:
       - IFD-35
       - ND-06
@@ -64803,6 +64801,20 @@ decisions:
       RAW_DATA.md（FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX）。 x86 に接続できないので、試験 4 件と rosbag bag_02 は x86 
       にしかなく、入っていない。 push の前にアドレス、ユーザー名、認証情報の文字列がないことを grep で確かめた。第207便。
     disposition: answered
+  - id: DEC-428
+    kind: approval
+    status: answered
+    asked_on: '2026-11-04'
+    answered_on: '2026-11-04'
+    channel: chat
+    question: （第207便）台帳の人の原文などに残る VM の表示も置き換えるか
+    answer_verbatim: "置き換えて push\n"
+    affected_refs:
+      - DEC-425
+    resulting_refs: []
+    note: ターミナルの表示とログの PC 名を「VM」に、ホームディレクトリのパスを「/home/user」に置き換えた。 過去の人の原文（answer_verbatim）、hash 
+      固定の証拠、基準線も、この指示に基づいて置き換え、記録の sha256 を同じ置き換えで更新した。置き換え以外の内容は変えていない。 git の履歴と main には残る。第207便。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -69122,4 +69134,15 @@ revisions:
     added_source_ids: []
     added_file_ids:
       - FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX
+    removed_entity_ids: []
+  - id: REV-217
+    date: '2026-11-04'
+    summary: 第207便：人の指示で、REV-214 で消し残した VM のユーザー名と PC 名を、今のファイルから置き換えた。コードと設定は変えていない。
+    basis_refs:
+      - DEC-428
+      - DEC-425
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
     removed_entity_ids: []

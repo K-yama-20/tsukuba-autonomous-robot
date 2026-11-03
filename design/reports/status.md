@@ -5,6 +5,7 @@
 **第207便: 実車の測定結果と分析の文書（REV-215、DEC-426）**（作業記録 `reports/worklog/2026-11-04_bin207_vehicle_measurements_doc.md`）。
 - 文書 `research/vehicle_pc/2026-11-03_vehicle_measurements/vehicle_measurements_2026-11-03.md`。測定値は候補で、DEC-378、DEC-417 は未回答。コードと設定は変えていない。
 - 生データ 4 件も同じフォルダの `runs/` に入れた（REV-216、DEC-427、一覧 `RAW_DATA.md`）。残りの試験 4 件と rosbag は x86 にだけある。台帳と記録は push した。`gouda_core` などのコードの変更（REV-202〜 の実装を含む）は未コミット。
+- REV-214 で消し残した VM のユーザー名と PC 名を置き換えた（REV-217、DEC-428）。git の履歴と main には残る。
 
 **第206便の追記（496 回の模擬）**：下限 0.10＋open_loop はゴール 97/111・接触 2、open_loop は 93/96・接触 18、下限だけは 23/101 と 0/102。起動失敗 86 回中 84 回は ros2 daemon が不調なドメイン 105 の枠に集中。早回しは負荷なしでも 2 倍まで（controller_server の WallRate が原因とみている。推測）。全て模擬で、本番と実車は変えていない。実車投入可能：人の判断待ち。
 

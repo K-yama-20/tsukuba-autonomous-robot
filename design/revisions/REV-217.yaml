@@ -1,0 +1,29 @@
+# 変更セット REV-217（2026-11-04 第207便: 消し残した VM のユーザー名と PC 名を置き換える。DEC-428）
+# 適用: design/tools/apply_revision.py REV-217
+id: REV-217
+date: '2026-11-04'
+summary: >-
+  第207便：人の指示で、REV-214 で消し残した VM のユーザー名と PC 名を、今のファイルから置き換えた。コードと設定は変えていない。
+basis_refs:
+- DEC-428
+- DEC-425
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-428
+  kind: approval
+  status: answered
+  asked_on: '2026-11-04'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    （第207便）台帳の人の原文などに残る VM の表示も置き換えるか
+  answer_verbatim: |
+    置き換えて push
+  affected_refs:
+  - DEC-425
+  resulting_refs: []
+  note: >-
+    ターミナルの表示とログの PC 名を「VM」に、ホームディレクトリのパスを「/home/user」に置き換えた。
+    過去の人の原文（answer_verbatim）、hash 固定の証拠、基準線も、この指示に基づいて置き換え、記録の sha256 を同じ置き換えで更新した。置き換え以外の内容は変えていない。
+    git の履歴と main には残る。第207便。
+  disposition: answered

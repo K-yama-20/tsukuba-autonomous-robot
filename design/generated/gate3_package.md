@@ -2,7 +2,7 @@
 
 # ゲート3 承認資料
 
-状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`ce4cbc46adafd858040ea03f9863b8cfe705946b46043843c94a9e4797ee0856`）。下位設計案 196 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
+状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`5b54c5d8f1e1275624a8100a1532edae0632be1d80cbb6862d50fd94206a2df6`）。下位設計案 196 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
 
 ## 1. 承認対象
 
@@ -18,7 +18,7 @@
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、213 件）を根拠にした要素
+### 1.2 人の決定（answered、214 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -235,6 +235,7 @@
 | DEC-425 | 今のファイルから消す<br> | モデル外: 過去の人の原文（answer_verbatim）と hash 固定の証拠・基準線も、この指示に基づいて置き換えた。置き換え以外の内容は変えていない。git の履歴には残る。main への反映は人の指示待ち。第206便。 |
 | DEC-426 | 実車での測定結果とその分析結果を文書にまとめて保管し、その場所やファイル名を台帳に記載せよ<br> | モデル外: 保管場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/。 文書のファイル名：vehicle_measurements_2026-11-03.md（FILE-VEHICLE-MEASUREMENTS-20261103）。 同じフォルダの runs/ |
 | DEC-427 | 生データもpushせよ。<br> | モデル外: DEC-426 の note の「生データと rosbag は公開リポジトリに入れない」を、生データについて置き換える。 場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/ の 4 件。一覧とハッシュは同じフォルダの RAW_DATA. |
+| DEC-428 | 置き換えて push<br> | モデル外: ターミナルの表示とログの PC 名を「VM」に、ホームディレクトリのパスを「/home/user」に置き換えた。 過去の人の原文（answer_verbatim）、hash 固定の証拠、基準線も、この指示に基づいて置き換え、記録の sha256 を同じ置き換えで更新した。置き換え以外の内容は変えていない。 git の履 |
 
 ### 1.3 承認済み（99 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`, `PRM-101`, `PRM-102`, `PRM-103`, `PRM-104`, `PRM-124`, `PRM-130`, `PRM-131`, `PRM-132`, `PRM-133`, `PRM-134`, `PRM-135`
 

@@ -46,7 +46,7 @@ files:
     archived_copy: design/baselines/intent_history/intent_v2_1e087b30ddb6.md
   - id: FILE-VEHICLE-PC
     path: design/research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt
-    sha256: a7d7dd65cba9f883f465b842da1ce5feebd6cd59ce8f6dc8a0bdcaa75e509861
+    sha256: 2a6d6f776b9716e4b11059e7c8924234bd07b112650dd4e59491b04ab302faef
     role: evidence
   - id: FILE-INTENT-V3
     path: design/intent.md
@@ -47548,7 +47548,7 @@ decisions:
     answered_on: '2026-10-09'
     channel: chat
     question: 実車PC の OS・ROS 2・Nav2 版の確認コマンドの出力（V-001）
-    answer_verbatim: "aya@aya-Parallels-ARM-Virtual-Machine:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep
+    answer_verbatim: "VM:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep
       -E \"ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)\"\nPRETTY_NAME=\"\
       Ubuntu 24.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.5 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\n\
       ID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\n\

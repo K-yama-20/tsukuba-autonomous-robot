@@ -1,11 +1,11 @@
 # 工程5-1（起動と記録）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。センサー未接続）
-# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5 LTS, aarch64, ROS 2 jazzy, Python 3.12.3, colcon /usr/bin/colcon
+# 環境: VM, Ubuntu 24.04.5 LTS, aarch64, ROS 2 jazzy, Python 3.12.3, colcon /usr/bin/colcon
 # リポジトリ: ~/gouda_ws/src/tsukuba-autonomous-robot, ブランチ design/gate3-baseline-2026-10-09
 # コミット: 2eb94c2（初回。gouda.sh stop に不具合）→ 0f02397（修正後。以下の run A〜C）
 # 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
 
 ## 0. ワークスペースと環境の確認（2eb94c2 より前）
-host: aya-Parallels-ARM-Virtual-Machine aarch64
+host: VM aarch64
 PRETTY_NAME="Ubuntu 24.04.5 LTS"
 ~/gouda_ws: bags build install log maps maps_glim maps_sensor_slam patch_backups src worktrees
 src: ADI_IMU_TR_Driver_ROS2 HesaiLidar_ROS_2.0 kiss-icp tsukuba-autonomous-robot tsukuba-autonomous-robot-phone-runtime urg_node2

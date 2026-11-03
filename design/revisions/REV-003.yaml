@@ -34,7 +34,7 @@ decisions:
     channel: chat
     question: 実車PC の OS・ROS 2・Nav2 版の確認コマンドの出力（V-001）
     answer_verbatim: |
-      aya@aya-Parallels-ARM-Virtual-Machine:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)"
+      VM:~$ cat /etc/os-release; ls /opt/ros; dpkg -l | grep -E "ros-[a-z]+-(navigation2|nav2-msgs|nav2-bringup|nav2-route|nav2-controller|nav2-bt-navigator)"
       PRETTY_NAME="Ubuntu 24.04.5 LTS"
       NAME="Ubuntu"
       VERSION_ID="24.04"
