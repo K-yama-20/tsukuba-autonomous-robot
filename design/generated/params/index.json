@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "0a4317274aee3376ce0ec48d46e5b8d1ff49ce500cc61ad337a8776e144379a1",
+  "model_entities_sha256": "a1830435fd2310563a774d123ce0628237ed1695df17184e58737071f786eeb7",
   "parameters": [
     {
       "id": "PRM-54",
@@ -250,7 +250,7 @@
       "apply_timing": "runtime_set",
       "value_type": "int",
       "value_state": "approved",
-      "value": 4720,
+      "value": 4500,
       "unit": "mV"
     },
     {

@@ -49,7 +49,7 @@ test_without_revision (test_reserve_ids.ReserveIdsTests.test_without_revision) .
 test_written_change_set_is_not_a_reservation (test_reserve_ids.ReserveIdsTests.test_written_change_set_is_not_a_reservation) ... ok
 test_key_order (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_key_order) ... ok
 test_references_exist_in_model (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_references_exist_in_model) ... ok
-test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema) ... ok
+test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema) ... ERROR
 test_schema_rejects_unknown_status (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema_rejects_unknown_status) ... ok
 test_unique_ids (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_unique_ids) ... ok
 test_answered_decision_needs_verbatim (test_validate_model.CoreTests.test_answered_decision_needs_verbatim) ... ok
@@ -88,10 +88,27 @@ test_superseded_requirement_needs_intent_justification (test_validate_model.Migr
 test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unrecorded_new_entity_detected) ... ok
 
 ======================================================================
+ERROR: test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/.claude/worktrees/dev-tab-vehicle-test-6eb228/design/rules/test_troubleshooting_ledger.py", line 31, in test_schema
+    jsonschema.validate(self.ledger, self.schema)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 1332, in validate
+    raise error
+jsonschema.exceptions.ValidationError: '対策済み（模擬で確認、実車は未確認）' is not one of ['監視中', '発生', '解消']
+
+Failed validating 'enum' in schema['properties']['entries']['items']['properties']['status']:
+    {'enum': ['監視中', '発生', '解消']}
+
+On instance['entries'][13]['status']:
+    '対策済み（模擬で確認、実車は未確認）'
+
+======================================================================
 FAIL: test_current_intent_passes (test_check_intent_identity.IntentIdentityTests.test_current_intent_passes)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-AYARyoya-Desktop------TsukubaChallenge/2d40141c-1c25-4097-b29c-fbe8a086a2d1/scratchpad/prep/t2/design/rules/test_check_intent_identity.py", line 16, in test_current_intent_passes
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/.claude/worktrees/dev-tab-vehicle-test-6eb228/design/rules/test_check_intent_identity.py", line 16, in test_current_intent_passes
     self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 1 != 0 : DIFFERENT (unrecorded) 13 requirements; 67 diff lines
@@ -101,18 +118,18 @@ AssertionError: 1 != 0 : DIFFERENT (unrecorded) 13 requirements; 67 diff lines
 FAIL: test_real_model (test_validate_model.MigrationTests.test_real_model)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-AYARyoya-Desktop------TsukubaChallenge/2d40141c-1c25-4097-b29c-fbe8a086a2d1/scratchpad/prep/t2/design/rules/test_validate_model.py", line 103, in test_real_model
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/.claude/worktrees/dev-tab-vehicle-test-6eb228/design/rules/test_validate_model.py", line 103, in test_real_model
     def test_real_model(self): self.assertEqual(self.errors(self.m), [])
                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'intent rev[24903 chars]4'}}] != []
+AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'intent rev[25144 chars]4'}}] != []
 
-First list contains 11 additional elements.
+First list contains 12 additional elements.
 First extra element 0:
 {'code': 'MIGRATION', 'path': 'intent revision chain reaches current file', 'detail': {'actual': '23170969d3388b0f58929d7c9edc7ad5bca640336f0da393d9232240041fac25', 'expected': 'ec6a0128361916cbfedc68f58dfa5a3149ca98e4e4d09cee076530799ba1dee5'}}
 
-Diff is 35630 characters long. Set self.maxDiff to None to see it.
+Diff is 35897 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 88 tests in 82.654s
+Ran 88 tests in 84.891s
 
-FAILED (failures=2)
+FAILED (failures=2, errors=1)

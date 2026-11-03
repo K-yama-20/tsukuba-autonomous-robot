@@ -6,12 +6,12 @@
 
 ## 1. 人の指示（原文で台帳へ）
 
-- **DEC-067**: Parallels 上の Ubuntu 24.04 へ `ssh -o BatchMode=yes aya@10.211.55.4`、開発対象 `~/gouda_ws`、以後の Ubuntu コマンドは SSH 経由、ROS 2 Jazzy は `/opt/ros/jazzy/setup.bash` を先に読む、この環境で試験（センサー未接続）。
+- **DEC-067**: Parallels 上の Ubuntu 24.04 へ `ssh -o BatchMode=yes VM`、開発対象 `~/gouda_ws`、以後の Ubuntu コマンドは SSH 経由、ROS 2 Jazzy は `/opt/ros/jazzy/setup.bash` を先に読む、この環境で試験（センサー未接続）。
 - **DEC-068**: 「旧scripts/gouda.sh類は一式削除して良い。」
 
 ## 2. Ubuntu への接続
 
-- `ssh -o BatchMode=yes -o ConnectTimeout=10..25 aya@10.211.55.4` を 3 回試行: 1 回目 "Operation timed out"、2 回目 ping 不達・"Host is down"、3 回目 "Operation timed out"。VM が停止または休止と推定（推測）。`~/gouda_ws` と Git の状態、ビルド・ROS 上の試験は**未実施**。VM 起動後に第10便 worklog §5 の手順を SSH で実行する。
+- `ssh -o BatchMode=yes -o ConnectTimeout=10..25 VM` を 3 回試行: 1 回目 "Operation timed out"、2 回目 ping 不達・"Host is down"、3 回目 "Operation timed out"。VM が停止または休止と推定（推測）。`~/gouda_ws` と Git の状態、ビルド・ROS 上の試験は**未実施**。VM 起動後に第10便 worklog §5 の手順を SSH で実行する。
 - 記憶（memory）の接続情報を更新（鍵認証可。パスワードは使わない）。
 
 ## 3. 旧起動スクリプトの削除（DEC-068）

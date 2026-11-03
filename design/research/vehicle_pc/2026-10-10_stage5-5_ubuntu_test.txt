@@ -1,4 +1,4 @@
-# 工程5-5 ソフト試験記録（Ubuntu 24.04 / ROS 2 Jazzy、Parallels VM aya@10.211.55.4、センサー・ESP32・車体なし。ESP32 は Python 模擬 esp32_sim を pty 上で実行）
+# 工程5-5 ソフト試験記録（Ubuntu 24.04 / ROS 2 Jazzy、Parallels VM VM、センサー・ESP32・車体なし。ESP32 は Python 模擬 esp32_sim を pty 上で実行）
 # 実行: gouda_core/test/ubuntu_stage5-5.sh（Part A: commit 3733a8d、Part B: commit c0c62b5）。日付: 2026-10-10T09:52:11+09:00。原文を加工せず連結。
 
 ===== /tmp/stage55_A/probe.summary

@@ -7,13 +7,13 @@
 | 確認対象 | 結果 | 範囲 |
 |---|---|---|
 | 前段の抽出忠実性 | 48項目一致という既存結果を保持 | 再抽出は行っていない。元資料ハッシュと既存抽出時ハッシュの一致を今回確認 |
-| YAMLの形式・移行忠実性 | 違反、違反11件 | 6105件の比較・規則検査。設計テストのケース数ではない |
+| YAMLの形式・移行忠実性 | 違反、違反12件 | 6111件の比較・規則検査。設計テストのケース数ではない |
 | 設計内容の妥当性 | 未判定 | 下位設計、ROS版でのIF確認、状態遷移の成立性、実車値は未検証 |
 | ロボット実装・ソフト動作 | 未実施 | 移行ツールの試験と、ROS Nodeの動作試験は別 |
 | 実車確認・投入判断 | 未実施・人の判断待ち | YAML移行を実車確認済みとは扱わない |
 
 既存定義IDは **198/198件** が同じIDへ移行。加えて既存の変更記録ID `CH-01`〜`CH-04` を保持したため、既存ID対応表は **202件**。198件側の重複・対応漏れは0件。CHは旧抽出器のIDパターン対象外だったが行原文には存在しており、今回の追加抽出ではない。
-モデルは982要素、出典512件。Excelモジュール38件にIDなし行の `gouda_section_executor` を `M-039` として加えた39件。図は101 vertex（枠・注記含む）、2構造要素、84接続を全て保持。図の要素数をモジュール数やExcel IF46件と同一視しない。
+モデルは984要素、出典512件。Excelモジュール38件にIDなし行の `gouda_section_executor` を `M-039` として加えた39件。図は101 vertex（枠・注記含む）、2構造要素、84接続を全て保持。図の要素数をモジュール数やExcel IF46件と同一視しない。
 
 ## 正本の読み方と状態
 
@@ -34,7 +34,7 @@
 
 Node分割、process配置、IFの標準型選択・所有者・QoS・時刻、パラメータの個別定義、復旧時の必要状態・旧goal処理、ログ/rosbagの独立制御、故障応答の詳細、現要求に対応した試験は未設計。既存25試験は未実行。新しい通過判定、後退累計管理、境界での実速度保証、モード、保護、承認操作は追加していない。
 
-モデルの設計状態（図・出典整理用要素も含む件数）: {"未設計": 424, "案": 459, "承認済み": 99}。承認済み0件。
+モデルの設計状態（図・出典整理用要素も含む件数）: {"未設計": 424, "案": 461, "承認済み": 99}。承認済み0件。
 
 ## 矛盾・変更対応
 
@@ -809,7 +809,7 @@ RQ-I078（区間 i→i+1 の属性としての上限）を、Speed Filter の位
 - **U-DRAW-002**（source_missing）図のESP32押下検知線とExcelの取得不能記載が衝突する。 次の作業: REV-002: 機能は RQ-I072 により不採用（C-017）のため、現物回路・既存実装での確認は設計上不要。資料間の不一致は履歴として保持し、解決済みとは記録しない。
 - **U-DRAW-003**（source_missing）図のheartbeat_and_status/collision_stop_requestとExcelの任意/未提供記載の対応が未確認。 次の作業: 解消（REV-004）。heartbeat は表示・診断のみ（DEC-006）、collision_stop_request は不採用（DEC-005）。資料間の不一致は履歴として保持。
 - **U-HISTORY**（source_missing）CH-02はlocal_odometry/mission_managerが図に未記載とするが、現在図には両ラベルが存在する。 次の作業: 閉じる（REV-009）。変更記録と図は履歴・参照であり下位設計は依存しない。
-- **V-001**（source_missing）人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（aya@10.211.55.4）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。 次の作業: 解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。 上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。
+- **V-001**（source_missing）人の申告は「ROS2 jazzy / ubuntu 24.0.5」（DEC-003）。実車PC（VM）への鍵認証は拒否され、AIはパスワード認証を行わないため、 実車PC上の /opt/ros/<distro> と nav2 パッケージ版は未照合。上流 jazzy ブランチ（navigation2 commit 645abd95…、nav2_msgs 1.3.13）の仕様を暫定の照合先にしている。 次の作業: 解消（REV-003）。実車PC: Ubuntu 24.04.5 LTS、/opt/ros/jazzy、Nav2 1.3.13（DEC-012、research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt）。 上流 jazzy 645abd95 の package 版 1.3.13 と一致。バイナリ内 IDL の直接照合は行っていない。
 - **G-FIRMWARE**（technical）参照抽出（research/joystick270_firmware/extract.md §8）を入力に、新 firmware のプロトコル・設定・watchdog・ARM 手順・STATUS/EVENT・PC bridge の対応を設計する。firmware の版の管理はここに一本化（DEC-034）。 次の作業: プロトコル v4 と firmware の振る舞いを docs/esp32_protocol_v4.md に設計（REV-027）。実装は firmware/gouda_esp32_v4（PlatformIO、Bluepad32）。残り：DAC 電圧の初期値（DEC-077）、手動仲裁値（DEC-079）、卓上試験 TS-17〜19、実機照合 DEC-050。firmware の版は本文書の版（v4）と build id で管理
 - **G-TUNING**（technical）境界付近の揺らぎ（帯幅 PRM-19、境界セル、減速タイミング）は詳細設計しない（DEC-055）。帯幅は mask 生成器の入力として実機調整で決め、 揺れ幅・継続時間・減速距離（PRM-22〜24）は TS-16 の記録項目で合否判定に使わない。これらは設計規則にも人の判断事項にもしない（DEC-045・DEC-049）。 次の作業: 実車試験の段階で TS-16 の記録を材料に調整する。値は正本に書かず、調整記録を research/vehicle_pc/ 以下に残す。設計検査では「値未確定（実機調整）」として扱う。
 - **G-DDS**（technical）hesai_ros_driver は 10 秒で 100 フレームを出しているが、ros2 topic hz（1.7〜2.2 Hz）と gouda_monitor（約 3 Hz）は一部しか受け取れない。IMU（約 100 Hz）は欠落しない。 RMW は既定（Fast DDS）、VM は 4 コアで負荷 2.8。GLIM（C++）が受け取る周期は未測定。原因（大きなメッセージの分割配送、共有メモリ転送の設定、Python 購読者の処理、VM の CPU）は未特定。 2026-10-14 02:16 にも、USB-LAN を接続し直した直後に、ドライバは 0.1 s ごとに 64000 点のフレームを出し、monitor（直列化のまま受信し展開しない）は 1.8〜2.4 Hz だった （FILE-VEHICLE-PC-MAP-TAB の (4)。VM の net.core.rmem_max は 4 MB、rmem_default は 208 KB、RMW_IMPLEMENTATION は未設定）。 次の作業: GLIM が処理した周期は、静止して作った原図 3 件（VM）で 8.09・7.97・4.41 Hz、移動した VM の 2 回目で 4.37 Hz（0.5 s 超の欠け 37 回）。x86 機では廊下 10.00 Hz（欠けなし）、屋外 9.84 Hz（LiDAR の途切れ 3 回を除き欠けなし）。 処理周期の低さは VM に固有と見られる（FILE-VEHICLE-PC-FIELD-MAPPING-2、FILE-X86-MAPPING-MAPS）。地図作成は x86 機で行う。上流ソフトは改変しない。 2026-10-17（FILE-LOCALIZATION-EVAL の 5）: VM の中で、rosbag の再生から C++ の node 1 本（待ち行列 1）が受け取った点群は、Fast DDS の既定では 200 中 74〜89 だったが、 共有メモリの区画を 64 MB にした設定では 196〜200/200（等倍でも 200/200）。外付けの読み出しは 106〜160 MB/s で原因ではない。約 2 MB の点群が既定の共有メモリの区画に収まらず UDP の分割送信になって落ちると推定する。 2026-10-17 人の許可（DEC-116）により、試験スタック（gouda_core/test/stack.sh）だけに同じ設定（gouda_core/test/fastdds_test_stack.xml、FASTRTPS_DEFAULT_PROFILES_FILE）を入れた。gouda.sh・x86 機は変えていない。 VM の Python の 2 プロセスで約 2 MB・10 Hz・200 通: 設定なし 70・86、設定あり 178・182（FILE-DEC116-FASTDDS）。前回の試験スタックの試験は同じ結果。 残り: 試験スタックでの GLIM の処理周期の測定（センサーなしの試験スタックでは点群がない。rosbag の再生で測る）。x86 機での配送は欠けていない（10.00 Hz）ため、実車の設定は変えない。

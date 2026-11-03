@@ -1,0 +1,30 @@
+# 変更セット REV-201（2026-11-03 第188便: monitor のボタン「一時停止」を「待機」に。DEC-413）
+# 適用: design/tools/apply_revision.py REV-201
+id: REV-201
+date: '2026-11-03'
+summary: >-
+  第188便：人の指示で gouda_monitor のボタンの表記を「待機」にした。画面の文字だけで、動作、MODE-PAUSE、IFD-03、停止線での一時停止は変えていない。
+basis_refs:
+- DEC-413
+- DEC-394
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-413
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    gouda_monitor のボタンの表記「一時停止」を「待機」に変えるか（DEC-394 で残したボタン）。
+  answer_verbatim: |
+    ボタン表記を待機に変更。君の言うとおり、走行中の一時停止とモードとしての待機は別なので、一括で置き換えてはならない。
+  affected_refs:
+  - ND-02
+  - DEC-394
+  resulting_refs:
+  - ND-02
+  note: >-
+    変えたのは gouda_core/web/index.html のボタンの文字と title、design/docs/gouda_monitor_palette.md の 1 語。Issue K-yama-20/tsukuba-autonomous-robot#59。
+    人の指摘の扱い（CLAUDE.md 1.2）：走行中の一時停止とモードの待機の区別は、機械で判定しにくいので intent.md への追記案（人が判断）。
+  disposition: answered

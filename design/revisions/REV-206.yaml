@@ -1,0 +1,40 @@
+# 変更セット REV-206（2026-11-03 第194便: x86 接続での DAC 出力電圧の実測項目を登録。DEC-417）
+# 適用: design/tools/apply_revision.py REV-206
+id: REV-206
+date: '2026-11-03'
+summary: >-
+  第194便：人の指示で、x86 に接続した状態の DAC 出力電圧と EMC 入力電圧の実測項目を登録する。値は変えない。DEC-161 と DEC-416 は書き換えない。
+basis_refs:
+- DEC-416
+- DEC-161
+- DEC-160
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-417
+  kind: measurement
+  status: pending
+  asked_on: '2026-11-03'
+  answered_on: null
+  channel: chat
+  question: >-
+    【実測】x86 に接続した状態で、ESP32 の 5V、DAC 出力、EMC 入力の電圧を中立と全倒しで測る。あわせて EMC 側の電源電圧と、できれば純正ジョイスティックの電圧を測る。手順は design/research/vehicle_pc/2026-11-03_dac_voltage_measurement_procedure.md。
+  answer_verbatim: ''
+  affected_refs:
+  - PRM-43
+  - PRM-44
+  - PRM-45
+  - PRM-46
+  - DEC-416
+  - DEC-161
+  - DEC-160
+  - ND-17
+  resulting_refs: []
+  note: >-
+    人の発言（原文）「dacが高すぎる電圧を誤って出していた場合、emc-270が段々壊れてしまうと思うから、電圧を下げようと思う」。登録の指示（原文）「登録して手順も作る」。
+    背景：DAC の基準は USB 5V なので、設定 4500 mV の実際の出力は USB 5V に比例する（計算：4.72 V で 4496 mV、5.00 V で 4763 mV、5.25 V で 5001 mV）。x86 の USB 5V は未測定。
+    DEC-161 では人がフルスケールの実測を不要と回答した。この項目は DEC-416 の目的（電圧を下げて EMC-270 を守る）を確かめるための別の計測で、DEC-161 を書き換えない。
+    推奨：手順の A と B を駆動電源を切って行う。理由は、設定の上限が実際の電圧でも守られているかと、4500 mV が ESP32 に届いたかを、走らせずに確かめられるため。
+    代替：測らずに今の設定を使う（実際の上限と中立は不明のまま）。振る舞いの違い：計測だけでは変わらない。PRM-46 などの変更は結果を見て別の項目で人に諮る。
+    担当：人が測定し、安全の条件を決める。AI は手順、計算、設定への反映案を担当する。EMC-270 の許容入力電圧の資料は見つかっていない。
+    決まらない場合に止まる作業：PRM-46 の見直しと、PRM-45 の根拠づけ。走行の試験は止めない。第194便。
+  disposition: open_human

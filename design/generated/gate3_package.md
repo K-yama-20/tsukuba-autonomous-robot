@@ -2,23 +2,23 @@
 
 # ゲート3 承認資料
 
-状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`6510bbc2459ba04ffd70f1ae1383520e4f389cd0dcbdea344739cb580a104e8f`）。下位設計案 194 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
+状態: ゲート3は条件付きで承認（DEC-064、文言は DEC-065 で差し替え、2026-10-09）。条件は DEC-053・DEC-058 のとおり（暫定ベースライン。確定設計・実車値の確定・未実施試験の合格・実車投入の承認ではない）。経緯: DEC-053・DEC-058 → 条件の確認 DEC-061 → DEC-064・DEC-065。承認対象は push 済みコミット f208066 時点の design/（model.yaml SHA-256 af7f5bc2…）。条件付き承認時の凍結コピーは design/baselines/gate3_2026-10-09/model.yaml（`5b54c5d8f1e1275624a8100a1532edae0632be1d80cbb6862d50fd94206a2df6`）。下位設計案 196 件の design_status は案のまま。工程5 は条件付き承認の範囲で進める（DEC-019、工程5-1 着手 DEC-066）。工程と完了条件は docs/implementation_stages.md。
 
 ## 1. 承認対象
 
-### 1.1 下位設計案（adoption=designed_proposal、194 件）
+### 1.1 下位設計案（adoption=designed_proposal、196 件）
 
-- designed_interface（56）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`, `IFD-56`, `IFD-57`
+- designed_interface（57）: `IFD-01`, `IFD-02`, `IFD-03`, `IFD-04`, `IFD-05`, `IFD-06`, `IFD-07`, `IFD-08`, `IFD-09`, `IFD-10`, `IFD-11`, `IFD-12`, `IFD-13`, `IFD-14`, `IFD-15`, `IFD-16`, `IFD-17`, `IFD-18`, `IFD-19`, `IFD-20`, `IFD-21`, `IFD-22`, `IFD-23`, `IFD-24`, `IFD-25`, `IFD-26`, `IFD-27`, `IFD-28`, `IFD-29`, `IFD-30`, `IFD-32`, `IFD-33`, `IFD-34`, `IFD-35`, `IFD-36`, `IFD-37`, `IFD-38`, `IFD-39`, `IFD-40`, `IFD-41`, `IFD-42`, `IFD-43`, `IFD-44`, `IFD-45`, `IFD-46`, `IFD-47`, `IFD-48`, `IFD-49`, `IFD-50`, `IFD-51`, `IFD-52`, `IFD-53`, `IFD-54`, `IFD-55`, `IFD-56`, `IFD-57`, `IFD-58`
 - issue（11）: `G-DDS`, `G-DUP-START`, `G-FLOOR-REFLECTION`, `G-LIDAR-DROPOUT`, `G-MAP-TILT`, `G-REC-ROSBAG-RESTART`, `G-GLIM-EXIT`, `G-INIT-POSE-GNSS`, `G-NAV2-FIRST-GOAL`, `G-GNSS-NO-HEADING`, `G-RECOVERY-COUNT`
 - parameter（33）: `PRM-01`, `PRM-02`, `PRM-03`, `PRM-04`, `PRM-05`, `PRM-06`, `PRM-19`, `PRM-20`, `PRM-37`, `PRM-105`, `PRM-106`, `PRM-107`, `PRM-108`, `PRM-109`, `PRM-110`, `PRM-111`, `PRM-112`, `PRM-113`, `PRM-114`, `PRM-115`, `PRM-116`, `PRM-117`, `PRM-118`, `PRM-119`, `PRM-120`, `PRM-121`, `PRM-122`, `PRM-123`, `PRM-125`, `PRM-126`, `PRM-127`, `PRM-128`, `PRM-129`
-- ros_node（19）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`, `ND-18`, `ND-19`
+- ros_node（20）: `ND-01`, `ND-02`, `ND-03`, `ND-04`, `ND-05`, `ND-06`, `ND-07`, `ND-08`, `ND-09`, `ND-10`, `ND-11`, `ND-12`, `ND-13`, `ND-14`, `ND-15`, `ND-16`, `ND-17`, `ND-18`, `ND-19`, `ND-20`
 - state_owner（12）: `SO-01`, `SO-02`, `SO-03`, `SO-04`, `SO-05`, `SO-06`, `SO-07`, `SO-08`, `SO-09`, `SO-10`, `SO-11`, `SO-12`
 - test（47）: `TS-01`, `TS-02`, `TS-03`, `TS-04`, `TS-05`, `TS-06`, `TS-07`, `TS-08`, `TS-09`, `TS-10`, `TS-11`, `TS-12`, `TS-13`, `TS-14`, `TS-15`, `TS-16`, `TS-17`, `TS-18`, `TS-19`, `TS-20`, `TS-21`, `TS-22`, `TS-23`, `TS-24`, `TS-25`, `TS-26`, `TS-27`, `TS-28`, `TS-29`, `TS-30`, `TS-31`, `TS-32`, `TS-33`, `TS-34`, `TS-35`, `TS-36`, `TS-37`, `TS-38`, `TS-39`, `TS-40`, `TS-41`, `TS-42`, `TS-43`, `TS-44`, `TS-45`, `TS-46`, `TS-47`
 - transition（16）: `TR-01`, `TR-02`, `TR-03`, `TR-04`, `TR-05`, `TR-06`, `TR-07`, `TR-08`, `TR-09`, `TR-10`, `TR-11`, `TR-12`, `TR-13`, `TR-14`, `TR-15`, `TR-16`
 
 欠番: `IFD-31`（割り当てなかった番号。削除した要素ではない: 全 revision の removed_entity_ids は 空。id_policy により再採番しない）
 
-### 1.2 人の決定（answered、198 件）を根拠にした要素
+### 1.2 人の決定（answered、214 件）を根拠にした要素
 
 | 判断台帳 | 回答（原文、先頭 100 字） | 反映先 |
 |---|---|---|
@@ -220,6 +220,22 @@
 | DEC-403 | OSS方式で実装<br> | `ND-07`, `IFD-18`, `PRM-135` |
 | DEC-406 | 0.5秒でよいが、/configで変えられるようにせよ。また、これによる影響を台帳に記録せよ。トラブルシューティング台帳みたいなのがあったよね<br> | `PRM-135`, `IFD-54` |
 | DEC-407 | 実装を始める<br> | モデル外: 人はボタンで答えた。同じ作業の中の人の指示の原文：「別のプログラムは止めてしまえ」（VM の別の試験 run_anim.sh と ROS_DOMAIN_ID 88 のスタックを止めた）。VM は止まっていたので AI が起動した（第179便の作業記録）。 |
+| DEC-412 | 承認する。<br> | モデル外: 推奨：この経路（実装済み、人の指示の範囲で試験だけで使う）。理由：motion_hold は手動走行で常に true で、自律走行のモードは Nav2 ごと起動する。不感帯の補償は軸ごとで T の測定を歪める。下流の bridge・ファーム・DAC・車体は実走と同じ。代替：自律走行のモードの中で cmd_vel に出す |
+| DEC-413 | ボタン表記を待機に変更。君の言うとおり、走行中の一時停止とモードとしての待機は別なので、一括で置き換えてはならない。<br> | `ND-02` |
+| DEC-414 | esp32の再起動必要性は、本番で致命的となる恐れがある為、トラブルシューティング台帳に記載せよ。<br>また、imu_lostが頻発する。<br>lostになったら再試行を繰り返せ。あと、ジョイスティック入力の | `ND-20` |
+| DEC-415 | 案 F を実装する<br> | `ND-12` |
+| DEC-416 | 電圧の最大値を4500mvに限定する。<br> | `PRM-45` |
+| DEC-418 | 指導の前に揺れているのは私が車椅子を動かしたからです。順序を変えて試験管を作成せよ。今x86では遅れの測定中です。毎回5秒も待つ必要あるかな？ベースを取っているのかな<br> | `ND-20` |
+| DEC-419 | なるべく元の位置から外れないようにしてほしいな。。<br> | `ND-20` |
+| DEC-420 | manual_overrideが入ったからと言って試験を中断しないで。<br> | `ND-20` |
+| DEC-421 | 解析を直す<br> | `ND-20` |
+| DEC-422 | 模擬に入れる<br> | モデル外: 試験専用のコードだけを変えた。実測から入れた値：遅れ 0.35 s（止まった状態から）、旋回の応答 立ち上がり 0.3 s・止まるとき 0.18 s、旋回の下限 0.3 rad/s、方向別の不感帯。走行中の遅れと前後の応答は仮の値のまま（DEC-378 は未回答）。 補償は模擬の引数 --comp で ND-11 と同 |
+| DEC-423 | 実車で確かめる<br> | モデル外: issue 61 の案 1 にあたる。実装は伴わない。補償は入れない。実車の操作、走らせる場所、経路、速度上限は人が決める。結果は未取得。第205便。 |
+| DEC-424 | 全てのプログラムはローンチファイルで一括でいれられるべきである。<br> | モデル外: AI の解釈：launch ファイルは sudo を聞けないので、導入は既存の bash setup.sh（更新は bash update.sh）で一括で行う。人の確認待ち。足りないものは setup.sh に足す案にする。ルール案：setup.sh の一覧と launch・package.xml が使うパッケージの一 |
+| DEC-425 | 今のファイルから消す<br> | モデル外: 過去の人の原文（answer_verbatim）と hash 固定の証拠・基準線も、この指示に基づいて置き換えた。置き換え以外の内容は変えていない。git の履歴には残る。main への反映は人の指示待ち。第206便。 |
+| DEC-426 | 実車での測定結果とその分析結果を文書にまとめて保管し、その場所やファイル名を台帳に記載せよ<br> | モデル外: 保管場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/。 文書のファイル名：vehicle_measurements_2026-11-03.md（FILE-VEHICLE-MEASUREMENTS-20261103）。 同じフォルダの runs/ |
+| DEC-427 | 生データもpushせよ。<br> | モデル外: DEC-426 の note の「生データと rosbag は公開リポジトリに入れない」を、生データについて置き換える。 場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/ の 4 件。一覧とハッシュは同じフォルダの RAW_DATA. |
+| DEC-428 | 置き換えて push<br> | モデル外: ターミナルの表示とログの PC 名を「VM」に、ホームディレクトリのパスを「/home/user」に置き換えた。 過去の人の原文（answer_verbatim）、hash 固定の証拠、基準線も、この指示に基づいて置き換え、記録の sha256 を同じ置き換えで更新した。置き換え以外の内容は変えていない。 git の履 |
 
 ### 1.3 承認済み（99 件、人の決定値）: `PRM-07`, `PRM-08`, `PRM-09`, `PRM-10`, `PRM-11`, `PRM-12`, `PRM-13`, `PRM-14`, `PRM-15`, `PRM-16`, `PRM-17`, `PRM-18`, `PRM-21`, `PRM-25`, `PRM-26`, `PRM-27`, `PRM-28`, `PRM-29`, `PRM-30`, `PRM-31`, `PRM-32`, `PRM-33`, `PRM-34`, `PRM-35`, `PRM-36`, `PRM-38`, `PRM-39`, `PRM-40`, `PRM-41`, `PRM-42`, `PRM-43`, `PRM-44`, `PRM-45`, `PRM-46`, `PRM-47`, `PRM-48`, `PRM-49`, `PRM-50`, `PRM-51`, `PRM-52`, `PRM-53`, `PRM-54`, `PRM-55`, `PRM-56`, `PRM-57`, `PRM-58`, `PRM-59`, `PRM-60`, `PRM-61`, `PRM-62`, `PRM-63`, `PRM-64`, `PRM-65`, `PRM-66`, `PRM-67`, `PRM-68`, `PRM-73`, `PRM-69`, `PRM-70`, `PRM-71`, `PRM-72`, `PRM-74`, `PRM-75`, `PRM-76`, `PRM-77`, `PRM-78`, `PRM-79`, `PRM-80`, `PRM-81`, `PRM-82`, `PRM-83`, `PRM-84`, `PRM-85`, `PRM-86`, `PRM-87`, `PRM-88`, `PRM-89`, `PRM-90`, `PRM-91`, `PRM-92`, `PRM-93`, `PRM-94`, `PRM-95`, `PRM-96`, `PRM-97`, `PRM-98`, `PRM-99`, `PRM-100`, `PRM-101`, `PRM-102`, `PRM-103`, `PRM-104`, `PRM-124`, `PRM-130`, `PRM-131`, `PRM-132`, `PRM-133`, `PRM-134`, `PRM-135`
 

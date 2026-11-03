@@ -6,6 +6,7 @@ Every value shown comes from this script, not from a robot; the mode run_id is "
 never be mistaken for an operating record. Commands are answered with a refusal that says DEMO.
 """
 import json
+import os
 import sys
 import tempfile
 import time
@@ -15,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from gouda_core.monitor_core import MonitorCore  # noqa: E402
 from gouda_core.monitor_server import MonitorServer  # noqa: E402
 from gouda_core import map_tab, png as pngmod  # noqa: E402
+from gouda_core import vehicle_test_core as vtc  # noqa: E402
 
 DEMO_ORIGIN = 'DEMO-NOT-REAL_origin'
 
@@ -87,10 +89,19 @@ def main():
         s['map_conversion'] = map_tab.ConversionTracker().snapshot()
         return s
     settings = {'ok': True, 'settings': [dict(x, default=None) for x in map_tab.CONVERSION_SETTINGS], 'note': 'DEMO: gouda_map_creator に接続していない'}
+    # /dev tab: the real definitions; runs from a folder of recorded test-stack results, if given (DEMO_VEHICLE_TESTS)
+    store = vtc.RunStore(Path(os.environ.get('DEMO_VEHICLE_TESTS', tempfile.mkdtemp())))
+    share = Path(__file__).resolve().parents[1] / 'vehicle_tests'
+    def demo_tests(r, q):
+        t = vtc.load_definition(share / 'motion_start.yaml')
+        return {'ok': True, 'tests': [{k: t.get(k) for k in ('id', 'title', 'parameters', 'sections')}], 'runs': store.list_runs()}
+    def demo_run(r, q):
+        parts = r.split('/')
+        return dict(store.wave(parts[0], parts[2], 960), ok=True) if len(parts) == 3 else dict(store.result(parts[0]), ok=True)
     server = MonitorServer(Path(__file__).resolve().parents[1] / 'web', snapshot, lambda: cfg,
                            lambda name, body: {'ok': False, 'message': f'DEMO: {name} is not connected to a robot'},
                            lambda body: {'ok': False, 'message': 'DEMO: config is not saved', 'config': cfg}, port=port, keepalive_s=float(sys.argv[2]) if len(sys.argv) > 2 else 3.0, max_rate_hz=5.0,  # demo only
-                           get_routes={'/api/map/': demo_map, '/api/map_settings': lambda r, q: settings},
+                           get_routes={'/api/map/': demo_map, '/api/map_settings': lambda r, q: settings, '/api/vehicle_tests': demo_tests, '/api/vehicle_test_run/': demo_run},
                            post_routes={'/api/map_reconvert': lambda r, b: {'ok': False, 'message': 'DEMO: not connected to gouda_map_creator'}})
     print('DEMO monitor at', server.start(), flush=True)
     try:

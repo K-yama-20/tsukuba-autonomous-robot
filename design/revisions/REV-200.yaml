@@ -1,0 +1,107 @@
+# 変更セット REV-200（2026-11-03 第187便: gouda_monitor の /dev タブと車体試験の枠組み、動き出しの試験。DEC-411・412）
+# 適用: design/tools/apply_revision.py REV-200
+id: REV-200
+date: '2026-11-03'
+summary: >-
+  第187便：人の指示で gouda_monitor に /dev タブを作り、車体試験を実行する ND-20（gouda_vehicle_test）と IFD-58 を足した。最初の試験は動き出し（T、t_lock、遅れ、パルス）。実車は未実行。
+basis_refs:
+- DEC-411
+- DEC-412
+- DEC-171
+- DEC-378
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-411
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第187便）/dev タブと車体試験の実装、x86 の更新の人の指示
+  answer_verbatim: |
+    テスト用プログラムを作成せよ。gouda_monitorに/devタブを作成し、そこから試験を実行できるようにせよ。今後も様々な車体テストを行うと思うが、多くはここで実施しようと思う。新しいチャットを作って、そこで実装を開始せよ。
+    x86にはssh接続してあるので、x86のアップデートまでやってね
+  affected_refs:
+  - ND-02
+  - ND-12
+  resulting_refs:
+  - ND-20
+  - IFD-58
+  note: >-
+    原文は分岐元のセッションからの転記。測る項目は実測の DEC-378 の (1)(2) の前段で、元のチャットの作業ツリーの DEC-409・410（このブランチには未コミット）に対応する。値はすべて実測待ちで、試験条件は提案。
+  disposition: answered
+- id: DEC-412
+  kind: approval
+  status: pending
+  asked_on: '2026-11-03'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】車体試験の指令の経路。手動走行のモードで ND-20 が vehicle/joystick_command（IFD-16）へ直接出し、試験の間だけ vehicle_bridge を活性にしてよいか。手動走行で PC が COMMAND を送るのは、これまでの設計（ND-11 は手動走行で発行しない）に対する例外になる。
+  answer_verbatim: ''
+  affected_refs:
+  - IFD-16
+  - ND-11
+  - ND-12
+  - RQ-I063
+  - DEC-171
+  resulting_refs: []
+  note: >-
+    推奨：この経路（実装済み、人の指示の範囲で試験だけで使う）。理由：motion_hold は手動走行で常に true で、自律走行のモードは Nav2 ごと起動する。不感帯の補償は軸ごとで T の測定を歪める。下流の bridge・ファーム・DAC・車体は実走と同じ。代替：自律走行のモードの中で cmd_vel に出す（Nav2 と競合、補償を切る必要あり）。
+    振る舞いの違い：motion_hold を通らない。手動の優先は ESP32 のままで、受信途絶の中立も PRM-09・ファームのまま。止まる作業：回答まで実車の試験の実行は人の判断。
+  disposition: open_human
+entities:
+- id: ND-20
+  kind: ros_node
+  intent_lines: [14]
+  name: gouda_vehicle_test（/dev タブの車体試験の実行）
+  issue_refs: []
+  sensitivity: [safety, operation]
+  ros_node:
+    node_name: gouda_vehicle_test
+    responsibilities:
+    - IFD-58 の要求で試験を 1 件ずつ実行する。待機中は何も発行しない
+    - 手動走行のモードでだけ開始し、モードが変わる、ゲームパッドが source になる、IMU・STATUS が止まる、中止の要求のいずれかで終わって中立を送る。PC の中立は車体の停止の保証ではない
+    - vehicle_bridge を試験の間だけ活性にし、見つけたときの状態へ戻す（自律走行に変わっていたら触らない）
+    - IMU・STATUS・指令を <data_root>/vehicle_tests/<run_id>/ に記録し、結果を計算する。合否は決めない
+    absorbs_module_refs: []
+    active_in_mode_refs: [MODE-MANUAL]
+    lifecycle: plain_node
+    process_group: core
+    publishes_refs: [IFD-16]
+    subscribes_refs: [IFD-01, IFD-38]
+    serves_refs: [IFD-58]
+    calls_refs: [IFD-36]
+    owned_state_refs: []
+    placement_rationale: >-
+      高い頻度の IMU の処理と試験の順序を monitor（表示の中継）に載せないため別の node にした。試験の追加は gouda_core/vehicle_tests/ のモジュールと YAML だけで済む。
+- id: IFD-58
+  kind: designed_interface
+  intent_lines: [14]
+  name: vehicle_test/run（車体試験 Action）
+  issue_refs: []
+  sensitivity: [safety, operation]
+  designed_interface:
+    transport: action
+    name: vehicle_test/run
+    message_type: gouda_interfaces/action/VehicleTest（goal＝test_id・params_json、result＝ok・message・run_id・end_reason、feedback＝stage・progress・run_id）
+    standard_type: false
+    custom_type_reason: 長時間で取消可能な試験で、試験の ID と条件を渡す標準の action がない。条件は JSON にして、試験を足しても型を変えない
+    purpose: command
+    owner_ref: ND-20
+    publisher_refs: [ND-20]
+    consumer_refs: [ND-02]
+    unit:
+    frame:
+    time_semantics: /dev タブの実行・中止で ND-02 が呼ぶ
+    qos: {reliability: reliable, durability: volatile, history_depth: }
+    version_dependency: {status: none, evidence: [], note: ''}
+    legacy_refs: []
+modifications:
+- id: IFD-16
+  set_nested:
+    designed_interface.publisher_refs:
+    - ND-11
+    - ND-20
+  interpretation_append: 'REV-200（DEC-412 承認待ち）：手動走行の車体試験の間だけ ND-20 も発行する。ND-11 は手動走行で非活性なので同時には出ない。'

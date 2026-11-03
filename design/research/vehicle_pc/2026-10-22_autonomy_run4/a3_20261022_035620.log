@@ -1,4 +1,4 @@
-[INFO] [launch]: All log files can be found below /home/aya/.ros/log/2026-10-22-03-56-21-094738-aya-Parallels-ARM-Virtual-Machine-47144
+[INFO] [launch]: All log files can be found below /home/user/.ros/log/2026-10-22-03-56-21-094738-VM-47144
 [INFO] [launch]: Default logging verbosity is set to INFO
 [INFO] [gouda_a3_points-1]: process started with pid [47170]
 [INFO] [autoware_pointcloud_map_loader-2]: process started with pid [47171]
@@ -35,11 +35,11 @@
 [autoware_ndt_scan_matcher_node-3] [INFO] [1792609102.953792103] [rclcpp]: signal_handler(SIGINT/SIGTERM)
 [autoware_pointcloud_map_loader-2] [INFO] [1792609103.029507728] [rclcpp]: signal_handler(SIGINT/SIGTERM)
 [gouda_a3_points-1] Traceback (most recent call last):
-[gouda_a3_points-1]   File "/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points", line 33, in <module>
+[gouda_a3_points-1]   File "/home/user/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points", line 33, in <module>
 [autoware_ekf_localizer_node-4] [INFO] [1792609103.032971019] [rclcpp]: signal_handler(SIGINT/SIGTERM)
 [gouda_a3_points-1]     sys.exit(load_entry_point('gouda-core', 'console_scripts', 'gouda_a3_points')())
 [gouda_a3_points-1]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[gouda_a3_points-1]   File "/home/aya/gouda_ws/build/gouda_core/gouda_core/a3_points_node.py", line 64, in main
+[gouda_a3_points-1]   File "/home/user/gouda_ws/build/gouda_core/gouda_core/a3_points_node.py", line 64, in main
 [gouda_a3_points-1]     node.destroy_node(); rclpy.try_shutdown()
 [gouda_a3_points-1]     ^^^^^^^^^^^^^^^^^^^
 [gouda_a3_points-1]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1958, in destroy_node
@@ -52,5 +52,5 @@
 [autoware_ndt_scan_matcher_node-3] [INFO] [1792609103.081837936] [rclcpp]: signal_handler(SIGINT/SIGTERM)
 [INFO] [autoware_ekf_localizer_node-4]: process has finished cleanly [pid 47173]
 [INFO] [autoware_pointcloud_map_loader-2]: process has finished cleanly [pid 47171]
-[ERROR] [gouda_a3_points-1]: process has died [pid 47170, exit code -2, cmd '/home/aya/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points --ros-args -r __node:=points_filter -r __ns:=/localization/a3 --params-file /tmp/launch_params_yhvbugfs -r input:=/sensors/xt32/points -r output:=points_downsampled'].
+[ERROR] [gouda_a3_points-1]: process has died [pid 47170, exit code -2, cmd '/home/user/gouda_ws/install/gouda_core/lib/gouda_core/gouda_a3_points --ros-args -r __node:=points_filter -r __ns:=/localization/a3 --params-file /tmp/launch_params_yhvbugfs -r input:=/sensors/xt32/points -r output:=points_downsampled'].
 [INFO] [autoware_ndt_scan_matcher_node-3]: process has finished cleanly [pid 47172]

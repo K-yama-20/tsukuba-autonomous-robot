@@ -432,3 +432,28 @@ entries:
     reports/worklog/2026-11-02_bin172_keepout_tf_materials.md、2026-11-02_bin180_map_odom_future_stamp.md。実車では未確認。
   recorded_on: '2026-11-02'
   occurrences: []
+- id: TRB-014
+  name: vehicle_bridge の新しい session（cleanup の後の configure、Gouda や PC の再起動）で seq が 0 に戻り、ESP32 が PC の指令を棄却して車体が動かない（本番で致命的になる恐れ）
+  status: 対策済み（模擬で確認、実車は未確認）
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-414
+  - DEC-415
+  related_refs:
+  - ND-11
+  - ND-12
+  - PRM-13
+  symptom: '自律走行や /dev の試験を始めても車体が動かない。ESP32 の STATUS は source none、reason pc_stale のまま。last_pc_seq が変わらず、pc_age_ms が増え続ける。
+    USB を差し直して ESP32 を再起動すると直る。本番で PC または Gouda の異常終了の後に起きると、人が ESP32 に触れない間は走れず、完走できない恐れがある。'
+  mechanism: 'ファームは同じ起動の間、最後に受け付けた PC の seq を覚え、それより新しくない COMMAND を棄却する（control.hpp の newerSequence）。vehicle_bridge の seq は起動のたびに 0 から数える。
+    事実（第159便）：VM と Gouda だけの再起動の後、COMMAND を 1210 回「seq が新しくない」で棄却した。事実（第190便、x86 の esp32_sim）：/dev の試験の 2 回目以降で、最初の COMMAND から pc_frame_rejected（理由 5）が 178 回続いた。試験が終わるたびに bridge を cleanup するので、次の configure で新しい BridgeCore の seq が 0 に戻る。Gouda の再起動がなくても起きる。seq が前の値を超えるまで（10 Hz なので 100 番で約 10 s）棄却が続く。実車の x86 の記録も同じ形：2 回目は last_pc_seq 36 で開始の 4 s 後に pc_control（計算と一致）、3 回目は 79 で 5 s の待ちを超えて開始できなかった。'
+  how_to_confirm: 'STATUS の last_pc_seq と pc_age_ms、uptime_ms を見る。ESP32 の uptime が Gouda の起動より長く、bridge が送っているのに last_pc_seq が増えなければこの現象。ESP32 の event の pc_frame_rejected（理由 5）でも確かめられる。'
+  countermeasures: '対策（DEC-415、第159便の案 F）：STATUS の last_pc_seq を読み、bridge がその次から数える（ファームの変更なし）。最初の STATUS が届くまでの COMMAND は棄却されうる。それ以前の暫定は ESP32 の USB の差し直しだった。ファームが新しい session で seq の記憶を消す案もある。走り出しの条件に ESP32 の受け付けを入れる案（案 G）と組で検討する。'
+  source: reports/worklog/2026-10-24_bin159_esp32_seq_rejection.md、2026-11-03_bin190_vehicle_test_retry_inputs.md、2026-11-03_bin191_bridge_seq_follow.md。実車では未確認。
+  recorded_on: '2026-11-03'
+  occurrences:
+  - 2026-10-24 VM（第159便）
+  - 2026-11-03 x86 motion_start_20261103_044344、044642（実車の記録。棄却の event は残っていないので形からの判断）
+  - 2026-11-03 x86 esp32_sim（第190便、棄却の event を確認）

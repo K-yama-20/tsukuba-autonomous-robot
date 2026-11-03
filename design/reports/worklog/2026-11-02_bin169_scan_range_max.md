@@ -24,7 +24,7 @@
 | 適用・再生成 | apply_revision・render_views・generate_params・render_migration_review | 同上 | いずれも 0 |
 | 単体試験（Mac） | `/opt/anaconda3/bin/python3 -m unittest discover -s gouda_core/test` | 同上 | 305 件 OK（skip 15） |
 | 設計検査 | `design/.venv/bin/python design/tools/run_checks.py` | 同上 | 終了コード 1。design_check 違反 0・未判定 5。input_integrity・intent_identity・migration_validator・migration_tests は FAIL（第168便と同じ 4 つ） |
-| 単体試験・結合試験（VM） | — | — | 未実行（ssh 10.211.55.4:22 が時間切れ） |
+| 単体試験・結合試験（VM） | — | — | 未実行（ssh VM のアドレス:22 が時間切れ） |
 | 実の costmap で印が消えることの確認 | — | — | 未実行（Mac に ROS なし、VM につながらない） |
 | 実車 | — | — | 未実行 |
 

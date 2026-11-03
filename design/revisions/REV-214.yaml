@@ -1,0 +1,27 @@
+# 変更セット REV-214（2026-11-03 第206便: 公開リポジトリの今のファイルから VM の接続先を消す。DEC-425）
+# 適用: design/tools/apply_revision.py REV-214
+id: REV-214
+date: '2026-11-03'
+summary: >-
+  第206便：人の指示で、作業ツリーの全ファイルから VM の SSH の宛先とアドレスを「VM」「VM のアドレス」に置き換えた。証拠ファイルと基準線も置き換え、記録していた sha256 を更新した。履歴は書き換えない。
+basis_refs:
+- DEC-425
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-425
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第206便）公開済みの VM の接続先を、今のファイルから消すか、履歴からも消すか
+  answer_verbatim: |
+    今のファイルから消す
+  affected_refs:
+  - DEC-003
+  - DEC-067
+  resulting_refs: []
+  note: >-
+    過去の人の原文（answer_verbatim）と hash 固定の証拠・基準線も、この指示に基づいて置き換えた。置き換え以外の内容は変えていない。git の履歴には残る。main への反映は人の指示待ち。第206便。
+  disposition: answered

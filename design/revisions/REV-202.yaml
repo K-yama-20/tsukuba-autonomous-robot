@@ -1,0 +1,17 @@
+# 変更セット REV-202（2026-11-03 第189便: DEC-412 の人の承認の記録）
+# 適用: design/tools/apply_revision.py REV-202
+id: REV-202
+date: '2026-11-03'
+summary: >-
+  第189便：人の回答「承認する。」で DEC-412（車体試験の指令の経路、手動走行で ND-20 が IFD-16 へ直接出す）を answered にする。コード・設定は変えない。
+basis_refs:
+- DEC-412
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decision_updates:
+- id: DEC-412
+  set:
+    status: answered
+    answered_on: '2026-11-03'
+    disposition: answered
+    answer_verbatim: |
+      承認する。

@@ -137,9 +137,9 @@ test stack stopped
 ===== bash gouda.sh start（環境変数なし、commit 81c7822）
 0
 running (pgid 56571; processes: 11)
-data_root=/home/aya/gouda_ws/gouda_data
-params_dir=/home/aya/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params
-log=/home/aya/gouda_ws/gouda_data/run/gouda_core.launch.log
+data_root=/home/user/gouda_ws/gouda_data
+params_dir=/home/user/gouda_ws/src/tsukuba-autonomous-robot/design/generated/params
+log=/home/user/gouda_ws/gouda_data/run/gouda_core.launch.log
 monitor=http://127.0.0.1:8080/
 previous_mode_record: {"human_pause_or_end": true, "mode": "manual", "run_id": "", "state_revision": 74}
 sensors: {"points": {"label": "XT-32 点群", "topic": "sensors/xt32/points", "status": "NOT_RECEIVED", "age_s": null, "verdict": "未受信（OK とは表示しない）", "rate_hz": null, "count": 0, "stamp_minus_receive_s": null, "stale_after_s": 1.0}, "imu": {"label": "IMU", "topic": "sensors/imu/data", "status": "NOT_RECEIVED", "age_s": null, "verdict": "未受信（OK とは表示しない）", "rate_hz": null, "count": 0, "stamp_minus_receive_s": null, "stale_after_s": 1.0}}
@@ -147,7 +147,7 @@ driver_started | IMU (ND-15): started (pid 56709) for ttyACM0 usb 2-29 (device p
 device_reopened_without_reconnect | IMU (ND-15): same USB enumeration ttyACM0 usb 2-29 as the previous session; the IMU may not answer (known problem after a driver restart). Re-plug the IMU USB if no IMU data arrives | {"driver": "imu", "identity": "ttyACM0 usb 2-29"}
 device_present | IMU (ND-15): /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ttyACM0 usb 2-29 | {"driver": "imu", "identity": "ttyACM0 usb 2-29"}
 device_absent | XT-32 (ND-14): interface holding 192.168.1.100 (PRM-51) -> absent (the driver is started when it appears) | {"driver": "lidar", "identity": null}
-settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "interface holding 192.168.1.100 (PRM-51)", "command": ["/home/aya/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node", "--ros-args", "-r", "__node:=hesai_ros_driver", "-p", "config_path:=/home/aya/gouda_ws/gouda_data/run/hesai_ros_driver.config.yaml"], "not_started_reason": null}, "imu": {"device": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "command": ["/home/aya/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node", "--ros-args", "-r", "__node:=adi_imu_driver", "-r", "imu/data_raw:=sensors/imu/data", "-p", "device:=/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "-p", "rate:=100.0", "-p", "frame_id:=imu_link", "-p", "publish_tf:=false"], "not_started_reason": null}}, "driver_stop_wait_s": 5.0, "trial": false, "previous_identities": {"lidar": null, "imu": "ttyACM0 usb 2-29"}}
+settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "interface holding 192.168.1.100 (PRM-51)", "command": ["/home/user/gouda_ws/install/hesai_ros_driver/lib/hesai_ros_driver/hesai_ros_driver_node", "--ros-args", "-r", "__node:=hesai_ros_driver", "-p", "config_path:=/home/user/gouda_ws/gouda_data/run/hesai_ros_driver.config.yaml"], "not_started_reason": null}, "imu": {"device": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "command": ["/home/user/gouda_ws/install/adi_imu_tr_driver_ros2/lib/adi_imu_tr_driver_ros2/adis_rcv_bin_node", "--ros-args", "-r", "__node:=adi_imu_driver", "-r", "imu/data_raw:=sensors/imu/data", "-p", "device:=/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00", "-p", "rate:=100.0", "-p", "frame_id:=imu_link", "-p", "publish_tf:=false"], "not_started_reason": null}}, "driver_stop_wait_s": 5.0, "trial": false, "previous_identities": {"lidar": null, "imu": "ttyACM0 usb 2-29"}}
 [gouda_sensor_supervisor-1] [INFO] [1791914225.772499544] [adi_imu_driver]: device: /dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00
 [gouda_sensor_supervisor-1] [INFO] [1791914225.772602377] [adi_imu_driver]: frame_id: imu_link
 [gouda_sensor_supervisor-1] [WARN] [1791914225.772611294] [adi_imu_driver]: Could not get param parent_id. Set default value: odom
@@ -164,7 +164,7 @@ settings | sensor supervisor configured | {"drivers": {"lidar": {"device": "inte
 total 0
 lrwxrwxrwx 1 root root 13 Oct 13 23:08 usb-STMicroelectronics_STM32_Virtual_ComPort_007137944B34-if00 -> ../../ttyACM0
 lo               UNKNOWN        127.0.0.1/8 ::1/128 
-enp0s5           UP             10.211.55.4/24 
+enp0s5           UP             VM のアドレス/24 
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 Bus 002 Device 028: ID 203a:fffe PARALLELS Virtual USB1.1 HUB
@@ -173,11 +173,11 @@ Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 Bus 003 Device 025: ID 203a:fffc PARALLELS Virtual Mouse
 Bus 003 Device 026: ID 203a:fffb PARALLELS Virtual Keyboard
 Bus 003 Device 027: ID 203a:fff9 PARALLELS FaceTime HDカメラ
-2026-10-13T22:20:29+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 24
-2026-10-13T22:20:29+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 25
-2026-10-13T22:45:14+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
-2026-10-13T23:08:40+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 26
-2026-10-13T23:08:40+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 27
-2026-10-13T23:08:42+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
-2026-10-14T01:56:56+09:00 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: USB disconnect, device number 11
-2026-10-14T01:56:56+09:00 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: unregister 'cdc_ncm' usb-0000:00:03.0-7, CDC NCM (NO ZLP)
+2026-10-13T22:20:29+09:00 VM kernel: usb 2-2: USB disconnect, device number 24
+2026-10-13T22:20:29+09:00 VM kernel: usb 2-2.2: USB disconnect, device number 25
+2026-10-13T22:45:14+09:00 VM kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+2026-10-13T23:08:40+09:00 VM kernel: usb 2-2: USB disconnect, device number 26
+2026-10-13T23:08:40+09:00 VM kernel: usb 2-2.2: USB disconnect, device number 27
+2026-10-13T23:08:42+09:00 VM kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+2026-10-14T01:56:56+09:00 VM kernel: usb 3-7: USB disconnect, device number 11
+2026-10-14T01:56:56+09:00 VM kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: unregister 'cdc_ncm' usb-0000:00:03.0-7, CDC NCM (NO ZLP)

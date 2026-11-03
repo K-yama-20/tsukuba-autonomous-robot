@@ -32,7 +32,7 @@
 | 全検査 | `design/.venv/bin/python design/tools/run_checks.py`（REV-031 と実装の後、model.yaml `1b673e55…`） | 終了コード 0。違反 0・未判定 4。DR-15・DR-17・DR-03 合格 |
 | gouda_core 単体（Mac） | `cd gouda_core && python3 -m unittest discover -s test` | 94 件 OK（新規 5: test_sensor_config。雛形のうち Gouda のキー以外が変わらないこと、PTC ポート・IMU 周期が未確定なら起動設定を作らないこと、publish_tf=false） |
 
-未実行: ドライバの導入とビルド、センサの実機起動（VM 10.211.55.4 は SSH タイムアウトで不達）。ROS 上の launch の実行。
+未実行: ドライバの導入とビルド、センサの実機起動（VM VM のアドレス は SSH タイムアウトで不達）。ROS 上の launch の実行。
 
 ## 5. 承認待ち・実測待ち
 
