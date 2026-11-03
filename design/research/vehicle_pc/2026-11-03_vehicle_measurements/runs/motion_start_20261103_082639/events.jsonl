@@ -1,0 +1,353 @@
+{"t": 1793661999.8747392, "event": "baseline_start"}
+{"t": 1793662004.9013643, "event": "baseline_end", "sigma": {"accel": 0.01992856566514327, "yaw": 0.0006906917959710338}}
+{"t": 1793662004.9013643, "event": "trial_start", "trial": "low_0.6_0"}
+{"t": 1793662009.9490998, "event": "segment_start", "trial": "low_0.6_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662010.3548222, "event": "segment_end", "trial": "low_0.6_0", "segment": 0, "first": 1793662010.2272985, "sustained": 1793662010.3173153, "peaks": {"yaw": 0.018870292495960398}}
+{"t": 1793662010.3548222, "event": "segment_start", "trial": "low_0.6_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662011.3562129, "event": "segment_start", "trial": "low_0.6_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.6}
+{"t": 1793662017.3658426, "event": "segment_start", "trial": "low_0.6_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662018.522949, "event": "segment_end", "trial": "low_0.6_0", "segment": 3, "first": 1793662017.3673072, "sustained": 1793662017.4173155, "peaks": {"yaw": 0.17715679434229548}}
+{"t": 1793662018.522949, "event": "trial_end", "trial": "low_0.6_0"}
+{"t": 1793662018.522949, "event": "trial_start", "trial": "low_0.6_1"}
+{"t": 1793662023.5518768, "event": "segment_start", "trial": "low_0.6_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662023.9585378, "event": "segment_end", "trial": "low_0.6_1", "segment": 0, "first": 1793662023.8573453, "sustained": 1793662023.9173427, "peaks": {"yaw": 0.0681041436374208}}
+{"t": 1793662023.9585378, "event": "segment_start", "trial": "low_0.6_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662024.9673858, "event": "segment_start", "trial": "low_0.6_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.6}
+{"t": 1793662030.9973261, "event": "segment_start", "trial": "low_0.6_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662032.2123296, "event": "segment_end", "trial": "low_0.6_1", "segment": 3, "first": 1793662031.0073843, "sustained": 1793662031.1473124, "peaks": {"yaw": 0.14930523797434558}}
+{"t": 1793662032.2123296, "event": "trial_end", "trial": "low_0.6_1"}
+{"t": 1793662032.2123296, "event": "trial_start", "trial": "low_0.6_2"}
+{"t": 1793662037.2689056, "event": "segment_start", "trial": "low_0.6_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662037.658144, "event": "segment_end", "trial": "low_0.6_2", "segment": 0, "first": 1793662037.5372968, "sustained": 1793662037.5873146, "peaks": {"yaw": 0.016509086665696632}}
+{"t": 1793662037.658144, "event": "segment_start", "trial": "low_0.6_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662038.6890528, "event": "segment_start", "trial": "low_0.6_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.6}
+{"t": 1793662044.7191389, "event": "segment_start", "trial": "low_0.6_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662045.9066231, "event": "segment_end", "trial": "low_0.6_2", "segment": 3, "first": 1793662044.72731, "sustained": 1793662044.7872972, "peaks": {"yaw": 0.17581306362390176}}
+{"t": 1793662045.9066231, "event": "trial_end", "trial": "low_0.6_2"}
+{"t": 1793662045.9066231, "event": "trial_start", "trial": "low_0.5_0"}
+{"t": 1793662050.9488425, "event": "segment_start", "trial": "low_0.5_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662051.4493644, "event": "segment_end", "trial": "low_0.5_0", "segment": 0, "first": 1793662051.2372985, "sustained": 1793662051.3373067, "peaks": {"yaw": 0.15060290582490296}}
+{"t": 1793662051.4493644, "event": "segment_start", "trial": "low_0.5_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662052.449634, "event": "segment_start", "trial": "low_0.5_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.5}
+{"t": 1793662058.510764, "event": "segment_start", "trial": "low_0.5_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662059.6926527, "event": "segment_end", "trial": "low_0.5_0", "segment": 3, "first": 1793662058.517296, "sustained": 1793662058.5673013, "peaks": {"yaw": 0.244946488402344}}
+{"t": 1793662059.6926527, "event": "trial_end", "trial": "low_0.5_0"}
+{"t": 1793662059.6926527, "event": "trial_start", "trial": "low_0.5_1"}
+{"t": 1793662064.7433434, "event": "segment_start", "trial": "low_0.5_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662065.2506647, "event": "segment_end", "trial": "low_0.5_1", "segment": 0, "first": 1793662065.0973127, "sustained": 1793662065.1573129, "peaks": {"yaw": 0.15389587554837386}}
+{"t": 1793662065.2506647, "event": "segment_start", "trial": "low_0.5_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662066.2894254, "event": "segment_start", "trial": "low_0.5_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.5}
+{"t": 1793662072.424368, "event": "segment_start", "trial": "low_0.5_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662073.7480702, "event": "segment_end", "trial": "low_0.5_1", "segment": 3, "first": 1793662072.4273088, "sustained": 1793662072.6673183, "peaks": {"yaw": 0.3203000592654986}}
+{"t": 1793662073.7480702, "event": "trial_end", "trial": "low_0.5_1"}
+{"t": 1793662073.7480702, "event": "trial_start", "trial": "low_0.5_2"}
+{"t": 1793662078.773597, "event": "segment_start", "trial": "low_0.5_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662079.2378423, "event": "segment_end", "trial": "low_0.5_2", "segment": 0, "first": 1793662079.0872989, "sustained": 1793662079.1473138, "peaks": {"yaw": 0.13378437401105278}}
+{"t": 1793662079.2378423, "event": "segment_start", "trial": "low_0.5_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662080.2964547, "event": "segment_start", "trial": "low_0.5_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.5}
+{"t": 1793662086.3308177, "event": "segment_start", "trial": "low_0.5_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662087.5348127, "event": "segment_end", "trial": "low_0.5_2", "segment": 3, "first": 1793662086.337322, "sustained": 1793662086.3973145, "peaks": {"yaw": 0.24050291469027324}}
+{"t": 1793662087.5348127, "event": "trial_end", "trial": "low_0.5_2"}
+{"t": 1793662087.5348127, "event": "trial_start", "trial": "low_0.4_0"}
+{"t": 1793662092.537486, "event": "segment_start", "trial": "low_0.4_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662092.878154, "event": "link_lost", "what": "manual", "count": 1}
+{"t": 1793662093.2077715, "event": "trial_retry", "trial": "low_0.4_0"}
+{"t": 1793662098.246564, "event": "segment_start", "trial": "low_0.4_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662098.8112764, "event": "segment_end", "trial": "low_0.4_0", "segment": 0, "first": 1793662098.5472913, "sustained": 1793662098.5972934, "peaks": {"yaw": 0.19445940100012987}}
+{"t": 1793662098.8112764, "event": "segment_start", "trial": "low_0.4_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662099.8179746, "event": "segment_start", "trial": "low_0.4_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.4}
+{"t": 1793662105.8420007, "event": "segment_start", "trial": "low_0.4_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662107.065299, "event": "segment_end", "trial": "low_0.4_0", "segment": 3, "first": 1793662105.867345, "sustained": 1793662105.9573004, "peaks": {"yaw": 0.344514031513392}}
+{"t": 1793662107.065299, "event": "trial_end", "trial": "low_0.4_0"}
+{"t": 1793662107.065299, "event": "trial_start", "trial": "low_0.4_1"}
+{"t": 1793662112.1074264, "event": "segment_start", "trial": "low_0.4_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662112.6339757, "event": "segment_end", "trial": "low_0.4_1", "segment": 0, "first": 1793662112.487292, "sustained": 1793662112.54729, "peaks": {"yaw": 0.13392679287793438}}
+{"t": 1793662112.6339757, "event": "segment_start", "trial": "low_0.4_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662113.6974328, "event": "segment_start", "trial": "low_0.4_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.4}
+{"t": 1793662119.7754622, "event": "segment_start", "trial": "low_0.4_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662120.9283223, "event": "segment_end", "trial": "low_0.4_1", "segment": 3, "first": 1793662119.7773068, "sustained": 1793662119.8373122, "peaks": {"yaw": 0.3545447877847392}}
+{"t": 1793662120.9283223, "event": "trial_end", "trial": "low_0.4_1"}
+{"t": 1793662120.9283223, "event": "trial_start", "trial": "low_0.4_2"}
+{"t": 1793662125.9485824, "event": "segment_start", "trial": "low_0.4_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662126.375033, "event": "segment_end", "trial": "low_0.4_2", "segment": 0, "first": 1793662126.2373016, "sustained": 1793662126.3373156, "peaks": {"yaw": 0.03921545387486879}}
+{"t": 1793662126.375033, "event": "segment_start", "trial": "low_0.4_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662127.42364, "event": "segment_start", "trial": "low_0.4_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.4}
+{"t": 1793662133.4492807, "event": "segment_start", "trial": "low_0.4_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662134.7732904, "event": "segment_end", "trial": "low_0.4_2", "segment": 3, "first": 1793662133.4573457, "sustained": 1793662133.6773157, "peaks": {"yaw": 0.33674801447814245}}
+{"t": 1793662134.7732904, "event": "trial_end", "trial": "low_0.4_2"}
+{"t": 1793662134.7732904, "event": "trial_start", "trial": "low_0.3_0"}
+{"t": 1793662139.7759898, "event": "segment_start", "trial": "low_0.3_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662140.0744197, "event": "segment_end", "trial": "low_0.3_0", "segment": 0, "first": 1793662139.9473114, "sustained": 1793662139.997312, "peaks": {"yaw": 0.02378071586194218}}
+{"t": 1793662140.0744197, "event": "segment_start", "trial": "low_0.3_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662141.0930345, "event": "segment_start", "trial": "low_0.3_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.3}
+{"t": 1793662147.1640747, "event": "segment_start", "trial": "low_0.3_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662148.533095, "event": "segment_end", "trial": "low_0.3_0", "segment": 3, "first": 1793662147.1672993, "sustained": 1793662147.39764, "peaks": {"yaw": 0.3769576078943807}}
+{"t": 1793662148.533095, "event": "trial_end", "trial": "low_0.3_0"}
+{"t": 1793662148.533095, "event": "trial_start", "trial": "low_0.3_1"}
+{"t": 1793662153.534144, "event": "segment_start", "trial": "low_0.3_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662154.0074153, "event": "segment_end", "trial": "low_0.3_1", "segment": 0, "first": 1793662153.8973346, "sustained": 1793662153.957315, "peaks": {"yaw": 0.1118006076727699}}
+{"t": 1793662154.0074153, "event": "segment_start", "trial": "low_0.3_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662155.0655947, "event": "segment_start", "trial": "low_0.3_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.3}
+{"t": 1793662161.116149, "event": "segment_start", "trial": "low_0.3_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662162.4296784, "event": "segment_end", "trial": "low_0.3_1", "segment": 3, "first": 1793662161.1173244, "sustained": 1793662161.3673134, "peaks": {"yaw": 0.3248455187326574}}
+{"t": 1793662162.4296784, "event": "trial_end", "trial": "low_0.3_1"}
+{"t": 1793662162.4296784, "event": "trial_start", "trial": "low_0.3_2"}
+{"t": 1793662167.5014284, "event": "segment_start", "trial": "low_0.3_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662168.10735, "event": "segment_end", "trial": "low_0.3_2", "segment": 0, "first": 1793662167.857299, "sustained": 1793662168.0072904, "peaks": {"yaw": 0.1926536315155824}}
+{"t": 1793662168.10735, "event": "segment_start", "trial": "low_0.3_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662169.135023, "event": "segment_start", "trial": "low_0.3_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.3}
+{"t": 1793662175.1877503, "event": "segment_start", "trial": "low_0.3_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662176.421295, "event": "segment_end", "trial": "low_0.3_2", "segment": 3, "first": 1793662175.197345, "sustained": 1793662175.2473452, "peaks": {"yaw": 0.37728433353016794}}
+{"t": 1793662176.421295, "event": "trial_end", "trial": "low_0.3_2"}
+{"t": 1793662176.421295, "event": "trial_start", "trial": "low_0.26_0"}
+{"t": 1793662181.4262197, "event": "segment_start", "trial": "low_0.26_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662181.956874, "event": "segment_end", "trial": "low_0.26_0", "segment": 0, "first": 1793662181.7773027, "sustained": 1793662181.8273125, "peaks": {"yaw": 0.07610879729469623}}
+{"t": 1793662181.956874, "event": "segment_start", "trial": "low_0.26_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662183.005063, "event": "segment_start", "trial": "low_0.26_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.26}
+{"t": 1793662189.0158136, "event": "segment_start", "trial": "low_0.26_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662190.4387207, "event": "segment_end", "trial": "low_0.26_0", "segment": 3, "first": 1793662189.257301, "sustained": 1793662189.30731, "peaks": {"yaw": 0.5821636473831552}}
+{"t": 1793662190.4387207, "event": "trial_end", "trial": "low_0.26_0"}
+{"t": 1793662190.4387207, "event": "trial_start", "trial": "low_0.26_1"}
+{"t": 1793662195.4474156, "event": "segment_start", "trial": "low_0.26_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662195.8306406, "event": "segment_end", "trial": "low_0.26_1", "segment": 0, "first": 1793662195.6773126, "sustained": 1793662195.7273138, "peaks": {"yaw": 0.007846723824693862}}
+{"t": 1793662195.8306406, "event": "segment_start", "trial": "low_0.26_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662196.86558, "event": "segment_start", "trial": "low_0.26_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.26}
+{"t": 1793662202.9275615, "event": "segment_start", "trial": "low_0.26_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662204.2063217, "event": "segment_end", "trial": "low_0.26_1", "segment": 3, "first": 1793662202.9573178, "sustained": 1793662203.1073132, "peaks": {"yaw": 0.40533526525224006}}
+{"t": 1793662204.2063217, "event": "trial_end", "trial": "low_0.26_1"}
+{"t": 1793662204.2063217, "event": "trial_start", "trial": "low_0.26_2"}
+{"t": 1793662209.2605734, "event": "segment_start", "trial": "low_0.26_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662209.7380135, "event": "segment_end", "trial": "low_0.26_2", "segment": 0, "first": 1793662209.4973185, "sustained": 1793662209.66736, "peaks": {"yaw": 0.05706708236140989}}
+{"t": 1793662209.7380135, "event": "segment_start", "trial": "low_0.26_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662210.759345, "event": "segment_start", "trial": "low_0.26_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.26}
+{"t": 1793662216.7965758, "event": "segment_start", "trial": "low_0.26_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662218.2882104, "event": "segment_end", "trial": "low_0.26_2", "segment": 3, "first": 1793662217.0572934, "sustained": 1793662217.1073153, "peaks": {"yaw": 0.625791293604552}}
+{"t": 1793662218.2882104, "event": "trial_end", "trial": "low_0.26_2"}
+{"t": 1793662218.2882104, "event": "trial_start", "trial": "low_0.22_0"}
+{"t": 1793662223.2902205, "event": "segment_start", "trial": "low_0.22_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662223.8131907, "event": "segment_end", "trial": "low_0.22_0", "segment": 0, "first": 1793662223.6972926, "sustained": 1793662223.7473125, "peaks": {"yaw": 0.055627133887872}}
+{"t": 1793662223.8131907, "event": "segment_start", "trial": "low_0.22_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662224.814367, "event": "segment_start", "trial": "low_0.22_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.22000000000000003}
+{"t": 1793662230.824849, "event": "segment_start", "trial": "low_0.22_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662232.021843, "event": "segment_end", "trial": "low_0.22_0", "segment": 3, "first": 1793662230.8273015, "sustained": 1793662230.87731, "peaks": {"yaw": 0.36786978562344713}}
+{"t": 1793662232.021843, "event": "trial_end", "trial": "low_0.22_0"}
+{"t": 1793662232.021843, "event": "trial_start", "trial": "low_0.22_1"}
+{"t": 1793662237.048286, "event": "segment_start", "trial": "low_0.22_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662237.4082332, "event": "segment_end", "trial": "low_0.22_1", "segment": 0, "first": 1793662237.227302, "sustained": 1793662237.2773337, "peaks": {"yaw": 0.020078267703504}}
+{"t": 1793662237.4082332, "event": "segment_start", "trial": "low_0.22_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662238.4728425, "event": "segment_start", "trial": "low_0.22_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.22000000000000003}
+{"t": 1793662244.5089977, "event": "segment_start", "trial": "low_0.22_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662245.9280083, "event": "segment_end", "trial": "low_0.22_1", "segment": 3, "first": 1793662244.8473113, "sustained": 1793662244.8973198, "peaks": {"yaw": 0.6114527744295445}}
+{"t": 1793662245.9280083, "event": "trial_end", "trial": "low_0.22_1"}
+{"t": 1793662245.9280083, "event": "trial_start", "trial": "low_0.22_2"}
+{"t": 1793662248.5673892, "event": "link_lost", "what": "manual", "count": 2}
+{"t": 1793662250.6776345, "event": "trial_retry", "trial": "low_0.22_2"}
+{"t": 1793662255.677873, "event": "segment_start", "trial": "low_0.22_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662256.1732707, "event": "segment_end", "trial": "low_0.22_2", "segment": 0, "first": 1793662256.0073423, "sustained": 1793662256.0872955, "peaks": {"yaw": 0.07030531832780673}}
+{"t": 1793662256.1732707, "event": "segment_start", "trial": "low_0.22_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662257.2285173, "event": "segment_start", "trial": "low_0.22_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.22000000000000003}
+{"t": 1793662263.331191, "event": "segment_start", "trial": "low_0.22_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662264.7110677, "event": "segment_end", "trial": "low_0.22_2", "segment": 3, "first": 1793662263.3373168, "sustained": 1793662263.567313, "peaks": {"yaw": 0.4112442519644255}}
+{"t": 1793662264.7110677, "event": "trial_end", "trial": "low_0.22_2"}
+{"t": 1793662264.7110677, "event": "trial_start", "trial": "low_0.18_0"}
+{"t": 1793662266.0745194, "event": "link_lost", "what": "manual", "count": 3}
+{"t": 1793662270.2810051, "event": "trial_retry", "trial": "low_0.18_0"}
+{"t": 1793662275.3108587, "event": "segment_start", "trial": "low_0.18_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662275.8648045, "event": "segment_end", "trial": "low_0.18_0", "segment": 0, "first": 1793662275.6073043, "sustained": 1793662275.6573143, "peaks": {"yaw": 0.107414543423544}}
+{"t": 1793662275.8648045, "event": "segment_start", "trial": "low_0.18_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662276.8778439, "event": "segment_start", "trial": "low_0.18_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.18000000000000002}
+{"t": 1793662282.8821094, "event": "segment_start", "trial": "low_0.18_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662284.2331984, "event": "segment_end", "trial": "low_0.18_0", "segment": 3, "first": 1793662283.1073134, "sustained": 1793662283.1573453, "peaks": {"yaw": 0.5819039423906064}}
+{"t": 1793662284.2331984, "event": "trial_end", "trial": "low_0.18_0"}
+{"t": 1793662284.2331984, "event": "trial_start", "trial": "low_0.18_1"}
+{"t": 1793662289.311654, "event": "segment_start", "trial": "low_0.18_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662289.873039, "event": "segment_end", "trial": "low_0.18_1", "segment": 0, "first": 1793662289.7073066, "sustained": 1793662289.7672997, "peaks": {"yaw": 0.08525501378944159}}
+{"t": 1793662289.873039, "event": "segment_start", "trial": "low_0.18_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662290.939866, "event": "segment_start", "trial": "low_0.18_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.18000000000000002}
+{"t": 1793662296.9662056, "event": "segment_start", "trial": "low_0.18_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662298.2174222, "event": "segment_end", "trial": "low_0.18_1", "segment": 3, "first": 1793662296.967337, "sustained": 1793662297.1873138, "peaks": {"yaw": 0.35745460071200635}}
+{"t": 1793662298.2174222, "event": "trial_end", "trial": "low_0.18_1"}
+{"t": 1793662298.2174222, "event": "trial_start", "trial": "low_0.18_2"}
+{"t": 1793662303.2728465, "event": "segment_start", "trial": "low_0.18_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662303.777398, "event": "segment_end", "trial": "low_0.18_2", "segment": 0, "first": 1793662303.6273215, "sustained": 1793662303.687307, "peaks": {"yaw": 0.1129632941783232}}
+{"t": 1793662303.777398, "event": "segment_start", "trial": "low_0.18_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662304.7838752, "event": "segment_start", "trial": "low_0.18_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.18000000000000002}
+{"t": 1793662310.8293722, "event": "segment_start", "trial": "low_0.18_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662312.2745697, "event": "segment_end", "trial": "low_0.18_2", "segment": 3, "first": 1793662311.157313, "sustained": 1793662311.2073169, "peaks": {"yaw": 0.5884296351454622}}
+{"t": 1793662312.2745697, "event": "trial_end", "trial": "low_0.18_2"}
+{"t": 1793662312.2745697, "event": "trial_start", "trial": "low_0.15_0"}
+{"t": 1793662317.329842, "event": "segment_start", "trial": "low_0.15_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662317.692061, "event": "segment_end", "trial": "low_0.15_0", "segment": 0, "first": 1793662317.6173153, "sustained": 1793662317.6773007, "peaks": {"yaw": 0.0123513460434768}}
+{"t": 1793662317.692061, "event": "segment_start", "trial": "low_0.15_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662318.7596145, "event": "segment_start", "trial": "low_0.15_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.15}
+{"t": 1793662324.8072429, "event": "segment_start", "trial": "low_0.15_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662326.273615, "event": "segment_end", "trial": "low_0.15_0", "segment": 3, "first": 1793662325.1373136, "sustained": 1793662325.1873167, "peaks": {"yaw": 0.6670157631473203}}
+{"t": 1793662326.273615, "event": "trial_end", "trial": "low_0.15_0"}
+{"t": 1793662326.273615, "event": "trial_start", "trial": "low_0.15_1"}
+{"t": 1793662331.280432, "event": "segment_start", "trial": "low_0.15_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662331.9330328, "event": "segment_end", "trial": "low_0.15_1", "segment": 0, "first": 1793662331.507311, "sustained": 1793662331.6873376, "peaks": {"yaw": 0.25366926382811406}}
+{"t": 1793662331.9330328, "event": "segment_start", "trial": "low_0.15_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662333.0008414, "event": "segment_start", "trial": "low_0.15_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.15}
+{"t": 1793662339.0473452, "event": "segment_start", "trial": "low_0.15_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662340.5016022, "event": "link_lost", "what": "manual", "count": 4}
+{"t": 1793662341.241686, "event": "trial_retry", "trial": "low_0.15_1"}
+{"t": 1793662346.2844965, "event": "segment_start", "trial": "low_0.15_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662346.7667317, "event": "segment_end", "trial": "low_0.15_1", "segment": 0, "first": 1793662346.6273139, "sustained": 1793662346.6873024, "peaks": {"yaw": 0.0171489070886256}}
+{"t": 1793662346.7667317, "event": "segment_start", "trial": "low_0.15_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662347.7997403, "event": "segment_start", "trial": "low_0.15_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.15}
+{"t": 1793662353.8585908, "event": "segment_start", "trial": "low_0.15_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662355.2575712, "event": "segment_end", "trial": "low_0.15_1", "segment": 3, "first": 1793662354.097313, "sustained": 1793662354.1573012, "peaks": {"yaw": 0.5730153295811136}}
+{"t": 1793662355.2575712, "event": "trial_end", "trial": "low_0.15_1"}
+{"t": 1793662355.2575712, "event": "trial_start", "trial": "low_0.15_2"}
+{"t": 1793662360.3596318, "event": "segment_start", "trial": "low_0.15_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662360.7748892, "event": "segment_end", "trial": "low_0.15_2", "segment": 0, "first": 1793662360.6772976, "sustained": 1793662360.727301, "peaks": {"yaw": 0.10319907214823762}}
+{"t": 1793662360.7748892, "event": "segment_start", "trial": "low_0.15_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662361.7791376, "event": "segment_start", "trial": "low_0.15_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.15}
+{"t": 1793662367.7990842, "event": "segment_start", "trial": "low_0.15_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662369.3652084, "event": "segment_end", "trial": "low_0.15_2", "segment": 3, "first": 1793662367.9873164, "sustained": 1793662368.2372985, "peaks": {"yaw": 0.6481091678029391}}
+{"t": 1793662369.3652084, "event": "trial_end", "trial": "low_0.15_2"}
+{"t": 1793662369.3652084, "event": "trial_start", "trial": "low_0.12_0"}
+{"t": 1793662374.365842, "event": "segment_start", "trial": "low_0.12_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662374.7544534, "event": "segment_end", "trial": "low_0.12_0", "segment": 0, "first": 1793662374.6473134, "sustained": 1793662374.6973138, "peaks": {"yaw": 0.015834456428478416}}
+{"t": 1793662374.7544534, "event": "segment_start", "trial": "low_0.12_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662375.7814393, "event": "segment_start", "trial": "low_0.12_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.12}
+{"t": 1793662381.803945, "event": "segment_start", "trial": "low_0.12_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662383.2031612, "event": "segment_end", "trial": "low_0.12_0", "segment": 3, "first": 1793662382.0073225, "sustained": 1793662382.1373458, "peaks": {"yaw": 0.6190277936910767}}
+{"t": 1793662383.2031612, "event": "trial_end", "trial": "low_0.12_0"}
+{"t": 1793662383.2031612, "event": "trial_start", "trial": "low_0.12_1"}
+{"t": 1793662388.2035346, "event": "segment_start", "trial": "low_0.12_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662388.7538388, "event": "segment_end", "trial": "low_0.12_1", "segment": 0, "first": 1793662388.4578483, "sustained": 1793662388.6773129, "peaks": {"yaw": 0.12826354852428962}}
+{"t": 1793662388.7538388, "event": "segment_start", "trial": "low_0.12_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662389.7979696, "event": "segment_start", "trial": "low_0.12_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.12}
+{"t": 1793662395.8962796, "event": "segment_start", "trial": "low_0.12_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662397.314396, "event": "segment_end", "trial": "low_0.12_1", "segment": 3, "first": 1793662396.1873128, "sustained": 1793662396.2473068, "peaks": {"yaw": 0.6628518568471129}}
+{"t": 1793662397.314396, "event": "trial_end", "trial": "low_0.12_1"}
+{"t": 1793662397.314396, "event": "trial_start", "trial": "low_0.12_2"}
+{"t": 1793662402.3374164, "event": "segment_start", "trial": "low_0.12_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662402.8423018, "event": "segment_end", "trial": "low_0.12_2", "segment": 0, "first": 1793662402.7173, "sustained": 1793662402.7772965, "peaks": {"yaw": 0.07319491999673759}}
+{"t": 1793662402.8423018, "event": "segment_start", "trial": "low_0.12_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662403.9856353, "event": "segment_start", "trial": "low_0.12_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.12}
+{"t": 1793662410.0408807, "event": "segment_start", "trial": "low_0.12_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662411.3828883, "event": "segment_end", "trial": "low_0.12_2", "segment": 3, "first": 1793662410.2773063, "sustained": 1793662410.327313, "peaks": {"yaw": 0.5762071877153424}}
+{"t": 1793662411.3828883, "event": "trial_end", "trial": "low_0.12_2"}
+{"t": 1793662411.3828883, "event": "trial_start", "trial": "low_0.1_0"}
+{"t": 1793662416.4299684, "event": "segment_start", "trial": "low_0.1_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662416.8144789, "event": "segment_end", "trial": "low_0.1_0", "segment": 0, "first": 1793662416.6972954, "sustained": 1793662416.7572923, "peaks": {"yaw": 0.009307491829732801}}
+{"t": 1793662416.8144789, "event": "segment_start", "trial": "low_0.1_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662417.8539042, "event": "segment_start", "trial": "low_0.1_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.1}
+{"t": 1793662423.91585, "event": "segment_start", "trial": "low_0.1_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662425.4398215, "event": "segment_end", "trial": "low_0.1_0", "segment": 3, "first": 1793662424.0773149, "sustained": 1793662424.277313, "peaks": {"yaw": 0.6070925341410384}}
+{"t": 1793662425.4398215, "event": "trial_end", "trial": "low_0.1_0"}
+{"t": 1793662425.4398215, "event": "trial_start", "trial": "low_0.1_1"}
+{"t": 1793662430.4883301, "event": "segment_start", "trial": "low_0.1_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662430.9666624, "event": "segment_end", "trial": "low_0.1_1", "segment": 0, "first": 1793662430.8473673, "sustained": 1793662430.9073155, "peaks": {"yaw": 0.041541628700601595}}
+{"t": 1793662430.9666624, "event": "segment_start", "trial": "low_0.1_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662432.0276482, "event": "segment_start", "trial": "low_0.1_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.1}
+{"t": 1793662438.0632896, "event": "segment_start", "trial": "low_0.1_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662439.6608422, "event": "segment_end", "trial": "low_0.1_1", "segment": 3, "first": 1793662438.4973133, "sustained": 1793662438.5473146, "peaks": {"yaw": 0.6119599083562272}}
+{"t": 1793662439.6608422, "event": "trial_end", "trial": "low_0.1_1"}
+{"t": 1793662439.6608422, "event": "trial_start", "trial": "low_0.1_2"}
+{"t": 1793662444.7158802, "event": "segment_start", "trial": "low_0.1_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662445.1875842, "event": "segment_end", "trial": "low_0.1_2", "segment": 0, "first": 1793662445.087313, "sustained": 1793662445.1373158, "peaks": {"yaw": 0.07797508995913188}}
+{"t": 1793662445.1875842, "event": "segment_start", "trial": "low_0.1_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662446.2308245, "event": "segment_start", "trial": "low_0.1_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.1}
+{"t": 1793662452.2991652, "event": "segment_start", "trial": "low_0.1_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662453.6840992, "event": "segment_end", "trial": "low_0.1_2", "segment": 3, "first": 1793662452.557343, "sustained": 1793662452.617314, "peaks": {"yaw": 0.6498154016787168}}
+{"t": 1793662453.6840992, "event": "trial_end", "trial": "low_0.1_2"}
+{"t": 1793662453.6840992, "event": "trial_start", "trial": "low_0.08_0"}
+{"t": 1793662458.739093, "event": "segment_start", "trial": "low_0.08_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662459.2565439, "event": "segment_end", "trial": "low_0.08_0", "segment": 0, "first": 1793662459.1073496, "sustained": 1793662459.167313, "peaks": {"yaw": 0.113013559660752}}
+{"t": 1793662459.2565439, "event": "segment_start", "trial": "low_0.08_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662460.4171205, "event": "segment_start", "trial": "low_0.08_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.08}
+{"t": 1793662466.462012, "event": "segment_start", "trial": "low_0.08_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662467.9748874, "event": "segment_end", "trial": "low_0.08_0", "segment": 3, "first": 1793662466.6373146, "sustained": 1793662466.817295, "peaks": {"yaw": 0.6160090722185472}}
+{"t": 1793662467.9748874, "event": "trial_end", "trial": "low_0.08_0"}
+{"t": 1793662467.9748874, "event": "trial_start", "trial": "low_0.08_1"}
+{"t": 1793662473.0400004, "event": "segment_start", "trial": "low_0.08_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662473.4981205, "event": "segment_end", "trial": "low_0.08_1", "segment": 0, "first": 1793662473.4073083, "sustained": 1793662473.4573164, "peaks": {"yaw": 0.06848049883369188}}
+{"t": 1793662473.4981205, "event": "segment_start", "trial": "low_0.08_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662474.5050492, "event": "segment_start", "trial": "low_0.08_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.08}
+{"t": 1793662480.5888684, "event": "segment_start", "trial": "low_0.08_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662482.1466851, "event": "segment_end", "trial": "low_0.08_1", "segment": 3, "first": 1793662480.7873015, "sustained": 1793662480.897345, "peaks": {"yaw": 0.62810909084988}}
+{"t": 1793662482.1466851, "event": "trial_end", "trial": "low_0.08_1"}
+{"t": 1793662482.1466851, "event": "trial_start", "trial": "low_0.08_2"}
+{"t": 1793662487.2244792, "event": "segment_start", "trial": "low_0.08_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662487.6427126, "event": "segment_end", "trial": "low_0.08_2", "segment": 0, "first": 1793662487.547301, "sustained": 1793662487.5973132, "peaks": {"yaw": 0.0729240448969824}}
+{"t": 1793662487.6427126, "event": "segment_start", "trial": "low_0.08_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662488.6584542, "event": "segment_start", "trial": "low_0.08_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.08}
+{"t": 1793662494.7002087, "event": "segment_start", "trial": "low_0.08_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662496.0008466, "event": "segment_end", "trial": "low_0.08_2", "segment": 3, "first": 1793662494.8773084, "sustained": 1793662494.9273129, "peaks": {"yaw": 0.556955507945112}}
+{"t": 1793662496.0008466, "event": "trial_end", "trial": "low_0.08_2"}
+{"t": 1793662496.0008466, "event": "trial_start", "trial": "low_0.06_0"}
+{"t": 1793662501.0413074, "event": "segment_start", "trial": "low_0.06_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662501.5176685, "event": "segment_end", "trial": "low_0.06_0", "segment": 0, "first": 1793662501.3873112, "sustained": 1793662501.4472926, "peaks": {"yaw": 0.07635210656057821}}
+{"t": 1793662501.5176685, "event": "segment_start", "trial": "low_0.06_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662502.5791051, "event": "segment_start", "trial": "low_0.06_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.06}
+{"t": 1793662508.6340725, "event": "segment_start", "trial": "low_0.06_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662510.0621405, "event": "segment_end", "trial": "low_0.06_0", "segment": 3, "first": 1793662508.807346, "sustained": 1793662508.987296, "peaks": {"yaw": 0.630638263019943}}
+{"t": 1793662510.0621405, "event": "trial_end", "trial": "low_0.06_0"}
+{"t": 1793662510.0621405, "event": "trial_start", "trial": "low_0.06_1"}
+{"t": 1793662515.097528, "event": "segment_start", "trial": "low_0.06_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662515.4968746, "event": "segment_end", "trial": "low_0.06_1", "segment": 0, "first": 1793662515.3973064, "sustained": 1793662515.45732, "peaks": {"yaw": 0.0186345313470768}}
+{"t": 1793662515.4968746, "event": "segment_start", "trial": "low_0.06_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662516.5755527, "event": "segment_start", "trial": "low_0.06_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.06}
+{"t": 1793662522.6038833, "event": "segment_start", "trial": "low_0.06_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662523.984155, "event": "segment_end", "trial": "low_0.06_1", "segment": 3, "first": 1793662522.7773113, "sustained": 1793662522.9173093, "peaks": {"yaw": 0.6215773706609375}}
+{"t": 1793662523.984155, "event": "trial_end", "trial": "low_0.06_1"}
+{"t": 1793662523.984155, "event": "trial_start", "trial": "low_0.06_2"}
+{"t": 1793662529.0280035, "event": "segment_start", "trial": "low_0.06_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662529.4748228, "event": "segment_end", "trial": "low_0.06_2", "segment": 0, "first": 1793662529.3673146, "sustained": 1793662529.4273133, "peaks": {"yaw": 0.07273011635256237}}
+{"t": 1793662529.4748228, "event": "segment_start", "trial": "low_0.06_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662530.4755228, "event": "segment_start", "trial": "low_0.06_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.06}
+{"t": 1793662536.5074546, "event": "segment_start", "trial": "low_0.06_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662537.996322, "event": "segment_end", "trial": "low_0.06_2", "segment": 3, "first": 1793662536.7972982, "sustained": 1793662536.8473127, "peaks": {"yaw": 0.6457068482364973}}
+{"t": 1793662537.996322, "event": "trial_end", "trial": "low_0.06_2"}
+{"t": 1793662537.996322, "event": "trial_start", "trial": "low_0.04_0"}
+{"t": 1793662543.029647, "event": "segment_start", "trial": "low_0.04_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662543.5242717, "event": "segment_end", "trial": "low_0.04_0", "segment": 0, "first": 1793662543.327556, "sustained": 1793662543.4773207, "peaks": {"yaw": 0.10868459014266772}}
+{"t": 1793662543.5242717, "event": "segment_start", "trial": "low_0.04_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662544.62468, "event": "segment_start", "trial": "low_0.04_0", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.04}
+{"t": 1793662550.6573963, "event": "segment_start", "trial": "low_0.04_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662551.975892, "event": "segment_end", "trial": "low_0.04_0", "segment": 3, "first": 1793662550.7773278, "sustained": 1793662550.8373466, "peaks": {"yaw": 0.6422341614416364}}
+{"t": 1793662551.975892, "event": "trial_end", "trial": "low_0.04_0"}
+{"t": 1793662551.975892, "event": "trial_start", "trial": "low_0.04_1"}
+{"t": 1793662556.9868424, "event": "segment_start", "trial": "low_0.04_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662557.6361117, "event": "segment_end", "trial": "low_0.04_1", "segment": 0, "first": 1793662557.337302, "sustained": 1793662557.3973014, "peaks": {"yaw": 0.261617873407896}}
+{"t": 1793662557.6361117, "event": "segment_start", "trial": "low_0.04_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662558.6591125, "event": "segment_start", "trial": "low_0.04_1", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.04}
+{"t": 1793662564.7132616, "event": "segment_start", "trial": "low_0.04_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662566.2977872, "event": "segment_end", "trial": "low_0.04_1", "segment": 3, "first": 1793662564.8973193, "sustained": 1793662565.1173131, "peaks": {"yaw": 0.6226781791963723}}
+{"t": 1793662566.2977872, "event": "trial_end", "trial": "low_0.04_1"}
+{"t": 1793662566.2977872, "event": "trial_start", "trial": "low_0.04_2"}
+{"t": 1793662571.3418674, "event": "segment_start", "trial": "low_0.04_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662571.8913853, "event": "segment_end", "trial": "low_0.04_2", "segment": 0, "first": 1793662571.727313, "sustained": 1793662571.7773132, "peaks": {"yaw": 0.1317290742850752}}
+{"t": 1793662571.8913853, "event": "segment_start", "trial": "low_0.04_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662572.9091127, "event": "segment_start", "trial": "low_0.04_2", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.04}
+{"t": 1793662578.9231339, "event": "segment_start", "trial": "low_0.04_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662580.3267088, "event": "segment_end", "trial": "low_0.04_2", "segment": 3, "first": 1793662579.0973334, "sustained": 1793662579.2173235, "peaks": {"yaw": 0.591834167697096}}
+{"t": 1793662580.3267088, "event": "trial_end", "trial": "low_0.04_2"}
+{"t": 1793662580.3267088, "event": "trial_start", "trial": "low_0.02_0"}
+{"t": 1793662585.3840203, "event": "segment_start", "trial": "low_0.02_0", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662585.8583188, "event": "segment_end", "trial": "low_0.02_0", "segment": 0, "first": 1793662585.707313, "sustained": 1793662585.7673128, "peaks": {"yaw": 0.05359439556654891}}
+{"t": 1793662585.8583188, "event": "segment_start", "trial": "low_0.02_0", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662586.891886, "event": "segment_start", "trial": "low_0.02_0", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.02}
+{"t": 1793662592.906319, "event": "segment_start", "trial": "low_0.02_0", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662594.2882137, "event": "segment_end", "trial": "low_0.02_0", "segment": 3, "first": 1793662593.2173133, "sustained": 1793662593.2673163, "peaks": {"yaw": 0.5907936058537473}}
+{"t": 1793662594.2882137, "event": "trial_end", "trial": "low_0.02_0"}
+{"t": 1793662594.2882137, "event": "trial_start", "trial": "low_0.02_1"}
+{"t": 1793662599.2976534, "event": "segment_start", "trial": "low_0.02_1", "segment": 0, "label": "drive", "forward": 0.0, "turn": 0.7}
+{"t": 1793662599.9272022, "event": "segment_end", "trial": "low_0.02_1", "segment": 0, "first": 1793662599.707306, "sustained": 1793662599.757313, "peaks": {"yaw": 0.1817823246769536}}
+{"t": 1793662599.9272022, "event": "segment_start", "trial": "low_0.02_1", "segment": 1, "label": "hold", "forward": 0.0, "turn": 0.7}
+{"t": 1793662600.9275954, "event": "segment_start", "trial": "low_0.02_1", "segment": 2, "label": "low", "forward": 0.0, "turn": 0.02}
+{"t": 1793662606.9638832, "event": "segment_start", "trial": "low_0.02_1", "segment": 3, "label": "probe", "forward": 0.0, "turn": 0.7}
+{"t": 1793662608.5041275, "event": "segment_end", "trial": "low_0.02_1", "segment": 3, "first": 1793662607.1973011, "sustained": 1793662607.257301, "peaks": {"yaw": 0.6299270257977215}}
+{"t": 1793662608.5041275, "event": "trial_end", "trial": "low_0.02_1"}
+{"t": 1793662608.5041275, "event": "trial_start", "trial": "low_0.02_2"}
+{"t": 1793662613.5214698, "event": "segment_start", "trial": "low_0.02_2", "segment": 0, "label": "drive", "forward": 0.0, "turn": -0.7}
+{"t": 1793662613.9721365, "event": "segment_end", "trial": "low_0.02_2", "segment": 0, "first": 1793662613.8573134, "sustained": 1793662613.9073136, "peaks": {"yaw": 0.04370442688405069}}
+{"t": 1793662613.9721365, "event": "segment_start", "trial": "low_0.02_2", "segment": 1, "label": "hold", "forward": 0.0, "turn": -0.7}
+{"t": 1793662615.0174234, "event": "segment_start", "trial": "low_0.02_2", "segment": 2, "label": "low", "forward": 0.0, "turn": -0.02}
+{"t": 1793662621.1046562, "event": "segment_start", "trial": "low_0.02_2", "segment": 3, "label": "probe", "forward": 0.0, "turn": -0.7}
+{"t": 1793662622.5994508, "event": "segment_end", "trial": "low_0.02_2", "segment": 3, "first": 1793662621.3973167, "sustained": 1793662621.4577103, "peaks": {"yaw": 0.5879015434433773}}
+{"t": 1793662622.5994508, "event": "trial_end", "trial": "low_0.02_2"}
+{"t": 1793662622.5994508, "event": "finished"}

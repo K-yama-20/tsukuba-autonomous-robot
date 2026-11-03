@@ -1,0 +1,900 @@
+{
+ "clock": {
+  "a": 1793652827.9534712,
+  "b": 0.0009999420690595669,
+  "samples": 6146,
+  "drift_ppm": -57.930940433159606,
+  "late_p50_s": 0.05034518241882324,
+  "late_p95_s": 0.14488959312438965,
+  "late_max_s": 0.480426549911499
+ },
+ "sigma": {
+  "accel": 0.022537776384960625,
+  "yaw": 0.0009233231313979858
+ },
+ "axes": "base_link",
+ "rows": [
+  {
+   "trial": "delay_90_0.2_0",
+   "section": "delay",
+   "label": "遅れ 90° 0.2",
+   "angle": 90.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654010.278241,
+     "peaks": {
+      "yaw": 0.0017006488221743999
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.0777285099029541
+  },
+  {
+   "trial": "delay_270_0.2_0",
+   "section": "delay",
+   "label": "遅れ 270° 0.2",
+   "angle": 270.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654021.4261184,
+     "first_s": 0.6670622825622559,
+     "motion_s": 0.7170987129211426,
+     "peaks": {
+      "yaw": 0.24184388053064554
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.12920236587524414
+  },
+  {
+   "trial": "delay_0_0.2_0",
+   "section": "delay",
+   "label": "遅れ 0° 0.2",
+   "angle": 0.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654031.3100693,
+     "first_s": 0.22316408157348633,
+     "motion_s": 0.2731659412384033,
+     "peaks": {
+      "accel": 1.0925665970105185
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.14467787742614746
+  },
+  {
+   "trial": "delay_180_0.2_0",
+   "section": "delay",
+   "label": "遅れ 180° 0.2",
+   "angle": 180.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654040.6588097,
+     "peaks": {
+      "accel": 0.05465870358355063
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.0953986644744873
+  },
+  {
+   "trial": "delay_90_0.2_1",
+   "section": "delay",
+   "label": "遅れ 90° 0.2",
+   "angle": 90.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654051.7048802,
+     "peaks": {
+      "yaw": 0.00199071217539802
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.0486910343170166
+  },
+  {
+   "trial": "delay_270_0.2_1",
+   "section": "delay",
+   "label": "遅れ 270° 0.2",
+   "angle": 270.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654062.821843,
+     "first_s": 0.5313572883605957,
+     "motion_s": 0.5913567543029785,
+     "peaks": {
+      "yaw": 0.2010312119203824
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.13107943534851074
+  },
+  {
+   "trial": "delay_0_0.2_1",
+   "section": "delay",
+   "label": "遅れ 0° 0.2",
+   "angle": 0.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654072.553842,
+     "first_s": 0.17934656143188477,
+     "motion_s": 0.8093600273132324,
+     "peaks": {
+      "accel": 1.8231012843410455
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.09851837158203125
+  },
+  {
+   "trial": "delay_180_0.2_1",
+   "section": "delay",
+   "label": "遅れ 180° 0.2",
+   "angle": 180.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654082.6028428,
+     "peaks": {
+      "accel": 0.056503699238943494
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.04893827438354492
+  },
+  {
+   "trial": "delay_90_0.2_2",
+   "section": "delay",
+   "label": "遅れ 90° 0.2",
+   "angle": 90.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654093.6943858,
+     "peaks": {
+      "yaw": 0.0020078267703503997
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.05675220489501953
+  },
+  {
+   "trial": "delay_270_0.2_2",
+   "section": "delay",
+   "label": "遅れ 270° 0.2",
+   "angle": 270.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654104.7541761,
+     "first_s": 0.5890247821807861,
+     "motion_s": 0.7390565872192383,
+     "peaks": {
+      "yaw": 0.28076902221326877
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.09631896018981934
+  },
+  {
+   "trial": "delay_0_0.2_2",
+   "section": "delay",
+   "label": "遅れ 0° 0.2",
+   "angle": 0.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654114.5958521,
+     "first_s": 0.10734939575195312,
+     "motion_s": 0.5073323249816895,
+     "peaks": {
+      "accel": 1.8897887020464212
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.05407524108886719
+  },
+  {
+   "trial": "delay_180_0.2_2",
+   "section": "delay",
+   "label": "遅れ 180° 0.2",
+   "angle": 180.0,
+   "amount": 0.2,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654124.260344,
+     "peaks": {
+      "accel": 0.062301949560953696
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.08902144432067871
+  },
+  {
+   "trial": "delay_90_0.4_0",
+   "section": "delay",
+   "label": "遅れ 90° 0.4",
+   "angle": 90.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654135.2998412,
+     "first_s": 0.3636956214904785,
+     "motion_s": 0.5733449459075928,
+     "peaks": {
+      "yaw": 0.2063456116140689
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.048887014389038086
+  },
+  {
+   "trial": "delay_270_0.4_0",
+   "section": "delay",
+   "label": "遅れ 270° 0.4",
+   "angle": 270.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654145.006097,
+     "first_s": 0.1071465015411377,
+     "motion_s": 0.1670830249786377,
+     "peaks": {
+      "yaw": 0.1858175259052656
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.042069196701049805
+  },
+  {
+   "trial": "delay_0_0.4_0",
+   "section": "delay",
+   "label": "遅れ 0° 0.4",
+   "angle": 0.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654154.292091,
+     "first_s": 0.1211099624633789,
+     "motion_s": 0.25109267234802246,
+     "peaks": {
+      "accel": 0.6686108014268054
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.055536508560180664
+  },
+  {
+   "trial": "delay_180_0.4_0",
+   "section": "delay",
+   "label": "遅れ 180° 0.4",
+   "angle": 180.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654163.7298474,
+     "first_s": 0.8133535385131836,
+     "motion_s": 0.8933515548706055,
+     "peaks": {
+      "accel": 1.81391700375045
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.11722970008850098
+  },
+  {
+   "trial": "delay_90_0.4_1",
+   "section": "delay",
+   "label": "遅れ 90° 0.4",
+   "angle": 90.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654173.7953467,
+     "first_s": 0.2778778076171875,
+     "motion_s": 0.6278517246246338,
+     "peaks": {
+      "yaw": 0.2590911896280523
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.05115103721618652
+  },
+  {
+   "trial": "delay_270_0.4_1",
+   "section": "delay",
+   "label": "遅れ 270° 0.4",
+   "angle": 270.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654183.637717,
+     "first_s": 0.19546127319335938,
+     "motion_s": 0.355482816696167,
+     "peaks": {
+      "yaw": 0.24541057317823364
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.10820722579956055
+  },
+  {
+   "trial": "delay_0_0.4_1",
+   "section": "delay",
+   "label": "遅れ 0° 0.4",
+   "angle": 0.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654193.1369948,
+     "first_s": 0.1661970615386963,
+     "motion_s": 0.2562124729156494,
+     "peaks": {
+      "accel": 0.7606883439726703
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.10837912559509277
+  },
+  {
+   "trial": "delay_180_0.4_1",
+   "section": "delay",
+   "label": "遅れ 180° 0.4",
+   "angle": 180.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654202.523278,
+     "first_s": 0.8099365234375,
+     "motion_s": 0.9599213600158691,
+     "peaks": {
+      "accel": 1.3069383778883132
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.121551513671875
+  },
+  {
+   "trial": "delay_90_0.4_2",
+   "section": "delay",
+   "label": "遅れ 90° 0.4",
+   "angle": 90.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654212.5837607,
+     "first_s": 0.4294443130493164,
+     "motion_s": 0.5994284152984619,
+     "peaks": {
+      "yaw": 0.239355490311398
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.06048941612243652
+  },
+  {
+   "trial": "delay_270_0.4_2",
+   "section": "delay",
+   "label": "遅れ 270° 0.4",
+   "angle": 270.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654222.390412,
+     "first_s": 0.13279485702514648,
+     "motion_s": 0.19279122352600098,
+     "peaks": {
+      "yaw": 0.19610519464235998
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.05327033996582031
+  },
+  {
+   "trial": "delay_0_0.4_2",
+   "section": "delay",
+   "label": "遅れ 0° 0.4",
+   "angle": 0.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654231.7230926,
+     "first_s": 0.18011236190795898,
+     "motion_s": 0.4701104164123535,
+     "peaks": {
+      "accel": 0.6609012292856016
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.12004518508911133
+  },
+  {
+   "trial": "delay_180_0.4_2",
+   "section": "delay",
+   "label": "遅れ 180° 0.4",
+   "angle": 180.0,
+   "amount": 0.4,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654241.7566085,
+     "first_s": 0.8065688610076904,
+     "motion_s": 1.4265904426574707,
+     "peaks": {
+      "accel": 0.6888029043376757
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.08595013618469238
+  },
+  {
+   "trial": "delay_90_0.7_0",
+   "section": "delay",
+   "label": "遅れ 90° 0.7",
+   "angle": 90.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654252.2992456,
+     "first_s": 0.23393893241882324,
+     "motion_s": 0.3239412307739258,
+     "peaks": {
+      "yaw": 0.5791645288957972
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.04270458221435547
+  },
+  {
+   "trial": "delay_270_0.7_0",
+   "section": "delay",
+   "label": "遅れ 270° 0.7",
+   "angle": 270.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654261.763588,
+     "first_s": 0.34961366653442383,
+     "motion_s": 0.3996450901031494,
+     "peaks": {
+      "yaw": 0.7112814602697125
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.07781195640563965
+  },
+  {
+   "trial": "delay_0_0.7_0",
+   "section": "delay",
+   "label": "遅れ 0° 0.7",
+   "angle": 0.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654271.3255408,
+     "first_s": 0.18765974044799805,
+     "motion_s": 0.5076596736907959,
+     "peaks": {
+      "accel": 1.5545283865098072
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.11530303955078125
+  },
+  {
+   "trial": "delay_180_0.7_0",
+   "section": "delay",
+   "label": "遅れ 180° 0.7",
+   "angle": 180.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654280.8940682,
+     "first_s": 0.009135007858276367,
+     "motion_s": 0.0691368579864502,
+     "peaks": {
+      "accel": 1.0053103102661236
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.04622507095336914
+  },
+  {
+   "trial": "delay_90_0.7_1",
+   "section": "delay",
+   "label": "遅れ 90° 0.7",
+   "angle": 90.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654290.1183488,
+     "first_s": 0.40514540672302246,
+     "motion_s": 0.4648299217224121,
+     "peaks": {
+      "yaw": 0.6533766198678226
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.12140583992004395
+  },
+  {
+   "trial": "delay_270_0.7_1",
+   "section": "delay",
+   "label": "遅れ 270° 0.7",
+   "angle": 270.0,
+   "amount": 0.7,
+   "segments": [
+    {
+     "label": "step",
+     "t": 1793654299.7620358,
+     "first_s": 0.3511636257171631,
+     "motion_s": 0.41115760803222656,
+     "peaks": {
+      "yaw": 0.7033573198604198
+     }
+    }
+   ],
+   "ran": true,
+   "dac_s": 0.0771627426147461
+  },
+  {
+   "trial": "delay_0_0.7_1",
+   "section": "delay",
+   "label": "遅れ 0° 0.7",
+   "angle": 0.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_180_0.7_1",
+   "section": "delay",
+   "label": "遅れ 180° 0.7",
+   "angle": 180.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_90_0.7_2",
+   "section": "delay",
+   "label": "遅れ 90° 0.7",
+   "angle": 90.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_270_0.7_2",
+   "section": "delay",
+   "label": "遅れ 270° 0.7",
+   "angle": 270.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_0_0.7_2",
+   "section": "delay",
+   "label": "遅れ 0° 0.7",
+   "angle": 0.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_180_0.7_2",
+   "section": "delay",
+   "label": "遅れ 180° 0.7",
+   "angle": 180.0,
+   "amount": 0.7,
+   "segments": []
+  },
+  {
+   "trial": "delay_90_1_0",
+   "section": "delay",
+   "label": "遅れ 90° 1",
+   "angle": 90.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_270_1_0",
+   "section": "delay",
+   "label": "遅れ 270° 1",
+   "angle": 270.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_0_1_0",
+   "section": "delay",
+   "label": "遅れ 0° 1",
+   "angle": 0.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_180_1_0",
+   "section": "delay",
+   "label": "遅れ 180° 1",
+   "angle": 180.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_90_1_1",
+   "section": "delay",
+   "label": "遅れ 90° 1",
+   "angle": 90.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_270_1_1",
+   "section": "delay",
+   "label": "遅れ 270° 1",
+   "angle": 270.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_0_1_1",
+   "section": "delay",
+   "label": "遅れ 0° 1",
+   "angle": 0.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_180_1_1",
+   "section": "delay",
+   "label": "遅れ 180° 1",
+   "angle": 180.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_90_1_2",
+   "section": "delay",
+   "label": "遅れ 90° 1",
+   "angle": 90.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_270_1_2",
+   "section": "delay",
+   "label": "遅れ 270° 1",
+   "angle": 270.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_0_1_2",
+   "section": "delay",
+   "label": "遅れ 0° 1",
+   "angle": 0.0,
+   "amount": 1.0,
+   "segments": []
+  },
+  {
+   "trial": "delay_180_1_2",
+   "section": "delay",
+   "label": "遅れ 180° 1",
+   "angle": 180.0,
+   "amount": 1.0,
+   "segments": []
+  }
+ ],
+ "tables": [
+  {
+   "key": "delay",
+   "title": "遅れ",
+   "columns": [
+    "angle",
+    "amount",
+    "n",
+    "mean_s",
+    "min_s",
+    "max_s",
+    "first_mean_s",
+    "dac_mean_s",
+    "no_motion"
+   ],
+   "rows": [
+    {
+     "angle": 0.0,
+     "amount": 0.2,
+     "n": 3,
+     "mean_s": 0.5299527645111084,
+     "min_s": 0.2731659412384033,
+     "max_s": 0.8093600273132324,
+     "no_motion": 0,
+     "first_mean_s": 0.1699533462524414,
+     "dac_mean_s": 0.0990904966990153
+    },
+    {
+     "angle": 0.0,
+     "amount": 0.4,
+     "n": 3,
+     "mean_s": 0.3258051872253418,
+     "min_s": 0.25109267234802246,
+     "max_s": 0.4701104164123535,
+     "no_motion": 0,
+     "first_mean_s": 0.15580646197001138,
+     "dac_mean_s": 0.09465360641479492
+    },
+    {
+     "angle": 0.0,
+     "amount": 0.7,
+     "n": 1,
+     "mean_s": 0.5076596736907959,
+     "min_s": 0.5076596736907959,
+     "max_s": 0.5076596736907959,
+     "no_motion": 0,
+     "first_mean_s": 0.18765974044799805,
+     "dac_mean_s": 0.11530303955078125
+    },
+    {
+     "angle": 90.0,
+     "amount": 0.2,
+     "n": 0,
+     "no_motion": 3,
+     "first_mean_s": null,
+     "dac_mean_s": 0.06105724970499674
+    },
+    {
+     "angle": 90.0,
+     "amount": 0.4,
+     "n": 3,
+     "mean_s": 0.6002083619435629,
+     "min_s": 0.5733449459075928,
+     "max_s": 0.6278517246246338,
+     "no_motion": 0,
+     "first_mean_s": 0.35700591405232746,
+     "dac_mean_s": 0.053509155909220375
+    },
+    {
+     "angle": 90.0,
+     "amount": 0.7,
+     "n": 2,
+     "mean_s": 0.39438557624816895,
+     "min_s": 0.3239412307739258,
+     "max_s": 0.4648299217224121,
+     "no_motion": 0,
+     "first_mean_s": 0.31954216957092285,
+     "dac_mean_s": 0.08205521106719971
+    },
+    {
+     "angle": 180.0,
+     "amount": 0.2,
+     "n": 0,
+     "no_motion": 3,
+     "first_mean_s": null,
+     "dac_mean_s": 0.07778612772623698
+    },
+    {
+     "angle": 180.0,
+     "amount": 0.4,
+     "n": 3,
+     "mean_s": 1.0932877858479817,
+     "min_s": 0.8933515548706055,
+     "max_s": 1.4265904426574707,
+     "no_motion": 0,
+     "first_mean_s": 0.809952974319458,
+     "dac_mean_s": 0.10824378331502278
+    },
+    {
+     "angle": 180.0,
+     "amount": 0.7,
+     "n": 1,
+     "mean_s": 0.0691368579864502,
+     "min_s": 0.0691368579864502,
+     "max_s": 0.0691368579864502,
+     "no_motion": 0,
+     "first_mean_s": 0.009135007858276367,
+     "dac_mean_s": 0.04622507095336914
+    },
+    {
+     "angle": 270.0,
+     "amount": 0.2,
+     "n": 3,
+     "mean_s": 0.6825040181477865,
+     "min_s": 0.5913567543029785,
+     "max_s": 0.7390565872192383,
+     "no_motion": 0,
+     "first_mean_s": 0.5958147843678793,
+     "dac_mean_s": 0.1188669204711914
+    },
+    {
+     "angle": 270.0,
+     "amount": 0.4,
+     "n": 3,
+     "mean_s": 0.2384523550669352,
+     "min_s": 0.1670830249786377,
+     "max_s": 0.355482816696167,
+     "no_motion": 0,
+     "first_mean_s": 0.14513421058654785,
+     "dac_mean_s": 0.06784892082214355
+    },
+    {
+     "angle": 270.0,
+     "amount": 0.7,
+     "n": 2,
+     "mean_s": 0.405401349067688,
+     "min_s": 0.3996450901031494,
+     "max_s": 0.41115760803222656,
+     "no_motion": 0,
+     "first_mean_s": 0.35038864612579346,
+     "dac_mean_s": 0.07748734951019287
+    }
+   ]
+  }
+ ],
+ "full_delay_s": 0.5196757316589355,
+ "retries": 0,
+ "end_reason": "manual_override",
+ "message": "the gamepad took over (firmware source=manual)",
+ "status": "実測値（人の確認待ち）"
+}
