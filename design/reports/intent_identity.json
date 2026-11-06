@@ -2,8 +2,8 @@
   "old_file": "design/baselines/intent_history/intent_v3_f0df295f9927.md",
   "old_sha256": "f0df295f9927c0867705359693ff536a21bc913dc014b677628a4982352763e4",
   "new_file": "design/intent.md",
-  "new_sha256": "ec6a0128361916cbfedc68f58dfa5a3149ca98e4e4d09cee076530799ba1dee5",
-  "all_identical": false,
+  "new_sha256": "e9be63b890245ba8b2627ac63bc932b95f6fb2bcd60cdd1d09f408849da7bdc8",
+  "all_identical": true,
   "rows": [
     {
       "requirement": "RQ-I023",
@@ -13,7 +13,14 @@
       "old_sha256": "cabac4e1820fb33b5e2e743ad4a21a5ed5d0b0aa38e5affeaec2dd70e1719ee6",
       "new_sha256": null,
       "identical": false,
-      "replacement": null
+      "replacement": {
+        "successor": "RQ-I110",
+        "text": "・bluetooth接続の手動操作がESP32で優先される（本番で使用したら失格。実験中のみ使用する機能）",
+        "reconciliation": "C-033",
+        "authority_revision": "AR-017",
+        "decision": "DEC-408",
+        "new_line": 39
+      }
     },
     {
       "requirement": "RQ-I024",
@@ -33,7 +40,14 @@
       "old_sha256": "83610d5ca1fb61f3bad7223f426b4a6d6c2d5003b69601aa73557bec9ac7bae8",
       "new_sha256": null,
       "identical": false,
-      "replacement": null
+      "replacement": {
+        "successor": "RQ-I111",
+        "text": "自律走行の開始は人の開始操作でのみ行う。再開（異常終了後の復帰）は自動で行ってよい。人が待機ボタン/自律走行終了ボタンを押した後は、プロセスが再起動しても、人の操作なしに走行を再開せず、待機/手動走行に自動で戻るところまで進める。",
+        "reconciliation": "C-034",
+        "authority_revision": "AR-017",
+        "decision": "DEC-408",
+        "new_line": 41
+      }
     },
     {
       "requirement": "RQ-I026",
@@ -43,7 +57,14 @@
       "old_sha256": "a6afbbea27a36941ccff1a24b9b0dce1ba79a601762b42f6f2da359a469ba479",
       "new_sha256": null,
       "identical": false,
-      "replacement": null
+      "replacement": {
+        "successor": "RQ-I112",
+        "text": "人がgouda_monitor上の待機ボタンを押下すると自律走行が待機状態に入る。自律走行や事前地図作製中に待機ボタンが押されたときは、中断せず待機モードに入る。（優先度の低い機能）",
+        "reconciliation": "C-035",
+        "authority_revision": "AR-017",
+        "decision": "DEC-408",
+        "new_line": 42
+      }
     },
     {
       "requirement": "RQ-I027",
@@ -107,7 +128,14 @@
       "old_sha256": "c3a8f45b7389872b37ee856af636c12c6ef4ac68577f832e4ba31e6e6cd9c32b",
       "new_sha256": null,
       "identical": false,
-      "replacement": null
+      "replacement": {
+        "successor": "RQ-I119",
+        "text": "・ソフトのモードは自律走行/事前地図作成/待機/手動走行の4モードが基本で、自律走行中の停止線での停止や推定の回復待ちは自律走行モードの中の段階として設計。完全停止モードは存在しない。",
+        "reconciliation": "C-036",
+        "authority_revision": "AR-017",
+        "decision": "DEC-408",
+        "new_line": 101
+      }
     },
     {
       "requirement": "RQ-I066",
@@ -134,7 +162,14 @@
       "old_sha256": "716b3fdfb5653a70680bfd2bd3f150468acf580b37b3f6e6dd17fce7f3e8151b",
       "new_sha256": null,
       "identical": false,
-      "replacement": null
+      "replacement": {
+        "successor": "RQ-I120",
+        "text": "・最終waypoint到達後の待機で再開ボタンを押した場合も、最終waypointを目指して走る。",
+        "reconciliation": "C-037",
+        "authority_revision": "AR-017",
+        "decision": "DEC-408",
+        "new_line": 103
+      }
     },
     {
       "requirement": "RQ-I068",
@@ -234,7 +269,7 @@
     "@@ -100 +107 @@",
     "-・車体は全長 1,010 mm × 全幅 598 mm × 全高 950 mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARないしはdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方とするものであうが、これをNav2用に変換する。`base_footprint` は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。",
     "+・車体は全長 800 mm × 全幅 600 mm × 全高 1250 mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARとdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方として出力される。これはNav2用に座標を変換する。`base_footprint` は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。",
-    "@@ -102,0 +110,8 @@",
+    "@@ -102,0 +110,9 @@",
     "+・実測値はプログラムにハードコードせず、宣言的に書く。",
     "+・リレーによる切り替え機能は使わない。esp32が電源に接続されている限り、常にdacが電圧を出す。",
     "+・GLIMのためのセンサーの取り付け位置はgouda_monitorで人間が設定する。取り付け位置が不明だからといって、人間に未決事項・確認事項として質問してはならないし、これが原因で設計や実装を止めてはならない。",
@@ -242,6 +277,7 @@
     "+・車体の電源を先に切ってから基板の電源を切るという運用をする。よって、基板の電源が切れた後の電圧出力端子の電圧を気にする必要は無い。",
     "+・電動車椅子に人は乗らない。",
     "+・gouda_monitorには、不要なセカンダリラベルや説明を表示せず、レイアウトに説明させよ。",
-    "+・障害物の検出はxt-32とMID-360で行う。xt-32では自車の足元が見えない為である。"
+    "+・障害物の検出はxt-32とMID-360で行う。xt-32では自車の足元が見えない為である。",
+    "+・練習走行や本番走行の日程についてはAIの所管外とする。（例：期限が迫っているから簡易的な実装で済ませる、という提案や判断は禁止）"
   ]
 }

@@ -21,25 +21,31 @@ entries:
   - DEC-122
   - DEC-339
   - DEC-341
+  - DEC-427
   related_refs:
   - ND-09
   - ND-10
   - ND-14
   - PRM-70
   - PRM-71
+  - PRM-125
   symptom: >-
     自律走行中に、低い物（縁石・車止め・コーン・段ボール・倒れた自転車など）に正面から当たる、または旋回・後退で当たる。
     少し前まで local costmap に写っていた物が、車体が近づくと消えている。
     確認走行区間では、緑のコーンに接触すると走行失敗になる（DEC-339、人が規則を確認）。見直しは DEC-341 で確認待ち。
   mechanism: >-
-    XT-32（取り付け高さ 1.015 m、最下のビーム −16°）が見られる最低の高さは、平らな地面で距離 d のとき約 1.015 − d·tan16°
-    （計算: 2.5 m で 0.30 m、1.5 m で 0.585 m、1.0 m で 0.73 m）。物がこの見えない範囲に入ると観測されない。
+    XT-32（地面からの高さ 1.182 m、最下のビーム −15.98°。2026-10-14 の rosbag からの実測、docs/lidar_xt32_spec.md）が
+    見られる最低の高さは、平らな地面で距離 d のとき約 1.182 − d·tan15.98°（計算: 2.5 m で 0.47 m、1.5 m で 0.75 m、
+    1.0 m で 0.90 m。地面が見え始めるのは約 4.1 m 先で、実測は 4.0〜4.2 m）。物がこの見えない範囲に入ると観測されない。
     2 次元の ObstacleLayer は、帯の中の奥の点へ向かう光線を水平面に落として、その上のセルを消す。光線が物の上を通っても
     物のセルが消える。上流の VoxelLayer（3 次元）なら、光線は物のボクセルの上を通るだけで消さない。
-    また、2.5 m（obstacle_max_range）の時点で 0.30 m より低い物は、一度も印が付かない。
+    また、2.5 m（obstacle_max_range。PRM-125 が未確定の間は上流の既定）の時点で 0.47 m より低い物は、一度も印が付かない。
+    （DEC-427 で訂正。2026-10-23 の登録時は、base_link からの取付の高さ 1.015 m を地面からの高さとして計算していた:
+    2.5 m で 0.30 m、1.5 m で 0.585 m、1.0 m で 0.73 m。）
   how_to_confirm: >-
     (1) その走行の rosbag（生の点群 /sensors/xt32/points と /tf・/tf_static）で local costmap を再生し、その物のセルが
-    lethal → 空き に変わった時刻と、そのときの車体と物の距離を見る（1.5 m 前後で消えていればこの仕組み）。
+    lethal → 空き に変わった時刻と、そのときの車体と物の距離を見る（物の高さ h から上の式で出した距離
+    (1.182 − h) / tan15.98° の前後で消えていればこの仕組み。例: 高さ 0.7 m のコーンは約 1.7 m）。
     (2) 同じ rosbag を VoxelLayer の構成で再生し、消えないことを確かめる。
     (3) 物の高さと、その距離での見える最低の高さ（上の式）を比べる。
   countermeasures: >-
@@ -48,6 +54,7 @@ entries:
     近くを消しにくくする。どれも承認事項。
   source: >-
     proposals/costmap_inputs_completion_v2_2026-10-22.md §2.2・§7、第134便のレビュー 1、本台帳の計算。
+    高さとビームの角度は docs/lidar_xt32_spec.md（第199便、REV-215 の証拠）。
   recorded_on: '2026-10-23'
   occurrences: []
 - id: TRB-002
@@ -431,4 +438,63 @@ entries:
   source: >-
     reports/worklog/2026-11-02_bin172_keepout_tf_materials.md、2026-11-02_bin180_map_odom_future_stamp.md。実車では未確認。
   recorded_on: '2026-11-02'
+  occurrences: []
+- id: TRB-014
+  name: vehicle_bridge の新しい session（cleanup の後の configure、Gouda や PC の再起動）で seq が 0 に戻り、ESP32 が PC の指令を棄却して車体が動かない（本番で致命的になる恐れ）
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-414
+  - DEC-415
+  related_refs:
+  - ND-11
+  - ND-12
+  - PRM-13
+  symptom: '自律走行や /dev の試験を始めても車体が動かない。ESP32 の STATUS は source none、reason pc_stale のまま。last_pc_seq が変わらず、pc_age_ms が増え続ける。
+    USB を差し直して ESP32 を再起動すると直る。本番で PC または Gouda の異常終了の後に起きると、人が ESP32 に触れない間は走れず、完走できない恐れがある。'
+  mechanism: 'ファームは同じ起動の間、最後に受け付けた PC の seq を覚え、それより新しくない COMMAND を棄却する（control.hpp の newerSequence）。vehicle_bridge の seq は起動のたびに 0 から数える。
+    事実（第159便）：VM と Gouda だけの再起動の後、COMMAND を 1210 回「seq が新しくない」で棄却した。事実（第190便、x86 の esp32_sim）：/dev の試験の 2 回目以降で、最初の COMMAND から pc_frame_rejected（理由 5）が 178 回続いた。試験が終わるたびに bridge を cleanup するので、次の configure で新しい BridgeCore の seq が 0 に戻る。Gouda の再起動がなくても起きる。seq が前の値を超えるまで（10 Hz なので 100 番で約 10 s）棄却が続く。実車の x86 の記録も同じ形：2 回目は last_pc_seq 36 で開始の 4 s 後に pc_control（計算と一致）、3 回目は 79 で 5 s の待ちを超えて開始できなかった。'
+  how_to_confirm: 'STATUS の last_pc_seq と pc_age_ms、uptime_ms を見る。ESP32 の uptime が Gouda の起動より長く、bridge が送っているのに last_pc_seq が増えなければこの現象。ESP32 の event の pc_frame_rejected（理由 5）でも確かめられる。'
+  countermeasures: '（状態の原文：対策済み（模擬で確認、実車は未確認）。統合の第220便でスキーマの値「監視中」に直した）対策（DEC-415、第159便の案 F）：STATUS の last_pc_seq を読み、bridge がその次から数える（ファームの変更なし）。最初の STATUS が届くまでの COMMAND は棄却されうる。それ以前の暫定は ESP32 の USB の差し直しだった。ファームが新しい session で seq の記憶を消す案もある。走り出しの条件に ESP32 の受け付けを入れる案（案 G）と組で検討する。'
+  source: reports/worklog/2026-10-24_bin159_esp32_seq_rejection.md、2026-11-03_bin190_vehicle_test_retry_inputs.md、2026-11-03_bin191_bridge_seq_follow.md。実車では未確認。
+  recorded_on: '2026-11-03'
+  occurrences:
+  - date: '2026-10-24'
+    record: VM（第159便）
+    description: 2026-10-24 VM（第159便）
+    evidence:
+    - reports/worklog/2026-10-24_bin159_esp32_seq_rejection.md
+  - date: '2026-11-03'
+    record: x86 motion_start_20261103_044344、044642
+    description: 2026-11-03 x86 motion_start_20261103_044344、044642（実車の記録。棄却の event は残っていないので形からの判断）
+    evidence: []
+  - date: '2026-11-03'
+    record: x86 esp32_sim（第190便）
+    description: 2026-11-03 x86 esp32_sim（第190便、棄却の event を確認）
+    evidence:
+    - reports/worklog/2026-11-03_bin190_vehicle_test_retry_inputs.md
+- id: TRB-015
+  name: 停止点で向きを揃える回転に 20 秒の上限があり、向きが揃わないまま止まることがある（実装前の登録）
+  status: 監視中
+  sensitivity:
+  - safety
+  - operation
+  decision_refs:
+  - DEC-497
+  - DEC-482
+  related_refs:
+  - ND-03
+  - ND-10
+  - DEC-484
+  - DEC-480
+  - DEC-490
+  - DEC-445
+  symptom: '向きを揃える印のある停止点で、車体が目標の向きまで回らずに止まり、人の再開を待つ。回転の途中で止まったまま動かない時間がある。再開の後、車体が横断の向きを向いていないまま走り出す。'
+  mechanism: '人の決定（DEC-497）：停止点での回転は一方向だけで、やり直さない。回転で車体の外形が障害物に重なる間は回転を止めて待ち、去ったら回転を続ける。回転の時間の上限は 20 秒で、過ぎたら回転をやめて止まり（rule_stop_hold）、人の再開を待つ。理由は人の発言「ずっと停止線付近で動いているのは危ないから」。このため次のときに向きが揃わない（推測、実装前）：(1) 人やロボットが回る範囲に 20 秒近く居続ける、(2) costmap に古い印が残って重なると判定され続ける、(3) 実車の旋回が遅い・回らない（旋回の上限 0.5 rad/s は DEC-490、不感帯と遅れは DEC-445、その場の旋回の左右差）、(4) 旋回の遅れで目標を過ぎる（やり直さないので過ぎたまま）。20 秒をどこから数えるか（回転の段階に入ってから、待つ時間も含む）は AI の読みで、人には尋ねていない。'
+  how_to_confirm: '実装の後：記録（decision event）で、回転の段階の開始と終わり、終わり方（目標まで回った・時間の上限・回転の取り消し）、回った量と残りの角度、待った時間を見る。costmap の印は local costmap の記録で確かめる。実装前の今は確かめる手段がない。'
+  countermeasures: '実装はまだ（2026-11-07 の時点。案は issue 99・100）。上限の値を変えるには人の判断が要る（DEC-497 の 20 秒）。向きが揃わないまま止まった場合、人の再開で次の waypoint へ走り出す（MPPI が向きを直しながら進む。前進の下限 DEC-480 があるので、その場では回れない）。回転のある停止点は、回転で前端が道路端を越えない位置に人が置く（DEC-488 の式はまっすぐ近づく前提。見落としの指摘、判断は人）。'
+  source: reports/worklog/2026-11-07_bin254_stop_align_answers.md、revisions/REV-280.yaml。実装・模擬・実車はいずれも未実行。
+  recorded_on: '2026-11-07'
   occurrences: []

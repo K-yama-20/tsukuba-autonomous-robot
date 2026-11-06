@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "0a4317274aee3376ce0ec48d46e5b8d1ff49ce500cc61ad337a8776e144379a1",
+  "model_entities_sha256": "e2a11629385bb438f60a07a83ed2b204d3b46f8d55da2257175e028406fefd08",
   "parameters": [
     {
       "id": "PRM-54",
@@ -250,7 +250,7 @@
       "apply_timing": "runtime_set",
       "value_type": "int",
       "value_state": "approved",
-      "value": 4720,
+      "value": 4500,
       "unit": "mV"
     },
     {
@@ -686,6 +686,66 @@
       "unit": "回"
     },
     {
+      "id": "PRM-136",
+      "file": "gouda_mode_manager.yaml",
+      "key": "estimator_continue_s",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 30.0,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-137",
+      "file": "gouda_mode_manager.yaml",
+      "key": "skip_stall_s",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-138",
+      "file": "gouda_mode_manager.yaml",
+      "key": "skip_cost_threshold",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "costmap の値（0〜100）"
+    },
+    {
+      "id": "PRM-139",
+      "file": "gouda_mode_manager.yaml",
+      "key": "skip_occupied_s",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-140",
+      "file": "gouda_mode_manager.yaml",
+      "key": "skip_progress_m",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "unresolved",
+      "value": null,
+      "unit": "m"
+    },
+    {
       "id": "PRM-16",
       "file": "gouda_mode_manager.yaml",
       "key": "state_publish_period_s",
@@ -695,6 +755,18 @@
       "value_type": "double",
       "value_state": "approved",
       "value": 0.2,
+      "unit": "s"
+    },
+    {
+      "id": "PRM-161",
+      "file": "gouda_mode_manager.yaml",
+      "key": "nav2_failure_resend_wait_s",
+      "target": "gouda_mode_manager",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 2.0,
       "unit": "s"
     },
     {
@@ -900,6 +972,138 @@
       "value_state": "approved",
       "value": 0.7,
       "unit": "s"
+    },
+    {
+      "id": "PRM-150",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_forward_stop_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.185,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-151",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_forward_move_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.21,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-152",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_forward_min_speed_mps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.09,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-153",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_reverse_stop_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.215,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-154",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_reverse_move_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.24,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-155",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_reverse_min_speed_mps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.075,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-156",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_turn_stop_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.184,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-157",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_turn_move_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.195,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-158",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_turn_min_speed_radps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.075,
+      "unit": "rad/s"
+    },
+    {
+      "id": "PRM-159",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_turn_mid_stick",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.28,
+      "unit": "倒し量"
+    },
+    {
+      "id": "PRM-160",
+      "file": "gouda_motion_controller.yaml",
+      "key": "ff_turn_mid_speed_radps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.19,
+      "unit": "rad/s"
     },
     {
       "id": "PRM-39",
@@ -1186,7 +1390,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 0.8,
+      "value": 0.5,
       "unit": "m/s"
     },
     {
@@ -1198,7 +1402,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 1.0,
+      "value": 0.5,
       "unit": "rad/s"
     },
     {
@@ -1212,6 +1416,54 @@
       "value_state": "approved",
       "value": 10.0,
       "unit": "Hz"
+    },
+    {
+      "id": "PRM-141",
+      "file": "gouda_nav2.yaml",
+      "key": "mppi_open_loop",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "bool",
+      "value_state": "approved",
+      "value": true,
+      "unit": null
+    },
+    {
+      "id": "PRM-142",
+      "file": "gouda_nav2.yaml",
+      "key": "mid360_enabled",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "bool",
+      "value_state": "approved",
+      "value": true,
+      "unit": null
+    },
+    {
+      "id": "PRM-162",
+      "file": "gouda_nav2.yaml",
+      "key": "mppi_vx_min_mps",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.27,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-163",
+      "file": "gouda_nav2.yaml",
+      "key": "goal_yaw_tolerance_rad",
+      "target": "gouda_nav2",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 6.3,
+      "unit": "rad"
     },
     {
       "id": "PRM-66",
@@ -1234,7 +1486,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 1.0,
+      "value": 0.5,
       "unit": "rad/s"
     },
     {
@@ -1306,7 +1558,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 2.0,
+      "value": 0.5,
       "unit": "rad/s²"
     },
     {

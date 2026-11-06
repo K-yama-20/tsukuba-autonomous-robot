@@ -49,9 +49,42 @@ authority:
     role: authority_superseded
   FILE-INTENT-V16:
     sha256: 23170969d3388b0f58929d7c9edc7ad5bca640336f0da393d9232240041fac25
+    role: authority_superseded
+  FILE-INTENT-V17:
+    sha256: e9be63b890245ba8b2627ac63bc932b95f6fb2bcd60cdd1d09f408849da7bdc8
     role: authority
-line_count: 62
+line_count: 108
 lines:
+  - line: 1
+    requirement_id: RQ-I096
+    text: 
+      目的：つくばチャレンジ2026の共通課題（つくば市役所及び周辺の歩道の定められたルート上を無人で自律走行して開始地点に戻ってくる。）達成。「走行失敗」条件は多数あるが、待機モードに入ったり、確認走行区間で3分以上滞留（1mくらいの前進が出来ない場合）してしまうと、走行失敗と判定されてしまう。衝突そのものは失敗と判断されないが、確認走行区間の緑コーンだけは例外である。ロボットには随行員が1名とチームメンバー2人が常時近くを歩いて監視している（一時停止線や道路端での一時停止後の再開操作以外の介入は禁止）。よって、自動的にgoudaが待機モードに入って自律走行が出来なくなったり、回避動作が満足に出来ない設定になっていることは極めて致命的である。逆に、ロボット自体の安全機構は極限まで削減すべきだと言える。一方で障害物の検出や回避は完走に必要な機能である。何を削って何を必須の機能とするかの境界は曖昧であるから、開発の際は人間の指示に従い、懸念点があれば台帳に記録すること。
+    source_id: SRC-I001-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-030
+      - C-031
+      - C-032
+      - IFD-21
+      - IFD-22
+      - IFD-58
+      - ND-06
+      - ND-14
+      - ND-15
+      - PRM-137
+      - PRM-138
+      - PRM-139
+      - PRM-140
+      - V-001
+    issue_refs: []
+  - line: 2
+    requirement_id: RQ-I097
+    text: 完走には100 分の制限時間と、スタートの条件（1 分以内にスタートラインを超える、2 分以内に 20 m 地点を超える）をクリアする必要がある。
+    source_id: SRC-I002-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+    issue_refs: []
   - line: 3
     requirement_id: RQ-I090
     text: つくばチャレンジでの必達事項は、「必須課題」2.2kmの完走である。
@@ -60,6 +93,20 @@ lines:
     referenced_by:
       - C-030
     issue_refs: []
+  - line: 4
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: &id001 []
+  - line: 5
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 6
     requirement_id: RQ-I002
     text: intent.mdは人が所有し、AIは編集しない。衝突を見つけたら一覧で報告。
@@ -68,6 +115,20 @@ lines:
     referenced_by:
       - P-001
     issue_refs: []
+  - line: 7
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 8
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 10
     requirement_id: RQ-I003
     text: 1. gouda.shを実行
@@ -75,6 +136,39 @@ lines:
     authority_file: FILE-INTENT
     referenced_by:
       - ND-01
+    issue_refs: []
+  - line: 11
+    requirement_id: RQ-I100
+    text: 2. 
+      共通のnodeを起動し、モードごとに必要なnodeを起動または有効化する。競合する推定器・TF発行者は同時に有効化しない。Nav2も同時に起動してはならない。起動・有効化の失敗はmonitorに表示する。
+    source_id: SRC-I011-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+      - IFD-18
+      - IFD-19
+      - IFD-27
+      - IFD-36
+      - ND-01
+      - ND-03
+      - ND-06
+      - ND-07
+      - ND-08
+      - ND-18
+      - PRM-100
+      - PRM-101
+      - PRM-37
+      - PRM-57
+      - PRM-58
+      - PRM-59
+      - SO-12
+      - TR-01
+      - TR-03
+      - TR-05
+      - TS-31
+      - TS-32
+      - TS-38
+      - TS-41
     issue_refs: []
   - line: 12
     requirement_id: RQ-I005
@@ -96,6 +190,26 @@ lines:
       - TS-25
     issue_refs:
       - G-LOG
+  - line: 13
+    requirement_id: RQ-I101
+    text: 4. 事前地図作成モードに入り、自己位置推定&事前地図作成モードに入る。（今はGLIMを使用することを考えている。）
+    source_id: SRC-I013-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+      - G-DDS
+      - IFD-06
+      - IFD-21
+      - IFD-22
+      - ND-02
+      - ND-06
+      - ND-14
+      - ND-15
+      - PRM-60
+      - SO-03
+      - TR-03
+      - TS-27
+    issue_refs: []
   - line: 14
     requirement_id: RQ-I007
     text: 5. 人間がbluetoothコントローラによりemc-270を手動操作し、pcが自動で地図を作っていく。作成中の地図はRVizに表示される。
@@ -114,6 +228,61 @@ lines:
       - PRM-54
       - PRM-55
       - PRM-56
+    issue_refs: []
+  - line: 15
+    requirement_id: RQ-I102
+    text: 6. pcの地図取得を終了ボタンを押すと、事前地図作成が終了する。作成した3dの地図（原図）はmap_databaseに保管する。
+    source_id: SRC-I015-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-011
+      - C-032
+      - H-008
+      - IFD-07
+      - IFD-29
+      - IFD-35
+      - ND-05
+      - PRM-37
+      - SO-04
+      - TR-04
+      - TR-08
+      - TS-11
+      - TS-27
+    issue_refs: []
+  - line: 16
+    requirement_id: RQ-I103
+    text: 7. 
+      事前地図作成終了と同時に、gouda_map_creatorにより自動で地図が変換され、原図と共にmap_databaseに保存される。同じ原図から生成された地図は、由来を示すIDを共有する。原図と各変換後地図は、それぞれ独立した内容ハッシュを持つ。変換設定や変換器の版が異なる成果物は、別の版として扱う。ファイル名だけで同一性を判定しない。変換に失敗しても元データは保持し、不完全な変換後地図データは破棄する。地図の変換は何度でも再実行できる。
+    source_id: SRC-I016-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-011
+      - C-032
+      - IFD-07
+      - IFD-24
+      - IFD-29
+      - IFD-35
+      - IFD-37
+      - ND-05
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-38
+      - PRM-62
+      - PRM-63
+      - PRM-64
+      - PRM-94
+      - PRM-95
+      - PRM-96
+      - PRM-97
+      - SO-04
+      - TR-04
+      - TS-11
+      - TS-27
+      - TS-43
+      - TS-44
+      - TS-46
     issue_refs: []
   - line: 17
     requirement_id: RQ-I078
@@ -134,7 +303,9 @@ lines:
       - IFD-29
       - IFD-30
       - IFD-41
+      - IFD-71
       - ND-02
+      - ND-30
       - PRM-19
       - PRM-20
       - PRM-22
@@ -186,6 +357,8 @@ lines:
       - ND-19
       - PRM-102
       - PRM-11
+      - PRM-135
+      - PRM-136
       - PRM-65
       - PRM-66
       - PRM-67
@@ -222,6 +395,86 @@ lines:
       - TS-41
       - TS-43
     issue_refs: []
+  - line: 19
+    requirement_id: RQ-I104
+    text: 10. 
+      costmap消去は「観測外を安全とみなさない」方針との整合を、採用する設定で確認する。blocked時を含め、後退しても良い。Nav2のBTが後退も再計画もできず失敗を返した場合、Goudaは待機モードに入る。そしてNav2の結果とあわせてログに記録する。（走行失敗の判定を避け、完走を確実なものとする為、待機モードに入らずとも良い。）経路閉塞と、推定不能・通信異常は区別する。
+    source_id: SRC-I019-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-005
+      - C-020
+      - C-030
+      - C-032
+      - H-003
+      - IFD-21
+      - IFD-23
+      - IFD-53
+      - IFD-54
+      - IFD-55
+      - IFD-57
+      - IFD-58
+      - IFD-60
+      - ND-03
+      - ND-09
+      - ND-10
+      - ND-21
+      - PRM-103
+      - PRM-105
+      - PRM-106
+      - PRM-107
+      - PRM-108
+      - PRM-109
+      - PRM-110
+      - PRM-111
+      - PRM-112
+      - PRM-113
+      - PRM-114
+      - PRM-115
+      - PRM-116
+      - PRM-117
+      - PRM-118
+      - PRM-119
+      - PRM-120
+      - PRM-121
+      - PRM-122
+      - PRM-123
+      - PRM-124
+      - PRM-125
+      - PRM-126
+      - PRM-127
+      - PRM-128
+      - PRM-129
+      - PRM-130
+      - PRM-131
+      - PRM-132
+      - PRM-133
+      - PRM-134
+      - PRM-137
+      - PRM-138
+      - PRM-139
+      - PRM-140
+      - PRM-141
+      - PRM-142
+      - PRM-161
+      - PRM-162
+      - PRM-163
+      - PRM-18
+      - PRM-70
+      - PRM-71
+      - PRM-72
+      - PRM-96
+      - PRM-97
+      - PRM-98
+      - PRM-99
+      - TR-07
+      - TS-05
+      - TS-42
+      - TS-44
+      - TS-45
+      - TS-46
+      - TS-47
+    issue_refs: []
   - line: 20
     requirement_id: RQ-I086
     text: ・異常終了後は、自動復帰し、その依存関係は[プロセス再起動 → mission状態の復元 → 当該missionに属する旧Nav2 goalの終了または破棄の確認→ 
@@ -244,6 +497,69 @@ lines:
       - TR-16
       - TS-09
     issue_refs: []
+  - line: 21
+    requirement_id: RQ-I105
+    text: 
+      ・待機モードにおいて、gouda_monitorの再開ボタンを押すと自己位置推定をしながら自律走行を再開する。再開する地点の再設定は必須ではない。但し、本走行では待機モードからの再開ボタンは、本番では失格の操作になる。ボタンを押してよいのは、停止線で止まった後と信号が青になった後だけ。この操作は実験中のみ使用する機能。
+    source_id: SRC-I021-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-006
+      - C-032
+      - H-007
+      - IFD-04
+      - IFD-39
+      - ND-02
+      - ND-03
+      - ND-07
+      - ND-08
+      - SO-05
+      - TR-10
+      - TS-03
+      - TS-08
+    issue_refs: []
+  - line: 22
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 23
+    requirement_id: RQ-I106
+    text: 
+      ・人間が明示的に自律走行終了ボタンを押さない限り、自律走行を終了してはならない。また、万が一navigationが異常終了した場合や、待機ボタンを押した場合でも、ログ取りは継続する。ログは、PCが受信した入力、判断と理由・状態遷移・各段の指令・通信結果・設定状況（事前地図作成前後と自律走行開始前後、設定変更後に記録）を記録し、データの欠落があった場合はその範囲も記録する。受信していない値は推測で記録しない。ログ取りはRecordボタンを押せばいつでも開始でき、Stop
+      Recordボタンを押せばいつでも終了できる。また、事前地図作成開始時と自律走行開始時にRecordボタンが押されていない場合は、自動でRecordを開始し、人間が事前地図作成終了ボタンや自律走行終了ボタンを押したときに停止される。Recordの自動開始の契機は、人が押した事前地図作成開始ボタンと自律走行開始ボタンのみとする。異常終了後の復帰や再開ボタンでは開始しないが、ログ取得を再開できるようにする。ログ取得に失敗しても走行は止めない。
+    source_id: SRC-I023-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-007
+      - C-009
+      - C-032
+      - IFD-05
+      - IFD-06
+      - IFD-08
+      - IFD-09
+      - IFD-28
+      - IFD-40
+      - IFD-44
+      - IFD-45
+      - IFD-46
+      - ND-03
+      - ND-04
+      - PRM-25
+      - SO-02
+      - TR-02
+      - TR-03
+      - TR-05
+      - TR-06
+      - TR-10
+      - TR-11
+      - TR-12
+      - TS-10
+      - TS-23
+      - TS-26
+    issue_refs: []
   - line: 24
     requirement_id: RQ-I016
     text: rosbagはログとは別にRosbag record/Stop rosbag 
@@ -261,6 +577,47 @@ lines:
       - TS-23
     issue_refs:
       - G-LOG
+  - line: 25
+    requirement_id: RQ-I107
+    text: 11. 停止線や道路端では自律的に一時停止する必要がある。その後、人が再開ボタンを押してロボットが自律走行を再開する。
+    source_id: SRC-I025-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+      - IFD-04
+      - ND-03
+    issue_refs: []
+  - line: 26
+    requirement_id: RQ-I108
+    text: 12. 
+      ゴールが最後のwaypoint。ここまできたら自動で車体を停止して待機モードに入る。自動開始した記録は、人間が事前地図作成終了ボタンや自律走行終了ボタンを押したときに停止される。手動開始した記録は自動停止しない。
+    source_id: SRC-I026-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-007
+      - C-009
+      - C-032
+      - IFD-05
+      - IFD-07
+      - IFD-09
+      - IFD-46
+      - ND-03
+      - ND-04
+      - SO-02
+      - TR-04
+      - TR-08
+      - TR-11
+      - TR-12
+      - TS-05
+      - TS-26
+    issue_refs: []
+  - line: 27
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 29
     requirement_id: RQ-I018
     text: 後退と再計画はNav2のBTが管理し、Goudaの責務ではない。
@@ -310,9 +667,21 @@ lines:
       - IFD-41
       - IFD-42
       - IFD-52
+      - IFD-70
       - ND-03
       - ND-10
       - ND-11
+      - PRM-150
+      - PRM-151
+      - PRM-152
+      - PRM-153
+      - PRM-154
+      - PRM-155
+      - PRM-156
+      - PRM-157
+      - PRM-158
+      - PRM-159
+      - PRM-160
       - PRM-20
       - TS-01
       - TS-04
@@ -335,6 +704,58 @@ lines:
       - TS-28
       - V-001
     issue_refs: []
+  - line: 33
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 34
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 35
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 37
+    requirement_id: RQ-I109
+    text: ' 「0. 本番で完走できる 1.デバッグ性 2.交換性 3.安全性」→「0~3を達成できる案の中で、1.デバッグ性 2.交換性 3.追加的な安全性向上」'
+    source_id: SRC-I037-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-030
+      - C-032
+    issue_refs: []
+  - line: 39
+    requirement_id: RQ-I110
+    text: ・bluetooth接続の手動操作がESP32で優先される（本番で使用したら失格。実験中のみ使用する機能）
+    source_id: SRC-I039-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-008
+      - C-032
+      - C-033
+      - G-FIRMWARE
+      - H-002
+      - H-010
+      - H-012
+      - IFD-17
+      - ND-12
+      - ND-17
+      - PRM-21
+      - PRM-47
+      - PRM-48
+      - SO-11
+      - TS-17
+    issue_refs: []
   - line: 40
     requirement_id: RQ-I024
     text: ・bluetooth gamepadからの指令が途絶えたらESP32が中立を出す。
@@ -354,6 +775,79 @@ lines:
       - SO-11
       - TS-18
     issue_refs: []
+  - line: 41
+    requirement_id: RQ-I111
+    text: 
+      自律走行の開始は人の開始操作でのみ行う。再開（異常終了後の復帰）は自動で行ってよい。人が待機ボタン/自律走行終了ボタンを押した後は、プロセスが再起動しても、人の操作なしに走行を再開せず、待機/手動走行に自動で戻るところまで進める。
+    source_id: SRC-I041-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-001
+      - C-006
+      - C-032
+      - C-034
+      - IFD-02
+      - IFD-03
+      - IFD-05
+      - IFD-40
+      - ND-03
+      - SO-01
+      - TR-02
+      - TR-05
+      - TR-06
+      - TR-10
+      - TR-11
+      - TR-12
+      - TR-13
+      - TS-08
+      - TS-20
+      - TS-21
+      - TS-24
+      - TS-30
+    issue_refs: []
+  - line: 42
+    requirement_id: RQ-I112
+    text: 人がgouda_monitor上の待機ボタンを押下すると自律走行が待機状態に入る。自律走行や事前地図作製中に待機ボタンが押されたときは、中断せず待機モードに入る。（優先度の低い機能）
+    source_id: SRC-I042-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-019
+      - C-032
+      - C-035
+      - H-002
+      - H-006
+      - IFD-03
+      - IFD-40
+      - ND-03
+      - PRM-16
+      - PRM-31
+      - PRM-32
+      - PRM-42
+      - TR-06
+      - TS-04
+      - TS-07
+      - TS-20
+      - TS-30
+    issue_refs: []
+  - line: 43
+    requirement_id: RQ-I113
+    text: ・ 
+      双方向の歯止め：AIは基本契約を独断で増やさず、優先順位を理由に既存の保護を削らない。一方で、走行失敗を防ぐ為の保護削減を推奨する場合は、必ず報告して人間の承認を得た後で実装し、判断台帳及びトラブルシューティング台帳に記録すること。追加の保護は、必要性・根拠・開発への影響を添えた提案として出す。
+    source_id: SRC-I043-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-030
+      - C-032
+      - H-002
+      - H-004
+    issue_refs: []
+  - line: 44
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 46
     requirement_id: RQ-I028
     text: '    ・記録が正常に行われた区間は、入力→判断→出力をログだけでたどれる'
@@ -377,6 +871,7 @@ lines:
       - IFD-28
       - IFD-38
       - IFD-53
+      - IFD-70
       - SO-01
       - TR-06
       - TR-07
@@ -450,6 +945,21 @@ lines:
       - SO-02
       - TS-23
     issue_refs: []
+  - line: 53
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 54
+    requirement_id: RQ-I116
+    text: ・交換性の受入条件
+    source_id: SRC-I054-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+    issue_refs: []
   - line: 55
     requirement_id: RQ-I035
     text: '      ・GLIMなどの交換は、その部品とlaunchの変更で済む'
@@ -483,6 +993,20 @@ lines:
     authority_file: FILE-INTENT
     referenced_by: []
     issue_refs: []
+  - line: 59
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 61
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 62
     requirement_id: RQ-I039
     text: AIの担当：設計、コード、ソフト上の試験（単体・stub・記録の再生・シミュレーション）、実車確認の準備（変更できるパラメータの一覧、確認してほしい点、ログの見方）、実車ログの解析
@@ -497,6 +1021,13 @@ lines:
     authority_file: FILE-INTENT
     referenced_by: []
     issue_refs: []
+  - line: 64
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 65
     requirement_id: RQ-I041
     text: 人が指示した試験条件は、拒否も別の条件へのすり替えもせずに実装します。懸念があれば、根拠と代替案を添えて1回だけ述べ、無関係な作業は止めずに進める。
@@ -511,6 +1042,20 @@ lines:
     authority_file: FILE-INTENT
     referenced_by: []
     issue_refs: []
+  - line: 67
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 68
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 70
     requirement_id: RQ-I043
     text: コアとなるNodeから作り始め。段階毎に動く最小構成を作って、動作が人間の意図通りか確認してから進む。
@@ -518,6 +1063,34 @@ lines:
     authority_file: FILE-INTENT
     referenced_by: []
     issue_refs: []
+  - line: 71
+    requirement_id: RQ-I117
+    text: 
+      作る順：起動（gouda.sh）と記録→gouda_monitor→事前地図作成と変換→waypoint→waypoint_manager（guiはgouda_monitor内に表示。帯域を浪費するので、rvizの画面をgouda_monitorに転送して表示しない。）→車体出力（gouda_motion_controllerとvehicle_bridge）→自律走行の為の最小構成→blocked,
+      待機、復帰→障害物検知・回避→安全機能
+    source_id: SRC-I071-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-013
+      - C-032
+      - ND-02
+      - ND-11
+      - PRM-26
+    issue_refs: []
+  - line: 72
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 73
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 75
     requirement_id: RQ-I045
     text: ・指示にない制限・確認手順・段階的な試験（例：小さい値から試す）を、コードや試験に入れること（提案として出すのはよい）
@@ -560,6 +1133,13 @@ lines:
     authority_file: FILE-INTENT
     referenced_by: []
     issue_refs: []
+  - line: 81
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 83
     requirement_id: RQ-I051
     text: ・AIは、intent.mdの目的・基本契約・操作体験を変更しない範囲で、下位設計を行ってよい。対象は、Node分割、IF、QoS、状態管理、記録方式、復旧手順とする。
@@ -678,6 +1258,20 @@ lines:
     authority_file: FILE-INTENT-V3
     referenced_by: []
     issue_refs: []
+  - line: 95
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
+  - line: 96
+    requirement_id: RQ-I098
+    text: ''
+    source_id: SRC-I004-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by: []
+    issue_refs: *id001
   - line: 98
     requirement_id: RQ-I062
     text: ・境界到達時点で、実速度が進入区間の上限以下であることは保証しなくて良い。
@@ -726,6 +1320,51 @@ lines:
       - TS-13
       - TS-19
     issue_refs: []
+  - line: 100
+    requirement_id: RQ-I118
+    text: 
+      ・node異常、推定不能、通信途絶、からの自動復帰後は直前の状態（自律走行/事前事前地図作成/待機/手動走行）に復帰する。PC再起動後は、直前が自律走行なら自律走行に戻る。直前が事前地図作成/待機モードなら待機モードへ復帰し、手動走行モードなら手動走行モードに復帰する。
+    source_id: SRC-I100-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-001
+      - C-006
+      - C-019
+      - C-030
+      - C-032
+      - H-006
+      - H-007
+      - IFD-33
+      - IFD-39
+      - ND-03
+      - PRM-25
+      - SO-01
+      - TR-02
+      - TR-09
+      - TR-13
+      - TR-14
+      - TR-15
+      - TR-16
+      - TS-08
+      - TS-09
+      - TS-21
+      - TS-24
+    issue_refs: []
+  - line: 101
+    requirement_id: RQ-I119
+    text: ・ソフトのモードは自律走行/事前地図作成/待機/手動走行の4モードが基本で、自律走行中の停止線での停止や推定の回復待ちは自律走行モードの中の段階として設計。完全停止モードは存在しない。
+    source_id: SRC-I101-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-001
+      - C-032
+      - C-036
+      - H-008
+      - IFD-01
+      - ND-03
+      - SO-01
+      - TR-01
+    issue_refs: []
   - line: 102
     requirement_id: RQ-I080
     text: ・起動直後は手動走行モードに入る。手動走行モードがデフォルトのモード。
@@ -738,6 +1377,23 @@ lines:
       - ND-03
       - TR-01
       - TS-24
+    issue_refs: []
+  - line: 103
+    requirement_id: RQ-I120
+    text: ・最終waypoint到達後の待機で再開ボタンを押した場合も、最終waypointを目指して走る。
+    source_id: SRC-I103-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-007
+      - C-032
+      - C-037
+      - IFD-04
+      - ND-03
+      - SO-01
+      - TR-08
+      - TR-10
+      - TS-03
+      - TS-05
     issue_refs: []
   - line: 104
     requirement_id: RQ-I068
@@ -811,6 +1467,43 @@ lines:
       - TS-40
       - TS-45
     issue_refs: []
+  - line: 107
+    requirement_id: RQ-I121
+    text: ・車体は全長 800 mm × 全幅 600 mm × 全高 1250 
+      mmの直方体の中にあるとする。EMC-270の車体座標系は、左右後輪の駆動軸中央の地面投影点を原点とする。LiDARとdriverが出す点群の座標系は、-y方向を車体前方、+x方向を車体右方、+z方向を上方として出力される。これはNav2用に座標を変換する。`base_footprint`
+      は原点 `(0, 0, 0)`、`base_link` は後輪軸中心高さに置く。後輪径は330 mmなので、`base_link` の高さは約 `z = 0.165 m` とする。ホイールベースは415 
+      mmであり、前キャスタ基準位置は後輪軸から約 `y = -0.415 m` 前方にある。LiDARやIMUなど各センサの取付位置は、この車体座標系に対する静的TFとして後から実測値を設定する。
+    source_id: SRC-I107-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-018
+      - C-021
+      - C-029
+      - C-032
+      - H-005
+      - IFD-20
+      - ND-13
+      - P-001
+      - PRM-01
+      - PRM-02
+      - PRM-03
+      - PRM-04
+      - PRM-05
+      - PRM-06
+      - PRM-07
+      - PRM-33
+      - PRM-34
+      - PRM-35
+      - PRM-36
+      - PRM-66
+      - PRM-67
+      - PRM-68
+      - PRM-69
+      - PRM-70
+      - PRM-71
+      - PRM-73
+      - TS-36
+    issue_refs: []
   - line: 108
     requirement_id: RQ-I072
     text: ・非常停止検知/非常停止ボタン押下検知は行わないし、PC側で非常停止機構は存在させない。これは絶対決定事項であって、反論を許さない。
@@ -846,6 +1539,7 @@ lines:
     referenced_by:
       - IFD-26
       - IFD-52
+      - IFD-61
       - ND-11
       - ND-12
       - ND-13
@@ -853,6 +1547,20 @@ lines:
       - ND-18
       - PRM-102
       - PRM-104
+      - PRM-135
+      - PRM-136
+      - PRM-150
+      - PRM-151
+      - PRM-152
+      - PRM-153
+      - PRM-154
+      - PRM-155
+      - PRM-156
+      - PRM-157
+      - PRM-158
+      - PRM-159
+      - PRM-160
+      - PRM-161
       - PRM-27
       - PRM-28
       - PRM-29
@@ -955,4 +1663,34 @@ lines:
     referenced_by:
       - PRM-66
       - PRM-68
+    issue_refs: []
+  - line: 116
+    requirement_id: RQ-I122
+    text: ・gouda_monitorには、不要なセカンダリラベルや説明を表示せず、レイアウトに説明させよ。
+    source_id: SRC-I116-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+    issue_refs: []
+  - line: 117
+    requirement_id: RQ-I123
+    text: ・障害物の検出はxt-32とMID-360で行う。xt-32では自車の足元が見えない為である。
+    source_id: SRC-I117-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
+      - IFD-59
+      - IFD-60
+      - IFD-61
+      - ND-20
+      - ND-21
+      - PRM-142
+    issue_refs: []
+  - line: 118
+    requirement_id: RQ-I124
+    text: ・練習走行や本番走行の日程についてはAIの所管外とする。（例：期限が迫っているから簡易的な実装で済ませる、という提案や判断は禁止）
+    source_id: SRC-I118-V17
+    authority_file: FILE-INTENT-V17
+    referenced_by:
+      - C-032
     issue_refs: []
