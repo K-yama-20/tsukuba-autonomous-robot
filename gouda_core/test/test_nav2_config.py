@@ -400,5 +400,75 @@ class TunableTests(unittest.TestCase):
         self.assertFalse(nc.valid_tunable('positive', True)); self.assertFalse(nc.valid_tunable('boolean', 1))
 
 
+class Mid360LayerTests(unittest.TestCase):
+    """REV-242 (DEC-454): the MID-360 as a layer of its own (plan B1 = drive_sim_layers S2)."""
+    def build(self, d, name, ready, saved=None):
+        cfg = os.path.join(d, 'config'); os.makedirs(cfg, exist_ok=True)
+        if saved is not None:
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f:
+                json.dump({'values': saved, 'config_revision': 2}, f)
+        kw = {} if ready is None else {'mid360_ready': ready}
+        r = nc.write(PARAMS, False, str(NAV2_TEMPLATE), str(BT_TEMPLATE), os.path.join(d, name), cfg, **kw)
+        with open(r['params']) as f: params = yaml.safe_load(f)
+        bt = params['bt_navigator']['ros__parameters']
+        self.assertEqual(bt['default_nav_through_poses_bt_xml'], r['bt'])
+        bt['default_nav_through_poses_bt_xml'] = 'BT'   # the out_dir differs per build; everything else is compared
+        return r, params
+
+    def test_prm142_is_true_in_the_generated_file(self):
+        self.assertIs(nc.read_tunables(PARAMS, False)['mid360_enabled'], True)
+
+    def test_off_or_not_ready_is_unchanged(self):
+        """(a) disabled in /config, or not ready (no vehicle PC values / no driver), or not checked: the same file as before REV-242."""
+        with tempfile.TemporaryDirectory() as d:
+            r0, base = self.build(d, 'n', None)   # the callers before REV-242 (no argument)
+            self.assertFalse(r0['mid360']['used'])
+            for name, ready, saved in (('a', 'mid360.json does not exist', None), ('b', '', {'mid360_enabled': False}),
+                                       ('c', 'livox_ros_driver2 is not installed', {'mid360_enabled': True})):
+                r, p = self.build(d, name, ready, saved)
+                self.assertFalse(r['mid360']['used'], name)
+                self.assertEqual(p, base, name)
+            self.assertIn('does not exist', self.build(d, 'a2', 'mid360.json does not exist')[0]['mid360']['reason'])
+        self.assertNotIn('mid360_scan', base)
+        lc, gc = base['local_costmap']['local_costmap']['ros__parameters'], base['global_costmap']['global_costmap']['ros__parameters']
+        self.assertEqual(lc['plugins'], ['obstacle_layer', 'inflation_layer'])
+        self.assertEqual(gc['plugins'], ['static_layer', 'obstacle_layer', nc.KEEPOUT_LAYER, 'inflation_layer'])
+        self.assertNotIn('mid360_layer', lc); self.assertNotIn('mid360_layer', gc)
+
+    def test_on_and_ready_adds_the_layer_and_the_scan(self):
+        """(b) mid360_scan with xt32_scan's band, and a mid360_layer after obstacle_layer in local and global; the XT-32 layer as before."""
+        with tempfile.TemporaryDirectory() as d:
+            _, base = self.build(d, 'n', None)
+            r, p = self.build(d, 'y', '')
+        self.assertTrue(r['mid360']['used'])
+        self.assertEqual(p['mid360_scan'], p['xt32_scan'])   # the same band PRM-70 / PRM-71 and range_max (DEC-455 open)
+        self.assertEqual(p['xt32_scan'], base['xt32_scan'])
+        for name in ('local_costmap', 'global_costmap'):
+            c, b = p[name][name]['ros__parameters'], base[name][name]['ros__parameters']
+            exp = list(b['plugins']); exp.insert(exp.index('obstacle_layer') + 1, 'mid360_layer')
+            self.assertEqual(c['plugins'], exp, name)
+            self.assertEqual(c['obstacle_layer'], b['obstacle_layer'], f'{name}: the XT-32 layer is not changed')
+            self.assertEqual({k: v for k, v in c.items() if k not in ('plugins', 'mid360_layer')},
+                             {k: v for k, v in b.items() if k != 'plugins'}, name)
+            m = c['mid360_layer']; xs = c['obstacle_layer']['scan']
+            self.assertEqual((m['plugin'], m['observation_sources']), ('nav2_costmap_2d::ObstacleLayer', 'mid_mark mid_clear'))
+            mark, clear = m['mid_mark'], m['mid_clear']
+            self.assertEqual((mark['topic'], mark['data_type'], mark['marking'], mark['clearing']), ('/sensors/mid360/scan', 'LaserScan', True, False))
+            self.assertEqual((clear['topic'], clear['data_type'], clear['marking'], clear['clearing'], clear['sensor_frame']),
+                             ('/sensors/mid360/points', 'PointCloud2', False, True, 'mid360_link'))   # only the MID-360's own rays clear
+            self.assertEqual((mark['obstacle_max_range'], clear['raytrace_max_range']), (xs['obstacle_max_range'], xs['raytrace_max_range']))
+            self.assertEqual(m.get('combination_method'), c['obstacle_layer'].get('combination_method'))
+        others = {k for k in p if k != 'mid360_scan'}
+        self.assertEqual(others, set(base))
+
+    def test_layer_takes_the_saved_ranges(self):
+        with tempfile.TemporaryDirectory() as d:
+            r, p = self.build(d, 's', '', {'obstacle_max_range_m': 3.0, 'raytrace_max_range_m': 4.0})
+        for name in ('local_costmap', 'global_costmap'):
+            m = p[name][name]['ros__parameters']['mid360_layer']
+            self.assertEqual((m['mid_mark']['obstacle_max_range'], m['mid_clear']['raytrace_max_range']), (3.0, 4.0))
+        self.assertEqual(p['mid360_scan']['ros__parameters']['range_max'], p['xt32_scan']['ros__parameters']['range_max'])
+
+
 if __name__ == '__main__':
     unittest.main()

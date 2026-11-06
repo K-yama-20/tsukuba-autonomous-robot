@@ -46,6 +46,12 @@ CONFIG_FIELDS = OrderedDict([
     # GNSS antenna phase centres in base_link (REV-061, ND-13 -> gnss_link / gnss_aux1_link; ND-19 reads them from TF)
     ('gnss_main_mount_x_m', 'number'), ('gnss_main_mount_y_m', 'number'), ('gnss_main_mount_z_m', 'number'),
     ('gnss_aux1_mount_x_m', 'number'), ('gnss_aux1_mount_y_m', 'number'), ('gnss_aux1_mount_z_m', 'number'),
+    # REV-266 (DEC-485): the MID-360 mounting (base_link -> mid360_link), the same meaning as the LiDAR's. Unlike the fields above it
+    # is never filled with the neutral element: until all seven are set, mid360_link is not published and the MID-360 path is not
+    # started (DEC-457, mid360_config.mount_from_config). Until REV-266 these values were in the vehicle PC's mid360.json.
+    ('mid360_mount_x_m', 'number'), ('mid360_mount_y_m', 'number'), ('mid360_mount_z_m', 'number'),
+    ('mid360_mount_roll_rad', 'number'), ('mid360_mount_pitch_rad', 'number'), ('mid360_mount_yaw_rad', 'number'),
+    ('mid360_axis_mapping', 'axes'),
 ])
 # /config 「自律走行の出力」 tab (REV-118, DEC-181, IFD-52): the dead-band compensation of gouda_motion_controller (DEC-171
 # plan A), a minimum stick amount and a threshold per direction. 'fraction' = a stick amount in [0, 1). Kept in its own file
@@ -362,7 +368,8 @@ class SensorConfig:
             tmp.replace(self.path)
         except OSError as e:
             return False, f'saved in memory but writing {self.path} failed: {e}'
-        notes = [f'{k} is left-handed (not a rotation; base_link axes are used for it)' for k, v in parsed.items()
+        notes = [f'{k} is left-handed (not a rotation; ' + ('mid360_link is not published and the MID-360 path is not started)' if k.startswith('mid360_')   # REV-266: no neutral pose
+                                                             else 'base_link axes are used for it)') for k, v in parsed.items()
                  if self.fields[k] == 'axes' and v != UNKNOWN and sensor_extrinsics.determinant(sensor_extrinsics.parse_axis_mapping(v)) < 0]
         return True, f'config revision {self.config_revision} saved ({len(parsed)} field(s))' + ('. WARNING: ' + '; '.join(notes) if notes else '')
 

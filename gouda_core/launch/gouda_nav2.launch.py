@@ -10,6 +10,10 @@ Wiring as upstream navigation_launch.py without collision_monitor (RQ-I072): con
 cmd_vel_nav; velocity_smoother reads cmd_vel_nav and publishes cmd_vel (IFD-15, TwistStamped PRM-12) for ND-11.
 REV-185 (DEC-336): pointcloud_to_laserscan (ND-09) turns the XT-32 points into the base_link-band scan the costmaps read; without
 the package Nav2 is not started.
+REV-242 (DEC-454): the MID-360 path (ND-20 livox_ros_driver2, ND-21 mid360_scan, the mid360_layer of both costmaps) starts with Nav2
+only when PRM-142 is true, <config_dir>/mid360.json (IFD-61, the vehicle PC's own file) has both addresses, the monitor's /config
+(<config_dir>/sensor_config.json, IFD-26) has the whole MID-360 mounting (REV-266, DEC-485) and livox_ros_driver2 is installed;
+otherwise it is not started, the reason is logged, and everything else is as before (XT-32 only).
 
 The BT's recovery count is the one saved in the monitor's /config 「Nav2」 tab (config_dir/nav2_recovery.json, IFD-54) when it is
 valid, else PRM-18 (REV-132, DEC-207 (a)); the count used and its source are logged and written to run_dir/nav2/recovery.json.
@@ -23,9 +27,33 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
+def _mid360_ready(config_dir, run_dir):
+    """('', the written driver config path, note) when the vehicle PC's mid360.json has both addresses, /config has the whole MID-360
+    mounting (REV-266) and livox_ros_driver2 is installed, else (the reason, None, note). note tells about mounting keys left in
+    mid360.json (not read since REV-266). The driver config (with the PC's addresses) goes to run_dir/mid360 only, never to the repository."""
+    from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
+    from gouda_core import mid360_config as m3
+    reason, addresses, note = m3.launch_inputs(config_dir or None)
+    if reason:
+        return reason, None, note
+    try:
+        tpl = m3.find_template(get_package_share_directory(m3.DRIVER_PACKAGE))
+    except PackageNotFoundError:
+        return f'{m3.DRIVER_PACKAGE} is not installed or not loaded (setup.sh builds it; gouda.sh loads <workspace>_livox)', None, note
+    if tpl is None:
+        return f'{m3.DRIVER_PACKAGE} has no config/{m3.TEMPLATE_NAME}', None, note
+    out = os.path.join(run_dir, 'mid360', m3.TEMPLATE_NAME)
+    try:
+        m3.write_driver_config(tpl, addresses, out)
+    except (OSError, ValueError) as e:
+        return f'the driver config could not be written ({e})', None, note
+    return '', out, note
+
+
 def _nodes(context, *args, **kwargs):
     from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
     from gouda_core import nav2_config as nc
+    from gouda_core import mid360_config as m3
     params_dir = LaunchConfiguration('params_dir').perform(context)
     run_dir = os.path.expanduser(LaunchConfiguration('run_dir').perform(context))
     trial = LaunchConfiguration('trial').perform(context).lower() in ('1', 'true', 'yes')
@@ -40,9 +68,13 @@ def _nodes(context, *args, **kwargs):
         get_package_share_directory(nc.SCAN_PACKAGE)
     except PackageNotFoundError:
         return [LogInfo(msg=f'[gouda_nav2] {nc.SCAN_PACKAGE} is not installed: Nav2 is not started (no obstacle input; setup.sh installs it)')]
-    r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'), config_dir or None)
+    mid360_ready, mid360_cfg, mid360_note = _mid360_ready(config_dir, run_dir)   # REV-242 (DEC-454): '' when the MID-360 path can start
+    r = nc.write(params_dir, trial, tpl, bt, os.path.join(run_dir, 'nav2'), config_dir or None, mid360_ready=mid360_ready)
     if r['missing']:
         return [LogInfo(msg=f"[gouda_nav2] unresolved vehicle values {r['missing']}: Nav2 is not started (no general values: intent.md:85)")]
+    m = r['mid360']
+    mid360_log = LogInfo(msg=f"[gouda_nav2] MID-360 layer {'used' if m['used'] else 'NOT used (XT-32 only)'}: {m['reason']}"
+                         + (f' ({mid360_note})' if mid360_note else ''))
     rec, inf = r['recovery'], r['inflate_around_unknown']
     recovery_log = LogInfo(msg=f"[gouda_nav2] BT recovery count {rec['value']} from {rec['source']}" + (f" ({rec['note']})" if rec['note'] else '')
                            + f"; inflate_around_unknown {inf['value']} from {inf['source']}" + (f" ({inf['note']})" if inf['note'] else ''))
@@ -53,7 +85,15 @@ def _nodes(context, *args, **kwargs):
             return [LogInfo(msg=f'[gouda_nav2] {nc.MPPI_PACKAGE} is not installed: Nav2 is not started (setup.sh installs it; PRM-130 false in the monitor selects RPP)')]
     p = [r['params']]
     out = 'screen'
-    return [
+    mid360_nodes = [] if not m['used'] else [
+        # ND-20 (REV-242): the upstream driver, PointCloud2 in mid360_link, its one topic remapped to IFD-59
+        Node(package=m3.DRIVER_PACKAGE, executable=m3.DRIVER_EXECUTABLE, name=m3.DRIVER_NODE, output=out,
+             parameters=[m3.driver_parameters(mid360_cfg)], remappings=[(m3.DRIVER_TOPIC, m3.POINTS_TOPIC)]),
+        # ND-21 (REV-242): the MID-360 points in the same base_link band as xt32_scan, for the mid360_layer of both costmaps (IFD-60)
+        Node(package=nc.SCAN_PACKAGE, executable=nc.SCAN_EXECUTABLE, name=m3.SCAN_NODE, output=out, parameters=p,
+             remappings=[('cloud_in', m3.POINTS_TOPIC), ('scan', m3.SCAN_TOPIC)]),
+    ]
+    return [mid360_log] + mid360_nodes + [
         recovery_log,
         Node(package='nav2_map_server', executable='map_server', name='map_server', output=out, parameters=p),
         Node(package='nav2_map_server', executable='map_server', name='filter_mask_server', output=out, parameters=p),

@@ -1,0 +1,413 @@
+# 変更セット REV-242（2026-11-07 第217便: MID-360 を XT-32 とは別の costmap の層として入れる最小構成。DEC-454〜457、PRM-142）
+# reserved by reserve_ids.py: mid360-impl 2026-11-07T02:04:13
+# 適用: design/tools/apply_revision.py REV-242
+id: REV-242
+date: '2026-11-07'
+summary: >-
+  第217便：人の回答「実装はopus5.5に実装させよ。君は監督役。」（DEC-454）で、MID-360 を XT-32 とは別の costmap の層（構成案 B1、模擬の S2）として入れる
+  最小構成を製品のコードに入れる。上流の livox_ros_driver2（ND-20、PointCloud2、mid360_link）を Nav2 と一緒に起動し、上流の pointcloud_to_laserscan を
+  もう 1 つ（ND-21 mid360_scan、XT-32 と同じ帯 PRM-70・71）起動し、local・global の costmap に MID-360 だけで印と消去をする ObstacleLayer
+  （mid360_layer）を XT-32 の層の後に足す。XT-32 の層は変えない。PC 側・MID-360 側のアドレスと取り付けの値は車載 PC の
+  <data_root>/config/mid360.json（IFD-61、リポジトリに置かない）から読み、そろわなければ MID-360 の経路全体を起動せず理由を記録する（XT-32 だけで今までどおり）。
+  有効・無効は PRM-142（/config の Nav2 タブで切り替え）。sensor supervisor・monitor の入力欄と状態の表示・自己位置・PTP は入れない。
+basis_refs:
+- DEC-454
+- DEC-424
+- DEC-425
+- DEC-429
+- DEC-442
+- DEC-443
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-LIVOX-2144554-LDDC
+  path: design/research/upstream_sensors/livox_ros_driver2_2144554/lddc.cpp
+  role: evidence
+- id: FILE-LIVOX-2144554-NODE
+  path: design/research/upstream_sensors/livox_ros_driver2_2144554/livox_ros_driver2.cpp
+  role: evidence
+- id: FILE-LIVOX-2144554-CONFIG
+  path: design/research/upstream_sensors/livox_ros_driver2_2144554/MID360_config.addresses_removed.json
+  role: evidence
+decisions:
+- id: DEC-454
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第217便、監督役のセッションの質問）MID-360 を別の層で costmap に入れる最小構成の実装に着手してよいですか？
+    提示した内容：ドライバを Nav2 と一緒に起動する／base_link → mid360_link の TF を設定値から出す／点群を base_link の高さの帯で切って scan にする
+    （XT-32 と同じ上流の pointcloud_to_laserscan）／local と global の costmap に MID-360 の層を足す。7 時までに入れないもの：sensor supervisor への組み込み、
+    monitor の /config の入力欄と状態の表示、自己位置への利用、PTP。
+  answer_verbatim: |
+    実装はopus5.5に実装させよ。君は監督役。
+  affected_refs:
+  - ND-10
+  - ND-13
+  - IFD-20
+  - IFD-54
+  - DEC-341
+  resulting_refs:
+  - ND-20
+  - ND-21
+  - IFD-59
+  - IFD-60
+  - IFD-61
+  - PRM-142
+  note: >-
+    その前の人の発言（原文）「MID-360は確認走行クリアには必須である。プランを立てよ。一部は別セッションで検討済みである。」。AI の解釈：回答は質問の内容での実装の承認で、
+    実装は監督役のセッションが別のセッション（このセッション）に指示した。層の構成は模擬の S2（第203便、接触 18 → 6、drive_sim_layers.py）に合わせた：印は MID-360 の
+    帯の scan、消去は MID-360 の点群そのものを mid360_link から（MID-360 の光線が通った所だけを消す）。監督役の指示の「印と消去の両方を MID-360 の scan だけで行う」は、
+    「MID-360 の観測だけで」と読み、模擬で確かめた S2 の形（消去は点群）にした（違えば人・監督役が直す）。PRM-142 の既定 true は監督役の指示で、人は値を明示していない。
+    アドレスと取り付けの値は車載 PC のローカルのファイル（IFD-61）で、正本・リポジトリには置かない（公開リポジトリ）。取り付けの値がそろうまで経路全体を起動しない（DEC-457）。
+    実車・模擬・車載 PC での確認は未実行。安全かどうかの判断は人（CLAUDE.md 1.12）。第217便。
+  disposition: answered
+- id: DEC-455
+  kind: question
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【未決】MID-360 の高さの帯（mid360_scan の min_height・max_height）を XT-32 の帯（PRM-70・PRM-71）と別の値にするか。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-21
+  - PRM-70
+  - PRM-71
+  resulting_refs: []
+  note: >-
+    今（REV-242）は XT-32 と同じ PRM-70・71 を使う（mid360_scan の設定は xt32_scan の写し）。推奨：まず同じ帯で実車の記録を取り、地面の写り込み（50° 下向きのため
+    取り付けの傾きの誤差が帯の下限に効く）と低い物の見え方を見てから決める。代替：MID-360 だけ下限を上げる（地面の誤検出を減らすが低い物を見落とす）。
+    影響する ID：ND-21、IFD-60。決まらない場合に止まる作業：なし（同じ帯のまま動く）。
+  disposition: open_human
+- id: DEC-456
+  kind: question
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【未決】MID-360 がつながらない・点群が届かない・ドライバが止まったときの扱い。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-20
+  - ND-10
+  - DEC-341
+  resulting_refs: []
+  note: >-
+    今（REV-242）の振る舞い：ローカルの値（IFD-61）かドライバがなければ MID-360 の経路を起動せず、理由を launch の記録に出して XT-32 だけで走る。起動した後に点群が
+    届かないとき・ドライバが落ちたときは、何も検出しない（mid360_layer は印も消去もしないまま、XT-32 だけで走り続ける。ドライバの再起動もしない。monitor の表示もない）。
+    構成案の A-6 の推奨は「動き続ける（XT-32 だけで走り、記録と表示）」。リスク：低い物が見えないまま走る。代替：Nav2 の起動の条件にする、expected_update_rate で
+    層を古いとみなす（Nav2 の上流の機能。古いと costmap が current でなくなり controller が止まる）。決まらない場合に止まる作業：sensor supervisor への組み込みと monitor の表示。
+  disposition: open_human
+- id: DEC-457
+  kind: measurement
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】MID-360 の取り付けの位置と姿勢（base_link → mid360_link の x・y・z・roll・pitch・yaw と軸の向き）。車載 PC の <data_root>/config/mid360.json に入れる値。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-424
+  - DEC-425
+  - ND-13
+  - IFD-61
+  resulting_refs: []
+  note: >-
+    値は tbd（DEC-425 の回答は高さ 800 mm か 500 mm の候補、DEC-424 は 50° 下向き。ステーの設計は高さ 450 mm・傾き 50° と監督役から聞いたが、実測前で確定値ではない）。
+    値が入るまで base_link → mid360_link は出さず、MID-360 の経路全体を起動しない（推測の値で埋めない）。計測の手順の案：取り付けの点の位置を巻尺で base_link から測る
+    （x 前・y 左・z 上）、傾きは傾斜計か地面の当てはめ（#72・#80）。証拠（日付、計測の条件、写真・記録）を残してから人が値を入れる。決まらない場合に止まる作業：MID-360 の層の実車での使用。
+  disposition: open_human
+entities:
+- id: ND-20
+  kind: ros_node
+  name: livox_ros_driver2（MID-360、外部）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-14
+  issue_refs:
+  - Q-04
+  - G-DDS
+  interpretation: REV-242（DEC-454）で追加。
+  sensitivity: []
+  requirement_refs:
+  - RQ-I123
+  ros_node:
+    node_name: livox_ros_driver2
+    responsibilities:
+    - MID-360 の計測を PointCloud2（xfer_format 0）として提供（IFD-59）。frame は mid360_link、ドライバの topic livox/lidar（multi_topic 0）を sensors/mid360/points に付け替える
+    - 設定は上流の config/MID360_config.json（commit 2144554）を雛形に、車載 PC の IFD-61 の PC 側・MID-360 側のアドレスだけを差し込んで、起動時に <data_root>/run/mid360/ に作る。外部パラメータは 0 のまま（TF の発行元は ND-13 だけ）。雛形のその他の値は変えない
+    - PRM-142 が true で、IFD-61 がそろい、ドライバが入っているときだけ、gouda_nav2.launch.py が Nav2 と一緒に起動する。そうでなければ起動せず理由を記録する
+    - 点群の時刻はドライバの既定のまま（DEC-442：まず同期なし）。内蔵 IMU（livox/imu）は使わない
+    absorbs_module_refs:
+    - M-019
+    active_in_mode_refs:
+    - MODE-MAP
+    - MODE-AUTO
+    - MODE-PAUSE
+    lifecycle: external
+    process_group: nav2
+    publishes_refs:
+    - IFD-59
+    subscribes_refs:
+    - IFD-61
+    serves_refs: []
+    calls_refs: []
+    owned_state_refs: []
+    placement_rationale: 第三者ドライバ（上流は改変しない）。最小構成のため sensor supervisor（ND-18）には入れず、Nav2 の launch で xt32_scan と並べて起動する（再接続での作り直し・再起動はしない。DEC-456）。
+- id: ND-21
+  kind: ros_node
+  name: MID-360 の障害物の帯（上流の pointcloud_to_laserscan、node mid360_scan）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - ND-09
+  issue_refs:
+  - Q-04
+  interpretation: REV-242（DEC-454）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I123
+  - RQ-I104
+  ros_node:
+    node_name: mid360_scan
+    responsibilities:
+    - MID-360 点群（IFD-59）を上流の pointcloud_to_laserscan（node mid360_scan）で base_link に変換し、高さの帯の中の点だけを方位ごとの LaserScan（IFD-60）にする。設定は xt32_scan と同じ（帯は PRM-70・PRM-71、range_max も同じ。別にするかは DEC-455）
+    - local・global の costmap の mid360_layer が IFD-60 を印の観測源にする
+    absorbs_module_refs:
+    - M-023
+    active_in_mode_refs:
+    - MODE-AUTO
+    - MODE-PAUSE
+    lifecycle: external
+    process_group: nav2
+    publishes_refs:
+    - IFD-60
+    subscribes_refs:
+    - IFD-59
+    - IFD-20
+    serves_refs: []
+    calls_refs: []
+    owned_state_refs: []
+    placement_rationale: xt32_scan（ND-09）と同じ既製の node を、名前と topic だけ変えてもう 1 つ起動する。独自の点群処理は作らない。
+- id: IFD-59
+  kind: designed_interface
+  name: sensors/mid360/points（MID-360 点群）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-21
+  issue_refs:
+  - Q-04
+  - G-DDS
+  interpretation: REV-242（DEC-454）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I123
+  designed_interface:
+    transport: topic
+    name: sensors/mid360/points
+    message_type: sensor_msgs/msg/PointCloud2
+    standard_type: true
+    custom_type_reason:
+    purpose: data
+    owner_ref: ND-20
+    publisher_refs:
+    - ND-20
+    consumer_refs:
+    - ND-21
+    - ND-10
+    unit: m
+    frame: mid360_link（MID-360 固有の座標方向。base_link への変換は IFD-20 の静的TF、値は IFD-61）
+    time_semantics: ドライバの既定の時刻（DEC-442：まず同期なし）。publish_freq はドライバの既定（10 Hz）。点の field は x・y・z・intensity・tag・line・timestamp（上流の PointXYZRTL）
+    qos:
+      reliability: reliable
+      durability: volatile
+      history_depth:
+    version_dependency:
+      status: confirmed_upstream
+      evidence:
+      - research/upstream_sensors/livox_ros_driver2_2144554/lddc.cpp
+      - research/upstream_sensors/livox_ros_driver2_2144554/livox_ros_driver2.cpp
+      note: 上流 livox_ros_driver2 2144554 のソースで topic 名（livox/lidar）、frame_id の parameter、既定の QoS（create_publisher の queue の深さ）を読んだ。深さの値と実車PC に導入された版との一致は未確認
+    legacy_refs: []
+- id: IFD-60
+  kind: designed_interface
+  name: sensors/mid360/scan（MID-360 の点群を base_link の高さの帯で切った LaserScan）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-57
+  - PRM-70
+  - PRM-71
+  issue_refs:
+  - Q-04
+  - G-DDS
+  interpretation: REV-242（DEC-454）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I123
+  - RQ-I104
+  designed_interface:
+    transport: topic
+    name: sensors/mid360/scan
+    message_type: sensor_msgs/msg/LaserScan
+    standard_type: true
+    custom_type_reason:
+    purpose: data
+    owner_ref: ND-21
+    publisher_refs:
+    - ND-21
+    consumer_refs:
+    - ND-10
+    unit: m
+    frame: base_link（pointcloud_to_laserscan の target_frame）
+    time_semantics: IFD-57 と同じ（元の点群 IFD-59 の stamp、帯の中の方位ごとの一番近い点、点のない方位は inf）。mid360_layer は印にだけ使う（inf_is_valid false、消去は IFD-59）
+    qos:
+      reliability: best_effort
+      durability: volatile
+      history_depth: 5
+    version_dependency:
+      status: confirmed_upstream
+      evidence:
+      - research/upstream_jazzy/pointcloud_to_laserscan_2.0.2/node_excerpt.txt
+      note: IFD-57 と同じ上流 pointcloud_to_laserscan 2.0.2 のソースで照合
+    legacy_refs: []
+- id: IFD-61
+  kind: designed_interface
+  name: <data_root>/config/mid360.json（車載 PC の MID-360 のアドレスと取り付け。リポジトリに置かない）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-26
+  issue_refs:
+  - Q-11
+  interpretation: REV-242（DEC-454・DEC-457）で追加。
+  sensitivity:
+  - safety
+  requirement_refs:
+  - RQ-I123
+  - RQ-I076
+  designed_interface:
+    transport: file
+    name: <data_root>/config/mid360.json
+    message_type: 'JSON {host_ip, lidar_ip（IPv4 の文字列）, mid360_mount_x_m, mid360_mount_y_m, mid360_mount_z_m, mid360_mount_roll_rad, mid360_mount_pitch_rad, mid360_mount_yaw_rad（数）, mid360_axis_mapping（IFD-26 と同じ軸の向きの文）}'
+    standard_type: false
+    custom_type_reason: アドレスを公開リポジトリに置かないため、XT-32 の /config（IFD-26）と同じく車載 PC のデータの場所に置く。今は人が直接書く（monitor の入力欄は DEC-454 の範囲外で未実装）。publisher・owner の ND-02 は入力欄を足すときの置き場所で、今の ND-02 はこのファイルを書かない
+    purpose: configuration
+    owner_ref: ND-02
+    publisher_refs:
+    - ND-02
+    consumer_refs:
+    - ND-13
+    - ND-20
+    - ND-10
+    unit: m, rad。取り付けの意味は IFD-26 と同じ（R = R_rpy × A、REP-103、pitch が正で前が下を向く）
+    frame: base_link → mid360_link
+    time_semantics: gouda.sh start のときに読む（ND-13 は /config の保存のときにも読み直す）。1 つでも欠けるか不正なら、MID-360 の経路全体を起動せず mid360_link も出さない（中立の値で埋めない）
+    qos:
+      reliability: not_applicable
+      durability: not_applicable
+      history_depth:
+    version_dependency:
+      status: none
+      evidence: []
+      note: ''
+    legacy_refs: []
+- id: PRM-142
+  kind: parameter
+  name: MID-360 の層を使う（mid360_enabled）
+  source_refs:
+  - SRC-I117-V17
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - IFD-61
+  - C-018
+  issue_refs: []
+  interpretation: REV-242（DEC-454）で追加。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I123
+  - RQ-I104
+  parameter:
+    owner_ref: ND-10
+    value: true
+    value_state: approved
+    unit:
+    stage: 自律走行の為の最小構成
+    purpose: true のとき、IFD-61 がそろい livox_ros_driver2 が入っていれば、MID-360 のドライバ・mid360_scan・local と global の mid360_layer を起動する。false か、そろわないときは今までと同じ（XT-32 だけ）。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+    measurement: 人の回答「実装はopus5.5に実装させよ。君は監督役。」（DEC-454）。既定 true は監督役の指示で、人は値を明示していない
+    decision_deadline: 決定済み（DEC-454。実車の走行で見直す）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_nav2
+    param_key: mid360_enabled
+    value_type: bool
+    apply_timing: launch
+  approval_decision_ref: DEC-454
+modifications:
+- id: ND-10
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-14
+    - IFD-23
+    - IFD-25
+    - IFD-18
+    - IFD-19
+    - IFD-20
+    - IFD-42
+    - IFD-54
+    - IFD-57
+    - IFD-59
+    - IFD-60
+  interpretation_append: 'REV-242（DEC-454）：PRM-142 が true で MID-360 の経路が起動したとき、local・global の costmap に mid360_layer（ObstacleLayer）を obstacle_layer の直後に足す。印は IFD-60、消去は IFD-59 を mid360_link から（MID-360 の光線だけで消す。模擬の S2）。XT-32 の層は変えない。'
+- id: ND-13
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-26
+    - IFD-61
+  interpretation_append: 'REV-242（DEC-454・DEC-457）：base_link → mid360_link を IFD-61 の取り付けの値から出す。値が 1 つでも欠ければ出さない（XT-32 と違い中立の値で埋めない）。'
+- id: IFD-20
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-06
+    - ND-07
+    - ND-08
+    - ND-09
+    - ND-10
+    - ND-16
+    - ND-19
+    - ND-21
+  interpretation_append: 'REV-242（DEC-454）：base_link → mid360_link を足した（IFD-61 の値がそろうときだけ）。'
+- id: IFD-54
+  interpretation_append: 'REV-242（DEC-454）：mid360_enabled（PRM-142）を足した。'
+decision_updates: []

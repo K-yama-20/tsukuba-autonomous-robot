@@ -1,0 +1,12 @@
+Upstream livox_ros_driver2, commit 21445540f0d100dc86a7e6df312dd70bbdb4afdf (pinned in third_party/drivers.repos; DEC-442, DEC-443).
+Fetched 2026-11-07 from https://raw.githubusercontent.com/Livox-SDK/livox_ros_driver2/21445540f0d100dc86a7e6df312dd70bbdb4afdf/<path>
+(MIT License, Copyright (c) 2022 Livox; the headers are kept in the copied files).
+  lddc.cpp                  <- src/lddc.cpp            (topic "livox/lidar" with multi_topic 0; header.frame_id = the frame_id parameter)
+  livox_ros_driver2.cpp     <- src/livox_ros_driver2.cpp (ROS 2 parameters: xfer_format, multi_topic, data_src, publish_freq,
+                                                          output_data_type, frame_id, user_config_path, cmdline_input_bd_code, lvx_file_path)
+  msg_MID360_launch.py      <- launch_ROS2/msg_MID360_launch.py (package livox_ros_driver2, executable livox_ros_driver2_node)
+  MID360_config.addresses_removed.json <- config/MID360_config.json with the example addresses replaced by "<address removed>"
+                                          (the public repository holds no addresses; every other key and value is as upstream).
+CMakeLists.txt (not copied): rclcpp_components_register_node(... EXECUTABLE livox_ros_driver2_node) and
+ament_auto_package(INSTALL_TO_SHARE config launch_ROS2), so the template is installed as share/livox_ros_driver2/config/MID360_config.json.
+Not checked against the build on the vehicle PC (the driver was not installed there on 2026-11-06).

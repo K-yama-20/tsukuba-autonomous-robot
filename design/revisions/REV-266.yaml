@@ -1,0 +1,133 @@
+# reserved by reserve_ids.py: mid360-mount-config 2026-11-07T03:37:30
+# 変更セット REV-266（2026-11-07 第242便: MID-360 の取り付けを monitor の /config で設定する。DEC-485（answered）、DEC-486（pending））
+# 適用: design/tools/apply_revision.py REV-266（この便では dry-run の検査まで。本適用は親のセッションの判断）
+id: REV-266
+date: '2026-11-07'
+summary: >-
+  第242便：人の指示「IMU の frameは公式資料を探して値を見つけよ。また、本体取り付けの位置はgouda_monitorの/configで設定できるようにせよ。」（DEC-485）で、
+  MID-360 の取り付け（base_link → mid360_link の x・y・z・roll・pitch・yaw と軸の向き）を、XT-32 と同じ /config（IFD-26）の「センサ取付・座標方向」の 7 項目
+  （mid360_mount_x_m・_y_m・_z_m・_roll_rad・_pitch_rad・_yaw_rad・mid360_axis_mapping）にする。既定値は入れない（UNKNOWN）。XT-32 と違い中立の値で埋めず、
+  7 項目がそろうまで ND-13 は mid360_link を出さず、Nav2 の launch は MID-360 の経路を起動しない（DEC-457 のまま）。車載 PC の mid360.json（IFD-61）は
+  アドレスだけを読む。REV-242 の形で残った取り付けの鍵は読まず、ND-13 の記録と launch の log に「読まない・/config と同じか違うか」を出す（写しはしない）。
+  /config の画面は保存していない入力をタブの遷移で保つ（intent.md:106）。内蔵 IMU の frame の事実（公式資料と上流のソース）を ND-20 に出典つきで書き、
+  mid360_link → livox_frame の静的 TF を出すかは DEC-486（承認待ち）にする（実装しない）。
+basis_refs:
+- DEC-485
+- DEC-454
+- DEC-457
+- DEC-122
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-485
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第242便の前、監督役のセッションとの会話）MID-360 の取り付けの値（DEC-457）と内蔵 IMU の frame の扱い。質問の原文はこの便に渡されていない。
+  answer_verbatim: |
+    IMU の frameは公式資料を探して値を見つけよ。また、本体取り付けの位置はgouda_monitorの/configで設定できるようにせよ。
+  affected_refs:
+  - DEC-457
+  - DEC-454
+  - IFD-26
+  - IFD-61
+  - IFD-20
+  - ND-13
+  - ND-02
+  - ND-10
+  - ND-20
+  resulting_refs: []
+  note: >-
+    伝達の経路：人の発言は監督役のセッションで行われ、そのセッションが原文を引用してこの便に渡した。この記録の AI はその発言を直接は見ていない。
+    AI の解釈：後半は MID-360 の取り付けの位置・姿勢を /config で設定できるようにする実装への yes（DEC-106。監督役の解釈と同じ）。前半は内蔵 IMU の frame の値を
+    公式資料で確かめよという指示で、値は ND-20 の interpretation に出典つきで書いた。TF を出すかは振る舞いの変更なので DEC-486（承認待ち）にした。
+    自律判断（承認済みの指示の範囲。後から戻せる）：(1) 取り付けの置き場所は /config に一本化し、mid360.json はアドレスだけを読む。理由：二か所にあると、
+    画面の値と使われる値が食い違いうる。アドレスを /config に入れないのは、/config の値が DecisionEvent の settings（log/decision。rosbag の -a に入る）と
+    地図ごとの /config の写しに入るため。(2) 両方に値があるときは /config を使い、mid360.json の取り付けの鍵は読まない。ND-13 の記録（static_tf_published の
+    details 'mid360'）と launch の log に、鍵が残っていること・/config と同じ変換か違うかを出す。/config がそろっていなければ「/config に入れる」と出す。
+    (3) 移行：自動では写さない（人の値を AI が別の場所へ動かさない）。REV-242 の形の mid360.json だけでは、この変更の後は MID-360 の経路が起動しない
+    （/config がそろうまで XT-32 だけ。DEC-457 と同じ向き）。車載 PC に mid360.json があるか・中身は、この便では確かめていない（車載 PC に触れない指示）。
+    第217便の記録では mid360.json の作成は「未実行（人）」。(4) 既定値は入れない（UNKNOWN）。XT-32・IMU・GNSS の中立の値の規則（DEC-122）は MID-360 に
+    広げない。(5) 画面：保存していない入力をタブの遷移で保つ（再読込では消える）。XT-32 などの欄にも同じく効く。(6) DEC-457 の question・note の
+    「mid360.json に入れる値」は、この記録から「/config に入れる値」と読む（DEC-457 は書き換えない）。第242便。
+  disposition: answered
+- id: DEC-486
+  kind: approval
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on: null
+  channel: chat
+  question: >-
+    【承認】ND-13 が MID-360 の内蔵 IMU の frame の静的 TF（mid360_link → livox_frame）を出すか。推奨は「出す。mid360_link を出すときだけ、
+    移動は公式の IMU の位置（x 0.011 m・y 0.02329 m・z −0.04412 m）、回転なし」。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-13
+  - IFD-20
+  - ND-20
+  - DEC-457
+  - DEC-485
+  resulting_refs: []
+  note: >-
+    事実：IMU の加速度・角速度の軸の向きは点群の座標と同じ。IMU のチップの位置は点群の座標で x 11.0 mm・y 23.29 mm・z −44.12 mm（Livox Mid-360 User Manual
+    v1.2（2024.04）PDF 17 ページ（印刷 15）「IMU Data」。リポジトリの外の公式資料 Sensors/MID-360/official/Livox_Mid-360_User_Manual_EN.pdf、sha256 3f202c84…）。
+    ドライバ（2144554）は IMU の header.frame_id を文字列 livox_frame に固定し（lddc.cpp 481 行）、点群は parameter frame_id（Gouda は mid360_link。lddc.cpp 263 行）。
+    今の ND-13 は livox_frame を出さない。Gouda の node で /livox/imu を購読するものはない（docs/mid360_driver_interfaces.md 3 章。rosbag の -a には入る）。
+    推奨：B 出す。ND-13 が mid360_link を出すときだけ、mid360_link → livox_frame を、移動は上の公式の値（m）、回転なし（軸は点群と同じ）で同じ /tf_static に入れる。
+    理由：値は機器の中の固定の事実で、実測も推測も要らない。記録（rosbag の -a）に入る IMU を、後から TF で車体に置ける（DEC-457 の取り付けの確かめに記録を使う場合）。
+    走行には効かない（livox_frame を使う node がない）。TF の発行元は ND-13 のまま（RQ-I058）。人の指示「IMU の frameは公式資料を探して値を見つけよ」に沿う。
+    代替：A 出さない（IMU を使うと決めるまで足さない。REV-260 の DEC-478 の推奨。足す物が少ない）。C 出すが移動 0（軸だけ。加速度の腕の長さの分が違う）。
+    D frame_id を付け替える変換の node・fork を使い、その frame を出す（DEC-477・478 の代替。上流は改変しない：DEC-075）。
+    振る舞いの違い：B・C は /tf_static の frame が 1 つ増える（mid360_link がないときは増えない）。A・D は今と同じ。どれも costmap・走行は変わらない。
+    気づき：DEC-478（REV-260、未適用・承認待ち）は同じ問いで推奨が A。この便の推奨が B なのは、人の指示（DEC-485）が IMU の frame の値を求めたため。どちらかに答えが
+    あれば両方を閉じる。加速度は g のまま（m/s² ではない。プロトコルの単位 g、ドライバは単位を変えずに写す：lddc.cpp 493〜495 行、上流 src/comm/pub_handler.cpp）
+    なので、TF を出しても /livox/imu をそのまま使うことはできない（DEC-477）。
+    決まらない場合に止まる作業：/livox/imu を TF で車体に置く解析・利用。走行と MID-360 の層は止まらない。第242便。
+  disposition: open_human
+entities: []
+modifications:
+- id: IFD-61
+  set:
+    name: <data_root>/config/mid360.json（車載 PC の MID-360 のアドレス。リポジトリに置かない）
+  set_nested:
+    designed_interface.message_type: 'JSON {host_ip, lidar_ip（IPv4 の文字列）}。REV-242 の形の取り付けの鍵（mid360_mount_*・mid360_axis_mapping）が残っていても読まない（REV-266）'
+    designed_interface.custom_type_reason: アドレスを公開リポジトリに置かないため、車載 PC のデータの場所に置く。/config（IFD-26）に入れないのは、/config の値が DecisionEvent の settings（rosbag の -a に入る）と地図ごとの /config の写しに入るため。今は人が直接書く（monitor の入力欄はない）。publisher・owner の ND-02 は入力欄を足すときの置き場所で、今の ND-02 はこのファイルを書かない
+    designed_interface.unit: なし（アドレスだけ。取り付けは REV-266 から IFD-26）
+    designed_interface.frame: なし（base_link → mid360_link の値は REV-266 から IFD-26 の mid360_* の 7 項目）
+    designed_interface.time_semantics: gouda.sh start のときに gouda_nav2.launch.py が読む。アドレスが 1 つでも欠けるか不正なら MID-360 の経路全体を起動しない。ND-13 と launch は、REV-242 の形の取り付けの鍵が残っているかを注記のためだけに読む（値は使わない）
+  interpretation_append: 'REV-266（DEC-485）：アドレスだけのファイルにした。取り付けは /config（IFD-26）の mid360_* の 7 項目。残った取り付けの鍵は読まず、ND-13 の記録と launch の log に「読まない」と /config との一致・不一致を出す（mid360_config.legacy_mount_note）。'
+- id: IFD-26
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-13
+    - ND-03
+    - ND-10
+  interpretation_append: 'REV-266（DEC-485）：MID-360 の取り付け mid360_mount_x_m・_y_m・_z_m・_roll_rad・_pitch_rad・_yaw_rad・mid360_axis_mapping を足した（意味は LiDAR の項目と同じ。base_link → mid360_link）。既定値なし（UNKNOWN）。UNKNOWN の項目を中立の値で埋めるのは LiDAR・IMU・GNSS だけで、MID-360 は 7 項目がそろうまで使わない（DEC-457）。ND-10（gouda_nav2.launch.py）は gouda.sh start のときに MID-360 の 7 項目を読み、そろわなければ MID-360 の経路を起動しない。'
+- id: IFD-20
+  interpretation_append: 'REV-266（DEC-485）：base_link → mid360_link の値は IFD-26 の mid360_* の 7 項目から（7 項目がそろうときだけ。IFD-61 からは読まない）。mid360_link → livox_frame は出していない（DEC-486）。'
+- id: ND-13
+  interpretation_append: 'REV-266（DEC-485）：base_link → mid360_link を /config（IFD-26）の 7 項目から出す（1 つでも UNKNOWN・不正なら出さない。中立の値で埋めない）。/config の保存で読み直す。IFD-61 は REV-242 の形の取り付けの鍵が残っているかを記録の注記（details mid360）のためだけに読む。'
+- id: ND-10
+  set_nested:
+    ros_node.subscribes_refs:
+    - IFD-14
+    - IFD-23
+    - IFD-25
+    - IFD-18
+    - IFD-19
+    - IFD-20
+    - IFD-42
+    - IFD-54
+    - IFD-57
+    - IFD-59
+    - IFD-60
+    - IFD-26
+  interpretation_append: 'REV-266（DEC-485）：MID-360 の経路の起動の条件のうち、取り付けは /config（IFD-26）の 7 項目、アドレスは IFD-61 から読む（gouda_nav2.launch.py。gouda.sh start のときだけ）。'
+- id: ND-02
+  interpretation_append: 'REV-266（DEC-485）：/config「センサ取付・座標方向」に MID-360 の 7 項目（既定値なし）。保存していない入力はタブの遷移で保つ（サーバの値と違う欄だけ。保存に成功したらサーバの値を出す。再読込では消える。intent.md:106）。'
+- id: ND-20
+  interpretation_append: 'REV-266（DEC-485）：内蔵 IMU の frame の事実。IMU の加速度・角速度の軸の向きは点群の座標と同じ。IMU のチップの位置は点群の座標で x 11.0 mm・y 23.29 mm・z −44.12 mm（Livox Mid-360 User Manual v1.2（2024.04）PDF 17 ページ（印刷 15）「IMU Data」。リポジトリの外の公式資料、sha256 3f202c845330023d50eee086cc522918ec8b1279446c4286ea3d38722400cab2）。ドライバ 2144554 は IMU の header.frame_id を文字列 livox_frame に固定する（research/upstream_sensors/livox_ros_driver2_2144554/lddc.cpp 481 行。点群は 263 行で parameter frame_id）。加速度・角速度は単位を変えずに写す（同 490〜495 行）。手元の機体との一致は未確認。mid360_link → livox_frame の TF は出していない（DEC-486）。'
+decision_updates: []

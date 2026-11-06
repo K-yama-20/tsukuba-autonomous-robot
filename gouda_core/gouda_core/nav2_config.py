@@ -56,6 +56,11 @@ REV-190 (DEC-400, DEC-401, DEC-402):
   template, no collision check as in the node's default).
 REV-240 (DEC-449): MPPI's open_loop is PRM-141 (true: the optimisation starts from the last command instead of the odometry speed, so the
   command can grow past the joystick dead band while the vehicle still stands, issue #61). Selectable in /config.
+REV-242 (DEC-454): the MID-360 as a layer of its own (plan B1, the simulator's S2) when PRM-142 is true AND the caller says the MID-360
+  path is ready (mid360_config: the vehicle PC's addresses and mounting, the driver installed): a second pointcloud_to_laserscan
+  (mid360_scan, the xt32_scan's parameters: the same band PRM-70 / PRM-71, DEC-455 open) and in both costmaps an ObstacleLayer
+  mid360_layer right after obstacle_layer, marking from the MID-360's scan and clearing only along the MID-360's own rays (its raw
+  points from mid360_link). The XT-32's layer is not changed. Otherwise the parameter file is exactly as without it.
 """
 from __future__ import annotations
 
@@ -70,6 +75,7 @@ from typing import Optional
 import yaml
 
 from gouda_core import sensor_config as sc
+from gouda_core import mid360_config as m3
 
 # Interface names (not settings)
 MAP_FRAME, ODOM_FRAME, BASE_FRAME = 'map', 'odom', 'base_link'
@@ -144,6 +150,7 @@ TUNABLES = OrderedDict([
     ('local_costmap_update_hz', ('PRM-133', 'positive', 'gouda_nav2')),
     ('path_smoothing_enabled', ('PRM-134', 'boolean', 'bt_params')),                  # REV-190 (DEC-401)
     ('map_odom_future_offset_s', ('PRM-135', 'positive', 'gouda_global_localization')),   # REV-193 (DEC-406), used by ND-07, not by Nav2
+    ('mid360_enabled', ('PRM-142', 'boolean', 'gouda_nav2')),                         # REV-242 (DEC-454): the MID-360 layer (only when ready)
 ])
 # The RPP keys of the controller plugin (FollowPath) for the rpp_* tunables
 RPP_KEYS = {'rpp_use_collision_detection': 'use_collision_detection', 'rpp_max_time_to_collision_s': 'max_allowed_time_to_collision_up_to_carrot',
@@ -275,6 +282,31 @@ def scan_parameters(height_min: float, height_max: float, range_max: float) -> d
     Every other value stays the package's own."""
     return {'target_frame': BASE_FRAME, 'min_height': height_min, 'max_height': height_max, 'range_max': range_max,
             'angle_min': -math.pi, 'angle_max': math.pi, 'use_inf': True, 'use_sim_time': False}
+
+
+def add_mid360(params: dict) -> None:
+    """REV-242 (DEC-454): the MID-360's own layer (plan B1 = drive_sim_layers S2) in both costmaps and its band scan section.
+    Called after apply_tunables, so the layer takes the XT-32 source's (possibly saved) ranges. The XT-32 layer is not touched."""
+    params[m3.SCAN_NODE] = copy.deepcopy(params[SCAN_NODE])   # the same band (PRM-70 / PRM-71) and range_max (DEC-455 open)
+    for name in ('local_costmap', 'global_costmap'):
+        c = params[name][name]['ros__parameters']
+        xt = c['obstacle_layer']
+        xs = xt['scan']
+        mark = {'topic': m3.SCAN_TOPIC, 'data_type': 'LaserScan', 'marking': True, 'clearing': False, 'inf_is_valid': False,
+                'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND,
+                'obstacle_max_range': xs['obstacle_max_range'], 'obstacle_min_range': xs.get('obstacle_min_range', 0.0)}
+        clear = {'topic': m3.POINTS_TOPIC, 'data_type': 'PointCloud2', 'marking': False, 'clearing': True, 'sensor_frame': m3.FRAME,
+                 'min_obstacle_height': -NO_BAND, 'max_obstacle_height': NO_BAND,
+                 'raytrace_max_range': xs['raytrace_max_range'], 'raytrace_min_range': xs.get('raytrace_min_range', 0.0)}
+        layer = {'plugin': 'nav2_costmap_2d::ObstacleLayer', 'enabled': True, 'observation_sources': 'mid_mark mid_clear',
+                 'min_obstacle_height': xt['min_obstacle_height'], 'max_obstacle_height': xt['max_obstacle_height']}
+        if 'combination_method' in xt:
+            layer['combination_method'] = xt['combination_method']
+        layer.update({'mid_mark': mark, 'mid_clear': clear})
+        c[m3.LAYER] = layer
+        plugins = list(c['plugins'])
+        plugins.insert(plugins.index('obstacle_layer') + 1, m3.LAYER)
+        c['plugins'] = plugins
 
 
 def nav2_parameters(template: dict, values: dict, bt_xml_path: str) -> dict:
@@ -468,9 +500,11 @@ def build_bt(template_xml: str, values: dict, tunables: Optional[dict] = None) -
     return ET.tostring(root, encoding='unicode')
 
 
-def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_path: str, out_dir: str, config_dir: Optional[str] = None) -> dict:
+def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_path: str, out_dir: str, config_dir: Optional[str] = None,
+          mid360_ready: str = 'not checked') -> dict:
     """Build and write nav2_params.yaml and the BT under out_dir. Returns {'missing': [...], 'params': path or None, 'bt': path or None,
-    'recovery': the count used and its source (recovery_from_config)}."""
+    'recovery': the count used and its source (recovery_from_config), 'mid360': {'used', 'reason'}}.
+    mid360_ready is '' when the caller found the MID-360 path ready (REV-242), else the reason it is not."""
     values = read_values(params_dir, trial)
     miss = missing(values)
     if miss:
@@ -498,12 +532,19 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
         template = yaml.safe_load(f)
     params = nav2_parameters(template, values, bt_path)
     apply_tunables(params, t, template['controller_server']['ros__parameters']['FollowPath'])
+    if not t.get('mid360_enabled'):
+        mid360 = {'used': False, 'reason': f"PRM-142 mid360_enabled is {t.get('mid360_enabled')!r} ({tunables['mid360_enabled']['source']})"}
+    elif mid360_ready:
+        mid360 = {'used': False, 'reason': mid360_ready}
+    else:
+        add_mid360(params)
+        mid360 = {'used': True, 'reason': f"PRM-142 true ({tunables['mid360_enabled']['source']}), the vehicle PC's settings and the driver found"}
     params_path = os.path.join(out_dir, 'nav2_params.yaml')
     with open(params_path, 'w', encoding='utf-8') as f:
         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')
         yaml.safe_dump(params, f, sort_keys=False, allow_unicode=True)
     return {'missing': [], 'params': params_path, 'bt': bt_path, 'recovery': recovery, 'inflate_around_unknown': inflate, REPLAN_KEY: replan,
-            'tunables': tunables}
+            'tunables': tunables, 'mid360': mid360}
 
 
 def find_templates(bringup_share: Optional[str], bt_navigator_share: Optional[str]) -> tuple:

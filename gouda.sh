@@ -92,6 +92,10 @@ case "${1:-}" in
     mkdir -p "$run_dir" "$data_root/records" "$data_root/state"
     # shellcheck disable=SC1090
     source "$ros_setup"; source "$workspace/install/setup.bash"
+    # MID-360 driver (REV-242, DEC-454): built by setup.sh in <workspace>_livox; only this workspace is added (local_setup, no
+    # re-sourcing of ROS). Without it the Nav2 launch logs that the MID-360 is not used and runs with the XT-32 only.
+    livox_setup="${workspace}_livox/install/local_setup.bash"
+    if [[ -f "$livox_setup" ]]; then source "$livox_setup"; else echo "MID-360 driver not built ($livox_setup missing): XT-32 only"; fi
     # Fast DDS profile of every process of this start (PRM-100 / PRM-101, DEC-279, DEC-138): written from the generated settings each time
     python3 -m gouda_core.dds_profile "$params_dir" "$dds_profile" || { echo "REFUSED: not started (Fast DDS profile)"; exit 1; }
     set -m   # job control: the background launch gets its own process group and keeps default SIGINT handling

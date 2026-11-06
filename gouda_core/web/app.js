@@ -296,13 +296,19 @@
 
   // ---- /config ----
   async function loadConfig() {
-    const r = await fetch('/api/config'); const c = await r.json(); renderConfig(c);
+    const r = await fetch('/api/config'); const c = await r.json(); renderConfig(c, true);
   }
-  function renderConfig(c) {
-    $('config-rev').textContent = `revision ${c.config_revision} / UNKNOWN ${c.unknown_count}/${Object.keys(c.values).length} / ${c.path}`;
-    const form = $('config-form');
+  // REV-266 (DEC-485, intent.md:106): typed but unsaved values survive a tab change. A field keeps what was typed while it differs
+  // from the value last shown from the server; a successful save shows the server's values again.
+  let configShown = {};
+  function renderConfig(c, keepEdits) {
+    const form = $('config-form'); const edits = {};
+    if (keepEdits) for (const el of form.elements) if (el.name && el.name in configShown && el.value !== configShown[el.name]) edits[el.name] = el.value;
+    configShown = {}; for (const k of Object.keys(c.values)) configShown[k] = String(c.values[k]);
+    const nEdits = Object.keys(edits).filter((k) => k in configShown).length;
+    $('config-rev').textContent = `revision ${c.config_revision} / UNKNOWN ${c.unknown_count}/${Object.keys(c.values).length} / ${c.path}` + (nEdits ? ` / 未保存の入力 ${nEdits}` : '');
     form.innerHTML = Object.keys(c.values).map((k) => {
-      const v = c.values[k]; const unknown = v === 'UNKNOWN';
+      const v = k in edits ? edits[k] : configShown[k]; const unknown = v === 'UNKNOWN';
       return `<label>${esc(k)} <span class="dim">(${esc(c.kinds[k])})</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;
     }).join('');
   }
@@ -392,7 +398,9 @@
       local_costmap_update_hz: 'local costmap の更新の頻度（Hz）',
       path_smoothing_enabled: '経路を平滑化する（true／false）',
       // REV-193 (DEC-406)
-      map_odom_future_offset_s: 'map→odom を先の時刻で出す量（s、PRM-89 より短く。自己位置の次の起動から）' };
+      map_odom_future_offset_s: 'map→odom を先の時刻で出す量（s、PRM-89 より短く。自己位置の次の起動から）',
+      // REV-242 (DEC-454)
+      mid360_enabled: 'MID-360 の層を使う（true／false。「センサ取付・座標方向」の mid360_* の 7 項目、車載 PC の mid360.json のアドレス、ドライバがそろうときだけ入る。次の起動から）' };   // REV-266 (DEC-485)
     $('nav2-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${NAV2_LABELS[k] || esc(k)}</span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(String(v))}" placeholder="UNKNOWN"></label>`;
@@ -424,7 +432,7 @@
     const data = {}; new FormData($('config-form')).forEach((v, k) => { data[k] = v; });
     const r = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const j = await r.json(); $('config-msg').textContent = (j.ok ? 'OK: ' : 'NG: ') + j.message; $('config-msg').className = j.ok ? 'cyan' : 'amber';
-    if (j.config) renderConfig(j.config);
+    if (j.config) renderConfig(j.config, !j.ok);   // a refused save keeps what was typed (REV-266)
   });
 
   // ---- waypoint_manager (IFD-30 / IFD-41): edits on the converted map; save generates the speed mask ----

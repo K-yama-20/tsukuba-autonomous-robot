@@ -8,6 +8,9 @@ sensor_extrinsics, the same code that gives GLIM its T_lidar_imu, so the TF and 
   DEC-122 replaces the earlier "no TF while unset").
 - /config is read at start and again after every /config save (the monitor records event=settings with the revision); the
   transforms are sent again only when the revision changed.
+REV-242 (DEC-454) / REV-266 (DEC-485): base_link -> mid360_link from the seven mid360_* fields of /config only when all are set and
+valid; otherwise it is not sent (no neutral pose, DEC-457) and the reason is in the record (details 'mid360'). Mounting keys left in
+the vehicle PC's mid360.json (IFD-61, REV-242 format) are not used; the record says so (mid360_config.legacy_mount_note).
 Settings: data_root (launch argument), base_link_z_m (PRM-05, from the generated parameter file). No number is written here.
 """
 from __future__ import annotations
@@ -24,7 +27,7 @@ from geometry_msgs.msg import TransformStamped
 from tf2_msgs.msg import TFMessage
 from gouda_interfaces.msg import DecisionEvent
 
-from gouda_core import sensor_extrinsics
+from gouda_core import sensor_extrinsics, mid360_config
 from gouda_core.monitor_core import SensorConfig
 
 # /tf_static as tf2 publishes it (transient_local, depth 1). The whole set is sent every time: rclpy's StaticTransformBroadcaster
@@ -64,6 +67,10 @@ class StaticTfNode(Node):
             self._decision('static_tf_not_published', 'base_link_z_m (PRM-05) is not set: no static TF', {})
             return
         res = sensor_extrinsics.static_transforms(dict(cfg.values), self.base_link_z)
+        # REV-266 (DEC-485, DEC-457): base_link -> mid360_link only from a complete MID-360 mounting in /config; never neutral
+        mid, mid_note = mid360_config.static_tf(dict(cfg.values), str(self.config_path.parent))
+        if mid is not None:
+            res['transforms'].append(mid)
         now = self.get_clock().now().to_msg()
         msgs = []
         for t in res['transforms']:
@@ -75,10 +82,10 @@ class StaticTfNode(Node):
         self.revision = cfg.config_revision
         reason = f'static TF published for /config revision {cfg.config_revision}' + (
             f" (UNKNOWN in /config, neutral used: {', '.join(res['defaulted_fields'])})" if res['defaulted_fields'] else '') + (
-            f" (problems: {'; '.join(res['problems'])})" if res['problems'] else '')
+            f" (problems: {'; '.join(res['problems'])})" if res['problems'] else '') + f' ({mid_note})'
         self._decision('static_tf_published', reason, {'config_revision': cfg.config_revision, 'config_path': str(cfg.path),
                                                         'transforms': res['transforms'], 'defaulted_fields': res['defaulted_fields'],
-                                                        'problems': res['problems']})
+                                                        'problems': res['problems'], 'mid360': mid_note})
 
     def _decision(self, event, reason, details):
         d = DecisionEvent(); d.header.stamp = self.get_clock().now().to_msg(); d.node = 'gouda_static_tf'
