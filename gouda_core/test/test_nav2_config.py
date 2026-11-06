@@ -281,7 +281,8 @@ class TunableTests(unittest.TestCase):
             lc = p['local_costmap']['local_costmap']['ros__parameters']
             self.assertEqual((lc['width'], lc['height'], lc['update_frequency']), (8, 8, 10.0))
             self.assertGreater(lc['width'] / 2, horizon)   # the prediction stays inside the costmap
-            changed = {'plugin', 'vx_max', 'vx_min', 'wz_max', 'ax_max', 'ax_min', 'az_max', 'prune_distance', 'visualize', 'CostCritic'}
+            changed = {'plugin', 'vx_max', 'vx_min', 'wz_max', 'ax_max', 'ax_min', 'az_max', 'prune_distance', 'visualize', 'CostCritic',
+                       'open_loop'}   # REV-240 (DEC-449): PRM-141 is written; its value is checked in test_mppi_open_loop
             self.assertEqual({k: v for k, v in follow.items() if k not in changed}, {k: v for k, v in tf.items() if k not in changed})
 
     def test_rpp_stays_selectable(self):
@@ -298,6 +299,17 @@ class TunableTests(unittest.TestCase):
             follow = p['controller_server']['ros__parameters']['FollowPath']
             self.assertEqual((follow['vx_max'], follow['wz_max']), (0.5, 0.3))
             self.assertEqual(p['local_costmap']['local_costmap']['ros__parameters']['update_frequency'], 5.0)
+
+    def test_mppi_open_loop(self):   # REV-240 (DEC-449): PRM-141 true by default, false selectable in /config
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'o')
+            self.assertIs(p['controller_server']['ros__parameters']['FollowPath']['open_loop'], True)
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'c', {'mppi_open_loop': False})
+            self.assertIs(p['controller_server']['ros__parameters']['FollowPath']['open_loop'], False)
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'r', {'controller_use_mppi': False})
+            self.assertNotIn('open_loop', p['controller_server']['ros__parameters']['FollowPath'])
 
     def test_smooth_path_in_the_replanning_branch(self):   # REV-190 (DEC-401)
         with tempfile.TemporaryDirectory() as d:

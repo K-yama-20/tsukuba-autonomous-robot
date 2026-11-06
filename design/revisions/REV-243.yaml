@@ -1,0 +1,40 @@
+# reserved by reserve_ids.py: rev240-deploy 2026-11-07T02:11:01
+# 変更セット REV-243（2026-11-07 第215便: REV-240（PRM-141、MPPI の open_loop）を車載 PC に反映した記録。DEC-459）
+# 適用: design/tools/apply_revision.py REV-243
+id: REV-243
+date: '2026-11-07'
+summary: >-
+  第215便：人の回答「作業はopes5.5にやらせよ。車載PCに反映して良い」（DEC-459）で、REV-240（DEC-449、PRM-141）の変更を車載 PC の作業用ワークスペースに反映し、
+  gouda_core だけを作り直した。コード・設定の値は REV-240 から変えていない。Gouda は起動していない。実車は未確認。
+basis_refs:
+- DEC-459
+- DEC-449
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-459
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第215便）この変更（REV-240、PRM-141）を車載 PC に反映してよいか。
+  answer_verbatim: |
+    作業はopes5.5にやらせよ。車載PCに反映して良い
+  affected_refs:
+  - PRM-141
+  - ND-10
+  resulting_refs: []
+  note: >-
+    「opes5.5」は Opus 5.5 と AI が読み、反映の作業を Opus 5.5 の subagent に行わせた。
+    反映したもの：gouda_core/gouda_core/nav2_config.py（TUNABLES の mppi_open_loop と mppi_follow の 1 行）、gouda_core/web/app.js（/config の表示名 1 行）、
+    gouda_core/test/test_nav2_config.py（test_mppi_open_loop と test_mppi_is_the_default の changed）、design/generated/params/gouda_nav2.yaml（mppi_open_loop の行と見出しのハッシュ）。
+    いずれも位置を確かめて差し込む形で、ファイル全体の置き換えは gouda_nav2.yaml だけ（差分が見出しのハッシュとその行だけだったため）。
+    作り直しは colcon build の gouda_core だけ（--symlink-install、前回と同じ指定）で成功、車載 PC 上の test_nav2_config は 23 件すべて成功。
+    Gouda は起動していない（反映の前に作業用ワークスペースの Gouda が動いていないことを確かめた）。画面の確認と実車は未実行。
+  disposition: answered
+entities: []
+modifications:
+- id: PRM-141
+  interpretation_append: 'REV-243（DEC-459）：車載 PC に反映した（作り直しまで。Gouda の起動と実車は未実行）。'

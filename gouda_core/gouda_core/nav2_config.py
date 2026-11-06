@@ -54,6 +54,8 @@ REV-190 (DEC-400, DEC-401, DEC-402):
   template, CostCritic with the footprint (PRM-69 is a long rectangle), no visualization. The other template values stay;
 - the replanning branch gets the upstream SmoothPath node after ComputePathThroughPoses when PRM-134 is true (simple_smoother of the
   template, no collision check as in the node's default).
+REV-240 (DEC-449): MPPI's open_loop is PRM-141 (true: the optimisation starts from the last command instead of the odometry speed, so the
+  command can grow past the joystick dead band while the vehicle still stands, issue #61). Selectable in /config.
 """
 from __future__ import annotations
 
@@ -138,6 +140,7 @@ TUNABLES = OrderedDict([
     ('controller_use_mppi', ('PRM-130', 'boolean', 'gouda_nav2')),                    # REV-190 (DEC-400): false = RPP
     ('mppi_vx_max_mps', ('PRM-131', 'positive', 'gouda_nav2')),
     ('mppi_wz_max_radps', ('PRM-132', 'positive', 'gouda_nav2')),
+    ('mppi_open_loop', ('PRM-141', 'boolean', 'gouda_nav2')),                         # REV-240 (DEC-449): false = MPPI starts from the measured speed
     ('local_costmap_update_hz', ('PRM-133', 'positive', 'gouda_nav2')),
     ('path_smoothing_enabled', ('PRM-134', 'boolean', 'bt_params')),                  # REV-190 (DEC-401)
     ('map_odom_future_offset_s', ('PRM-135', 'positive', 'gouda_global_localization')),   # REV-193 (DEC-406), used by ND-07, not by Nav2
@@ -191,6 +194,8 @@ def mppi_follow(template_follow: dict, t: dict, accel: float, wz_accel: float) -
         f['prune_distance'] = f['prune_distance'] * vx / f['vx_max']   # the template's margin over the prediction horizon, kept with the speed
         f['vx_max'] = vx
     if t.get('mppi_wz_max_radps') is not None: f['wz_max'] = float(t['mppi_wz_max_radps'])
+    # REV-240 (DEC-449): open_loop starts each optimisation from the last command, not from the odometry speed (issue #61)
+    if t.get('mppi_open_loop') is not None: f['open_loop'] = bool(t['mppi_open_loop'])
     f.update({'vx_min': 0.0, 'ax_max': accel, 'ax_min': -accel, 'az_max': wz_accel, 'visualize': False})
     f['CostCritic']['consider_footprint'] = True
     return f

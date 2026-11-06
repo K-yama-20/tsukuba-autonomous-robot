@@ -382,6 +382,7 @@
       controller_use_mppi: 'controller に MPPI を使う（true／false。false なら RPP）',
       mppi_vx_max_mps: 'MPPI の速度の上限（m/s）',
       mppi_wz_max_radps: 'MPPI の旋回の上限（rad/s）',
+      mppi_open_loop: 'MPPI の open_loop（true／false。true は前回の指令から、false は実速度から次の指令を作る）',   // REV-240 (DEC-449)
       local_costmap_update_hz: 'local costmap の更新の頻度（Hz）',
       path_smoothing_enabled: '経路を平滑化する（true／false）',
       // REV-193 (DEC-406)

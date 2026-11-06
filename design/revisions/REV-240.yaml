@@ -1,0 +1,82 @@
+# 変更セット REV-240（2026-11-07 第215便: MPPI の open_loop を /config で切り替える。DEC-449、PRM-141）
+# 適用: design/tools/apply_revision.py REV-240
+id: REV-240
+date: '2026-11-07'
+summary: >-
+  第215便：人の回答「着手して」（DEC-449）で、MPPI の open_loop（上流 nav2_mppi_controller 1.3.13 の設定）を PRM-141 にし、
+  monitor の /config「Nav2」タブ（IFD-54）で切り替えられるようにする。既定は true。車速 0 のとき MPPI の指令が不感帯に届かず発進できない問題
+  （K-yama-20/tsukuba-autonomous-robot#61）への対処。不感帯の補償、Critic、velocity_smoother は変えない。
+basis_refs:
+- DEC-449
+- DEC-400
+- DEC-445
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-449
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第215便）MPPI の open_loop 切り替え（/config で戻せる形）の実装に着手してよいか。AI の提示：7 時までの優先順位の案の P0 の 3
+    「MPPI の open_loop を /config で切り替えられる形で実装し、x86 の模擬で確かめてから実車で比べる」。
+    選択肢は「着手して」「RPPだけで行く」。
+  answer_verbatim: |
+    着手して
+  affected_refs:
+  - ND-10
+  - IFD-54
+  - PRM-130
+  resulting_refs:
+  - PRM-141
+  note: >-
+    既定を true にしたのは、質問の「/config で戻せる形」を「open_loop を既定にして false に戻せる」と AI が読んだもの（人は値を明示していない）。
+    根拠は #61 の模擬の比較（実測の不感帯を入れた車体モデルで open_loop が発進と追従で最良、ゴール 3/3、遅れて出るコーンで接触 1/3）。
+    実車の open_loop は未確認。open_loop では MPPI が実速度でなく前回の指令を初期状態にするので、車体が指令に追従しない間も指令が増える。
+    安全かどうかの判断は人（CLAUDE.md 1.12）。第215便。
+  disposition: answered
+entities:
+- id: PRM-141
+  kind: parameter
+  name: "MPPI の open_loop（実速度でなく前回の指令から次の指令を作る）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  - PRM-130
+  issue_refs: []
+  interpretation: "REV-240（DEC-449）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-10
+    value: true
+    value_state: approved
+    unit: 
+    stage: 自律走行の為の最小構成
+    purpose: "MPPI（PRM-130 が true のとき）の open_loop。true は前回の指令を初期状態にする。false は odometry の実速度（上流の既定）で、車速 0 のとき指令が 1 ステップの加速の分までに抑えられ、不感帯に届かない（#61）。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「着手して」（DEC-449）。既定 true は AI の読み。#61 の模擬の比較が根拠で、実車では未検証"
+    decision_deadline: 決定済み（DEC-449。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: mppi_open_loop
+    value_type: bool
+    apply_timing: launch
+  approval_decision_ref: DEC-449
+modifications:
+- id: ND-10
+  interpretation_append: 'REV-240（DEC-449）：MPPI の open_loop を PRM-141 で選ぶ（既定 true）。'
+- id: IFD-54
+  interpretation_append: 'REV-240（DEC-449）：mppi_open_loop（PRM-141）を足した。'
