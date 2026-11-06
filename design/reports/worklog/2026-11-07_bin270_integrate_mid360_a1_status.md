@@ -20,6 +20,12 @@
 | e0bdd8a | 252 | MID-360 の状態の通知を /diagnostics と log に記録する（DEC-479・DEC-494 の A）。third_party/patches、recorder、REV-278 |
 | 4e6bbb6 | 252 | 作業記録にコミット ID を書いただけ |
 
+## 訂正（同じ日の追記）
+
+- 上の表と REV-295 の要約の「d324667 を取り込んだ」は誤り。chat/mid360-status-2026-11-07 は c8bf7bb の上に切られていて d324667 を含まないので、fast-forward では入らなかった。「後者は前者を含む」は MID-360 のメインチャットの連絡をそのまま使い、こちらで確かめていなかった（d324667 が祖先かを見ていなかった）
+- MID-360 のメインチャットの指摘で確かめ、DEC-528（2 本とも merge するかの問いへの回答）の範囲として chat/mid360-a1-2026-11-07 を merge した：204b866（merge のコミット、第一の親 5ce0112、第二の親 d324667）。変わるのは `design/reports/worklog/2026-11-07_bin264_mid360_a1_commit.md` の 1 ファイルだけで、c8bf7bb の後にこのファイルを変えたコミットはなく、衝突はなかった。コードと正本は変わらないので、試験と検査はやり直していない
+- REV-295 は適用済みなので書き換えず、この訂正をこの記録と status.md に残す
+
 ## 経過と自律判断
 
 1. 状態の確かめ：9acdc7f は chat/mid360-status-2026-11-07 の祖先（fast-forward で入る）。共有の作業ツリーに残っていた未コミットの写しを、ブランチの版と sha256 で比べた。setup.sh・drivers.repos・mid360_config.py・recorder_core.py・recorder_node.py・test_recorder_diagnostics.py・third_party/patches の 4 件・`livox_ros_driver2_status_patch_2026-11-07.md` は同じ。README.md はブランチの表の 1 行が足りないだけ。REV-278.yaml は予約だけの stub
