@@ -1,0 +1,66 @@
+# 変更セット REV-239（2026-11-07 第214便: open_loop・下限の模擬の比較、DEC-448）
+# 適用: design/tools/apply_revision.py REV-239
+id: REV-239
+date: '2026-11-07'
+summary: 第214便：人の指示（DEC-448、原文）により、DEC-445 の実測値を入れた模擬で MPPI の open_loop と出力の下限（#66）を比べた（試験専用、workstation と Dell に分担）。4 倍速は 1 倍速と合わず、2 倍速で 90 本。open_loop なしは下限があっても 29 本すべて発進できず、open_loop ありの 4 方式は 60 本中 58 本がゴール。遅れて出るコーンは全方式で接触。結果は design/research/vehicle_pc/2026-11-07_m4x_sim。製品のコード・設定は変えていない。
+basis_refs:
+- DEC-445
+- DEC-448
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-M4X-SIM-README
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/README.md
+  role: evidence
+- id: FILE-M4X-SIM-RESULTS
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/results.csv
+  role: evidence
+- id: FILE-M4X-SIM-RUN
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/scripts/run4x.sh
+  role: evidence
+- id: FILE-M4X-SIM-PATCH-OVR
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/scripts/patch_overrides.py
+  role: evidence
+- id: FILE-M4X-SIM-PATCH-1107
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/scripts/patch1107.py
+  role: evidence
+- id: FILE-M4X-SIM-COLLECT
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/scripts/collect.py
+  role: evidence
+- id: FILE-M4X-SIM-CSV
+  path: design/research/vehicle_pc/2026-11-07_m4x_sim/scripts/to_csv.py
+  role: evidence
+decisions:
+- id: DEC-448
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: DEC-445 の実測値での MPPI の open_loop・出力の下限の模擬の比較の進め方（人の指示）
+  answer_verbatim: |
+    （人の発言の原文、時系列の番号つき）
+    1.「workstationとdellの両方でシミュレーションを回せ。実測の値の近くに絞る。時間は4倍速。」
+    2.「workstationとdellの両方にタスクを分配してでシミュレーションを回せ。例えば、a, b, cのタスクがあるなら、a,bをworkstationで行い、cをdellで行う。対象は実測の値の近くに絞る。時間は4倍速。」
+    3.（選択式のボタン）「Dell で補う側に回る」の直後に中断して「止めよう。」
+    4.「別セッションのものを止めて、君のシミュレーションを回せ」
+    5.（4 倍速が 1 倍速と合わないとの報告の後）「二倍速でやれ」
+    6.「経過を報告せよ」
+    7.「結果をしかるべきところに保存せよ」
+  affected_refs:
+  - DEC-445
+  - DEC-171
+  - DEC-422
+  - ND-11
+  - ND-10
+  resulting_refs:
+  - FILE-M4X-SIM-README
+  - FILE-M4X-SIM-RESULTS
+  - FILE-M4X-SIM-RUN
+  - FILE-M4X-SIM-PATCH-OVR
+  - FILE-M4X-SIM-PATCH-1107
+  - FILE-M4X-SIM-COLLECT
+  - FILE-M4X-SIM-CSV
+  note: 4 は、別のセッションが workstation で回していた同じ比較（~/floor1107）を止める指示。確かめたときには、その実行はもう止まっていた（このセッションは止めていない）。その実行は hesai_ros_driver の型がなくモニタが落ちて start_refused になっていた（推測：同じ原因。このセッションの写しで確認）。1・2 の 4 倍速は、制御と costmap の周波数を 4 倍にしても 1 倍速と合わなかった（較正）。報告して 5 で 2 倍速にした。結果の要点：open_loop が発進の決め手。下限は止まっていた時間を短くする（0.7〜0.9 s 対 2.2 s）。遅れて出るコーンの接触は下限では解決しない。下限の値の比較は PC がまたがり、Dell の Control loop missed が多い。詳細は design/research/vehicle_pc/2026-11-07_m4x_sim/README.md。製品への実装（#66、#61）は人の許可（DEC-106）の後。
+entities: []
+modifications: []
+decision_updates: []
