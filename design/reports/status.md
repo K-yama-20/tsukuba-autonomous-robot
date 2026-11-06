@@ -2,6 +2,10 @@
 
 最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
 
+**第270便: MID-360 の 2 本のブランチを統合ブランチに merge（REV-295、DEC-528）**（作業記録 `reports/worklog/2026-11-07_bin270_integrate_mid360_a1_status.md`）。
+- 人の回答「merge して」。chat/mid360-a1-2026-11-07（第235便の A1・第264便）と chat/mid360-status-2026-11-07（第252便）を fast-forward で入れた（9acdc7f → 4e6bbb6）。共有の作業ツリーの同じ中身の写しは退避してから片付けた。
+- REV-288・REV-278 の当て直しで model.yaml が一致。生成物は変わらず。単体試験 498 件 OK（skip 35）、設計検査 違反0件・未判定5件（FAIL は前からの drawio・.DS_Store だけ）。push・Dell の setup.sh・車載 PC への反映は未実行。
+
 **第252便: MID-360 の状態・温度・診断コードを log と rosbag に記録（REV-278、DEC-494 の A）**（作業記録 `reports/worklog/2026-11-07_bin252_mid360_status_record.md`、ブランチ `chat/mid360-status-2026-11-07`）。
 - 人の回答「A で進める」。setup.sh が livox_ros_driver2 の写しにだけ patch（`third_party/patches/livox_ros_driver2/`）を当て、状態の通知を `/diagnostics`（name mid360、許可した 14 項目、シリアル番号・アドレスなし）に出す。gouda_recorder がそれを log に書く。走行の判断には使わない（DEC-456）。
 - 単体試験 Mac 498 件 OK（skip 35）、patch の試験 148 checks 失敗 0、設計検査 違反0件・未判定5件。センサーをつないだ確認・Dell での setup.sh は未実行。統合ブランチへの merge は統合の担当。

@@ -69297,6 +69297,22 @@ decisions:
       chat/mid360-a1-2026-11-07 に作る。第252便のセッション（このチャットから分かれたセッション）も案 1（A1 を先に）を推し、A1 のコミットの上で第252便の差分を 
       作り直すと連絡してきた。統合ブランチへの merge は統合の担当が行う。第264便。
     disposition: answered
+  - id: DEC-528
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第270便）MID-360 の 2 本（chat/mid360-a1-2026-11-07：第235便の A1、colcon 
+      でのビルド、REV-288。chat/mid360-status-2026-11-07： 第252便、状態の通知の記録、REV-278。後者は前者を含む）を統合ブランチ 
+      design/mppi-sim-2026-11-03 に merge してよいか。 9acdc7f からは fast-forward 
+      で入り、共有の作業ツリーの未コミットの写しはブランチと同じ中身か、ブランチより少ないだけ。
+    answer_verbatim: "merge して\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 第270便。人の回答はこのチャット（第255便と同じセッション）で受けた。AI の解釈：merge と、その後の再生成・検査・試験・記録のコミットへの yes。 push と車載 PC 
+      への反映は含まない。統合の担当はこのセッション（CLAUDE.md 1.14 の「統合の担当のチャット」）として行った。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -74952,6 +74968,23 @@ revisions:
       - ND-04
       - IFD-27
       - ND-20
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-295
+    date: '2026-11-07'
+    summary: 第270便：chat/mid360-a1-2026-11-07（c8bf7bb・d324667、第235便の A1 と第264便）と 
+      chat/mid360-status-2026-11-07（e0bdd8a・4e6bbb6、第252便）を、 人の回答（DEC-528）で統合ブランチ design/mppi-sim-2026-11-03 に
+      fast-forward で入れた（9acdc7f → 4e6bbb6）。merge の前に、共有の作業ツリーに 
+      残っていた同じ中身の未コミットの写し（setup.sh・README.md・drivers.repos・recorder など）を退避してから片付けた。9acdc7f の model.yaml に 
+      REV-288・REV-278 を当て直した結果は、merge した model.yaml と一致した。正本の値・コード・設定は変えていない（取り込みと記録だけ）。
+    basis_refs:
+      - DEC-528
+      - DEC-475
+      - DEC-494
+      - DEC-515
+    added_entity_ids: []
+    modified_entity_ids: []
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []
