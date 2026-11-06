@@ -1,0 +1,52 @@
+04:19:07 start S0_L10_r1 d91 load 0.90
+04:19:32 start S2_L10_r1 d92 load 1.44
+04:19:57 start S0_L10_r2 d93 load 2.62
+04:20:06 end S0_L10_r1 pause:goal_reached 1 0.623 2.57
+04:20:11 start S0_L11_r1 d91 load 2.40
+04:20:47 end S2_L10_r1 pause:goal_reached 1 0.613 3.2
+04:20:52 start S2_L11_r1 d92 load 4.41
+04:20:55 end S0_L10_r2 pause:goal_reached 1 0.623 4.41
+04:21:00 start S0_L11_r2 d93 load 4.34
+04:21:10 end S0_L11_r1 pause:goal_reached 1 0.624 4.31
+04:21:15 start S0_blind_pass_h30_r1 d91 load 4.79
+04:21:57 end S2_L11_r1 pause:goal_reached 1 0.607 3.75
+04:22:01 end S0_L11_r2 pause:goal_reached 1 0.623 3.85
+04:22:02 start S2_blind_pass_h30_r1 d92 load 3.85
+04:22:06 start S0_blind_pass_h30_r2 d93 load 3.95
+04:22:21 end S0_blind_pass_h30_r1 pause:goal_reached 0 0.615 3.8
+04:22:26 start S0_blind_pass_h50_r1 d91 load 5.42
+04:23:13 end S2_blind_pass_h30_r1 pause:goal_reached 0 0.508 5.42
+04:23:14 end S0_blind_pass_h30_r2 pause:goal_reached 0 0.615 5.42
+04:23:19 start S2_blind_pass_h50_r1 d92 load 5.38
+04:23:19 start S0_blind_pass_h50_r2 d93 load 5.38
+04:23:28 end S0_blind_pass_h50_r1 pause:goal_reached 0 0.601 5.08
+04:23:33 start S0_blind_stop_h30_r1 d91 load 5.32
+04:24:23 end S0_blind_pass_h50_r2 pause:goal_reached 0 0.574 6.19
+04:24:28 start S0_blind_stop_h30_r2 d93 load 6.33
+04:24:28 end S2_blind_pass_h50_r1 pause:goal_reached 0 0.529 6.33
+04:24:33 start S2_blind_stop_h30_r1 d92 load 6.46
+04:25:28 end S0_blind_stop_h30_r1 pause:goal_reached 0 0.615 6.05
+04:25:30 end S0_blind_stop_h30_r2 pause:goal_reached 0 0.615 6.05
+04:25:33 start S0_blind_stop_h50_r1 d91 load 9.81
+04:25:35 start S0_blind_stop_h50_r2 d93 load 9.50
+04:25:49 end S2_blind_stop_h30_r1 pause:goal_reached 0 0.568 9.07
+04:25:54 start S2_blind_stop_h50_r1 d92 load 8.66
+04:26:39 end S0_blind_stop_h50_r1 pause:goal_reached 0 0.559 7.22
+DONE d91
+04:26:44 start S2_L10_r2 d91 load 6.64
+04:26:56 end S2_blind_stop_h50_r1 pause:goal_reached 0 0.566 6.59
+04:26:58 end S0_blind_stop_h50_r2 pause:goal_reached 0 0.557 6.86
+DONE d92
+DONE d93
+04:27:49 end S2_L10_r2 pause:goal_reached 0 0.561 6.33
+04:27:54 start S2_L11_r2 d91 load 6.22
+04:28:56 end S2_L11_r2 pause:goal_reached 1 0.612 5.1
+04:29:01 start S2_blind_pass_h30_r2 d91 load 4.86
+04:30:09 end S2_blind_pass_h30_r2 pause:goal_reached 0 0.527 8.38
+04:30:14 start S2_blind_pass_h50_r2 d91 load 8.75
+04:31:48 end S2_blind_pass_h50_r2 pause:goal_reached 0 0.522 9.31
+04:31:53 start S2_blind_stop_h30_r2 d91 load 9.21
+04:32:57 end S2_blind_stop_h30_r2 pause:goal_reached 0 0.569 8.57
+04:33:02 start S2_blind_stop_h50_r2 d91 load 8.52
+04:34:08 end S2_blind_stop_h50_r2 pause:goal_reached 0 0.565 8.36
+DONE d91

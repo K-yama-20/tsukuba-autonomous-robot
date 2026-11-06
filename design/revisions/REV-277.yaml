@@ -1,0 +1,53 @@
+# reserved by reserve_ids.py: blind-marks-sim-stage2 2026-11-07T04:19:36
+# 変更セット REV-277（2026-11-07 第249便：MID-360 の層に残る印のたまり方の模擬、段階 2 の 24 本。DEC-496、issue #90）
+# 適用：design/tools/apply_revision.py REV-277
+id: REV-277
+date: '2026-11-07'
+summary: >-
+  第249便：人の回答「進めて」（DEC-496）で、issue #90 の段階 2 を模擬の機械で回した（6 場面 × S0・S2 × 2 回＝24 本）。
+  証拠は research/vehicle_pc/2026-11-07_blind_marks_sim/。製品のコード・設定・値は変えていない。
+  結果：XT-32 だけでは低い静止物に 4/4 で接触し、MID-360 の層ありでも 3/4 で接触した（印は付いていたが避け始めなかった）。
+  動く相手の印は最後の位置の 1 かたまりで、走行の終わりには残らなかった。各条件 2 本。
+basis_refs:
+- DEC-496
+- DEC-493
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-BLIND-MARKS-SIM-README
+  path: design/research/vehicle_pc/2026-11-07_blind_marks_sim/README.md
+  role: evidence
+- id: FILE-BLIND-MARKS-SIM-RESULTS
+  path: design/research/vehicle_pc/2026-11-07_blind_marks_sim/results.csv
+  role: evidence
+- id: FILE-BLIND-MARKS-SIM-RUNLOG
+  path: design/research/vehicle_pc/2026-11-07_blind_marks_sim/run.log
+  role: evidence
+- id: FILE-BLIND-MARKS-SIM-RUN
+  path: design/research/vehicle_pc/2026-11-07_blind_marks_sim/scripts/blind_run.sh
+  role: evidence
+- id: FILE-BLIND-MARKS-SIM-COLLECT
+  path: design/research/vehicle_pc/2026-11-07_blind_marks_sim/scripts/collect.py
+  role: evidence
+decisions:
+- id: DEC-496
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第249便）issue #90 の段階 2（ワークステーションで少数の模擬を回す）に進めてよいか。AI の提示：段階 1 の道具は単体試験だけで、
+    印の記録は ROS 上で動かしていない。段階 2 は L10・L11・すれ違い・死角で止まる場面を S0・S2 で各 2 回。選択肢は「進めて」「まだしない」。
+  answer_verbatim: |
+    進めて
+  affected_refs:
+  - ND-10
+  - PRM-142
+  resulting_refs: []
+  note: >-
+    第249便。承認の範囲は段階 2 の模擬の実行だけ。段階 3（80 本）、場面の作り直し、issue #89 の案 B〜E は含まない。
+    模擬の機械では、新しい試験用の写しの中だけで動かした（製品の作業場所と車載 PC には触れていない）。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

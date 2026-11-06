@@ -1,0 +1,66 @@
+{
+ "scenario": "L11",
+ "completed": true,
+ "progress": 0.96,
+ "duration_s": 39.5,
+ "avg_speed_mps": 0.607,
+ "stopped_s": 0.2,
+ "longest_stop_s": 0.2,
+ "max_lateral_m": 0.82,
+ "extra_path_ratio": 1.017,
+ "min_clearance_m": -0.25,
+ "contacts": 1,
+ "avoid_start_s": {
+  "low": 8.4
+ },
+ "not_avoided": [],
+ "turn_changes_per_min": 4.6,
+ "w_cmd_rate_rms": 0.2,
+ "score": 124.4,
+ "commands": 835,
+ "pose": [
+  25.23,
+  0.0,
+  -0.01
+ ],
+ "plant": {
+  "delay_s": 0.15,
+  "tau_v_s": 0.25,
+  "tau_w_s": 0.15
+ },
+ "elapsed_s": 53.0,
+ "marks": {
+  "local_costmap/costmap": {
+   "max_stale": 0,
+   "max_stale_near": 0,
+   "last_stale": 0
+  },
+  "local_costmap/obstacle_layer": {
+   "max_stale": 0,
+   "max_stale_near": 0,
+   "last_stale": 0
+  },
+  "local_costmap/mid360_layer": {
+   "max_stale": 0,
+   "max_stale_near": 0,
+   "last_stale": 0
+  }
+ },
+ "end": "pause:goal_reached",
+ "start": "{\"ok\": true, \"message\": \"TR-05: manual -> autonomy\"}",
+ "log": {
+  "collision_ahead": 0,
+  "failed_progress": 0,
+  "patience_exceeded": 0,
+  "spin": 0,
+  "backup": 0,
+  "wait": 0,
+  "control_loop_missed": 0,
+  "planner_loop_missed": 0,
+  "tf_errors": 0,
+  "waypoint_skipped": 0,
+  "clear_local": 0,
+  "clear_global": 0
+ },
+ "load1": 3.75
+}

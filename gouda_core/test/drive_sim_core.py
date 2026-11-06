@@ -65,7 +65,8 @@ class Plant:
 @dataclass
 class Obstacle:
     """A vertical cylinder (radius > 0) or a box (half_x, half_y > 0) that exists from its trigger until `dwell_s` after it.
-    trigger_m: it appears when the vehicle comes this close to it (None: it is there from the start). vx, vy move it once it exists."""
+    trigger_m: it appears when the vehicle comes this close to it (None: it is there from the start). vx, vy move it once it exists;
+    stop_after_s: it stands still from this long after it appeared (None: it keeps moving; 第245便)."""
     x: float
     y: float
     height: float = 0.7
@@ -78,6 +79,7 @@ class Obstacle:
     vy: float = 0.0
     name: str = ''
     start_t: Optional[float] = None
+    stop_after_s: Optional[float] = None
 
     def update(self, t: float, px: float, py: float) -> None:
         if self.start_t is None and (self.trigger_m is None or math.hypot(self.x - px, self.y - py) <= self.trigger_m):
@@ -88,6 +90,8 @@ class Obstacle:
 
     def center(self, t: float) -> tuple:
         age = 0.0 if self.start_t is None else t - self.start_t
+        if self.stop_after_s is not None:
+            age = min(age, self.stop_after_s)
         return self.x + self.vx * age, self.y + self.vy * age
 
     def distance(self, t: float, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
@@ -188,6 +192,9 @@ def scenario(name: str, seed: int = 0) -> Scenario:
     elif name == 'sidewalk_cone':     # a cone on a sidewalk 4 m wide with walls
         walls = [Obstacle(15.0, s * 2.15, height=1.5, half_x=16.0, half_y=0.15, name=f'wall{s}') for s in (-1, 1)]
         return Scenario(name, [(i * 5.0, 0.0) for i in range(7)], walls + [Obstacle(14.0, 0.5, name='cone', **CONE)])
+    elif name.startswith('blind_'):   # 第245便 (#90): the marks left behind by small robots; the scenes live in drive_sim_blind.py
+        import drive_sim_blind
+        return drive_sim_blind.scenario(name)
     else:
         raise ValueError(f'unknown scenario {name}')
     return Scenario(name, r, obs)

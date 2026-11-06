@@ -64,7 +64,7 @@ python3 - "$OUT/report.json" "$OUT/result.json" "$SCENARIO" "${END:-timeout}" "$
 import json, os, sys
 rep, res, sc, end, start, *c = sys.argv[1:]
 r = json.load(open(rep)) if os.path.exists(rep) else {'scenario': sc, 'score': None}
-k = ('collision_ahead', 'failed_progress', 'patience_exceeded', 'spin', 'backup', 'wait', 'control_loop_missed', 'planner_loop_missed', 'tf_errors')
+k = ('collision_ahead', 'failed_progress', 'patience_exceeded', 'spin', 'backup', 'wait', 'control_loop_missed', 'planner_loop_missed', 'tf_errors', 'waypoint_skipped', 'clear_local', 'clear_global')   # clear_*: ClearEntireCostmap of the recoveries (第245便)
 r.update(end=end, start=start[:200], log=dict(zip(k, map(int, c))), load1=float(c[-1]))
 json.dump(r, open(res, 'w'), ensure_ascii=False, indent=1)
 print(json.dumps({x: r.get(x) for x in ('scenario', 'end', 'completed', 'progress', 'duration_s', 'avg_speed_mps', 'stopped_s', 'contacts', 'score', 'load1')}, ensure_ascii=False))

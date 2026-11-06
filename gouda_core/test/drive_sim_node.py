@@ -4,6 +4,8 @@ Subscribes cmd_vel (IFD-15), publishes map -> odom -> base_link, localization/od
 base_link) from drive_sim_core, and rewrites <report> about once a second. The real pointcloud_to_laserscan, costmaps and Nav2 read it.
 usage: python3 drive_sim_node.py <scenario> <report.json> [--seed N] [--delay S] [--tau-v S] [--tau-w S] [--noise M] [--mid360-height M]
 With --mid360-height it also publishes sensors/mid360/points (in base_link) for the MID-360 plan; nothing reads it yet.
+第245便 (#90): about once a second it also writes obstacles.csv (where each obstacle is) and costmap_marks.csv (the lethal cells of the
+local costmap and of its obstacle layers, and how many of them are not near any existing obstacle: drive_sim_blind.stale_marks).
 """
 import argparse
 import json
@@ -15,15 +17,17 @@ import numpy as np
 import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, qos_profile_sensor_data
 from geometry_msgs.msg import TransformStamped, TwistStamped
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry
 from sensor_msgs.msg import PointCloud2, PointField
 from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
+import drive_sim_blind as db
 import drive_sim_core as ds
 
 PLANT_HZ, CLOUD_HZ, SCORE_HZ = 50.0, 10.0, 20.0   # the XT-32 is 10 Hz (PRM-60 600 rpm)
+GRID_TOPICS = ('local_costmap/costmap', 'local_costmap/obstacle_layer', 'local_costmap/mid360_layer')   # the layers' own grids (Nav2 publishes each)
 FIELDS = [PointField(name=n, offset=i * 4, datatype=PointField.FLOAT32, count=1) for i, n in enumerate('xyz')]
 
 
@@ -56,6 +60,13 @@ class DriveSim(Node):
             st.transform.rotation.y, st.transform.rotation.w = math.sin(h), math.cos(h)
             self.static_tf = StaticTransformBroadcaster(self); self.static_tf.sendTransform(st)
         self.create_subscription(TwistStamped, 'cmd_vel', self._on_cmd, 10)
+        out = os.path.dirname(a.report) or '.'
+        self.obstacle_log = open(os.path.join(out, 'obstacles.csv'), 'w', encoding='utf-8'); self.obstacle_log.write('t,name,x,y,exists\n')
+        self.marks_log = open(os.path.join(out, 'costmap_marks.csv'), 'w', encoding='utf-8'); self.marks_log.write('t,topic,lethal,stale,stale_near\n')
+        self.grids, self.marks = {}, {}
+        grid_qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL, reliability=ReliabilityPolicy.RELIABLE)   # as Costmap2DPublisher
+        for topic in GRID_TOPICS:
+            self.create_subscription(OccupancyGrid, topic, lambda m, k=topic: self.grids.__setitem__(k, m), grid_qos)
         self.create_timer(1 / PLANT_HZ, self._step)
         self.create_timer(1 / CLOUD_HZ, self._cloud)
         self.create_timer(1 / SCORE_HZ, self._score)
@@ -109,9 +120,24 @@ class DriveSim(Node):
         p = self.plant
         self.trace.write(f'{self._now():.2f},{p.x:.3f},{p.y:.3f},{p.yaw:.3f},{p.v:.3f},{p.w:.3f},{self.cmd_v:.3f},{self.cmd_w:.3f}\n')
 
+    def _marks(self):
+        """The obstacles' places and the costmap's marks left behind, at this moment (the local costmap's frame odom is the world here)."""
+        t, p = self._now(), self.plant
+        for o in self.sc.obstacles:
+            cx, cy = o.center(t)
+            self.obstacle_log.write(f'{t:.2f},{o.name},{cx:.3f},{cy:.3f},{int(o.exists(t))}\n')
+        for topic, m in self.grids.items():
+            i = m.info
+            c = db.stale_marks(m.data, i.width, i.height, i.resolution, i.origin.position.x, i.origin.position.y, self.sc.obstacles, t, (p.x, p.y))
+            self.marks_log.write(f"{t:.2f},{topic},{c['lethal']},{c['stale']},{c['stale_near']}\n")
+            s = self.marks.setdefault(topic, {'max_stale': 0, 'max_stale_near': 0})
+            s.update(max_stale=max(s['max_stale'], c['stale']), max_stale_near=max(s['max_stale_near'], c['stale_near']), last_stale=c['stale'])
+        self.obstacle_log.flush(); self.marks_log.flush()
+
     def _write(self):
+        self._marks()
         r = dict(self.scorer.report(), commands=self.commands, pose=[round(self.plant.x, 2), round(self.plant.y, 2), round(self.plant.yaw, 2)],
-                 plant={'delay_s': self.plant.delay_s, 'tau_v_s': self.plant.tau_v_s, 'tau_w_s': self.plant.tau_w_s}, elapsed_s=round(self._now(), 1))
+                 plant={'delay_s': self.plant.delay_s, 'tau_v_s': self.plant.tau_v_s, 'tau_w_s': self.plant.tau_w_s}, elapsed_s=round(self._now(), 1), marks=self.marks)
         self.trace.flush()
         tmp = self.report_path + '.tmp'
         with open(tmp, 'w', encoding='utf-8') as f:

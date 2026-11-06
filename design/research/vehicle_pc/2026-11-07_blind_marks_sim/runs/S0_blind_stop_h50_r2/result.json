@@ -1,0 +1,61 @@
+{
+ "scenario": "blind_stop_h50",
+ "completed": true,
+ "progress": 0.961,
+ "duration_s": 43.1,
+ "avg_speed_mps": 0.557,
+ "stopped_s": 0.2,
+ "longest_stop_s": 0.2,
+ "max_lateral_m": 1.7,
+ "extra_path_ratio": 1.068,
+ "min_clearance_m": 0.35,
+ "contacts": 0,
+ "avoid_start_s": {
+  "robot": 5.25
+ },
+ "not_avoided": [],
+ "turn_changes_per_min": 7.0,
+ "w_cmd_rate_rms": 0.15,
+ "score": 128.5,
+ "commands": 905,
+ "pose": [
+  14.99,
+  10.21,
+  1.55
+ ],
+ "plant": {
+  "delay_s": 0.15,
+  "tau_v_s": 0.25,
+  "tau_w_s": 0.15
+ },
+ "elapsed_s": 72.0,
+ "marks": {
+  "local_costmap/costmap": {
+   "max_stale": 0,
+   "max_stale_near": 0,
+   "last_stale": 0
+  },
+  "local_costmap/obstacle_layer": {
+   "max_stale": 0,
+   "max_stale_near": 0,
+   "last_stale": 0
+  }
+ },
+ "end": "pause:goal_reached",
+ "start": "{\"ok\": true, \"message\": \"TR-05: manual -> autonomy\"}",
+ "log": {
+  "collision_ahead": 0,
+  "failed_progress": 0,
+  "patience_exceeded": 0,
+  "spin": 0,
+  "backup": 0,
+  "wait": 0,
+  "control_loop_missed": 0,
+  "planner_loop_missed": 0,
+  "tf_errors": 0,
+  "waypoint_skipped": 0,
+  "clear_local": 0,
+  "clear_global": 0
+ },
+ "load1": 6.86
+}
