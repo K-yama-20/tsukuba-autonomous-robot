@@ -69237,6 +69237,27 @@ decisions:
       yes（DEC-106）。コミットの分け方（自律判断）：便ごと、コードが同じ関数の中で入り組む便は同じチャットの便をまとめる、 
       model.yaml・生成物・検査の報告・status.md・旧い予約の印は最後の 1 つ（REV の適用の順が便の順と入れ違うため）。第255便。
     disposition: answered
+  - id: DEC-501
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第257便）worktree 運用の案（design/proposals/worktree_operation_2026-11-07.md の 6 節）の Q1〜Q7 
+      を推奨どおりで進めてよいか。 Q1 統合ブランチ：今の design/mppi-sim-2026-11-03 をそのまま使う。 Q2 worktree 
+      の置き場所とブランチ名：tsukuba-worktrees/<話題>、chat/<話題>-<日付>。 Q3 車載 PC の退避の方法：tar の写し＋git stash push 
+      --include-untracked。 Q4 車載 PC がコミットを取り込む道：統合ブランチを push し、update.sh にブランチ・コミットの引数を足す。 Q5 status.md を 
+      union merge にするか：する。 Q6 統合の道具 integrate_branch.py を作るか：作る（REV の当て直しで model.yaml が再現するかを確かめた後）。 Q7 
+      CLAUDE.md の案を入れるか：入れる。
+    answer_verbatim: "推奨どおりで\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 第257便。もとの人の指示の原文は DEC-499。この回答で行ったこと：CLAUDE.md の書き換え（Q7。書き換える前の版の控えは 
+      design/research/claude_md/CLAUDE.md.before_dec501_6d6b3096）、.gitattributes の 1 行（Q5）、update.sh の引数（Q4）。 
+      この回答に含めていないもの：push（そのつど人の指示で行う、CLAUDE.md 1.10）、車載 PC への接続・退避・checkout の実行 
+      （手順を示して人の許可を得てから行う、という指示による）、Gouda の起動・停止、README の更新の節の書き換え （README には他の便の未コミットの変更が重なっているため、統合の後に行う）。 Q6
+      の道具は、REV の当て直しの再現の確認が済んでいないので未着手。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -74838,6 +74859,20 @@ revisions:
       - DEC-499
       - DEC-106
       - DEC-461
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-283
+    date: '2026-11-07'
+    summary: 第257便：並列のチャットを git worktree で動かす運用の案（design/proposals/worktree_operation_2026-11-07.md）の Q1〜Q7 
+      に、人が「推奨どおりで」と答えた（DEC-501）。Q7 で CLAUDE.md に 1.14 節と 1.1・1.5・1.9 の変更を入れ、 Q5 で .gitattributes に status.md の
+      union merge を足し、Q4 で update.sh にブランチとコミットの引数を足した。 Q3（車載 PC の退避）と Q4 の 
+      push、Q6（統合の道具）は未実行。製品のコード・設定・値は変えていない。
+    basis_refs:
+      - DEC-499
+      - DEC-106
     added_entity_ids: []
     modified_entity_ids: []
     added_source_ids: []

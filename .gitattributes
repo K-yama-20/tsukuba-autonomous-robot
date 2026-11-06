@@ -1,2 +1,4 @@
 patches/*.patch -whitespace
 firmware/gouda_esp32/reference_dualsense/platformio.ini -whitespace
+# every chat adds its own entry to the status summary on its branch: keep the lines of both sides at a merge
+design/reports/status.md merge=union

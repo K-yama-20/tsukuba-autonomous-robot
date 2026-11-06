@@ -2,7 +2,11 @@
 
 ## 読んだもの
 
-- コミット `9c449b5`（ブランチ design/mppi-sim-2026-11-03）＋共有の作業ツリー（他のセッションの未コミットの変更を含む。2026-11-07 05:00〜05:40）。この便はコミットしていない。
+- コミット `9c449b5`（ブランチ design/mppi-sim-2026-11-03）＋共有の作業ツリー（他のセッションの未コミットの変更を含む。2026-11-07 05:00〜05:40）。
+- 便ごとのコミット（第255便）の後：`c37020e`（同じブランチ。`c88791d` が REV-281・DEC-499、`c37020e` がこの便の道具・試験・提案・作業記録と status.md の項）。
+- この便のコミット（ブランチ design/mppi-sim-2026-11-03、push なし）
+  - `c37020e`：第255便のセッションが作った、この便の 4 ファイル＋status.md の項。
+  - 2 つ目（REV-283 の適用、update.sh、.gitattributes、試験、CLAUDE.md の控え、この作業記録）：ID は status.md の第257便の項と、次の作業記録に書く。
 - `CLAUDE.md`（1.1〜1.12）、`design/reports/status.md` の冒頭、`design/tools/reserve_ids.py`、`design/rules/test_reserve_ids.py`、`design/tools/apply_revision.py`（適用の拒否の条件）、`design/tools/run_checks.py`、`update.sh`、作業記録 第220便・第250便。
 - 車載 PC・ワークステーションには触れていない。Gouda は起動・停止していない。
 
@@ -55,15 +59,15 @@
 | 実際の 2 つの worktree からの同時の予約 | — | 未実行（単体試験は、一時の git リポジトリと worktree 1 つで確かめた） |
 | 車載 PC・ワークステーション | — | 未実行 |
 
-- 三つの状態：移行が正確＝この便では変えていない。設計検査＝この便では未実行（未判定）。実車投入可能＝人の判断待ち。
+- 三つの状態：移行が正確＝この便では変えていない。設計検査＝違反 0 件・未判定 5 件（REV-283 適用後）。実車投入可能＝人の判断待ち。
 
 ## 人の回答（DEC-501、原文）と、その後に行ったこと
 
 - 質問：提案の Q1〜Q7 を推奨どおりで進めてよいか。回答：「推奨どおりで」。
-- 変更セット `design/revisions/REV-283.yaml` に記録した（予約：REV-283、DEC-501）。**未適用**。
-  - 試し適用（`apply_revision.py REV-283 --dry-run --check`）：新しい違反 1 件（DR-01、basis_refs の DEC-499 が正本にない）。
-  - 原因の分類：設計でも実装でもなく、適用の順序。DEC-499 を入れる REV-281（第255便）がまだ適用されていない。REV-281 の後に適用する。
-  - 共有の作業ツリーへの REV の適用は、便ごとのコミットが終わるまで止めている。
+- 変更セット `design/revisions/REV-283.yaml` に記録した（予約：REV-283、DEC-501）。
+  - 最初の試し適用（`apply_revision.py REV-283 --dry-run --check`、9c449b5＋作業ツリー）：新しい違反 1 件（DR-01、basis_refs の DEC-499 が正本にない）。
+  - 原因の分類：設計でも実装でもなく、適用の順序。DEC-499 を入れる REV-281（第255便）がまだ適用されていなかった。
+  - `c37020e`（REV-281 適用済み）の上で適用した：`apply_revision.py REV-283` → 実体の追加・変更 0、決定 1 件（DEC-501）。
 - Q7：`CLAUDE.md`（リポジトリの一つ上）を書き換えた。1.14 節の追加、1.1（作業記録の欄、status.md）、1.5（2 行）、1.9（リポジトリの外に置くもの）。追加 27 行、削除 1 行（1.1 の「読んだコミットID」を置き換え）。
   - 書き換える前の版の控え：`design/research/claude_md/CLAUDE.md.before_dec501_6d6b3096`。後の sha256 先頭：538f85b23507a8a5。
   - 提案の文との違い：1.14 に、Q1 の統合ブランチ名、「予約は Mac でだけ」、`bash update.sh <ブランチ> <コミット>`、Q3 の退避の方法を書き足した。1.5 に「REV を通さずに model.yaml を書き換えること」を足した（提案の 4.2 の対策の案）。
@@ -80,6 +84,7 @@
 | update.sh と union merge | `design/.venv/bin/python -m unittest tests/test_update_sh.py` | 9 件 OK（一時の git リポジトリと、代わりの setup.sh。Mac） |
 | update.sh の文法 | `bash -n update.sh` | OK |
 | 実際の車載 PC での update.sh | — | 未実行 |
+| 設計検査（REV-283 適用後、c37020e＋作業ツリー） | `design/.venv/bin/python design/tools/run_checks.py` | 終了コード 1。design consistency：違反 0 件・未判定 5 件（合格 12 ルール）。input integrity・fidelity validator・unit tests の FAIL は前からのもの（`design/docs/SystemArchitecture.drawio` と `.DS_Store` 2 件の hash の不一致、`test_validate_model.test_real_model` も同じ原因）。generate params・intent identity は PASS |
 | 本物の setup.sh とつないだ実行 | — | 未実行 |
 
 - 試験の修正 1 件（原因の分類：試験。手順・試験基盤）：自分で書いた試験の、遠隔ブランチの一覧の比べ方が誤っていた。合否の基準（何も取得されていないこと）は変えていない。
@@ -106,7 +111,7 @@
 - `design/proposals/worktree_operation_2026-11-07.md`（新規、提案）
 - `design/reports/worklog/2026-11-07_bin257_shared_reservations_worktree_proposal.md`（新規）
 - `design/reports/status.md`（第257便の項目）
-- `design/revisions/REV-283.yaml`（新規、未適用）
+- `design/revisions/REV-283.yaml`（新規、適用済み）、`design/model.yaml`（DEC-501）、`design/reports/check_run.json`・`migration_tests.txt`・`migration_validation.json`・`migration_validator.txt`（検査の結果）
 - `update.sh`（変更）、`.gitattributes`（変更）、`tests/test_update_sh.py`（新規）
 - `design/research/claude_md/CLAUDE.md.before_dec501_6d6b3096`（新規、控え）
 - リポジトリの外：`CLAUDE.md`（変更）
@@ -114,7 +119,7 @@
 
 ## 次に進められる作業と、止まっている作業
 
-- 進められる：第255便のコミットの後、REV-283 を適用し、この便のファイルをコミットする（統合ブランチに新しい版の道具が入ると、新しい worktree は `--design` なしで予約できる）。
+- 進められる：各チャットが統合ブランチの先頭から worktree を切る（新しい版の道具が入っているので `--design` は要らない）。
 - 止まっている
   - 車載 PC への反映：統合ブランチの push（人の指示）と、退避・checkout の実行の許可（人）。
   - `integrate_branch.py`（Q6）：REV の当て直しで model.yaml が再現するかの確認。

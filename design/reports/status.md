@@ -14,7 +14,7 @@
 
 **第257便: 番号の予約を全 worktree で共有にする、worktree 運用の案（DEC-499）**（作業記録 `reports/worklog/2026-11-07_bin257_shared_reservations_worktree_proposal.md`）。
 - 基盤：`tools/reserve_ids.py` の印を git の common dir（`.git/gouda-reservations/`、全 worktree で共有）に移し、PRM・IFD・ND も予約できるようにした（`--prm --ifd --nd --design`）。単体試験 15 件 OK。設計の単体試験の全体は 98 件のうち失敗 1 件（drawio などの hash、道具とは別）。`run_checks.py` は未実行（未判定）。
-- 提案：`proposals/worktree_operation_2026-11-07.md`（CLAUDE.md の変更案、チャットの作業・統合・車載 PC への反映の手順）。人の回答「推奨どおりで」（DEC-501、REV-283 は未適用：DEC-499 の REV-281 の後に適用する）。CLAUDE.md に 1.14 節などを入れ、`.gitattributes` に status.md の union merge、`update.sh` に `<ブランチ> <コミット>` の引数を足した（試験 9 件 OK、Mac の一時のリポジトリ。車載 PC では未実行）。push・車載 PC の退避と checkout・統合の道具は未実行。コミットはまだ。
+- 提案：`proposals/worktree_operation_2026-11-07.md`（CLAUDE.md の変更案、チャットの作業・統合・車載 PC への反映の手順）。人の回答「推奨どおりで」（DEC-501、REV-283 適用済み。設計検査 違反0件・未判定5件、FAIL は前からの drawio・.DS_Store だけ）。CLAUDE.md に 1.14 節などを入れ、`.gitattributes` に status.md の union merge、`update.sh` に `<ブランチ> <コミット>` の引数を足した（試験 9 件 OK、Mac の一時のリポジトリ。車載 PC では未実行）。push・車載 PC の退避と checkout・統合の道具は未実行。コミット：`c37020e`（道具・提案）と、その次のコミット（REV-283・update.sh・.gitattributes）。
 
 **第250便: MID-360 なしで起動・走行できるかの確認（試験のみ、#95・#96）**（作業記録 `reports/worklog/2026-11-07_bin250_no_mid360_startup_check.md`）。
 - ワークステーションの模擬（今の作業ツリー）で、ドライバなし（A）、ドライバあり・設定なし（B）、設定あり・機器なし（C）、壊れた mid360.json（D1）の 4 本ともゴールに着いた。MID-360 による Traceback・ノードの終了はなし。D2〜D5 は判定の関数だけで、例外なし。

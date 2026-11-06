@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T20:26:53.112900+00:00",
+  "run_time_utc": "2026-11-06T20:31:37.321161+00:00",
   "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
@@ -67,7 +67,7 @@
     }
   ],
   "sha256": {
-    "design/model.yaml": "6b0af1e9086ad7dc53c70ae531c246cf95251ee2a7345d051ec64de85da6e807",
+    "design/model.yaml": "0568f2e35357a5f491ae1d64276927fab8284b9d4403e305239b1037430dabf7",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "e9be63b890245ba8b2627ac63bc932b95f6fb2bcd60cdd1d09f408849da7bdc8",

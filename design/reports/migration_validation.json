@@ -10756,6 +10756,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-283",
+      "date": "2026-11-07",
+      "basis_refs": 2,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 0,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -11127,9 +11137,9 @@
     }
   ],
   "decisions": {
-    "count": 445,
+    "count": 446,
     "by_status": {
-      "answered": 256,
+      "answered": 257,
       "recorded": 96,
       "pending": 93
     },
