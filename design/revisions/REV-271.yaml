@@ -1,0 +1,26 @@
+# 変更セット REV-271（2026-11-07 第244便: DEC-488 の人の回答の記録）
+# 適用: design/tools/apply_revision.py REV-271
+id: REV-271
+date: '2026-11-07'
+summary: >-
+  第244便：DEC-488（停止点を停止線・道路端のどこに置くか）への人の回答を原文で記録した。チャットで AI が聞いた質問は
+  「停止点は、式どおり線の手前に人が置く運用（コード変更なし）でよいですか？」で、回答は「それでよい」。
+  AI の読み：DEC-488 の案 A（停止点の中央は停止線の手前 0.10 m＋停止距離、道路端の手前 0.60 m＋停止距離。人が waypoint タブで置く。コードは変えない）の承認。
+  停止距離 d は未実測のまま（DEC-346 (1)・DEC-377 (1)）で、置く位置の数値は tbd。値・コード・設定・launch は変えていない。
+  DEC-489（TK-25 の早めの減速）と DEC-343 は未回答のまま。
+basis_refs:
+- DEC-488
+- DEC-482
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-488
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      それでよい
