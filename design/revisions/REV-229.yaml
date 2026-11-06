@@ -1,0 +1,32 @@
+# 変更セット REV-229（2026-11-07 第208便: waypoint を飛ばす工夫の採用の指示、DEC-441）
+# 適用: design/tools/apply_revision.py REV-229
+id: REV-229
+date: '2026-11-07'
+summary: 第208便：人の指示（DEC-441、原文）「飛ばす､という工夫を取り入れよう」を記録。waypoint を飛ばす処理を採る方針。方式と条件（DEC-367 の opt-in・costmap 判定か、第200便の k10h0 か）と、確認走行区間・stop の点での扱い（DEC-344 (2)）は未回答。実装はしていない（DEC-106）。
+basis_refs:
+- DEC-310
+- DEC-367
+- DEC-344
+- DEC-438
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-441
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: Nav2 の失敗から回復する構成（DEC-438）で、waypoint を飛ばす工夫を取り入れるか（人の指示）
+  answer_verbatim: |
+    飛ばす､という工夫を取り入れよう。前にも取り入れよという指示を出した気もするが..
+  affected_refs:
+  - DEC-438
+  - DEC-310
+  - DEC-367
+  - DEC-344
+  resulting_refs: []
+  note: 意味：waypoint を飛ばす処理を、DEC-438 の回復の構成に入れる方針。前の指示の確認：第200便（2026-11-06）の人の指示は「kuamsのように、waypointを諦めて次に行くのはどうか？」と比較試験の実行で、採用の指示ではなかった。台帳の DEC-310（段 3）・DEC-367（opt-in の飛ばし）・DEC-344 (2) はいずれも pending のまま（人の回答の記録はない）。未回答で実装の前に要るもの：方式（DEC-367 の skip_allowed の点だけ・costmap の cost と持続時間で判定、または第200便の k10h0：半径 1.0 m に 5 点以上で即座に飛ばす、シミュレーションで 30〜31/48 到達）、stop の点・横断歩道・確認走行区間で飛ばさないか（DEC-344 (2)）、連続で飛ばす上限。値はすべて tbd。実装：していない（DEC-106・CLAUDE.md 1.10）。DEC-310・367・344 は書き換えない。
+entities: []
+modifications: []
+decision_updates: []

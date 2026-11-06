@@ -1,0 +1,24 @@
+# 変更セット REV-231（2026-11-07 第209便: waypoint を飛ばす方式、DEC-367 の回答）
+# 適用: design/tools/apply_revision.py REV-231
+id: REV-231
+date: '2026-11-07'
+summary: 第209便：人の回答（原文「目印の点だけ」）で、waypoint を飛ばす方式を DEC-367（人が目印を付けた waypoint だけ、costmap の cost と持続時間で判定）にした。確認走行区間・stop の点での扱い（DEC-344 (2)）と値は未回答。実装はしていない（実装の許可の言葉はまだない、DEC-106）。
+basis_refs:
+- DEC-441
+- DEC-367
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-367
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      （選択式の質問「飛ばす方式はどちらにしますか？」（選択肢：目印の点だけ／k10h0）への回答）目印の点だけ
+    resulting_refs:
+    - DEC-441
+    note: 推奨は承認（opt-in）。理由：NavigateThroughPoses は塞がれた途中の点を自動では飛ばさない（ComputePathThroughPoses は 1 区間でも計画に失敗すると全体を失敗にする、エージェントが上流のソースで確認、 私は未照合）。KUAMS の skip_server は 1 回の 2 次元の scan で「waypoint の 2.5 m 以内に点が 5 個以上」で飛ばしていた（コードで確認）が、gouda の 3 次元点群・壁・縁石・芝では誤って飛ばしやすいので、 生の点ではなく costmap の cost と持続時間で判定する。重大なハザード：角を飛ばしてコース・車道に出る、stop を飛ばす（EV-22）、待機列の前のロボットを障害物とみなして列を飛ばす。 値は DEC-376 で実測。topic3.md。決まらない場合に止まる作業：段 3 の実装。 REV-231（第209便）：人の回答で方式を採った（opt-in の skip_allowed の点だけ。第200便の k10h0 は採らない）。この回答は質問の後半（DEC-344 (2) の「確認走行区間の外だけで行う」でよいか）には触れていないので、それは DEC-344 で pending のまま。条件の値（T3・C・T_occ）は tbd。実装の着手の許可（DEC-106）はまだない。
