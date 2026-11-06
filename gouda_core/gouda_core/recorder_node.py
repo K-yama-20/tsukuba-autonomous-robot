@@ -7,6 +7,10 @@ record/rosbag/start (IFD-10), record/rosbag/stop (IFD-11). The rosbag stop only 
 ros2 bag record finishes saving without a time limit and the end of the save is published in record/status (DEC-174). All log entrances share one start procedure and state
 (RecorderCore.start_log); the origin and trigger are kept and written to the log (DEC-071).
 Subscribes mode/state (IFD-01) and log/decision (IFD-28, transient_local) and writes them to the log.
+Subscribes /diagnostics (absolute name, diagnostic_msgs/DiagnosticArray, the rclcpp default QoS: reliable, volatile, keep last
+10) and writes every status named mid360 (mid360_config.DIAGNOSTIC_NAME: the MID-360's state push from the patched
+livox_ros_driver2, DEC-479 / DEC-494) to the log as an input, one entry per status and without thinning (the push period is not
+documented). Statuses with other names are not written to the log; a rosbag (`-a`, started only by a human) has the whole topic.
 Publishes record/status (IFD-12, diagnostic_msgs/DiagnosticArray, reliable, transient_local, depth 1) on every change.
 
 Settings come from the generated parameter file (design/generated/params/gouda_recorder.yaml). record_root is a launch
@@ -28,10 +32,13 @@ from std_srvs.srv import Trigger
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent
 
-from gouda_core.recorder_core import RecorderCore, TRIGGER_HUMAN, TRIGGER_AUTO_AUTONOMY_START, TRIGGER_AUTO_MAP_START
+from gouda_core import mid360_config
+from gouda_core.recorder_core import RecorderCore, TRIGGER_HUMAN, TRIGGER_AUTO_AUTONOMY_START, TRIGGER_AUTO_MAP_START, diagnostic_payloads
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 DECISION_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=50)  # IFD-28 (DEC-072)
+DIAGNOSTICS_TOPIC = '/diagnostics'   # absolute: the standard topic, the same for every publisher (DEC-494)
+DIAGNOSTICS_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)  # the rclcpp default, as the driver patch publishes
 
 
 class RecorderNode(Node):
@@ -56,6 +63,7 @@ class RecorderNode(Node):
         self.create_service(Trigger, 'record/rosbag/stop', lambda rq, rs: self._svc(rs, self.core.stop_rosbag, TRIGGER_HUMAN))
         self.create_subscription(SoftwareMode, 'mode/state', self._on_mode, LATCHED)
         self.create_subscription(DecisionEvent, 'log/decision', self._on_decision, DECISION_QOS)
+        self.create_subscription(DiagnosticArray, DIAGNOSTICS_TOPIC, self._on_diagnostics, DIAGNOSTICS_QOS)
         self._publish_status()
         self.get_logger().info(f'gouda_recorder ready; record_root={self.core.record_root} (recording is NOT started at boot: RQ-I015)')
 
@@ -88,6 +96,16 @@ class RecorderNode(Node):
             'stamp': msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9, 'node': msg.node, 'event': msg.event, 'transition_id': msg.transition_id,
             'reason': msg.reason, 'run_id': msg.run_id, 'section_id': int(msg.section_id), 'input_names': list(msg.input_names),
             'input_stamps': [s.sec + s.nanosec * 1e-9 for s in msg.input_stamps], 'details': msg.details})
+        self._publish_status_if_changed()
+
+    def _on_diagnostics(self, msg: DiagnosticArray):
+        """Every MID-360 status in the array is written as received (no thinning); statuses with other names are not."""
+        payloads = diagnostic_payloads(msg, mid360_config.DIAGNOSTIC_NAME)
+        if not payloads:
+            return
+        received_at = self._now()
+        for payload in payloads:
+            self.core.record('input', DIAGNOSTICS_TOPIC, received_at, payload)
         self._publish_status_if_changed()
 
     # ---- rosbag child process (RQ-I016: separate folder of the same session) ----

@@ -1,0 +1,382 @@
+Publish the state information the LiDAR pushes on /diagnostics (diagnostic_msgs/DiagnosticArray)
+
+Base: Livox-SDK/livox_ros_driver2 21445540f0d100dc86a7e6df312dd70bbdb4afdf, with Livox-SDK2 c0796f04 (the pins in
+third_party/drivers.repos). setup.sh applies this file with git apply to the copy it builds
+(<workspace>_livox/stage/livox_ros_driver2); the checkout is not changed. Gouda: DEC-479, DEC-494.
+
+What it does (ROS 2 only; the ROS 1 build is unchanged):
+* registers the SDK2 callback SetLivoxLidarInfoCallback, which the driver did not use. The SDK calls it on its own
+  thread with the state push (0x0102) as a JSON string (LivoxLidarStateInfoToJson, parse_lidar_state_info.cpp)
+* for each push, publishes one DiagnosticArray on /diagnostics (absolute name, rclcpp default QoS: reliable, volatile,
+  keep last 10), header.stamp = the ROS time of receipt, with one status: name "mid360", hardware_id "" (no serial
+  number or address), message "info push", level from lidar_diag_status (the worst of its four 4-bit module levels:
+  0 OK, 1 WARN, 2 or 3 ERROR, an undefined level above 3 ERROR; STALE when the push has no usable lidar_diag_status)
+* values (KeyValue, text) only for these keys, under the SDK's names: cur_work_state, core_temp (0.01 degC, as the
+  integer), powerup_cnt, last_sync_time, time_offset, time_sync_type, status_code, lidar_diag_status,
+  lidar_flash_status, FW_TYPE, hms_code, version_app, version_loader, version_hardware. Integers in decimal, arrays
+  of integers as compact JSON ("[0,0,0,0,0,0,0,0]"), a JSON string as its text. Other keys (sn, mac, product_info, the
+  *_ipcfg blocks, ...) are left out, and so is an allowed key with any other value (a fraction, an object, ...)
+* the point cloud, IMU and configuration paths of the driver are not changed
+
+Threads: the callback runs on the SDK's command thread. One mutex guards the publisher, clock and logger; Stop()
+(first thing in ~DriverNode) clears them under it, so no publish overlaps or follows the node's destruction. The
+state is never freed because the SDK has no way to wait for a running callback. Exceptions are caught and logged.
+src/call_back/lidar_status_info.h has the parsing and the level, without ROS (test/test_lidar_status_info.cpp).
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7344d08a1a2a7d8ce89a1845d92e54f6f1e8cdfe..e90786f00c6e58551edec4b6f9c820094d19e04c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -225,6 +225,7 @@ else(ROS_EDITION STREQUAL "ROS2")
+   ament_auto_find_build_dependencies()
+   find_package(PCL REQUIRED)
+   find_package(std_msgs REQUIRED)
++  find_package(diagnostic_msgs REQUIRED)
+   find_package(builtin_interfaces REQUIRED)
+   find_package(rosidl_default_generators REQUIRED)
+ 
+@@ -277,6 +278,7 @@ else(ROS_EDITION STREQUAL "ROS2")
+ 
+     src/call_back/lidar_common_callback.cpp
+     src/call_back/livox_lidar_callback.cpp
++    src/call_back/lidar_status_publisher.cpp
+   )
+ 
+   target_include_directories(${PROJECT_NAME} PRIVATE ${livox_sdk_INCLUDE_DIRS})
+diff --git a/package_ROS2.xml b/package_ROS2.xml
+index 96f576235c2026faecb9e61d2281aaf1acab9bf1..f7779130e2c39e76b628414434532b202bcb5c2f 100644
+--- a/package_ROS2.xml
++++ b/package_ROS2.xml
+@@ -15,6 +15,7 @@
+   <depend>rclcpp_components</depend>
+   <depend>std_msgs</depend>
+   <depend>sensor_msgs</depend>
++  <depend>diagnostic_msgs</depend>
+   <depend>rcutils</depend>
+   <depend>pcl_conversions</depend>
+   <depend>rcl_interfaces</depend>
+diff --git a/src/call_back/lidar_status_info.h b/src/call_back/lidar_status_info.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..369c21658f0f221bb1a8039f7b6849b82797c172
+--- /dev/null
++++ b/src/call_back/lidar_status_info.h
+@@ -0,0 +1,125 @@
++// SPDX-License-Identifier: MIT
++// Same license as the rest of livox_ros_driver2 (LICENSE.txt).
++//
++// Summary of the state information a Livox LiDAR pushes (command 0x0102, LiDAR Information Push), as Livox-SDK2 passes
++// it to the callback of SetLivoxLidarInfoCallback: a JSON object written by LivoxLidarStateInfoToJson
++// (sdk_core/command_handler/parse_lidar_state_info.cpp). No ROS here, so that it can be tested on its own.
++
++#ifndef LIVOX_ROS_DRIVER2_LIDAR_STATUS_INFO_H_
++#define LIVOX_ROS_DRIVER2_LIDAR_STATUS_INFO_H_
++
++#include <cstdint>
++#include <string>
++#include <utility>
++#include <vector>
++
++#include "rapidjson/document.h"
++
++namespace livox_ros {
++namespace lidar_status {
++
++// The same numbers as diagnostic_msgs/DiagnosticStatus (OK, WARN, ERROR, STALE).
++enum class Level : uint8_t { kOk = 0, kWarn = 1, kError = 2, kStale = 3 };
++
++// The keys copied from a push, in this order and under the names the SDK gives them. Everything else (sn, mac,
++// product_info, the *_ipcfg address blocks, ...) is left out on purpose: it identifies the unit or the network.
++static const char* const kAllowedKeys[] = {
++    "cur_work_state", "core_temp", "powerup_cnt", "last_sync_time", "time_offset", "time_sync_type", "status_code",
++    "lidar_diag_status", "lidar_flash_status", "FW_TYPE", "hms_code", "version_app", "version_loader",
++    "version_hardware"};
++
++struct Summary {
++  Level level = Level::kStale;                               // kStale: the push has no usable lidar_diag_status
++  std::vector<std::pair<std::string, std::string>> values;  // key, value as text
++};
++
++// lidar_diag_status (key 0x800E, uint16): four 4-bit module levels (bits 0-3 system, 4-7 scan, 8-11 ranging,
++// 12-15 communication); 0 normal, 1 warning, 2 error, 3 safety_err. The worst module decides. A module level above 3 is
++// not defined by the protocol and is taken as an error.
++inline Level LevelFromDiagStatus(uint16_t diag_status) {
++  unsigned worst = 0;
++  for (unsigned shift = 0; shift < 16; shift += 4) {
++    const unsigned module = (static_cast<unsigned>(diag_status) >> shift) & 0xFu;
++    if (module > worst) {
++      worst = module;
++    }
++  }
++  if (worst == 0) {
++    return Level::kOk;
++  }
++  if (worst == 1) {
++    return Level::kWarn;
++  }
++  return Level::kError;
++}
++
++// An integer in decimal. False for anything else (fractions included).
++inline bool IntegerText(const rapidjson::Value& value, std::string& text) {
++  if (value.IsUint64()) {
++    text = std::to_string(value.GetUint64());
++    return true;
++  }
++  if (value.IsInt64()) {
++    text = std::to_string(value.GetInt64());
++    return true;
++  }
++  return false;
++}
++
++// The text of one value: a JSON string as it is, an integer in decimal ("4512"), an array of integers as compact JSON
++// ("[0,0,0,0,0,0,0,0]"). Returns false for anything else (fractions, objects, arrays holding other things, true, null),
++// which is left out. The SDK writes the allowed keys only as integers, integer arrays and one string (status_code).
++inline bool ValueText(const rapidjson::Value& value, std::string& text) {
++  if (value.IsString()) {
++    text.assign(value.GetString(), value.GetStringLength());
++    return true;
++  }
++  if (value.IsArray()) {
++    std::string joined = "[";
++    for (rapidjson::Value::ConstValueIterator it = value.Begin(); it != value.End(); ++it) {
++      std::string item;
++      if (!IntegerText(*it, item)) {
++        return false;
++      }
++      if (it != value.Begin()) {
++        joined += ',';
++      }
++      joined += item;
++    }
++    joined += ']';
++    text = joined;
++    return true;
++  }
++  return IntegerText(value, text);
++}
++
++// The allowed values of a push and its level. A push that is not a JSON object gives no values and kStale.
++inline Summary Summarize(const char* info) {
++  Summary summary;
++  if (info == nullptr) {
++    return summary;
++  }
++  rapidjson::Document document;
++  document.Parse(info);
++  if (document.HasParseError() || !document.IsObject()) {
++    return summary;
++  }
++  const rapidjson::Value& root = document;
++  for (const char* key : kAllowedKeys) {
++    const rapidjson::Value::ConstMemberIterator member = root.FindMember(key);
++    std::string text;
++    if (member != root.MemberEnd() && ValueText(member->value, text)) {
++      summary.values.emplace_back(key, text);
++    }
++  }
++  const rapidjson::Value::ConstMemberIterator diag = root.FindMember("lidar_diag_status");
++  if (diag != root.MemberEnd() && diag->value.IsUint() && diag->value.GetUint() <= 0xFFFFu) {
++    summary.level = LevelFromDiagStatus(static_cast<uint16_t>(diag->value.GetUint()));
++  }
++  return summary;
++}
++
++}  // namespace lidar_status
++}  // namespace livox_ros
++
++#endif  // LIVOX_ROS_DRIVER2_LIDAR_STATUS_INFO_H_
+diff --git a/src/call_back/lidar_status_publisher.cpp b/src/call_back/lidar_status_publisher.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..bc07c8a77471f8c365722082dfa07668c0f95c90
+--- /dev/null
++++ b/src/call_back/lidar_status_publisher.cpp
+@@ -0,0 +1,106 @@
++// SPDX-License-Identifier: MIT
++// Same license as the rest of livox_ros_driver2 (LICENSE.txt).
++
++#include "lidar_status_publisher.h"
++
++#include <exception>
++#include <mutex>
++
++#include <diagnostic_msgs/msg/diagnostic_array.hpp>
++
++#include "livox_lidar_api.h"
++#include "lidar_status_info.h"
++
++namespace livox_ros {
++
++namespace {
++
++using diagnostic_msgs::msg::DiagnosticArray;
++using diagnostic_msgs::msg::DiagnosticStatus;
++using diagnostic_msgs::msg::KeyValue;
++
++// The SDK calls OnLidarInfo on its own thread (the one that handles the LiDAR's commands, while it holds an SDK lock),
++// for as long as the SDK runs, and has no way to wait for a call in progress. So what the call needs is kept here,
++// under one mutex, and never freed: Stop() clears it under the mutex, and a call after that does nothing.
++// rcl_publish() may be called from any thread as long as the publisher is not finalized at the same time
++// (rcl/publisher.h); the mutex keeps Stop() and the node's destruction from overlapping a publish.
++struct State {
++  std::mutex mutex;
++  rclcpp::Publisher<DiagnosticArray>::SharedPtr publisher;
++  rclcpp::Clock::SharedPtr clock;
++  rclcpp::Logger logger = rclcpp::get_logger("livox_lidar_status");
++};
++
++State& GetState() {
++  static State* state = new State();  // never deleted: the SDK's threads may outlive static destruction
++  return *state;
++}
++
++uint8_t ToDiagnosticLevel(lidar_status::Level level) {
++  switch (level) {
++    case lidar_status::Level::kOk:
++      return DiagnosticStatus::OK;
++    case lidar_status::Level::kWarn:
++      return DiagnosticStatus::WARN;
++    case lidar_status::Level::kError:
++      return DiagnosticStatus::ERROR;
++    case lidar_status::Level::kStale:
++      break;
++  }
++  return DiagnosticStatus::STALE;
++}
++
++}  // namespace
++
++void LidarStatusPublisher::Start(rclcpp::Node& node) {
++  State& state = GetState();
++  {
++    std::lock_guard<std::mutex> lock(state.mutex);
++    // An absolute name (the node's namespace does not move it) and rclcpp's default QoS: reliable, volatile, keep last 10
++    state.publisher = node.create_publisher<DiagnosticArray>("/diagnostics", 10);
++    state.clock = node.get_clock();
++    state.logger = node.get_logger();
++  }
++  SetLivoxLidarInfoCallback(OnLidarInfo, nullptr);
++}
++
++void LidarStatusPublisher::Stop() {
++  State& state = GetState();
++  std::lock_guard<std::mutex> lock(state.mutex);
++  state.publisher.reset();
++  state.clock.reset();
++}
++
++void LidarStatusPublisher::OnLidarInfo(const uint32_t handle, const uint8_t dev_type, const char* info,
++                                       void* client_data) {
++  State& state = GetState();
++  std::lock_guard<std::mutex> lock(state.mutex);
++  if (!state.publisher || !state.clock) {
++    return;
++  }
++  try {
++    const lidar_status::Summary summary = lidar_status::Summarize(info);
++    DiagnosticArray array;
++    array.header.stamp = state.clock->now();  // when the push was received
++    DiagnosticStatus status;
++    status.level = ToDiagnosticLevel(summary.level);
++    status.name = "mid360";
++    status.message = "info push";
++    status.hardware_id = "";  // no serial number and no address
++    for (const auto& pair : summary.values) {
++      KeyValue value;
++      value.key = pair.first;
++      value.value = pair.second;
++      status.values.push_back(value);
++    }
++    array.status.push_back(status);
++    state.publisher->publish(array);
++  } catch (const std::exception& e) {
++    // An exception must not reach the SDK's thread (std::terminate). This push is lost; the next one is tried again.
++    RCLCPP_WARN(state.logger, "LiDAR state push not published: %s", e.what());
++  } catch (...) {
++    RCLCPP_WARN(state.logger, "LiDAR state push not published: unknown exception");
++  }
++}
++
++}  // namespace livox_ros
+diff --git a/src/call_back/lidar_status_publisher.h b/src/call_back/lidar_status_publisher.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..4c44d6590fa210909d78deaf37e802ca393f737b
+--- /dev/null
++++ b/src/call_back/lidar_status_publisher.h
+@@ -0,0 +1,30 @@
++// SPDX-License-Identifier: MIT
++// Same license as the rest of livox_ros_driver2 (LICENSE.txt).
++//
++// Publishes the state information the LiDARs push (Livox-SDK2: SetLivoxLidarInfoCallback) on /diagnostics as
++// diagnostic_msgs/DiagnosticArray: one array with one status for each push. ROS 2 only.
++
++#ifndef LIVOX_ROS_DRIVER2_LIDAR_STATUS_PUBLISHER_H_
++#define LIVOX_ROS_DRIVER2_LIDAR_STATUS_PUBLISHER_H_
++
++#include <cstdint>
++
++#include <rclcpp/rclcpp.hpp>
++
++namespace livox_ros {
++
++class LidarStatusPublisher final {
++ public:
++  // Creates the publisher on the node and registers the SDK callback. Call after LivoxLidarSdkInit().
++  static void Start(rclcpp::Node& node);
++  // Drops the publisher: pushes that arrive later are ignored. Returns after a running callback has finished, so call it
++  // before the node goes away.
++  static void Stop();
++
++ private:
++  static void OnLidarInfo(const uint32_t handle, const uint8_t dev_type, const char* info, void* client_data);
++};
++
++}  // namespace livox_ros
++
++#endif  // LIVOX_ROS_DRIVER2_LIDAR_STATUS_PUBLISHER_H_
+diff --git a/src/driver_node.cpp b/src/driver_node.cpp
+index 24f0aba9e4b01fa209262a260db666fa41e1a443..5773ac9034fa81445cbb1a83224428f351d6f419 100644
+--- a/src/driver_node.cpp
++++ b/src/driver_node.cpp
+@@ -24,6 +24,9 @@
+ 
+ #include "driver_node.h"
+ #include "lddc.h"
++#ifdef BUILDING_ROS2
++#include "call_back/lidar_status_publisher.h"
++#endif
+ 
+ namespace livox_ros {
+ 
+@@ -32,6 +35,9 @@ DriverNode& DriverNode::GetNode() noexcept {
+ }
+ 
+ DriverNode::~DriverNode() {
++#ifdef BUILDING_ROS2
++  LidarStatusPublisher::Stop();  // before the node goes away; the SDK runs until Lddc is destroyed
++#endif
+   lddc_ptr_->lds_->RequestExit();
+   exit_signal_.set_value();
+   pointclouddata_poll_thread_->join();
+diff --git a/src/livox_ros_driver2.cpp b/src/livox_ros_driver2.cpp
+index 6dda05f874bb9b7d7abeee17e92eb5f2e2b0c046..5f351861aaa5660eb7edd01d525fc2c517f03653 100644
+--- a/src/livox_ros_driver2.cpp
++++ b/src/livox_ros_driver2.cpp
+@@ -33,6 +33,9 @@
+ #include "driver_node.h"
+ #include "lddc.h"
+ #include "lds_lidar.h"
++#ifdef BUILDING_ROS2
++#include "call_back/lidar_status_publisher.h"
++#endif
+ 
+ using namespace livox_ros;
+ 
+@@ -174,6 +177,7 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+ 
+     if ((read_lidar->InitLdsLidar(user_config_path))) {
+       DRIVER_INFO(*this, "Init lds lidar success!");
++      LidarStatusPublisher::Start(*this);  // the state the LiDARs push, on /diagnostics
+     } else {
+       DRIVER_ERROR(*this, "Init lds lidar fail!");
+     }

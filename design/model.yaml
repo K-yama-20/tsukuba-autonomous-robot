@@ -35792,7 +35792,9 @@ entities:
       - G-LOG
       - G-REC-ROSBAG-RESTART
     interpretation: REV-108（DEC-174）：rosbag の停止（IFD-11）は停止の要求だけを受けてすぐ返し、保存は上限なしで続く。保存中と保存の結果を 
-      record/status（IFD-12）に出す。保存中は新しい rosbag を始めない。終了時は保存を待つ。強制の停止（30 s で SIGTERM）は廃止。
+      record/status（IFD-12）に出す。保存中は新しい rosbag を始めない。終了時は保存を待つ。強制の停止（30 s で SIGTERM）は廃止。 
+      REV-278（第252便、DEC-494）：/diagnostics（IFD-27）を購読し、name mid360 の status をログに書く。IFD-27 の consumer には前から 
+      ND-04 があったが、subscribes_refs に IFD-27 がなかったので足した（整合の修正）。
     sensitivity:
       - operation
     requirement_refs:
@@ -35803,7 +35805,7 @@ entities:
       - RQ-I028
       - RQ-I031
       - RQ-I034
-    revision_ref: REV-195
+    revision_ref: REV-278
     ros_node:
       node_name: gouda_recorder
       responsibilities:
@@ -35820,6 +35822,8 @@ entities:
           に残す。停止の要求なしに子プロセスが終わった場合は失敗として 
           record/status（failures・last_failure）・session.json（failures・rosbag_outputs）・ログ（record_failure）に残し、記録中を解除する。人は
           Rosbag record で新しいフォルダに記録し直せる（G-REC-ROSBAG-RESTART）
+        - MID-360 の状態（/diagnostics の name mid360 の status、IFD-27。ND-20 
+          が出す）を、受けたものすべてログに書く（間引かない。DEC-479・DEC-494）。他の name の status は書かない
       absorbs_module_refs:
         - M-016
         - M-017
@@ -35839,6 +35843,7 @@ entities:
         - IFD-15
         - IFD-16
         - IFD-32
+        - IFD-27
       serves_refs:
         - IFD-08
         - IFD-09
@@ -38324,13 +38329,14 @@ entities:
     related_refs: []
     issue_refs:
       - H-004
-    interpretation: ''
+    interpretation: REV-278（第252便、DEC-494）：ND-20（patch を当てた livox_ros_driver2）が name mid360 の status 
+      を出す。表示・記録のみに使い、停止条件にしない（time_semantics のまま）。
     sensitivity:
       - operation
     requirement_refs:
       - RQ-I033
       - RQ-I100
-    revision_ref: REV-195
+    revision_ref: REV-278
     designed_interface:
       transport: topic
       name: /diagnostics, <node>/transition_event
@@ -38349,6 +38355,7 @@ entities:
         - ND-11
         - ND-12
         - ND-13
+        - ND-20
       consumer_refs:
         - ND-02
         - ND-04
@@ -50777,12 +50784,14 @@ entities:
       M-023（障害物認識）に直した。理由：MID-360 の出力の使い道は障害物の層だけ（IFD-59 の購読者は ND-21・ND-10）で、設計案 
       mid360_architecture_2026-11-06.md 5 章の対応表とも同じ。MID-360 のドライバのモジュールの行は Excel の原本になく、M- 
       の番号の予約の仕組みもないので新しいモジュールは作らない。安全の印（safety）を、発行する IFD-59・購読する IFD-61 の印にそろえて付けた（印を外すのは承認事項）。内蔵 
-      IMU・frame・診断の事実を上流のソースと公式の資料で確かめて責務に書いた（出典は docs/mid360_driver_interfaces.md）。
+      IMU・frame・診断の事実を上流のソースと公式の資料で確かめて責務に書いた（出典は docs/mid360_driver_interfaces.md）。 
+      REV-278（第252便、DEC-494）：patch を当てたドライバが MID-360 の状態の通知を /diagnostics（IFD-27）に出すようにした。内蔵 IMU の項目を REV-274 
+      の回答（DEC-476〜478）に合わせた（自律判断、意味を変えない整合の修正）。
     sensitivity:
       - safety
     requirement_refs:
       - RQ-I123
-    revision_ref: REV-260
+    revision_ref: REV-278
     ros_node:
       node_name: livox_ros_driver2
       responsibilities:
@@ -50797,10 +50806,16 @@ entities:
         - 内蔵 IMU：ドライバは MID-360 との接続の通知のたびに IMU の送信を有効にし（上流 livox_lidar_callback.cpp 111 行。止める parameter 
           はない）、購読者の有無に関係なく sensor_msgs/Imu を livox/imu に出す（lddc.cpp 683〜688 行。launch は remap しないので 
           /livox/imu）。加速度は g のまま（m/s² ではない）、角速度は rad/s、frame_id は livox_frame に固定、orientation 
-          と共分散は設定しない（lddc.cpp 480〜496 行）。Gouda の node は購読しない（rosbag の -a には入る）。この出力の IF は正本に未登録。使うか・単位・frame は
-          DEC-476〜478（未決）
-        - 診断・状態：ドライバは MID-360 の作動状態・温度・診断コードを ROS に出さない（publisher は点群と IMU だけ：lddc.cpp 527〜554 行。SDK の状態の通知の 
-          callback を登録しない：lds_lidar.cpp 182 行）。出すかは DEC-479（未決）
+          と共分散は設定しない（lddc.cpp 480〜496 行）。Gouda の node は購読しない（rosbag の -a には入る）。この出力の IF 
+          は正本に未登録。人の回答（DEC-476〜478、REV-274）で、走行中は使わず（記録は取り付けの確かめにだけオフラインで使う）、単位と frame は使うときに決める
+        - 診断・状態：上流のドライバは MID-360 の作動状態・温度・診断コードを ROS に出さない（SDK の状態の通知の callback を登録しない：lds_lidar.cpp 182 
+          行）。setup.sh がビルドする写しにだけ当てる 
+          patch（third_party/patches/livox_ros_driver2/0001-publish-lidar-state-push-on-diagnostics.patch、DEC-494）で
+          callback を登録し、通知（0x0102）を受けるたびに /diagnostics（IFD-27）に DiagnosticArray を 1 つ出す。status は 1 つで name 
+          mid360、hardware_id は空、message は info push。values は許可した 14 項目だけ（cur_work_state、core_temp〈0.01 ℃ 
+          の整数〉、powerup_cnt、last_sync_time、time_offset、time_sync_type、status_code、lidar_diag_status、lidar_flash_status、FW_TYPE、hms_code、version_app、version_loader、version_hardware）で、シリアル番号・MAC・アドレスは出さない。level
+          は lidar_diag_status の 4 つのモジュールの段階の最大（0 OK、1 WARN、2・3 ERROR、ないとき 
+          STALE）。記録のためだけで、走行の判断には使わない（DEC-456）
       absorbs_module_refs:
         - M-023
       active_in_mode_refs:
@@ -50811,12 +50826,15 @@ entities:
       process_group: nav2
       publishes_refs:
         - IFD-59
+        - IFD-27
       subscribes_refs:
         - IFD-61
       serves_refs: []
       calls_refs: []
       owned_state_refs: []
-      placement_rationale: 第三者ドライバ（上流は改変しない）。最小構成のため sensor supervisor（ND-18）には入れず、Nav2 の launch で xt32_scan 
+      placement_rationale: 第三者ドライバ。上流の checkout は改変せず、setup.sh がビルドする写しにだけ 
+        patch（third_party/patches/livox_ros_driver2/0001-publish-lidar-state-push-on-diagnostics.patch）を当てる（DEC-494。DEC-075
+        の例外は状態の通知を /diagnostics に出す 1 件だけ）。最小構成のため sensor supervisor（ND-18）には入れず、Nav2 の launch で xt32_scan 
         と並べて起動する（再接続での作り直し・再起動はしない。DEC-456）。 CLAUDE.md 1.8 の対応：モジュール M-023 障害物認識／内部コンポーネント「MID-360 の点群の取得」／ROS
         node livox_ros_driver2（上流の既定の名前 livox_driver_node を launch の name で付け替え）／プロセス：gouda_nav2.launch.py が 
         Node として起動する単独のプロセス（process_group nav2）。
@@ -69083,14 +69101,14 @@ decisions:
     disposition: answered
   - id: DEC-494
     kind: approval
-    status: pending
+    status: answered
     asked_on: '2026-11-07'
-    answered_on:
+    answered_on: '2026-11-07'
     channel: chat
     question: 【承認】DEC-479 の回答（MID-360 の状態・温度・診断コードを log または rosbag に記録）を、どの方法で実現するか。 推奨は「setup.sh 
       がビルドするドライバの写し（stage）に小さな patch を当て、SDK の状態の通知を /diagnostics（標準の DiagnosticArray）に出し、 
       rosbag（-a）に入れ、gouda_recorder（ND-04）が必要な項目だけを log に書く」。
-    answer_verbatim: ''
+    answer_verbatim: "（質問「DEC-494 は推奨の A（ドライバの写しに patch）で進めますか？」への回答）A で進める\n"
     affected_refs:
       - DEC-479
       - DEC-075
@@ -69116,8 +69134,10 @@ decisions:
       IP アドレスとシリアル番号が入る見込み（推測。PROTO の 0x0102 の項目で確かめる）。log・rosbag はリポジトリに置かないが、\n必要な項目だけを出し、アドレスとシリアル番号は出さない。patch
       は DEC-075（OSS はなるべく改変しない）からの例外になる。固定の commit を変えるたびに patch が当たるかを確かめる。\n振る舞いの違い：A・B は /diagnostics と log に
       MID-360 の状態が出る。走行の判断（止める・続ける）には使わない（DEC-456 で別に決める）。\n決まらない場合に止まる作業：DEC-479 の記録の実装。P4〜P7 の試験は止まらない（温度は T07-1
-      で外から測る）。第247便。"
-    disposition: open_human
+      で外から測る）。第247便。 REV-278（第252便）：人の回答「A で進める」で A を採り、実装した。ドライバの写しへの patch（third_party/patches/livox_ros_driver2/0001-publish-lidar-state-push-on-diagnostics.patch、setup.sh
+      が当てる。当たらなければ止まる）、gouda_recorder の /diagnostics の購読（recorder_node.py・recorder_core.py の diagnostic_payloads、名前は
+      mid360_config.py の DIAGNOSTIC_NAME）。通知の周期とセンサーをつないだ確認は未実行。"
+    disposition: answered
   - id: DEC-495
     kind: confirmation
     status: recorded
@@ -74911,6 +74931,27 @@ revisions:
       - DEC-501
     added_entity_ids: []
     modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-278
+    date: '2026-11-07'
+    summary: 第252便：人の回答「A で進める」（DEC-494）で、DEC-479 の「MID-360 の状態・温度・診断コードを log または rosbag に記録」を、ドライバの写しへの patch
+      と gouda_recorder で実装した。setup.sh は固定の commit の写しに third_party/patches/livox_ros_driver2/ の patch 
+      を当ててビルドする（A1・DEC-475 の上）。patch を当てたドライバは状態の通知を 
+      /diagnostics（IFD-27）に出し、rosbag（-a）に入る。gouda_recorder（ND-04）は name mid360 の status 
+      をログに書く。ND-20・ND-04・IFD-27 を合わせ、ND-20 の内蔵 IMU の項目を REV-274 の回答に合わせた。走行の判断には使わない（DEC-456）。
+    basis_refs:
+      - DEC-494
+      - DEC-479
+      - DEC-075
+      - DEC-475
+      - DEC-476
+    added_entity_ids: []
+    modified_entity_ids:
+      - ND-04
+      - IFD-27
+      - ND-20
     added_source_ids: []
     added_file_ids: []
     removed_entity_ids: []

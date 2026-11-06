@@ -18,10 +18,11 @@
 #   3. rosdep for gouda_core, gouda_interfaces and the drivers
 #   4. the dialout group (serial ports: IMU, ESP32)
 #   5. colcon build --symlink-install of gouda_interfaces, gouda_core and the XT-32 and IMU drivers; then the MID-360 parts,
-#      only when their pinned commit changed: Livox-SDK2 (cmake, installed to /usr/local with sudo) and livox_ros_driver2
-#      (colcon with the CMake arguments of its build.sh jazzy, not build.sh itself (DEC-475), from a copy of the pinned
-#      commit in <workspace>_livox/stage; the checkout stays unmodified, and setup stops when the build fails).
-#      Load it with: source <workspace>_livox/install/setup.bash
+#      only when their pinned commit (or the driver's patches) changed: Livox-SDK2 (cmake, installed to /usr/local with
+#      sudo) and livox_ros_driver2 (colcon with the CMake arguments of its build.sh jazzy, not build.sh itself (DEC-475),
+#      from a copy of the pinned commit in <workspace>_livox/stage with the patches in third_party/patches/livox_ros_driver2
+#      applied (DEC-494: the MID-360's state push on /diagnostics); the checkout stays unmodified, and setup stops when a
+#      patch does not apply or the build fails). Load it with: source <workspace>_livox/install/setup.bash
 #   6. the LiDAR LAN (the PC address PRM-51 from design/generated/params; it offers to add a NetworkManager profile on a
 #      terminal) and time synchronisation (checked and reported)
 #   7. ~/.bashrc: new terminals load ROS 2 Jazzy and this workspace, and one opened in the home folder starts in this
@@ -40,8 +41,30 @@ livox_ws="${workspace}_livox"                                 # MID-360 (DEC-443
 livox_sdk_dir="$livox_ws/sdk/Livox-SDK2"
 livox_driver_dir="$livox_ws/src/livox_ros_driver2"            # the checkout (never modified)
 livox_stage="$livox_ws/stage/livox_ros_driver2"               # the copy colcon builds (with package.xml)
+livox_patch_dir="$repo/third_party/patches/livox_ros_driver2"  # applied to the copy only (DEC-494)
 say() { printf '\n== %s\n' "$*"; }
 stop() { printf '\nSTOPPED: %s\n' "$*" >&2; exit 1; }
+# The copy of livox_ros_driver2 that is built (section 5) and whose manifest rosdep reads (section 3): the files of the
+# pinned commit, the patches applied one by one in name order, and package_ROS2.xml as package.xml. git apply runs
+# outside any repository (GIT_CEILING_DIRECTORIES: paths are taken from the copy), keeps the line ends as they are
+# (the patched src/livox_ros_driver2.cpp has CRLF) and applies all of a patch or nothing.
+livox_patches() { find "$livox_patch_dir" -maxdepth 1 -type f -name '*.patch' | LC_ALL=C sort; }
+livox_patch_sum() {   # names and contents of the patches: a changed, added or removed patch rebuilds the driver
+  local p
+  while IFS= read -r p; do printf '%s %s\n' "$(basename "$p")" "$(sha256sum <"$p" | cut -d' ' -f1)"; done < <(livox_patches) |
+    sha256sum | cut -d' ' -f1
+}
+make_livox_copy() {   # <empty folder>
+  local dest="$1" p
+  [[ -d "$livox_patch_dir" ]] || stop "$livox_patch_dir is missing (the repository is incomplete)"
+  git -C "$livox_driver_dir" archive "${pinned[livox_ros_driver2]}" | tar -x -C "$dest"
+  while IFS= read -r p; do
+    GIT_CEILING_DIRECTORIES="$(dirname "$dest")" git -C "$dest" -c core.autocrlf=false apply --whitespace=nowarn "$p" ||
+      stop "the patch $p does not apply to livox_ros_driver2 ${pinned[livox_ros_driver2]:0:7}; update it for the pin in third_party/drivers.repos (test: bash $livox_patch_dir/test/run_tests.sh)"
+    echo "livox_ros_driver2: applied $(basename "$p")"
+  done < <(livox_patches)
+  cp "$dest/package_ROS2.xml" "$dest/package.xml"
+}
 
 # ---------------------------------------------------------------- 0. where and what
 . /etc/os-release
@@ -144,10 +167,10 @@ done
 # ---------------------------------------------------------------- 3. rosdep
 say "rosdep"
 paths=("$repo/gouda_interfaces" "$repo/gouda_core" "$src_dir/HesaiLidar_ROS_2.0" "$src_dir/ADI_IMU_TR_Driver_ROS2")
-# livox_ros_driver2 keeps its ROS 2 manifest as package_ROS2.xml (section 5 builds a copy that has it as package.xml);
-# rosdep reads a copy in a temporary folder so that the checkout stays unmodified
+# livox_ros_driver2 keeps its ROS 2 manifest as package_ROS2.xml, and the patches add to it (diagnostic_msgs); rosdep
+# reads the manifest of the same copy section 5 builds, made in a temporary folder (the checkout stays unmodified)
 livox_manifest="$(mktemp -d)/livox_ros_driver2"; mkdir -p "$livox_manifest"
-cp "$livox_driver_dir/package_ROS2.xml" "$livox_manifest/package.xml"
+make_livox_copy "$livox_manifest"
 paths+=("$livox_manifest")
 [[ -f /etc/ros/rosdep/sources.list.d/20-default.list ]] || sudo rosdep init
 if ! rosdep check --from-paths "${paths[@]}" --ignore-src --rosdistro jazzy >/dev/null 2>&1; then
@@ -188,23 +211,25 @@ else
   rm -f "$livox_ws/install/.gouda_built_commit"   # the driver is rebuilt against the new SDK
 fi
 driver_stamp="$livox_ws/install/.gouda_built_commit"
-driver_built="${pinned[livox_ros_driver2]} colcon"   # a build by build.sh (setup.sh of 9c449b5) wrote the commit only: rebuilt once
+# the commit, the way of building and the patches; an older stamp (build.sh: the commit only; colcon without the patches)
+# does not match, so that install is rebuilt once
+driver_built="${pinned[livox_ros_driver2]} colcon patches $(livox_patch_sum)"
 driver_lib="$livox_ws/install/livox_ros_driver2/lib/liblivox_ros_driver2.so"
 if [[ -f "$driver_lib" && "$(cat "$driver_stamp" 2>/dev/null)" == "$driver_built" ]]; then
-  echo "livox_ros_driver2 ${pinned[livox_ros_driver2]:0:7} is built"
+  echo "livox_ros_driver2 ${pinned[livox_ros_driver2]:0:7} is built (patches: $(livox_patches | xargs -r -n1 basename | tr '\n' ' '))"
 else
   # colcon and ament read package.xml beside CMakeLists.txt, but the driver keeps its ROS 2 manifest as package_ROS2.xml.
   # Its build.sh copies it into the checkout, clears build/ and install/ and does not stop on errors; instead, the files
-  # of the pinned commit are copied to $livox_stage with package_ROS2.xml as package.xml (the checkout stays unmodified,
-  # DEC-075) and only that copy is built, with the CMake arguments of build.sh jazzy (DEC-475). The launch/ copy of
-  # build.sh is not made: CMakeLists.txt installs config/ and launch_ROS2/ to share either way.
+  # of the pinned commit are copied to $livox_stage, the patches in $livox_patch_dir are applied to that copy (DEC-494),
+  # package_ROS2.xml is put as package.xml (make_livox_copy; the checkout stays unmodified, DEC-075) and only that copy
+  # is built, with the CMake arguments of build.sh jazzy (DEC-475). The launch/ copy of build.sh is not made:
+  # CMakeLists.txt installs config/ and launch_ROS2/ to share either way.
   # The markers keep a colcon run by hand in $livox_ws to the copy: it would also take the SDK checkout as a package and
   # link the driver to it instead of /usr/local (seen in the trial build of 2026-11-07), and the checkout as a plain cmake one
   touch "$livox_ws/sdk/COLCON_IGNORE" "$livox_ws/src/COLCON_IGNORE"
   rm -rf "$livox_ws/stage" "$livox_ws/build" "$livox_ws/install"   # a clean build (also of what an earlier build.sh left)
   mkdir -p "$livox_stage"
-  git -C "$livox_driver_dir" archive "${pinned[livox_ros_driver2]}" | tar -x -C "$livox_stage"
-  cp "$livox_stage/package_ROS2.xml" "$livox_stage/package.xml"
+  make_livox_copy "$livox_stage"
   (cd "$livox_ws" && colcon build --base-paths "$livox_ws/stage" --cmake-args -DROS_EDITION=ROS2 -DDISTRO_ROS=jazzy) ||
     stop "livox_ros_driver2 did not build (see the colcon output above and $livox_ws/log/latest_build)"
   [[ -f "$driver_lib" ]] || stop "livox_ros_driver2: colcon finished, but $driver_lib is missing"

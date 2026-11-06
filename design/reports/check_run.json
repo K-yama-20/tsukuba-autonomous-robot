@@ -1,6 +1,6 @@
 {
-  "run_time_utc": "2026-11-06T20:54:38.083282+00:00",
-  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+  "run_time_utc": "2026-11-06T21:01:05.045744+00:00",
+  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
     {
@@ -11,47 +11,47 @@
     {
       "step": "generate params",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/generate_params.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status",
       "exit_code": 0,
       "output": "design/reports/generate_params.txt"
     },
     {
       "step": "intent identity",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_intent_identity.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status",
       "exit_code": 0,
       "output": "design/reports/intent_identity.txt"
     },
     {
       "step": "fidelity validator",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/validate_model.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status",
       "exit_code": 1,
       "output": "design/reports/migration_validator.txt"
     },
     {
       "step": "design consistency",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_design.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status",
       "exit_code": 0,
       "output": "design/reports/design_check.txt"
     },
     {
       "step": "unit tests",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/../../tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "-m",
         "unittest",
         "discover",
@@ -61,13 +61,13 @@
         "test_*.py",
         "-v"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status",
       "exit_code": 1,
       "output": "design/reports/migration_tests.txt"
     }
   ],
   "sha256": {
-    "design/model.yaml": "e7121471f99e0a48e9cc95e2cfdaf10cf3eee1f75ae8d7212bb0f2ac2ac94c2c",
+    "design/model.yaml": "00ac13e40fc6bdef5346519eff3164dee07def77a8322fb8cae9bed69458d287",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "e9be63b890245ba8b2627ac63bc932b95f6fb2bcd60cdd1d09f408849da7bdc8",
@@ -368,6 +368,7 @@
     "design/revisions/REV-275.yaml": "075fe564d05c82632129f29f58aad98fc7554d1ad4fcfda68a5cafa54ff78a1d",
     "design/revisions/REV-276.yaml": "fe725929a7000345077a21a65d7324f1160b31dd4916346a2edadc0c433dcd2b",
     "design/revisions/REV-277.yaml": "65a6022c8bace2392b1770a7d70a488564ebd5d87a630d41cdec41c224d40d33",
+    "design/revisions/REV-278.yaml": "8fd7784a7f579de0b02b177acc0a892f408ead40ac0ee9f169f3ca4e1ab1ec16",
     "design/revisions/REV-279.yaml": "288cae46c512f58acdb24c1f31ce84efe55f318bed6663f506de0aaabf7313ed",
     "design/revisions/REV-280.yaml": "981609056f542a442074817264f97a97bdbb305c2c5eee4c6d0b7c50d47df604",
     "design/revisions/REV-281.yaml": "28c28a10b31cf08c6afe5d819ffa150cc27bc9a72f2715d723bad3a23d6b990c",

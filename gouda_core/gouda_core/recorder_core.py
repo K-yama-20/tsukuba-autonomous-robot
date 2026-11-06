@@ -289,3 +289,22 @@ class RecorderCore:
             'rosbag_saving_started_at': (s.rosbag_finalizing['started_at'] if s and s.rosbag_finalizing else ''),
             'rosbag_last_save': (json.dumps(s.last_finalize, ensure_ascii=False) if s and s.last_finalize else ''),
         }
+
+
+# ---- /diagnostics (DEC-479 / DEC-494) ----
+def diagnostic_payloads(msg, name: str) -> list:
+    """Log payloads of the statuses called `name` in a diagnostic_msgs/DiagnosticArray, in the order received (one per status).
+
+    No ROS dependency: msg is anything of the same shape (header.stamp.sec / nanosec, status[] with name, level, message and
+    values[] of key / value). Each payload is {'stamp': the array's header time (s), 'name', 'level': int, 'message', 'values':
+    {key: value}}, copied as received: rclpy gives the byte field level as bytes, and it is written as the integer it holds.
+    Statuses with any other name (an exact match is required) are left out; hardware_id is not written."""
+    stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+    out = []
+    for st in msg.status:
+        if st.name != name:
+            continue
+        level = int.from_bytes(st.level, 'big') if isinstance(st.level, (bytes, bytearray)) else int(st.level)
+        out.append({'stamp': stamp, 'name': st.name, 'level': level, 'message': st.message,
+                    'values': {kv.key: kv.value for kv in st.values}})
+    return out

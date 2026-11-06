@@ -104,7 +104,7 @@ test_unrecorded_new_entity_detected (test_validate_model.MigrationTests.test_unr
 FAIL: test_real_model (test_validate_model.MigrationTests.test_real_model)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-a1/design/rules/test_validate_model.py", line 103, in test_real_model
+  File "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/mid360-status/design/rules/test_validate_model.py", line 103, in test_real_model
     def test_real_model(self): self.assertEqual(self.errors(self.m), [])
                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Lists differ: [{'code': 'MIGRATION', 'path': 'unchanged [1172 chars]4'}}] != []
@@ -116,6 +116,6 @@ First extra element 0:
 Diff is 1384 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 98 tests in 93.410s
+Ran 98 tests in 100.812s
 
 FAILED (failures=1)

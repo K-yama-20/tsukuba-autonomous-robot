@@ -43,7 +43,7 @@ bash setup.sh
 3. rosdep（gouda_core、gouda_interfaces、XT-32・IMU・MID-360 のドライバの依存）
 4. シリアルポートを使うための dialout グループ（IMU、ESP32）。追加したときは、一度ログアウトしてログインし直します。
 5. ビルド：`colcon build --symlink-install`（gouda_interfaces、gouda_core、2 つのドライバ）
-   - MID-360：Livox-SDK2 をビルドして `/usr/local` に入れ（sudo）、livox_ros_driver2 を colcon でビルドします。上流の `build.sh` は使わず（作業場所の build・install を消し、失敗しても止まらないため。DEC-475）、固定した commit の写し `stage/` を `build.sh jazzy` と同じ CMake の引数でビルドします。ドライバの checkout は変えません。固定した commit が変わったときだけ行います。使うときは `source ~/gouda_ws_livox/install/setup.bash`。Gouda はまだ MID-360 のドライバを起動しません。
+   - MID-360：Livox-SDK2 をビルドして `/usr/local` に入れ（sudo）、livox_ros_driver2 を colcon でビルドします。上流の `build.sh` は使わず（作業場所の build・install を消し、失敗しても止まらないため。DEC-475）、固定した commit の写し `stage/` を `build.sh jazzy` と同じ CMake の引数でビルドします。写しには [third_party/patches/livox_ros_driver2](third_party/patches/livox_ros_driver2) の patch を名前の順に当てます（MID-360 が送る状態の通知を `/diagnostics` に出す。DEC-494）。当たらない patch があると止まります。ドライバの checkout は変えません。固定した commit か patch が変わったときだけ行います。使うときは `source ~/gouda_ws_livox/install/setup.bash`。Gouda はまだ MID-360 のドライバを起動しません。
 6. LiDAR 用の LAN と時刻同期の確認
    - PC 側のアドレス（PRM-51：192.168.1.100）を持つ LAN がなければ、有線 LAN の一覧から選んで NetworkManager の接続を追加できます（Enter で省略）。
    - デフォルトルートのある LAN にこのアドレスを付ける古い接続があると、警告と削除のコマンドを表示します。
@@ -184,7 +184,7 @@ python3 -m gouda_core.map_inspect ~/gouda_ws/gouda_data/maps/<origin_id>/source 
 ├── sdk/Livox-SDK2/                   SDK（third_party/drivers.repos の commit。/usr/local に入れる）
 ├── sdk_build/                        SDK のビルド
 ├── src/livox_ros_driver2/            ROS 2 ドライバ（同。変えない）
-├── stage/livox_ros_driver2/          ビルドする写し（package_ROS2.xml を package.xml として置く）
+├── stage/livox_ros_driver2/          ビルドする写し（patch を当て、package_ROS2.xml を package.xml として置く）
 └── build/  install/  log/            colcon
 ```
 
@@ -197,6 +197,7 @@ python3 -m gouda_core.map_inspect ~/gouda_ws/gouda_data/maps/<origin_id>/source 
 | `gouda_interfaces/` | 独自のメッセージ・サービス・アクション |
 | `firmware/gouda_esp32_v4/` | ESP32 の firmware v4 |
 | `third_party/drivers.repos` | センサーのドライバの commit |
+| `third_party/patches/livox_ros_driver2/` | setup.sh が livox_ros_driver2 の写しにだけ当てる patch（MID-360 の状態の通知を `/diagnostics` に出す。DEC-494）と、その試験（`test/run_tests.sh`） |
 | `design/` | 設計の正本と記録（[§8](#8-設計の文書と検査)） |
 | `docs/` | 設計の元資料（`docs/architecture/` の Excel・drawio）と、旧実装の調査記録 |
 

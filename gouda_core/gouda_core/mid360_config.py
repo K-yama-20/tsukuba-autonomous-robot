@@ -39,6 +39,10 @@ LAYER = 'mid360_layer'                         # the MID-360's own ObstacleLayer
 DRIVER_PACKAGE, DRIVER_EXECUTABLE, DRIVER_NODE = 'livox_ros_driver2', 'livox_ros_driver2_node', 'livox_ros_driver2'   # ND-20
 DRIVER_TOPIC = 'livox/lidar'                   # the driver's own topic with multi_topic 0 (upstream src/lddc.cpp), remapped to IFD-59
 XFER_POINTCLOUD2 = 0                           # upstream launch: "0-Pointcloud2(PointXYZRTL)" (a format constant, not a vehicle value)
+# name of the MID-360's DiagnosticStatus in /diagnostics (DEC-479 / DEC-494): the patched driver that setup.sh builds publishes the
+# device's state push under this name (hardware_id '', message 'info push'), and gouda_recorder (ND-04) writes every such status
+# to the log. Fixed by the driver patch, so it is not derived from SENSOR (the prefix of the /config keys)
+DIAGNOSTIC_NAME = 'mid360'
 LOCAL_FILE = 'mid360.json'                     # IFD-61, in <data_root>/config
 CONFIG_FILE = 'sensor_config.json'             # IFD-26, the monitor's /config in <data_root>/config (the mounting, REV-266)
 ADDRESS_KEYS = ('host_ip', 'lidar_ip')

@@ -10776,6 +10776,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-278",
+      "date": "2026-11-07",
+      "basis_refs": 5,
+      "added_entity_ids": 0,
+      "modified_entity_ids": 3,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -11149,9 +11159,9 @@
   "decisions": {
     "count": 447,
     "by_status": {
-      "answered": 258,
+      "answered": 259,
       "recorded": 96,
-      "pending": 93
+      "pending": 92
     },
     "pending": [
       "DEC-021",
@@ -11245,8 +11255,7 @@
       "DEC-457",
       "DEC-462",
       "DEC-489",
-      "DEC-486",
-      "DEC-494"
+      "DEC-486"
     ]
   },
   "vehicle_verification": {
