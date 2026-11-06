@@ -1,0 +1,99 @@
+# reserved by reserve_ids.py: mid360-dec476-479-answers 2026-11-07T04:10:26
+# 変更セット REV-274（2026-11-07 第247便: DEC-476〜479 への人の回答の記録と、DEC-479 の記録の方法の承認事項 DEC-494）
+# 適用: design/tools/apply_revision.py REV-274
+id: REV-274
+date: '2026-11-07'
+summary: >-
+  第247便：人の回答「水書で問題ない。但し、DEC-479はlogまたはrosbagに記録」で、DEC-476〜478 は推奨の A のまま（MID-360 の内蔵 IMU は出したまま走行中は使わない、
+  単位と frame は使うときに決める）とし、DEC-479 は「状態・温度・診断コードを log または rosbag に記録する」とした。「水書」は「推奨」の変換の誤りと AI が読んだ（推測）。
+  上流のドライバは状態の通知を ROS に出さず、別のプロセスの SDK は点群・IMU の送り先を奪う恐れがあるので、記録の方法（ドライバの写しへの小さな patch など）を DEC-494 で問う。
+  コード・設定・launch は変えない。
+basis_refs:
+- DEC-476
+- DEC-477
+- DEC-478
+- DEC-479
+- DEC-075
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-494
+  kind: approval
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on: null
+  channel: chat
+  question: >-
+    【承認】DEC-479 の回答（MID-360 の状態・温度・診断コードを log または rosbag に記録）を、どの方法で実現するか。
+    推奨は「setup.sh がビルドするドライバの写し（stage）に小さな patch を当て、SDK の状態の通知を /diagnostics（標準の DiagnosticArray）に出し、
+    rosbag（-a）に入れ、gouda_recorder（ND-04）が必要な項目だけを log に書く」。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-479
+  - DEC-075
+  - DEC-443
+  - DEC-456
+  - ND-20
+  - ND-04
+  - IFD-27
+  resulting_refs: []
+  note: |-
+    事実（AI が原本で確かめた）：MID-360 は機器の状態（cur_work_state、core_temp〈0.01 ℃〉、lidar_diag_status、hms_code）を周期的に送る（docs/mid360_driver_interfaces.md 5 章）。
+    SDK2 c0796f0 は通知を SetLivoxLidarInfoCallback の callback に JSON の文字列で渡す（include/livox_lidar_api.h 98〜103 行、見本 samples/livox_lidar_quick_start/main.cpp 251〜257・280 行は画面に出すだけ）。
+    ドライバ 2144554 はこの callback を登録しない（lds_lidar.cpp 182・187・188 行）。SDK は接続のたびに機器の点群と IMU の送り先を自分の設定に書き換える
+    （sdk_core/command_handler/build_request.cpp の BuildUpdateLidarCfgRequest、kKeyLidarPointDataHostIpCfg・kKeyLidarImuHostIpCfg）ので、別のプロセスで SDK を動かすと
+    ドライバの点群と IMU を奪う恐れがある（推測。試していない）。gouda_recorder が log に書くのは mode/state と log/decision だけ（recorder_node.py 9・57・58 行）。
+    rosbag は ros2 bag record -a なので topic にすれば入るが、rosbag は人がボタンで始めるもので自動では始まらない（intent 24 行）。log は事前地図作成と自律走行の開始で自動で始まる。
+    推奨：A ドライバの写しへの patch。A1 の作り方（固定の commit を stage に写してビルド、checkout は変えない）なら、リポジトリに置いた patch を stage にだけ当てられる。
+    callback で受けた JSON から必要な項目（作動状態・温度・診断の段階・hms_code）だけを /diagnostics（diagnostic_msgs/DiagnosticArray、name は mid360）に出し、
+    gouda_recorder が /diagnostics の mid360 の項目を log に書く（周期は通知の周期か、それより間引く。値は実装のときに決める）。理由：温度と診断コードを取れるのはこの方法だけ、
+    標準の型（intent 87 行）、変更が小さい（推測：callback の登録と publisher で数十行）、上流 issue #80（温度を topic で出してほしい、2023 年から open、実装なし）に PR として返せる。
+    代替：B 受動的な受信（raw socket・pcap で状態の通知の UDP を読み、Gouda の node で通信プロトコルを解く）：上流は変えないが、CAP_NET_RAW（sudo の setcap）と自作の解析が要る。
+    C 別のプロセスの SDK：上の理由で採らない。D TU Darmstadt の fork の診断：時刻同期と途絶だけで温度は出ない（REV-260 の DEC-479）。E 上流 #80 の実装を待つ：見込みがない。
+    F 点群の途絶だけを記録（DEC-456 の代替と同じ）：温度・診断コードは分からないので回答を満たさない。
+    注意（考慮漏れになりやすい点）：通知の JSON には機器の IP アドレスとシリアル番号が入る見込み（推測。PROTO の 0x0102 の項目で確かめる）。log・rosbag はリポジトリに置かないが、
+    必要な項目だけを出し、アドレスとシリアル番号は出さない。patch は DEC-075（OSS はなるべく改変しない）からの例外になる。固定の commit を変えるたびに patch が当たるかを確かめる。
+    振る舞いの違い：A・B は /diagnostics と log に MID-360 の状態が出る。走行の判断（止める・続ける）には使わない（DEC-456 で別に決める）。
+    決まらない場合に止まる作業：DEC-479 の記録の実装。P4〜P7 の試験は止まらない（温度は T07-1 で外から測る）。第247便。
+  disposition: open_human
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-476
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      （AI の判断材料の提示と質問「DEC-476〜479 を推奨案のまま決めますか？」への回答）水書で問題ない。但し、DEC-479はlogまたはrosbagに記録
+    note: |
+      事実（docs/mid360_driver_interfaces.md 3 章。原本で確認、実機では未確認）：MID-360 は電源を入れると IMU を 200 Hz で送り始める（User Manual v1.2 PDF 17 ページ）。 ドライバは接続の通知のたびに IMU の送信を有効にし（上流 livox_lidar_callback.cpp 111 行）、止める ROS parameter はない。Gouda は雛形の imu_data_ip に PC のアドレスを入れる （mid360_config.py 43 行）ので PC に届き、ドライバは購読者の有無に関係なく livox/imu に出す（lddc.cpp 683〜688 行。remap なしで /livox/imu）。Gouda の node は購読しない。 rosbag は ros2 bag record -a（recorder_node.py 102 行）なので記録に入る。REV-242 の ND-20 の「使わない」は「購読しない」の意味で、送信は止めていない。 推奨：A（出したまま、走行中は使わない。記録をオフラインの解析で取り付けの傾きの確かめにだけ使う）。理由：振る舞いが今と同じ、静止時の重力の向きが記録に残り DEC-457 の実測と突き合わせられる、 設計案 mid360_architecture_2026-11-06.md の A-5 と同じ。 代替：B 送信を止める（上流を改変せずに止める手段は、雛形の imu_data_ip を空にする（止まるかは未確認）か、機器の設定 imu_data_en（通信プロトコル 373 行）を 0 にする （ドライバが接続のたびに有効に戻すので効かない見込み：ソースからの推測））。C 走行中に使う（GLIM ND-06 の IMU を ADIS16607-2（IFD-22）から替える、点群の歪みの補正など。 DEC-477・DEC-478 が先に要る。IMU の校正 #80 は approved がなく実装しない）。 振る舞いの違い：A は今と同じ。B は rosbag から IMU が消える（帯域・容量の差は未測定）。C は自己位置・障害物の入力が変わる（C を選ぶなら別の設計と承認）。 決まらない場合に止まる作業：/livox/imu の IF の正本への登録（IFD の番号の予約の仕組みもない）、IMU を使う実装・解析の決まり。P4 の試験（T04-1・T04-2・T04-6）は止まらない。 先行事例：探した場所は上流のソース、GLIM の設定、design/research/vehicle_pc/2026-11-06_mid360_connection/ledger.yaml の R-L-01〜06・R-M-01〜03（収集の担当の調査。AI は一部未照合）。 GLIM には Livox の g の出力を前提にした acc_scale がある（glim_v1.2.2/config_ros_v1.2.2.json 13・55 行）。C の採否は C を選ぶときに調べ直す。第235便の流れ D。 REV-274（第247便）：人の回答で推奨の A を採る（出したまま、走行中は使わない。記録は取り付けの確かめにだけオフラインで使う）。「水書」は「推奨」の変換の誤りと AI が読んだ（推測）。コード・設定は変わらない。
+- id: DEC-477
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      （AI の判断材料の提示と質問「DEC-476〜479 を推奨案のまま決めますか？」への回答）水書で問題ない。但し、DEC-479はlogまたはrosbagに記録
+    note: |
+      事実（docs/mid360_driver_interfaces.md 3 章）：UDP の IMU はジャイロ rad/s・加速度 g（通信プロトコル v1.4.12 の 160〜165 行）。ドライバは 3 か所とも値をそのまま写し単位を変えない （pub_handler.cpp 119〜124 行、lidar_imu_data_queue.cpp 35〜41 行、lddc.cpp 490〜495 行）。約束は加速度 m/s²・角速度 rad/s（Imu.msg 3 行、REP-145 67・73 行）で、角速度は一致、 加速度は違う。orientation と共分散を設定しない（lddc.cpp 480〜496 行）ので、推定がない印（共分散の要素 0 を −1：Imu.msg 10〜13 行、REP-145 110 行）がなく、 既定値の回転なし（Quaternion.msg の w＝1）が「共分散が不明」の値として出る（推測。記録で未確認）。 推奨：A 使う側で直す（今は使う側がないので何もしない。解析では 9.80665 を掛ける。GLIM で使うなら acc_scale を 9.80665 に固定する）。理由：上流を改変しない（DEC-075）、 単位を換える fork と下流の係数の両方を変えると二重に換算される（台帳 R-M-03）、GLIM の自動判定（acc_scale 0）は最初に受けた 1 つの値のノルムで単位を決めるので、 動きながら始めると誤ることがある（glim_ros.cpp 228〜243 行。7〜12 は m/s²、0.8〜1.2 は g、それ以外は m/s² とみなす）。 代替：B Gouda に変換の node を 1 つ置き、m/s²・frame・共分散の印をそろえた別の topic を出す（自作。既製の node はこの便では未調査）。C 単位を換える fork に替える （tu-darmstadt-ros-pkg/livox_ros_driver2 の jazzy、commit 2a60447：imu_as_gforce が false のとき 9.80665 を掛ける（src/lddc.cpp 566〜588 行）。2026-10-23 更新、Livox の文面のライセンス、 SDK も同じ組の fork が要る、実機の使用例は未確認。DEC-442・DEC-443 の見直しになる）。 振る舞いの違い：今は誰も使わないので、どれを選んでも走行は変わらない。使い始めたとき、下流が g を m/s² と取ると重力が約 1/9.8 に見える（自己位置の推定が崩れる）。 決まらない場合に止まる作業：MID-360 の IMU を使う実装（DEC-476 の C）。第235便の流れ D。 REV-274（第247便）：人の回答で推奨の A を採る（IMU を使わない間は決めず、使うときに使う側で直す。解析では 9.80665 を掛ける）。「水書」は「推奨」と読んだ（推測）。コード・設定は変わらない。
+- id: DEC-478
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      （AI の判断材料の提示と質問「DEC-476〜479 を推奨案のまま決めますか？」への回答）水書で問題ない。但し、DEC-479はlogまたはrosbagに記録
+    note: |
+      事実（docs/mid360_driver_interfaces.md 3・4 章）：点群の frame_id は ROS parameter frame_id（Gouda は mid360_link：mid360_config.py 128〜130 行、lddc.cpp 263 行）だが、 IMU の frame_id は文字列 livox_frame に固定（lddc.cpp 481 行）で、parameter は効かない。Gouda の静的 TF（ND-13）が出す MID-360 の frame は base_link → mid360_link だけ （static_tf_node.py 70〜78 行）で、livox_frame を出すものはない。REP-145 は frame_id をセンサの frame とし、データは 1 つの frame で出すとする（41・54 行）。 IMU の軸は点群の座標と同じ向きで、位置は点群の座標で x 11.0 mm・y 23.29 mm・z −44.12 mm（User Manual v1.2 PDF 17 ページ。手元の機体との一致は実測しない）。 推奨：A 使わない間は TF を足さない（解析では IMU の軸を mid360_link と同じ向きとして扱う）。使うときは ND-13 が mid360_link → livox_frame を回転なし・上の公式の位置で出す （DEC-457 の取り付けの値とは別の、機器の中の固定の値）。理由：上流を改変しない（DEC-075）、TF の発行元を 1 つに保つ（RQ-I058）、公式の値がある。 代替：B 変換の node（DEC-477 の B）で frame_id を付け替え（例 mid360_imu_link）、ND-13 がその TF を出す。C fork の imu_frame_id を使う（DEC-477 の C。 設定ファイルと ROS parameter のどちらが効くかは未照合：TUD parse_livox_lidar_cfg.cpp 100〜116 行、livox_ros_driver2.cpp 149 行）。D TF に出さず、使う側の設定に外部パラメータを持つ （GLIM の T_lidar_imu など）。 振る舞いの違い：今は誰も使わないので走行は変わらない。A・B で TF を足すと /tf_static の frame が 1 つ増える。 決まらない場合に止まる作業：MID-360 の IMU を TF で使う実装（DEC-476 の C）。 先行事例：上流の issue 217（frame_id を変えられないという報告。台帳 R-L-04、AI は未照合）、TU Darmstadt の fork の imu_frame_id。第235便の流れ D。 REV-274（第247便）：人の回答で推奨の A を採る（使わない間は TF を足さない。使うときは ND-13 が mid360_link → livox_frame を回転なし・公式の位置で出す）。「水書」は「推奨」と読んだ（推測）。コード・設定は変わらない。
+- id: DEC-479
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      （AI の判断材料の提示と質問「DEC-476〜479 を推奨案のまま決めますか？」への回答）水書で問題ない。但し、DEC-479はlogまたはrosbagに記録
+    resulting_refs:
+    - DEC-494
+    note: |
+      事実（docs/mid360_driver_interfaces.md 5 章）：MID-360 は機器の情報・設定・今の状態を設定した送り先へ周期的に送る（User Manual v1.2 PDF 14 ページ）。項目は cur_work_state（0x8006）、core_temp（0x8007、0.01 ℃）、lidar_diag_status（0x800E、モジュールごとの正常・警告・異常・safety_err）、hms_code（0x8011）（通信プロトコル 384・385・391・393 行）。 Gouda は push_msg_ip に PC のアドレスを入れる（mid360_config.py 43 行）ので PC に届く。SDK2 は通知を SetLivoxLidarInfoCallback の callback にだけ渡す （general_command_handler.cpp 589〜597 行）が、ドライバはこれを登録しない（lds_lidar.cpp 182・187・188 行。登録するのは接続の通知と点群・IMU だけ）。ドライバの publisher は 点群と IMU だけ（lddc.cpp 527〜554 行）で、SDK のコンソールのログも止める（lds_lidar.cpp 131 行）。高温では警告を出し、さらに高いと自動で止まる（User Manual PDF 23 ページの注 7）が、 その警告は Gouda に届かず、点群が来ないことでしか分からない（DEC-456）。 推奨：A 今は出さない。温度は P7（T07-1）で外から測り、試験のときの状態は人が Livox Viewer 2 で見る。理由：上流を改変しない（DEC-075）、状態を読むには SDK の callback を ドライバと同じプロセスで登録する必要があり、別のプロセスで SDK を初期化すると送り先のポートを取り合う恐れがある（推測、未確認）。 代替：B fork の診断を使う（TU Darmstadt の fork の publish_diagnostics。中身は時刻同期の種類と packet の途絶だけで、温度・診断コードは出さない：src/livox_ros_driver2.cpp 208〜257 行）。 C 上流に状態の callback と /diagnostics の発行を足す patch（DEC-075 の見直し）。D Gouda の node で点群の topic の途絶を見て /diagnostics に出す（DEC-456 の代替と同じ。温度・診断コードは分からない）。 振る舞いの違い：A は今と同じ。B〜D は monitor・記録に状態が出る。状態を走行の判断（止める・続ける）に使うかは別の承認（DEC-456）。 決まらない場合に止まる作業：monitor の MID-360 の状態の表示、sensor supervisor（ND-18）への組み込み、温度の常時の記録。走行と P4〜P7 の試験は止まらない。 先行事例：探した場所は上流のソースと SDK2、TU Darmstadt の fork（gh api と raw で読んだ）、台帳の R-M-01（Ericsii の fork など。AI は未照合）。温度・診断コードを ROS に出す 既製のドライバはこの便では見つけていない（探したのは上の 2 つの系統だけ）。第235便の流れ D。 REV-274（第247便）：人の回答は推奨の A（今は出さない）を採らず、「log または rosbag に記録」する。記録の方法（上流のドライバの写しへの patch など）は DEC-075 と関係するので、方法の承認を DEC-494 で問う。走行の判断（止める・続ける）に使うかは DEC-456 のまま。実装はまだ。
