@@ -39,9 +39,11 @@ bash setup.sh
 2. センサーのドライバ（`~/gouda_ws/src/HesaiLidar_ROS_2.0`、`~/gouda_ws/src/ADI_IMU_TR_Driver_ROS2`）
    - [third_party/drivers.repos](third_party/drivers.repos) に書いた commit を使い、改変しません（DEC-075）。
    - ドライバにローカルの変更があると止まります。旧実装の `scripts/setup.sh` はドライバに patch を当てていました（[§3.2](#32-古い版からの更新1-回だけ) を参照）。
-3. rosdep（gouda_core、gouda_interfaces、2 つのドライバの依存）
+   - MID-360 のドライバ（Livox-SDK2、livox_ros_driver2。DEC-442・443）は、別の作業場所 `~/gouda_ws_livox` に置きます。livox_ros_driver2 の `build.sh` が、置かれた作業場所の build・install を消すためです。
+3. rosdep（gouda_core、gouda_interfaces、XT-32・IMU・MID-360 のドライバの依存）
 4. シリアルポートを使うための dialout グループ（IMU、ESP32）。追加したときは、一度ログアウトしてログインし直します。
 5. ビルド：`colcon build --symlink-install`（gouda_interfaces、gouda_core、2 つのドライバ）
+   - MID-360：Livox-SDK2 をビルドして `/usr/local` に入れ（sudo）、livox_ros_driver2 を `build.sh jazzy` でビルドします。固定した commit が変わったときだけ行います。使うときは `source ~/gouda_ws_livox/install/setup.bash`。Gouda はまだ MID-360 のドライバを起動しません。
 6. LiDAR 用の LAN と時刻同期の確認
    - PC 側のアドレス（PRM-51：192.168.1.100）を持つ LAN がなければ、有線 LAN の一覧から選んで NetworkManager の接続を追加できます（Enter で省略）。
    - デフォルトルートのある LAN にこのアドレスを付ける古い接続があると、警告と削除のコマンドを表示します。
@@ -178,6 +180,11 @@ python3 -m gouda_core.map_inspect ~/gouda_ws/gouda_data/maps/<origin_id>/source 
     ├── config/                       monitor の設定タブの値（センサーの取付位置など）
     ├── state/                        直前のモードの記録
     └── run/                          起動中の情報（monitor の URL、launch のログ、センサーの状態）
+~/gouda_ws_livox/                     MID-360 のドライバの作業場所（setup.sh が作る）
+├── sdk/Livox-SDK2/                   SDK（third_party/drivers.repos の commit。/usr/local に入れる）
+├── sdk_build/                        SDK のビルド
+├── src/livox_ros_driver2/            ROS 2 ドライバ（同）
+└── build/  install/  log/            build.sh の colcon
 ```
 
 リポジトリの中：

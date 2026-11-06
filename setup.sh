@@ -12,10 +12,14 @@
 #      global localization trial A3 (ND-07, DEC-115 / DEC-202 / DEC-205): Autoware Core's map loader, NDT scan matcher and EKF
 #      localizer, and pcl_ros (the point filters). Their version is not checked (DEC-205: checked on the VM with 1.9.0)
 #   2. the sensor drivers at the commits in third_party/drivers.repos, unmodified (DEC-075). A clean checkout is moved to
-#      the pinned commit; a checkout with local changes or another origin is never touched (setup stops and says why)
+#      the pinned commit; a checkout with local changes or another origin is never touched (setup stops and says why).
+#      The MID-360 sources (Livox-SDK2, livox_ros_driver2; DEC-442 / DEC-443) go to the separate workspace
+#      <workspace>_livox, because the driver's own build.sh deletes build/ and install/ of the workspace it is in
 #   3. rosdep for gouda_core, gouda_interfaces and the drivers
 #   4. the dialout group (serial ports: IMU, ESP32)
-#   5. colcon build --symlink-install of gouda_interfaces, gouda_core and the two drivers
+#   5. colcon build --symlink-install of gouda_interfaces, gouda_core and the XT-32 and IMU drivers; then the MID-360 parts,
+#      only when their pinned commit changed: Livox-SDK2 (cmake, installed to /usr/local with sudo) and livox_ros_driver2
+#      (its build.sh jazzy, in <workspace>_livox). Load it with: source <workspace>_livox/install/setup.bash
 #   6. the LiDAR LAN (the PC address PRM-51 from design/generated/params; it offers to add a NetworkManager profile on a
 #      terminal) and time synchronisation (checked and reported)
 #   7. ~/.bashrc: new terminals load ROS 2 Jazzy and this workspace, and one opened in the home folder starts in this
@@ -30,6 +34,9 @@ params_index="$repo/design/generated/params/index.json"
 glim_version="1.2.2-0noble"                                   # DEC-062 / IFD-35 confirmed_installed_version
 lidar_prefix=24                                               # the XT-32's own mask is 255.255.255.0 (Pandar Console, 2026-10-13)
 packages=(gouda_interfaces gouda_core hesai_ros_driver adi_imu_tr_driver_ros2)
+livox_ws="${workspace}_livox"                                 # MID-360 (DEC-443): build.sh of the driver clears its workspace
+livox_sdk_dir="$livox_ws/sdk/Livox-SDK2"
+livox_driver_dir="$livox_ws/src/livox_ros_driver2"
 say() { printf '\n== %s\n' "$*"; }
 stop() { printf '\nSTOPPED: %s\n' "$*" >&2; exit 1; }
 
@@ -102,10 +109,17 @@ for name, r in yaml.safe_load(open(sys.argv[1]))['repositories'].items():
     print(name, r['url'], r['version'])
 PY
 )
+declare -A pinned=()
 for line in "${pin_lines[@]}"; do
-  read -r name url commit <<<"$line"; dir="$src_dir/$name"
+  read -r name url commit <<<"$line"; pinned[$name]="$commit"
+  case "$name" in
+    Livox-SDK2) dir="$livox_sdk_dir" ;;
+    livox_ros_driver2) dir="$livox_driver_dir" ;;
+    *) dir="$src_dir/$name" ;;
+  esac
   if [[ ! -e "$dir" ]]; then
     echo "$name: cloning $url"
+    mkdir -p "$(dirname "$dir")"
     git clone -q "$url" "$dir"
   fi
   [[ -d "$dir/.git" ]] || stop "$dir exists but is not a git checkout; move it away and run setup.sh again"
@@ -127,12 +141,18 @@ done
 # ---------------------------------------------------------------- 3. rosdep
 say "rosdep"
 paths=("$repo/gouda_interfaces" "$repo/gouda_core" "$src_dir/HesaiLidar_ROS_2.0" "$src_dir/ADI_IMU_TR_Driver_ROS2")
+# livox_ros_driver2 keeps its ROS 2 manifest as package_ROS2.xml (its build.sh copies it to package.xml at build time);
+# rosdep reads a copy in a temporary folder so that the checkout stays unmodified
+livox_manifest="$(mktemp -d)/livox_ros_driver2"; mkdir -p "$livox_manifest"
+cp "$livox_driver_dir/package_ROS2.xml" "$livox_manifest/package.xml"
+paths+=("$livox_manifest")
 [[ -f /etc/ros/rosdep/sources.list.d/20-default.list ]] || sudo rosdep init
 if ! rosdep check --from-paths "${paths[@]}" --ignore-src --rosdistro jazzy >/dev/null 2>&1; then
   rosdep update --rosdistro jazzy
   rosdep install --from-paths "${paths[@]}" --ignore-src --rosdistro jazzy -y
 fi
-echo "all system dependencies of ${packages[*]} are installed"
+rm -rf "$(dirname "$livox_manifest")"
+echo "all system dependencies of ${packages[*]} and livox_ros_driver2 are installed"
 
 # ---------------------------------------------------------------- 4. serial ports
 say "serial ports (dialout)"
@@ -150,6 +170,32 @@ for d in "$workspace"/install/gouda_core/lib/python3*/site-packages/gouda_core; 
 done
 export CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-2}" MAKEFLAGS="${MAKEFLAGS:--j2}"   # small PCs and the VM
 colcon build --symlink-install --base-paths "$src_dir" --packages-select "${packages[@]}" --executor sequential   # only src/ is searched (not gouda_data)
+
+say "MID-360 (Livox-SDK2 to /usr/local, livox_ros_driver2 in $livox_ws)"
+sdk_stamp="$livox_ws/sdk_build/.gouda_installed_commit"
+if [[ -f /usr/local/lib/liblivox_lidar_sdk_shared.so && "$(cat "$sdk_stamp" 2>/dev/null)" == "${pinned[Livox-SDK2]}" ]]; then
+  echo "Livox-SDK2 ${pinned[Livox-SDK2]:0:7} is installed"
+else
+  cmake -S "$livox_sdk_dir" -B "$livox_ws/sdk_build" -DCMAKE_BUILD_TYPE=Release
+  cmake --build "$livox_ws/sdk_build"
+  echo "installing Livox-SDK2 to /usr/local (sudo)"
+  sudo cmake --install "$livox_ws/sdk_build"
+  sudo ldconfig
+  echo "${pinned[Livox-SDK2]}" >"$sdk_stamp"
+  rm -f "$livox_ws/install/.gouda_built_commit"   # the driver is rebuilt against the new SDK
+fi
+driver_stamp="$livox_ws/install/.gouda_built_commit"
+driver_lib="$livox_ws/install/livox_ros_driver2/lib/liblivox_ros_driver2.so"
+if [[ -f "$driver_lib" && "$(cat "$driver_stamp" 2>/dev/null)" == "${pinned[livox_ros_driver2]}" ]]; then
+  echo "livox_ros_driver2 ${pinned[livox_ros_driver2]:0:7} is built"
+else
+  # colcon in build.sh searches the whole $livox_ws; without this marker it would also build the SDK checkout as a package
+  # and link the driver to that copy instead of the one in /usr/local (seen in the trial build of 2026-11-07)
+  touch "$livox_ws/sdk/COLCON_IGNORE"
+  bash "$livox_driver_dir/build.sh" jazzy   # upstream script: clears $livox_ws/build and install, builds with colcon
+  [[ -f "$driver_lib" ]] || stop "livox_ros_driver2 did not build (its build.sh does not stop on errors; see the colcon output above)"
+  echo "${pinned[livox_ros_driver2]}" >"$driver_stamp"
+fi
 
 # ---------------------------------------------------------------- 6. checks
 say "LiDAR LAN"
@@ -221,5 +267,6 @@ fi
 
 say "done"
 echo "GLIM: $(version_of ros-jazzy-glim-ros)   drivers: pinned   build: $workspace/install"
+echo "MID-360 driver (not started by Gouda yet): source $livox_ws/install/setup.bash"
 (( relogin )) && echo "log out and in once (dialout), then start."
 echo "start: bash $repo/gouda.sh start   (it prints the monitor URL)"
