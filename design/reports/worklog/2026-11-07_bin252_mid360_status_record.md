@@ -3,7 +3,7 @@
 - 日付：2026-11-07
 - 読んだコミット：作業の前半は共有の作業ツリー（9c449b5 の上に他のセッションの未コミットの変更）。後半は c8bf7bb（chat/mid360-a1-2026-11-07、A1 だけのコミット。統合ブランチ 9acdc7f の上）
 - 作業したブランチ：`chat/mid360-status-2026-11-07`（worktree `tsukuba-worktrees/mid360-status`、c8bf7bb から切った）
-- 区切りで作ったコミット：このコミットの後の記録のコミットに書く
+- 区切りで作ったコミット：e0bdd8a（第252便の変更と REV-278 の適用）。この行を書いた記録のコミットはその次
 - このセッションは、第235便のセッションから人が分けたもの（fork）。第247便（REV-274）の続き
 - 読んだもの：CLAUDE.md（1.1〜1.14。作業の途中で 1.14 の worktree の規則が入った）、REV-274 の DEC-494、issue #93、`gouda_core/gouda_core/recorder_node.py`・`recorder_core.py`、上流 Livox-SDK2 c0796f0 の `parse_lidar_state_info.cpp`（`LivoxLidarStateInfoToJson`）・`include/livox_lidar_api.h`・`samples/livox_lidar_quick_start/main.cpp`、公式の通信プロトコル `livox_eth_protocol_mid360.md` 338〜396 行（リポジトリの外）
 
