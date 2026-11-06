@@ -1,0 +1,2 @@
+25.0-32.0: Arel mean +0.1173 detr sd 4.3 dsd 3.7 | Acen mean +0.1174 detr sd 3.9 dsd 2.6 | B mean +0.1176 detr sd 4.5 dsd 4.5 | yaw wA-gz_int sd 0.50 mrad/s
+15.6-17.6: Arel mean +0.1072 detr sd 10.4 dsd 9.3 | Acen mean +0.1072 detr sd 8.0 dsd 6.6 | B mean +0.1073 detr sd 9.2 dsd 9.6 | yaw wA-gz_int sd 0.61 mrad/s

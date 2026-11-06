@@ -54,6 +54,12 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
     ('forward_min', 'fraction'), ('forward_threshold', 'fraction'),
     ('reverse_min', 'fraction'), ('reverse_threshold', 'fraction'),
     ('turn_min', 'fraction'), ('turn_threshold', 'fraction'),
+    # REV-241 (DEC-450): the speed-feedback layer (feedforward + PI on the GLIM speed, #65), off until set to true here.
+    # 'nonnegative' = a number from 0; the integral limits are stick amounts in [0, 1); the odometry timeout is in seconds.
+    ('speed_feedback_enabled', 'boolean'),
+    ('forward_kp', 'nonnegative'), ('forward_ki', 'nonnegative'), ('forward_i_limit', 'fraction'),
+    ('turn_kp', 'nonnegative'), ('turn_ki', 'nonnegative'), ('turn_i_limit', 'fraction'),
+    ('odometry_timeout_s', 'positive'),
 ])
 # /config 「Nav2」 tab (REV-132, DEC-209, IFD-54): the Nav2 BT recovery count used from the next gouda.sh start (DEC-207 (a)).
 # 'count' = an integer from 1 to the upper limit given by the caller (PRM-18, read from the generated parameter file).
@@ -62,7 +68,7 @@ MOTION_COMPENSATION_FIELDS = OrderedDict([
 NAV2_RECOVERY_FIELDS = OrderedDict([('recovery_number_of_retries', 'count'), ('inflate_around_unknown', 'boolean'),
                                     ('replan_rate_hz', 'positive')]
                                    + [(k, kind) for k, (_, kind, _) in nav2_config.TUNABLES.items()])   # REV-183 (DEC-393)
-NUMERIC_KINDS = ('number', 'fraction', 'count', 'positive', 'positive_int', 'whole')
+NUMERIC_KINDS = ('number', 'fraction', 'count', 'positive', 'positive_int', 'whole', 'nonnegative')
 
 
 @dataclass
@@ -309,6 +315,7 @@ class SensorConfig:
         if kind == 'fraction': return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
         if kind == 'boolean': return isinstance(value, bool)
         if kind == 'positive': return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+        if kind == 'nonnegative': return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0
         if kind in ('positive_int', 'whole'): return nav2_config.valid_tunable(kind, value)
         if kind == 'count':
             lim = self.limits.get(key)
@@ -342,6 +349,8 @@ class SensorConfig:
                 return False, f'{k}: {v!r} is outside [0, 1) (a stick amount)'
             if self.fields[k] == 'positive' and v != UNKNOWN and not self._valid(k, v):
                 return False, f'{k}: {v!r} is not a number above zero'
+            if self.fields[k] == 'nonnegative' and v != UNKNOWN and not self._valid(k, v):
+                return False, f'{k}: {v!r} is not a number from zero'
             if not self._valid(k, v): return False, f'{k}: invalid value {v!r}'
             parsed[k] = v
         if not parsed: return True, 'no change'

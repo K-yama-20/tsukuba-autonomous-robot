@@ -318,6 +318,11 @@
     forward_min: '前進 最低倒し量', forward_threshold: '前進 しきい値',
     reverse_min: '後退 最低倒し量', reverse_threshold: '後退 しきい値',
     turn_min: '旋回 最低倒し量', turn_threshold: '旋回 しきい値',
+    // REV-241 (DEC-450): speed feedback (feedforward from the measured map + PI on the GLIM speed). While true, the six values above are not used.
+    speed_feedback_enabled: '速度の帰還を使う（true／false。true の間は上の補償は使わない）',
+    forward_kp: '前後 P（倒し量 / (m/s)）', forward_ki: '前後 I（倒し量 / (m/s·s)）', forward_i_limit: '前後 積分の上限（倒し量）',
+    turn_kp: '旋回 P（倒し量 / (rad/s)）', turn_ki: '旋回 I（倒し量 / (rad/s·s)）', turn_i_limit: '旋回 積分の上限（倒し量）',
+    odometry_timeout_s: 'GLIM の速度の有効時間（s。古ければフィードフォワードだけ）',
   };
   async function loadMotionComp() {
     const r = await fetch('/api/motion_compensation'); renderMotionComp(await r.json());
@@ -325,7 +330,8 @@
   function renderMotionComp(c) {
     const dirs = ['forward', 'reverse', 'turn'].filter((d) => c.values[d + '_min'] !== 'UNKNOWN' && c.values[d + '_threshold'] !== 'UNKNOWN');
     const names = { forward: '前進', reverse: '後退', turn: '旋回' };
-    $('mc-rev').textContent = `revision ${c.config_revision} / 補償する向き: ${dirs.length ? dirs.map((d) => names[d]).join('・') : 'なし'} / ${c.path}`;
+    const fbOn = c.values.speed_feedback_enabled === true;
+    $('mc-rev').textContent = `revision ${c.config_revision} / 速度の帰還: ${fbOn ? '使う（補償は使わない）' : '使わない'} / 補償する向き: ${fbOn ? '（帰還中は使わない）' : (dirs.length ? dirs.map((d) => names[d]).join('・') : 'なし')} / ${c.path}`;
     $('mc-form').innerHTML = Object.keys(c.values).map((k) => {
       const v = c.values[k]; const unknown = v === 'UNKNOWN';
       return `<label><span>${esc(MC_LABELS[k] || k)} <span class="dim">(${esc(k)})</span></span><input name="${esc(k)}" class="${unknown ? 'unknown' : ''}" value="${esc(v)}" placeholder="UNKNOWN"></label>`;

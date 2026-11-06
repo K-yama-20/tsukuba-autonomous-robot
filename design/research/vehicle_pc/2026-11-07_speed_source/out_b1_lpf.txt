@@ -1,0 +1,5 @@
+  LPF tau 0.0 s: A_rel: lag vs A_cen +50 ms, still sd 1.90, steady detr sd 4.09 dsd 3.65 mm/s | B: lag vs A_cen -2 ms, still sd 1.71, steady detr sd 4.36 dsd 4.63 mm/s |
+  LPF tau 0.1 s: A_rel: lag vs A_cen +122 ms, still sd 1.80, steady detr sd 3.19 dsd 1.89 mm/s | B: lag vs A_cen +70 ms, still sd 1.77, steady detr sd 3.15 dsd 2.17 mm/s |
+  LPF tau 0.2 s: A_rel: lag vs A_cen +184 ms, still sd 1.86, steady detr sd 2.71 dsd 1.36 mm/s | B: lag vs A_cen +131 ms, still sd 1.86, steady detr sd 2.60 dsd 1.51 mm/s |
+  LPF tau 0.3 s: A_rel: lag vs A_cen +240 ms, still sd 1.91, steady detr sd 2.44 dsd 1.08 mm/s | B: lag vs A_cen +187 ms, still sd 1.93, steady detr sd 2.31 dsd 1.19 mm/s |
+  LPF tau 0.5 s: A_rel: lag vs A_cen +346 ms, still sd 1.99, steady detr sd 2.44 dsd 0.88 mm/s | B: lag vs A_cen +295 ms, still sd 2.02, steady detr sd 2.31 dsd 0.94 mm/s |

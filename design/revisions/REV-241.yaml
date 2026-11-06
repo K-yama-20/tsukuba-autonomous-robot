@@ -1,0 +1,697 @@
+# 変更セット REV-241（2026-11-07 第216便: ND-11 に GLIM の速度を使ったフィードフォワード＋PI の層を足す。DEC-450〜453、PRM-150〜160、IFD-70）
+# 適用: design/tools/apply_revision.py REV-241
+id: REV-241
+date: '2026-11-07'
+summary: >-
+  第216便：人の指示（DEC-450、原文。この指示文を実装の承認とする）で、gouda_motion_controller（ND-11）に、実測の「倒し量→速度」
+  （DEC-445）からのフィードフォワードと、GLIM の速度（IFD-25 localization/odometry の twist）との差の PI を足す（#65、#61）。
+  /config「自律走行の出力」（IFD-52）で有効・無効・ゲイン・積分の上限・GLIM の速度の有効時間を変えられる。既定は無効。
+  層が有効の間は第86便の不感帯の補償を使わない（二重にかけない）。GLIM の速度が古い・届かないときはフィードフォワードだけで走り続ける。
+  手動の優先（IFD-38 の source）・motion_hold・目標 0・符号の反転・非活性で積分を 0 にする。記録は log/motion_feedback（IFD-70）。
+  Nav2 の設定、ESP32 のファーム、vehicle_bridge、DAC の上限（PRM-45）、速度の上限、watchdog は変えない。
+basis_refs:
+- DEC-450
+- DEC-445
+- DEC-106
+- DEC-171
+- DEC-181
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-450
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （人からの指示）ND-11 に「GLIM の速度を使ったフィードフォワード＋PI 制御」の層を足す。人は「この指示文を、実装の承認とする（DEC-106）。
+    人の原文として判断台帳に記録すること」と書いた。
+  answer_verbatim: |
+    # 指示：ND-11 に「GLIM の速度を使ったフィードフォワード＋PI 制御」の層を足す
+
+    ## 目的
+    Nav2 の速度の指令どおりに車体が動くようにする。今は指令を倒し量に換算して出すだけで、実際の速度を見て直す段がない（#65）。
+    このため不感帯と応答の遅れを吸収できず、MPPI が発進できない（#61）。
+    期限は 2026-11-07 の朝 7:00。実車で試せる状態を最優先にし、作り込みは後に回す。
+
+    ## この指示の位置づけ
+    - この指示文を、実装の承認とする（DEC-106）。人の原文として判断台帳に記録すること。
+    - 対象は ND-11（gouda_motion_controller）と、その設定・試験・monitor の /config だけ。Nav2 の設定、ESP32 のファーム、vehicle_bridge は変えない。
+    - 別のチャットが MPPI の open_loop（REV-240、PRM-141、DEC-449）を実装中。nav2_config.py には触れない。同じ作業ツリーを使うので、番号は reserve_ids.py で予約する。
+
+    ## 最初に読むもの
+    - CLAUDE.md、design/reports/status.md の第210・212便、第86便（不感帯の補償と /config「自律走行の出力」）
+    - issue #65、#61、#66、#57
+    - 実測：design/research/vehicle_pc/2026-11-07_min_speed/README.md（DEC-445）、2026-11-03 の車体試験（第192便）
+    - ND-11 の今の実装と、GLIM の odometry の IF（正本で名前・周期・座標系を確かめる。推測で書かない）
+
+    ## 作るもの
+    1. フィードフォワード
+       - 目標の速度（前進・後退・旋回）から倒し量を出す。実測の「倒し量→速度」を使う。
+       - 実測のない区間は直線でつなぎ、どの点が実測でどの点が補間かを記録に書く。
+    2. PI
+       - GLIM の odometry から車体の前後の速度と旋回の速度を取り、目標との差に PI をかけて倒し量に足す。
+       - 速度の取り方（odometry の twist か、位置の差分か）は、遅れと雑音を rosbag（records/20261107_005310）で比べて決める。第210便は位置の差分を使った。
+       - 積分の飽和を防ぐ（出力の上限に当たったら積分を止める）。
+       - 目標が 0、motion_hold、モードの切り替え、手動の優先のときは、積分を 0 に戻して中立を出す。
+    3. GLIM の速度が古い・届かないとき
+       - フィードフォワードだけで走り続ける。止めない。切り替わったことを診断に出す。
+    4. 切り替えと値
+       - /config「自律走行の出力」で、有効・無効と、ゲイン（前後の P・I、旋回の P・I）、積分の上限を変えられるようにする。
+       - 既定は【無効（推奨：最初の実車は人が画面で有効にする）／有効】。
+       - ゲインの初期値は【AI が模擬で決めて提示し、人が /config で変える（推奨）／人が指定する】。
+       - 既存の不感帯の補償（第86便）との関係を決めて書く。二重にかからないこと。
+    5. 記録
+       - 目標、GLIM の速度、フィードフォワード分、PI 分、最終の倒し量を、rosbag で後から読める形で出す。
+
+    ## 変えないこと
+    - DAC の上限（PRM-45）、速度の上限、手動操作の優先、watchdog。
+    - 安全機構を足さない、削らない（CLAUDE.md 1.12）。懸念は根拠つきで 1 回だけ書く。
+
+    ## 確かめること
+    - 単体試験：発進、目標 0 での中立、積分の飽和、GLIM の途絶での切り替え、hold での積分の初期化。
+    - 模擬（x86 の ~/gouda_ws_sim か、ワークステーション。~/gouda_ws は使わない）：
+      - 車体モデルに実測の不感帯、最低速度、旋回の立ち上がり約 2.4 s、動き出しの遅れが入っているかを先に確かめる。入っていなければ足す（試験専用）。
+      - 層なし／層あり × MPPI（open_loop あり・なし）／RPP で、発進までの時間、目標との速度の差、横ずれ、振動の有無を比べる。
+      - GLIM の速度の遅れを 0.1 s、0.3 s にした場合も見る。
+    - 実車：AI は Gouda を起動・停止しない。車載 PC への反映は人の指示を待つ。反映の前に /mode/state が manual であることを確かめる。
+
+    ## 先行事例（1.11）
+    - 探す場所：ros2_control の diff_drive_controller、control_toolbox の PID、Autoware の縦方向の制御器、他チームの公開コード。
+    - 候補ごとに採否と理由を書く。探せなかった所は「未調査」と書く。時間がなければ、自作の前に control_toolbox だけは確かめる。
+
+    ## 既知の懸念（調べて報告する。判断は人）
+    - GLIM の速度は LiDAR の周期で遅れる。遅れが大きいと PI が振動する。
+    - 最低速度（約 0.09 m/s）より遅い目標は出せない。そこを狙うと動く・止まるを繰り返す。
+    - 推定不能の間は GLIM の速度も信用できない（第196・198便との関係）。
+    - 実測は各条件 1 回で、床の傾きの影響を分けていない。
+
+    ## 報告
+    - 03:30 までに、模擬の比較の表と、実車で最初に試す値の案を出す。そこで実装が終わっていなければ、できた範囲と残りを書く。
+    - 規則どおり、変更セット、作業記録、status.md を更新する。実行していない試験は「未実行」と書く。コミットと push はしない。
+  affected_refs:
+  - ND-11
+  - IFD-52
+  - IFD-25
+  - IFD-38
+  - DEC-171
+  - DEC-181
+  resulting_refs:
+  - PRM-150
+  - PRM-151
+  - PRM-152
+  - PRM-153
+  - PRM-154
+  - PRM-155
+  - PRM-156
+  - PRM-157
+  - PRM-158
+  - PRM-159
+  - PRM-160
+  - IFD-70
+  note: >-
+    第216便。指示の【】の選択肢は、AI が推奨の側（既定は無効、ゲインの初期値は AI が模擬で決めて提示し人が /config で入れる）で実装した。
+    その読みの確認は DEC-451。安全かどうかの判断は人（CLAUDE.md 1.12）。
+  disposition: answered
+- id: DEC-451
+  kind: approval
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】速度の帰還の層（REV-241）の、AI が決めた振る舞いを確定してよいか。(1) 既定は無効（/config の speed_feedback_enabled が true
+    になるまで今の動き）。(2) ゲイン・積分の上限・GLIM の速度の有効時間は、初めは未設定（未設定の PI はフィードフォワードだけ）。AI が模擬で決めた値を
+    提示し、人が /config で入れる。(3) 層が有効の間は第86便の不感帯の補償（最低倒し量・しきい値）を使わない（フィードフォワードに不感帯が入っているので二重にしない）。
+    (4) 最低速度より遅い目標は、フィードフォワードでは「止まる倒し量」と「動き出す倒し量」の間を直線でつないだ値になり（不感帯の中）、動き出すかは PI の積分しだい。
+    (5) PI は倒し量の向きを目標の向きから反対にしない（減らすのは中立まで）。(6) 目標の符号が変わったとき、その軸の積分を 0 にする。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-11
+  - IFD-52
+  - DEC-171
+  - DEC-181
+  resulting_refs: []
+  note: >-
+    推奨：(1)〜(6) のまま。理由：(1)(2) は指示の推奨。(3) は指示の「二重にかからないこと」。(4) は指示の「実測のない区間は直線でつなぐ」の読み。
+    (5) は後退の指令で前進を止めると、車椅子が後ろに動き出すおそれがあるため（推測）。代替案：(4) を「最低速度より遅い目標は最低速度で動く（動き出す倒し量を出す）」に
+    する（#66 の案に近い。計画より速く動く）、または 0（動かない）にする。振る舞いの違い：(4) は最低速度より遅い目標で動く・止まるを繰り返すおそれがある（既知の懸念）。
+    影響する ID：ND-11、IFD-52。決まらない場合に止まる作業：なし（層は既定で無効）。
+- id: DEC-452
+  kind: measurement
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】速度の帰還の層の値（前後の P・I・積分の上限、旋回の P・I・積分の上限、GLIM の速度の有効時間）を、実車の走行の記録
+    （log/motion_feedback の rosbag）で確かめる。初めの値は AI が模擬で決めた案（第216便の作業記録）。あわせて、フィードフォワードの
+    倒し量 1 の速度（PRM-39・PRM-78・PRM-40 で代用している、実測なし）と、その場の旋回の倒し量→速度（未使用）を測る。
+  answer_verbatim: ''
+  affected_refs:
+  - ND-11
+  - PRM-39
+  - PRM-40
+  - PRM-78
+  - DEC-445
+  resulting_refs: []
+  note: >-
+    推奨：人が /config で案の値を入れて、障害物のない直線（発進・0.3 m/s・0.6 m/s）とカーブで rosbag を取り、AI が log/motion_feedback から
+    発進の時間・速度の差・振動を読む。値は人が決める。理由：模擬の車体は前後の応答と倒し量 1 の速度が仮の値。決まらない場合に止まる作業：層を有効にした実車の走行の評価。
+    実測は各条件 1 回で、床の傾きの影響を分けていない（DEC-445 の注意のまま）。
+- id: DEC-453
+  kind: approval
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】IFD-38（/esp32/status）は「表示・診断のみに使い、停止条件にしない（DEC-006）」としている。REV-241 では、指示の「手動の優先のときは、
+    積分を 0 に戻して中立を出す」のために、ND-11 が IFD-38 の source を読み、source が manual の間は（層が有効のときだけ）中立を出して積分を 0 にする。
+    この使い方を認めるか。
+  answer_verbatim: ''
+  affected_refs:
+  - IFD-38
+  - ND-11
+  - DEC-006
+  - DEC-450
+  resulting_refs: []
+  note: >-
+    推奨：認める。理由：手動の優先の間は ESP32 が PC の指令を使わないので、PC 側の中立は車体の動きを変えない。停止の条件ではない。手動の優先を ND-11 が知る手段は
+    ほかにない。代替案：IFD-38 を使わず、手動の優先の間も積分を続ける（手動を離した直後に、たまった積分で倒し量が跳ぶおそれ）。振る舞いの違い：層が有効のときだけ。
+    IFD-38 が届かない間は、最後に受け取った source のまま（届かないことで止めはしない）。影響する ID：IFD-38、ND-11。決まらない場合に止まる作業：なし（実装は指示に従って入れた。
+    回答が「認めない」なら外す）。DEC-006 は書き換えない。
+entities:
+- id: PRM-150
+  kind: parameter
+  name: フィードフォワード 前進で止まる倒し量（これ以下では動かない）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-151
+  - PRM-152
+  - PRM-39
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.185
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: >-
+      速度の帰還の層（IFD-52 で有効のときだけ使う）のフィードフォワードの点（倒し量 0.185、速度 0）。目標が最低速度（PRM-152）より遅いとき、
+      倒し量はこの値と PRM-151 の間を直線でつないだ値になる。
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_01 前進 1：倒し量 +0.185 以下で止まった。前進 2 では +0.177）。各 1 回、床の傾き・前輪の向きの記録なし。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_forward_stop_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-151
+  kind: parameter
+  name: フィードフォワード 前進で動き出す倒し量
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-150
+  - PRM-152
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.21
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: >-
+      フィードフォワードの点（倒し量 0.21、速度 PRM-152）。最低速度より速い目標は、この点と（倒し量 1、PRM-39）を直線でつないだ値。
+      倒し量 1 の点は実測ではない（今の正規化の前提）。
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_01 前進 1：+0.210 で動いた。前進 2 は +0.236 で動き、+0.193 では 0.4 s 動かなかった）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_forward_move_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-152
+  kind: parameter
+  name: フィードフォワード 前進の最低速度（PRM-151 の倒し量での速度）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-151
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.09
+    value_state: approved
+    unit: m/s
+    stage: 車体出力
+    purpose: フィードフォワードの点（倒し量 PRM-151 での速度）。これより遅い目標は不感帯の中の倒し量になる
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、GLIM の位置の差：前進 1 は 0.090 m/s（0.081〜0.101）、前進 2 は 0.088 m/s。倒し量 0.21〜0.24 で速度はほとんど変わらない）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_forward_min_speed_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-153
+  kind: parameter
+  name: フィードフォワード 後退で止まる倒し量
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-154
+  - PRM-155
+  - PRM-78
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.215
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: フィードフォワードの点（後退の倒し量の大きさ 0.215、速度 0）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107：後退 2 は動いている間 −0.219 で続き、−0.211・−0.202 で止まった。後退 1 は −0.194 で止まった。README の候補「約 0.215 で止まる」）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_reverse_stop_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-154
+  kind: parameter
+  name: フィードフォワード 後退で動き出す倒し量
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-153
+  - PRM-155
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.24
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: >-
+      フィードフォワードの点（後退の倒し量の大きさ 0.24、速度 PRM-155）。これより速い後退は（倒し量 1、PRM-78）まで直線（倒し量 1 の点は実測ではない）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107：後退 2 は −0.244 で動き、−0.219 では 1.6 s 動かなかった。後退 1 は −0.270 で動いた。README の候補「約 0.24 で動く」）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_reverse_move_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-155
+  kind: parameter
+  name: フィードフォワード 後退の最低速度
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-154
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.075
+    value_state: approved
+    unit: m/s
+    stage: 車体出力
+    purpose: フィードフォワードの点（後退の倒し量 PRM-154 での速度の大きさ）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107：後退 1 は 0.075 m/s（0.065〜0.082）、後退 2 は約 0.07〜0.08 m/s）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_reverse_min_speed_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-156
+  kind: parameter
+  name: フィードフォワード 旋回で曲がらない倒し量（前進しながら）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-157
+  - PRM-158
+  - PRM-40
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。前進しながらの値で、その場の旋回（#66、左 0.26〜0.30・右 0.15〜0.18）とは別。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.184
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: >-
+      フィードフォワードの点（旋回の倒し量の大きさ 0.184、旋回の速さ 0）。左右同じ値で使う。その場の旋回もこの表で出し、差は PI で直す（その場の旋回の表は未実測）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_02 20.8〜22.0 s：前進 +0.177・旋回 +0.184 で入力の向きに曲がらなかった）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_turn_stop_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-157
+  kind: parameter
+  name: フィードフォワード 旋回で曲がり始める倒し量（前進しながら）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-156
+  - PRM-158
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は DEC-445（実測、確定）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.195
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: フィードフォワードの点（旋回の倒し量の大きさ 0.195、旋回の速さ PRM-158）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_02 24.1〜32.5 s：前進 +0.208・旋回 +0.195 で 0.06〜0.09 rad/s）。DEC-445 で人が確定
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_turn_move_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-158
+  kind: parameter
+  name: フィードフォワード 旋回の最低の速さ（PRM-157 の倒し量、前進しながら）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-157
+  issue_refs: []
+  interpretation: >-
+    REV-241（DEC-450）で追加。実測は範囲（0.06〜0.09 rad/s）で、AI がその中央 0.075 rad/s を点にした（自律判断。範囲の端にしてもフィードフォワードの傾きが
+    少し変わるだけで、差は PI で直す）。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.075
+    value_state: approved
+    unit: rad/s
+    stage: 車体出力
+    purpose: フィードフォワードの点（旋回の倒し量 PRM-157 での旋回の速さ）
+    measurement: >-
+      実測の範囲 0.06〜0.09 rad/s（FILE-MIN-SPEED-20261107、bag_02 24.1〜32.5 s。−0.04 → −0.087、その後 −0.06〜−0.07）の中央。DEC-445 で範囲を人が確定。中央にしたのは AI
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_turn_min_speed_radps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-159
+  kind: parameter
+  name: フィードフォワード 旋回の中間の点の倒し量（前進しながら）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-160
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は FILE-MIN-SPEED-20261107（DEC-445 の資料）の記録。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.28
+    value_state: approved
+    unit: 倒し量
+    stage: 車体出力
+    purpose: >-
+      フィードフォワードの点（旋回の倒し量の大きさ 0.28、旋回の速さ PRM-160）。この先は（倒し量 1、PRM-40）まで直線（倒し量 1 の点は実測ではない）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_02 15.4〜17.8 s：前進 +0.218・旋回 −0.280 で 0.19 rad/s まで。立ち上がりに約 2.4 s）。DEC-445 の資料の値
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_turn_mid_stick
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: PRM-160
+  kind: parameter
+  name: フィードフォワード 旋回の中間の点の速さ（前進しながら）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-159
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。値は FILE-MIN-SPEED-20261107（DEC-445 の資料）の記録。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I020
+  - RQ-I076
+  parameter:
+    owner_ref: ND-11
+    value: 0.19
+    value_state: approved
+    unit: rad/s
+    stage: 車体出力
+    purpose: フィードフォワードの点（旋回の倒し量 PRM-159 での旋回の速さ）
+    measurement: >-
+      実測（FILE-MIN-SPEED-20261107、bag_02 15.4〜17.8 s：0.01 → 0.19 rad/s、2.4 s かけて増えた後の値）。DEC-445 の資料の値
+    decision_deadline: 決定済み（DEC-445）
+    software_trial_value:
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_motion_controller
+    param_key: ff_turn_mid_speed_radps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-445
+- id: IFD-70
+  kind: designed_interface
+  name: log/motion_feedback（速度の帰還の層の記録。gouda_motion_controller → rosbag）
+  source_refs:
+  - SRC-I026
+  - SRC-I091
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs:
+  - IFD-16
+  - IFD-25
+  - IFD-52
+  issue_refs: []
+  interpretation: REV-241（DEC-450）で追加。番号は他の作業との重なりを避けて 70 にした。
+  sensitivity:
+  - operation
+  requirement_refs:
+  - RQ-I029
+  - RQ-I020
+  revision_ref: REV-241
+  designed_interface:
+    transport: topic
+    name: log/motion_feedback
+    message_type: >-
+      gouda_interfaces/msg/MotionFeedback（header, uint32 config_revision, string mode（off・ff_pi・ff_only・neutral・no_feedforward）, string reason,
+      float64 target_linear_x, target_angular_z, measured_linear_x, measured_angular_z, odometry_age_s, forward_ff, forward_p, forward_i, forward_out,
+      turn_ff, turn_p, turn_i, turn_out。値がないときは NaN）
+    standard_type: false
+    custom_type_reason: 目標・GLIM の速度・フィードフォワード分・P 分・I 分・最終の倒し量を軸ごとに、層の状態と一緒に一つにまとめる標準型がない。
+    purpose: diagnostic
+    owner_ref: ND-11
+    publisher_refs:
+    - ND-11
+    consumer_refs: []
+    unit: m/s、rad/s、s、倒し量（−1〜1）
+    frame: base_link
+    time_semantics: >-
+      ND-11 が活性の間、IFD-16 を出すたびに同じ時刻で出す（層が無効でも mode off で出す）。rosbag（ros2 bag record -a）で記録される。
+      層の状態が変わったときは IFD-28 にも DecisionEvent（speed_feedback_mode）を出す。
+    qos:
+      reliability: reliable
+      durability: volatile
+      history_depth: 10
+    version_dependency:
+      status: none
+      evidence: []
+      note: ''
+    legacy_refs: []
+modifications:
+- id: ND-11
+  interpretation_append: >-
+    REV-241（DEC-450、#65）：速度の帰還の層を足した。IFD-52 の speed_feedback_enabled が true のとき、各軸を実測の「倒し量→速度」（PRM-150〜160、
+    倒し量 1 の点は PRM-39・PRM-78・PRM-40 で実測ではない）のフィードフォワードと、IFD-25 の twist（前後 linear.x、旋回 angular.z、受信時刻で古さを判定）との差の PI で出す。
+    層が有効の間は DEC-171 案 A の補償を使わない。積分は出力が誤差の向きに飽和している間は止め、上限で切り、目標 0・符号の反転・中立の条件・手動の優先（IFD-38 の source が manual）・
+    非活性で 0 にする。GLIM の速度が古い・届かない・PI の値が未設定のときはフィードフォワードだけで走り続け、IFD-70 と IFD-28 に出す。PI は倒し量の向きを目標の反対にしない。
+    既定は無効（DEC-451）。
+  set_nested:
+    ros_node.publishes_refs:
+    - IFD-16
+    - IFD-28
+    - IFD-70
+    ros_node.subscribes_refs:
+    - IFD-15
+    - IFD-25
+    - IFD-40
+    - IFD-52
+    - IFD-38
+- id: IFD-52
+  interpretation_append: >-
+    REV-241（DEC-450）：速度の帰還の層の項目（speed_feedback_enabled、forward_kp・forward_ki・forward_i_limit、turn_kp・turn_ki・turn_i_limit、
+    odometry_timeout_s）を同じタブ・同じファイル・同じ message に足した。speed_feedback_enabled が未設定なら false。ゲインは 0 以上、積分の上限は倒し量で
+    0 以上 1 未満、有効時間は 0 より大きい秒。受け取ったらすぐ次の出力から使う（今の補償と同じ）。
+- id: IFD-38
+  interpretation_append: >-
+    REV-241（DEC-450、DEC-453 で承認待ち）：ND-11 が source を読み、速度の帰還の層が有効のときだけ、manual の間は中立を出して積分を 0 にする（手動の優先の間、ESP32 は
+    PC の指令を使わないので車体の動きは変わらない）。停止の条件にはしない（DEC-006 のまま）。
+  set_nested:
+    designed_interface.consumer_refs:
+    - ND-02
+    - ND-04
+    - ND-11
+- id: IFD-25
+  interpretation_append: >-
+    REV-241（DEC-450）：ND-11 は twist.linear.x・twist.angular.z を速度の帰還の層の実速度に使う（受信時刻で古さを判定）。twist は直前の 2 つの姿勢の差（ND-08）で、
+    GLIM の ~/odom の twist（v_world_imu、線速度だけ）ではない。
+decision_updates: []

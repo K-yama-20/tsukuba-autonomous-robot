@@ -11,6 +11,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DecisionEvent.msg"
   "msg/MotionHold.msg"
   "msg/MotionCompensation.msg"
+  "msg/MotionFeedback.msg"
   "msg/EstimatorStatus.msg"
   "srv/StartAutonomy.srv"
   "action/ConvertMap.action"

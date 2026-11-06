@@ -1,0 +1,83 @@
+02:14:15 start off:free:oltrue:0:1 d94 load 13.25
+02:14:55 start off:free:olfalse:0:1 d95 load 12.82
+02:15:35 start off:free:rpp:0:1 d96 load 18.49
+02:16:19 end off:free:oltrue:0:1 pause:goal_reached True 0 97.8 0.399 15.11
+02:16:23 start on:free:oltrue:0.1:1 d94 load 13.87
+02:17:04 end off:free:rpp:0:1 pause:goal_reached True 0 47.5 0.821 14.37
+02:17:08 start on:free:rpp:0.1:1 d96 load 12.69
+02:17:44 end off:free:olfalse:0:1 timeout False 0 143.5 0.002 17.58
+02:17:48 start on:free:olfalse:0.1:1 d95 load 16.05
+02:17:53 end on:free:oltrue:0.1:1 pause:goal_reached True 0 65.4 0.597 16.05
+02:17:57 start off:cone_late:oltrue:0:1 d94 load 23.34
+02:18:55 end on:free:rpp:0.1:1 pause:goal_reached True 0 44.6 0.875 15.46
+02:18:59 start off:cone_late:rpp:0:1 d96 load 17.10
+02:20:39 end on:free:olfalse:0.1:1 timeout False 0 0.0 0.0 12.68
+02:20:43 start off:cone_late:olfalse:0:1 d95 load 12.34
+02:20:48 end off:cone_late:oltrue:0:1 timeout False 0 151.6 0.193 12.34
+02:20:52 start on:cone_late:oltrue:0.1:1 d94 load 12.40
+02:21:58 end off:cone_late:rpp:0:1 timeout True 1 149.8 0.261 14.11
+02:22:02 start on:cone_late:rpp:0.1:1 d96 load 13.54
+02:22:34 end on:cone_late:oltrue:0.1:1 pause:goal_reached True 1 69.9 0.558 16.79
+02:22:38 start on:free:oltrue:0.3:1 d94 load 16.34
+02:23:37 end off:cone_late:olfalse:0:1 timeout False 0 143.0 0.002 11.81
+02:23:41 start on:cone_late:olfalse:0.1:1 d95 load 11.27
+02:24:05 end on:cone_late:rpp:0.1:1 pause:goal_reached True 1 53.9 0.724 13.09
+02:24:09 start on:free:rpp:0.3:1 d96 load 12.60
+02:24:53 end on:free:oltrue:0.3:1 pause:goal_reached True 0 66.8 0.585 10.4
+02:24:57 start on:cone_late:oltrue:0.3:1 d94 load 10.28
+02:25:23 end on:free:rpp:0.3:1 pause:goal_reached True 0 45.5 0.857 8.2
+02:25:27 start on:cone_late:rpp:0.3:1 d96 load 8.10
+02:26:32 end on:cone_late:olfalse:0.1:1 timeout False 1 150.8 0.193 6.61
+02:26:36 start on:free:olfalse:0.3:1 d95 load 6.24
+02:26:48 end on:cone_late:rpp:0.3:1 pause:goal_reached True 1 54.7 0.714 6.21
+02:26:52 DONE 96
+02:26:53 start onv:free:rpp:0.1:1 d96 load 8.92
+02:27:11 end on:cone_late:oltrue:0.3:1 pause:goal_reached True 1 70.2 0.556 7.93
+02:27:15 DONE 94
+02:27:18 start onv:free:oltrue:0.1:1 d94 load 7.11
+02:28:14 end onv:free:rpp:0.1:1 pause:goal_reached True 0 46.8 0.836 14.2
+02:28:18 start onv:cone_late:rpp:0.1:1 d96 load 12.80
+02:28:48 end onv:free:oltrue:0.1:1 pause:goal_reached True 0 64.7 0.603 10.23
+02:28:52 start onv:cone_late:oltrue:0.1:1 d94 load 9.81
+02:29:35 end onv:cone_late:rpp:0.1:1 pause:goal_reached True 1 54.7 0.716 9.02
+02:29:36 end on:free:olfalse:0.3:1 timeout False 0 150.4 0.169 9.58
+02:29:39 start off:free:rpp:0:2 d96 load 10.26
+02:29:40 start on:cone_late:olfalse:0.3:1 d95 load 10.26
+02:30:30 end onv:cone_late:oltrue:0.1:1 pause:goal_reached True 1 70.9 0.55 8.87
+02:30:34 start off:free:oltrue:0:2 d94 load 8.29
+02:30:46 end off:free:rpp:0:2 pause:goal_reached True 0 46.9 0.833 7.78
+02:30:50 start on:free:rpp:0.1:2 d96 load 7.64
+02:32:09 end on:free:rpp:0.1:2 pause:goal_reached True 0 44.4 0.88 6.14
+02:32:13 DONE 96
+02:32:18 start onv:free:rpp:0.3:1 d96 load 5.80
+02:32:32 end on:cone_late:olfalse:0.3:1 timeout False 1 150.1 0.163 5.56
+02:32:36 DONE 95
+02:32:38 start on:free:olfalse:0.1:1 d95 load 5.55
+02:32:42 end off:free:oltrue:0:2 pause:goal_reached True 0 97.5 0.401 5.55
+02:32:46 start on:free:oltrue:0.1:2 d94 load 6.31
+02:33:25 end onv:free:rpp:0.3:1 pause:goal_reached True 0 45.3 0.86 5.83
+02:33:29 start onv:cone_late:oltrue:0.1:2 d96 load 5.53
+02:34:27 end on:free:oltrue:0.1:2 pause:goal_reached True 0 65.1 0.599 10.69
+02:34:31 DONE 94
+02:34:33 start onv:free:oltrue:0.3:1 d94 load 10.08
+02:35:07 end onv:cone_late:oltrue:0.1:2 pause:goal_reached True 1 70.4 0.554 6.52
+02:35:11 DONE 96
+02:35:40 end on:free:olfalse:0.1:1 timeout True 0 108.0 0.362 4.76
+02:35:44 start onv:free:olfalse:0.1:1 d95 load 4.54
+02:36:07 end onv:free:oltrue:0.3:1 pause:goal_reached True 0 64.7 0.603 4.76
+02:36:11 start on:cone_late:oltrue:0.1:2 d94 load 4.70
+02:37:43 end on:cone_late:oltrue:0.1:2 pause:goal_reached True 1 69.7 0.56 3.77
+02:37:47 DONE 94
+02:37:53 end onv:free:olfalse:0.1:1 pause:goal_reached True 0 79.4 0.492 4.11
+02:37:57 start onv:cone_late:olfalse:0.1:1 d95 load 4.02
+02:40:05 end onv:cone_late:olfalse:0.1:1 pause:goal_reached True 1 88.8 0.439 4.45
+02:40:09 start off:free:olfalse:0:2 d95 load 4.33
+02:42:59 end off:free:olfalse:0:2 timeout False 0 122.5 0.003 4.25
+02:43:03 start on:free:olfalse:0.1:2 d95 load 4.21
+02:45:28 end on:free:olfalse:0.1:2 pause:goal_reached True 0 113.1 0.345 6.32
+02:45:32 DONE 95
+02:45:33 start onv:free:olfalse:0.3:1 d95 load 5.74
+02:49:01 end onv:free:olfalse:0.3:1 timeout False 0 150.6 0.238 6.62
+02:49:05 start off:cone_late:oltrue:0:2 d95 load 6.49
+02:51:53 end off:cone_late:oltrue:0:2 timeout True 0 102.9 0.379 5.39
+02:51:57 DONE 95

@@ -236,9 +236,10 @@
         </div>
       </div>
       <div class="panel full subpane" data-subpane="motion">
-        <div class="panel-title"><span class="code">MC</span>不感帯の補償（gouda_motion_controller、DEC-171 案 A） <span class="dim" id="mc-rev"></span></div>
+        <div class="panel-title"><span class="code">MC</span>不感帯の補償・速度の帰還（gouda_motion_controller、DEC-171 案 A・REV-241） <span class="dim" id="mc-rev"></span></div>
         <div class="note">自律走行の指令（Nav2 の cmd_vel を正規化した倒し量 r）だけにかかる。手動（ゲームパッド）には影響しない。向きごとに、r がしきい値未満なら中立のまま、しきい値以上なら 最低倒し量＋(1−最低倒し量)×r を出す。値は 0 以上 1 未満の倒し量（1 が倒し切り）。前進・後退は前後の軸、旋回は左右とも同じ値。</div>
         <div class="note amber">保存するとすぐに反映する（自律走行中も、次の指令から）。最低倒し量としきい値のどちらかが UNKNOWN の向きは補償しない（倒し量をそのまま出す）。値は実測で決める（推測で埋めない）。</div>
+        <div class="note">速度の帰還（REV-241）：speed_feedback_enabled を true にすると、実測の「倒し量→速度」のフィードフォワード＋GLIM の速度との差の PI で出す（上の補償は使わない）。P・I・積分の上限・有効時間が UNKNOWN ならフィードフォワードだけ。GLIM の速度が有効時間より古いときもフィードフォワードだけで走り続ける。手動の優先・目標 0・一時停止で積分は 0 に戻る。記録は log/motion_feedback。</div>
         <form id="mc-form" class="cfg mc"></form>
         <div class="btnrow">
           <button class="op" id="mc-save" type="button">保存<small>SAVE</small></button>

@@ -497,6 +497,9 @@ class MonitorNode(Node):
         m = MotionCompensation(); m.header.stamp = self.get_clock().now().to_msg(); m.config_revision = int(snap['config_revision'])
         for k in MOTION_COMPENSATION_FIELDS:
             v = snap['values'][k]
+            if k == 'speed_feedback_enabled':   # REV-241: an unset switch is off
+                m.speed_feedback_enabled = v is True
+                continue
             setattr(m, k, math.nan if v == UNKNOWN else float(v))
         self.motion_comp_pub.publish(m)
 

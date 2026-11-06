@@ -1,0 +1,28 @@
+[b2] frames 841, GLIM 5.40-89.40 s, IMU 0.71-83.66 s (100.0 Hz)
+  A_rel IMU vs LiDAR file: max |diff| fwd 0.0031 m/s
+  axis check signed (A_cen>0.05): mean x/fwd A -0.110, B -0.113; reverse A +0.014
+  axis check (|A_cen|>0.05): mean |lateral x|/|fwd| A 0.149, B 0.150
+  still windows (stick 0): 76.6-83.5 (gz sd 1.3 mrad/s, a_f sd 0.038)
+  quiet windows used: 1/1, total 6.9 s
+  STILL fwd A_rel : sd   1.58 mm/s, diff sd   1.69 mm/s, mean  -0.17 mm/s, max|.|   5.6, n 69
+  STILL fwd A_cen : sd   1.34 mm/s, diff sd   0.89 mm/s, mean  -0.16 mm/s, max|.|   3.1, n 69
+  STILL fwd B     : sd   1.70 mm/s, diff sd   1.46 mm/s, mean  +0.11 mm/s, max|.|   4.8, n 69
+  STILL yaw wA_rel: sd 0.95 mrad/s, diff sd 1.32 mrad/s
+  STILL yaw wA_cen: sd 0.68 mrad/s, diff sd 0.86 mrad/s
+  STILL gz mean over frame intervals: sd 0.94 mrad/s, diff sd 1.27; raw gz sd (median window) 1.27 mrad/s
+  LAG fwd A_rel vs B: tau +50 ms (A_rel later than B if +), rms at tau 5.1 mm/s, rms at 0 8.0 mm/s, n 673
+  LAG fwd A_cen vs B: tau +0 ms (A_cen later than B if +), rms at tau 5.1 mm/s, rms at 0 5.1 mm/s, n 673
+  XCORR fwd A_rel vs B: peak at A_rel later by 50 ms, r 0.9982
+  XCORR fwd A_cen vs B: peak at A_cen later by 1 ms, r 0.9986
+  START fwd near 9.50: a_f bias +0.915 sd 0.030 m/s2 (window 7.2-8.9); accel 6sd onset 9.116, int.accel 0.03 at 9.286; 0.03 m/s crossing A_rel 9.491, A_cen 9.430, B 9.472 | pitch-corr int 0.03 at 9.286 (pitch change -0.00 deg by +0.3 s) | rel. to int.accel: A_rel +205 ms, A_cen +144, B +187, onset -170
+  START rev near 54.30: a_f bias +0.963 sd 0.112 m/s2 (window 52.0-53.7); accel 6sd onset nan, int.accel 0.03 at 54.236; 0.03 m/s crossing A_rel 54.261, A_cen 54.211, B 54.196 | pitch-corr int 0.03 at 54.236 (pitch change +0.04 deg by +0.3 s) | rel. to int.accel: A_rel +25 ms, A_cen -24, B -40, onset +nan
+  YAW interval-matched: gz window shifted by +4 ms fits best (rms 0.7 mrad/s; frames 642)
+  YAW XCORR wA_rel vs raw gz: wA_rel later by 45 ms, r 0.9988
+  YAW XCORR wA_cen vs raw gz: wA_cen later by -4 ms, r 0.9980
+  YAW amplitude (|gz|>0.05, frames 379): wA_rel / gz(body z) 1.0017, wA_rel / world-z rate 0.9973; rms(wA_rel - gz_int) 1.4 mrad/s, corr 1.0000
+  gz mean in quiet windows: -0.06 mrad/s
+  LPF tau 0.0 s: A_rel: lag vs A_cen +49 ms, still sd 1.58 mm/s | B: lag vs A_cen -1 ms, still sd 1.70 mm/s |
+  LPF tau 0.1 s: A_rel: lag vs A_cen +123 ms, still sd 1.18 mm/s | B: lag vs A_cen +73 ms, still sd 1.39 mm/s |
+  LPF tau 0.2 s: A_rel: lag vs A_cen +192 ms, still sd 1.00 mm/s | B: lag vs A_cen +141 ms, still sd 1.21 mm/s |
+  LPF tau 0.3 s: A_rel: lag vs A_cen +262 ms, still sd 0.89 mm/s | B: lag vs A_cen +209 ms, still sd 1.10 mm/s |
+  LPF tau 0.5 s: A_rel: lag vs A_cen +399 ms, still sd 1.07 mm/s | B: lag vs A_cen +345 ms, still sd 1.18 mm/s |
