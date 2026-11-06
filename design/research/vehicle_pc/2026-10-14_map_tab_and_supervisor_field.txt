@@ -43,35 +43,35 @@ kernel: 01:40:47 cdc_ncm enx6c6e0754b24a register; 01:51:26 usb 3-7 disconnect (
 --- sensor_devices.json
 {"identities": {"lidar": "enx6c6e0754b24a #4", "imu": "ttyACM0 usb 2-9"}, "saved_at": 1791911730.2169108}
 --- kernel
-Oct 14 02:15:01 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: USB disconnect, device number 6
-Oct 14 02:15:01 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: USB disconnect, device number 7
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: new full-speed USB device number 8 using xhci_hcd
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: New USB device found, idVendor=203a, idProduct=fffe, bcdDevice= 1.01
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: Product: Virtual USB1.1 HUB
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: Manufacturer: Parallels
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2: SerialNumber: PW3.0
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: new full-speed USB device number 9 using xhci_hcd
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: New USB device found, idVendor=0483, idProduct=5740, bcdDevice= 2.00
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: Product: STM32 Virtual ComPort
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: Manufacturer: STMicroelectronics
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: usb 2-2.2: SerialNumber: 007137944B34
-Oct 14 02:15:05 aya-Parallels-ARM-Virtual-Machine kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: new SuperSpeed USB device number 11 using xhci_hcd
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 1 interface 0 altsetting 0 ep 129: setting to 16
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 2 interface 0 altsetting 0 ep 129: setting to 16
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 3 interface 0 altsetting 0 ep 129: setting to 16
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: New USB device found, idVendor=0b95, idProduct=1790, bcdDevice= 2.00
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Product: AX88179B
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: Manufacturer: ASIX
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: usb 3-7: SerialNumber: 006C6E0754B24A
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: MAC-Address: 6c:6e:07:54:b2:4a
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: setting rx_max = 16384
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0: setting tx_max = 16384
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 eth0: register 'cdc_ncm' at usb-0000:00:03.0-7, CDC NCM (NO ZLP), 6c:6e:07:54:b2:4a
-Oct 14 02:15:27 aya-Parallels-ARM-Virtual-Machine kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: renamed from eth0
+Oct 14 02:15:01 VM kernel: usb 2-2: USB disconnect, device number 6
+Oct 14 02:15:01 VM kernel: usb 2-2.2: USB disconnect, device number 7
+Oct 14 02:15:05 VM kernel: usb 2-2: new full-speed USB device number 8 using xhci_hcd
+Oct 14 02:15:05 VM kernel: usb 2-2: New USB device found, idVendor=203a, idProduct=fffe, bcdDevice= 1.01
+Oct 14 02:15:05 VM kernel: usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:05 VM kernel: usb 2-2: Product: Virtual USB1.1 HUB
+Oct 14 02:15:05 VM kernel: usb 2-2: Manufacturer: Parallels
+Oct 14 02:15:05 VM kernel: usb 2-2: SerialNumber: PW3.0
+Oct 14 02:15:05 VM kernel: usb 2-2.2: new full-speed USB device number 9 using xhci_hcd
+Oct 14 02:15:05 VM kernel: usb 2-2.2: New USB device found, idVendor=0483, idProduct=5740, bcdDevice= 2.00
+Oct 14 02:15:05 VM kernel: usb 2-2.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:05 VM kernel: usb 2-2.2: Product: STM32 Virtual ComPort
+Oct 14 02:15:05 VM kernel: usb 2-2.2: Manufacturer: STMicroelectronics
+Oct 14 02:15:05 VM kernel: usb 2-2.2: SerialNumber: 007137944B34
+Oct 14 02:15:05 VM kernel: cdc_acm 2-2.2:1.0: ttyACM0: USB ACM device
+Oct 14 02:15:27 VM kernel: usb 3-7: new SuperSpeed USB device number 11 using xhci_hcd
+Oct 14 02:15:27 VM kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 1 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 VM kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 2 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 VM kernel: usb 3-7: Int endpoint with wBytesPerInterval of 0 in config 3 interface 0 altsetting 0 ep 129: setting to 16
+Oct 14 02:15:27 VM kernel: usb 3-7: New USB device found, idVendor=0b95, idProduct=1790, bcdDevice= 2.00
+Oct 14 02:15:27 VM kernel: usb 3-7: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Oct 14 02:15:27 VM kernel: usb 3-7: Product: AX88179B
+Oct 14 02:15:27 VM kernel: usb 3-7: Manufacturer: ASIX
+Oct 14 02:15:27 VM kernel: usb 3-7: SerialNumber: 006C6E0754B24A
+Oct 14 02:15:27 VM kernel: cdc_ncm 3-7:2.0: MAC-Address: 6c:6e:07:54:b2:4a
+Oct 14 02:15:27 VM kernel: cdc_ncm 3-7:2.0: setting rx_max = 16384
+Oct 14 02:15:27 VM kernel: cdc_ncm 3-7:2.0: setting tx_max = 16384
+Oct 14 02:15:27 VM kernel: cdc_ncm 3-7:2.0 eth0: register 'cdc_ncm' at usb-0000:00:03.0-7, CDC NCM (NO ZLP), 6c:6e:07:54:b2:4a
+Oct 14 02:15:27 VM kernel: cdc_ncm 3-7:2.0 enx6c6e0754b24a: renamed from eth0
 --- monitor の受信状況（/api/state の sensors。3 s 間隔で 4 回）
 02:16:11
   points RECEIVED rate_hz 1.76 age_s 0.28 count 68 stamp-recv -0.2636

@@ -1,0 +1,28 @@
+# 変更セット REV-253（2026-11-03 第232便: 実車で MPPI の発進を確かめる指示の記録。DEC-468）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-212 を写した。番号を REV-253 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-253
+id: REV-253
+date: '2026-11-03'
+summary: >-
+  第232便：人の指示で、MPPI の発進を実車で確かめる。コードと設定は変えない。車体の操作と試験条件は人が決める。今の x86 は LiDAR が未接続、waypoint なし、変換済みの地図は古い 1 件だけなので、準備が要る。
+basis_refs:
+- DEC-468
+- DEC-467
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-468
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第232便）次は実車で MPPI の発進を確かめるか、先に模擬で比べるか
+  answer_verbatim: |
+    実車で確かめる
+  affected_refs:
+  - DEC-467
+  resulting_refs: []
+  note: >-
+    issue 61 の案 1 にあたる。実装は伴わない。補償は入れない。実車の操作、走らせる場所、経路、速度上限は人が決める。結果は未取得。第232便。
+  disposition: answered

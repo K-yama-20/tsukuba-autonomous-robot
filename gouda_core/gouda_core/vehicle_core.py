@@ -10,6 +10,8 @@ Rules:
   non-neutral value is never re-sent. flags bit0 (pc_enable_request) is set while active.
 - Axis mapping to the firmware: x_q10000 = -turn * 10000 (firmware x is right-positive, turn is left-positive),
   y_q10000 = forward * 10000. Sign confirmation on the vehicle is Q-03.
+- The sequence follows the firmware (DEC-415, TRB-014): a new bridge session starts at 0 while the firmware keeps the last accepted one until
+  it reboots, so a last_pc_seq in STATUS newer than ours moves ours up to it, and the next COMMAND is accepted.
 - Manual priority (RQ-I023) and the ESP32-side neutralisation (RQ-I068) are the firmware's responsibility; nothing here
   replaces them. STATUS is for display/diagnosis only (DEC-006) and never a stop condition.
 """
@@ -85,6 +87,8 @@ class BridgeCore:
         rebooted = self.last_uptime_ms is not None and status['uptime_ms'] < self.last_uptime_ms
         self.last_uptime_ms = status['uptime_ms']; self.last_status = status
         if 'config_valid' in status: self.config_valid = status['config_valid']
+        last = status.get('last_pc_seq')
+        if last and proto.newer_sequence(last, self.seq): self.seq = last   # DEC-415
         return rebooted
 
     def next_seq(self) -> int:

@@ -1,0 +1,43 @@
+# 変更セット REV-250（2026-11-03 第224便: ゲームパッドの介入で試験を終わらせず、待って試行をやり直す。DEC-465）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-209 を写した。番号を REV-250 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-250
+id: REV-250
+date: '2026-11-03'
+summary: >-
+  第224便：人の指示で、車体の動きの試験（ND-30）はゲームパッドが source になっても終わらず、中立を送って待ち、PC が source に戻ったらその試行をやり直す。手動優先（RQ-I023）は ESP32 のままで変えない。
+basis_refs:
+- DEC-465
+- DEC-414
+- RQ-I023
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-465
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第224便）試験中のゲームパッドの介入（manual_override）の扱いについての人の指示
+  answer_verbatim: |
+    manual_overrideが入ったからと言って試験を中断しないで。
+  affected_refs:
+  - ND-30
+  - DEC-414
+  - RQ-I023
+  resulting_refs:
+  - ND-30
+  note: >-
+    IMU・STATUS の途絶と同じ扱い（DEC-414）にした（AI の解釈）。待ちに上限はなく、/dev の中止かモードの変更で終わる。回数は結果の retries。
+    振る舞いの違い：ゲームパッドを離すと、ESP32 の解除の時間と試行前の中立（settle_s）の後に、車体は試験の入力で自動で動き出す。前は試験が終わっていたので動き出さなかった。人が車体の近くにいるときの危険の管理は人が行う。
+    静止の記録の間に介入したら、静止の記録をやり直す。ESP32 の手動優先は変えていない。単体試験だけで確かめた。模擬と実車は未実行。第224便。
+  disposition: answered
+modifications:
+- id: ND-30
+  set_nested:
+    ros_node.responsibilities:
+    - IFD-71 の要求で試験を 1 件ずつ実行する。待機中は何も発行しない
+    - 手動走行のモードでだけ開始し、モードが変わる、中止の要求のいずれかで終わって中立を送る。ゲームパッドが source になったとき（DEC-465）と IMU・STATUS が止まったとき（DEC-414）は中立を送って待ち、戻ったらその試行をやり直す。ゲームパッドを離すと試験の入力が自動で再開する。PC の中立は車体の停止の保証ではない
+    - vehicle_bridge を試験の間だけ活性にし、見つけたときの状態へ戻す（自律走行に変わっていたら触らない）
+    - IMU・STATUS・指令を <data_root>/vehicle_tests/<run_id>/ に記録し、結果を計算する。合否は決めない
+  interpretation_append: 'REV-250（DEC-465）：ゲームパッドの介入で終わらず、待って試行をやり直す。'

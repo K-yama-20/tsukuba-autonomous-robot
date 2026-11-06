@@ -125,6 +125,29 @@ class BridgeCoreTests(unittest.TestCase):
         self.assertEqual(self.core.config_valid, False)
 
 
+class SequenceFollowsFirmwareTests(unittest.TestCase):
+    """DEC-415, TRB-014: a new bridge session must not be rejected by a firmware that kept running."""
+    def setUp(self):
+        self.core = BridgeCore(bridge_settings())
+
+    def test_a_new_session_continues_after_the_firmware(self):
+        self.core.on_status({'uptime_ms': 1000, 'last_pc_seq': 79})
+        n = self.core.next_seq(); self.assertEqual(n, 80); self.assertTrue(p.newer_sequence(n, 79))
+
+    def test_it_never_goes_back(self):
+        self.core.seq = 100
+        self.core.on_status({'uptime_ms': 1000, 'last_pc_seq': 79}); self.assertEqual(self.core.seq, 100)
+        self.core.on_status({'uptime_ms': 1050, 'last_pc_seq': 0}); self.assertEqual(self.core.seq, 100)
+
+    def test_no_accepted_frame_changes_nothing(self):
+        self.core.on_status({'uptime_ms': 1000, 'last_pc_seq': 0}); self.assertEqual(self.core.next_seq(), 1)
+        self.core.on_status({'uptime_ms': 1050}); self.assertEqual(self.core.next_seq(), 2)
+
+    def test_wrap(self):
+        self.core.seq = 5
+        self.core.on_status({'uptime_ms': 1000, 'last_pc_seq': 0xFFFFFFF0}); self.assertEqual(self.core.seq, 5)   # 5 is newer across the wrap
+
+
 class FirmwareModelTests(unittest.TestCase):
     """Firmware rules against the Python model (the C++ host test repeats these with the same configuration)."""
 

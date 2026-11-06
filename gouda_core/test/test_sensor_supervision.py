@@ -59,8 +59,8 @@ class DeviceIdentityTests(unittest.TestCase):
             fs.plug('ttyACM1', 2, 25); self.assertEqual(fs.identity(), 'ttyACM1 usb 2-25')
 
     def test_net_identity_is_the_interface_holding_the_pc_address(self):
-        self.assertIsNone(dw.net_identity('192.168.1.100', ip_json([('lo', 1, '127.0.0.1'), ('enp0s5', 2, '10.211.55.4')])))
-        self.assertEqual(dw.net_identity('192.168.1.100', ip_json([('enp0s5', 2, '10.211.55.4'), ('enx6c6e0754b24a', 6, '192.168.1.100')])), 'enx6c6e0754b24a #6')
+        self.assertIsNone(dw.net_identity('192.168.1.100', ip_json([('lo', 1, '127.0.0.1'), ('enp0s5', 2, '192.0.2.4')])))
+        self.assertEqual(dw.net_identity('192.168.1.100', ip_json([('enp0s5', 2, '192.0.2.4'), ('enx6c6e0754b24a', 6, '192.168.1.100')])), 'enx6c6e0754b24a #6')
         self.assertIsNone(dw.net_identity('192.168.1.100', 'not json'))
 
 

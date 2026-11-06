@@ -1,0 +1,15 @@
+# IFD-71 vehicle_test/run: one vehicle test requested from gouda_monitor's /dev tab, run by gouda_vehicle_test (ND-30).
+# An action because a test is long and can be cancelled (intent.md, 設計規約). A cancel ends the test and sends neutral; neutral on
+# the PC side is not a guarantee that the vehicle stops (CLAUDE.md 1.5). A custom type because no standard action carries a test id
+# with its conditions; the conditions stay JSON so that adding a test does not change this interface.
+string test_id              # a test defined in gouda_core/vehicle_tests/
+string params_json          # the conditions as a JSON object (validated against the test's own definition)
+---
+bool ok
+string message
+string run_id               # <data_root>/vehicle_tests/<run_id>
+string end_reason           # completed, cancelled, mode_changed, manual_override, imu_lost, status_lost, refused, error
+---
+string stage                # the current trial
+float32 progress            # 0..1 in trials
+string run_id

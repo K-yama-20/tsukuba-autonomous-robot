@@ -177,3 +177,18 @@ input.num { width: 110px; background: var(--inset); color: var(--fg); border: 1p
 .subpane .cfg { flex: 0 0 auto; }
 .note.amber { color: var(--amber); }
 .cfg.mc { margin-top: 8px; }
+
+/* /dev tab */
+.dev-grid { display: grid; grid-template-columns: minmax(280px, 1fr) 2fr; gap: 12px; align-items: start; }
+.vt-form { max-height: 60vh; overflow-y: auto; margin: 8px 0; }
+.vt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 3px 0; align-items: center; }
+.vt-row input { width: 100%; box-sizing: border-box; }
+.vt-sections label { margin-right: 10px; white-space: nowrap; }
+.vt-actions { display: flex; gap: 8px; }
+.vt-stop { font-weight: 700; }
+.vt-state { margin: 6px 0; min-height: 1.2em; overflow-wrap: anywhere; }
+.vt-bar { height: 6px; background: rgba(128, 128, 128, 0.25); }
+.vt-bar > div { height: 100%; width: 0; background: currentColor; }
+.vt-table { border-collapse: collapse; margin: 4px 0 12px; }
+.vt-table th, .vt-table td { border: 1px solid rgba(128, 128, 128, 0.4); padding: 2px 6px; text-align: right; }
+.vt-results canvas { width: 100%; height: auto; margin-top: 6px; }

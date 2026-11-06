@@ -1,5 +1,5 @@
 # 工程5-4（waypoint と速度マスク生成器）の Ubuntu 上の試験記録（2026-10-09、SSH 経由。AI が実行。合成の変換後地図を fixture として登録。センサー未接続）
-# 環境: aya-Parallels-ARM-Virtual-Machine, Ubuntu 24.04.5, ROS 2 jazzy, Python 3.12.3, numpy 1.26.4, PyYAML 6.0.1
+# 環境: VM, Ubuntu 24.04.5, ROS 2 jazzy, Python 3.12.3, numpy 1.26.4, PyYAML 6.0.1
 # コミット: c74bb08（初回。未初期化 parameter の読取で例外）→ 4b508bd（修正後。以下の本試験）
 # 出力は SSH セッションの標準出力からの転記（整形のための切り詰めあり。値は変更していない）。
 

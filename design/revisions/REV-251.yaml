@@ -1,0 +1,31 @@
+# 変更セット REV-251（2026-11-03 第228便: t_lock と T ロックの解析を方向別にし、直前の動きで判定する。DEC-466）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-210 を写した。番号を REV-251 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-251
+id: REV-251
+date: '2026-11-03'
+summary: >-
+  第228便：人の指示で、動き出しの試験の t_lock と T ロックの解析を方向別にする。入力の直前に動いていた試行は遅れとして読まない。T ロックの locked は直前に止まっていたかで決める。試験の入力は変えない。
+basis_refs:
+- DEC-466
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-466
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第228便）T ロックと t_lock の解析を、方向別で直前のヨーを見る形に直すか
+  answer_verbatim: |
+    解析を直す
+  affected_refs:
+  - ND-30
+  resulting_refs:
+  - ND-30
+  note: >-
+    実車の 2 件で再計算した（motion_start_20261103_074043、motion_start_20261103_082639）。T ロックは、止まる段が左 0.26〜0.30、右 0.15〜0.18 で第227便の読みと一致した。
+    t_lock は、中立 1 s 以下が判定不可になり、1.5 s 以上は方向ごとに 1〜2 回で ○ と × が混ざる。t_lock は未確定のまま。
+    判定の窓は基準の窓（baseline_tail_s）で、旋回はヨーの平均、前後は加速度のばらつきを noise_k × 静止時の σ と比べる。前後の判定は実車で確かめていない。パルスの locked は変えていない。
+    試験の期待値の変更：窓より短い中立は locked が False から None になる（窓に走行が入り、遅れを読めないため）。第228便。
+  disposition: answered

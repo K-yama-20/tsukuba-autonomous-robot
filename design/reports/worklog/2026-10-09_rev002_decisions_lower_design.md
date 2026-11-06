@@ -12,7 +12,7 @@
 
 - DEC-001（answered）: 「3項目とも新版に含める」→ intent.md 98〜100 行を上位要求 RQ-I070〜RQ-I072 とする。
 - DEC-002（recorded）: 非常停止検知／PC側非常停止機構を存在させない（intent.md:100 と指示文の原文）。
-- DEC-003（recorded）: 実車PC環境の申告「ROS2 jazzyをubuntu 24.0.5上で動かしています。aya@10.211.55.4」。認証情報は記録していない。
+- DEC-003（recorded）: 実車PC環境の申告「ROS2 jazzyをubuntu 24.0.5上で動かしています。VM」。認証情報は記録していない。
 - DEC-004〜DEC-011（pending）: H-002〜H-008 と H-001 の質問。
 
 ## 機械確認した事実

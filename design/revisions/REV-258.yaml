@@ -1,0 +1,30 @@
+# 変更セット REV-258（2026-11-04 第234便: 消し残した VM のユーザー名と PC 名を置き換える。DEC-473）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-217 を写した。番号を REV-258 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-258
+id: REV-258
+date: '2026-11-04'
+summary: >-
+  第234便：人の指示で、REV-255 で消し残した VM のユーザー名と PC 名を、今のファイルから置き換えた。コードと設定は変えていない。
+basis_refs:
+- DEC-473
+- DEC-470
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-473
+  kind: approval
+  status: answered
+  asked_on: '2026-11-04'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    （第234便）台帳の人の原文などに残る VM の表示も置き換えるか
+  answer_verbatim: |
+    置き換えて push
+  affected_refs:
+  - DEC-470
+  resulting_refs: []
+  note: >-
+    ターミナルの表示とログの PC 名を「VM」に、ホームディレクトリのパスを「/home/user」に置き換えた。
+    過去の人の原文（answer_verbatim）、hash 固定の証拠、基準線も、この指示に基づいて置き換え、記録の sha256 を同じ置き換えで更新した。置き換え以外の内容は変えていない。
+    git の履歴と main には残る。第234便。
+  disposition: answered

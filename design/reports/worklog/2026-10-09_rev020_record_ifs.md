@@ -42,7 +42,7 @@
 
 ## 5. Ubuntu 上の試験
 
-**未実行**。コミット `f660f50` を push した直後から VM（10.211.55.4）が ping 不達・SSH タイムアウトになった（VM の休止と推測）。VM 復帰後に次を実行する: colcon build gouda_core、単体試験、gouda.sh start、/api/state の settings と履歴（transient_local により起動後の購読でも TR-01・settings が見えること）、`record/log/start_pre_mapping`→record/status の auto_started_by、重複要求「記録中」、`stop_auto`、手動開始後の `stop_auto` no-op、events.jsonl の trigger、/config 保存→settings イベント、再起動後の履歴、停止。
+**未実行**。コミット `f660f50` を push した直後から VM（VM のアドレス）が ping 不達・SSH タイムアウトになった（VM の休止と推測）。VM 復帰後に次を実行する: colcon build gouda_core、単体試験、gouda.sh start、/api/state の settings と履歴（transient_local により起動後の購読でも TR-01・settings が見えること）、`record/log/start_pre_mapping`→record/status の auto_started_by、重複要求「記録中」、`stop_auto`、手動開始後の `stop_auto` no-op、events.jsonl の trigger、/config 保存→settings イベント、再起動後の履歴、停止。
 
 ## 6. 残るリスク・判断事項
 

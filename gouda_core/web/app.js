@@ -15,6 +15,7 @@
     document.querySelectorAll('.tabpane').forEach((p) => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
     if (b.dataset.tab === 'config') { loadConfig(); loadMotionComp(); }
     if (b.dataset.tab === 'maps') loadMapSettings();
+    if (b.dataset.tab === 'dev') loadVehicleTests();
   }));
 
   // ---- commands ----
@@ -47,6 +48,7 @@
   function statusClass(f) { return f.status === 'RECEIVED' ? 'ok' : f.status === 'STALE' ? 'amber' : 'amber'; }
   function render(s) {
     lastState = s;
+    renderVehicleTest(s.vehicle_test);
     const m = s.mode, f = m.freshness;
     $('mode-name').textContent = f.status === 'NOT_RECEIVED' ? 'NOT_RECEIVED' : m.name;
     $('mode-name').className = 'v ' + (f.status === 'NOT_RECEIVED' ? 'amber' : m.code === 4 ? 'amber' : 'cyan');
@@ -199,6 +201,85 @@
   $('bagsave-ack').addEventListener('click', () => { $('bagsave').hidden = true; bagSave = null; });
   let seenRecordFailures = null;   // recorder failure count at the first snapshot after connect (baseline)
   $('popup-ack').addEventListener('click', () => { $('popup').hidden = true; });
+
+  // ---- /dev tab: vehicle tests. The form comes from each test's definition, the tables from its result, so a new test needs nothing here ----
+  let vtTests = [], vtLast = null;
+  const fmtCell = (v) => (v == null ? '—' : Array.isArray(v) ? v.map(fmtCell).join(' / ') : typeof v === 'number' ? String(Math.round(v * 1000) / 1000) : v === true ? '○' : v === false ? '×' : esc(v));
+  async function loadVehicleTests() {
+    const j = await (await fetch('/api/vehicle_tests')).json();
+    const keep = $('vt-test').value; vtTests = j.tests;
+    $('vt-test').innerHTML = vtTests.map((t) => `<option value="${esc(t.id)}">${esc(t.title)}</option>`).join('');
+    if (keep) $('vt-test').value = keep;
+    if (!$('vt-form').dataset.test || $('vt-form').dataset.test !== $('vt-test').value) renderVtForm();
+    const run = $('vt-runs').value;
+    $('vt-runs').innerHTML = j.runs.map((r) => `<option value="${esc(r.run_id)}">${esc(r.run_id)}${r.end_reason ? ' — ' + esc(r.end_reason) : ''}</option>`).join('');
+    if (run && j.runs.some((r) => r.run_id === run)) $('vt-runs').value = run;
+    if ($('vt-runs').value && $('vt-runs').value !== run) loadVtRun();
+  }
+  function renderVtForm() {
+    const t = vtTests.find((x) => x.id === $('vt-test').value); if (!t) return;
+    $('vt-form').dataset.test = t.id;
+    $('vt-form').innerHTML = t.parameters.map((p) => {
+      if (p.kind === 'sections') return `<div class="vt-sections">` + t.sections.map((s) => `<label><input type="checkbox" data-section="${esc(s.key)}" ${p.default.includes(s.key) ? 'checked' : ''}>${esc(s.label)}</label>`).join('') + '</div>';
+      const v = Array.isArray(p.default) ? p.default.join(', ') : p.default;
+      return `<label class="vt-row"><span>${esc(p.label)}${p.unit ? ' [' + esc(p.unit) + ']' : ''}</span><input data-key="${esc(p.key)}" data-kind="${esc(p.kind)}" value="${esc(v)}"></label>`;
+    }).join('');
+  }
+  function vtParams() {
+    const out = { sections: [...document.querySelectorAll('#vt-form [data-section]')].filter((x) => x.checked).map((x) => x.dataset.section) };
+    document.querySelectorAll('#vt-form [data-key]').forEach((i) => {
+      out[i.dataset.key] = i.dataset.kind === 'numbers' ? i.value.split(',').map((x) => Number(x.trim())) : Number(i.value);
+    });
+    return out;
+  }
+  function renderVehicleTest(v) {
+    if (!v) return;
+    const running = v.state !== 'idle';
+    $('vt-start').disabled = running;
+    $('vt-state').textContent = running ? `${v.state} ${v.stage}` : (v.end_reason ? `${v.end_reason}: ${v.message}` : '');
+    $('vt-bar-fill').style.width = (v.progress * 100) + '%';
+    if (vtLast === 'running' && !running && $('vt-runs')) { $('vt-runs').value = ''; loadVehicleTests(); }
+    vtLast = running ? 'running' : 'idle';
+  }
+  async function loadVtRun() {
+    const id = $('vt-runs').value; if (!id) return;
+    const r = await fetch('/api/vehicle_test_run/' + encodeURIComponent(id));
+    if (!r.ok) { $('vt-summary').textContent = '結果なし'; $('vt-tables').innerHTML = ''; $('vt-trial').innerHTML = ''; return; }
+    const res = (await r.json()).result;
+    $('vt-summary').textContent = `${res.end_reason} / ${res.status} / 軸 ${res.axes} / σ ${res.sigma ? Object.entries(res.sigma).map(([k, v]) => k + ' ' + fmtCell(v)).join(', ') : '—'}`;
+    $('vt-tables').innerHTML = (res.tables || []).map((t) => `<h3>${esc(t.title)}</h3><table class="vt-table"><tr>${t.columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr>` +
+      t.rows.map((row) => `<tr>${t.columns.map((c) => `<td>${fmtCell(row[c])}</td>`).join('')}</tr>`).join('') + '</table>').join('');
+    $('vt-trial').innerHTML = (res.rows || []).filter((x) => x.ran).map((x) => `<option value="${esc(x.trial)}">${esc(x.trial)}</option>`).join('');
+    loadVtWave();
+  }
+  async function loadVtWave() {
+    const id = $('vt-runs').value, tr = $('vt-trial').value; if (!id || !tr) return;
+    drawVtWave(await (await fetch(`/api/vehicle_test_run/${encodeURIComponent(id)}/wave/${encodeURIComponent(tr)}?points=${$('vt-wave').width}`)).json());
+  }
+  function drawVtWave(w) {
+    const c = $('vt-wave'), g = c.getContext('2d'), css = getComputedStyle(document.documentElement);
+    g.clearRect(0, 0, c.width, c.height);
+    const all = [w.imu_accel.t, w.imu_yaw.t, w.command.t].flat(); if (!all.length) return;
+    const t0 = Math.min(...all), t1 = Math.max(...all), X = (t) => (t - t0) / ((t1 - t0) || 1) * c.width;
+    const rows = [['指令', [w.command.t, w.command.forward], [w.command.t, w.command.turn]], ['DAC', [w.status.t, w.status.dac_y], [w.status.t, w.status.dac_x]],
+      ['加速度', [w.imu_accel.t, w.imu_accel.signal_accel]], ['ヨー', [w.imu_yaw.t, w.imu_yaw.signal_yaw]]];
+    const h = c.height / rows.length, colors = [css.getPropertyValue('--cyan') || 'teal', css.getPropertyValue('--amber') || 'orange'];
+    rows.forEach(([name, ...lines], i) => {
+      const vs = lines.flatMap((l) => l[1]); const lo = Math.min(...vs), hi = Math.max(...vs), Y = (v) => h * (i + 1) - 4 - (v - lo) / ((hi - lo) || 1) * (h - 8);
+      lines.forEach((l, k) => { g.strokeStyle = colors[k]; g.beginPath(); l[0].forEach((t, n) => (n ? g.lineTo(X(t), Y(l[1][n])) : g.moveTo(X(t), Y(l[1][n])))); g.stroke(); });
+      g.fillStyle = css.getPropertyValue('--fg') || 'black'; g.fillText(name, 4, h * i + 12);
+    });
+    g.strokeStyle = 'red';
+    w.events.filter((e) => e.event === 'segment_end' && e.sustained != null).forEach((e) => { const x = X(e.sustained - w.t_ref); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); });
+    g.strokeStyle = 'gray';
+    w.events.filter((e) => e.event === 'segment_start').forEach((e) => { const x = X(e.t - w.t_ref); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); });
+  }
+  $('vt-test').addEventListener('change', renderVtForm);
+  $('vt-runs').addEventListener('change', loadVtRun);
+  $('vt-trial').addEventListener('change', loadVtWave);
+  const vtPost = async (path, body) => { const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const j = await r.json(); flashCommand(path.replace('/api/', ''), j.ok, j.message); };
+  $('vt-start').addEventListener('click', () => vtPost('/api/vehicle_test_start', { test_id: $('vt-test').value, params: vtParams() }));
+  $('vt-stop').addEventListener('click', () => vtPost('/api/vehicle_test_stop', {}));
 
   // ---- 地図 tab (intent.md:106): map list, conversion settings, re-conversion, preview ----
   const mapSel = { origin: null, rev: null, view: 'map.png', terrain: null };

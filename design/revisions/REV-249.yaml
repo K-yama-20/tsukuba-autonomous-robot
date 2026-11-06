@@ -1,0 +1,31 @@
+# 変更セット REV-249（2026-11-03 第223便: 遅れの試験を元の位置に戻る組の順序に。DEC-464）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-208 を写した。番号を REV-249 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-249
+id: REV-249
+date: '2026-11-03'
+summary: >-
+  第223便：人の希望で、遅れの区間の順序を前進 2 回→後退 2 回、右 2 回→左 2 回の組にする。DEC-463 の順序（同じ方向を繰り返しの回数だけ続ける）を置き換える。電圧、倒し量、待ち時間は変えない。
+basis_refs:
+- DEC-464
+- DEC-463
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-464
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第223便）DEC-463 の順序で車体が元の位置から離れることへの人の発言
+  answer_verbatim: |
+    なるべく元の位置から外れないようにしてほしいな。。
+  affected_refs:
+  - ND-30
+  - DEC-463
+  resulting_refs:
+  - ND-30
+  note: >-
+    AI の解釈：方向の一覧を 2 つずつ組にし、各方向を 2 回ずつ測って戻る順序にした。各方向の 1 回目は前輪の向きが変わった状態、2 回目は同じ方向の状態で、繰り返しごとに両方の値がとれる。
+    試行数は繰り返し 1 回につき方向ごとに 2 回で、DEC-463 の順序の 2 倍になる。表の列は changed_mean_s と same_mean_s。前進と後退の速さが違う分のずれは残り、位置の補正はしていない。第223便。
+  disposition: answered

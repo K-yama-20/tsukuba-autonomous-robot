@@ -15,6 +15,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EstimatorStatus.msg"
   "srv/StartAutonomy.srv"
   "action/ConvertMap.action"
+  "action/VehicleTest.action"
   DEPENDENCIES std_msgs builtin_interfaces geometry_msgs action_msgs)
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()

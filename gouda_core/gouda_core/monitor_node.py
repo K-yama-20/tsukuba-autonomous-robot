@@ -26,6 +26,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Optional
+from urllib.parse import parse_qs
 
 import rclpy
 from rclpy.node import Node
@@ -37,7 +38,7 @@ from sensor_msgs.msg import Imu, NavSatFix
 from hesai_ros_driver.msg import LossPacket   # IFD-56 (DEC-281)
 from gouda_interfaces.msg import SoftwareMode, DecisionEvent, MotionCompensation
 from gouda_interfaces.srv import StartAutonomy
-from gouda_interfaces.action import ConvertMap
+from gouda_interfaces.action import ConvertMap, VehicleTest
 from rclpy.action import ActionClient
 from ament_index_python.packages import get_package_share_directory
 
@@ -53,6 +54,8 @@ from gouda_core import png as pngmod
 from gouda_core import map_tab
 from gouda_core import map_convert
 from gouda_core import sensor_config
+from gouda_core import vehicle_test_core
+from gouda_core.vehicle_tests import TESTS as VEHICLE_TESTS
 
 LATCHED = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.TRANSIENT_LOCAL, history=HistoryPolicy.KEEP_LAST, depth=1)
 LIDAR_STATUS_QOS = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)  # IFD-56
@@ -160,6 +163,12 @@ class MonitorNode(Node):
         from rclpy.parameter_client import AsyncParameterClient
         self.map_creator_params = AsyncParameterClient(self, 'gouda_map_creator')
         self.conversion = map_tab.ConversionTracker()
+        # /dev tab: vehicle tests run by gouda_vehicle_test (ND-30) through IFD-71; results are read from its files
+        self.vehicle_test_client = ActionClient(self, VehicleTest, 'vehicle_test/run')
+        self.vehicle_test_store = vehicle_test_core.RunStore(data_root / 'vehicle_tests')
+        self.vehicle_test_share = Path(get_package_share_directory('gouda_core')) / 'vehicle_tests'
+        self.vehicle_test = {'state': 'idle', 'run_id': '', 'stage': '', 'progress': 0.0, 'message': '', 'end_reason': ''}
+        self.vehicle_test_goal = None
         self.decision_pub = self.create_publisher(DecisionEvent, 'log/decision', DECISION_QOS)   # event=settings (DEC-073) and mapping_start_sensor_warning (DEC-088)
         self.create_timer(self.ui['ui_node_list_poll_period_s'], self._poll_nodes)  # PRM-27; display only, not a stop condition
         web_dir = Path(get_package_share_directory('gouda_core')) / 'web'
@@ -169,9 +178,11 @@ class MonitorNode(Node):
                                     max_rate_hz=self.ui['ui_sse_max_rate_hz'],   # PRM-104 (DEC-392)
                                     get_routes={'/api/map/': self._get_map_png, '/api/routes': self._get_routes, '/api/route/': self._get_route,
                                                 '/api/map_settings': self._get_map_settings, '/api/rosbag_saving': self._get_rosbag_saving,
-                                                '/api/motion_compensation': self._get_motion_comp, '/api/nav2_recovery': self._get_nav2_recovery},
+                                                '/api/motion_compensation': self._get_motion_comp, '/api/nav2_recovery': self._get_nav2_recovery,
+                                                '/api/vehicle_tests': self._get_vehicle_tests, '/api/vehicle_test_run/': self._get_vehicle_test_run},
                                     post_routes={'/api/waypoints/save': self._save_waypoints, '/api/map_reconvert': self._reconvert,
-                                                 '/api/motion_compensation': self._save_motion_comp, '/api/nav2_recovery': self._save_nav2_recovery})
+                                                 '/api/motion_compensation': self._save_motion_comp, '/api/nav2_recovery': self._save_nav2_recovery,
+                                                 '/api/vehicle_test_start': self._start_vehicle_test, '/api/vehicle_test_stop': self._stop_vehicle_test})
         url = self.server.start()
         self._publish_motion_comp()
         self._publish_settings('startup')
@@ -266,7 +277,57 @@ class MonitorNode(Node):
         snap['mask_params'] = {'half_width_m': optional_double(self, 'speed_mask_half_width_m'), 'step_mps': optional_double(self, 'speed_mask_step_mps')}
         with self._lock:
             snap['map_conversion'] = self.conversion.snapshot()
+            snap['vehicle_test'] = dict(self.vehicle_test)
         return snap
+
+    # ---- /dev tab: vehicle tests (ND-30, IFD-71) ----
+    def _get_vehicle_tests(self, rest, query):
+        tests = [vehicle_test_core.load_definition(self.vehicle_test_share / f'{k}.yaml') for k in VEHICLE_TESTS]
+        return {'ok': True, 'tests': [{k: t.get(k) for k in ('id', 'title', 'parameters', 'sections')} for t in tests], 'runs': self.vehicle_test_store.list_runs()}
+
+    def _get_vehicle_test_run(self, rest, query):
+        """<run_id> -> conditions and result; <run_id>/wave/<trial> -> that trial's waveform."""
+        parts = rest.split('/')
+        if len(parts) == 3 and parts[1] == 'wave':
+            return dict(self.vehicle_test_store.wave(parts[0], parts[2], int(parse_qs(query).get('points', ['0'])[0])), ok=True)
+        return dict(self.vehicle_test_store.result(parts[0]), ok=True)
+
+    def _set_vehicle_test(self, **fields):
+        with self._lock:
+            self.vehicle_test.update(fields); self.core.connection_revision += 1
+        self.server.notify(self.core.connection_revision)
+
+    def _start_vehicle_test(self, rest, body: dict) -> dict:
+        with self._lock:
+            if self.vehicle_test['state'] != 'idle':
+                return {'ok': False, 'message': 'a vehicle test is already running'}
+        if not self.vehicle_test_client.wait_for_server(timeout_sec=self.ui['ui_service_ready_wait_s']):
+            return {'ok': False, 'message': 'vehicle_test/run (gouda_vehicle_test) is not available; no automatic retry'}
+        self._set_vehicle_test(state='requested', run_id='', stage='', progress=0.0, message='', end_reason='')
+        goal = VehicleTest.Goal(); goal.test_id = str(body.get('test_id', '')); goal.params_json = json.dumps(body.get('params') or {})
+        def on_feedback(fb):
+            f = fb.feedback; self._set_vehicle_test(stage=f.stage, progress=float(f.progress), run_id=f.run_id)
+        def on_result(rf):
+            r = rf.result().result
+            self.vehicle_test_goal = None
+            self._set_vehicle_test(state='idle', run_id=r.run_id, message=r.message, end_reason=r.end_reason, progress=1.0 if r.ok else self.vehicle_test['progress'])
+        def on_goal(f):
+            gh = f.result()
+            if not gh.accepted:
+                self._set_vehicle_test(state='idle', message='test goal rejected', end_reason='refused'); return
+            self.vehicle_test_goal = gh
+            self._set_vehicle_test(state='running')
+            gh.get_result_async().add_done_callback(on_result)
+        self.vehicle_test_client.send_goal_async(goal, feedback_callback=on_feedback).add_done_callback(on_goal)
+        return {'ok': True, 'message': 'requested'}
+
+    def _stop_vehicle_test(self, rest, body: dict) -> dict:
+        """Available whenever a test runs. The test ends and neutral is sent; the vehicle's stop itself is not guaranteed by the PC (CLAUDE.md 1.5)."""
+        gh = self.vehicle_test_goal
+        if gh is None:
+            return {'ok': False, 'message': 'no vehicle test is running'}
+        gh.cancel_goal_async()
+        return {'ok': True, 'message': 'cancel requested'}
 
     # ---- 地図 tab (intent.md:106, RQ-I082) ----
     def _get_rosbag_saving(self, rest, query):
@@ -516,6 +577,11 @@ class MonitorNode(Node):
         self.decision_pub.publish(d)
 
     def _command(self, name: str, body: dict) -> dict:
+        if name in ('start_autonomy', 'start_mapping'):   # the test owns the bridge while it runs (ND-30)
+            with self._lock:
+                busy = self.vehicle_test['state'] != 'idle'
+            if busy:
+                return {'ok': False, 'message': 'a vehicle test is running: stop it in the /dev tab first'}
         if name == 'start_autonomy':
             req = StartAutonomy.Request(); req.request_id = str(body.get('request_id', ''))
             for k in ('map_id', 'map_revision', 'map_hash', 'waypoint_set_id', 'waypoint_set_revision', 'waypoint_set_hash'):

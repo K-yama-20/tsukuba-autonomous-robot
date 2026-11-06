@@ -1,0 +1,30 @@
+# 変更セット REV-252（2026-11-03 第230便: 走行の模擬の車体に実測の旋回の値と不感帯を入れる。DEC-467）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-211 を写した。番号を REV-252 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-252
+id: REV-252
+date: '2026-11-03'
+summary: >-
+  第230便：人の指示で、試験専用の走行の模擬（drive_sim_core.Plant）に、第199〜202便の実測の旋回の値、不感帯、止まった状態からの遅れを入れる。本番のコードと設定は変えない。
+basis_refs:
+- DEC-467
+- DEC-378
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-467
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第230便）旋回の値と不感帯を模擬の車体モデルに入れるか
+  answer_verbatim: |
+    模擬に入れる
+  affected_refs:
+  - DEC-378
+  resulting_refs: []
+  note: >-
+    試験専用のコードだけを変えた。実測から入れた値：遅れ 0.35 s（止まった状態から）、旋回の応答 立ち上がり 0.3 s・止まるとき 0.18 s、旋回の下限 0.3 rad/s、方向別の不感帯。走行中の遅れと前後の応答は仮の値のまま（DEC-378 は未回答）。
+    補償は模擬の引数 --comp で ND-11 と同じ計算を通せる。模擬の結果：補償なしでは Nav2 の発進の指令（約 0.045 m/s）が不感帯より小さく、3 場面とも進み 3 % 以下。試しの補償（値は AI が仮に置いた。人は承認していない）では動くが、最大横ずれ 4.4〜5.9 m。
+    模擬の結果であり、実車の振る舞いの確認ではない。第230便。
+  disposition: answered

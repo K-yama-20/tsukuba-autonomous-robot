@@ -1,0 +1,35 @@
+# 変更セット REV-257（2026-11-04 第234便: 実車の生データも公開リポジトリに push する。DEC-472）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-216 を写した。番号を REV-257 に付け直した。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-257
+id: REV-257
+date: '2026-11-04'
+summary: >-
+  第234便：人の指示で、手元に写しがある実車の試験 4 件の生データを保管フォルダに入れて push する。DEC-471 の「生データは公開リポジトリに入れない」を置き換える。コードと設定は変えていない。
+basis_refs:
+- DEC-472
+- DEC-471
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+files:
+- id: FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX
+  path: design/research/vehicle_pc/2026-11-03_vehicle_measurements/RAW_DATA.md
+  role: evidence
+decisions:
+- id: DEC-472
+  kind: confirmation
+  status: answered
+  asked_on: '2026-11-04'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    （第234便）実車の生データの保管
+  answer_verbatim: |
+    生データもpushせよ。
+  affected_refs:
+  - DEC-471
+  resulting_refs: []
+  note: >-
+    DEC-471 の note の「生データと rosbag は公開リポジトリに入れない」を、生データについて置き換える。
+    場所：design/research/vehicle_pc/2026-11-03_vehicle_measurements/runs/ の 4 件。一覧とハッシュは同じフォルダの RAW_DATA.md（FILE-VEHICLE-MEASUREMENTS-20261103-RAW-INDEX）。
+    x86 に接続できないので、試験 4 件と rosbag bag_02 は x86 にしかなく、入っていない。
+    push の前にアドレス、ユーザー名、認証情報の文字列がないことを grep で確かめた。第234便。
+  disposition: answered

@@ -1,0 +1,40 @@
+# 変更セット REV-205（2026-11-03 第193便: DAC 最大電圧 PRM-45 を 4500 mV に。DEC-416）
+# 統合（REV-246、DEC-461、第220便）：dev-tab-vehicle-test 系統（69631f8）の REV-205 を写した。番号はそのまま（予約済み）。 ND-20→ND-30、IFD-58→IFD-71、DEC-417〜428→DEC-462〜473、REV-206〜217→REV-247〜258、第194〜207便→第221〜234便。
+# 適用: design/tools/apply_revision.py REV-205
+id: REV-205
+date: '2026-11-03'
+summary: >-
+  第193便：人の指示で PRM-45（DAC 最大電圧）を 4720 mV から 4500 mV にする。DEC-160 は書き換えない。PRM-46（フルスケール）は DAC の換算なので変えない。
+basis_refs:
+- DEC-416
+- DEC-160
+intent_version_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+decisions:
+- id: DEC-416
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第193便）DAC の電圧の上限についての人の指示
+  answer_verbatim: |
+    電圧の最大値を4500mvに限定する。
+  affected_refs:
+  - PRM-45
+  - DEC-160
+  - PRM-39
+  - PRM-40
+  resulting_refs:
+  - PRM-45
+  note: >-
+    PRM-45 の値の変更として実装した（AI の解釈）。ファームの mapVoltage は上限と下限から円を作るので、前進と右旋回の倒し量と電圧の傾きが約 10 % 小さくなり、後退と左旋回はほぼ変わらない（計算）。手動操作にも同じ設定が効く。DEC-192 の前進 1.25 m/s（PRM-39）が倒し量 1.0 に対応するかは未確認。第193便。
+  disposition: answered
+modifications:
+- id: PRM-45
+  set:
+    approval_decision_ref: DEC-416
+  set_nested:
+    parameter.value: 4500
+    parameter.measurement: 人の決定（DEC-416）：「電圧の最大値を4500mvに限定する。」。電圧の測定値ではない。実車の端点の確認（Q-03）は残る
+  interpretation_append: 'REV-205（DEC-416）：4720 mV から 4500 mV に変更（DEC-160 の値から）。'

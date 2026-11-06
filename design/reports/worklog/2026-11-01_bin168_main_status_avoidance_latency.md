@@ -4,7 +4,7 @@
 - 読んだコミット：origin/main 8ee71628f37f45a682bebcecb901dee356932fa0（作業ツリーは test/plan-a-scan-band-2026-11-01。コードは main と同じで、status.md と第167便の記録に未コミットの追記がある）
 - 人の発言（原文）：「mainを見て、現状を報告せよ。特に、実機の回避機動等がとても遅い。各種パラメータ、更新周期とかが遅すぎるのだと思う。dec-336のA案による実機走行実験はまだ出来ていない。」
 - 読んだもの：status.md、第160・163・164・165・167便の記録、DEC-336・337・371・395、main の nav2_config.py・gouda_nav2.launch.py・生成した params、`design/research/vehicle_pc/` の 2026-10-24 の log と実行時の設定、上流のソース（下記）
-- 変更：コード・設定・正本は変えていない。VM には触れていない（ssh は 2 回とも 10.211.55.4:22 の時間切れ）。x86 の PC につなぐ方法は不明
+- 変更：コード・設定・正本は変えていない。VM には触れていない（ssh は 2 回とも VM のアドレス:22 の時間切れ）。x86 の PC につなぐ方法は不明
 - 上流のソースは Mac の一時領域に取得し、リポジトリには入れていない：navigation2 1.3.13 の obstacle_layer.cpp・RPP の parameter_handler.cpp・collision_checker.cpp、laser_geometry の rolling・humble の laser_geometry.cpp、pointcloud_to_laserscan の humble の node。**VM・x86 の PC に入っている laser_geometry の版とは未照合**
 
 ## 1. 確かめた事実

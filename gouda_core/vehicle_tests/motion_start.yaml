@@ -1,0 +1,42 @@
+# Conditions of the 動き出し test. 試験条件の提案であり、実車の値ではない（status: 提案）。人が /dev タブで変えて実行する。
+# Every value here is a test input; the measured T, t_lock and delays exist only in each run's result.json.
+id: motion_start
+title: 動き出し
+runner:                     # how the runner drives this test
+  command_period_s: 0.05    # Joy publication period; the bridge still sends COMMAND at PRM-14
+  neutral_after_s: 0.5      # neutral published after the end, before the bridge is put back
+  status_timeout_s: 1.0     # no STATUS for this long: neutral, wait, repeat the trial (DEC-414)
+  imu_timeout_s: 1.0        # no IMU for this long: neutral, wait, repeat the trial (DEC-414)
+  ready_timeout_s: 10.0     # wait for source=pc before the first trial; the IMU is waited for without a limit
+  service_timeout_s: 10.0   # lifecycle services of vehicle_bridge
+parameters:
+- {key: sections, label: 区間, kind: sections, default: [threshold_up, delay, pulse, t_lock, threshold_down]}
+- {key: baseline_s, label: 静止の記録, unit: s, kind: number, default: 5.0, min: 1, max: 60}
+- {key: noise_k, label: 検出の倍率, unit: σ, kind: number, default: 6.0, min: 1, max: 100}
+- {key: sustain_s, label: 継続, unit: s, kind: number, default: 0.05, min: 0, max: 1}
+- {key: settle_s, label: 試行前の中立, unit: s, kind: number, default: 8.0, min: 0, max: 60}
+- {key: baseline_tail_s, label: 基準の窓, unit: s, kind: number, default: 1.0, min: 0.1, max: 10}
+- {key: repeats, label: 繰り返し, kind: number, default: 3, min: 1, max: 20, integer: true}
+- {key: max_wait_s, label: 動き出し待ちの上限, unit: s, kind: number, default: 3.0, min: 0.1, max: 10}
+- {key: after_motion_s, label: 動き出し後の入力の継続, unit: s, kind: number, default: 1.0, min: 0, max: 10}
+- {key: threshold_angles_deg, label: T の方向, unit: "°", kind: numbers, default: [90, 270, 45, 225, 135, 315, 0, 180], min: 0, max: 360}
+- {key: threshold_levels, label: T の段, kind: numbers, default: [0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.15, 0.18, 0.22, 0.26, 0.30, 0.40, 0.50, 0.60, 0.80, 1.00], min: 0, max: 1}
+- {key: stair_hold_s, label: T の各段, unit: s, kind: number, default: 2.0, min: 0.1, max: 10}
+- {key: top_hold_s, label: T の最大の段の継続, unit: s, kind: number, default: 4.0, min: 0.1, max: 30}
+- {key: delay_angles_deg, label: 遅れの方向, unit: "°", kind: numbers, default: [90, 270, 0, 180], min: 0, max: 360}
+- {key: delay_amounts, label: 遅れの大きさ, kind: numbers, default: [0.2, 0.4, 0.7, 1.0], min: 0, max: 1}
+- {key: probe_angle_deg, label: パルス・ロックの方向, unit: "°", kind: number, default: 90, min: 0, max: 360}
+- {key: probe_amount, label: パルス・ロックの大きさ, kind: number, default: 0.7, min: 0, max: 1}
+- {key: pulse_widths_s, label: パルス幅, unit: s, kind: numbers, default: [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0], min: 0.01, max: 5}
+- {key: pulse_observe_s, label: パルス後の観測, unit: s, kind: number, default: 2.0, min: 0, max: 10}
+- {key: drive_hold_s, label: 走行の保持, unit: s, kind: number, default: 1.0, min: 0, max: 5}
+- {key: gaps_s, label: 中立の長さ, unit: s, kind: numbers, default: [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6], min: 0, max: 30}
+- {key: lock_levels, label: 下げる大きさ, kind: numbers, default: [0.60, 0.50, 0.40, 0.30, 0.26, 0.22, 0.18, 0.15, 0.12, 0.10, 0.08, 0.06, 0.04, 0.02], min: 0, max: 1}
+- {key: lock_hold_s, label: 下げて待つ時間, unit: s, kind: number, default: 6.0, min: 0, max: 30}
+- {key: locked_fraction, label: ロックとみなす遅れの比, kind: number, default: 0.7, min: 0.1, max: 1}
+sections:
+- {key: threshold_up, label: T 解除}
+- {key: delay, label: 遅れ}
+- {key: pulse, label: パルス}
+- {key: t_lock, label: t_lock}
+- {key: threshold_down, label: T ロック}

@@ -75,6 +75,9 @@ def _nodes(context, *args, **kwargs):
                       parameters=params('gouda_motion_controller', {})),
         LifecycleNode(package='gouda_core', executable='vehicle_bridge', name='vehicle_bridge', namespace='', output='screen',
                       parameters=params('vehicle_bridge', {'params_dir': params_dir, 'trial': trial})),   # serial_port: PRM-61 in the generated file
+        # ND-30 vehicle tests of the /dev tab: idle until a test is requested; publishes nothing while idle
+        Node(package='gouda_core', executable='gouda_vehicle_test', name='gouda_vehicle_test', output='screen',
+             parameters=[{'data_root': data_root}]),
     ]
 
 

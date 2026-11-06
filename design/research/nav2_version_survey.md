@@ -1,6 +1,6 @@
 # Nav2 採用版の調査メモ（2026-10-09 時点）
 
-状態: **実車PCの版は照合済み（V-001 解消、DEC-012）**。実車PC（aya@aya-Parallels-ARM-Virtual-Machine）で人が実行した確認コマンドの出力 `research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt` により、Ubuntu 24.04.5 LTS（arm64）、/opt/ros/jazzy、Nav2 パッケージ 1.3.13（navigation2・bringup・bt-navigator・controller・msgs・route）を確認。上流 jazzy ブランチ commit 645abd95 の package.xml 版 1.3.13 と一致する。パッケージ版での照合であり、インストール済みバイナリ内の IDL を直接読んだものではない。開発作業環境（この Mac）の版は根拠にしていない。
+状態: **実車PCの版は照合済み（V-001 解消、DEC-012）**。実車PC（VM）で人が実行した確認コマンドの出力 `research/vehicle_pc/2026-10-09_vehicle_pc_versions.txt` により、Ubuntu 24.04.5 LTS（arm64）、/opt/ros/jazzy、Nav2 パッケージ 1.3.13（navigation2・bringup・bt-navigator・controller・msgs・route）を確認。上流 jazzy ブランチ commit 645abd95 の package.xml 版 1.3.13 と一致する。パッケージ版での照合であり、インストール済みバイナリ内の IDL を直接読んだものではない。開発作業環境（この Mac）の版は根拠にしていない。
 
 ## 1. 人の申告と照合状況
 
