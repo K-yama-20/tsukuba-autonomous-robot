@@ -1,0 +1,28 @@
+# 変更セット REV-222（2026-11-06: MID-360 の試験の電圧の人の回答と、Livox Viewer 2 での受信の報告。DEC-433）
+# 適用: design/tools/apply_revision.py REV-222
+id: REV-222
+date: '2026-11-06'
+summary: >-
+  MID-360 の接続試験の計画（第204便、提案）の Q3（試験の電源と電圧）への人の回答と、同じ発言の中の試験の報告を DEC-433 に原文で記録する。コード・設定は変えない。
+basis_refs:
+- DEC-433
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-433
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    （MID-360 の接続試験の計画 design/proposals/mid360_connection_test_plan_2026-11-06.md の Q3）試験の電源と電圧。選択肢は「安定化電源 12 V」（AI の推奨）と「車体の電源」
+  answer_verbatim: |
+    12Vでいく。x86で、livoxviewer2にて、点群の受信は確認完了した
+  affected_refs:
+  - DEC-431
+  - DEC-432
+  resulting_refs: []
+  note: >-
+    AI の解釈：試験の電圧は 12 V（User Manual の推奨値、9〜27 V の範囲内）。電源の種類（安定化電源か車体の電源か）は発言にないので未確認。
+    試験の報告：Dell の x86 機で Livox Viewer 2 を使い、MID-360 の点群を受信できた（台帳 T03-1）。この報告は人が実行したもので、AI は画面を見ていない。
+  disposition: answered

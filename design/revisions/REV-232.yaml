@@ -1,0 +1,31 @@
+# 変更セット REV-232（2026-11-07: MID-360 のドライバの選び方と時刻同期の人の決定。DEC-442）
+# 適用: design/tools/apply_revision.py REV-232
+id: REV-232
+date: '2026-11-07'
+summary: >-
+  MID-360 の接続試験の計画（第204便、提案）の Q4（ドライバの入れ方）と時刻同期について、利用者が分岐したチャットで推奨案を選んだ発言を DEC-442 に原文で記録する。実装の許可ではない。コード・設定は変えない。
+basis_refs:
+- DEC-442
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-442
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （分岐したチャット「ros2ドライバはどのように入れるのが適切か?」での AI の推奨案）
+    1 ROS 2 ドライバ（計画の Q4）：公式の Livox-SDK/livox_ros_driver2 を commit で固定して使う（利用者が最も多く、FAST-LIO・GLIM などが前提にしている）。Livox-SDK2 は Ubuntu 24.04 のビルドの修正の後の master の commit に固定する。入れ方は setup.sh・drivers.repos への追加（承認事項）。build.sh は作業場所の build・install を消すので、gouda_ws とは別の作業場所にする。2 番手は TU Darmstadt の fork（jazzy）。
+    2 時刻同期：まず同期なし。XT-32 も PC の受信の時刻（PRM-55=1、DEC-083）、公式の Livox ドライバも同期なしでは PC の受信の時刻を付けるので、両方が同じ PC の時計に乗る。P4・P5 の rosbag で受信の遅れ・揺れと 2 台の時刻の差を測り、足りなければ PTP（PC を親、Dell の口はソフトウェアの方式）に進む。
+    3 計画の台帳の P5 に XT-32 と MID-360 の時刻の差（平均と揺れ）の項目を足す。
+  answer_verbatim: |
+    一旦推奨案で行こう。メインチャットに指示せよ
+  affected_refs:
+  - DEC-431
+  - DEC-083
+  resulting_refs: []
+  note: >-
+    伝達の経路：利用者の発言は分岐したチャット（Claude Code の別のセッション）で行われ、そのセッションが原文を引用してこのチャットに伝えた。この記録の AI は、その発言を直接は見ていない。
+    AI の解釈：「一旦」なので、試験の結果（時刻の差、ビルドの成否）で見直しうる方針。setup.sh・drivers.repos の変更とドライバの導入は、この決定とは別に利用者の明示の yes が要る（DEC-106）。XT-32 を本体の時刻にする（DEC-083 の見直し）は含まない。
+  disposition: answered

@@ -1,0 +1,27 @@
+# 変更セット REV-233（2026-11-07: MID-360 のドライバを setup.sh・drivers.repos に足す作業の承認。DEC-443）
+# 適用: design/tools/apply_revision.py REV-233
+id: REV-233
+date: '2026-11-07'
+summary: >-
+  DEC-442 の方針（公式の livox_ros_driver2 と Livox-SDK2 を commit で固定）で、setup.sh・drivers.repos にドライバを足す作業に着手してよいという人の回答を DEC-443 に原文で記録する。この変更セット自体はコード・設定を変えない。
+basis_refs:
+- DEC-443
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-443
+  kind: approval
+  status: recorded
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    【承認】setup.sh と third_party/drivers.repos に MID-360 のドライバ（公式の Livox-SDK/livox_ros_driver2 と Livox-SDK2、commit で固定。DEC-442）を足す作業に着手してよいか。DEC-106 によりコード・設定の変更は個別の yes が要る
+  answer_verbatim: |
+    着手してよい
+  affected_refs:
+  - DEC-442
+  - DEC-106
+  resulting_refs: []
+  note: >-
+    AI の解釈：setup.sh・drivers.repos（と、それを読む導入の道具）の変更に着手してよい。範囲はドライバの取得・ビルド・導入まで。Gouda の起動・sensor supervisor・/config・TF・costmap への組み込み（#72 の段階 2 以降）は含まない。Dell で sudo の要る手順を実行するのは人。
+  disposition: answered

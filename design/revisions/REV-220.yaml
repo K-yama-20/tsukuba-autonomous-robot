@@ -1,0 +1,27 @@
+# 変更セット REV-220（2026-11-06: MID-360 の接続試験に使う PC の人の回答。DEC-431）
+# 適用: design/tools/apply_revision.py REV-220
+id: REV-220
+date: '2026-11-06'
+summary: >-
+  MID-360 の接続試験の計画（第204便、提案）の Q1（試験に使う PC）への人の回答を DEC-431 に原文で記録する。コード・設定は変えない。
+basis_refs:
+- DEC-431
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-431
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    （MID-360 の接続試験の計画 design/proposals/mid360_connection_test_plan_2026-11-06.md の Q1）P2〜P4 の机の上の試験に使う PC。AI の推奨は XT-32 をつないでいない別の Ubuntu 24.04 の PC、代替は車載 PC で XT-32 を外して行う
+  answer_verbatim: |
+    dellのx86機でテストを行います
+  affected_refs: []
+  resulting_refs: []
+  note: >-
+    AI の解釈：試験は x86 の車載 PC（Dell G15、Ubuntu 24.04）で行う。
+    AI が読むだけで確かめた事実（2026-11-06）：有線の口は内蔵の 1 つだけ（USB-LAN はつながっていない）。その口に LiDAR 用の固定アドレスの接続の設定が 2 つあり、どちらも MID-360 の工場出荷時と同じサブネット。CPU は AVX2 あり。Livox Viewer 2 が当日すでにホームに置かれ、アドレスのない口で落ちる問題の回避が入っている。Livox-SDK2 は入っていない。Gouda は動いていなかった。
+    影響：口が 1 つなので、XT-32 と同時につなぐ（P5）にはスイッチ（PoE なし）か 2 つ目の口が要る（Q2）。~/gouda_ws と Gouda の起動・停止には触れない。
+  disposition: answered

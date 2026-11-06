@@ -1,0 +1,28 @@
+# 変更セット REV-221（2026-11-06: MID-360 と XT-32 を Dell の 1 つの口で使うつなぎ方の人の回答。DEC-432）
+# 適用: design/tools/apply_revision.py REV-221
+id: REV-221
+date: '2026-11-06'
+summary: >-
+  MID-360 の接続試験の計画（第204便、提案）の Q2（Dell で XT-32 と同時に使うつなぎ方）への人の回答を DEC-432 に原文で記録する。コード・設定は変えない。
+basis_refs:
+- DEC-432
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-432
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    （MID-360 の接続試験の計画 design/proposals/mid360_connection_test_plan_2026-11-06.md の Q2）Dell の有線の口は 1 つ。XT-32 と MID-360 を同時に使う（P5）つなぎ方。選択肢は「Non-PoE switch」（AI の推奨。同じ口・同じサブネットで、アドレスの重なりだけ避ける）と「Add a USB-LAN」（MID-360 を別のサブネットに移す）
+  answer_verbatim: |
+    Non-PoE switch
+  affected_refs:
+  - DEC-431
+  resulting_refs: []
+  note: >-
+    AI の解釈：XT-32 と MID-360 を PoE のないスイッチで Dell の内蔵の有線の口にまとめる。サブネットは今のまま（工場出荷時と同じ）で、PC・XT-32・MID-360 のアドレスが重ならないことを確かめる。
+    影響：MID-360 のアドレスを変える作業（計画 T03-4）は、重なりがない限り不要。スイッチの機種・速度は未定（帯域は P5 で確かめる）。PoE のある機器をつなぐと MID-360 に回復不能な損傷のおそれ（User Manual p13）。
+    この回答は試験のつなぎ方で、車体への搭載の構成（#77 の A-7）を確定するものではない（AI の解釈。搭載でも同じにするかは人の判断）。
+  disposition: answered
