@@ -1,0 +1,20 @@
+total 336 bad ['k10h3_W06_2', 'base_W04_1', 'k10h10_W06_3', 'k10h10_W08_3', 'kuams_W09_1'] 5
+N10 base:4/4 c0 s0.0 p0.96 | kuams:4/4 c0 s0.0 p0.96 | k10h0:4/4 c0 s0.0 p0.96 | k10h3:4/4 c0 s0.0 p0.96 | k10h10:4/4 c0 s0.0 p0.96 | k07h3:4/4 c0 s0.0 p0.96 | k10n3h3:4/4 c0 s0.0 p0.96
+N11 base:4/4 c0 s0.0 p0.96 | kuams:4/4 c0 s4.0 p0.96 | k10h0:4/4 c0 s0.0 p0.96 | k10h3:4/4 c0 s0.0 p0.96 | k10h10:4/4 c0 s0.0 p0.96 | k07h3:4/4 c0 s0.0 p0.96 | k10n3h3:4/4 c0 s0.0 p0.96
+N12 base:4/4 c0 s0.0 p0.96 | kuams:4/4 c0 s1.0 p0.96 | k10h0:4/4 c0 s1.0 p0.96 | k10h3:4/4 c0 s1.0 p0.96 | k10h10:4/4 c0 s0.0 p0.96 | k07h3:4/4 c0 s1.0 p0.96 | k10n3h3:4/4 c0 s1.0 p0.96
+W01 base:4/4 c3 s0.0 p0.96 | kuams:4/4 c0 s1.0 p0.96 | k10h0:4/4 c0 s1.0 p0.96 | k10h3:4/4 c0 s1.0 p0.96 | k10h10:4/4 c4 s0.0 p0.96 | k07h3:4/4 c0 s1.0 p0.96 | k10n3h3:4/4 c4 s0.5 p0.96
+W02 base:0/4 c2 s0.0 p0.65 | kuams:2/4 c3 s1.0 p0.76 | k10h0:3/4 c3 s1.0 p0.86 | k10h3:1/4 c3 s1.0 p0.71 | k10h10:4/4 c2 s1.0 p0.96 | k07h3:3/4 c3 s1.0 p0.92 | k10n3h3:3/4 c2 s1.0 p0.86
+W03 base:0/4 c2 s0.0 p0.65 | kuams:2/4 c0 s1.0 p0.75 | k10h0:3/4 c1 s0.8 p0.85 | k10h3:0/4 c1 s0.0 p0.64 | k10h10:0/4 c3 s0.0 p0.62 | k07h3:0/4 c0 s0.0 p0.65 | k10n3h3:0/4 c2 s0.0 p0.66
+W04 base:0/4 c3 s0.0 p0.42 | kuams:1/4 c3 s1.0 p0.66 | k10h0:0/4 c4 s1.0 p0.66 | k10h3:0/4 c4 s1.0 p0.64 | k10h10:0/4 c4 s1.0 p0.59 | k07h3:1/4 c4 s1.0 p0.66 | k10n3h3:0/4 c4 s1.0 p0.65
+W05 base:1/4 c2 s0.0 p0.74 | kuams:4/4 c0 s1.0 p0.96 | k10h0:4/4 c0 s1.0 p0.96 | k10h3:4/4 c0 s1.0 p0.96 | k10h10:4/4 c0 s1.0 p0.96 | k07h3:4/4 c0 s1.0 p0.96 | k10n3h3:4/4 c0 s1.0 p0.96
+W06 base:3/4 c1 s0.0 p0.89 | kuams:4/4 c0 s1.0 p0.96 | k10h0:4/4 c0 s1.0 p0.96 | k10h3:3/4 c0 s0.8 p0.72 | k10h10:3/4 c0 s0.2 p0.72 | k07h3:4/4 c0 s1.0 p0.96 | k10n3h3:4/4 c0 s1.0 p0.96
+W07 base:0/4 c2 s0.0 p0.72 | kuams:0/4 c2 s2.0 p0.97 | k10h0:0/4 c2 s1.8 p0.86 | k10h3:0/4 c2 s1.5 p0.75 | k10h10:0/4 c2 s1.8 p0.81 | k07h3:0/4 c2 s1.5 p0.76 | k10n3h3:0/4 c4 s1.8 p0.76
+W08 base:0/4 c4 s0.0 p0.81 | kuams:0/4 c0 s1.0 p0.97 | k10h0:0/4 c0 s1.0 p0.98 | k10h3:0/4 c0 s1.0 p0.91 | k10h10:0/4 c0 s0.8 p0.73 | k07h3:0/4 c0 s1.0 p0.98 | k10n3h3:0/4 c2 s1.0 p0.85
+W09 base:0/4 c2 s0.0 p0.57 | kuams:0/4 c1 s2.2 p0.43 | k10h0:0/4 c3 s1.0 p0.57 | k10h3:1/4 c4 s1.0 p0.67 | k10h10:0/4 c3 s1.0 p0.58 | k07h3:0/4 c4 s1.0 p0.57 | k10n3h3:0/4 c2 s1.0 p0.57
+base n 48 goal 20 prog>=.95 20 contact 21 v 0.29
+kuams n 48 goal 29 prog>=.95 37 contact 9 v 0.38
+k10h0 n 48 goal 30 prog>=.95 37 contact 13 v 0.39
+k10h3 n 48 goal 25 prog>=.95 30 contact 14 v 0.36
+k10h10 n 48 goal 27 prog>=.95 32 contact 18 v 0.35
+k07h3 n 48 goal 28 prog>=.95 34 contact 13 v 0.37
+k10n3h3 n 48 goal 27 prog>=.95 30 contact 20 v 0.35

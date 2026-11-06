@@ -1,0 +1,24 @@
+total 479 bad ['k10h0-D30_W06_2', 'k10h3-D60_W01_2', 'k10h0-D30G20_W03_4', 'base-D30G20_N12_3', 'k10h3-D30G20_N10_1', 'k10h3-G20_N12_2', 'k10h0-G20_N12_3', 'k10h3-G100_N12_2', 'k10h0-D30_N10_3'] 9
+N10 base-D30:4/4 c0 s0.0 p0.96 | base-D60:4/4 c0 s0.0 p0.96 | base-G20:2/4 c0 s0.0 p0.96 | base-G100:2/4 c0 s0.0 p0.97 | base-D30G20:2/4 c0 s0.0 p0.96 | k10h0-D30:3/4 c0 s0.0 p0.72 | k10h0-D60:4/4 c0 s0.0 p0.96 | k10h0-G20:2/4 c0 s0.0 p0.96 | k10h0-G100:1/4 c0 s2.0 p0.99 | k10h0-D30G20:4/4 c0 s0.0 p0.96 | k10h3-D30:4/4 c0 s0.0 p0.96 | k10h3-D60:4/4 c0 s0.0 p0.96 | k10h3-G20:4/4 c0 s0.0 p0.96 | k10h3-G100:1/4 c0 s0.0 p0.97 | k10h3-D30G20:2/4 c0 s0.0 p0.72
+N11 base-D30:4/4 c0 s0.0 p0.96 | base-D60:4/4 c0 s0.0 p0.96 | base-G20:3/4 c0 s0.0 p0.96 | base-G100:0/4 c1 s0.0 p0.48 | base-D30G20:2/4 c0 s0.0 p0.96 | k10h0-D30:4/4 c0 s0.0 p0.96 | k10h0-D60:4/4 c0 s0.0 p0.96 | k10h0-G20:3/4 c0 s0.0 p0.96 | k10h0-G100:0/4 c1 s1.8 p0.65 | k10h0-D30G20:2/4 c0 s0.0 p0.87 | k10h3-D30:4/4 c0 s0.0 p0.96 | k10h3-D60:4/4 c0 s0.0 p0.96 | k10h3-G20:3/4 c0 s0.0 p0.96 | k10h3-G100:0/4 c3 s0.0 p0.57 | k10h3-D30G20:3/4 c1 s0.0 p0.82
+N12 base-D30:4/4 c0 s0.0 p0.96 | base-D60:4/4 c0 s0.0 p0.96 | base-G20:3/4 c1 s0.0 p0.96 | base-G100:2/4 c0 s0.0 p0.88 | base-D30G20:1/4 c1 s0.0 p0.72 | k10h0-D30:4/4 c0 s1.0 p0.96 | k10h0-D60:4/4 c0 s1.0 p0.96 | k10h0-G20:2/4 c0 s0.8 p0.72 | k10h0-G100:2/4 c0 s2.0 p0.96 | k10h0-D30G20:1/4 c0 s0.8 p0.96 | k10h3-D30:4/4 c0 s1.0 p0.96 | k10h3-D60:4/4 c0 s1.0 p0.96 | k10h3-G20:2/4 c1 s0.8 p0.72 | k10h3-G100:0/4 c0 s0.8 p0.73 | k10h3-D30G20:2/4 c1 s0.8 p0.97
+W01 base-D30:3/4 c2 s0.0 p0.97 | base-D60:4/4 c1 s0.0 p0.96 | base-G20:2/4 c2 s0.0 p0.96 | base-G100:1/4 c4 s0.0 p0.93 | base-D30G20:3/4 c4 s0.0 p0.96 | k10h0-D30:4/4 c2 s1.0 p0.96 | k10h0-D60:4/4 c3 s1.0 p0.96 | k10h0-G20:4/4 c2 s1.0 p0.96 | k10h0-G100:1/4 c1 s2.5 p0.98 | k10h0-D30G20:2/4 c1 s1.0 p0.96 | k10h3-D30:4/4 c0 s1.0 p0.96 | k10h3-D60:3/4 c0 s0.8 p0.72 | k10h3-G20:4/4 c2 s1.0 p0.96 | k10h3-G100:1/4 c0 s1.0 p0.96 | k10h3-D30G20:3/4 c0 s1.0 p0.96
+W02 base-D30:0/4 c4 s0.0 p0.66 | base-D60:0/4 c2 s0.0 p0.68 | base-G20:0/4 c3 s0.0 p0.65 | base-G100:0/4 c2 s0.0 p0.62 | base-D30G20:0/4 c2 s0.0 p0.68 | k10h0-D30:3/4 c1 s1.0 p0.86 | k10h0-D60:3/4 c2 s1.0 p0.86 | k10h0-G20:1/4 c1 s1.0 p0.86 | k10h0-G100:1/4 c1 s2.8 p0.83 | k10h0-D30G20:1/4 c0 s1.0 p0.76 | k10h3-D30:4/4 c0 s1.0 p0.96 | k10h3-D60:4/4 c4 s1.0 p0.96 | k10h3-G20:2/4 c1 s1.0 p0.86 | k10h3-G100:1/3 c0 s1.0 p0.97 | k10h3-D30G20:2/4 c2 s1.0 p0.76
+W03 base-D30:0/4 c1 s0.0 p0.57 | base-D60:0/4 c1 s0.0 p0.57 | base-G20:0/4 c2 s0.0 p0.68 | base-G100:0/4 c2 s0.0 p0.62 | base-D30G20:0/4 c2 s0.0 p0.64 | k10h0-D30:2/4 c2 s0.8 p0.78 | k10h0-D60:2/4 c0 s0.8 p0.79 | k10h0-G20:2/4 c0 s1.0 p0.89 | k10h0-G100:1/4 c1 s2.0 p0.72 | k10h0-D30G20:0/4 c2 s0.5 p0.51 | k10h3-D30:0/4 c2 s0.0 p0.54 | k10h3-D60:0/4 c2 s0.0 p0.69 | k10h3-G20:0/4 c2 s0.0 p0.66 | k10h3-G100:0/4 c4 s0.0 p0.67 | k10h3-D30G20:0/4 c2 s0.0 p0.70
+W05 base-D30:0/4 c3 s0.0 p0.67 | base-D60:0/4 c4 s0.0 p0.69 | base-G20:0/4 c3 s0.0 p0.76 | base-G100:0/4 c2 s0.0 p0.65 | base-D30G20:1/4 c1 s0.0 p0.75 | k10h0-D30:4/4 c0 s1.0 p0.96 | k10h0-D60:4/4 c0 s1.0 p0.96 | k10h0-G20:2/4 c0 s1.0 p0.96 | k10h0-G100:2/4 c0 s2.0 p0.91 | k10h0-D30G20:3/4 c0 s1.0 p0.97 | k10h3-D30:4/4 c0 s1.0 p0.96 | k10h3-D60:4/4 c0 s1.0 p0.96 | k10h3-G20:2/4 c1 s1.0 p0.86 | k10h3-G100:1/4 c0 s1.0 p0.91 | k10h3-D30G20:2/4 c1 s1.0 p0.86
+W06 base-D30:4/4 c0 s0.0 p0.96 | base-D60:4/4 c0 s0.0 p0.96 | base-G20:2/4 c1 s0.0 p0.88 | base-G100:0/4 c2 s0.0 p0.74 | base-D30G20:0/4 c0 s0.0 p0.91 | k10h0-D30:3/4 c0 s0.8 p0.72 | k10h0-D60:4/4 c0 s1.0 p0.96 | k10h0-G20:4/4 c0 s1.0 p0.96 | k10h0-G100:0/4 c2 s2.5 p0.78 | k10h0-D30G20:3/4 c0 s1.0 p0.96 | k10h3-D30:4/4 c0 s1.0 p0.96 | k10h3-D60:4/4 c0 s1.0 p0.96 | k10h3-G20:1/4 c1 s1.0 p0.86 | k10h3-G100:1/4 c1 s1.0 p0.82 | k10h3-D30G20:2/4 c0 s1.0 p0.96
+base-D30 n 32 goal 19 prog>=.95 20 contact 10 v 0.35
+base-D60 n 32 goal 20 prog>=.95 20 contact 8 v 0.35
+base-G20 n 32 goal 12 prog>=.95 20 contact 12 v 0.30
+base-G100 n 32 goal 5 prog>=.95 9 contact 13 v 0.17
+base-D30G20 n 32 goal 9 prog>=.95 19 contact 10 v 0.27
+k10h0-D30 n 32 goal 27 prog>=.95 27 contact 5 v 0.41
+k10h0-D60 n 32 goal 29 prog>=.95 29 contact 5 v 0.45
+k10h0-G20 n 32 goal 20 prog>=.95 28 contact 3 v 0.36
+k10h0-G100 n 32 goal 8 prog>=.95 20 contact 6 v 0.24
+k10h0-D30G20 n 32 goal 16 prog>=.95 26 contact 3 v 0.33
+k10h3-D30 n 32 goal 28 prog>=.95 28 contact 2 v 0.44
+k10h3-D60 n 32 goal 27 prog>=.95 27 contact 6 v 0.42
+k10h3-G20 n 32 goal 18 prog>=.95 24 contact 8 v 0.34
+k10h3-G100 n 31 goal 5 prog>=.95 19 contact 8 v 0.23
+k10h3-D30G20 n 32 goal 16 prog>=.95 24 contact 7 v 0.31

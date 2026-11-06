@@ -1,0 +1,335 @@
+diff --git a/dev/fd/11 b/tmp/claude-501/tc/gouda_core/gouda_core/autonomy_client.py
+index 0000000..64f4962 100644
+--- a/gouda_core/gouda_core/autonomy_client.py (HEAD 0e260f3)
++++ b/gouda_core/gouda_core/autonomy_client.py (test copy)
+@@ -23,7 +23,9 @@ without an upper limit (no time value is invented); the human can always pause o
+ """
+ from __future__ import annotations
+ 
++import math
+ import threading
++import time
+ from typing import Callable, Optional
+ 
+ from rclpy.action import ActionClient
+@@ -99,6 +101,7 @@ class AutonomyClient:
+         self.robot_xy: Optional[tuple] = None
+         self.goal_handle = None
+         self.goal_offset, self.goal_poses = 0, 0
++        self._skip_setup(node)   # TEST COPY
+         self.nav2_active = False
+         self.localization_configured = False   # ND-07 configured by this client (TR-03 refuses mapping meanwhile: RQ-I004)
+         self.localization_running = False      # ND-07 reached 正常 in this start; from then 推定不能 pauses (mode manager)
+@@ -290,6 +293,7 @@ class AutonomyClient:
+         self.send_goal(token, mission, 0, record)
+ 
+     def send_goal(self, token, mission: ac.Mission, offset: int, record: Callable) -> None:
++        self._skip_ctx = (token, mission, record)   # TEST COPY
+         if not self.nav.server_is_ready():
+             raise StepFailed('navigate_through_poses action server is not available')
+         goal = NavigateThroughPoses.Goal()
+@@ -309,9 +313,74 @@ class AutonomyClient:
+         record('nav2_goal_sent', f'NavigateThroughPoses goal accepted ({len(goal.poses)} poses from waypoint {offset})', {'offset': offset, 'poses': len(goal.poses)})
+         gh.get_result_async().add_done_callback(lambda f, h=gh: self._result(h, f))
+ 
++    # ---- TEST COPY ONLY: ways of giving up a waypoint, chosen by the environment variable SKIP_TEST
++    def _skip_setup(self, node):
++        import json as _j, os as _o
++        self.skip_m = _o.environ.get('SKIP_TEST', ''); self.skip_log = _o.environ.get('SKIP_LOG', '')
++        self.skip_cfg = _j.loads(_o.environ.get('SKIP_CFG', '{}'))
++        self._skip_ctx = None; self.skip_pose = None; self.skip_scan = None; self.skip_grid = None
++        self.skip_since = None; self.skip_best = (None, None); self.skip_busy = False; self._skip_node = node
++        if not self.skip_m: return
++        from sensor_msgs.msg import LaserScan
++        from rclpy.qos import QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
++        node.create_subscription(LaserScan, '/sensors/xt32/scan', lambda m: setattr(self, 'skip_scan', m), qos_profile_sensor_data)
++        node.create_subscription(OccupancyGrid, '/global_costmap/costmap', lambda m: setattr(self, 'skip_grid', m), QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE))
++        node.create_timer(0.25, self._skip_tick)
++
++    def _skip_hit(self, wx, wy, rx, ry, yaw):
++        c = self.skip_cfg
++        if self.skip_m == 'kuams':
++            m = self.skip_scan
++            if m is None: return False
++            n = 0
++            for i, r in enumerate(m.ranges):
++                if math.isfinite(r) and r > 0:
++                    a = yaw + m.angle_min + i * m.angle_increment
++                    if math.hypot(rx + r * math.cos(a) - wx, ry + r * math.sin(a) - wy) <= c.get('radius', 2.5): n += 1
++            return n >= c.get('n', 5)
++        if self.skip_m == 'costmap':
++            g = self.skip_grid
++            if g is None: return False
++            i = g.info; R = c.get('radius', 0.6); k = int(R / i.resolution); cx = int((wx - i.origin.position.x) / i.resolution); cy = int((wy - i.origin.position.y) / i.resolution)
++            tot = hit = 0
++            for y in range(cy - k, cy + k + 1):
++                for x in range(cx - k, cx + k + 1):
++                    if 0 <= x < i.width and 0 <= y < i.height and (x - cx) ** 2 + (y - cy) ** 2 <= k * k:
++                        tot += 1; hit += g.data[y * i.width + x] >= 99
++            return tot > 0 and hit / tot >= c.get('ratio', 0.5)
++        return False
++
++    def _skip_tick(self):
++        if self.skip_busy or self.goal_handle is None or self._skip_ctx is None or self.skip_pose is None: return
++        token, mission, record = self._skip_ctx
++        idx = self.skip_pose[3]; wps = mission.waypoints
++        if idx >= len(wps) - 1: return
++        rx, ry, yaw, _ = self.skip_pose; wx, wy = wps[idx][0], wps[idx][1]; d = math.hypot(wx - rx, wy - ry)
++        now = time.monotonic(); go = False; c = self.skip_cfg
++        if self.skip_m == 'stall':
++            b = self.skip_best
++            if b[0] != idx or d < b[1] - 0.3: self.skip_best = (idx, d); self.skip_since = now
++            go = now - self.skip_since >= c.get('hold', 15.0)
++        else:
++            if d > c.get('near', 5.0): self.skip_since = None; return
++            if self._skip_hit(wx, wy, rx, ry, yaw):
++                if self.skip_since is None: self.skip_since = now
++                go = now - self.skip_since >= c.get('hold', 3.0 if self.skip_m == 'costmap' else 0.0)
++            else: self.skip_since = None
++        if not go: return
++        self.skip_busy = True; self.skip_since = None; self.skip_best = (None, None)
++        if self.skip_log:
++            with open(self.skip_log, 'a') as f: f.write(f'{time.time():.2f} skip {idx} at {rx:.2f} {ry:.2f} d {d:.2f}\n')
++        def work():
++            try: self.send_goal(token, mission, idx + 1, record)
++            finally: self.skip_busy = False
++        threading.Thread(target=work, daemon=True).start()
++
+     def _feedback(self, fb):
+         f = fb.feedback
+         self.robot_xy = (f.current_pose.pose.position.x, f.current_pose.pose.position.y)
++        q = f.current_pose.pose.orientation
++        self.skip_pose = (self.robot_xy[0], self.robot_xy[1], 2 * math.atan2(q.z, q.w), self.goal_offset + self.goal_poses - int(f.number_of_poses_remaining))   # TEST COPY
+         self.on_feedback(self.goal_offset, self.goal_poses, int(f.number_of_poses_remaining))
+         self._speed_state()
+ 
+diff --git a/dev/fd/11 b/tmp/claude-501/tc/gouda_core/gouda_core/nav2_config.py
+index 0000000..fe48fd6 100644
+--- a/gouda_core/gouda_core/nav2_config.py (HEAD 0e260f3)
++++ b/gouda_core/gouda_core/nav2_config.py (test copy)
+@@ -192,6 +192,11 @@ def mppi_follow(template_follow: dict, t: dict, accel: float, wz_accel: float) -
+     if t.get('mppi_wz_max_radps') is not None: f['wz_max'] = float(t['mppi_wz_max_radps'])
+     f.update({'vx_min': 0.0, 'ax_max': accel, 'ax_min': -accel, 'az_max': wz_accel, 'visualize': False})
+     f['CostCritic']['consider_footprint'] = True
++    if os.environ.get('MPPI_TEST'):   # TEST COPY ONLY
++        x = json.loads(os.environ['MPPI_TEST'])
++        for c, cfg in x.pop('add_critics', {}).items():
++            f['critics'] = list(f['critics']) + [c]; f[c] = cfg
++        f.update(x)
+     return f
+ 
+ 
+@@ -475,6 +480,7 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
+     replan = replan_from_config(config_dir, values[('bt_params', REPLAN_KEY)])
+     values = dict(values); values[('bt_params', RECOVERY_KEY)] = recovery['value']; values[('gouda_nav2', INFLATE_KEY)] = inflate['value']
+     values[('bt_params', REPLAN_KEY)] = replan['value']
++    if os.environ.get('BT_RADIUS'): values[('bt_params', 'remove_passed_goals_radius_m')] = float(os.environ['BT_RADIUS'])   # TEST COPY
+     prm_tunables = read_tunables(params_dir, trial)
+     prm_tunables['inflation_radius_m'] = values[('gouda_nav2', 'inflation_radius_m')]   # PRM-72 is required, read with the others
+     tunables = {k: tunable_from_config(config_dir, k, prm_tunables[k]) for k in TUNABLES}
+@@ -492,6 +498,11 @@ def write(params_dir: str, trial: bool, nav2_template_path: str, bt_template_pat
+         template = yaml.safe_load(f)
+     params = nav2_parameters(template, values, bt_path)
+     apply_tunables(params, t, template['controller_server']['ros__parameters']['FollowPath'])
++    if os.environ.get('PLAN_TOL'): params['planner_server']['ros__parameters']['GridBased']['tolerance'] = float(os.environ['PLAN_TOL'])   # TEST COPY
++    if os.environ.get('DENOISE'):   # TEST COPY: Nav2 DenoiseLayer before the inflation, both costmaps
++        for _n in ('local_costmap', 'global_costmap'):
++            _c = params[_n][_n]['ros__parameters']; _pl = list(_c['plugins']); _pl.insert(_pl.index('inflation_layer'), 'denoise_layer'); _c['plugins'] = _pl
++            _c['denoise_layer'] = {'plugin': 'nav2_costmap_2d::DenoiseLayer', 'enabled': True, 'minimal_group_size': int(os.environ['DENOISE']), 'group_connectivity_type': 8}
+     params_path = os.path.join(out_dir, 'nav2_params.yaml')
+     with open(params_path, 'w', encoding='utf-8') as f:
+         f.write('# GENERATED by gouda_core.nav2_config from the upstream nav2_bringup params/nav2_params.yaml and design/generated/params\n')
+diff --git a/dev/fd/11 b/tmp/claude-501/tc/gouda_core/test/drive_sim_node.py
+index 0000000..697c222 100644
+--- a/gouda_core/test/drive_sim_node.py (HEAD 0e260f3)
++++ b/gouda_core/test/drive_sim_node.py (test copy)
+@@ -26,6 +26,28 @@ PLANT_HZ, CLOUD_HZ, SCORE_HZ = 50.0, 10.0, 20.0   # the XT-32 is 10 Hz (PRM-60 6
+ FIELDS = [PointField(name=n, offset=i * 4, datatype=PointField.FLOAT32, count=1) for i, n in enumerate('xyz')]
+ 
+ 
++class Assist:
++    """TEST COPY: the spot help of DEC-422 (proposal). Per axis: wanted but not moving for wait_s -> raise the stick until it moves."""
++    WAIT, RATE, LIMIT = 0.5, 0.25, 0.6
++    w_on = True
++    def __init__(self, mode): self.mode, self.st = mode, {'v': [0.0, 0.0], 'w': [0.0, 0.0]}; self.fires = 0
++    def axis(self, k, dt, cmd, act, scale, eps, moved):
++        st = self.st[k]   # [time not moving, stick]
++        if abs(cmd) < eps:
++            st[0], st[1] = 0.0, 0.0; return cmd
++        if abs(act) > moved:
++            st[0] = 0.0
++            if self.mode == 'release': st[1] = 0.0
++            return math.copysign(max(abs(cmd), st[1] * scale), cmd)
++        st[0] += dt
++        if st[0] < self.WAIT: return cmd
++        if st[1] == 0.0: st[1] = abs(cmd) / scale; self.fires += 1
++        st[1] = min(self.LIMIT, st[1] + self.RATE * dt)
++        return math.copysign(max(abs(cmd), st[1] * scale), cmd)
++    def apply(self, dt, v, w, p):
++        return self.axis('v', dt, v, p.v, p.max_v, 0.01, 0.03), (self.axis('w', dt, w, p.w, p.max_w, 0.02, 0.05) if self.w_on else w)
++
++
+ class DriveSim(Node):
+     def __init__(self, a):
+         super().__init__('drive_sim')
+@@ -34,10 +56,14 @@ class DriveSim(Node):
+         self.trace = open(os.path.join(os.path.dirname(a.report) or '.', 'trace.csv'), 'w', encoding='utf-8')
+         self.trace.write('t,x,y,yaw,v,w,cmd_v,cmd_w\n')
+         rx, ry = self.sc.route[0], self.sc.route[1]
+-        self.plant = ds.Plant(x=rx[0], y=rx[1], yaw=math.atan2(ry[1] - rx[1], ry[0] - rx[0]), delay_s=a.delay, tau_v_s=a.tau_v, tau_w_s=a.tau_w)
++        self.plant = ds.Plant(x=rx[0], y=rx[1], yaw=math.atan2(ry[1] - rx[1], ry[0] - rx[0]), delay_s=a.delay, tau_v_s=a.tau_v, tau_w_s=a.tau_w, measured=a.measured, no_min_w=a.no_min_w, no_w_dead_moving=a.no_w_dead_moving)
++        self.assist_axes = a.assist_axes
++        self.assist = Assist(a.assist) if a.assist else None
++        if self.assist: self.assist.w_on = 'w' in a.assist_axes
+         self.scorer = ds.Scorer(self.sc)
+         self.rays = ds.beams()
+         self.noise, self.rng = a.noise, np.random.default_rng(a.seed)
++        self.dropout, self.ghost = a.dropout, a.ghost
+         self.cmd_v, self.cmd_w, self.commands = 0.0, 0.0, 0
+         self.t0 = time.monotonic()
+         self.last = self.t0
+@@ -61,7 +87,8 @@ class DriveSim(Node):
+         now = time.monotonic()
+         dt, self.last = now - self.last, now
+         t, p = now - self.t0, self.plant
+-        p.step(t, dt, self.cmd_v, self.cmd_w)
++        cv, cw = self.assist.apply(dt, self.cmd_v, self.cmd_w, p) if self.assist else (self.cmd_v, self.cmd_w)
++        p.step(t, dt, cv, cw)
+         for o in self.sc.obstacles:
+             o.update(t, p.x, p.y)
+         stamp = self.get_clock().now().to_msg()
+@@ -80,6 +107,10 @@ class DriveSim(Node):
+     def _cloud(self):
+         p, t = self.plant, self._now()
+         pts = ds.cloud((p.x, p.y, p.yaw), self.sc.obstacles, t, self.rays, noise_m=self.noise, rng=self.rng)
++        if self.dropout > 0: pts = pts[self.rng.random(len(pts)) >= self.dropout]   # TEST: lost points
++        if self.ghost > 0:   # TEST: false points around the sensor (0.5-8 m, 0-1.2 m above base_link)
++            r_ = np.sqrt(self.rng.uniform(0.25, 64.0, self.ghost)); a_ = self.rng.uniform(-np.pi, np.pi, self.ghost)
++            pts = np.vstack((pts, np.column_stack((r_ * np.cos(a_), r_ * np.sin(a_), self.rng.uniform(0.0, 1.2, self.ghost))).astype(np.float32)))
+         m = PointCloud2(); m.header.stamp = self.get_clock().now().to_msg(); m.header.frame_id = 'base_link'
+         m.height, m.width = 1, len(pts); m.fields = FIELDS; m.is_bigendian = False; m.point_step = 12
+         m.row_step = 12 * len(pts); m.is_dense = True; m.data = pts.tobytes()
+@@ -91,7 +122,7 @@ class DriveSim(Node):
+         self.trace.write(f'{self._now():.2f},{p.x:.3f},{p.y:.3f},{p.yaw:.3f},{p.v:.3f},{p.w:.3f},{self.cmd_v:.3f},{self.cmd_w:.3f}\n')
+ 
+     def _write(self):
+-        r = dict(self.scorer.report(), commands=self.commands, pose=[round(self.plant.x, 2), round(self.plant.y, 2), round(self.plant.yaw, 2)],
++        r = dict(self.scorer.report(), commands=self.commands, assist_fires=self.assist.fires if self.assist else 0, pose=[round(self.plant.x, 2), round(self.plant.y, 2), round(self.plant.yaw, 2)],
+                  plant={'delay_s': self.plant.delay_s, 'tau_v_s': self.plant.tau_v_s, 'tau_w_s': self.plant.tau_w_s}, elapsed_s=round(self._now(), 1))
+         self.trace.flush()
+         tmp = self.report_path + '.tmp'
+@@ -105,7 +136,10 @@ def main():
+     ap.add_argument('scenario'); ap.add_argument('report')
+     ap.add_argument('--seed', type=int, default=0); ap.add_argument('--delay', type=float, default=ds.Plant.delay_s)
+     ap.add_argument('--tau-v', type=float, default=ds.Plant.tau_v_s); ap.add_argument('--tau-w', type=float, default=ds.Plant.tau_w_s)
++    ap.add_argument('--measured', action='store_true'); ap.add_argument('--assist', default='')
++    ap.add_argument('--assist-axes', default='vw'); ap.add_argument('--no-min-w', action='store_true'); ap.add_argument('--no-w-dead-moving', action='store_true')
+     ap.add_argument('--noise', type=float, default=0.02)
++    ap.add_argument('--dropout', type=float, default=0.0); ap.add_argument('--ghost', type=int, default=0)
+     a = ap.parse_args()
+     rclpy.init()
+     n = DriveSim(a)
+diff --git a/dev/fd/11 b/tmp/claude-501/tc/gouda_core/test/drive_sim_core.py
+index 0000000..9c6d54f 100644
+--- a/gouda_core/test/drive_sim_core.py (HEAD 0e260f3)
++++ b/gouda_core/test/drive_sim_core.py (test copy)
+@@ -42,6 +42,33 @@ class Plant:
+     max_w: float = 0.97
+     _queue: deque = field(default_factory=deque)
+ 
++    no_min_w: bool = False
++    no_w_dead_moving: bool = False
++    measured: bool = False   # TEST COPY: values of the 2026-11-03 vehicle measurements (candidates, not confirmed)
++    _neutral: float = 99.0
++    _wake: float = 0.0
++    MEASURED = dict(fwd=0.20, rev=0.20, left=0.28, right=0.165, min_w=0.30, rest_delay=0.35, lock_after=2.0)
++
++    def shape(self, dt, tv, tw):
++        """Stick dead band per axis (assumed independent while moving: not measured), minimum turn speed, delay from rest."""
++        m = self.MEASURED
++        sv, sw = tv / self.max_v, tw / self.max_w
++        tv = tv if abs(sv) >= (m['fwd'] if sv >= 0 else m['rev']) else 0.0
++        if self.no_w_dead_moving and abs(self.v) > 0.05:
++            pass
++        else:
++            floor = 0.0 if self.no_min_w else m['min_w']
++            tw = (math.copysign(max(floor, abs(tw)), tw)) if abs(sw) >= (m['left'] if sw >= 0 else m['right']) else 0.0
++        if tv == 0.0 and tw == 0.0:
++            self._neutral += dt; self._wake = 0.0
++            return 0.0, 0.0
++        if self._neutral >= m['lock_after']:
++            self._wake += dt
++            if self._wake < m['rest_delay']:
++                return 0.0, 0.0
++        self._neutral = 0.0
++        return tv, tw
++
+     def step(self, t: float, dt: float, cmd_v: float, cmd_w: float) -> None:
+         self._queue.append((t, cmd_v, cmd_w))
+         tv, tw = 0.0, 0.0
+@@ -49,6 +76,8 @@ class Plant:
+             _, tv, tw = self._queue.popleft()
+             self._last = (tv, tw)
+         tv, tw = getattr(self, '_last', (0.0, 0.0))
++        if self.measured:
++            tv, tw = self.shape(dt, tv, tw)
+         self.v += (max(-self.max_v, min(self.max_v, tv)) - self.v) * (1 - math.exp(-dt / self.tau_v_s))
+         self.w += (max(-self.max_w, min(self.max_w, tw)) - self.w) * (1 - math.exp(-dt / self.tau_w_s))
+         self.x += self.v * math.cos(self.yaw) * dt
+@@ -112,8 +141,56 @@ def _route(length: float = 30.0, side: float = 10.0, step: float = 5.0) -> list:
+     return [(i * step, 0.0) for i in range(n + 1)] + [(length, j * step) for j in range(1, m + 1)]
+ 
+ 
++# TEST ONLY: the 30 avoidance patterns (positions, sizes, timing). Inserted into the sim copy's drive_sim_core.scenario().
++_CONE = dict(radius=0.15, height=0.7); _P = dict(radius=0.25, height=1.7)
++_B = lambda w, y=0.0, x=12.0: Obstacle(x, y, height=1.0, half_x=0.5, half_y=w / 2, name='box')
++SIM30 = {
++ 'C01': ('コーン', '経路の真上', [Obstacle(12, 0.0, name='cone', **_CONE)]),
++ 'C02': ('コーン', '左に 0.3 m', [Obstacle(12, 0.3, name='cone', **_CONE)]),
++ 'C03': ('コーン', '右に 0.3 m', [Obstacle(12, -0.3, name='cone', **_CONE)]),
++ 'C04': ('コーン', '左に 0.6 m', [Obstacle(12, 0.6, name='cone', **_CONE)]),
++ 'C05': ('コーン', '左に 1.0 m', [Obstacle(12, 1.0, name='cone', **_CONE)]),
++ 'C06': ('コーン', 'waypoint の真上', [Obstacle(15, 0.0, name='cone', **_CONE)]),
++ 'C07': ('コーン', '5.0 m で出現', [Obstacle(12, 0.0, trigger_m=5.0, name='cone', **_CONE)]),
++ 'C08': ('コーン', '3.5 m で出現', [Obstacle(12, 0.0, trigger_m=3.5, name='cone', **_CONE)]),
++ 'C09': ('コーン', '2.5 m で出現', [Obstacle(12, 0.0, trigger_m=2.5, name='cone', **_CONE)]),
++ 'L10': ('低い物', '高さ 0.5 m', [Obstacle(12, 0.0, radius=0.15, height=0.5, name='low')]),
++ 'L11': ('低い物', '高さ 0.3 m', [Obstacle(12, 0.0, radius=0.25, height=0.3, name='low')]),
++ 'L12': ('低い物', '高さ 1.0 m', [Obstacle(12, 0.0, radius=0.15, height=1.0, name='low')]),
++ 'S13': ('太い物', '直径 0.6 m', [Obstacle(12, 0.0, radius=0.3, height=1.2, name='pole')]),
++ 'S14': ('太い物', '直径 1.0 m', [Obstacle(12, 0.0, radius=0.5, height=1.2, name='pole')]),
++ 'S15': ('太い物', '直径 2.0 m', [Obstacle(12, 0.0, radius=1.0, height=1.2, name='pole')]),
++ 'B16': ('箱・壁', '幅 1 m', [_B(1.0)]),
++ 'B17': ('箱・壁', '幅 2 m', [_B(2.0)]),
++ 'B18': ('箱・壁', '幅 3 m', [_B(3.0)]),
++ 'B19': ('箱・壁', '幅 6 m', [_B(6.0)]),
++ 'B20': ('箱・壁', '幅 10 m', [_B(10.0)]),
++ 'B21': ('箱・壁', '幅 2 m、左へ 1 m', [_B(2.0, y=1.0)]),
++ 'P22': ('人', '前に出て 8 秒立つ', [Obstacle(12, 0.0, trigger_m=3.0, dwell_s=8.0, name='person', **_P)]),
++ 'P23': ('人', '前に出て立ち続ける', [Obstacle(12, 0.0, trigger_m=3.0, name='person', **_P)]),
++ 'P24': ('人', '1.2 m/s で横切る', [Obstacle(13, -3.0, vy=1.2, trigger_m=6.0, dwell_s=6.0, name='person', **_P)]),
++ 'P25': ('人', '0.5 m/s で横切る', [Obstacle(13, -2.0, vy=0.5, trigger_m=6.0, dwell_s=9.0, name='person', **_P)]),
++ 'P26': ('人', '正面から 1.0 m/s', [Obstacle(20, 0.0, vx=-1.0, trigger_m=9.0, dwell_s=11.0, name='person', **_P)]),
++ 'P27': ('人', '前を 0.4 m/s で歩く', [Obstacle(10, 0.0, vx=0.4, trigger_m=6.0, dwell_s=30.0, name='person', **_P)]),
++ 'M28': ('複数', 'コーン 3 本の千鳥', [Obstacle(10, 0.4, name='cone1', **_CONE), Obstacle(14, -0.4, name='cone2', **_CONE), Obstacle(18, 0.4, name='cone3', **_CONE)]),
++ 'M29': ('複数', '幅 1.5 m の門', [Obstacle(12, 1.75, height=1.0, half_x=0.5, half_y=1.0, name='gateL'), Obstacle(12, -1.75, height=1.0, half_x=0.5, half_y=1.0, name='gateR')]),
++ 'M30': ('複数', '幅 4 m の歩道にコーン', [Obstacle(12.5, 2.15, height=1.5, half_x=13.5, half_y=0.15, name='wallL'), Obstacle(12.5, -2.15, height=1.5, half_x=13.5, half_y=0.15, name='wallR'), Obstacle(12, 0.5, name='cone', **_CONE)]),
++}
++
++
+ def scenario(name: str, seed: int = 0) -> Scenario:
+     """The scenarios by name (SCENARIOS). New ones copy the form: they run the same way."""
++    _b = lambda x, y, r: Obstacle(x, y, radius=r, height=1.2, name='bush')
++    W = {'W01': [Obstacle(15, 0, name='cone', **CONE)], 'W02': [_b(15, 0, 0.5)], 'W03': [_b(15, 0, 1.0)],
++         'W04': [Obstacle(15, 0, height=1.0, half_x=0.5, half_y=1.5, name='box')], 'W05': [_b(15, 0.5, 0.5)], 'W06': [_b(15, 1.0, 0.5)],
++         'W07': [_b(15, 0, 0.5), _b(20, 0, 0.5)], 'W08': [_b(30, 0, 0.5)],
++         'W09': [Obstacle(12.5, 2.15, height=1.5, half_x=13.5, half_y=0.15, name='wallL'), Obstacle(12.5, -2.15, height=1.5, half_x=13.5, half_y=0.15, name='wallR'), _b(15, 0, 0.5)],
++         'N10': [], 'N11': [Obstacle(12.5, 1.5, height=1.5, half_x=13.5, half_y=0.15, name='wallL')],
++         'N12': [Obstacle(15, 0, trigger_m=4.0, dwell_s=8.0, name='person', **PERSON)]}
++    if name in W:
++        return Scenario(name, _route() if name == 'W08' else _route(length=25.0, side=0.0), W[name], timeout_s=120.0)
++    if name in SIM30:
++        return Scenario(name, _route(length=25.0, side=0.0), SIM30[name][2], timeout_s=120.0)
+     r = _route()
+     if name == 'free':                # following only: the baseline for speed and swing
+         obs = []

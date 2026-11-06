@@ -1,0 +1,20 @@
+total 336 bad ['kuams_W06_2', 'wide_stall_W03_1'] 2
+N10 base:4/4 c0 s0.0 p0.96 | wide:4/4 c0 s0.0 p0.96 | kuams:4/4 c0 s0.0 p0.96 | costmap:4/4 c0 s0.0 p0.96 | stall:4/4 c0 s0.0 p0.96 | wide_co:4/4 c0 s0.0 p0.96 | wide_st:4/4 c0 s0.0 p0.96
+N11 base:4/4 c0 s0.0 p0.96 | wide:4/4 c0 s0.0 p0.96 | kuams:4/4 c0 s4.0 p0.96 | costmap:4/4 c0 s0.0 p0.96 | stall:4/4 c0 s0.0 p0.96 | wide_co:4/4 c0 s0.0 p0.96 | wide_st:4/4 c0 s0.0 p0.96
+N12 base:4/4 c0 s0.0 p0.96 | wide:2/4 c0 s0.0 p0.96 | kuams:4/4 c0 s1.0 p0.96 | costmap:4/4 c0 s0.8 p0.96 | stall:4/4 c0 s1.0 p0.96 | wide_co:1/4 c0 s0.0 p0.96 | wide_st:1/4 c0 s0.0 p0.96
+W01 base:4/4 c3 s0.0 p0.96 | wide:4/4 c0 s0.0 p0.96 | kuams:4/4 c1 s1.0 p0.96 | costmap:4/4 c2 s0.5 p0.96 | stall:3/4 c2 s0.2 p0.96 | wide_co:4/4 c1 s0.0 p0.96 | wide_st:4/4 c2 s0.0 p0.96
+W02 base:1/4 c3 s0.0 p0.73 | wide:0/4 c3 s0.0 p0.86 | kuams:4/4 c3 s1.0 p0.96 | costmap:2/4 c2 s0.8 p0.80 | stall:2/4 c4 s1.8 p0.86 | wide_co:3/4 c4 s0.0 p0.96 | wide_st:0/4 c3 s0.8 p0.96
+W03 base:0/4 c3 s0.0 p0.65 | wide:0/4 c3 s0.0 p0.70 | kuams:4/4 c1 s1.0 p0.96 | costmap:0/4 c1 s0.0 p0.65 | stall:4/4 c1 s1.2 p0.96 | wide_co:0/4 c1 s0.0 p0.70 | wide_st:2/4 c2 s1.2 p0.72
+W04 base:0/4 c3 s0.0 p0.56 | wide:0/4 c4 s0.0 p0.56 | kuams:0/4 c4 s1.0 p0.56 | costmap:0/4 c4 s0.0 p0.56 | stall:0/4 c4 s2.0 p0.61 | wide_co:0/4 c4 s0.0 p0.59 | wide_st:0/4 c4 s1.0 p0.56
+W05 base:2/4 c2 s0.0 p0.83 | wide:1/4 c0 s0.0 p0.96 | kuams:4/4 c0 s1.0 p0.96 | costmap:4/4 c0 s1.0 p0.96 | stall:2/4 c1 s1.2 p0.96 | wide_co:3/4 c0 s0.0 p0.96 | wide_st:2/4 c0 s0.0 p0.96
+W06 base:4/4 c0 s0.0 p0.96 | wide:4/4 c0 s0.0 p0.96 | kuams:3/4 c0 s0.8 p0.72 | costmap:4/4 c0 s0.0 p0.96 | stall:4/4 c0 s0.0 p0.96 | wide_co:4/4 c0 s0.0 p0.96 | wide_st:4/4 c0 s0.0 p0.96
+W07 base:0/4 c3 s0.0 p0.69 | wide:2/4 c2 s0.0 p0.89 | kuams:0/4 c3 s2.0 p0.96 | costmap:0/4 c3 s1.8 p0.87 | stall:1/4 c3 s2.0 p0.82 | wide_co:3/4 c1 s0.5 p0.97 | wide_st:2/4 c2 s1.0 p0.97
+W08 base:0/4 c4 s0.0 p0.78 | wide:0/4 c0 s0.0 p0.98 | kuams:0/4 c0 s1.0 p0.98 | costmap:0/4 c2 s1.0 p0.88 | stall:0/4 c3 s1.8 p0.82 | wide_co:0/4 c3 s0.0 p0.87 | wide_st:0/4 c1 s0.5 p0.91
+W09 base:0/4 c4 s0.0 p0.62 | wide:0/4 c4 s0.0 p0.59 | kuams:0/4 c4 s3.0 p0.58 | costmap:1/4 c3 s0.5 p0.72 | stall:0/4 c4 s2.0 p0.58 | wide_co:1/4 c3 s0.0 p0.68 | wide_st:0/4 c4 s1.0 p0.57
+base n 48 goal 23 prog>=.95 23 contact 25 v 0.31
+wide n 48 goal 21 prog>=.95 33 contact 16 v 0.37
+kuams n 48 goal 31 prog>=.95 39 contact 16 v 0.39
+costmap n 48 goal 27 prog>=.95 30 contact 17 v 0.35
+stall n 48 goal 28 prog>=.95 34 contact 22 v 0.35
+wide_costmap n 48 goal 27 prog>=.95 35 contact 17 v 0.37
+wide_stall n 48 goal 23 prog>=.95 38 contact 18 v 0.39
