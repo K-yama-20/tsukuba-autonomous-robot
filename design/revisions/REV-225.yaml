@@ -1,0 +1,62 @@
+# 変更セット REV-225（2026-11-06 第206便: Nav2 の失敗で待機に入らない人の決定 DEC-437、回復の構成の未決事項 DEC-438）
+# 適用: design/tools/apply_revision.py REV-225
+id: REV-225
+date: '2026-11-06'
+summary: >
+  第206便：DEC-316 の判断材料（第17版と照合）への人の回答を DEC-437 に原文で記録する。Nav2 の goal が失敗しても待機モードに入らない方針（DEC-200 の Nav2 の部分を置き換える）。失敗から回復できる構成は後で考える未決事項として DEC-438（question、pending）に登録する。コード・設定は変えない。
+basis_refs:
+- DEC-316
+- DEC-200
+- DEC-366
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-437
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: DEC-316（intent.md の読み取れない点）の判断材料への回答：Nav2 の失敗のときに待機モードに入るか、および PC 再起動の後の戻り先の理由の質問
+  answer_verbatim: |
+    PC 再起動の後に自動で事前地図作成に戻らないようにするのは何故？
+    Nav2が失敗しても待機には入らないようにしよう。失敗してもリカバリーできるような構成を後で考えようね。これを未決事項として入れよう
+  affected_refs:
+  - DEC-316
+  - DEC-200
+  - DEC-307
+  - DEC-366
+  - TR-07
+  - ND-03
+  - RQ-I104
+  - RQ-I118
+  - MODE-PAUSE
+  resulting_refs:
+  - DEC-438
+  note: >
+    意味：Nav2 の goal が失敗（SUCCEEDED・CANCELED 以外）で終わっても、TR-07 で待機モードに入らない。intent.md 第17版 19 行（RQ-I104）の「待機モードに入らずとも良い」のうち、入らない側を人が選んだ。確定済みの DEC-200（Nav2 の失敗で一時停止）は書き換えず、Nav2 の部分をこの項目で置き換える。推定不能の扱いは DEC-342・350・365 のまま。入らない代わりに何をするか（回復の構成）は未決で、DEC-438 に登録した。DEC-307・DEC-366 はその候補として pending のまま。実装：していない。今の実装（mode_manager_node.py の _on_nav_result）は、localization_wait の間を除き、Nav2 の失敗で TR-07 の待機に入る。待機に入らない変更だけを先に入れると、goal が終わったまま次の goal が出ず、自律走行モードのまま止まり続ける（3 分の滞留で失格の恐れ）。実装の時期は DEC-106 により人の指示を待つ。1 行目の質問（PC 再起動の後に事前地図作成に戻らない理由）への AI の説明は第206便の作業記録に書いた。戻り先は intent.md 第17版 100 行（RQ-I118）の人の記載「直前が事前地図作成/待機モードなら待機モードへ復帰」による。DEC-316 は (1)(3)(4) の回答がまだないので pending のまま。
+- id: DEC-438
+  kind: question
+  status: pending
+  asked_on: '2026-11-06'
+  answered_on:
+  channel: chat
+  question: >
+    【未決】Nav2 の goal が失敗しても待機モードに入らない（DEC-437）とき、失敗から回復して自律走行を続けられる構成をどうするか（人の指示により後で考える）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-437
+  - DEC-307
+  - DEC-366
+  - DEC-343
+  - DEC-310
+  - TR-07
+  - ND-03
+  - ND-10
+  - PRM-18
+  - G-RECOVERY
+  - G-RECOVERY-COUNT
+  resulting_refs: []
+  note: >
+    候補（どれも未承認）：DEC-366（stop で区切った区間ごとに goal を出し、中止されたら今の区間の残りだけを出し直す。DEC-307 の新しい案）、DEC-310（前進できない時間に応じて段階を上げる）、第200便のシミュレーション（waypoint を諦める処理、K-yama-20/tsukuba-autonomous-robot#69〜#71）。考える範囲の例：失敗の理由（error_code）ごとの扱い、出し直しの間隔と回数の記録、同じ場所での繰り返しによる 3 分の滞留の避け方、stop の点を越えないこと（DEC-343）。先行事例：未調査（CLAUDE.md 1.11。構成を考えるときに Nav2 の BT・上流の issue・他チームを先に探す）。決まらない場合に止まる作業：Nav2 の失敗のときに待機に入らない変更の実装（DEC-437）。
+  disposition: open_human
+decision_updates: []
