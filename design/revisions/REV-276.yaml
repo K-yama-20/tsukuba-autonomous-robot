@@ -1,0 +1,74 @@
+# 変更セット REV-276（2026-11-07 第248便: DEC-490 の承認で、MPPI の速度と旋回の値を下げる）
+# 適用: design/tools/apply_revision.py REV-276
+id: REV-276
+date: '2026-11-07'
+summary: >-
+  第248便：人の回答「案どおり変えて」（DEC-490）で、vx_max（PRM-131）0.8→0.5 m/s、MPPI の wz_max（PRM-132）1.0→0.5 rad/s、
+  velocity_smoother の最大の角速度（PRM-67）1.0→0.5 rad/s、旋回の角加速度（PRM-73、MPPI の az_max と velocity_smoother）2.0→0.5 rad/s² にした。
+  速度の帰還の層の旋回の PI を 0 にするのは、人が /config で入れる値（コードの既定は未設定のまま）。区間の速度の制限は人が運用で決める（DEC-491）。
+basis_refs:
+- DEC-490
+- DEC-491
+- DEC-481
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions: []
+entities: []
+modifications:
+- id: PRM-131
+  interpretation_append: >-
+    REV-276（DEC-490、第248便）：vx_maxを 0.8 m/s（DEC-402） から 0.5 m/s にした。前の値の判断はそのまま残す。
+  set:
+    approval_decision_ref: DEC-490
+  set_nested:
+    parameter.value: 0.5
+    parameter.measurement: >-
+      人の回答「案どおり変えて」（DEC-490）で、AI の提示の値 0.5 m/s を承認。根拠は模擬の 2 回目（research/vehicle_pc/2026-11-07_ffpi_sim_r2/、
+      vx_max 0.5・旋回の模型 B で遅れて出るコーンの間隔 0.51 m、接触 0/6）と、実測の旋回の立ち上がり（DEC-445）。実車では未検証。前の値は 0.8 m/s（DEC-402）
+    parameter.decision_deadline: 決定済み（DEC-490。実車の走行で見直す）
+- id: PRM-132
+  interpretation_append: >-
+    REV-276（DEC-490、第248便）：MPPI の wz_maxを 1.0 rad/s（DEC-402） から 0.5 rad/s にした。前の値の判断はそのまま残す。
+  set:
+    approval_decision_ref: DEC-490
+  set_nested:
+    parameter.value: 0.5
+    parameter.measurement: >-
+      人の回答「案どおり変えて」（DEC-490）で、AI の提示の値 0.5 rad/s を承認。根拠は模擬の 2 回目（research/vehicle_pc/2026-11-07_ffpi_sim_r2/、
+      vx_max 0.5・旋回の模型 B で遅れて出るコーンの間隔 0.51 m、接触 0/6）と、実測の旋回の立ち上がり（DEC-445）。実車では未検証。前の値は 1.0 rad/s（DEC-402）
+    parameter.decision_deadline: 決定済み（DEC-490。実車の走行で見直す）
+- id: PRM-67
+  interpretation_append: >-
+    REV-276（DEC-490、第248便）：velocity_smoother の最大の角速度を 1.0 rad/s（DEC-192） から 0.5 rad/s にした。前の値の判断はそのまま残す。
+  set:
+    approval_decision_ref: DEC-490
+  set_nested:
+    parameter.value: 0.5
+    parameter.measurement: >-
+      人の回答「案どおり変えて」（DEC-490）で、AI の提示の値 0.5 rad/s を承認。根拠は模擬の 2 回目（research/vehicle_pc/2026-11-07_ffpi_sim_r2/、
+      vx_max 0.5・旋回の模型 B で遅れて出るコーンの間隔 0.51 m、接触 0/6）と、実測の旋回の立ち上がり（DEC-445）。実車では未検証。前の値は 1.0 rad/s（DEC-192）
+    parameter.decision_deadline: 決定済み（DEC-490。実車の走行で見直す）
+- id: PRM-73
+  interpretation_append: >-
+    REV-276（DEC-490、第248便）：旋回の角加速度（MPPI の az_max と velocity_smoother）を 2.0 rad/s²（DEC-192） から 0.5 rad/s² にした。前の値の判断はそのまま残す。
+  set:
+    approval_decision_ref: DEC-490
+  set_nested:
+    parameter.value: 0.5
+    parameter.measurement: >-
+      人の回答「案どおり変えて」（DEC-490）で、AI の提示の値 0.5 rad/s² を承認。根拠は模擬の 2 回目（research/vehicle_pc/2026-11-07_ffpi_sim_r2/、
+      vx_max 0.5・旋回の模型 B で遅れて出るコーンの間隔 0.51 m、接触 0/6）と、実測の旋回の立ち上がり（DEC-445）。実車では未検証。前の値は 2.0 rad/s²（DEC-192）
+    parameter.decision_deadline: 決定済み（DEC-490。実車の走行で見直す）
+decision_updates:
+- id: DEC-490
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      案どおり変えて
+    resulting_refs:
+    - PRM-131
+    - PRM-132
+    - PRM-67
+    - PRM-73

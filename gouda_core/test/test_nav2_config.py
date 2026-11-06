@@ -272,9 +272,9 @@ class TunableTests(unittest.TestCase):
             follow = p['controller_server']['ros__parameters']['FollowPath']
             vs = p['velocity_smoother']['ros__parameters']
             self.assertEqual(follow['plugin'], nc.MPPI_PLUGIN)
-            self.assertEqual((follow['vx_max'], follow['vx_min'], follow['wz_max']), (0.8, 0.0, 1.0))
+            self.assertEqual((follow['vx_max'], follow['vx_min'], follow['wz_max']), (0.5, 0.27, 0.5))   # vx_min: REV-261 (DEC-480), PRM-162; 0.0 before. vx_max / wz_max: REV-276 (DEC-490), 0.8 / 1.0 before
             self.assertEqual((follow['ax_max'], follow['ax_min'], follow['az_max']), (vs['max_accel'][0], -vs['max_accel'][0], vs['max_accel'][2]))
-            self.assertAlmostEqual(follow['prune_distance'], tf['prune_distance'] * 0.8 / tf['vx_max'])
+            self.assertAlmostEqual(follow['prune_distance'], tf['prune_distance'] * follow['vx_max'] / tf['vx_max'])   # PRM-131 (REV-276: 0.5)
             horizon = follow['vx_max'] * follow['time_steps'] * follow['model_dt']
             self.assertGreater(follow['prune_distance'], horizon)
             self.assertIs(follow['CostCritic']['consider_footprint'], True); self.assertIs(follow['visualize'], False)

@@ -1,0 +1,72 @@
+04:20:11 start onv:C01:0.5:B:1 d97 load 2.40
+04:20:36 start onv:C01:0.5:B:2 d98 load 2.79
+04:21:01 start onv:C01:0.5:B:3 d99 load 4.34
+04:21:28 end onv:C01:0.5:B:1 pause:goal_reached True 0 51.7 0.464 4.68
+04:21:32 start onv:C02:0.5:B:1 d97 load 4.78
+04:21:45 end onv:C01:0.5:B:2 pause:goal_reached True 0 51.7 0.464 4.43
+04:21:49 start onv:C02:0.5:B:2 d98 load 3.91
+04:22:18 end onv:C01:0.5:B:3 pause:goal_reached True 0 51.8 0.463 3.8
+04:22:22 start onv:C02:0.5:B:3 d99 load 4.94
+04:23:02 end onv:C02:0.5:B:2 pause:goal_reached True 0 50.8 0.472 5.42
+04:23:06 start onv:C03:0.5:B:2 d98 load 5.63
+04:23:10 end onv:C02:0.5:B:1 pause:goal_reached True 0 50.8 0.473 5.63
+04:23:14 start onv:C03:0.5:B:1 d97 load 5.42
+04:23:33 end onv:C02:0.5:B:3 pause:goal_reached True 0 50.8 0.473 5.32
+04:23:37 start onv:C03:0.5:B:3 d99 load 7.54
+04:24:33 end onv:C03:0.5:B:1 pause:goal_reached True 0 50.3 0.478 6.46
+04:24:37 start onv:C04:0.5:B:1 d97 load 6.27
+04:24:41 end onv:C03:0.5:B:2 pause:goal_reached True 0 49.6 0.485 6.27
+04:24:45 start onv:C04:0.5:B:2 d98 load 6.00
+04:24:46 end onv:C03:0.5:B:3 pause:goal_reached True 0 50.1 0.479 6.09
+04:24:50 start onv:C04:0.5:B:3 d99 load 5.84
+04:25:56 end onv:C04:0.5:B:2 pause:goal_reached True 0 49.4 0.486 8.66
+04:25:57 end onv:C04:0.5:B:1 pause:goal_reached True 0 49.4 0.486 8.21
+04:25:59 end onv:C04:0.5:B:3 pause:goal_reached True 0 49.3 0.487 8.21
+04:26:00 start onv:C05:0.5:B:2 d98 load 8.19
+04:26:01 start onv:C05:0.5:B:1 d97 load 8.19
+04:26:03 start onv:C05:0.5:B:3 d99 load 8.19
+04:27:10 end onv:C05:0.5:B:1 pause:goal_reached True 0 48.6 0.495 6.8
+04:27:14 end onv:C05:0.5:B:2 pause:goal_reached True 0 48.5 0.495 6.41
+04:27:14 start onv:C06:0.5:B:1 d97 load 6.41
+04:27:18 start onv:C06:0.5:B:2 d98 load 6.14
+04:28:22 end onv:C05:0.5:B:3 timeout False 0 0.0 0.0 5.77
+04:28:26 start onv:C06:0.5:B:3 d99 load 5.71
+04:28:26 end onv:C06:0.5:B:1 pause:goal_reached True 1 51.6 0.466 5.71
+04:28:30 start onv:C01:0.8:A:1 d97 load 5.81
+04:28:57 end onv:C06:0.5:B:2 pause:goal_reached True 1 61.9 0.388 4.94
+04:29:01 start onv:C03:0.8:A:1 d98 load 4.86
+04:29:26 end onv:C01:0.8:A:1 pause:nav2_no_error_code False 0 1.0 0.0 4.63
+04:29:30 start onv:C02:0.8:A:1 d97 load 4.58
+04:29:50 end onv:C06:0.5:B:3 pause:goal_reached True 1 50.9 0.472 5.74
+04:29:54 start onv:C05:0.8:A:1 d99 load 6.64
+04:29:59 end onv:C03:0.8:A:1 pause:goal_reached True 0 37.0 0.649 6.43
+04:30:03 start onv:C04:0.8:A:1 d98 load 6.23
+04:30:54 end onv:C05:0.8:A:1 pause:goal_reached True 0 36.1 0.665 7.4
+04:30:58 start onv:C06:0.8:A:1 d99 load 7.69
+04:31:06 end onv:C02:0.8:A:1 pause:goal_reached True 0 37.2 0.646 8.28
+04:31:11 start off:C01:0.5:B:1 d97 load 8.37
+04:31:36 end onv:C04:0.8:A:1 pause:goal_reached True 0 36.6 0.655 10.55
+04:31:40 start off:C03:0.5:B:1 d98 load 9.86
+04:32:28 end onv:C06:0.8:A:1 pause:goal_reached True 1 52.6 0.457 10.24
+04:32:32 start off:C05:0.5:B:1 d99 load 10.46
+04:33:09 end off:C01:0.5:B:1 pause:goal_reached True 0 82.8 0.29 8.24
+04:33:13 start off:C02:0.5:B:1 d97 load 9.74
+04:34:18 end off:C03:0.5:B:1 pause:goal_reached True 0 81.2 0.296 7.62
+04:34:22 start off:C04:0.5:B:1 d98 load 7.41
+04:35:06 end off:C02:0.5:B:1 pause:goal_reached True 0 82.0 0.293 7.25
+04:35:10 DONE 97
+04:35:11 end off:C05:0.5:B:1 pause:goal_reached True 0 80.1 0.3 7.47
+04:35:15 start off:C06:0.5:B:1 d99 load 6.93
+04:36:04 end off:C04:0.5:B:1 pause:goal_reached True 0 80.9 0.297 5.7
+04:36:08 DONE 98
+04:37:08 end off:C06:0.5:B:1 pause:goal_reached True 1 84.4 0.285 3.81
+04:37:12 DONE 99
+04:38:08 start onv:C05:0.5:B:3 d97 load 3.17
+04:38:28 start onv:C01:0.8:A:2 d98 load 4.93
+04:38:48 start onv:C01:0.8:A:3 d99 load 6.26
+04:39:19 end onv:C05:0.5:B:3 pause:goal_reached True 0 48.8 0.491 8.02
+04:39:23 DONE 97
+04:39:27 end onv:C01:0.8:A:2 pause:goal_reached True 1 37.5 0.64 8.0
+04:39:31 DONE 98
+04:40:37 end onv:C01:0.8:A:3 pause:goal_reached True 1 37.7 0.637 7.37
+04:40:41 DONE 99
