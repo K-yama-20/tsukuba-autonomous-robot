@@ -1,0 +1,82 @@
+# 変更セット REV-265（2026-11-07 第241便: ゴールの到達判定の向きの許容を /config で変えられる値に。DEC-484、PRM-163）
+# 適用: design/tools/apply_revision.py REV-265
+id: REV-265
+date: '2026-11-07'
+summary: >-
+  第241便：人の回答「入れて」（DEC-484）で、Nav2 の到達判定（SimpleGoalChecker）の yaw_goal_tolerance を PRM-163（6.3 rad＝向きを問わない）にし、
+  monitor の /config「Nav2」タブ（IFD-54）で変えられるようにする。これまでは上流の雛形の 0.25 rad。waypoint の向きはすべて 0 で保存されており
+  （TRB-008、DEC-380）、MPPI の下限（PRM-162）があるとその場で回れず、ゴールで止まれなかった。位置の許容（0.25 m）は変えない。
+basis_refs:
+- DEC-484
+- DEC-480
+- DEC-380
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-484
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第241便）ゴールの到達判定で向きを問わない設定（/config で変更可）を製品に入れてよいか。AI の提示：到達判定は位置 0.25 m と向き 0.25 rad の
+    両方を求め、waypoint の向きはすべて 0。下限つき（PRM-162）はその場で回れず、模擬で 6 本中 4 本がゴールを通り過ぎて走り続けた。
+    向きの許容を 6.3 rad にした模擬（試験専用の上書き）は、曲がり角 1/1・直線 1/1 でゴールで止まった。失うものはゴールでの車体の向きの保証。
+    選択肢は「入れて」「先に議論する」。
+  answer_verbatim: |
+    入れて
+  affected_refs:
+  - ND-10
+  - IFD-54
+  - PRM-162
+  resulting_refs:
+  - PRM-163
+  note: >-
+    直前の人の発言（原文）：「下限を外したら弊害が出る。一時停止線でも止まれないのか？」「なぜ止まれないのか、私も一緒に考えるから、現状の実装を説明せよ。」。
+    6.3 rad は模擬で試した値（向きの差は最大でも π なので、常に満たす）。一時停止線で止まる処理（#81、#52）はこの変更に含まない（製品に未実装）。
+    最後の waypoint でその場で回る問題（TRB-008）も、この値では起きなくなる見込み（模擬の本数は少ない）。第241便。
+  disposition: answered
+entities:
+- id: PRM-163
+  kind: parameter
+  name: "ゴールの到達判定の向きの許容 yaw_goal_tolerance"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  - PRM-162
+  issue_refs: []
+  interpretation: "REV-265（DEC-484）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-10
+    value: 6.3
+    value_state: approved
+    unit: "rad"
+    stage: 自律走行の為の最小構成
+    purpose: "controller_server の general_goal_checker（SimpleGoalChecker）の yaw_goal_tolerance。最後の waypoint の位置の許容（雛形の 0.25 m）に入った後、車体の向きと waypoint の向きの差がこの値以内なら到達とする。π 以上なら向きを問わない。値がなければ雛形の値（0.25 rad）のまま。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「入れて」（DEC-484）で AI の提示の値 6.3 rad を承認。模擬（DEC-445 の車体モデル）での確認だけで、実車では未検証"
+    decision_deadline: 決定済み（DEC-484。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: goal_yaw_tolerance_rad
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-484
+modifications:
+- id: ND-10
+  interpretation_append: 'REV-265（DEC-484）：到達判定の向きの許容を PRM-163 で決める（6.3 rad。これまでは雛形の 0.25 rad）。'
+- id: IFD-54
+  interpretation_append: 'REV-265（DEC-484）：goal_yaw_tolerance_rad（PRM-163）を足した。'

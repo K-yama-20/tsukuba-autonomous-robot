@@ -300,6 +300,15 @@ class TunableTests(unittest.TestCase):
             self.assertEqual((follow['vx_max'], follow['wz_max']), (0.5, 0.3))
             self.assertEqual(p['local_costmap']['local_costmap']['ros__parameters']['update_frequency'], 5.0)
 
+    def test_goal_yaw_tolerance(self):   # REV-265 (DEC-484): PRM-163 by default, another value from /config, also with RPP; xy unchanged
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'g')
+            gc = p['controller_server']['ros__parameters']['general_goal_checker']
+            self.assertEqual((gc['yaw_goal_tolerance'], gc['xy_goal_tolerance'], gc['stateful']), (6.3, 0.25, True))
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'h', {'goal_yaw_tolerance_rad': 0.25, 'controller_use_mppi': False})
+            self.assertEqual(p['controller_server']['ros__parameters']['general_goal_checker']['yaw_goal_tolerance'], 0.25)
+
     def test_mppi_vx_min(self):   # REV-261 (DEC-480): PRM-162 by default, another value from /config, refused at or above vx_max
         with tempfile.TemporaryDirectory() as d:
             r, p, bt = self.build(d, 'v', {'mppi_vx_min_mps': 0.1})

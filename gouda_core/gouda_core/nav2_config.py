@@ -54,6 +54,7 @@ REV-190 (DEC-400, DEC-401, DEC-402):
   template, CostCritic with the footprint (PRM-69 is a long rectangle), no visualization. The other template values stay;
 - the replanning branch gets the upstream SmoothPath node after ComputePathThroughPoses when PRM-134 is true (simple_smoother of the
   template, no collision check as in the node's default).
+REV-265 (DEC-484): the goal checker's yaw_goal_tolerance is PRM-163 (the waypoints' headings are all 0, DEC-380), selectable in /config.
 REV-261 (DEC-480): MPPI's vx_min is PRM-162 (0 when it has no value, as REV-190 fixed it), selectable in /config.
 REV-240 (DEC-449): MPPI's open_loop is PRM-141 (true: the optimisation starts from the last command instead of the odometry speed, so the
   command can grow past the joystick dead band while the vehicle still stands, issue #61). Selectable in /config.
@@ -149,6 +150,7 @@ TUNABLES = OrderedDict([
     ('mppi_wz_max_radps', ('PRM-132', 'positive', 'gouda_nav2')),
     ('mppi_open_loop', ('PRM-141', 'boolean', 'gouda_nav2')),                         # REV-240 (DEC-449): false = MPPI starts from the measured speed
     ('mppi_vx_min_mps', ('PRM-162', 'positive', 'gouda_nav2')),                       # REV-261 (DEC-480): MPPI never commands a slower forward speed
+    ('goal_yaw_tolerance_rad', ('PRM-163', 'positive', 'gouda_nav2')),                # REV-265 (DEC-484): pi or more = the heading at the goal is not asked
     ('local_costmap_update_hz', ('PRM-133', 'positive', 'gouda_nav2')),
     ('path_smoothing_enabled', ('PRM-134', 'boolean', 'bt_params')),                  # REV-190 (DEC-401)
     ('map_odom_future_offset_s', ('PRM-135', 'positive', 'gouda_global_localization')),   # REV-193 (DEC-406), used by ND-07, not by Nav2
@@ -221,6 +223,8 @@ def apply_tunables(params: dict, t: dict, template_follow: dict) -> None:
     bt = params['bt_navigator']['ros__parameters']
     if has('bt_default_server_timeout_ms'): bt['default_server_timeout'] = int(t['bt_default_server_timeout_ms'])
     cs = params['controller_server']['ros__parameters']
+    # REV-265 (DEC-484): the goal checker's heading tolerance (both controllers); without a value the template's stays
+    if has('goal_yaw_tolerance_rad'): cs['general_goal_checker']['yaw_goal_tolerance'] = float(t['goal_yaw_tolerance_rad'])
     if t.get('controller_use_mppi'):
         vs = params['velocity_smoother']['ros__parameters']
         cs['FollowPath'] = mppi_follow(template_follow, t, vs['max_accel'][0], vs['max_accel'][2])
