@@ -303,7 +303,8 @@ class AutonomyClient:
             raise StepFailed('navigate_through_poses action server is not available')
         goal = NavigateThroughPoses.Goal()
         stamp = self.node.get_clock().now().to_msg()
-        for (x, y, qz, qw) in ac.goal_poses(mission.waypoints, offset):
+        end = ac.section_end(mission.stop_points, offset, len(mission.waypoints))   # DEC-482: never past a stop point
+        for (x, y, qz, qw) in ac.goal_poses(mission.waypoints, offset, end):
             p = PoseStamped(); p.header.frame_id = 'map'; p.header.stamp = stamp
             p.pose.position.x, p.pose.position.y = float(x), float(y); p.pose.orientation.z, p.pose.orientation.w = float(qz), float(qw)
             goal.poses.append(p)
@@ -315,7 +316,7 @@ class AutonomyClient:
         if not gh.accepted:
             raise StepFailed('Nav2 rejected the NavigateThroughPoses goal')
         self.goal_handle = gh
-        record('nav2_goal_sent', f'NavigateThroughPoses goal accepted ({len(goal.poses)} poses from waypoint {offset})', {'offset': offset, 'poses': len(goal.poses)})
+        record('nav2_goal_sent', f'NavigateThroughPoses goal accepted ({len(goal.poses)} poses from waypoint {offset} to {end})', {'offset': offset, 'poses': len(goal.poses), 'end': end})
         gh.get_result_async().add_done_callback(lambda f, h=gh: self._result(h, f))
 
     def _feedback(self, fb):

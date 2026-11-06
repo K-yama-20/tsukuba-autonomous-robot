@@ -624,6 +624,7 @@
       wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
     });
     wpState.points.forEach((p) => { if (!p.skip_allowed) return; const [px, py] = toPx(p); ctx.strokeStyle = '#D35400'; ctx.lineWidth = 3; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); });   // DEC-367 mark: dashed orange ring
+    wpState.points.forEach((p) => { if (p.kind !== 'stop') return; const [px, py] = toPx(p); ctx.strokeStyle = '#ce0000'; ctx.lineWidth = 3; ctx.strokeRect(px - 9, py - 9, 18, 18); });   // DEC-482 mark: red square (stop point)
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f2e700' : '#000000'; ctx.strokeStyle = i === 0 ? '#000000' : '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.font = 'bold 13px monospace'; const t = String(i); ctx.fillStyle = '#ffffff'; ctx.fillRect(px + 5, py - 20, ctx.measureText(t).width + 6, 15); ctx.fillStyle = '#000000'; ctx.fillText(t, px + 8, py - 8); });
     const ep = wpState.endPose;
     if (ep) {   // the end of the mapping run (DEC-289): a dark yellow arrow with a label, under the initial pose
@@ -649,6 +650,11 @@
       || '<tr><td colspan="2" class="dim">waypoint を 2 点以上置く</td></tr>';
     $('wp-skip').querySelectorAll('input.skip').forEach((inp) => inp.addEventListener('change', () => {
       const p = wpState.points[parseInt(inp.dataset.i, 10)]; if (inp.checked) p.skip_allowed = true; else delete p.skip_allowed; wpDraw();
+    }));
+    $('wp-stop').innerHTML = wpState.points.map((p, i) => `<tr><td>waypoint ${i}</td><td><label><input type="checkbox" class="stop" data-i="${i}" ${p.kind === 'stop' ? 'checked' : ''}> 停止線で止まる</label></td></tr>`).join('')
+      || '<tr><td colspan="2" class="dim">waypoint を置く</td></tr>';
+    $('wp-stop').querySelectorAll('input.stop').forEach((inp) => inp.addEventListener('change', () => {   // DEC-482: kind stop (never skip_allowed: DEC-367)
+      const p = wpState.points[parseInt(inp.dataset.i, 10)]; p.kind = inp.checked ? 'stop' : 'pass'; if (inp.checked) delete p.skip_allowed; wpDraw();
     }));
     const names = { keepout: '走行禁止', allowed: '走行可' };
     $('wp-areas').innerHTML = wpState.areas.map((a, i) => `<tr><td>範囲 ${i}: ${names[a.kind]}</td><td>${a.polygon.length} 点 <button class="op" data-del="${i}" type="button">削除<small>DELETE</small></button></td></tr>`).join('')

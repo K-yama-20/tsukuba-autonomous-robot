@@ -23,6 +23,9 @@ ND-12 deactivate, Nav2 RESET, auto log stop), TR-07 (Nav2 failed) and TR-08 (las
 A failed Nav2 goal (DEC-437, DEC-460, REV-245) no longer pauses when nav2_failure_resend_wait_s (PRM-161) has a value: the mode
 stays 自律走行 with motion_hold=true, and after that wait the goal is sent again from the first waypoint not yet passed (no limit
 on the count; a failed re-send is tried again after the same wait). Without a value the failure pauses through TR-07 as before.
+一時停止線 (DEC-482, REV-263): every goal ends at the next waypoint of kind stop. Reaching it (Nav2's success, or the robot within
+PRM-11 of it) holds the robot inside 自律走行 (rule_stop_hold, stop_reason rule_stop, goal cancelled); the 再開 button (mode/resume)
+then sends the goal from the waypoint after it. No localization wait, re-send or skip restarts it.
 TR-03 also configures vehicle_bridge (ND-12; not activated, no COMMAND) after the transition so that the ESP32 STATUS is recorded
 while mapping (DEC-169, DEC-180); it stays configured after TR-04. TR-05 starts ND-08 (GLIM odometry only, before Nav2), then
 the global localization ND-07 (trial A3, REV-128, DEC-203): the map is set, ND-07 is configured and activated, and Nav2 is
@@ -157,6 +160,8 @@ class ModeManagerNode(Node):
         fp = nav2_config.read_values(self.params_dir, self.trial).get(('gouda_nav2', 'footprint')) if self.params_dir else None
         self.footprint = ac.parse_footprint(fp) if fp else None   # PRM-69: placed on the waypoint for its cost (DEC-367)
         rp = nav2_config.read_values(self.params_dir, self.trial).get(('bt_params', 'remove_passed_goals_radius_m')) if self.params_dir else None
+        self.stop_radius = float(rp) if isinstance(rp, (int, float)) and not isinstance(rp, bool) else None   # PRM-11: a stop point is reached within it (DEC-482)
+        self.rule_stop_index = None   # the stop point the robot is held at (一時停止線, DEC-482), or None
         miss = self._nav2_missing()
         if miss:
             self._publish_decision('nav2_not_configured', 'TR-05', f'Nav2 is not started: unresolved vehicle values {miss}; 自律走行開始 is refused until they are decided (intent.md:85)', {'missing': miss})
@@ -232,12 +237,15 @@ class ModeManagerNode(Node):
             if event != 'start_autonomy':
                 self._pending_start = None
             self._next_state_fields = None
-            r = mode_core.request_transition(event, self.state, IMPLEMENTED_TRANSITIONS)
+            # DEC-482: the 再開 button while held at a stop point resumes inside 自律走行; every other request as before
+            held = event == 'resume' and self.state.processing_state == mode_core.PROCESSING_RULE_STOP_HOLD
+            r = mode_core.rule_stop_resume(self.state) if held else mode_core.request_transition(event, self.state, IMPLEMENTED_TRANSITIONS)
             if r.accepted:
-                ok, why = self._perform(r.transition_id)
+                ok, why = self._tr10_resume() if held else self._perform(r.transition_id)   # held: next_offset is already the waypoint after the stop
                 if not ok:
-                    r = mode_core.RequestResult(False, r.transition_id, f'refused: {r.transition_id} actions failed: {why}')
-            self._publish_decision('human_request', r.transition_id, r.reason, dict(details, event=event, accepted=r.accepted, mode=self.state.mode))
+                    r = mode_core.RequestResult(False, r.transition_id, f'refused: {r.transition_id or "rule stop resume"} actions failed: {why}')
+            self._publish_decision('human_request', r.transition_id, r.reason, dict(details, event=event, accepted=r.accepted, mode=self.state.mode,
+                                                                                    **({'rule_stop': self.rule_stop_index} if held else {})))
             # Separate call sites: rclpy refuses a logging call site whose severity changes between calls (it raised and
             # killed this node when an accepted request was followed by a refused one: 2026-10-13 VM test).
             if r.accepted:
@@ -256,6 +264,10 @@ class ModeManagerNode(Node):
         if self.localization_waiting and new_state.mode != mode_core.MODE_AUTONOMY:   # a human's pause or end ends the wait (DEC-423)
             self.localization_waiting = False
             new_state = mode_core.ModeState(**{**new_state.as_dict(), 'processing_state': 'idle'})
+        if new_state.mode != mode_core.MODE_AUTONOMY and new_state.processing_state == mode_core.PROCESSING_RULE_STOP_HOLD:
+            new_state = mode_core.ModeState(**{**new_state.as_dict(), 'processing_state': 'idle'})   # a human's pause / end leaves the stop (DEC-482)
+        if new_state.processing_state != mode_core.PROCESSING_RULE_STOP_HOLD:
+            self.rule_stop_index = None
         self.state = new_state
         mode_core.PreviousModeRecord(mode=self.state.mode, human_pause_or_end=self.state.human_pause_or_end_recorded,
                                      run_id=self.state.run_id, state_revision=self.state.state_revision).save(self.record_path)
@@ -483,6 +495,27 @@ class ModeManagerNode(Node):
         self.get_logger().warning(f'{transition_id}: {reason}')
         self._set_state(new)
 
+    def _rule_stop_hold(self, stop_index, how, details):
+        """一時停止線 (DEC-482, called with the lock held): the robot reached the stop point that ends the goal. It is held inside
+        自律走行 (motion_hold=true, the goal cancelled, processing_state rule_stop_hold, stop_reason rule_stop) and nothing restarts
+        by itself: the new token drops a re-send, a start step or a skip still in progress. The human's 再開 sends the goal from
+        the waypoint after the stop point (next_offset)."""
+        new = mode_core.rule_stop_hold(self.state, stop_index, len(self.mission.waypoints))
+        if new is None:
+            return
+        self.auto.new_token()
+        self.drive_released = False; self.goal_active = False
+        self.next_offset, self.rule_stop_index = stop_index + 1, stop_index
+        wx, wy = self.mission.waypoints[stop_index][0], self.mission.waypoints[stop_index][1]
+        xy = self.auto.robot_xy
+        dist = ((xy[0] - wx) ** 2 + (xy[1] - wy) ** 2) ** 0.5 if xy else None
+        text = f'held at stop point {stop_index} ({how}): motion_hold=true, waiting for the human 再開 (DEC-482, DEC-345); then from waypoint {stop_index + 1}'
+        self._publish_decision('rule_stop_hold', '', text, dict(details, waypoint=stop_index, waypoint_xy=[wx, wy], distance_m=dist, next_offset=self.next_offset))
+        self.get_logger().info(f'rule_stop_hold: {text}')
+        self._set_state(new)
+        if self.auto.goal_handle is not None:
+            threading.Thread(target=lambda: self.auto.cancel(self._rec(''), ''), name='rule_stop_cancel', daemon=True).start()
+
     # ---- ND-07 state (IFD-53, REV-128, DEC-200) ----
     def _on_estimator_status(self, m: EstimatorStatus):
         self.estimator_rx = self._now()
@@ -508,6 +541,9 @@ class ModeManagerNode(Node):
                 return
             if self.localization_waiting:
                 return
+            if self.state.processing_state == mode_core.PROCESSING_RULE_STOP_HOLD:
+                # DEC-482: held at a stop point there is no goal to cancel and no automatic re-send (the localization wait would
+                # drive on by itself); the human's resume requires 正常 (TR-10 guard)
                 self.estimator_grace.clear()
                 return
         started, expired = self.estimator_grace.bad(self._now())
@@ -566,9 +602,14 @@ class ModeManagerNode(Node):
     def _on_nav_feedback(self, offset, poses, remaining):
         with self._lock:
             if self.state.mode != mode_core.MODE_AUTONOMY: return
+            if self.state.processing_state == mode_core.PROCESSING_RULE_STOP_HOLD: return   # a late feedback of the cancelled goal (DEC-482)
             section = ac.section_from_feedback(offset, poses, remaining)
             self.next_offset = ac.remaining_offset(offset, poses, remaining)
             total = len(self.mission.waypoints) if self.mission else 0
+            if self.mission and self.goal_active and not self.skipping and not self.localization_waiting:
+                stop = ac.held_stop_point(self.mission.stop_points, self.next_offset, total)
+                if ac.stop_point_near(stop, self.mission.waypoints, self.auto.robot_xy, self.stop_radius):
+                    self._rule_stop_hold(stop, 'within PRM-11 of the stop point', {'robot_xy': self.auto.robot_xy, 'radius_m': self.stop_radius}); return
             self._skip_check()
             if (section, total - self.next_offset) != (self.state.current_section, self.state.remaining_waypoints):
                 skipped = section - self.state.current_section - 1
@@ -611,6 +652,11 @@ class ModeManagerNode(Node):
         from action_msgs.msg import GoalStatus
         with self._lock:
             self.goal_active = False
+            if self.state.processing_state == mode_core.PROCESSING_RULE_STOP_HOLD:   # DEC-482: held; nothing re-sends or pauses
+                self._publish_decision('nav2_goal_ended', '', f'Nav2 goal ended with status {status} while held at a stop point', {'status': status}); return
+            stop = ac.held_stop_point(getattr(self.mission, 'stop_points', []), self.next_offset, len(self.mission.waypoints)) if self.mission else None
+            if status == GoalStatus.STATUS_SUCCEEDED and stop is not None and self.state.mode == mode_core.MODE_AUTONOMY:
+                self._rule_stop_hold(stop, 'Nav2 reached the stop point (goal succeeded)', {'status': status}); return
             if status == GoalStatus.STATUS_SUCCEEDED:
                 if self.mission: self.next_offset = len(self.mission.waypoints) - 1   # resume aims at the last waypoint (RQ-I067)
                 new = mode_core.automatic_pause(self.state, 'TR-08', mode_core.STOP_REASON_GOAL_REACHED, 1)

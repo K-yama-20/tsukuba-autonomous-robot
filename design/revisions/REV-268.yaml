@@ -1,0 +1,37 @@
+# 変更セット REV-268（2026-11-07 第239便の続き: 一時停止線の止め方の確認。DEC-487）
+# 適用: design/tools/apply_revision.py REV-268
+id: REV-268
+date: '2026-11-07'
+summary: >-
+  第239便の続き：人の回答「このままでよい」（DEC-487）で、停止点での止め方を DEC-482 の採った案（待機に入れず、自律走行モードの中で止める）のままにする。
+  コード・設定・値は REV-263 から変えていない。
+basis_refs:
+- DEC-487
+- DEC-482
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-487
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第239便）停止点での止め方は「自律走行モードの中で止める」案のままでよいか。代わりの案は、停止点で自動で待機モードに入れる
+    （変更は少し小さいが、表示が待機になり、規則の「自動で待機は失敗」の例外に頼る）。選択肢は「このままでよい」「待機モードにする」。
+  answer_verbatim: |
+    このままでよい
+  affected_refs:
+  - ND-03
+  - TR-10
+  resulting_refs: []
+  note: >-
+    DEC-482 の note に「人が覆してよい判断」として書いた 4 つのうち、止め方（自律走行の中の段階にする）についての回答。
+    残りの 3 つ（着いた判定に PRM-11 を使う、再開ボタンを分けない、PC 再起動の後は待機になる）は、この問いでは尋ねておらず、回答に含めない。
+    車載 PC への反映と実車は未実行。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-03
+  interpretation_append: 'REV-268（DEC-487）：停止点での止め方は自律走行の中の段階のまま（人の回答「このままでよい」）。'

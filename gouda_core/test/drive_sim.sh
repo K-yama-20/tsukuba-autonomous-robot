@@ -21,7 +21,7 @@ cleanup() {
   rm -rf "$ROOT"
 }
 trap cleanup EXIT
-REQ=$(python3 "$here/drive_sim_fixture.py" "$ROOT" "$SCENARIO") || exit 1
+REQ=$(python3 "${SIM_FIXTURE:-$here/drive_sim_fixture.py}" "$ROOT" "$SCENARIO") || exit 1   # SIM_FIXTURE: e.g. drive_sim_stop_fixture.py (DEC-482)
 [ -n "$VALUES" ] && python3 -c "import json,sys; json.dump({'config_revision': 1, 'values': json.load(open(sys.argv[1]))}, open(sys.argv[2], 'w'))" "$VALUES" "$ROOT/config/nav2_recovery.json"
 [ -n "$GOUDA_TEST_LAYERS" ] && export GOUDA_TEST_LAYERS GOUDA_TEST_LAYERS_PY="$here/drive_sim_layers.py"
 bash "$here/stack.sh" start "$ROOT" || exit 1

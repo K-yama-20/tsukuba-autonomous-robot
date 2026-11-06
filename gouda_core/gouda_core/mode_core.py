@@ -199,3 +199,29 @@ def automatic_pause(state: ModeState, transition_id: str, stop_reason: str, rema
         return None
     return ModeState(**{**state.as_dict(), 'mode': MODE_PAUSE, 'previous_mode': MODE_AUTONOMY, 'stop_reason': stop_reason,
                         'remaining_waypoints': remaining_waypoints, 'state_revision': state.state_revision + 1})
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# 一時停止線 (DEC-482, REV-263): a stage inside 自律走行 (intent.md:101), not 待機. Reaching a waypoint of kind stop holds the
+# robot (motion_hold=true, no goal) with processing_state rule_stop_hold and stop_reason rule_stop; nothing restarts by itself.
+# The human's resume (the same 再開 button / mode/resume as TR-10, DEC-345) sends the goal from the waypoint after it.
+# ---------------------------------------------------------------------------------------------------------------------
+STOP_REASON_RULE_STOP = 'rule_stop'               # 停止線で停止中 (waiting for the human's resume)
+PROCESSING_RULE_STOP_HOLD = 'rule_stop_hold'
+
+
+def rule_stop_hold(state: ModeState, stop_index: int, total: int) -> Optional[ModeState]:
+    """The state held at stop point stop_index, or None when the mode is not 自律走行 (then nothing happens)."""
+    if state.mode != MODE_AUTONOMY:
+        return None
+    return ModeState(**{**state.as_dict(), 'processing_state': PROCESSING_RULE_STOP_HOLD, 'stop_reason': STOP_REASON_RULE_STOP,
+                        'current_section': stop_index, 'remaining_waypoints': total - stop_index - 1, 'state_revision': state.state_revision + 1})
+
+
+def rule_stop_resume(state: ModeState) -> RequestResult:
+    """The human's resume while held at a stop point: accepted only in 自律走行 with rule_stop_hold (the caller checks the goal,
+    Nav2 and ND-07 as TR-10 does). Elsewhere the resume is evaluated by request_transition as before."""
+    if state.mode != MODE_AUTONOMY or state.processing_state != PROCESSING_RULE_STOP_HOLD:
+        return RequestResult(False, '', 'refused: not held at a stop point')
+    new = ModeState(**{**state.as_dict(), 'processing_state': 'idle', 'stop_reason': '', 'state_revision': state.state_revision + 1})
+    return RequestResult(True, '', 'rule stop: resumed by the human (DEC-482)', new)

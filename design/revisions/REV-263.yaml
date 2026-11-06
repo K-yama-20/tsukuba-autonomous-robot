@@ -1,0 +1,82 @@
+# 変更セット REV-263（2026-11-07 第239便: 一時停止線の仕組み。DEC-482）
+# 適用: design/tools/apply_revision.py REV-263
+id: REV-263
+date: '2026-11-07'
+summary: >-
+  第239便：人の指示（DEC-482）で一時停止線の仕組みを入れる。kind stop の waypoint を停止点とし、どの goal（開始・再開・出し直し・
+  推定の回復・飛ばし）も次の停止点で終える。停止点に着いたら（Nav2 の goal の成功、または PRM-11 の半径に入ったとき）自律走行モードのまま
+  motion_hold=true にし、goal を取り消し、processing_state rule_stop_hold・stop_reason rule_stop で人の操作を待つ。人が今の「再開」ボタン
+  （mode/resume）を押すと、停止点の次の waypoint から goal を出す。最後の waypoint が停止点なら今までどおり TR-08。monitor の waypoint タブで
+  点に停止線の印を付けられる。新しいパラメータはない。
+basis_refs:
+- DEC-343
+- DEC-345
+- DEC-339
+- DEC-380
+- DEC-367
+- DEC-366
+- DEC-460
+- DEC-423
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-482
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第239便）一時停止線の仕組みの実装の指示。人が前に示した確認走行区間の図：左の角の直後に通路を横切る一時停止線があり、ロボットはそこで止まり、
+    人の操作で再開する。記録済みの規則（DEC-339・DEC-345、規則の原文は AI は読んでいない＝原本未照合）：自動で待機に入ると走行失敗。
+    ただし再開ボタンを押してよいのは一時停止線で停止した後か信号が青になった後で、停止線での再開に PC のボタンを使ってよい。
+  answer_verbatim: |
+    一時停止線の仕組みをopusで実装せよ。但し、これまでにwaypointで止まる最低限の実装はしてある。これを活用しても良いし、新規で作成しても良い。
+  affected_refs:
+  - DEC-343
+  - DEC-380
+  - DEC-366
+  - DEC-367
+  - DEC-460
+  - DEC-423
+  - ND-03
+  - IFD-30
+  - IFD-04
+  - TR-10
+  resulting_refs:
+  - ND-03
+  note: >-
+    回答の「opus」は Opus 5.5 と読み、実装は Opus 5.5 のサブエージェントが行った。
+    見つけた既存の最低限：(1) waypoint のデータの kind pass・stop（waypoints.py）と、停止点に skip_allowed を付けられない検査（DEC-367）、
+    monitor の waypoint タブが停止点を飛ばしの印の対象から外すこと。ただし Mission は kind を落としていた（DEC-380 (1)）。monitor は点を常に
+    kind pass で置いていた。(2) 最後の waypoint で止まる TR-08（goal の成功で motion_hold=true、再開で最後の点を目指す）。(3) 自律走行モードの中で
+    止まる段階の作り（localization_wait、DEC-423。Nav2 の失敗の出し直し、DEC-460）。途中の waypoint で止まる実装は、gouda_core・未コミットの
+    作業ツリー・他の worktree・旧パッケージ（gouda_navigation ほか）・枝のどこにもなかった。(1)〜(3) を使い、途中の停止点を新しく作った。
+    作り（AI の判断、人が覆してよい）：待機には入れず、自律走行モードの中の段階 rule_stop_hold にした。根拠は intent.md:101（停止線での停止は
+    自律走行モードの中の段階）と DEC-343 の案（pending）。代替は「停止点で自動で待機に入り、stop_reason rule_stop とする」（今の TR-10 の
+    再開がそのまま使え、変更は少し小さい）。振る舞いの違い：代替ではモードの表示が待機になり、規則の「自動で待機に入ると失敗」の例外に
+    頼ることになる。どちらも motion_hold=true で、人の再開までは動かない。
+    着いたことの判定（AI の判断）：goal を停止点で区切り（DEC-343・#52 の案）、Nav2 の goal の成功か、ロボットが停止点から PRM-11（RemovePassedGoals
+    の半径、承認済みの値）の内に入ったときの早い方。半径で止めるのは、#81 の人の発言「waypoint（付近）に到達したら急停止で問題ないです」と、
+    goal の向きの合わせ（waypoint の向きはタブでは 0）でその場で回るのを避けるため。新しいパラメータは作っていない。PRM-11 の値がなければ
+    goal の成功だけで止まる。
+    再開の操作（AI の判断）：今の「再開」ボタン・mode/resume を使う。DEC-343 の「別のボタンにするか」は未回答のまま（推奨は別のボタン）。
+    再開は停止点の次の waypoint から goal を出す（停止点を目指し直さない）。再開の条件は TR-10 と同じ（旧 goal が終わっている、Nav2 が活性、
+    ND-07 が正常）。止まっている間は、推定の回復待ち（DEC-423）・Nav2 の失敗の出し直し（PRM-161）・飛ばし（DEC-367）を起こさない。
+    人の待機・終了は今までどおりで、待機からの再開（TR-10）も停止点の次から。PC の再起動の後は今までどおり TR-02 で待機（DEC-343 の案
+    「rule_stop_hold に戻る」は入れていない）。止まる位置（停止距離、PRM-11 による手前の距離）は実測していない（DEC-346・DEC-370）。
+    確定済みの DEC-339・DEC-345・DEC-367・DEC-460 は書き換えず、この項目で一時停止線の形を足す。DEC-343・DEC-366・DEC-380 は閉じない。
+    安全かどうかの判断は人（CLAUDE.md 1.12）。第239便。
+  disposition: answered
+entities: []
+modifications:
+- id: ND-03
+  append_intent_lines: [25, 101]
+  interpretation_append: 'REV-263（DEC-482）：一時停止線。goal は次の kind stop の waypoint までで区切る。Nav2 の成功か PRM-11 の半径に入ったら、自律走行モードのまま rule_stop_hold（stop_reason rule_stop、motion_hold=true、goal 取消）で止まり、人の再開（mode/resume）で停止点の次の waypoint から goal を出す。止まっている間は推定の回復待ち・出し直し・飛ばしを起こさない。最後の waypoint が停止点なら TR-08。'
+- id: IFD-30
+  interpretation_append: 'REV-263（DEC-482）：kind stop は走行で使う（Mission が持つ。DEC-380 (1) の kind の欠落を解消）。monitor の waypoint タブで点ごとに付けられる（停止点には skip_allowed を付けない）。'
+- id: IFD-04
+  append_intent_lines: [21, 25]
+  interpretation_append: 'REV-263（DEC-482）：自律走行モードで rule_stop_hold のときも受け付け、停止点の次の waypoint から goal を出す。それ以外の自律走行では今までどおり拒否。'
+- id: TR-10
+  interpretation_append: 'REV-263（DEC-482）：再開ボタンは、停止点で止まっている自律走行（rule_stop_hold）にも使う。これはモードの遷移ではなく、TR-10 と同じ条件と手順で goal を出す。'

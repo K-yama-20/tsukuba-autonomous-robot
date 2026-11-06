@@ -181,6 +181,9 @@
           <div class="panel-title" style="margin-top:8px"><span class="code">SKIP</span>塞がれたら飛ばしてよい waypoint（DEC-367）</div>
           <div class="note">印を付けた点だけを、ずっと塞がれて進めないときに諦めて次の点へ向かう。止まる点（stop）と最後の点には付けられない。続けて飛ばすのは 1 点まで。条件の値（PRM-137〜140）が未確定の間は、印があっても飛ばさない。</div>
           <table class="kv" id="wp-skip"></table>
+          <div class="panel-title" style="margin-top:8px"><span class="code">STOP</span>一時停止線で止まる waypoint（DEC-482、地図の赤い四角）</div>
+          <div class="note">印を付けた点の手前、通過の半径（PRM-11）に入るか Nav2 がその点に着いたら止まり（自律走行のまま、stop_reason rule_stop）、「再開」を押すまで待つ。再開すると次の点へ向かう。最後の点に付けたときは今までどおりゴール（TR-08）。止まる点には「飛ばしてよい」を付けられない。</div>
+          <table class="kv" id="wp-stop"></table>
           <div class="btnrow">
             <label class="dim">帯の半幅 m <input id="wp-half-width" class="num" placeholder="PRM-19 未確定"></label>
             <label class="dim">速度刻み m/s <input id="wp-step" class="num" placeholder="PRM-20 未確定"></label>

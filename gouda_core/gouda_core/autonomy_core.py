@@ -14,6 +14,9 @@
   from the nav2_msgs action constants (autonomy_client.error_code_table); only the rule by action and constant name is here.
 - nav2_failure_action / nav2_resend_due (DEC-437, DEC-460, REV-245): a failed Nav2 goal does not pause when
   nav2_failure_resend_wait_s (PRM-161) has a value; the goal is sent again after that wait unless something came between.
+- stop points (一時停止線, DEC-482, REV-263): a waypoint of kind stop ends the goal (section_end), so no goal, re-send or skip
+  drives past it. Reaching it (stop_point_reached: Nav2's success, or the robot within PRM-11 of it) holds the robot inside
+  自律走行 (rule_stop_hold) until the human's resume, which sends the goal from the waypoint after it.
 """
 from __future__ import annotations
 
@@ -56,6 +59,7 @@ class Mission:
     keepout_sha256: str = ''                            # hash of the cell values map_server publishes (DEC-224 (a))
     keepout_size: tuple = (0, 0)                        # (width, height) of that mask
     skip_allowed: list = field(default_factory=list)    # per waypoint: the human's mark (DEC-367)
+    stop_points: list = field(default_factory=list)     # per waypoint: kind stop (一時停止線, DEC-482); DEC-380 (1)
 
 
 FOLLOW_PATH_BLOCKED = ('PATIENCE_EXCEEDED', 'FAILED_TO_MAKE_PROGRESS', 'NO_VALID_CONTROL')
@@ -201,9 +205,33 @@ def check_initial_pose(frame_id: str, x: float, y: float, qz: float, qw: float) 
     return None
 
 
-def goal_poses(waypoints: list, offset: int) -> list:
-    """[(x, y, qz, qw)] of the waypoints from offset (map frame)."""
-    return [(x, y, math.sin(yaw / 2), math.cos(yaw / 2)) for (x, y, yaw) in waypoints[offset:]]
+def goal_poses(waypoints: list, offset: int, end: Optional[int] = None) -> list:
+    """[(x, y, qz, qw)] of the waypoints from offset (map frame), up to and including end (all remaining when end is None)."""
+    return [(x, y, math.sin(yaw / 2), math.cos(yaw / 2)) for (x, y, yaw) in waypoints[offset:None if end is None else end + 1]]
+
+
+def section_end(stop_points: list, offset: int, count: int) -> int:
+    """Index of the last waypoint of the goal sent from offset (DEC-482): the first stop point at or after offset, else the
+    last waypoint. Every goal (start, resume, re-send, localization wait, skip) ends there, so none drives past a stop point."""
+    for i in range(max(offset, 0), count - 1):
+        if i < len(stop_points) and stop_points[i]:
+            return i
+    return count - 1
+
+
+def held_stop_point(stop_points: list, offset: int, count: int) -> Optional[int]:
+    """The stop point that ends the goal from offset, or None when that goal ends at the last waypoint (TR-08, unchanged)."""
+    end = section_end(stop_points, offset, count)
+    return end if end < count - 1 else None
+
+
+def stop_point_near(stop_index: Optional[int], waypoints: list, robot_xy: Optional[tuple], radius: Optional[float]) -> bool:
+    """The robot is within radius (PRM-11, the pass radius of RemovePassedGoals) of the stop point. False without a stop point,
+    a position or a usable radius (then only Nav2's success of the goal counts as reaching it)."""
+    if stop_index is None or robot_xy is None or radius is None or not math.isfinite(radius) or radius <= 0:
+        return False
+    x, y = waypoints[stop_index][0], waypoints[stop_index][1]
+    return math.hypot(robot_xy[0] - x, robot_xy[1] - y) <= radius
 
 
 def section_from_feedback(offset: int, poses: int, remaining: int) -> int:
