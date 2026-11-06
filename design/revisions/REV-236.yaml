@@ -1,0 +1,20 @@
+# 変更セット REV-236（2026-11-07: DEC-445 の確定）
+# 適用: design/tools/apply_revision.py REV-236
+id: REV-236
+date: '2026-11-07'
+summary: 人の回答（原文「このまま確定」）で、DEC-445 の 2026-11-07 の値（FILE-MIN-SPEED-20261107）を実測値として確定した。各条件 1 回・床の傾きと前輪の向きの記録なしのまま（人が承知の上で確定）。コード・設定・模擬の車体の値はまだ変えていない。
+basis_refs:
+- DEC-445
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-445
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      このまま確定

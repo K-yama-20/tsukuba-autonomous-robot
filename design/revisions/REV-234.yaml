@@ -1,0 +1,57 @@
+# 変更セット REV-234（2026-11-07 第210便: 最低速度・曲がりの不感帯の実測、DEC-444・445）
+# 適用: design/tools/apply_revision.py REV-234
+id: REV-234
+date: '2026-11-07'
+summary: 第210便：人が 2026-11-07 に手動で走らせた rosbag 2 本と同時の GLIM の軌跡から、前進・後退の最低速度、動き出し・止まりの倒し量、前進・後退しながら曲げたときの旋回を読んだ（FILE-MIN-SPEED-20261107）。最低速度の候補は前進 約 0.09 m/s・後退 約 0.075 m/s。前進中の旋回の入力 0.184 以下では曲がらず、0.195 で 0.06〜0.09 rad/s。IMU の加速度の積分は傾きのため使えず、GLIM の位置の差を使った。値は実測の候補で、確定は DEC-445。コード・設定は変えていない。
+basis_refs:
+- DEC-378
+- DEC-409
+- DEC-422
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-MIN-SPEED-20261107
+  path: design/research/vehicle_pc/2026-11-07_min_speed/README.md
+  role: evidence
+decisions:
+- id: DEC-444
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: 最低速度・曲がりの不感帯の測定の進め方（人の指示）と、IMU のフィルタの質問
+  answer_verbatim: |
+    （人の発言の原文、時系列の番号つき）
+    1.「x86で今から足りない実測項目を測定する。準備は全部揃っているか？」
+    2.「最低速度で走らせたrosbagをとるから、imuをもとに速度を算出してもらおうかな。gouda.shは関係ないです」
+    3.「測定した。ssh接続で読み取れ。」
+    4.「記録して」
+    5.「新しくもう一件データを取得した。これを反映せよ。
+    また、imuにはフィルタ機能が備わっているが、これはオンにした方が良いか？adis-16607-2」
+  affected_refs:
+  - DEC-378
+  - DEC-409
+  - DEC-422
+  - ND-11
+  resulting_refs:
+  - FILE-MIN-SPEED-20261107
+  - DEC-445
+  note: 測定は gouda.sh を使わない手動の走行（人の記載）。記録の中では地図作成が動き、GLIM の軌跡が残った。AI は rosbag を読むだけで、車体・Gouda には触れていない。IMU のフィルタの質問への答えはチャットと issue に出した（設定の変更は承認の後。DEC-106）。
+- id: DEC-445
+  kind: measurement
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: 【実測】2026-11-07 の値（FILE-MIN-SPEED-20261107）を、模擬の車体と不感帯の補償の検討に使う実測値として確定するか。候補：最低速度 前進 約 0.09 m/s・後退 約 0.075 m/s、前進 0.21 で動き 0.185 以下で止まる、後退 約 0.24 で動き 約 0.215 で止まる、前進中の旋回の入力 0.184 以下では曲がらず 0.195 で 0.06〜0.09 rad/s、走行中の旋回の遅れ 0.3〜1.5 s（定常まで最大 2.4 s）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-378
+  - DEC-409
+  - DEC-422
+  - ND-11
+  resulting_refs: []
+  note: 推奨：最低速度と倒し量は候補として模擬に入れ、同じ条件の繰り返し（各 3 回）と、床の傾き・前輪の向きを記録した測定で確定する。理由：各 1 回で、場所・傾き・DAC の上限の記録がない。代替案：このまま確定する。決まらない場合に止まる作業：模擬の車体の値の更新（承認待ちのまま進めない）。IMU の加速度の積分の値は使わない（重力の混入 −0.87〜−0.94 m/s²）。
+entities: []
+modifications: []
+decision_updates: []
