@@ -17,6 +17,8 @@ from gouda_core import png  # noqa: E402
 
 
 def geom(): return sm.MapGeometry(resolution=0.5, origin_x=-5.0, origin_y=-5.0, width=40, height=40)
+def fine(): return sm.MapGeometry(resolution=0.1, origin_x=-5.0, origin_y=-5.0, width=100, height=100)
+VS, LR = 0.2, 1.5   # REV-285: V_slow / L_ramp of the tests (arbitrary values, not PRM-164 / PRM-165)
 
 
 class WaypointSetTests(unittest.TestCase):
@@ -44,32 +46,78 @@ class WaypointSetTests(unittest.TestCase):
 
 
 class SpeedMaskTests(unittest.TestCase):
-    def test_band_values_and_outside_unlimited(self):
-        r = sm.generate([(-4, 0), (4, 0)], [1.0], geom(), half_width_m=0.6, step_mps=0.02)
+    def test_band_values_and_outside_slow(self):
+        r = sm.generate([(-4, 0), (4, 0)], [1.0], geom(), half_width_m=0.6, step_mps=0.02, outside_mps=VS, ramp_m=LR)
         self.assertEqual(r.warnings, []); self.assertGreater(r.painted_cells, 0)
         g = geom(); iy = int((0 - g.origin_y) / g.resolution); ix = int((0 - g.origin_x) / g.resolution)
         self.assertEqual(r.grid[iy, ix], 50)                     # 1.0 / 0.02
-        self.assertEqual(r.grid[iy + 8, ix], 0)                  # 4 m away: unlimited (DEC-045: outside the band is Nav2 behaviour)
+        self.assertEqual(r.grid[iy + 8, ix], 10)                 # 4 m away, beyond the ramp: V_slow 0.2 / 0.02 (REV-285: no unlimited cell)
+
+    def test_gradient_shape_at_distances(self):
+        """REV-285 (DEC-506): limit inside the band, linear from the limit to V_slow over L_ramp beyond it, V_slow farther out."""
+        g = fine(); r = sm.generate([(-4, 0), (4, 0)], [1.0], g, 0.6, 0.02, VS, LR)
+        ix = int((0 - g.origin_x) / g.resolution)
+        def at(d):   # the cell whose centre is d m above the line
+            return int(r.grid[int(round((d - g.origin_y) / g.resolution - 0.5)), ix])
+        self.assertEqual(at(0.05), 50); self.assertEqual(at(0.55), 50)          # inside the band
+        for d in (0.75, 1.05, 1.35, 1.65, 1.95):                               # on the ramp: 1.0 -> 0.2 over 1.5 m
+            want = round((1.0 + (VS - 1.0) * (d - 0.6) / LR) / 0.02)
+            self.assertEqual(at(d), want, d)
+        self.assertEqual(at(2.15), 10); self.assertEqual(at(4.95), 10)         # beyond 0.6 + 1.5 m: V_slow
+        col = [int(v) for v in r.grid[:, ix]]
+        upper = col[int((0 - g.origin_y) / g.resolution):]
+        self.assertTrue(all(a >= b for a, b in zip(upper, upper[1:])), 'never faster farther from the band')
+        self.assertGreater(r.ramp_cells, 0); self.assertEqual((r.outside_mps, r.ramp_m), (VS, LR))
+
+    def test_no_zero_cell(self):
+        for lim in ([1.0], [0.05], [9.0]):
+            r = sm.generate([(-4, 0), (4, 0)], lim, fine(), 0.6, 0.02, VS, LR)
+            self.assertEqual(int((r.grid == 0).sum()), 0, lim)
+        r = sm.generate([(-4, 0), (4, 0)], [1.0], fine(), 0.6, 0.02, VS, 0.0)   # no ramp: V_slow right at the band's edge
+        self.assertEqual(int((r.grid == 0).sum()), 0); self.assertEqual(r.ramp_cells, 0)
+        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], fine(), 0.6, 0.02, 0.0, LR)
+        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], fine(), 0.6, 0.02, VS, -1.0)
+
+    def test_ramp_follows_the_nearest_band(self):
+        """Two parallel sections 4 m apart, 1.0 and 0.5 m/s: each band keeps its limit; between them each side's ramp starts at
+        its own band's edge (no step at an edge)."""
+        g = fine(); r = sm.generate([(-4, -2), (4, -2), (4, 2), (-4, 2)], [1.0, 0.6, 0.5], g, 0.6, 0.01, VS, LR)
+        ix = int((-3.0 - g.origin_x) / g.resolution)
+        def at(y): return int(r.grid[int(round((y - g.origin_y) / g.resolution - 0.5)), ix])
+        self.assertEqual(at(-1.45), 100); self.assertEqual(at(1.45), 50)            # band edges: 1.0 and 0.5 m/s
+        self.assertEqual(at(-1.35), 97)    # just outside the 1.0 band: 1.0 - 0.8 * 0.05 / 1.5 = 0.973
+        self.assertEqual(at(1.35), 49)     # just outside the 0.5 band: 0.5 - 0.3 * 0.05 / 1.5 = 0.49
+
+    def test_step_quantisation_of_the_ramp(self):
+        """PRM-20: ramp values are whole cells of the step (here 0.05 m/s); 1..100."""
+        g = fine(); r = sm.generate([(-4, 0), (4, 0)], [0.5], g, 0.6, 0.05, 0.3, LR)
+        vals = sorted(set(int(v) for v in np.unique(r.grid)))
+        self.assertEqual(vals, [6, 7, 8, 9, 10])                                 # 0.30 .. 0.50 m/s in 0.05 steps
+
+    def test_clamp_and_limits_above(self):
+        lim, changed = sm.clamp_limits([1.25, 0.4, 0.5, 0.8], 0.5)
+        self.assertEqual(lim, [0.5, 0.4, 0.5, 0.5]); self.assertEqual(changed, [(0, 1.25, 0.5), (3, 0.8, 0.5)])
+        self.assertEqual(sm.limits_above([1.25, 0.4, 0.5, 0.8], 0.5), [0, 3]); self.assertEqual(sm.limits_above([0.5], 0.5), [])
 
     def test_overlap_takes_lower_limit_and_warns(self):
         # section 0 at 1.0 m/s and section 2 at 0.5 m/s cross at the origin (re-visit); section 1 links them
-        r = sm.generate([(-4, 0), (4, 0), (4, 4), (0, -4), (0, 4)], [1.0, 1.0, 0.5, 0.5], geom(), half_width_m=0.6, step_mps=0.02)
+        r = sm.generate([(-4, 0), (4, 0), (4, 4), (0, -4), (0, 4)], [1.0, 1.0, 0.5, 0.5], geom(), half_width_m=0.6, step_mps=0.02, outside_mps=VS, ramp_m=LR)
         g = geom(); iy = int((0 - g.origin_y) / g.resolution); ix = int((0 - g.origin_x) / g.resolution)
         self.assertEqual(r.grid[iy, ix], 25)                     # lower limit 0.5 / 0.02 adopted
         self.assertTrue(r.warnings); w = r.warnings[0]
         self.assertEqual(w['adopted_mps'], 0.5); self.assertIn('低い方', w['message']); self.assertGreater(r.overlap_cells, 0)
-        same = sm.generate([(-4, 0), (4, 0), (4, 4), (0, -4), (0, 4)], [1.0, 1.0, 1.0, 1.0], geom(), 0.6, 0.02)
+        same = sm.generate([(-4, 0), (4, 0), (4, 4), (0, -4), (0, 4)], [1.0, 1.0, 1.0, 1.0], geom(), 0.6, 0.02, VS, LR)
         self.assertEqual(same.warnings, [])                      # same limit on overlapping sections: no warning (TS-22)
 
     def test_quantisation_clips_and_reports(self):
         self.assertEqual(sm.quantise(0.001, 0.02), 1); self.assertEqual(sm.quantise(5.0, 0.02), 100); self.assertEqual(sm.quantise(1.0, 0.02), 50)
-        r = sm.generate([(0, 0), (2, 0)], [9.0], geom(), 0.6, 0.02); self.assertEqual(r.sections_clipped, [0])
-        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], geom(), 0.0, 0.02)
-        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], geom(), 0.6, 0.0)
+        r = sm.generate([(0, 0), (2, 0)], [9.0], geom(), 0.6, 0.02, VS, LR); self.assertEqual(r.sections_clipped, [0])
+        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], geom(), 0.0, 0.02, VS, LR)
+        with self.assertRaises(ValueError): sm.generate([(0, 0), (2, 0)], [1.0], geom(), 0.6, 0.0, VS, LR)
 
     def test_write_mask_raw_mode_and_geometry_roundtrip(self):
         with tempfile.TemporaryDirectory() as d:
-            g = geom(); r = sm.generate([(-4, 0), (4, 0)], [1.0], g, 0.6, 0.02)
+            g = geom(); r = sm.generate([(-4, 0), (4, 0)], [1.0], g, 0.6, 0.02, VS, LR)
             files = sm.write_mask(r, g, Path(d), 'speed_filter_mask', 'costmap_filter_info')
             y = (Path(d) / files['mask_yaml']).read_text(); self.assertIn('mode: raw', y); self.assertIn('resolution: 0.5', y); self.assertIn('origin: [-5.0, -5.0, 0.0]', y)
             info = (Path(d) / files['filter_info_yaml']).read_text(); self.assertIn('type: 2', info); self.assertIn('multiplier: 0.02', info); self.assertIn('mask_topic: speed_filter_mask', info)

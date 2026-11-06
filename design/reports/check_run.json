@@ -1,6 +1,6 @@
 {
-  "run_time_utc": "2026-11-06T20:26:53.112900+00:00",
-  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+  "run_time_utc": "2026-11-06T21:00:26.525656+00:00",
+  "python": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
   "PYTHONPATH": "",
   "runs": [
     {
@@ -11,47 +11,47 @@
     {
       "step": "generate params",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/generate_params.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan",
       "exit_code": 0,
       "output": "design/reports/generate_params.txt"
     },
     {
       "step": "intent identity",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_intent_identity.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan",
       "exit_code": 0,
       "output": "design/reports/intent_identity.txt"
     },
     {
       "step": "fidelity validator",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/validate_model.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan",
       "exit_code": 1,
       "output": "design/reports/migration_validator.txt"
     },
     {
       "step": "design consistency",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "design/tools/check_design.py"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan",
       "exit_code": 0,
       "output": "design/reports/design_check.txt"
     },
     {
       "step": "unit tests",
       "command": [
-        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot/design/.venv/bin/python",
+        "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan/../../tsukuba-autonomous-robot/design/.venv/bin/python",
         "-m",
         "unittest",
         "discover",
@@ -61,19 +61,19 @@
         "test_*.py",
         "-v"
       ],
-      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-autonomous-robot",
+      "cwd": "/Users/AYARyoya/Desktop/自己学習/TsukubaChallenge/tsukuba-worktrees/confirmation-plan",
       "exit_code": 1,
       "output": "design/reports/migration_tests.txt"
     }
   ],
   "sha256": {
-    "design/model.yaml": "6b0af1e9086ad7dc53c70ae531c246cf95251ee2a7345d051ec64de85da6e807",
+    "design/model.yaml": "b3974e29673eb50c1cfa43af5b3af7837b7c3183c635b79281e48eb7f911d518",
     "design/schema.json": "81f0431f99519bf335b4da519da29c6e0cf4d63e21c0a632b65ad2e10efd2939",
     "design/migration_manifest.json": "512d9e787eda293855d1ab69924fb5ce233141381a4fd6a8b090fae6254bc770",
     "design/intent.md": "e9be63b890245ba8b2627ac63bc932b95f6fb2bcd60cdd1d09f408849da7bdc8",
     "design/tools/apply_revision.py": "54ae8388ca3f794e6cbac6a61be0f6fefaa10aa8dfe223dfd654142151a57355",
     "design/tools/build_migration.py": "bfa286c6781c54d6c3f625a7988e10aab2190607b74fcc6aa6726dad83080ee3",
-    "design/tools/check_design.py": "ac08f024e97f1fe3d81a2d78f69de757e11e1cc77de9301264cfc0ec716af82d",
+    "design/tools/check_design.py": "303b9b0bc9ddc0504bd8ec96d3ba412fae7ad7632b763c10dfaa39d3b46cabf0",
     "design/tools/check_intent_identity.py": "ad6992056327c2ffefbc68e4c14e0cb12f335be262f9a4ed86ab711ed9ee56a7",
     "design/tools/collect_official_specs.py": "3ccf109fe8476ea7277d915270eccb7c5068ec03c6c104e78f6c87247d46292a",
     "design/tools/generate_params.py": "2f90c23d71876bd48864d719b1faff7eedfcea70c6d285b3563af78c3bda5398",
@@ -82,17 +82,16 @@
     "design/tools/render_migration_review.py": "8ea7c60509705357135a170c0d94777082308d47d077ec16dac838f67735b4fa",
     "design/tools/render_views.py": "39d2aa5b89b9a88b6599bfcd9a56b187d51fe1def43a304acb27254951bf6044",
     "design/tools/repair_claude_md.py": "2e2ff10eae6aeaa61dfa30e51871400d6ab6ac9c7833971e4948f20ff0c7669e",
-    "design/tools/reserve_ids.py": "fd3c21820d1d48f2084a46270226b4ba3593f0b3a0a74c83dcfde73f86e226ff",
+    "design/tools/reserve_ids.py": "10e735a3a1b83306fedcadd7bb4659f492b1e50e60259ed8ef763da415093594",
     "design/tools/run_checks.py": "daf68e1650ad7cda27ae8d4b0395b6cee5d4e2e6b4bebec518e33facdd52e8f5",
     "design/tools/run_migration_checks.py": "e7b0330f2e8ad0fc7d61d3a81f8810901a02e947090aa5c343e580925f6dadac",
     "design/tools/validate_model.py": "f74f131e64db9b256aae6d18cd80c0b9d61c581957fbbd3d5b2dddd9a6187802",
     "design/rules/test_apply_revision.py": "d547813c2fde78bb1f50c5d21b64e06765208d724fcc80e9c65eac3b8bd3d253",
-    "design/rules/test_check_design.py": "04903a5b43ca887edc189ab9acf30741446642d927530932fa4d7ce364324f86",
+    "design/rules/test_check_design.py": "892270a43a0764f7ba81192e6a785f27e76bc325ed094c3ff4aba17ca80e3759",
     "design/rules/test_check_intent_identity.py": "290311976b515c2669373b9a946635d6b206dec7ca25ecc81830118e504f705b",
-    "design/rules/test_reserve_ids.py": "162f2f9ff900be5c3903f5b68e67d8cd8c17cd43691cab2b8db4d66cd9f29853",
+    "design/rules/test_reserve_ids.py": "0f6eb6aa18d6fad2633ed9e05e514a6be4d1021f54fd988641189d4927aada05",
     "design/rules/test_troubleshooting_ledger.py": "cceb3e543ffd4d833df4c01915f6ce659cea3281449eb8aa1d360fc30b7883f8",
     "design/rules/test_validate_model.py": "92325b621bd519bdfa8315f74eb570fb033da28287f1a169e33db795e49d659f",
-    "design/rules/fixtures/.DS_Store": "23c831702c8024f3484b0ec0935362a6adf3c40549bc6a2c6cbd3c666068e83c",
     "design/rules/fixtures/minimal.yaml": "259f5c2346efc19a3bb2b1898fc0deba1c43dbecc9ffcb5c9af733edd14fec58",
     "design/rules/fixtures/violations.json": "fc62aa2f1b98cd42017faee6546e0af86e94c5cc7a83f0a86685d6148dd06e47",
     "design/revisions/REV-002.yaml": "65e5b44e13b5dd012262aca25a2774ff5691cb01ca0d3dd2e53906b35b09c83c",
@@ -285,7 +284,6 @@
     "design/revisions/REV-189.yaml": "e797fbdf4d9417c75ec6ef13f8510c8f88234d18151b202533200d6cef182c99",
     "design/revisions/REV-190.yaml": "67bcd690a30ce751190bf13eab02eaf34d771b3883a91a21a7d97ff9b7f88f8b",
     "design/revisions/REV-191.yaml": "b44dde57b29977165bfa462e4b01447bdb08efbef5046474dcc496a9fafd2b4e",
-    "design/revisions/REV-192.yaml": "83bc22c9dcf3f717025fb72536e0dba6c8a603af3152f1431341df6821308dd0",
     "design/revisions/REV-193.yaml": "6f0667fc50c63d383a7f538610d45fa50e1540c7a4d8ce7ca908ab92acaaf544",
     "design/revisions/REV-194.yaml": "7727a1fcdab4b676eed085162e7004741f67d5b31e2f9dfafd6c6234bca3b8d3",
     "design/revisions/REV-195.yaml": "8e64b5bd60cb21f95197f08356d3ef2f182b1d3f934a904f11ad89c78954dd36",
@@ -337,7 +335,6 @@
     "design/revisions/REV-241.yaml": "b04b7b56f7b5662eab715d42b3dbcff5e9c39568df45cabfad5ffb4ca635640a",
     "design/revisions/REV-242.yaml": "c46669eebce4ce7237fcc7bf8c47c72601eedd0248f65531f6bf96f491dd4f31",
     "design/revisions/REV-243.yaml": "0e770d5003bb0533a99307e8a045ce25dd50d7644e3501656764d7cfd402a646",
-    "design/revisions/REV-244.yaml": "84a38f5450c243a2f17d27023f4bdcff6162a63c873faac6d7435e3e7b88ab46",
     "design/revisions/REV-245.yaml": "5b5fd65eae26db3db1f2f281618c87e1c711e651c4df712d6db2a953d9815381",
     "design/revisions/REV-246.yaml": "854829caa7b1888e6ea3e14d255870e088d6abf3c6938b6e87549d3940bcbbec",
     "design/revisions/REV-247.yaml": "4c6bed29455482644cff503b31676c18c166f85801b3016c3272da5259bcac10",
@@ -371,12 +368,10 @@
     "design/revisions/REV-275.yaml": "075fe564d05c82632129f29f58aad98fc7554d1ad4fcfda68a5cafa54ff78a1d",
     "design/revisions/REV-276.yaml": "fe725929a7000345077a21a65d7324f1160b31dd4916346a2edadc0c433dcd2b",
     "design/revisions/REV-277.yaml": "65a6022c8bace2392b1770a7d70a488564ebd5d87a630d41cdec41c224d40d33",
-    "design/revisions/REV-278.yaml": "05550e40f45c00a06832a5fd8d08184dc54402f8091c032a4d3d9b6da97c9940",
     "design/revisions/REV-279.yaml": "288cae46c512f58acdb24c1f31ce84efe55f318bed6663f506de0aaabf7313ed",
     "design/revisions/REV-280.yaml": "981609056f542a442074817264f97a97bdbb305c2c5eee4c6d0b7c50d47df604",
     "design/revisions/REV-281.yaml": "28c28a10b31cf08c6afe5d819ffa150cc27bc9a72f2715d723bad3a23d6b990c",
-    "design/revisions/REV-282.yaml": "e5f238842869dd40986202801db2ff38b28ae018325d60fa2b88b0ec5b89b405",
-    "design/revisions/REV-283.yaml": "6789bdebe55e1da4cf8ae7943f6667e7f976b072723d684c7aa602776f70f76f"
+    "design/revisions/REV-285.yaml": "27c617aa7c1d47cb964b3288bd5374ec5f2c308b66bca37e87d5f0bb7061b907"
   },
   "scope": "移行忠実性・設計整合性・検査器試験のみ。ROS動作・実車試験は実行していない。"
 }

@@ -32,7 +32,7 @@ def make_data(root: Path, keepout: bool = True):
     ws = wp.WaypointSet('origin1', 1, MAP_HASH, [wp.Waypoint(-4, 0), wp.Waypoint(0, 0, math.pi / 2), wp.Waypoint(4, 0)], [1.0, 0.5])
     sid, rev, tmp = db.begin(None)
     g = sm.MapGeometry(resolution=0.5, origin_x=-5.0, origin_y=-5.0, width=40, height=40)
-    res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 0.6, 0.02)
+    res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 0.6, 0.02, 0.3, 2.0)
     files = sm.write_mask(res, g, tmp, 'speed_filter_mask', 'costmap_filter_info')
     if keepout:   # REV-137: a waypoint set carries the KeepoutFilter mask of its drawn areas (none here)
         kfiles, krec = km.write(km.rasterize([], g), g, tmp, '/keepout_filter_mask', '/keepout_costmap_filter_info'); files.update(kfiles)
@@ -156,6 +156,66 @@ class SpeedStateTests(unittest.TestCase):
         self.assertEqual(ac.speed_limit_state(m, True, (5.5, 5.5), None), ac.SL_UNKNOWN, 'no speed_limit yet: the hold stays (DEC-056)')
         self.assertEqual(ac.speed_limit_state(m, True, (5.5, 5.5), 0.0), ac.SL_UNKNOWN, '0 is unlimited, not applied')
         self.assertEqual(ac.speed_limit_state(m, True, (5.5, 5.5), 0.5), ac.SL_APPLIED)
+
+    def test_gradient_mask_is_applied_everywhere_inside(self):
+        """REV-285 (DEC-506): a mask made since REV-285 has no 0 cell, so outside_band does not occur; 'applied' = inside the mask
+        with a positive speed_limit received."""
+        g = sm.MapGeometry(resolution=1.0, origin_x=0.0, origin_y=0.0, width=10, height=10)
+        r = sm.generate([(1, 5), (9, 5)], [0.5], g, 1.0, 0.05, 0.3, 2.0)
+        m = ac.MaskGrid(0.0, 0.0, 1.0, 10, 10, [int(v) for v in r.grid.reshape(-1)])
+        for xy in ((5.5, 5.5), (5.5, 7.5), (5.5, 0.5), (0.5, 9.5)):
+            self.assertEqual(ac.speed_limit_state(m, True, xy, 0.3), ac.SL_APPLIED, xy)
+        self.assertEqual(ac.speed_limit_state(m, True, (20.0, 5.0), 0.3), ac.SL_OUTSIDE_MASK)
+
+
+class StartMaskTests(unittest.TestCase):   # REV-285 (DEC-505 移行の措置, DEC-506)
+    FB = {'half_width_m': 1.0, 'step_mps': 0.05, 'outside_mps': 0.3, 'ramp_m': 2.0}
+
+    def mission(self, d: Path, limits, generator):
+        (d / 'map.pgm').write_bytes(b'P5\n40 20\n255\n' + bytes([254]) * 800)
+        (d / 'map.yaml').write_text('image: map.pgm\nresolution: 0.5\norigin: [-10.0, -5.0, 0.0]\n')
+        return ac.Mission('s', 1, 'h', 'o', 1, 'mh', str(d / 'map.yaml'), str(d / 'saved_mask.yaml'), 0.0, 0.05,
+                          [(-8, 0, 0), (0, 0, 0), (8, 0, 0)], list(limits), generator=dict(generator))
+
+    def test_within_v_auto_and_new_mask_used_as_saved(self):
+        with tempfile.TemporaryDirectory() as t:
+            m = self.mission(Path(t), [0.5, 0.4], dict(self.FB))
+            m2, rec, bad = ac.start_mask(m, 0.5, Path(t) / 'out', {})
+            self.assertIsNone(bad); self.assertIsNone(rec); self.assertIs(m2, m)
+            self.assertFalse((Path(t) / 'out').exists())
+
+    def test_clamp_names_sections_and_makes_the_mask(self):
+        with tempfile.TemporaryDirectory() as t:
+            m = self.mission(Path(t), [1.25, 0.4], dict(self.FB))
+            m2, rec, bad = ac.start_mask(m, 0.5, Path(t) / 'out', {})
+            self.assertIsNone(bad)
+            self.assertEqual(m2.section_limits_mps, [0.5, 0.4]); self.assertEqual(m.section_limits_mps, [1.25, 0.4], 'the saved set is not changed')
+            self.assertEqual(rec['clamped_sections'], [{'section': 0, 'saved_mps': 1.25, 'used_mps': 0.5}]); self.assertFalse(rec['gradient_added'])
+            self.assertEqual(m2.mask_yaml, str(Path(t) / 'out' / 'speed_mask.yaml')); self.assertTrue(Path(m2.mask_yaml).is_file())
+            pgm = (Path(t) / 'out' / 'speed_mask.pgm').read_bytes(); cells = pgm[pgm.index(b'255\n') + 4:]
+            self.assertEqual(max(cells), 10, 'no cell above V_auto 0.5 / 0.05'); self.assertEqual(min(cells), 6, 'V_slow 0.3 / 0.05, no 0')
+
+    def test_old_mask_gets_the_gradient_from_the_fallback(self):
+        with tempfile.TemporaryDirectory() as t:
+            m = self.mission(Path(t), [0.5, 0.5], {'half_width_m': 1.0, 'step_mps': 0.05})
+            m2, rec, bad = ac.start_mask(m, 0.5, Path(t) / 'out', self.FB)
+            self.assertIsNone(bad); self.assertTrue(rec['gradient_added']); self.assertEqual(rec['clamped_sections'], [])
+            self.assertEqual((rec['outside_mps'], rec['ramp_m']), (0.3, 2.0))
+
+    def test_missing_values_refuse(self):
+        with tempfile.TemporaryDirectory() as t:
+            m = self.mission(Path(t), [1.25, 0.5], {'half_width_m': 1.0, 'step_mps': 0.05})
+            _, rec, bad = ac.start_mask(m, 0.5, Path(t) / 'out', {})
+            self.assertIsNone(rec); self.assertIn('outside_mps', bad)
+            _, _, bad = ac.start_mask(m, None, Path(t) / 'out', self.FB)
+            self.assertIn('PRM-131', bad)
+
+    def test_every_section_within_v_auto_after_start(self):
+        """DEC-505 (DR-新2 as a runtime property): whatever was saved, the limits used at the start are all <= V_auto."""
+        with tempfile.TemporaryDirectory() as t:
+            for limits in ([1.25, 1.25], [0.8, 0.2], [0.5, 0.6]):
+                m2, _, bad = ac.start_mask(self.mission(Path(t), limits, dict(self.FB)), 0.5, Path(t) / 'out', {})
+                self.assertIsNone(bad); self.assertTrue(all(v <= 0.5 for v in m2.section_limits_mps), limits)
 
 
 class ModeCoreAutonomyTests(unittest.TestCase):

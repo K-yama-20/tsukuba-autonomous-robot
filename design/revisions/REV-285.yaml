@@ -1,0 +1,321 @@
+# reserved by reserve_ids.py: speed-chain-fd2f97 2026-11-07T05:44:47
+# 変更セット REV-285（2026-11-07 第260便: 速度の値を 1 本の鎖にし、速度マスクの帯の外に勾配を付け、不感帯の下限を ND-11 で持つ。DEC-505〜508、PRM-164〜166）
+# 適用: design/tools/apply_revision.py REV-285
+id: REV-285
+date: '2026-11-07'
+summary: >-
+  第260便：第258便の提案（design/proposals/speed_chain_and_mask_gradient_2026-11-07.md、issue #105）の A・B・C を、人の回答「A・B・C 全部」と
+  「A,B,C全部を採用した状況でのシミュレーションを回せ。」で実装する。A（DEC-505）：PRM-131 を自律走行の上限 V_auto に改め、velocity_smoother の
+  前進の上限（PRM-66）は PRM-131 から導出、区間の制限は V_auto 以下だけ（monitor は保存を拒み、開始時は頭打ちにして記録）、検査ルール DR-18・DR-19。
+  B（DEC-506）：速度マスクの帯の外に勾配（PRM-164 V_slow、PRM-165 L_ramp）。C（DEC-507）：MPPI の vx_min（PRM-162）を 0 に戻し、
+  不感帯の下限を ND-11 で持つ（ヒステリシス PRM-166）。DEC-508：3 つの値は提案の推奨値を暫定で採用（実測なし）。
+basis_refs:
+- DEC-505
+- DEC-506
+- DEC-507
+- DEC-508
+- DEC-445
+- DEC-490
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-505
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第258便の提案の A、第260便で実装）速度の値を 1 本の鎖にする。PRM-39 は車体の能力 V_full（指令→倒し量の正規化だけ）、
+    PRM-131 を「自律走行の上限 V_auto」に改め、MPPI の vx_max・velocity_smoother の前進の上限（PRM-66、導出値）・区間の制限の上限・
+    速度マスクの最大の値を V_auto から導く。区間の制限は V_auto 以下の減速だけ（monitor の保存で拒み、自律走行の開始で頭打ちにして記録する
+    移行の措置）。検査ルール DR-新1（PRM-66 = PRM-131）、DR-新2（区間の制限 ≤ PRM-131）、DR-新3（PRM-131 ≤ PRM-39）。
+    AI の質問は「A・B・C のどこまで実装に進めますか？」。
+  answer_verbatim: |
+    A・B・C 全部
+    A,B,C全部を採用した状況でのシミュレーションを回せ。
+  affected_refs:
+  - ND-10
+  - ND-02
+  - IFD-41
+  - IFD-14
+  - PRM-39
+  - PRM-66
+  - PRM-131
+  - DEC-490
+  - DEC-491
+  resulting_refs:
+  - PRM-131
+  - PRM-66
+  note: >-
+    提案の A を案どおり採用。V_auto は新しい番号でなく PRM-131 のまま（提案 7 節の未回答の項目は、回答「A・B・C 全部」を提案の既定の読みで
+    採ったもの。AI の読み）。DR-新1 は DR-18、DR-新3 は DR-19 として check_design.py に入れた。DR-新2（区間の制限 ≤ PRM-131）は、区間の制限が
+    正本（model.yaml）にない実行時の値なので、検査ルールでなく monitor の保存の拒否と開始時の頭打ち（autonomy_core.start_mask）と単体試験で
+    担う。V_auto の値は /config「Nav2」タブの値（IFD-54）を含め Nav2 が使う値。製品のコードに区間の制限の既定値はなかった（画面は空欄で
+    人が入れる）。1.25 の既定値は模擬の場面（試験専用）のもの。第260便。安全かどうかの判断は人（CLAUDE.md 1.12）。
+  disposition: answered
+- id: DEC-506
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第258便の提案の B、第260便で実装）速度マスクの帯の外に勾配を付け、「制限なし」をなくす（DEC-045・DEC-055・DEC-047・DEC-056 の置き換え）。
+    帯（PRM-19）の中は区間の制限、帯の外 L_ramp の間は区間の制限から V_slow へ直線で下げ、それより外と帯のない所は V_slow。マスクに 0 を
+    書かない。帯が重なる所は低い方（DEC-045 のまま）。「適用中」は「マスクの中にいて、正の制限を受けた」に読み替える。
+    AI の質問は「A・B・C のどこまで実装に進めますか？」。
+  answer_verbatim: |
+    A・B・C 全部
+    A,B,C全部を採用した状況でのシミュレーションを回せ。
+  affected_refs:
+  - ND-02
+  - ND-03
+  - IFD-41
+  - IFD-14
+  - PRM-19
+  - PRM-20
+  - DEC-045
+  - DEC-055
+  - DEC-047
+  - DEC-056
+  resulting_refs:
+  - PRM-164
+  - PRM-165
+  note: >-
+    提案の B を案どおり採用。DEC-045 の「帯の外は制限なし」と DEC-055 の「境界の扱いは設計しない」を置き換える（前の判断は書き換えない）。
+    帯どうしの重なりは DEC-045 のまま低い方。勾配は最も近い帯から始める（同じ距離なら低い方の制限）：帯の外の値を各区間の勾配の低い方に
+    すると、別の区間の勾配が帯の縁で値を段に下げるため（AI の読み。人は勾配どうしの重なりの決まりを述べていない）。区間の制限が V_slow より
+    低い区間では、勾配は V_slow へ上がる。speed_limit_state は変えず読み替えだけ（0 のセルがないので outside_band は出ない。REV-285 より前に
+    保存したマスクのために状態は残す。開始時にそのマスクは勾配つきで作り直す）。V_slow・L_ramp の値は DEC-508。第260便。
+  disposition: answered
+- id: DEC-507
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第258便の提案の C、第260便で実装）MPPI の下限を 0 に戻し、不感帯の下限を ND-11 で持つ（DEC-480 の見直し）。PRM-162 を 0 にする。
+    ND-11 は目標 v に対し、v = 0 は中立、0 < v < V_move/2 は中立、V_move/2 ≤ v < V_move は動き出す倒し量、v ≥ V_move は実測の倒し量→速度の表
+    （REV-241 のフィードフォワード）。行き来を防ぐヒステリシス。旋回も同じ扱い。open_loop（PRM-141）と goal の出し直し（PRM-161）は変えない。
+    AI の質問は「A・B・C のどこまで実装に進めますか？」。
+  answer_verbatim: |
+    A・B・C 全部
+    A,B,C全部を採用した状況でのシミュレーションを回せ。
+  affected_refs:
+  - ND-10
+  - ND-11
+  - IFD-54
+  - PRM-162
+  - PRM-141
+  - PRM-152
+  - PRM-155
+  - PRM-158
+  - DEC-480
+  - DEC-445
+  resulting_refs:
+  - PRM-162
+  - PRM-166
+  note: >-
+    提案の C を案どおり採用。DEC-480 の値 0.27 m/s は書き換えず、PRM-162 の値を 0 にする（/config の値は正の数だけを受けるので、/config に
+    保存した値があればそれが使われる。そのときは人が消す）。V_move は軸ごとに実測の最低速度（PRM-152・155・158、DEC-445）で、動き出す
+    倒し量は表の V_move での値（PRM-151・154・157）。ヒステリシス h は V_move/2 のしきい値を中立のとき +h/2、動いているとき −h/2 にずらす。
+    旋回の h は h ×（旋回の V_move ÷ 前進の V_move）rad/s（番号を足さないための AI の読み）。速度の帰還の層が無効（既定）のときも床と表で
+    倒し量を作る（今までは PRM-39 での正規化）。人が /config で不感帯の補償（DEC-171）を入れた向きは補償のまま。帰還の層が有効のときは
+    PI の目標に床を掛ける。その場の旋回の倒し量（左 0.30・右 0.18、第192便）は正本にない実測の候補（DEC-409 未決）なので使っていない：
+    その場の旋回は表（前進中の旋回の実測、PRM-156〜160）のまま（未判定）。ヒステリシスの値は DEC-508。第260便。安全かどうかの判断は人（1.12）。
+  disposition: answered
+- id: DEC-508
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第258便の提案の B・C の値、第260便）V_slow 0.3 m/s（PRM-164）、L_ramp 2.0 m（PRM-165）、ND-11 のヒステリシス 0.02 m/s（PRM-166）を
+    提案の推奨値のまま入れてよいか。AI の質問は「A・B・C のどこまで実装に進めますか？」。
+  answer_verbatim: |
+    A・B・C 全部
+    A,B,C全部を採用した状況でのシミュレーションを回せ。
+  affected_refs:
+  - ND-02
+  - ND-11
+  - IFD-41
+  - DEC-506
+  - DEC-507
+  resulting_refs:
+  - PRM-164
+  - PRM-165
+  - PRM-166
+  note: >-
+    人は値を述べていない。提案を承認したことで推奨値を暫定で認めたもの（AI の読み）。実測の裏付けはない：0.3 m/s は不感帯（前進は倒し量
+    0.21 で 0.09 m/s、DEC-445）より十分上で V_auto 0.5 より下に置いた値、2.0 m は帯の半幅 1.0 m の 2 倍、0.02 m/s は V_move/2（0.045 m/s）の
+    半分より小さい値。どれも実車・実測で見直す（未実測）。第260便。
+  disposition: answered
+entities:
+- id: PRM-164
+  kind: parameter
+  name: "速度マスクの帯の外の速度 V_slow"
+  source_refs:
+  - SRC-I013
+  - SRC-I026
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-19
+  - PRM-20
+  - PRM-165
+  - IFD-41
+  issue_refs: []
+  interpretation: "REV-285（DEC-506・DEC-508）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-02
+    value: 0.3
+    value_state: approved
+    unit: m/s
+    stage: waypoint
+    purpose: "速度マスクで、帯（PRM-19）の外の勾配（PRM-165）より外と、帯のない所の値。マスクに 0（制限なし）を書かない（DEC-506）。monitor の waypoint の保存と、REV-285 より前に保存したマスクを開始時に作り直すときに使う。"
+    measurement: "暫定。人の回答「A・B・C 全部」（DEC-508）で提案の推奨値を承認したもの。実測の裏付けなし（未実測）"
+    decision_deadline: 決定済み（DEC-508。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_monitor"
+    param_key: speed_mask_outside_speed_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-508
+- id: PRM-165
+  kind: parameter
+  name: "速度マスクの帯の外の勾配の長さ L_ramp"
+  source_refs:
+  - SRC-I013
+  - SRC-I026
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-19
+  - PRM-164
+  - IFD-41
+  issue_refs: []
+  interpretation: "REV-285（DEC-506・DEC-508）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-02
+    value: 2.0
+    value_state: approved
+    unit: m
+    stage: waypoint
+    purpose: "速度マスクで、最も近い帯の縁から外へ、区間の制限から V_slow（PRM-164）へ直線で下げる長さ。0 なら帯の縁から V_slow。"
+    measurement: "暫定。人の回答「A・B・C 全部」（DEC-508）で提案の推奨値を承認したもの。実測の裏付けなし（未実測）"
+    decision_deadline: 決定済み（DEC-508。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_monitor"
+    param_key: speed_mask_ramp_length_m
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-508
+- id: PRM-166
+  kind: parameter
+  name: "不感帯の下限のヒステリシス（ND-11）"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - PRM-152
+  - PRM-155
+  - PRM-158
+  - PRM-162
+  issue_refs: []
+  interpretation: "REV-285（DEC-507・DEC-508）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-11
+    value: 0.02
+    value_state: approved
+    unit: m/s
+    stage: 車体出力
+    purpose: "ND-11 の不感帯の下限（DEC-507）で、V_move/2 のしきい値を中立のとき +h/2、動いているとき −h/2 にずらす幅。前進・後退は m/s のまま、旋回は h ×（PRM-158 ÷ PRM-152）rad/s。値がなければ下限は働かない（今までの正規化）。"
+    measurement: "暫定。人の回答「A・B・C 全部」（DEC-508）で提案の推奨値を承認したもの。実測の裏付けなし（未実測）"
+    decision_deadline: 決定済み（DEC-508。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_motion_controller"
+    param_key: floor_hysteresis_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-508
+modifications:
+- id: PRM-131
+  interpretation_append: >-
+    REV-285（DEC-505、第260便）：名前を「自律走行の上限 V_auto」に改めた（番号は同じ）。MPPI の vx_max、velocity_smoother の前進の上限（PRM-66 は導出値）、
+    区間の制限の上限、速度マスクの最大の値をこれから導く。前の名前は「MPPI の前進の速度の上限 vx_max」。
+  set:
+    name: 自律走行の上限 V_auto（MPPI の vx_max と velocity_smoother の前進の上限）
+  set_nested:
+    parameter.purpose: >-
+      自律走行が出してよい前進の速度の最大（DEC-505）。MPPI の vx_max と velocity_smoother の前進の上限はこの値（/config の値を含め Nav2 が使う値）。
+      区間の制限はこれ以下だけ（monitor は超える値の保存を拒み、自律走行の開始で頭打ちにして記録する）。PRM-66 はこの値の写し（DR-18）、PRM-39 以下（DR-19）。
+      prune_distance は雛形の比のまま追従する。monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。
+- id: PRM-66
+  interpretation_append: >-
+    REV-285（DEC-505、第260便）：独立の値をやめ、PRM-131（V_auto）から導く値にした（DR-18 で同じ値かを検査する）。前の値 1.25 m/s（DEC-192）の判断はそのまま残す。
+    nav2_config は velocity_smoother の前進の上限に PRM-131（/config の値を含む）を使う。この値は RPP の desired_linear_vel にだけ使う。
+  set:
+    name: Nav2 の前進の最高速度（PRM-131 から導出）
+  set_nested:
+    parameter.value: 0.5
+    parameter.purpose: >-
+      PRM-131（自律走行の上限 V_auto）の写し（DEC-505、導出値）。velocity_smoother の max_velocity（x）は PRM-131 から作る。RPP（PRM-130 が false のとき）の
+      desired_linear_vel。区間の速度上限（IFD-14）はこれ以下だけ
+    parameter.measurement: >-
+      導出（DEC-505）：PRM-131 と同じ値。実測ではない。前の値は人の決定（DEC-192）の 1.25 m/s（倒し切りの速度 PRM-39 と同じ）
+    parameter.decision_deadline: 決定済み（DEC-505。PRM-131 と同時に変える）
+- id: PRM-162
+  interpretation_append: >-
+    REV-285（DEC-507、第260便）：値を 0.27 m/s（DEC-480）から 0 に戻した。不感帯の下限は ND-11 が持つ（PRM-166）。前の値の判断はそのまま残す。
+  set:
+    approval_decision_ref: DEC-507
+  set_nested:
+    parameter.value: 0.0
+    parameter.purpose: >-
+      MPPI（PRM-130 が true のとき）の vx_min。0（DEC-507）：MPPI は止まる・その場で向きを変える指令を出せる（後退はしない）。不感帯の下限は ND-11 の
+      床（PRM-166、DEC-507）。monitor の /config「Nav2」タブ（IFD-54）に正しい値（正の数）があれば、次の gouda.sh start からその値。
+    parameter.measurement: >-
+      人の回答「A・B・C 全部」（DEC-507）で 0 に戻した。前の値 0.27 m/s は DEC-480（実車では未検証）。0 は実測の値ではない
+    parameter.decision_deadline: 決定済み（DEC-507。実車の走行で見直す）
+- id: PRM-39
+  interpretation_append: >-
+    REV-285（DEC-505、第260便）：車体の能力 V_full。指令→倒し量の正規化（とフィードフォワードの表の倒し切りの点）だけに使い、運用の上限ではない。PRM-131 はこれ以下（DR-19）。
+- id: ND-10
+  interpretation_append: 'REV-285（DEC-505・DEC-507）：velocity_smoother の前進の上限は PRM-131（V_auto）。MPPI の vx_min（PRM-162）は 0。'
+- id: ND-11
+  interpretation_append: 'REV-285（DEC-507）：不感帯の下限（目標が V_move/2 未満は中立、V_move 未満は動き出す倒し量、それ以上は表）とヒステリシス PRM-166。帰還の層が無効のときも働く。'
+- id: ND-02
+  interpretation_append: 'REV-285（DEC-505・DEC-506）：区間の制限が V_auto（PRM-131）を超える waypoint の組は保存しない。マスクの帯の外に勾配（PRM-164・PRM-165）。'
+- id: ND-03
+  interpretation_append: 'REV-285（DEC-505・DEC-506）：TR-05 で V_auto を超える区間の制限を頭打ちにし、REV-285 より前に保存したマスクは勾配つきで作り直す（run の下に書き、区間を記録する）。'
+- id: IFD-41
+  interpretation_append: 'REV-285（DEC-506）：マスクに 0（制限なし）を書かない。帯の外は区間の制限から V_slow（PRM-164）へ L_ramp（PRM-165）で下げ、それより外は V_slow。'

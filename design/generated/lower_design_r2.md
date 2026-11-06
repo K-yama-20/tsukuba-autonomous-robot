@@ -210,7 +210,7 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-36 | 障害物とみなす高さの上限（変換） | ND-05 | 1.35 | approved | m | REV-122: DEC-098 で 1.35 m を承認（人の指定）。 REV-123: 第14版の全高 1.2 m（PRM-03）に 0.15 m の余裕を足した値になる。 | `Q-06` |
 | PRM-37 | GLIM 停止後に dump 完了を待つ時間 | ND-03 | 未確定 | unresolved | s |  | `Q-05` |
 | PRM-38 | cell を占有とみなす障害物点数の下限（変換） | ND-05 | 1.0 | approved | 点 | REV-122: DEC-098 で 1.0 を承認（推奨値）。 | `Q-06` |
-| PRM-39 | cmd_vel の正規化に用いる最大並進速度 | ND-11 | 1.25 | approved | m/s | REV-103: DEC-166 で 1.111 を承認。 REV-122: DEC-193 で 1.111 m/s（DEC-166）を 1.25 m/s に置き換えた。 | `Q-06` |
+| PRM-39 | cmd_vel の正規化に用いる最大並進速度 | ND-11 | 1.25 | approved | m/s | REV-103: DEC-166 で 1.111 を承認。 REV-122: DEC-193 で 1.111 m/s（DEC-166）を 1.25 m/s に置き換えた。 REV-285（DEC-505、第260便）：車体の能力 V_full。指令→倒し量の正規化（とフィードフォワードの表の倒し切りの点）だけに使い、運用の上限ではない。PRM-131 はこれ以下（DR-19）。 | `Q-06` |
 | PRM-40 | cmd_vel の正規化に用いる最大角速度 | ND-11 | 0.97 | approved | rad/s | REV-103: DEC-166 で 0.97 を承認。 | `Q-06` |
 | PRM-41 | gouda_motion_controller の操作値の発行周期 | ND-11 | 0.05 | approved | s | REV-103: DEC-166 で 0.05 を承認。 | `Q-05` |
 | PRM-42 | motion_hold の期限切れ判定（gouda_motion_controller） | ND-11 | 0.5 | approved | s | REV-103: DEC-166 で 0.5 を承認。 | `Q-05` |
@@ -237,7 +237,7 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-63 | 地面とみなす傾きの上限（変換） | ND-05 | 10.0 | approved | 度 | REV-122: DEC-098 で 10.0 を承認（推奨値）。 | `Q-06`, `G-FLOOR-REFLECTION` |
 | PRM-64 | 点のない所に地面を補う距離（変換） | ND-05 | 1.0 | approved | m | REV-122: DEC-098 で 1.0 を承認（推奨値）。 | `Q-06`, `G-FLOOR-REFLECTION` |
 | PRM-65 | GNSS ドライバの接続先（mosaic-go） | ND-19 | serial:/dev/serial/by-id/usb-Septentrio_Septentrio_USB_Device_0100012541-if00 | approved | - | 2026-10-19 人の回答（DEC-125）: しばらくは VM で実機試験、mosaic-go は USB 接続。値（tcp の USB イーサネットか serial の by-id）は mosaic-go を VM につないで AI が確かめる（2026-10-19 の時点では VM に接続されていなかった）。 REV-069: DEC-141 で承認。ttyACM の番号では指定しない。by-id の名前（/dev/serial/by-id/）以外の serial の値は、ドライバを起動せず理由を記録する。 | `G-INIT-POSE-GNSS` |
-| PRM-66 | Nav2 の前進の最高速度 | ND-10 | 1.25 | approved | m/s | REV-122: DEC-192 で 1.25 m/s を承認。 | `Q-06` |
+| PRM-66 | Nav2 の前進の最高速度（PRM-131 から導出） | ND-10 | 0.5 | approved | m/s | REV-122: DEC-192 で 1.25 m/s を承認。 REV-285（DEC-505、第260便）：独立の値をやめ、PRM-131（V_auto）から導く値にした（DR-18 で同じ値かを検査する）。前の値 1.25 m/s（DEC-192）の判断はそのまま残す。 nav2_config は velocity_smoother の前進の上限に PRM-131（/config の値を含む）を使う。この値は RPP の desired_linear_vel にだけ使う。 | `Q-06` |
 | PRM-67 | Nav2 の最大の角速度 | ND-10 | 0.5 | approved | rad/s | REV-122: DEC-192 で 1.0 rad/s を承認。 REV-276（DEC-490、第248便）：velocity_smoother の最大の角速度を 1.0 rad/s（DEC-192） から 0.5 rad/s にした。前の値の判断はそのまま残す。 | `Q-06` |
 | PRM-68 | Nav2 の前進の加速度・減速度の上限 | ND-10 | 1.2 | approved | m/s² | REV-122: DEC-192 で 1.2 m/s² を承認。 | `Q-06` |
 | PRM-73 | Nav2 の旋回の角加速度・角減速度の上限 | ND-10 | 0.5 | approved | rad/s² | REV-122: DEC-192 で 2.0 rad/s² を承認。 REV-276（DEC-490、第248便）：旋回の角加速度（MPPI の az_max と velocity_smoother）を 2.0 rad/s²（DEC-192） から 0.5 rad/s² にした。前の値の判断はそのまま残す。 | `Q-06` |
@@ -302,7 +302,7 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-128 | global costmap の更新の頻度（update_frequency） | ND-10 | 未確定 | unresolved | Hz | REV-183（DEC-393）で追加。第164便の C-6。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（global_costmap update_frequency 1.0）の値 1.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：2.0（再計画（PRM-103 1 Hz）に新しい障害物が早く入る。CPU は増える） | `G-TUNING` |
 | PRM-129 | 膨らませの費用の減り方（cost_scaling_factor、local・global） | ND-10 | 未確定 | unresolved | - | REV-183（DEC-393）で追加。第164便の D-4。値は未確定。値がない間は Gouda は書かず、Nav2 1.3.13 のテンプレート（inflation_layer cost_scaling_factor 3.0）の値 3.0 がそのまま効く（今の振る舞いを変えない）。推奨値（第165便、未承認）：3.0（変えない） | `G-TUNING` |
 | PRM-130 | Nav2 の controller に MPPI を使うか（false なら Regulated Pure Pursuit） | ND-10 | True | approved | - | REV-190（DEC-400・401・402）で追加。 |  |
-| PRM-131 | MPPI の前進の速度の上限 vx_max | ND-10 | 0.5 | approved | m/s | REV-190（DEC-400・401・402）で追加。 REV-276（DEC-490、第248便）：vx_maxを 0.8 m/s（DEC-402） から 0.5 m/s にした。前の値の判断はそのまま残す。 |  |
+| PRM-131 | 自律走行の上限 V_auto（MPPI の vx_max と velocity_smoother の前進の上限） | ND-10 | 0.5 | approved | m/s | REV-190（DEC-400・401・402）で追加。 REV-276（DEC-490、第248便）：vx_maxを 0.8 m/s（DEC-402） から 0.5 m/s にした。前の値の判断はそのまま残す。 REV-285（DEC-505、第260便）：名前を「自律走行の上限 V_auto」に改めた（番号は同じ）。MPPI の vx_max、velocity_smoother の前進の上限（PRM-66 は導出値）、 区間の制限の上限、速度マスクの最大の値をこれから導く。前の名前は「MPPI の前進の速度の上限 vx_max」。 |  |
 | PRM-132 | MPPI の旋回の速度の上限 wz_max | ND-10 | 0.5 | approved | rad/s | REV-190（DEC-400・401・402）で追加。 REV-276（DEC-490、第248便）：MPPI の wz_maxを 1.0 rad/s（DEC-402） から 0.5 rad/s にした。前の値の判断はそのまま残す。 |  |
 | PRM-133 | local costmap の更新の頻度（update_frequency） | ND-10 | 10.0 | approved | Hz | REV-190（DEC-400・401・402）で追加。 |  |
 | PRM-134 | global の経路を平滑化するか（BT の SmoothPath） | ND-10 | True | approved | - | REV-190（DEC-400・401・402）で追加。 |  |
@@ -326,8 +326,11 @@ node に吸収していない旧モジュール: `M-039`, `M-013`, `M-014`, `M-0
 | PRM-160 | フィードフォワード 旋回の中間の点の速さ（前進しながら） | ND-11 | 0.19 | approved | rad/s | REV-241（DEC-450）で追加。値は FILE-MIN-SPEED-20261107（DEC-445 の資料）の記録。 |  |
 | PRM-142 | MID-360 の層を使う（mid360_enabled） | ND-10 | True | approved | - | REV-242（DEC-454）で追加。 |  |
 | PRM-161 | Nav2 の失敗の後、goal を出し直す前に待つ時間（mode_manager） | ND-03 | 2.0 | approved | s | REV-245（DEC-437・DEC-460）で追加。 |  |
-| PRM-162 | MPPI の前進の速度の下限 vx_min | ND-10 | 0.27 | approved | m/s | REV-261（DEC-480）で追加。 |  |
+| PRM-162 | MPPI の前進の速度の下限 vx_min | ND-10 | 0.0 | approved | m/s | REV-261（DEC-480）で追加。 REV-285（DEC-507、第260便）：値を 0.27 m/s（DEC-480）から 0 に戻した。不感帯の下限は ND-11 が持つ（PRM-166）。前の値の判断はそのまま残す。 |  |
 | PRM-163 | ゴールの到達判定の向きの許容 yaw_goal_tolerance | ND-10 | 6.3 | approved | rad | REV-265（DEC-484）で追加。 |  |
+| PRM-164 | 速度マスクの帯の外の速度 V_slow | ND-02 | 0.3 | approved | m/s | REV-285（DEC-506・DEC-508）で追加。 |  |
+| PRM-165 | 速度マスクの帯の外の勾配の長さ L_ramp | ND-02 | 2.0 | approved | m | REV-285（DEC-506・DEC-508）で追加。 |  |
+| PRM-166 | 不感帯の下限のヒステリシス（ND-11） | ND-11 | 0.02 | approved | m/s | REV-285（DEC-507・DEC-508）で追加。 |  |
 
 ## 6. H-001 SpeedLimit 発行方式の比較（承認は人: DEC-011）
 

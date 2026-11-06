@@ -272,7 +272,8 @@ class TunableTests(unittest.TestCase):
             follow = p['controller_server']['ros__parameters']['FollowPath']
             vs = p['velocity_smoother']['ros__parameters']
             self.assertEqual(follow['plugin'], nc.MPPI_PLUGIN)
-            self.assertEqual((follow['vx_max'], follow['vx_min'], follow['wz_max']), (0.5, 0.27, 0.5))   # vx_min: REV-261 (DEC-480), PRM-162; 0.0 before. vx_max / wz_max: REV-276 (DEC-490), 0.8 / 1.0 before
+            self.assertEqual((follow['vx_max'], follow['vx_min'], follow['wz_max']), (0.5, 0.0, 0.5))   # vx_min: REV-285 (DEC-507) 0; 0.27 by REV-261 (DEC-480) before. vx_max / wz_max: REV-276 (DEC-490), 0.8 / 1.0 before
+            self.assertEqual(vs['max_velocity'][0], follow['vx_max'], 'REV-285 (DEC-505): the smoother forward limit is V_auto')
             self.assertEqual((follow['ax_max'], follow['ax_min'], follow['az_max']), (vs['max_accel'][0], -vs['max_accel'][0], vs['max_accel'][2]))
             self.assertAlmostEqual(follow['prune_distance'], tf['prune_distance'] * follow['vx_max'] / tf['vx_max'])   # PRM-131 (REV-276: 0.5)
             horizon = follow['vx_max'] * follow['time_steps'] * follow['model_dt']
@@ -299,6 +300,27 @@ class TunableTests(unittest.TestCase):
             follow = p['controller_server']['ros__parameters']['FollowPath']
             self.assertEqual((follow['vx_max'], follow['wz_max']), (0.5, 0.3))
             self.assertEqual(p['local_costmap']['local_costmap']['ros__parameters']['update_frequency'], 5.0)
+
+    def test_smoother_follows_v_auto(self):   # REV-285 (DEC-505): one chain; /config's PRM-131 also moves the smoother, the turn / reverse stay
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'c', {'mppi_vx_max_mps': 0.4})
+            vs = p['velocity_smoother']['ros__parameters']
+            self.assertEqual(vs['max_velocity'][0], 0.4); self.assertEqual(p['controller_server']['ros__parameters']['FollowPath']['vx_max'], 0.4)
+            self.assertEqual(vs['max_velocity'][2], nc.read_values(PARAMS, True)[('gouda_nav2', 'max_angular_velocity_radps')])
+            self.assertLess(vs['min_velocity'][0], 0)
+
+    def test_auto_speed_limit(self):   # REV-285 (DEC-505): in use > /config of the next start > PRM-131
+        prm = nc.read_tunables(PARAMS, True)['mppi_vx_max_mps']
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(nc.auto_speed_limit(PARAMS, True, None)['value'], prm)
+            cfg = os.path.join(d, 'config'); os.makedirs(cfg)
+            with open(os.path.join(cfg, nc.RECOVERY_CONFIG), 'w') as f: json.dump({'values': {'mppi_vx_max_mps': 0.35}, 'config_revision': 2}, f)
+            self.assertEqual(nc.auto_speed_limit(PARAMS, True, cfg)['value'], 0.35)
+            ov = os.path.join(d, 'overrides.json')
+            with open(ov, 'w') as f: json.dump({'mppi_vx_max_mps': {'value': 0.45, 'source': 'PRM-131'}}, f)
+            r = nc.auto_speed_limit(PARAMS, True, cfg, ov); self.assertEqual(r['value'], 0.45); self.assertIn('in use', r['source'])
+            with open(ov, 'w') as f: f.write('{broken')
+            self.assertEqual(nc.auto_speed_limit(PARAMS, True, cfg, ov)['value'], 0.35, 'an unreadable file falls back')
 
     def test_goal_yaw_tolerance(self):   # REV-265 (DEC-484): PRM-163 by default, another value from /config, also with RPP; xy unchanged
         with tempfile.TemporaryDirectory() as d:

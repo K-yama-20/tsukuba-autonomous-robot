@@ -107,6 +107,8 @@ class MonitorNode(Node):
             self.declare_parameter(key, Parameter.Type.DOUBLE)
         self.declare_parameter('speed_mask_half_width_m', Parameter.Type.DOUBLE)   # PRM-19 (unresolved: 実機調整; a save request may carry an explicit value)
         self.declare_parameter('speed_mask_step_mps', Parameter.Type.DOUBLE)       # PRM-20 (unresolved: depends on Q-06)
+        self.declare_parameter('speed_mask_outside_speed_mps', Parameter.Type.DOUBLE)   # PRM-164 V_slow (REV-285, DEC-506/508)
+        self.declare_parameter('speed_mask_ramp_length_m', Parameter.Type.DOUBLE)       # PRM-165 L_ramp (REV-285, DEC-506/508)
         self.declare_parameter('keepout_gap_warn_m', Parameter.Type.DOUBLE)        # PRM-99 (unresolved: DEC-229; trial file in VM tests)
         self.ui = {}
         for key in UI_PARAMS:
@@ -436,7 +438,8 @@ class MonitorNode(Node):
         return {'ok': False, 'message': 'unknown resource'}
 
     def _save_waypoints(self, rest, body: dict) -> dict:
-        """Save a waypoint set with its speed mask (IFD-30 / IFD-41). Overlap with different limits warns; never refuses (DEC-059 A)."""
+        """Save a waypoint set with its speed mask (IFD-30 / IFD-41). Overlap with different limits warns; never refuses (DEC-059 A).
+        REV-285: a section limit above V_auto (PRM-131) is refused (DEC-505); the mask has the gradient outside the bands (DEC-506)."""
         try:
             ws = wpmod.WaypointSet.from_dict(body.get('set', {}))
         except Exception as e:
@@ -451,17 +454,29 @@ class MonitorNode(Node):
         st = float(st) if st not in (None, '') else optional_double(self, 'speed_mask_step_mps')
         if hw is None or st is None:
             return {'ok': False, 'message': 'speed mask settings missing: half_width_m (PRM-19) and step_mps (PRM-20) are unresolved; give them in the request (実機調整値として記録される)'}
+        vslow, ramp = optional_double(self, 'speed_mask_outside_speed_mps'), optional_double(self, 'speed_mask_ramp_length_m')
+        if vslow is None or ramp is None:
+            return {'ok': False, 'message': 'speed mask settings missing: outside_speed (PRM-164) and ramp_length (PRM-165) are not in the generated gouda_monitor.yaml (REV-285)'}
+        # REV-285 (DEC-505): a section limit only slows down below V_auto (PRM-131, the value of the next start)
+        vauto = nav2_config.auto_speed_limit(self.params_dir, self.trial, str(self.config_dir))
+        if vauto['value'] is None:
+            return {'ok': False, 'message': f"V_auto (PRM-131) has no value: section limits cannot be checked ({vauto['note']})"}
+        above = speed_mask.limits_above(ws.section_limits_mps, vauto['value'])
+        if above:
+            return {'ok': False, 'message': '区間の制限が自律走行の上限 V_auto（' + f"{vauto['value']} m/s、{vauto['source']}" + '）を超える：'
+                    + '、'.join(f'区間 {i}（{ws.section_limits_mps[i]} m/s）' for i in above) + '。V_auto 以下にして保存する（DEC-505）'}
         geom = speed_mask.MapGeometry.from_map_yaml(self.map_db.root / ws.map_origin_id / 'converted' / f'{ws.map_revision:03d}' / 'map.yaml')
         set_id, rev, tmp = self.routes.begin(body.get('set_id') or None)
         try:
-            res = speed_mask.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, geom, hw, st)
+            res = speed_mask.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, geom, hw, st, vslow, ramp)
             files = speed_mask.write_mask(res, geom, tmp, 'speed_filter_mask', 'costmap_filter_info')
             # REV-137 (DEC-220..223): the drawn areas as a KeepoutFilter mask on the same grid (always written; no area -> all -1)
             kfiles, keepout = keepout_mask.write(keepout_mask.rasterize(ws.areas, geom), geom, tmp, nav2_config.KEEPOUT_MASK_TOPIC, nav2_config.KEEPOUT_INFO_TOPIC)
             files.update(kfiles)
         except Exception as e:
             return {'ok': False, 'message': self.routes.abort(tmp, str(e))}
-        gen = {'half_width_m': hw, 'step_mps': st, 'source': 'request' if body.get('half_width_m') not in (None, '') else 'parameter', 'painted_cells': res.painted_cells, 'overlap_cells': res.overlap_cells, 'sections_clipped': res.sections_clipped}
+        gen = {'half_width_m': hw, 'step_mps': st, 'source': 'request' if body.get('half_width_m') not in (None, '') else 'parameter', 'painted_cells': res.painted_cells, 'overlap_cells': res.overlap_cells, 'sections_clipped': res.sections_clipped,
+               'outside_mps': vslow, 'ramp_m': ramp, 'ramp_cells': res.ramp_cells, 'v_auto_mps': vauto['value'], 'v_auto_source': vauto['source']}
         warnings = list(res.warnings)
         gen['keepout'] = dict(keepout, areas=len(ws.areas))
         warnings += [{'kind': 'waypoint_in_keepout', 'waypoint': i, 'x': ws.waypoints[i].x, 'y': ws.waypoints[i].y,

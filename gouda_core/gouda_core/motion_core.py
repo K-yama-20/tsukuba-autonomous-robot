@@ -22,6 +22,15 @@ Rules (DEC-004, RQ-I063, RQ-I020):
   reset to 0 (with a neutral axis) when that axis' target is 0 or changes sign, on every neutral reason above, on manual
   priority on the ESP32 and on deactivation. When the odometry is older than the /config timeout, never received or not set,
   the layer drives on the feedforward alone (it never stops for that) and says so in the feedback record.
+- Dead-band floor (REV-285, DEC-507; replaces MPPI's vx_min PRM-162 of DEC-480, now 0): per axis, with V_move = the axis' measured
+  slowest motion of the feedforward table (forward PRM-152, reverse PRM-155, turn PRM-158), a target |v| below V_move / 2 gives a
+  neutral axis, V_move / 2 <= |v| < V_move gives the move stick (the table's value at V_move), |v| >= V_move the table. A
+  hysteresis h (PRM-166, m/s) moves the V_move / 2 threshold to V_move / 2 + h / 2 while the axis is neutral and to
+  V_move / 2 - h / 2 while it moves, so a target hovering at the threshold does not chatter; the turn axis uses
+  h * (turn V_move / forward V_move) in rad/s. The floor works without the feedback layer (the default; then the axis' stick is
+  the table's value) unless the human set the DEC-171 compensation for that direction in /config (that direction keeps the
+  compensation as before), and with the layer on it shapes the PI's target (0 -> neutral, the integral reset). Without a
+  usable table or without PRM-166 nothing changes (the plain normalization).
 - All thresholds are settings passed in by the node from the generated parameter file or IFD-52; nothing numeric lives here.
 """
 from __future__ import annotations
@@ -114,6 +123,8 @@ MODE_FF_PI = 'ff_pi'            # feedforward + PI
 MODE_FF_ONLY = 'ff_only'        # feedforward alone (odometry stale / not received / PI values not set)
 MODE_NEUTRAL = 'neutral'        # a neutral reason, manual priority or a zero target: integrals are 0
 MODE_NO_FEEDFORWARD = 'no_feedforward'   # enabled, but the feedforward table is not usable: the plain normalization is used
+MODE_FLOOR = 'floor'            # REV-285 (DEC-507): the layer is off; the dead-band floor and the table drive the axes
+FLOOR_ZERO, FLOOR_LOW, FLOOR_MOVE, FLOOR_TABLE, FLOOR_COMPENSATION = 'zero', 'below_half', 'move_stick', 'table', 'compensation'
 
 
 @dataclass(frozen=True)
@@ -168,6 +179,33 @@ class Feedforward:
 
     def problems(self) -> list:
         return [f'{n}: {e}' for n in ('forward', 'reverse', 'turn') for e in getattr(self, n).problems()]
+
+
+class AxisFloor:
+    """REV-285 (DEC-507): one axis' dead-band floor state (moving or neutral) for the hysteresis."""
+
+    def __init__(self):
+        self.moving = False
+        self.sign = 0
+
+    def reset(self) -> None:
+        self.moving = False; self.sign = 0
+
+    def target(self, v: float, v_move: float, h: float) -> tuple:
+        """(the target the stick is made for, branch). 0 -> neutral; below the threshold -> 0; below v_move -> +-v_move; else v."""
+        s = abs(v)
+        if s == 0:
+            self.reset(); return 0.0, FLOOR_ZERO
+        sign = 1 if v > 0 else -1
+        if sign != self.sign:
+            self.moving = False; self.sign = sign
+        thr = v_move / 2 + (-h / 2 if self.moving else h / 2)
+        if s < thr:
+            self.moving = False; return 0.0, FLOOR_LOW
+        self.moving = True
+        if s < v_move:
+            return float(sign * v_move), FLOOR_MOVE
+        return float(v), FLOOR_TABLE
 
 
 @dataclass(frozen=True)
@@ -229,6 +267,8 @@ class MotionOutput:
     forward_terms: Optional[AxisTerms] = None
     turn_terms: Optional[AxisTerms] = None
     odometry_age_s: Optional[float] = None
+    floor_forward: str = ''           # REV-285: the floor's branch of each axis ('' = the floor is not used)
+    floor_turn: str = ''
 
 
 def _clamp(v: float) -> float:
@@ -276,7 +316,7 @@ class MotionCore:
     """SO-08: last_cmd_vel_time / last cmd_vel, motion_hold_state (hold, reason, mode, time). Volatile; neutral at start.
     REV-241: also the speed-feedback state (the last odometry, the ESP32 source, the two integrals)."""
 
-    def __init__(self, settings: MotionSettings, feedforward: Optional[Feedforward] = None):
+    def __init__(self, settings: MotionSettings, feedforward: Optional[Feedforward] = None, floor_hysteresis_mps: Optional[float] = None):
         settings.validate()
         self.s = settings
         self.cmd: Optional[tuple] = None       # (linear_x, angular_z)
@@ -294,6 +334,10 @@ class MotionCore:
         self.vehicle_source = ''               # the ESP32 STATUS source (IFD-38): 'manual' = manual priority
         self.pi_forward = AxisPI(); self.pi_turn = AxisPI()
         self.last_out_t: Optional[float] = None
+        # REV-285 (DEC-507): the dead-band floor; used only with a usable table and a hysteresis value (PRM-166)
+        h = floor_hysteresis_mps
+        self.floor_h = float(h) if _set(h) and h >= 0 and not self.feedforward_problems else None
+        self.floor_forward = AxisFloor(); self.floor_turn = AxisFloor()
 
     # ---- inputs ----
     def on_cmd_vel(self, linear_x: float, angular_z: float, t: float) -> None:
@@ -328,6 +372,18 @@ class MotionCore:
 
     def reset_feedback(self) -> None:
         self.pi_forward.reset(); self.pi_turn.reset(); self.last_out_t = None
+        self.floor_forward.reset(); self.floor_turn.reset()
+
+    def floor_ready(self) -> bool:
+        return self.floor_h is not None
+
+    def _floor_targets(self, vx: float, wz: float) -> tuple:
+        """REV-285: (vx', branch, wz', branch) after the floor. The turn's hysteresis is scaled to rad/s by the two V_move."""
+        ff = self.feedforward
+        lin = ff.forward if vx >= 0 else ff.reverse
+        fv, fb = self.floor_forward.target(vx, lin.min_speed, self.floor_h)
+        tw, tb = self.floor_turn.target(wz, ff.turn.min_speed, self.floor_h * ff.turn.min_speed / ff.forward.min_speed)
+        return fv, fb, tw, tb
 
     # ---- decision ----
     def _neutral(self, t: float) -> Optional[MotionOutput]:
@@ -362,12 +418,32 @@ class MotionCore:
         if self.feedback.enabled and not self.feedforward_problems:
             return self._feedback_output(t, vx, wz, nf, nt)
         c = self.compensation
+        if not self.feedback.enabled and self.floor_ready():
+            return self._floor_output(vx, wz, nf, nt, c)
         forward = compensate(nf, c.pair('forward' if nf >= 0 else 'reverse'))
         turn = compensate(nt, c.pair('turn'))
         if self.feedback.enabled:   # enabled but the feedforward table is not usable: the plain path, said in the record
             return MotionOutput(forward, turn, forward == 0.0 and turn == 0.0, REASON_DRIVE, '', nf, nt, MODE_NO_FEEDFORWARD,
                                 '; '.join(self.feedforward_problems), odometry_age_s=self._odom_age(t))
         return MotionOutput(forward, turn, forward == 0.0 and turn == 0.0, REASON_DRIVE, '', nf, nt)
+
+    def _floor_output(self, vx: float, wz: float, nf: float, nt: float, c: Compensation) -> MotionOutput:
+        """REV-285 (DEC-507): the layer is off. Per axis: the human's DEC-171 compensation when set for that direction, else the
+        floor and the table (sign kept; 0 = neutral)."""
+        ff = self.feedforward
+        fv, fb, tw, tb = self._floor_targets(vx, wz)
+        pf = c.pair('forward' if nf >= 0 else 'reverse')
+        if pf is not None:
+            forward, fb = compensate(nf, pf), FLOOR_COMPENSATION; self.floor_forward.reset()
+        else:
+            forward = math.copysign(min(1, (ff.forward if fv >= 0 else ff.reverse).stick(fv)), fv) if fv else 0.0
+        pt = c.pair('turn')
+        if pt is not None:
+            turn, tb = compensate(nt, pt), FLOOR_COMPENSATION; self.floor_turn.reset()
+        else:
+            turn = math.copysign(min(1, ff.turn.stick(tw)), tw) if tw else 0.0
+        return MotionOutput(float(forward), float(turn), forward == 0.0 and turn == 0.0, REASON_DRIVE, '', nf, nt, MODE_FLOOR, '',
+                            floor_forward=fb, floor_turn=tb)
 
     def _odom_age(self, t: float) -> Optional[float]:
         return None if self.odom_time is None else t - self.odom_time
@@ -390,6 +466,9 @@ class MotionCore:
         mv = self.odom[0] if (mode == MODE_FF_PI) else None
         mw = self.odom[1] if (mode == MODE_FF_PI) else None
         meas = self.odom if self.odom is not None else (math.nan, math.nan)
+        fb_f = fb_t = ''
+        if self.floor_ready():   # REV-285 (DEC-507): the floor shapes the PI's targets
+            vx, fb_f, wz, fb_t = self._floor_targets(vx, wz)
         if vx == 0:
             self.pi_forward.reset(); ft = AxisTerms(0.0, meas[0])
         else:
@@ -404,11 +483,12 @@ class MotionCore:
         if vx == 0 and wz == 0:
             mode, why = MODE_NEUTRAL, 'zero target'
         forward, turn = ft.out, tt.out
-        return MotionOutput(forward, turn, forward == 0.0 and turn == 0.0, REASON_DRIVE, '', nf, nt, mode, why, ft, tt, age)
+        return MotionOutput(forward, turn, forward == 0.0 and turn == 0.0, REASON_DRIVE, '', nf, nt, mode, why, ft, tt, age, fb_f, fb_t)
 
     def state(self, t: float) -> dict:
         return {'cmd_vel_age_s': None if self.cmd_time is None else t - self.cmd_time,
                 'hold': self.hold, 'hold_reason': self.hold_reason, 'hold_mode': self.hold_mode,
                 'hold_age_s': None if self.hold_time is None else t - self.hold_time,
                 'compensation_revision': self.compensation.config_revision, 'compensated_directions': self.compensation.active_directions(),
-                'speed_feedback_enabled': self.feedback.enabled, 'odometry_age_s': self._odom_age(t), 'vehicle_source': self.vehicle_source}
+                'speed_feedback_enabled': self.feedback.enabled, 'odometry_age_s': self._odom_age(t), 'vehicle_source': self.vehicle_source,
+                'floor_hysteresis_mps': self.floor_h}
