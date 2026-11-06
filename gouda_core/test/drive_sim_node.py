@@ -39,6 +39,7 @@ class DriveSim(Node):
         self.scorer = ds.Scorer(self.sc)
         self.rays = ds.beams()
         self.noise, self.rng = a.noise, np.random.default_rng(a.seed)
+        self.ghost = a.ghost
         self.cmd_v, self.cmd_w, self.commands = 0.0, 0.0, 0
         self.t0 = time.monotonic()
         self.last = self.t0
@@ -90,6 +91,9 @@ class DriveSim(Node):
     def _cloud(self):
         p, t = self.plant, self._now()
         pts = ds.cloud((p.x, p.y, p.yaw), self.sc.obstacles, t, self.rays, noise_m=self.noise, rng=self.rng)
+        if self.ghost > 0:   # false points around the sensor each scan (as 第200便): 0.5-8 m out, 0-1.2 m above base_link
+            r_ = np.sqrt(self.rng.uniform(0.25, 64.0, self.ghost)); a_ = self.rng.uniform(-np.pi, np.pi, self.ghost)
+            pts = np.vstack((pts, np.column_stack((r_ * np.cos(a_), r_ * np.sin(a_), self.rng.uniform(0.0, 1.2, self.ghost))).astype(np.float32)))
         self.cloud_pub.publish(self._msg(pts))
         if self.mid:
             self.mid_pub.publish(self._msg(ds.mid360_cloud((p.x, p.y, p.yaw), self.sc.obstacles, t, self.mid, self.rng, noise_m=self.noise)))
@@ -121,6 +125,7 @@ def main():
     ap.add_argument('--seed', type=int, default=0); ap.add_argument('--delay', type=float, default=ds.Plant.delay_s)
     ap.add_argument('--tau-v', type=float, default=ds.Plant.tau_v_s); ap.add_argument('--tau-w', type=float, default=ds.Plant.tau_w_s)
     ap.add_argument('--noise', type=float, default=0.02)
+    ap.add_argument('--ghost', type=int, default=0, help='false points added to each XT-32 scan (0: none)')
     ap.add_argument('--mid360-height', type=float, default=0.0, help='MID-360 above the ground [m]; 0: no MID-360 (stage 1 of the plan)')
     ap.add_argument('--mid360-pitch', type=float, default=50.0, help='MID-360 pitched down [deg] (DEC-424)')
     a = ap.parse_args()

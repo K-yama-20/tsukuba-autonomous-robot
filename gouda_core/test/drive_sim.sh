@@ -60,7 +60,7 @@ sleep 1.5   # the report's last rewrite
 LOG="$ROOT/run/stack.launch.log"; count() { grep -c -- "$1" "$LOG"; }
 python3 - "$OUT/report.json" "$OUT/result.json" "$SCENARIO" "${END:-timeout}" "$(cat "$OUT/start.json" | tr -d '\n')" \
   "$(count 'collision ahead')" "$(count 'Failed to make progress')" "$(count 'patience exceeded')" "$(count 'Running spin')" "$(count 'Running backup')" "$(count 'Running wait')" \
-  "$(count 'Control loop missed')" "$(count 'Planner loop missed')" "$(count 'Failed to .* frame\|too old')" "$(cut -d' ' -f1 /proc/loadavg)" <<'PY'
+  "$(count 'Control loop missed')" "$(count 'Planner loop missed')" "$(count 'Failed to .* frame\|too old')" "$(count 'waypoint_skipped:')" "$(count 'clear entirely the local_costmap')" "$(count 'clear entirely the global_costmap')" "$(cut -d' ' -f1 /proc/loadavg)" <<'PY'
 import json, os, sys
 rep, res, sc, end, start, *c = sys.argv[1:]
 r = json.load(open(rep)) if os.path.exists(rep) else {'scenario': sc, 'score': None}

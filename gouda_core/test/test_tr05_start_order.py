@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 try:
     from gouda_core.autonomy_client import AutonomyClient, StepFailed
     from gouda_core.mode_manager_node import ModeManagerNode
+    from gouda_core import autonomy_core as ac
 except ImportError:   # no ROS / Nav2 here (the Mac)
     AutonomyClient = None
 
@@ -23,9 +24,10 @@ class StartOrderTests(unittest.TestCase):
                 raise StepFailed('vehicle_bridge: lifecycle transition 3 failed (see its log)')
         auto = types.SimpleNamespace(new_token=lambda: 1, _token=1, activate_vehicle_output=activate,
                                      start=lambda token, mission, pose, rec: calls.append('localization_nav2_goal'))
-        m = types.SimpleNamespace(_pending_start=(types.SimpleNamespace(waypoints=[1, 2, 3], set_id='s', set_revision=7), 'pose'),
+        m = types.SimpleNamespace(_pending_start=(types.SimpleNamespace(waypoints=[1, 2, 3], set_id='s', set_revision=7, skip_allowed=[False] * 3), 'pose'),
                                   auto=auto, request_auto_record=lambda kind, tid: calls.append('auto_record'),
-                                  _start_odometry=lambda rec, run_id: calls.append('odometry'))
+                                  _start_odometry=lambda rec, run_id: calls.append('odometry'),
+                                  skip_settings=ac.SkipSettings(None, None, None, None))   # DEC-367: unresolved, nothing is skipped
         m._run_steps = lambda token, tid, steps: steps(lambda *a: None)
         return m
 

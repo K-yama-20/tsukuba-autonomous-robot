@@ -23,6 +23,7 @@ without an upper limit (no time value is invented); the human can always pause o
 """
 from __future__ import annotations
 
+import math
 import threading
 from typing import Callable, Optional
 
@@ -90,6 +91,10 @@ class AutonomyClient:
         node.create_subscription(CostmapFilterInfo, nc.FILTER_INFO_TOPIC, self._on_info, LATCHED)
         node.create_subscription(OccupancyGrid, nc.KEEPOUT_MASK_TOPIC, self._on_keepout_mask, LATCHED)     # IFD-55
         node.create_subscription(CostmapFilterInfo, nc.KEEPOUT_INFO_TOPIC, self._on_keepout_info, LATCHED)
+        node.create_subscription(OccupancyGrid, nc.GLOBAL_COSTMAP_TOPIC, self._on_global_costmap, LATCHED)   # DEC-367
+        self.global_costmap: Optional[ac.MaskGrid] = None
+        self.robot_yaw = 0.0
+        self.recoveries = 0   # number_of_recoveries of the current goal's feedback (DEC-367)
         self.keepout_expected = None      # (sha256, (width, height)) of the started mission's mask
         self.keepout_mask_state = None    # None (not received since STARTUP) / 'match' / 'mismatch: ...'
         self.keepout_info_received = False
@@ -116,6 +121,10 @@ class AutonomyClient:
         i = m.info
         self.mask = ac.MaskGrid(i.origin.position.x, i.origin.position.y, i.resolution, i.width, i.height, list(m.data))
         self._speed_state()
+
+    def _on_global_costmap(self, m: OccupancyGrid):
+        i = m.info   # the data array is kept as received; only the cells under the footprint are read (DEC-367)
+        self.global_costmap = ac.MaskGrid(i.origin.position.x, i.origin.position.y, i.resolution, i.width, i.height, m.data)
 
     def _on_info(self, m: CostmapFilterInfo):
         self.info_received = True
@@ -312,8 +321,18 @@ class AutonomyClient:
     def _feedback(self, fb):
         f = fb.feedback
         self.robot_xy = (f.current_pose.pose.position.x, f.current_pose.pose.position.y)
+        q = f.current_pose.pose.orientation
+        self.robot_yaw = 2 * math.atan2(q.z, q.w)
+        self.recoveries = int(f.number_of_recoveries)
         self.on_feedback(self.goal_offset, self.goal_poses, int(f.number_of_poses_remaining))
         self._speed_state()
+
+    def skip_to(self, token, mission: ac.Mission, offset: int, record: Callable) -> None:
+        """DEC-367: the goal from offset replaces the current one. The current handle is dropped first, so the old goal's end (Nav2
+        preempts it) is not taken as a failure; bt_navigator accepts the new goal as a preemption."""
+        old, self.goal_handle = self.goal_handle, None
+        record('nav2_goal_preempted', f'the goal from waypoint {self.goal_offset} is replaced by one from waypoint {offset}', {'had_goal': old is not None})
+        self.send_goal(token, mission, offset, record)
 
     def _result(self, handle, fut):
         if handle is not self.goal_handle:

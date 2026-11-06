@@ -1,0 +1,195 @@
+# 変更セット REV-235（2026-11-07 第211便: waypoint を飛ばす実装の許可、PRM-137〜140）
+# 適用: design/tools/apply_revision.py REV-235
+# 変更セット REV-235（2026-11-07 第211便: waypoint を飛ばす実装の許可、PRM-137〜140）
+# 適用: design/tools/apply_revision.py REV-235
+id: REV-235
+date: '2026-11-07'
+summary: 第211便：人の許可（DEC-446、原文「実装してよい」）で、DEC-367（人が目印 skip_allowed を付けた waypoint だけを飛ばす）の実装に着手。条件の値 PRM-137〜140 を未確定（tbd）で追加し、ソフト試験用の仮値だけを持たせる。
+basis_refs:
+- DEC-367
+- DEC-441
+- DEC-446
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-446
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: DEC-367 の方式（目印の点だけを飛ばす）で実装を始めてよいか
+  answer_verbatim: |
+    実装してよい
+  affected_refs:
+  - DEC-367
+  - DEC-441
+  - ND-03
+  resulting_refs:
+  - PRM-137
+  - PRM-138
+  - PRM-139
+  - PRM-140
+  note: 実装の範囲：waypoint の属性 skip_allowed（既定 false、stop の点と最後の点には付けられない）、monitor の waypoint タブでの目印、mode_manager の判定（目印の点が今の目標、ND-07 が正常、PRM-140 の前進が PRM-137 の間ない、その間に Nav2 の recovery が増えた、global costmap で waypoint に置いた footprint の最大の cost が PRM-138 以上の状態が PRM-139 続く、直前に飛ばしていない）、飛ばしたら次の点から goal を出し直し記録する。DEC-344 (2)（確認走行区間で飛ばすか）は未回答：区間の情報は waypoint セットにないので、目印を付けるかで人が決める。横断歩道・待機列は未実装の機能のため対象外。
+entities:
+- id: PRM-137
+  kind: parameter
+  name: waypoint を飛ばす前の滞留の時間
+  source_refs:
+  - SRC-I001-V17
+  - SRC-I019-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - G-WAYPOINT-SKIP
+  interpretation: REV-235（DEC-367・DEC-446）で追加。値は DEC-367 で tbd。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I096
+  - RQ-I104
+  parameter:
+    owner_ref: ND-03
+    value:
+    value_state: unresolved
+    unit: s
+    stage: 自律走行（waypoint を飛ばす）
+    purpose: DEC-367 の T3。目印の点が目標のまま、PRM-140 の前進がこの時間ない（滞留の時計）。未確定の間、mode_manager は waypoint を飛ばさない（どれか 1 つでも値がなければ機能は働かず、その旨を記録する）。
+    measurement: 実車で、塞がれた waypoint と飛ばしてはいけない場面（人の立ち止まり・通路の横の壁）で測る（DEC-314）
+    decision_deadline: 実車で waypoint を飛ばす前
+    software_trial_value: 10.0
+    software_trial_basis: AI の仮値（第200便の stall 方式の 15 s より短く、3 分より十分短い）。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: skip_stall_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-138
+  kind: parameter
+  name: waypoint が塞がれているとみなす cost
+  source_refs:
+  - SRC-I001-V17
+  - SRC-I019-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - G-WAYPOINT-SKIP
+  interpretation: REV-235（DEC-367・DEC-446）で追加。値は DEC-367 で tbd。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I096
+  - RQ-I104
+  parameter:
+    owner_ref: ND-03
+    value:
+    value_state: unresolved
+    unit: costmap の値（0〜100）
+    stage: 自律走行（waypoint を飛ばす）
+    purpose: DEC-367 の C。global costmap（OccupancyGrid、0〜100）で waypoint に置いた footprint（PRM-69）の中の最大の値がこれ以上なら塞がれているとみなす。未確定の間、mode_manager は waypoint を飛ばさない（どれか 1 つでも値がなければ機能は働かず、その旨を記録する）。
+    measurement: 実車で、塞がれた waypoint と飛ばしてはいけない場面（人の立ち止まり・通路の横の壁）で測る（DEC-314）
+    decision_deadline: 実車で waypoint を飛ばす前
+    software_trial_value: 99.0
+    software_trial_basis: AI の仮値（costmap_2d の 253 以上を 99 以上で出す変換による。第200便の costmap 方式と同じ 99）。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: skip_cost_threshold
+    value_type: double
+    apply_timing: launch
+- id: PRM-139
+  kind: parameter
+  name: waypoint が塞がれた状態の持続時間
+  source_refs:
+  - SRC-I001-V17
+  - SRC-I019-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - G-WAYPOINT-SKIP
+  interpretation: REV-235（DEC-367・DEC-446）で追加。値は DEC-367 で tbd。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I096
+  - RQ-I104
+  parameter:
+    owner_ref: ND-03
+    value:
+    value_state: unresolved
+    unit: s
+    stage: 自律走行（waypoint を飛ばす）
+    purpose: DEC-367 の T_occ。PRM-138 の状態がこの時間続く。途切れたら数え直す。未確定の間、mode_manager は waypoint を飛ばさない（どれか 1 つでも値がなければ機能は働かず、その旨を記録する）。
+    measurement: 実車で、塞がれた waypoint と飛ばしてはいけない場面（人の立ち止まり・通路の横の壁）で測る（DEC-314）
+    decision_deadline: 実車で waypoint を飛ばす前
+    software_trial_value: 3.0
+    software_trial_basis: AI の仮値（第200便の costmap 方式と同じ 3 s）。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: skip_occupied_s
+    value_type: double
+    apply_timing: launch
+- id: PRM-140
+  kind: parameter
+  name: 滞留の時計を戻す前進の距離
+  source_refs:
+  - SRC-I001-V17
+  - SRC-I019-V17
+  design_status: 案
+  adoption: designed_proposal
+  field_bindings: {}
+  related_refs: []
+  issue_refs:
+  - G-WAYPOINT-SKIP
+  interpretation: REV-235（DEC-367・DEC-446）で追加。値は DEC-367 で tbd。
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I096
+  - RQ-I104
+  parameter:
+    owner_ref: ND-03
+    value:
+    value_state: unresolved
+    unit: m
+    stage: 自律走行（waypoint を飛ばす）
+    purpose: DEC-367 の滞留の時計で、この距離進んだら時計を戻す。規則の「1 m くらいの前進」（intent.md 1 行）に対応。未確定の間、mode_manager は waypoint を飛ばさない（どれか 1 つでも値がなければ機能は働かず、その旨を記録する）。
+    measurement: 実車で、塞がれた waypoint と飛ばしてはいけない場面（人の立ち止まり・通路の横の壁）で測る（DEC-314）
+    decision_deadline: 実車で waypoint を飛ばす前
+    software_trial_value: 1.0
+    software_trial_basis: intent.md 1 行の「1mくらい」をそのまま仮値にした。実車採用値ではない
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: skip_progress_m
+    value_type: double
+    apply_timing: launch
+- id: G-WAYPOINT-SKIP
+  kind: issue
+  source_from_affected: true
+  name: waypoint を飛ばす条件の値が未確定（DEC-367）
+  sensitivity:
+  - safety
+  - operation
+  issue:
+    category: technical
+    state: open
+    affected_refs:
+    - ND-03
+    - PRM-137
+    - PRM-138
+    - PRM-139
+    - PRM-140
+    resolution_refs: []
+    question: DEC-367 の T3（PRM-137）・C（PRM-138）・T_occ（PRM-139）と前進の距離（PRM-140）を何にするか。DEC-344 (2)（確認走行区間で飛ばすか）も未回答。
+    next_action: シミュレーションで仮値の振る舞いを確かめた後、実車で塞がれた waypoint と飛ばしてはいけない場面を測り、人が決める（DEC-314）。
+modifications: []
+decision_updates: []

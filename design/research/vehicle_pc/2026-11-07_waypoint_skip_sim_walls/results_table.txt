@@ -1,0 +1,12 @@
+| skip_blocked_g100 | timeout | 0.939 | 150.9 | 0 | 1 | 5.3 |
+| skip_blocked_g20 | pause:goal_reached | 0.975 | 95.7 | 0 | 1 | 7.48 |
+| skip_blocked_unmarked_g20 | pause:goal_reached | 0.977 | 65.2 | 1 | 0 | 6.05 |
+| skip_corner_1 | pause:goal_reached | 0.976 | 79.9 | 2 | 0 | 7.9 |
+| skip_corner_2 | pause:goal_reached | 0.976 | 62.0 | 1 | 0 | 8.49 |
+| skip_corridor_1 | pause:goal_reached | 0.975 | 65.2 | 0 | 0 | 8.19 |
+| skip_corridor_2 | pause:goal_reached | 0.976 | 65.3 | 0 | 0 | 7.92 |
+| skip_corridor_g100 | pause:goal_reached | 0.978 | 74.8 | 0 | 0 | 8.42 |
+| skip_person_g100 | timeout | 0.983 | 151.1 | 0 | 0 | 7.52 |
+| skip_wall_1 | pause:goal_reached | 0.976 | 61.0 | 0 | 0 | 9.95 |
+| skip_wall_2 | pause:goal_reached | 0.976 | 60.9 | 0 | 0 | 9.61 |
+| skip_wall_g100 | pause:goal_reached | 0.976 | 97.3 | 0 | 0 | 8.81 |

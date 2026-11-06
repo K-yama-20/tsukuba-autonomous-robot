@@ -1,0 +1,24 @@
+# 変更セット REV-267（2026-11-07 第240便: PRM-138 の試験用の仮値、模擬の証拠）
+# 適用: design/tools/apply_revision.py REV-267
+id: REV-267
+date: '2026-11-07'
+summary: 第240便：DEC-483 の実装と模擬の比較（FILE-SKIP-SIM-2026-11-07）。PRM-138 のソフト試験用の仮値を 99 から 25 にする（模擬で塞がれた点の cost が 28〜54 だったため）。実車の値は tbd のまま。
+basis_refs:
+- DEC-483
+- DEC-367
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-SKIP-SIM-2026-11-07
+  path: design/research/vehicle_pc/2026-11-07_waypoint_skip_sim/README.md
+  role: evidence
+- id: FILE-SKIP-SIM-2026-11-07-TABLE
+  path: design/research/vehicle_pc/2026-11-07_waypoint_skip_sim/results_table.txt
+  role: evidence
+decisions: []
+entities: []
+modifications:
+- id: PRM-138
+  set_nested:
+    parameter.software_trial_value: 25.0
+    parameter.software_trial_basis: AI の仮値。第240便の模擬（FILE-SKIP-SIM-2026-11-07）で、直径 2 m の茂みの上の waypoint の footprint の cost は 28〜54 だった（99 では届かない）。25 で塞がれた点は 2/2 ゴール、人の 8 s の立ち止まりは 2/2 で誤った飛ばしなし。実車採用値ではない
+decision_updates: []

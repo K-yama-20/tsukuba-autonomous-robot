@@ -41,6 +41,7 @@ class Waypoint:
     y: float
     yaw: float = 0.0      # rad, map frame (REP-103)
     kind: str = 'pass'    # pass | stop (stop points are kept for the record; passing is judged by Nav2: RQ-I011)
+    skip_allowed: bool = False   # the human's mark: the mode manager may give this point up when it stays blocked (DEC-367)
 
 
 @dataclass
@@ -65,6 +66,9 @@ class WaypointSet:
         for i, w in enumerate(self.waypoints):
             if not all(isinstance(getattr(w, k), (int, float)) and math.isfinite(getattr(w, k)) for k in ('x', 'y', 'yaw')): errors.append(f'waypoint {i}: x, y, yaw must be finite numbers')
             if w.kind not in ('pass', 'stop'): errors.append(f'waypoint {i}: kind must be pass or stop')
+            if not isinstance(w.skip_allowed, bool): errors.append(f'waypoint {i}: skip_allowed must be true or false')
+            elif w.skip_allowed and w.kind == 'stop': errors.append(f'waypoint {i}: a stop point cannot be skipped (DEC-367)')
+            elif w.skip_allowed and i == len(self.waypoints) - 1: errors.append(f'waypoint {i}: the last waypoint (the goal) cannot be skipped (DEC-367)')
         from gouda_core import keepout_mask
         errors += keepout_mask.validate_areas(self.areas)
         return errors
@@ -72,7 +76,7 @@ class WaypointSet:
     def to_dict(self) -> dict:
         d = {'schema': SCHEMA, 'set_id': self.set_id, 'revision': self.revision, 'note': self.note,
              'map': {'origin_id': self.map_origin_id, 'revision': self.map_revision, 'content_hash': self.map_content_hash},
-             'frame': 'map', 'waypoints': [{'x': float(w.x), 'y': float(w.y), 'yaw': float(w.yaw), 'kind': w.kind} for w in self.waypoints],
+             'frame': 'map', 'waypoints': [_point_dict(w) for w in self.waypoints],
              'section_limits_mps': [float(v) for v in self.section_limits_mps]}   # normalised numbers: the hash does not depend on int/float spelling
         if self.areas:   # only when drawn: a set without areas keeps its earlier content hash
             from gouda_core import keepout_mask
@@ -83,7 +87,7 @@ class WaypointSet:
     def from_dict(cls, d: dict) -> 'WaypointSet':
         m = d.get('map', {})
         return cls(map_origin_id=str(m.get('origin_id', '')), map_revision=int(m.get('revision', 0)), map_content_hash=str(m.get('content_hash', '')),
-                   waypoints=[Waypoint(float(w['x']), float(w['y']), float(w.get('yaw', 0.0)), str(w.get('kind', 'pass'))) for w in d.get('waypoints', [])],
+                   waypoints=[Waypoint(float(w['x']), float(w['y']), float(w.get('yaw', 0.0)), str(w.get('kind', 'pass')), w.get('skip_allowed', False)) for w in d.get('waypoints', [])],
                    section_limits_mps=[float(v) for v in d.get('section_limits_mps', [])], set_id=str(d.get('set_id', '')), revision=int(d.get('revision', 0)), note=str(d.get('note', '')),
                    areas=list(d.get('areas') or []))
 
@@ -91,6 +95,13 @@ class WaypointSet:
         """Hash of the set's content (without set_id/revision/note), independent of file names."""
         d = self.to_dict(); d.pop('set_id'); d.pop('revision'); d.pop('note')
         return hashlib.sha256(json.dumps(d, sort_keys=True, ensure_ascii=False).encode('utf-8')).hexdigest()
+
+
+def _point_dict(w: Waypoint) -> dict:
+    d = {'x': float(w.x), 'y': float(w.y), 'yaw': float(w.yaw), 'kind': w.kind}
+    if w.skip_allowed:   # only when marked: a set without marks keeps its earlier content hash (DEC-367)
+        d['skip_allowed'] = True
+    return d
 
 
 def new_set_id() -> str:

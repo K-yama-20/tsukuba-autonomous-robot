@@ -86,6 +86,7 @@ FILTER_INFO_TOPIC = '/costmap_filter_info'     # IFD-42
 FILTER_MASK_TOPIC = '/speed_filter_mask'       # IFD-42
 KEEPOUT_INFO_TOPIC = '/keepout_costmap_filter_info'   # IFD-55 (REV-137): the human-drawn areas (KeepoutFilter)
 KEEPOUT_MASK_TOPIC = '/keepout_filter_mask'           # IFD-55
+GLOBAL_COSTMAP_TOPIC = '/global_costmap/costmap'       # the global costmap as Nav2 publishes it (OccupancyGrid 0..100): read by the mode manager for DEC-367
 KEEPOUT_OVERRIDE_LETHAL = True   # DEC-222 (a design choice): inside a keepout area the robot may plan its way out
 KEEPOUT_LAYER = 'keepout_layer'   # DEC-227 plan A (REV-140): the keepout mask as a global StaticLayer before the inflation layer
 KEPT = ('bt_navigator', 'controller_server', 'local_costmap', 'global_costmap', 'planner_server', 'smoother_server', 'behavior_server',

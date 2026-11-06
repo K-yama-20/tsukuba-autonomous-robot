@@ -8,6 +8,8 @@
   for the record only (RQ-I030). Passing is judged by Nav2 (RQ-I011).
 - speed_limit_application_state (DEC-047): observed from the latched mask (IFD-42), the robot position and the last speed_limit
   (IFD-14). Gouda never publishes a speed limit (RQ-I020). The hold is released only in 'applied' (DEC-056, TR-05).
+- WaypointSkip (DEC-367, REV-235): when a waypoint the human marked skip_allowed stays blocked, the mode manager gives it up
+  and sends the goal again from the next one. Nothing is skipped while one of PRM-137..140 is unresolved.
 - nav2_failure_reason (E-4, REV-183, DEC-393): the stop reason of a failed Nav2 goal from its error code. The code table comes
   from the nav2_msgs action constants (autonomy_client.error_code_table); only the rule by action and constant name is here.
 """
@@ -51,6 +53,7 @@ class Mission:
     keepout_yaml: str = ''                              # the drawn areas' KeepoutFilter mask (IFD-41, REV-137)
     keepout_sha256: str = ''                            # hash of the cell values map_server publishes (DEC-224 (a))
     keepout_size: tuple = (0, 0)                        # (width, height) of that mask
+    skip_allowed: list = field(default_factory=list)    # per waypoint: the human's mark (DEC-367)
 
 
 FOLLOW_PATH_BLOCKED = ('PATIENCE_EXCEEDED', 'FAILED_TO_MAKE_PROGRESS', 'NO_VALID_CONTROL')
@@ -126,7 +129,8 @@ def resolve_mission(data_root: Path, request: dict) -> tuple:
         return None, f'waypoint set {sid}/{srev:03d} has no keepout mask (saved before REV-137): save it again in the waypoint tab'
     return Mission(sid, srev, man['content_hash'], mid, mrev, ws.map_content_hash, str(map_yaml), str(mask_yaml), base, mult,
                    [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps), str(mdir),
-                   str(kyaml), str(keep['data_sha256']), (int(keep.get('width', 0)), int(keep.get('height', 0)))), 'mission resolved'
+                   str(kyaml), str(keep['data_sha256']), (int(keep.get('width', 0)), int(keep.get('height', 0))),
+                   [bool(w.skip_allowed) for w in ws.waypoints], [w.kind == 'stop' for w in ws.waypoints]), 'mission resolved'
 
 
 def check_localization_map(map_directory: str) -> Optional[str]:
@@ -224,3 +228,114 @@ def speed_limit_state(mask: Optional[MaskGrid], info_received: bool, robot_xy: O
     if c <= 0:
         return SL_OUTSIDE_BAND
     return SL_APPLIED if (limit_since_start is not None and limit_since_start > 0) else SL_UNKNOWN
+
+
+def parse_footprint(text: str) -> Optional[list]:
+    """[(x, y)] of a Nav2 footprint string "[[x1, y1], [x2, y2], ...]" (PRM-69), None when it is not a polygon."""
+    try:
+        pts = [(float(x), float(y)) for x, y in yaml.safe_load(text)]
+    except (TypeError, ValueError, yaml.YAMLError):
+        return None
+    return pts if len(pts) >= 3 else None
+
+
+def footprint_max_cost(grid: MaskGrid, x: float, y: float, yaw: float, footprint: list) -> Optional[int]:
+    """Largest costmap value in the cells under the footprint placed at (x, y, yaw); None when no cell is on the grid. A cell
+    counts when its centre is inside the polygon; unknown (-1) is not a cost."""
+    c, s = math.cos(yaw), math.sin(yaw)
+    poly = [(x + px * c - py * s, y + px * s + py * c) for px, py in footprint]
+    xs, ys = [p[0] for p in poly], [p[1] for p in poly]
+    r = grid.resolution
+    i0, i1 = math.floor((min(xs) - grid.origin_x) / r), math.floor((max(xs) - grid.origin_x) / r)
+    j0, j1 = math.floor((min(ys) - grid.origin_y) / r), math.floor((max(ys) - grid.origin_y) / r)
+    best = None
+    for j in range(max(j0, 0), min(j1, grid.height - 1) + 1):
+        cy = grid.origin_y + (j + 0.5) * r
+        for i in range(max(i0, 0), min(i1, grid.width - 1) + 1):
+            cx = grid.origin_x + (i + 0.5) * r
+            if _inside(poly, cx, cy):
+                v = int(grid.data[j * grid.width + i])
+                if v >= 0 and (best is None or v > best):
+                    best = v
+    return best
+
+
+def _inside(poly: list, x: float, y: float) -> bool:
+    inside, n = False, len(poly)
+    for k in range(n):
+        (ax, ay), (bx, by) = poly[k], poly[(k + 1) % n]
+        if (ay > y) != (by > y) and x < ax + (y - ay) * (bx - ax) / (by - ay):
+            inside = not inside
+    return inside
+
+
+@dataclass
+class SkipSettings:
+    stall_s: Optional[float]          # PRM-137 (T3)
+    cost_threshold: Optional[float]   # PRM-138 (C)
+    occupied_s: Optional[float]       # PRM-139 (T_occ)
+    progress_m: Optional[float]       # PRM-140
+
+    def missing(self) -> list:
+        """The unresolved settings: while any is missing nothing is skipped."""
+        return [f'{k} ({prm})' for k, prm in (('stall_s', 'PRM-137'), ('cost_threshold', 'PRM-138'), ('occupied_s', 'PRM-139'), ('progress_m', 'PRM-140'))
+                if getattr(self, k) is None or not math.isfinite(getattr(self, k)) or getattr(self, k) <= 0]
+
+
+class WaypointSkip:
+    """DEC-367 / DEC-483: give up the current target waypoint when all of these hold, then the caller sends the goal from the next one.
+    - the human marked it skip_allowed (never a stop point or the last waypoint: checked when the set is saved);
+    - ND-07 is 正常;
+    - the distance to the waypoint has not shrunk by progress_m (PRM-140) below its smallest value for stall_s (PRM-137), and Nav2
+      counted a recovery in that time (counted over goals: a re-sent goal starts its number_of_recoveries at 0, DEC-460);
+    - the largest cost under the footprint placed on the waypoint has been >= cost_threshold (PRM-138) for occupied_s (PRM-139);
+    - the previous target was reached, not skipped (at most one skip in a row).
+    update() returns None, or the reason (a dict for the record) when the waypoint is to be skipped."""
+
+    def __init__(self, settings: SkipSettings):
+        self.s = settings
+        self.last_skipped: Optional[int] = None   # index skipped last; cleared when a later target is reached
+        self._raw, self._base = 0, 0              # number_of_recoveries as received, and the sum of earlier goals' counts
+        self.reset()
+
+    def reset(self) -> None:
+        self.target: Optional[int] = None
+        self.anchor: Optional[tuple] = None        # (closest distance, its time, recoveries then) of the stall clock
+        self.occupied_since: Optional[float] = None
+
+    def _recoveries(self, raw: int) -> int:
+        if raw < self._raw:   # a new goal: its count starts again
+            self._base += self._raw
+        self._raw = raw
+        return self._base + raw
+
+    def update(self, now: float, target: int, skip_allowed: list, robot_xy: tuple, recoveries: int, estimator_normal: bool,
+               waypoint_cost: Optional[int], waypoint_xy: Optional[tuple] = None) -> Optional[dict]:
+        total = self._recoveries(recoveries)
+        if self.s.missing() or waypoint_xy is None:
+            return None
+        if target != self.target:   # a new target: reached (or skipped) the previous one
+            if self.target is not None and self.last_skipped is not None and target > self.last_skipped + 1:
+                self.last_skipped = None
+            self.reset(); self.target = target
+        d = math.hypot(robot_xy[0] - waypoint_xy[0], robot_xy[1] - waypoint_xy[1])
+        if self.anchor is None or d <= self.anchor[0] - self.s.progress_m:
+            self.anchor = (d, now, total)
+        if waypoint_cost is not None and waypoint_cost >= self.s.cost_threshold:
+            if self.occupied_since is None:
+                self.occupied_since = now
+        else:
+            self.occupied_since = None
+        if not (0 <= target < len(skip_allowed) - 1) or not skip_allowed[target] or not estimator_normal:
+            return None
+        if self.last_skipped is not None and target == self.last_skipped + 1:
+            return None   # the point right after a skipped one is not skipped (one in a row)
+        stalled_s = now - self.anchor[1]
+        occupied_s = 0.0 if self.occupied_since is None else now - self.occupied_since
+        if stalled_s < self.s.stall_s or total <= self.anchor[2] or occupied_s < self.s.occupied_s:
+            return None
+        self.last_skipped = target
+        why = {'waypoint': target, 'distance_m': round(d, 2), 'closest_m': round(self.anchor[0], 2), 'stalled_s': round(stalled_s, 2),
+               'recoveries': total - self.anchor[2], 'waypoint_cost': waypoint_cost, 'occupied_s': round(occupied_s, 2)}
+        self.reset()
+        return why

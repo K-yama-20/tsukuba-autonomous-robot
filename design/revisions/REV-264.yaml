@@ -1,0 +1,38 @@
+# 変更セット REV-264（2026-11-07 第240便: 滞留の時計を waypoint までの距離で見る、DEC-483）
+# 適用: design/tools/apply_revision.py REV-264
+id: REV-264
+date: '2026-11-07'
+summary: 第240便：人の指示（DEC-483、原文）で、DEC-367 の滞留の時計を「waypoint までの距離が PRM-140 縮まらない時間」に変える（推奨の案）。第211便の模擬で、塞がれた waypoint の周りを車体が回り続け、車体の移動で数え直す時計が満ちなかったため。第219便の出し直しで Nav2 の recovery の数が goal ごとに 0 に戻るので、recovery は通算で数える。
+basis_refs:
+- DEC-367
+- DEC-446
+- DEC-460
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-483
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: waypoint を飛ばす判定の条件をどう直すか（第211便の模擬で働かなかった件。AI の推奨：止まっているかを waypoint までの距離が縮まらない時間で見る、塞がっているかの値は仮値を下げて模擬で決める）
+  answer_verbatim: |
+    現状の他のチャットでの作業結果を確認し、重複がなければ、推奨の案で実装せよ
+  affected_refs:
+  - DEC-367
+  - PRM-137
+  - PRM-138
+  - PRM-140
+  - ND-03
+  resulting_refs: []
+  note: DEC-367 は書き換えず、その「滞留の時計 T3」の意味をこの項目で置き換える：目標の waypoint までの距離が、最も近づいたときから PRM-140 以上縮まらない時間が PRM-137 続く。重複の確認：他のセッションの第212〜239便（REV-239〜262）に waypoint を飛ばす変更はない。第219便（DEC-460）の Nav2 の失敗での出し直しは同じ waypoint へ goal を送り直すもので、飛ばす処理と重ならない（出し直しで recovery の数が 0 に戻る点だけを扱う）。塞がっているかの値 PRM-138 は tbd のまま。ソフト試験の仮値は模擬で比べて決める（実車採用値ではない）。
+entities: []
+modifications:
+- id: PRM-137
+  set_nested:
+    parameter.purpose: DEC-367・DEC-483 の T3。目印の点が目標のまま、その点までの距離が最も近づいたときから PRM-140 以上縮まらない時間がこれだけ続く（滞留の時計）。未確定の間、mode_manager は waypoint を飛ばさない（どれか 1 つでも値がなければ機能は働かず、その旨を記録する）。
+- id: PRM-140
+  set_nested:
+    parameter.purpose: DEC-367・DEC-483 の滞留の時計で、目標の waypoint までの距離がこれだけ縮んだら時計を戻す。規則の「1 m くらいの前進」（intent.md 1 行）に対応。未確定の間、mode_manager は waypoint を飛ばさない。
+decision_updates: []

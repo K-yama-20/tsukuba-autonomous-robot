@@ -110,6 +110,7 @@ class Scenario:
     obstacles: list
     limit_mps: float = 1.25
     timeout_s: float = 150.0
+    skip_marks: tuple = ()  # waypoint indices (of route[1:], the waypoint set) marked skip_allowed (DEC-367)
 
 
 def _route(length: float = 30.0, side: float = 10.0, step: float = 5.0) -> list:
@@ -173,6 +174,17 @@ def scenario(name: str, seed: int = 0) -> Scenario:
         obs = [Obstacle(14.0, -4.0, vy=1.2, trigger_m=8.0, dwell_s=8.0, name='person', **PERSON)]
     elif name == 'person_stands':     # a person steps in front, stands, leaves (run-574fe6d7): the marks must clear
         obs = [Obstacle(12.0, 0.0, trigger_m=3.0, dwell_s=8.0, name='person', **PERSON)]
+    elif name in ('skip_blocked', 'skip_blocked_unmarked'):   # DEC-367: a bush 2 m across on waypoint 2 (15, 0), as W03 of 第200便
+        return Scenario(name, r, [Obstacle(15.0, 0.0, radius=1.0, height=1.0, name='bush')], skip_marks=(2,) if name == 'skip_blocked' else ())
+    elif name == 'skip_wall':         # DEC-367: a wall 1.5 m beside the route along the marked waypoint 2; it must not be skipped
+        return Scenario(name, r, [Obstacle(15.0, 1.5, height=1.5, half_x=6.0, half_y=0.15, name='wall')], skip_marks=(2,))
+    elif name == 'skip_corridor':     # DEC-367: a corridor 4 m wide (walls at +-2.15 m) along the first 30 m, waypoints 1..4 marked
+        walls = [Obstacle(15.0, s_ * 2.15, height=1.5, half_x=16.0, half_y=0.15, name=f'wall{s_}') for s_ in (-1, 1)]
+        return Scenario(name, r, walls, skip_marks=(1, 2, 3, 4))
+    elif name == 'skip_corner':       # DEC-367: a bush 2 m across on the corner waypoint 5 (30, 0), marked; the route turns left there
+        return Scenario(name, r, [Obstacle(30.0, 0.0, radius=1.0, height=1.0, name='bush')], skip_marks=(5,))
+    elif name == 'skip_person':       # DEC-367: a person stands 8 s on the marked waypoint 2; it must not be skipped
+        return Scenario(name, r, [Obstacle(15.0, 0.0, trigger_m=3.0, dwell_s=8.0, name='person', **PERSON)], skip_marks=(2,))
     elif name == 'sidewalk_cone':     # a cone on a sidewalk 4 m wide with walls
         walls = [Obstacle(15.0, s * 2.15, height=1.5, half_x=16.0, half_y=0.15, name=f'wall{s}') for s in (-1, 1)]
         return Scenario(name, [(i * 5.0, 0.0) for i in range(7)], walls + [Obstacle(14.0, 0.5, name='cone', **CONE)])
@@ -181,7 +193,8 @@ def scenario(name: str, seed: int = 0) -> Scenario:
     return Scenario(name, r, obs)
 
 
-SCENARIOS = ('free', 'cone_seen', 'cone_late', 'cones_random', 'person_crossing', 'person_stands', 'sidewalk_cone')
+SCENARIOS = ('free', 'cone_seen', 'cone_late', 'cones_random', 'person_crossing', 'person_stands', 'sidewalk_cone',
+             'skip_blocked', 'skip_blocked_unmarked', 'skip_person', 'skip_wall', 'skip_corridor', 'skip_corner')
 
 
 def beams() -> tuple:

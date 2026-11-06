@@ -1,0 +1,11 @@
+| skip_runs/skip_blocked | timeout | 0.428 | 151.3 | 0 | 0 |
+| skip_runs/skip_blocked_unmarked | timeout | 0.428 | 150.6 | 0 | 0 |
+| skip_runs/skip_person | pause:goal_reached | 0.975 | 103.8 | 0 | 0 |
+| skip_cmp/50.0_skip_blocked | pause:goal_reached | 0.976 | 87.0 | 1 | 0 |
+| skip_cmp/50.0_skip_person | pause:goal_reached | 0.976 | 70.1 | 0 | 0 |
+| skip_cmp/25.0_skip_blocked | pause:goal_reached | 0.975 | 84.5 | 1 | 1 |
+| skip_cmp/25.0_skip_person | pause:goal_reached | 0.975 | 70.3 | 0 | 0 |
+| skip_cmp2/skip_blocked_unmarked_1 | timeout | 0.428 | 151.4 | 0 | 0 |
+| skip_cmp2/skip_blocked_unmarked_2 | timeout | 0.443 | 152.1 | 0 | 0 |
+| skip_cmp2/skip_blocked_2 | pause:goal_reached | 0.975 | 82.0 | 0 | 1 |
+| skip_cmp2/skip_person_2 | pause:goal_reached | 0.976 | 69.5 | 0 | 0 |

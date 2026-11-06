@@ -89,6 +89,8 @@ class ModeManagerNode(Node):
         self.declare_parameter('glim_stop_wait_s', Parameter.Type.DOUBLE)   # PRM-37; required for TR-04
         self.declare_parameter('estimator_continue_s', Parameter.Type.DOUBLE)
         self.declare_parameter('estimator_status_timeout_s', Parameter.Type.DOUBLE)   # PRM-93; required for TR-05
+        for key in ('skip_stall_s', 'skip_cost_threshold', 'skip_occupied_s', 'skip_progress_m'):   # PRM-137..140 (DEC-367); unresolved -> no skip
+            self.declare_parameter(key, Parameter.Type.DOUBLE)
         self.declare_parameter('params_dir', '')                # design/generated/params (Nav2 readiness, launch argument)
         self.declare_parameter('trial', False)                  # TEST SCRIPTS ONLY (trial values)
         root = self.get_parameter('state_root').get_parameter_value().string_value
@@ -142,6 +144,13 @@ class ModeManagerNode(Node):
         self.estimator_grace = ac.EstimatorGrace(optional_double(self, 'estimator_continue_s') or 0)   # PRM-136 (DEC-419, DEC-421)
         if self.estimator_timeout and self.estimator_timeout > 0:
             self.create_timer(self.estimator_timeout, self._check_estimator_timeout)
+        self.skip_settings = ac.SkipSettings(optional_double(self, 'skip_stall_s'), optional_double(self, 'skip_cost_threshold'),
+                                             optional_double(self, 'skip_occupied_s'), optional_double(self, 'skip_progress_m'))
+        self.skipper = ac.WaypointSkip(self.skip_settings)
+        self.skipping = False   # a skip's new goal is being sent
+        fp = nav2_config.read_values(self.params_dir, self.trial).get(('gouda_nav2', 'footprint')) if self.params_dir else None
+        self.footprint = ac.parse_footprint(fp) if fp else None   # PRM-69: placed on the waypoint for its cost (DEC-367)
+        rp = nav2_config.read_values(self.params_dir, self.trial).get(('bt_params', 'remove_passed_goals_radius_m')) if self.params_dir else None
         miss = self._nav2_missing()
         if miss:
             self._publish_decision('nav2_not_configured', 'TR-05', f'Nav2 is not started: unresolved vehicle values {miss}; 自律走行開始 is refused until they are decided (intent.md:85)', {'missing': miss})
@@ -355,11 +364,15 @@ class ModeManagerNode(Node):
         mission, pose = self._pending_start; self._pending_start = None
         import uuid
         self.mission, self.next_offset, self.drive_released = mission, 0, False
+        self.skipper = ac.WaypointSkip(self.skip_settings)
         run_id = f'run-{uuid.uuid4().hex[:8]}'
         self._next_state_fields = {'run_id': run_id, 'remaining_waypoints': len(mission.waypoints), 'current_section': 0,
                                    'initial_pose_required': False, 'speed_limit_application_state': ac.SL_NOT_LOADED}
         token = self.auto.new_token()
+        skip_missing = self.skip_settings.missing() if any(mission.skip_allowed) else []
         def steps(rec):
+            if skip_missing:
+                rec('waypoint_skip_disabled', f'waypoints are marked skip_allowed but nothing is skipped: unresolved {skip_missing} (DEC-367)', {'missing': skip_missing})
             self.auto.activate_vehicle_output(token, rec)   # first: neutral to the ESP32 while the rest starts (DEC-391)
             self._start_odometry(rec, run_id)
             self.auto.start(token, mission, pose, rec)
@@ -550,11 +563,43 @@ class ModeManagerNode(Node):
             section = ac.section_from_feedback(offset, poses, remaining)
             self.next_offset = ac.remaining_offset(offset, poses, remaining)
             total = len(self.mission.waypoints) if self.mission else 0
+            self._skip_check()
             if (section, total - self.next_offset) != (self.state.current_section, self.state.remaining_waypoints):
                 skipped = section - self.state.current_section - 1
                 if skipped > 0:
                     self._publish_decision('sections_skipped', 'TR-05', f'{skipped} section(s) passed at once (Nav2 RemovePassedGoals)', {'from': self.state.current_section, 'to': section})
                 self._update_fields({'current_section': section, 'remaining_waypoints': total - self.next_offset})
+
+    def _skip_check(self):
+        """DEC-367 (called with the lock held, on each Nav2 feedback): give up the target waypoint the human marked when it stays
+        blocked, and send the goal from the next one. Never while a skip, a localization wait or no goal is in progress."""
+        m = self.mission
+        if m is None or not any(m.skip_allowed) or not self.goal_active or self.skipping or self.localization_waiting or self.auto.robot_xy is None:
+            return
+        target = self.next_offset
+        cost, wxy = None, None
+        if 0 <= target < len(m.waypoints):
+            wx, wy, wyaw = m.waypoints[target]; wxy = (wx, wy)
+            if target < len(m.skip_allowed) and m.skip_allowed[target] and self.auto.global_costmap is not None and self.footprint:
+                cost = ac.footprint_max_cost(self.auto.global_costmap, wx, wy, wyaw, self.footprint)
+        e = self.auto.estimator
+        why = self.skipper.update(self._now(), target, m.skip_allowed, self.auto.robot_xy, self.auto.recoveries,
+                                  e is not None and e[0] == EstimatorStatus.STATE_NORMAL, cost, wxy)
+        if why is None:
+            return
+        offset = target + 1
+        self.skipping = True
+        token = self.auto.new_token()
+        reason = f'waypoint {target} (marked skip_allowed) stayed blocked: the goal is sent again from waypoint {offset} (DEC-367)'
+        self._publish_decision('waypoint_skipped', 'TR-05', reason, why)
+        self.get_logger().info(f'waypoint_skipped: {reason} {why}')
+        def work():
+            try:
+                self._run_steps(token, 'TR-05', lambda rec: self.auto.skip_to(token, m, offset, rec))
+            finally:
+                with self._lock:
+                    self.skipping = False
+        threading.Thread(target=work, name='waypoint_skip', daemon=True).start()
 
     def _on_nav_result(self, status, error_code, error_msg):
         from action_msgs.msg import GoalStatus

@@ -1,0 +1,20 @@
+# 変更セット REV-279（2026-11-07 第253便: 飛ばす処理の模擬の証拠）
+# 適用: design/tools/apply_revision.py REV-279
+id: REV-279
+date: '2026-11-07'
+summary: 第253便：waypoint を飛ばす処理の模擬（壁・通路・角・偽の点）の証拠を登録した（FILE-SKIP-SIM-WALLS-2026-11-07）。飛ばしてはいけない場面での誤った飛ばしは、偽の点 100 個でも 0 だった。値は tbd のまま、コードは試験専用の drive_sim だけ変えた。
+basis_refs:
+- DEC-367
+- DEC-483
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-SKIP-SIM-WALLS-2026-11-07
+  path: design/research/vehicle_pc/2026-11-07_waypoint_skip_sim_walls/README.md
+  role: evidence
+- id: FILE-SKIP-SIM-WALLS-2026-11-07-TABLE
+  path: design/research/vehicle_pc/2026-11-07_waypoint_skip_sim_walls/results_table.txt
+  role: evidence
+decisions: []
+entities: []
+modifications: []
+decision_updates: []

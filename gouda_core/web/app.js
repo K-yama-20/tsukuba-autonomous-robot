@@ -526,6 +526,7 @@
       ctx.strokeStyle = color; ctx.lineWidth = width;
       wpState.points.forEach((p, i) => { const [px, py] = toPx(p); if (i > 0) { const [qx, qy] = toPx(wpState.points[i - 1]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke(); } });
     });
+    wpState.points.forEach((p) => { if (!p.skip_allowed) return; const [px, py] = toPx(p); ctx.strokeStyle = '#D35400'; ctx.lineWidth = 3; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); });   // DEC-367 mark: dashed orange ring
     wpState.points.forEach((p, i) => { const [px, py] = toPx(p); ctx.fillStyle = i === 0 ? '#f2e700' : '#000000'; ctx.strokeStyle = i === 0 ? '#000000' : '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.font = 'bold 13px monospace'; const t = String(i); ctx.fillStyle = '#ffffff'; ctx.fillRect(px + 5, py - 20, ctx.measureText(t).width + 6, 15); ctx.fillStyle = '#000000'; ctx.fillText(t, px + 8, py - 8); });
     const ep = wpState.endPose;
     if (ep) {   // the end of the mapping run (DEC-289): a dark yellow arrow with a label, under the initial pose
@@ -546,6 +547,12 @@
     const rows = wpState.points.slice(0, -1).map((p, i) => `<tr><td>区間 ${i}→${i + 1}</td><td><input class="sec" data-i="${i}" value="${wpState.limits[i] != null ? wpState.limits[i] : ''}" placeholder="m/s"></td></tr>`).join('');
     $('wp-table').innerHTML = rows || '<tr><td colspan="2" class="dim">waypoint を 2 点以上置く</td></tr>';
     $('wp-table').querySelectorAll('input.sec').forEach((inp) => inp.addEventListener('change', () => { wpState.limits[parseInt(inp.dataset.i, 10)] = parseFloat(inp.value); }));
+    const marks = wpState.points.map((p, i) => ({ p, i })).filter(({ p, i }) => i < wpState.points.length - 1 && p.kind !== 'stop');   // DEC-367: not the last point, not a stop point
+    $('wp-skip').innerHTML = marks.map(({ p, i }) => `<tr><td>waypoint ${i}</td><td><label><input type="checkbox" class="skip" data-i="${i}" ${p.skip_allowed ? 'checked' : ''}> 飛ばしてよい</label></td></tr>`).join('')
+      || '<tr><td colspan="2" class="dim">waypoint を 2 点以上置く</td></tr>';
+    $('wp-skip').querySelectorAll('input.skip').forEach((inp) => inp.addEventListener('change', () => {
+      const p = wpState.points[parseInt(inp.dataset.i, 10)]; if (inp.checked) p.skip_allowed = true; else delete p.skip_allowed; wpDraw();
+    }));
     const names = { keepout: '走行禁止', allowed: '走行可' };
     $('wp-areas').innerHTML = wpState.areas.map((a, i) => `<tr><td>範囲 ${i}: ${names[a.kind]}</td><td>${a.polygon.length} 点 <button class="op" data-del="${i}" type="button">削除<small>DELETE</small></button></td></tr>`).join('')
       + (wpState.drawing ? `<tr><td>描いている途中: ${names[wpState.drawing.kind]}</td><td>${wpState.drawing.polygon.length} 点（3 点以上で「範囲を閉じる」）</td></tr>` : '');
@@ -580,7 +587,7 @@
   ['auto-x', 'auto-y', 'auto-yaw-deg'].forEach((id) => $(id).addEventListener('change', wpDraw));
   $('wp-undo').addEventListener('click', () => {
     if (wpState.drawing && wpState.drawing.polygon.length) { wpState.drawing.polygon.pop(); if (!wpState.drawing.polygon.length) wpState.drawing = null; }
-    else { wpState.points.pop(); wpState.limits.pop(); }
+    else { wpState.points.pop(); wpState.limits.pop(); const last = wpState.points[wpState.points.length - 1]; if (last) delete last.skip_allowed; }   // the new last point is the goal (DEC-367)
     wpDraw();
   });
   $('wp-clear').addEventListener('click', () => { wpState.points = []; wpState.limits = []; wpState.areas = []; wpState.drawing = null; wpState.gaps = []; wpDraw(); });
