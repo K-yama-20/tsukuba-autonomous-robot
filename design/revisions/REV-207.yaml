@@ -1,0 +1,27 @@
+# 変更セット REV-207（2026-11-03 第195便: IMU は仕様を確認して考えるという人の指示と、ADIS16607-2 の仕様の記録。DEC-418）
+# 適用: design/tools/apply_revision.py REV-207
+id: REV-207
+date: '2026-11-03'
+summary: >-
+  第195便：人の指示で、IMU について考えるときは仕様を確かめ、一般的な値で考えないことを記録する。仕様は design/docs/imu_adis16607_spec.md に原本から写した。CLAUDE.md に 1.13 を足した。
+basis_refs:
+- DEC-418
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-418
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （人の指示）AI が IMU の見積もりに一般的な値（1 mg）を使ったことへの指摘。IMU を考えるときの扱い。
+  answer_verbatim: |
+    仕様を確認した上で答えよ。
+    imuに関して考える際は、常に仕様を確認してから答え、一般的な値で考えることを禁止する旨、台帳（または適した文書）に記載せよ。また、毎回調べなくてもいいように、仕様を調べて台帳に記載せよ。
+  affected_refs:
+  - PRM-56
+  resulting_refs: []
+  note: >-
+    仕様は design/docs/imu_adis16607_spec.md（原本：Analog Devices ADIS16607 Data Sheet Rev. 0、Table 1。AI が直接読んだ）。規則は CLAUDE.md 1.13。第195便。
+  disposition: answered
