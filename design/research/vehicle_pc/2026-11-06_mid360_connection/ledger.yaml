@@ -1,0 +1,791 @@
+# MID-360 接続試験・動作確認 実験結果記録台帳
+# 計画：design/proposals/mid360_connection_test_plan_2026-11-06.md（提案、第204便）
+# 記入の決まり
+# - result は 合格 / 不合格 / 未判定 のどれか。未実行は 未判定（reason に「未実行」）
+# - 合否基準（criteria）は案。人の承認（Q5）までは criteria_status: 提案
+# - アドレス・ホスト名・シリアル番号・ログの生データは書かない（CLAUDE.md 1.10）。証拠はリポジトリの外に置き、ファイル名と sha256 だけを書く
+# - measured は実際に読んだ値だけ。推定は notes に「推測」と書く
+# - 参考情報（公式資料・技術記事の要約）は末尾の references
+
+meta:
+  id: EXP-MID360-CONN-2026
+  name: MID-360 接続試験・動作確認
+  created: 2026-11-06
+  created_in: 第204便
+  plan: design/proposals/mid360_connection_test_plan_2026-11-06.md
+  official_docs: TsukubaChallenge/Sensors/MID-360/official/INDEX.md（リポジトリの外）
+  open_questions: [Q5, Q6]
+  decisions: [DEC-431, DEC-432, DEC-433, DEC-442]  # Q4 ドライバと時刻同期「一旦推奨案で行こう。メインチャットに指示せよ」（分岐したチャットからの伝達）。 Q1 試験の PC「dellのx86機でテストを行います」、Q2 つなぎ方「Non-PoE switch」、Q3 電圧と T03-1 の報告「12Vでいく。x86で、livoxviewer2にて、点群の受信は確認完了した」
+
+# 試験の実施の記録（1 回の実施ごとに 1 件足す）
+sessions:
+  - id: S01
+    date: 2026-11-06
+    time: 21:27〜21:38（Livox Viewer 2 のログの開始と終了。Dell の時計）
+    operator: 人（AI は画面を見ていない）
+    host: x86 の車載 PC（Dell G15、Ubuntu 24.04。DEC-431）  # ホスト名・アドレスは書かない
+    commit: なし（リポジトリのコードは使っていない）
+    firmware: tbd  # Viewer 2 のログに出ていない。Viewer 2 の画面で読む（T03-3）
+    driver_version: tbd  # Livox-SDK2・livox_ros_driver2 の tag と commit
+    power: 12 V（DEC-433）。電源の種類と電流の制限は未確認
+    ambient_temp_c: tbd
+    mount: tbd  # 机の上／ステーのみ／アルミ板あり／車体（報告になし）
+    notes: "Livox Viewer 2 は Dell のホームの ~/LivoxViewer2（run.sh で LD_PRELOAD の回避つき）。AI が 21:40 ごろ読んだ時点で有線の口はリンクなし（片付けた後とみられる）"
+
+items:
+  # ---- P0 受け入れ・目視 ----
+  - id: T00-1
+    name: 外観
+    phase: P0
+    procedure: 窓の傷・汚れ、コネクタのピン、付属品を写真で記録。型式ラベルが Mid-360（S・L ではない）か（R-C-07 の issue 262）
+    criteria: 傷・曲がりがない
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T00-2
+    name: シリアル番号の記録
+    phase: P0
+    procedure: ローカルのメモにのみ記録（台帳には「記録済み」だけ書く）
+    criteria: 記録済み
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T00-3
+    name: ケーブルのピン配置
+    phase: P0
+    procedure: マニュアルの図と現物を突き合わせ、テスターで電源の極性と導通を確認
+    criteria: マニュアルと一致
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  # ---- P1 電源 ----
+  - id: T01-1
+    name: 起動時・定常の電流
+    phase: P1
+    procedure: 安定化電源（電流の制限つき）。起動時の最大と 10 分後の電流
+    criteria: 電力が仕様以内（計画 4 章）
+    criteria_status: 提案
+    session: null
+    measured: {voltage_v: null, peak_current_a: null, steady_current_a_10min: null}
+    result: 未判定
+    reason: 未実行（12 V は DEC-433。電源の種類と電流の制限は未確認）
+    evidence: []
+    notes: ""
+  - id: T01-2
+    name: 起動時間
+    phase: P1
+    procedure: 電源投入から点群が出始めるまで（P3 か P4 で計る）
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {startup_s: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  # ---- P2 リンク・アドレス ----
+  - id: T02-1
+    name: リンクの速度
+    phase: P2
+    procedure: ethtool <if>
+    criteria: 仕様の速度・全二重
+    criteria_status: 提案
+    session: null
+    measured: {speed: null, duplex: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T02-2
+    name: アドレスの確認
+    phase: P2
+    procedure: Livox Viewer 2 の一覧か tcpdump -i <if> -n udp の送り元。値はローカルのメモのみ
+    criteria: 見つかる
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T02-3
+    name: ping
+    phase: P2
+    procedure: ping -c 600 -i 0.2
+    criteria: 欠け 0
+    criteria_status: 提案
+    session: null
+    measured: {loss_pct: null, rtt_avg_ms: null, rtt_max_ms: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  # ---- P3 Livox Viewer 2 ----
+  - id: T03-1
+    name: 点群の表示・視野
+    phase: P3
+    procedure: 部屋の壁・床・天井、視野の上下の端
+    criteria: 点群が出る
+    criteria_status: 提案
+    session: S01
+    measured: 点群の受信を確認（人の報告、DEC-433）
+    result: 合格
+    reason: "人の報告「x86で、livoxviewer2にて、点群の受信は確認完了した」。基準は提案のまま（Q5）"
+    evidence: [{file: なし, note: 画面の写真・保存した点群はなし。AI は確認していない}]
+    notes: 視野の上下の端（-7°・52°）と部屋の壁・床・天井の見え方は報告になし。必要なら次回に写真で残す
+  - id: T03-2
+    name: IMU の値
+    phase: P3
+    procedure: 静止で重力の向き
+    criteria: 値が出る
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T03-3
+    name: ファームウェアの版
+    phase: P3
+    procedure: 版を記録。更新は人の判断
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {firmware: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T03-4
+    name: アドレスの変更
+    phase: P3
+    procedure: DEC-432 により、PC・XT-32 とアドレスが重なる場合だけ変える。値はローカルのメモのみ
+    criteria: 変更後に P2 の ping が通る
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  # ---- P4 ROS 2 ドライバ ----
+  - id: T04-1
+    name: topic・型・frame_id
+    phase: P4
+    procedure: ros2 topic list -t、ros2 topic echo --once の header
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {topics: null, frame_id: null}
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []
+    notes: "起動：tools/p4_driver/run_driver.py（設定は tools/p4_driver/make_config.py、手順は tools/p4_driver/README.md）。解析：tools/t04_driver_topics.py（第235便）"
+  - id: T04-2
+    name: 周期
+    phase: P4
+    procedure: ros2 topic hz を 60 s（点群・IMU）
+    criteria: 設定の周期の ±5%
+    criteria_status: 提案
+    session: null
+    measured: {cloud_hz: null, imu_hz: null}
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []
+    notes: "解析：tools/t04_driver_topics.py（周期と間隔の揺れ。基準は引数で渡し、なければ未判定）（第235便）"
+  - id: T04-3
+    name: 点数・field
+    phase: P4
+    procedure: 1 枚の点数と fields
+    criteria: 仕様の点/秒÷周期の ±10%
+    criteria_status: 提案
+    session: null
+    measured: {points_per_frame: null, fields: null}
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []
+    notes: "解析：tools/t04_driver_topics.py（点数と field）（第235便）"
+  - id: T04-4
+    name: 帯域・CPU
+    phase: P4
+    procedure: ros2 topic bw、top -p を 60 s
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {bw_mb_s: null, driver_cpu_pct: null}
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []
+    notes: "rosbag からは出せない（ros2 topic bw と top で測る）。DDS の設定（既定か製品の profile、PRM-101）を一緒に記録する（tools/p4_driver/README.md）（第235便）"
+  - id: T04-5
+    name: 時刻
+    phase: P4
+    procedure: header.stamp と受信の時刻の差（tools/t04_driver_topics.py）
+    criteria: 差が一定（増えない）
+    criteria_status: 提案
+    session: null
+    measured: {offset_mean_ms: null, offset_drift_ms_per_min: null}
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []
+    notes: "解析：tools/t04_driver_topics.py（受信 − stamp とその傾き）（第235便）"
+  - id: T04-6
+    name: rosbag の記録
+    phase: P4
+    procedure: 点群・IMU を 60 s。リポジトリの外に置く
+    criteria: 記録できる
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行（ドライバの導入は DEC-443 の後、Dell での bash setup.sh〈人〉と REV-242 のコードの反映を待つ。第235便）
+    evidence: []  # {file: 名前, sha256: 値}
+    notes: "記録：tools/p4_driver/record_bag.py（既定 60 s、保存先はリポジトリの外）（第235便）"
+  # ---- P5 XT-32 と同時に ----
+  - id: T05-1
+    name: XT-32 の点群への影響
+    phase: P5
+    procedure: MID-360 ありとなしで XT-32 の周期・点数
+    criteria: ±5% 以内
+    criteria_status: 提案
+    session: null
+    measured: {xt32_hz_without: null, xt32_hz_with: null, xt32_points_without: null, xt32_points_with: null}
+    result: 未判定
+    reason: 未実行（PoE なしのスイッチの用意、DEC-432）
+    evidence: []
+    notes: ""
+  - id: T05-2
+    name: MID-360 の点群（同時）
+    phase: P5
+    procedure: P4 と同じ測り方
+    criteria: P4 から ±5% 以内
+    criteria_status: 提案
+    session: null
+    measured: {cloud_hz: null, points_per_frame: null}
+    result: 未判定
+    reason: 未実行（PoE なしのスイッチの用意、DEC-432）
+    evidence: []
+    notes: ""
+  - id: T05-3
+    name: 2 つの点群の重なり
+    phase: P5
+    procedure: rviz2 で重ねる（TF は仮の値）
+    criteria: 同じ壁がおおよそ重なる
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行（PoE なしのスイッチの用意、DEC-432）
+    evidence: []
+    notes: ""
+  - id: T05-4
+    name: XT-32 と MID-360 の時刻の差
+    phase: P5
+    procedure: 同じ壁を両方で見た rosbag から、2 台の header.stamp の差の平均と揺れ、受信の遅れ（tools/t05_4_xt32_offset.py）。どちらも同期なしで PC の受信の時刻（DEC-442、PRM-55=1）
+    criteria: 記録のみ（足りなければ PTP に進む。足りるかの基準は人）
+    criteria_status: 提案
+    session: null
+    measured: {offset_mean_ms: null, offset_std_ms: null, mid360_latency_ms: null, xt32_latency_ms: null}
+    result: 未判定
+    reason: 未実行（PoE なしのスイッチの用意、Dell での bash setup.sh〈人〉。第235便）
+    evidence: []
+    notes: "追加の依頼は分岐したチャットから（DEC-442）。解析：tools/t05_4_xt32_offset.py（第235便）"
+  # ---- P6 抜き差し・再起動（記録のみ） ----
+  - id: T06-1
+    name: Ethernet の抜き差し
+    phase: P6
+    procedure: 抜いて 10 s 後に戻す
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {recovered: null, recovery_s: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T06-2
+    name: 電源の入れ直し
+    phase: P6
+    procedure: 切って 10 s 後に入れる
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {recovered: null, recovery_s: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T06-3
+    name: ドライバの再起動
+    phase: P6
+    procedure: ドライバを止めて起動し直す
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {recovered: null, recovery_s: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  - id: T06-4
+    name: MID-360 なしでのドライバの起動
+    phase: P6
+    procedure: 未接続で起動し、終わるか待つかを記録
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {behavior: null}
+    result: 未判定
+    reason: 未実行
+    evidence: []
+    notes: ""
+  # ---- P7 長時間・発熱 ----
+  - id: T07-1
+    name: 温度
+    phase: P7
+    procedure: 60 分、10 分ごとに底面・上面・周囲
+    criteria: 記録のみ（判断は人、#31）
+    criteria_status: 提案
+    session: null
+    measured: {condition: null, temps_c: []}  # [{min: 0, bottom: , top: , ambient: }]
+    result: 未判定
+    reason: 未実行（Q6）
+    evidence: []
+    notes: "温度の topic はドライバにない（publisher は点群と IMU だけ。tools/README.md）。温度は手で測る（第235便）"
+  - id: T07-2
+    name: 長時間の安定
+    phase: P7
+    procedure: 60 分の周期・点数・ログの警告
+    criteria: P4 から ±5% 以内
+    criteria_status: 提案
+    session: null
+    measured: {cloud_hz_min: null, warnings: null}
+    result: 未判定
+    reason: 未実行（Q6）
+    evidence: []
+    notes: "解析：tools/t07_timeseries.py（周期・点数の時系列の CSV）（第235便）"
+  # ---- P8 取り付けの後 ----
+  - id: T08-1
+    name: 車体の写り込み
+    phase: P8
+    procedure: 足跡の外に出る点の位置
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行（ステー未取り付け）
+    evidence: []
+    notes: ""
+  - id: T08-2
+    name: 地面の見え始め
+    phase: P8
+    procedure: 平らな所で、地面の点が始まる距離（#74 と比べる）
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: {ground_start_m: null}
+    result: 未判定
+    reason: 未実行（ステー未取り付け）
+    evidence: []
+    notes: ""
+  - id: T08-3
+    name: 傾き
+    phase: P8
+    procedure: 地面の当てはめと内蔵 IMU の重力で roll・pitch
+    criteria: 2 つの方法の差 0.5° 以内
+    criteria_status: 提案
+    session: null
+    measured: {roll_ground_deg: null, pitch_ground_deg: null, roll_imu_deg: null, pitch_imu_deg: null}
+    result: 未判定
+    reason: 未実行（ステー未取り付け）
+    evidence: []
+    notes: "解析：tools/t08_3_tilt.py（--frame が要る。点群は mid360_link、IMU は livox_frame に固定。tools/README.md）（第235便）"
+  - id: T08-4
+    name: ステーの寸法と CAD の差
+    phase: P8
+    procedure: 光学原点の位置と傾きを測る
+    criteria: 記録のみ
+    criteria_status: 提案
+    session: null
+    measured: null
+    result: 未判定
+    reason: 未実行（ステー未取り付け）
+    evidence: []
+    notes: ""
+  - id: T08-5
+    name: 地面の誤検知と見落とし（提案、#85）
+    phase: P8
+    procedure: 平らな所・坂・縁石・コーン・低い物を MID-360 で見た rosbag に、高さの帯だけと、地面分割＋帯を当てて、障害物のない所の印（誤検知）と本当の物の印の欠け（見落とし）を数える。道具は design/research/ground_segmentation_2026-11-07/tools/
+    criteria: 記録のみ（地面分割を製品に入れるかは人の判断、G3）
+    criteria_status: 提案
+    session: null
+    measured: {false_marks_band: null, false_marks_seg: null, missed_band: null, missed_seg: null}
+    result: 未判定
+    reason: 未実行（ステー未取り付け。項目を足すか・試験の条件は人が決める。DEC-475）
+    evidence: []
+    notes: "人の指示「地面はRANSAC等を用いたOSSを使って検出しよう。…」（DEC-475）による提案の項目（第235便）"
+
+# 参考情報（公式資料・技術記事の要約。原文のリンクつき）
+# - 集めた日：2026-11-06（第204便）。集めたのは AI（サブエージェント 2 つ）。要約で、原文の転記ではない
+# - verified: AI が原本の文字列・ソースで確かめたもの。それ以外は収集の担当の報告のままで、AI は照合していない
+# - 第三者の記事の手順・値は、その記事の環境での話。gouda で使う前に試験で確かめる
+# - アドレスの具体的な値は書かない（1.10）。公式資料の値はリポジトリの外の INDEX.md の資料を見る
+references:
+  official:
+    # 公式資料の実体はリポジトリの外：TsukubaChallenge/Sensors/MID-360/official/（INDEX.md に sha256）
+    - id: R-OF-01
+      title: Livox Mid-360 User Manual v1.2（EN・CHS、2024.04）
+      url: https://www.livoxtech.com/mid-360/downloads
+      local: Sensors/MID-360/official/Livox_Mid-360_User_Manual_EN.pdf
+      summary: 電源 9〜27 V、定常 6.5 W・起動 18 W 約 8 s、M12 12 ピンのピン配置（p9）、PoE 禁止（p13）、100BASE-TX・固定アドレス（p12）、取り付けと放熱（p11、底面 75 °C 以下 p23）、他の LiDAR と光を向き合わせない（p10）、窓の清掃（p19）、トラブルシュート（p20）
+      verified: 電圧・電力・PoE・100BASE-TX・200,000 点/s・ICM40609・他の LiDAR・逆さの取り付け・75 °C（pdftotext で AI が照合）
+    - id: R-OF-02
+      title: Livox Mid-360 Quick Start Guide v1.8（多言語。日本語は PDF p18〜25）
+      url: https://www.livoxtech.com/mid-360/downloads
+      local: Sensors/MID-360/official/Livox_Mid-360_Quick_Start_Guide_multi.pdf
+      summary: 接続の手順の概要。霧・悪天候で距離が落ちる（PDF p4）
+      verified: false
+    - id: R-OF-03
+      title: Mid-360 Firmware Release Notes（最新 FW V13.18.0244、2025.04.11）
+      url: https://www.livoxtech.com/mid-360/downloads
+      local: Sensors/MID-360/official/Livox_Mid-360_Release_Notes_EN.pdf
+      summary: V13.18.0236（2024.8.8）で強い日光の下のノイズを修正。手元の機体の版は T03-3 で記録し、更新は人の判断
+      verified: false
+    - id: R-OF-04
+      title: Livox Viewer 2 User Manual v1.2・Release Note 2.3.0
+      url: https://www.livoxtech.com/mid-360/downloads
+      local: Sensors/MID-360/official/Livox_Viewer_2_User_Manual_EN_v1.2.pdf
+      summary: AVX2 の CPU が要る（PDF p5）。アドレスの変更はここから。Windows はファイアウォールで見つからないことがある。Ubuntu 24.04 での動作は未確認
+      verified: false
+    - id: R-OF-05
+      title: 3D データ mid-360-asm.stp・mid-360-fov-asm.stp
+      url: https://www.livoxtech.com/mid-360/downloads
+      local: Sensors/MID-360/official/mid-360-asm.stp
+      summary: ステー（MID-360_stay）と視野の確認に使える。視野の形の STEP あり
+      verified: false
+    - id: R-OF-06
+      title: Mid-360 通信プロトコル livox_eth_protocol_mid360.md（v1.4.12、livox_wiki_en 6b030b7）
+      url: https://github.com/Livox-SDK/livox_wiki_en
+      local: Sensors/MID-360/official/github/livox_wiki_en/
+      summary: ポート（探索 56000、制御 56100〜ログ 56500、PC 側は＋1）、データ形式（直交 32 bit・16 bit・極座標、1 パケット 96 点）、pattern_mode 1・2 は未対応、アドレスの変更（0x0004）・工場出荷に戻す（0x0201）、同期なしの時刻は電源投入からの ns
+      verified: false
+    - id: R-OF-07
+      title: Livox wiki Time Synchronization・mid360・HMS code・cushioning_radiator
+      url: https://livox-wiki-en.readthedocs.io/en/latest/tutorials/new_product/common/time_sync.html
+      summary: PTP が最優先、マスタは 1 つ。linuxptp v3.1.1 推奨、`ethtool -T` で NIC の対応を見る。GPS 同期は UART（ピン 8・10）と RMC。防振材は外部パラメータの変動を大きくする。HMS の警告コード（加熱中など）
+      verified: false
+    - id: R-OF-08
+      title: livox_ros_driver2（master 2144554、1.2.6 で Jazzy 対応、MIT）
+      url: https://github.com/Livox-SDK/livox_ros_driver2
+      local: Sensors/MID-360/official/github/livox_ros_driver2/
+      summary: "`./build.sh jazzy`。Livox-SDK2 を先に /usr/local に入れる。build.sh は build・install を消す。xfer_format 0＝PointCloud2（x,y,z,intensity,tag,line,timestamp）、1＝CustomMsg（msg_MID360_launch.py の既定）。topic livox/lidar・livox/imu、frame_id livox_frame（IMU は固定）。README に試験用で量産は推奨しないとある"
+      verified: 同期なしの時刻は PC の受信の時刻（pub_handler.cpp 265〜274 行）、extrinsic_parameter は本体へ書き込み（livox_lidar_callback.cpp 105 行、pub_handler.cpp 132 行）。AI がソースの写しで照合
+    - id: R-OF-09
+      title: Livox-SDK2（master c0796f0、v1.3.1 は 2026-04-15、MIT）
+      url: https://github.com/Livox-SDK/Livox-SDK2
+      local: Sensors/MID-360/official/github/Livox-SDK2/
+      summary: cmake・make・make install（/usr/local）。Ubuntu 24.04 のビルドの修正はタグの後の commit（2026-07-24）。v1.3.1 のタグで 24.04 でビルドできるかは未確認
+      verified: false
+    - id: R-OF-10
+      title: Mid-360 仕様ページ
+      url: https://www.livoxtech.com/mid-360/specs
+      summary: 仕様の一覧（電圧・電力・温度・IP67・265 g・100BASE-TX・PTPv2/GPS・ICM40609・視野・0.1 m）
+      verified: false
+
+  A_power_wiring:
+    - id: R-A-01
+      title: Tips of Livox Mid-360 with ROS 2
+      author: dandelion1124
+      date: 2025-08-15
+      url: https://www.docswell.com/s/dandelion1124/K9MLQV-2025-08-15-154452
+      env: Humble・Jazzy
+      summary: 起動時に約 18 W が約 8 s。純正の AC アダプタは端子が違い 5.5×2.5 mm への変換が要る。USB PD で給電する例。DDS の受信バッファの調整、tag での雨・塵の除去にも触れる
+    - id: R-A-02
+      title: FAST_LIO＋Livox MID360で地図作る
+      author: hasegawa（NuTech-R）
+      date: 2025-07-31
+      url: https://zenn.dev/nutechr/articles/e80f708a1c7506
+      env: Ubuntu 22.04・Humble
+      summary: マキタ 18 V のバッテリーから XT60 で直接給電し、問題は出ていないとの報告
+    - id: R-A-03
+      title: Livox Mid-360 User Manual（manualslib のプレビュー）
+      url: https://www.manualslib.com/manual/2952267/Livox-Mid-360.html
+      summary: 推奨 12 V、赤が電源＋、分岐ケーブルは試験・デバッグ用。原本は R-OF-01 を使う
+
+  B_network:
+    - id: R-B-01
+      title: Trying out the Livox Mid-360 with ROS1/ROS2（和文 2023-01-27 の英訳）
+      author: Fixstars 木村
+      date: 2025-06-30
+      url: https://blog.us.fixstars.com/?p=1181
+      env: Ubuntu 22.04・Humble
+      summary: 固定アドレスのみ・/24。初回は PC と直結。アドレスを書く場所は SDK サンプルの mid360_config.json とドライバの config/MID360_config.json の 2 つ
+    - id: R-B-02
+      title: "livox_ros_driver2 issue #121（ping は通るが点群が来ない）"
+      date: 2024-04〜2025-11
+      url: https://github.com/Livox-SDK/livox_ros_driver2/issues/121
+      summary: 原因は、LiDAR と PC に同じアドレス、ファイアウォール、host_net_info の誤り
+    - id: R-B-03
+      title: "livox_ros_driver2 issue #116"
+      url: https://github.com/Livox-SDK/livox_ros_driver2/issues/116
+      summary: 実機のアドレスがマニュアルの規則と違った例。config を変えた後に build.sh をやり直していなかった例
+    - id: R-B-04
+      title: CTU-MRS docs livox mid360
+      date: 2025-10（出力例の日付）
+      url: https://ctu-mrs.github.io/docs/sensors/livox-mid360
+      env: Jazzy
+      summary: nmap -sn でサブネットを走査してセンサーのアドレスを探す
+    - id: R-B-05
+      title: "TU Darmstadt fork PR #1 Fix/disable automatic discovery"
+      date: 2025-06-29
+      url: https://github.com/tu-darmstadt-ros-pkg/livox_ros_driver2/pull/1
+      summary: config にない LiDAR を自動で足さない。他の機器と同じネットワークに置く時の参考
+    - id: R-B-06
+      title: 同じサブネットに 2 つの口を置く問題（Hokuyo の事例、Livox ではない）
+      url: https://forums.developer.nvidia.com/t/setup-hokuyo-lidar-in-ros-and-remote-access/63405
+      summary: 同じサブネットの 2 つの口はトラフィックの取り合いになるという指摘。XT-32 の USB-LAN と MID-360 の工場出荷時のサブネットが同じ問題（計画 2 章・Q2）は、記事が見つからず、対策は AI の推測（別のサブネットに移す、口ごとの経路）
+    - id: R-B-07
+      title: OpenELAB Livox MID-360 ROS 2 Driver setup
+      url: https://openelab.io/blogs/learn/livox-mid-360-ros2-driver2-setup-guide
+      summary: host_net_info のアドレスが OS の口と一致しないと bind に失敗。PointCloud2 の field 名は実際のメッセージで確かめる
+
+  C_sdk_driver_install:
+    - id: R-C-01
+      title: Livox-SDK2 の Ubuntu 24.04 ビルドの修正 PR 群（#76・#99・#131 など、多くは未マージ）
+      url: https://github.com/Livox-SDK/Livox-SDK2/pulls
+      summary: GCC 13 で <cstdint> が間接に入らなくなったのが原因。master には入っている（収集の担当が確認）
+    - id: R-C-02
+      title: "livox_ros_driver2 PR #46 Delete build.sh & merge ROS1/2 into one package（未マージ）"
+      url: https://github.com/Livox-SDK/livox_ros_driver2/pull/46
+      summary: colcon で普通にビルドできる。2026-03 のコメントで Jazzy での動作の報告
+    - id: R-C-03
+      title: "livox_ros_driver2 PR #180 Ubuntu24.04 - ROS jazzy support（未マージ）"
+      url: https://github.com/Livox-SDK/livox_ros_driver2/pull/180
+      summary: "レビューで #46 で扱うべきとされた"
+    - id: R-C-04
+      title: 意外とできない！MID-360の動かし方
+      author: AbudoriLab
+      date: 2025-09-03
+      url: https://abudorilab.com/entry/2025/09/03/081341
+      env: Humble・Jazzy
+      summary: 公式 SDK のビルド失敗を atinfinity の fork で回避、Release ビルドと sudo ldconfig。ドライバは専用のワークスペース、config を変えたら build.sh をやり直す（公式 1.2.6 より前の記事）
+    - id: R-C-05
+      title: 第52回ロボティクス勉強会 Livox Mid-360をROS 2で使いこなす
+      author: dandelion1124
+      date: 2025-07-14
+      url: https://www.docswell.com/s/dandelion1124/ZNJ68Q-2025-07-14-220903
+      summary: Livox-SDK（v1）と livox_ros2_driver は Mid-360 に非対応なので使わない。公式の手順のままでは Release ビルドにならない
+    - id: R-C-06
+      title: reComputerでMID360 LiDARを使用する方法（Seeed wiki）
+      date: 2024-04-10
+      url: https://wiki.seeedstudio.com/ja/mid360/
+      env: Noetic・JetPack 5
+      summary: 基本の手順のみ。Jazzy では参考程度
+    - id: R-C-07
+      title: livox_ros_driver2 の Jazzy・24.04 の issue
+      url: https://github.com/Livox-SDK/livox_ros_driver2/issues/131
+      summary: "#131（Jazzy 対応、fork の紹介）、#171・#220（ビルド失敗）、#222（空・雑音の多い scan）、#23（MID360 で点群なし）、#145（Viewer 2 が Ubuntu で落ちる）、#262（Mid-360S を MID360 の config で起動して停止。型式ラベルを確かめる）。いずれも公式 1.2.6 より前のものを含む"
+    - id: R-C-08
+      title: Livox-SDK2 の 24.04 の issue
+      url: https://github.com/Livox-SDK/Livox-SDK2/issues/76
+      summary: "#76・#107（24.04 でビルドできない）、#90（cmake・make）、#104（Mid-360＋Humble）、#125（Mid-360S のコマンドのタイムアウト）"
+  forks:
+    # どれも上流の LICENSE.txt は MIT（GitHub の判定は NOASSERTION）。最終 commit は 2026-11-06 に gh api で取得（収集の担当）
+    - id: R-FK-01
+      repo: Livox-SDK/livox_ros_driver2 master（公式）
+      url: https://github.com/Livox-SDK/livox_ros_driver2
+      last_commit: 2026-09-21
+      summary: 1.2.6 で Jazzy。build.sh 方式。1.2.7 で設定を全部省くと点群が出ない不具合を修正
+    - id: R-FK-02
+      repo: tu-darmstadt-ros-pkg/livox_ros_driver2 jazzy
+      url: https://github.com/tu-darmstadt-ros-pkg/livox_ros_driver2
+      last_commit: 2026-10-23
+      summary: colcon でビルド。SDK2 も colcon 用の fork。config にない LiDAR を足さない、diagnostics、cloudini 圧縮、IMU の frame と加速度の単位の変更
+    - id: R-FK-03
+      repo: atinfinity/livox_ros_driver2 jazzy
+      url: https://github.com/atinfinity/livox_ros_driver2
+      last_commit: 2025-05-17（ブランチ）
+      summary: ROS 1 部分を削除、colcon・Release、frame_id を設定できる（#85 の修正を含む）。対になる atinfinity/Livox-SDK2
+    - id: R-FK-04
+      repo: ctu-mrs/livox_ros_driver2 ros2
+      url: https://github.com/ctu-mrs/livox_ros_driver2
+      last_commit: 2026-07-14
+      summary: 既定 100 Hz、複数台の不具合修正。MRS の apt で配布（配布元は未確認）
+    - id: R-FK-05
+      repo: brytsknguyen/livox_ros_driver2 jazzy
+      url: https://github.com/brytsknguyen/livox_ros_driver2
+      last_commit: 2025-06-29
+      summary: TU Darmstadt の自動探索の無効化と frame_ids を取り込み、コンポーネントの launch
+    - id: R-FK-06
+      repo: MapIV/livox_ros_driver2 feat/ros2_jazzy
+      url: https://github.com/MapIV/livox_ros_driver2
+      last_commit: 2026-08-04
+      summary: Jazzy の commit 1 件。中身は未確認
+    - id: R-FK-07
+      repo: RoboStack ros-jazzy-livox-ros-driver2 v1.2.4（conda）
+      url: https://anaconda.org/robostack-jazzy/ros-jazzy-livox-ros-driver2
+      summary: 未確認
+
+  D_ros2_config:
+    - id: R-D-01
+      title: livox_ros_driver2 README とソース
+      url: https://github.com/Livox-SDK/livox_ros_driver2
+      summary: publish_freq 既定 10 Hz（最大 100）、multi_topic 既定 0（1 で topic 名にアドレスが付く）、pcl_data_type 1・2・3、extrinsic の x・y・z は整数（mm と見られる）。publisher は reliable・深さ 4（1 台）
+    - id: R-D-02
+      title: "livox_ros_driver2 PR #85（複数台で frame_id が同じになる問題、未マージ）"
+      url: https://github.com/Livox-SDK/livox_ros_driver2/pull/85
+      summary: 公式は frame_id を台ごとに変えられない。gouda では mid360_link への TF で吸収するか、frame_id を変えられる fork を使う
+    - id: R-D-03
+      title: 3D-LiDAR（MID-360）とTurtlebot2を使った自動走行（NEXTY Electronics 技術コラム）
+      url: https://www.nexty-ele.com/technical-column/livox_05/
+      env: Noetic（記載が一部矛盾）
+      summary: pointcloud_to_laserscan の設定例（高さの帯、range_min 0.1、target_frame livox_frame）、xfer_format 0・10 Hz
+    - id: R-D-04
+      title: DDS の受信バッファの調整（R-A-01・R-C-05 の資料内）
+      url: https://www.docswell.com/s/dandelion1124/ZNJ68Q-2025-07-14-220903
+      summary: "/etc/sysctl.d/ で net.core.rmem_max などを大きくする例。gouda で入れるなら setup.sh への追加で承認事項。ROS 2 で点群のレートが落ちる事例（issue #114、Avia）の手がかり"
+
+  E_time_sync:
+    - id: R-E-01
+      title: Livox wiki Time Synchronization Instructions
+      url: https://livox-wiki-en.readthedocs.io/en/latest/tutorials/new_product/common/time_sync.html
+      summary: ptp4l をマスタ、phc2sys で PC の時計。同期できたかはパケットの timestamp_type か Viewer で見る。USB-LAN はハードウェアのタイムスタンプに対応しないことが多い（推測）
+    - id: R-E-02
+      title: ドライバの時刻の付け方（pub_handler.cpp）
+      url: https://github.com/Livox-SDK/livox_ros_driver2/blob/master/src/comm/pub_handler.cpp
+      summary: 同期なしは受信の瞬間の PC の時計、同期ありはセンサーの時刻。PTP のマスタを置き間違えると ROS の時刻とずれる
+      verified: AI がソースの写しで照合（265〜274 行）
+
+  F_verification:
+    - id: R-F-01
+      title: 確認の手順のまとめ（R-B-01・R-B-03・R-B-04 から）
+      summary: ping・nmap -sn でアドレス → SDK の livox_lidar_quick_start で受信 → rviz_MID360_launch.py（Fixed Frame は livox_frame）→ ros2 topic hz で点群 約 10 Hz・IMU 約 200 Hz。共有ライブラリは sudo ldconfig か LD_LIBRARY_PATH=/usr/local/lib
+    - id: R-F-02
+      title: Livox downloads ページ
+      url: https://www.livoxtech.com/mid-360/downloads
+      summary: Livox Viewer 2 の Ubuntu 版 v2.3.0（2023-02-07、対応する Ubuntu の版の記載なし）
+
+  G_thermal_mount:
+    - id: R-G-01
+      title: Livox wiki HMS code（Mid-360）
+      url: https://livox-wiki-en.readthedocs.io/en/latest/tutorials/new_product/mid360/hms_code_mid360.html
+      summary: 加熱中（0x0201）や環境温度が高い時の警告コード。T07 でログの警告と突き合わせる
+    - id: R-G-02
+      title: 傾けて取り付けた事例
+      summary: Mid-360 を下向きに傾けた実例は見つからなかった。50° 下向き・高さ 0.475 m では、前方の仰角は約 -57〜+2°、前方の地面は約 0.31 m より先が写る（仕様からの収集の担当の計算で、実測ではない。T08-2 で確かめる）
+
+  H_nav2_costmap:
+    - id: R-H-01
+      title: Nav2 Voxel Layer の設定
+      url: https://docs.nav2.org/configuration/packages/costmap-plugins/voxel.html
+      summary: min_obstacle_height（既定 0.0）、観測源ごとにも設定できる。地面を高さで落とすと消去の光線も減る副作用（https://answers.ros.org/answers/197877/revisions/）。#76 の案 2 の材料
+    - id: R-H-02
+      title: つくばチャレンジシンポジウムに行ってきました【つくチャレ2024-10】
+      author: AbudoriLab
+      date: 2025-02-20
+      url: https://abudorilab.com/entry/2025/02/20/001115
+      summary: MID-360 の点群から法線で地面を除き、ロボットより低い物だけを scan にする自作の ROS 2 パッケージの紹介。#76 の先行事例の候補
+    - id: R-H-03
+      title: Mid-360 と Nav2 の完成した設定例
+      summary: 見つからなかった
+
+  I_extrinsic_calibration:
+    - id: R-I-01
+      title: Autoware Ground-Lidar calibration（extrinsic_ground_plane_calibrator）
+      url: https://docs.autoware.org/main/tutorials/integrating-autoware/creating-vehicle-and-sensor-model/calibrating-sensors/ground-lidar-calibration/
+      summary: "平らな床で z・roll・pitch を推定。T08-3 と #72 の方法 1 の先行事例の候補。Jazzy での動作は未確認"
+    - id: R-I-02
+      title: Livox Viewer の手動キャリブレーション・TFAC-Livox
+      url: https://www.livoxtech.com/showcase/8
+      summary: LiDAR 同士の位置合わせ。XT-32 との相対の姿勢（#72 の方法 3）に使える可能性
+
+  J_troubles:
+    - id: R-J-01
+      title: よくある失敗のまとめ
+      summary: 点群が来ない（アドレスの重複、ファイアウォール、実機のアドレスが規則と違う、config を変えた後に build.sh をやり直していない：#121・#116）、SDK のビルド失敗（<cstdint>）、colcon で CMake エラー（公式は build.sh 前提）、複数台で frame_id が同じ（#85）、Mid-360S を MID360 の config で起動（#262）
+    - id: R-J-02
+      title: "ROS 2 で点群のレートが低い（issue #114、Avia）"
+      url: https://github.com/Livox-SDK/livox_ros_driver2/issues/114
+      summary: DDS の調整（R-D-04）が手がかり
+    - id: R-J-03
+      title: 低温での起動の異常（Livox フォーラム）
+      url: https://forum.livoxtech.com/thread-211-1-1.html
+      summary: 本文は読めておらず未確認
+
+  K_tsukuba_teams:
+    - id: R-K-01
+      title: つくばチャレンジ2024完走したので実装内容を振り返る
+      author: t_nkb
+      date: 2025-03-05
+      url: https://www.robotech-note.com/entry/2025/03/05/
+      repo: https://github.com/t-nakabayashi/tc2024
+      env: ROS 1
+      summary: Mid-360 を自己位置と地図（FAST-LIO＋mcl_3dl）に使い、障害物は Top-URG。launch では base_link から後ろ 0.425 m・高さ 1.005 m に水平、frame_id mid360_frame
+    - id: R-K-02
+      title: AbudoriLab（R-H-02）
+      summary: 障害物の認識に Mid-360
+    - id: R-K-03
+      title: 2025 年大会で Mid-360 を下向きに傾けた例
+      summary: 見つからなかった
+
+  L_internal_imu:
+    # 2026-11-06 追記（第204便の続き）。データシートは人が取得してリポジトリの外に配置
+    - id: R-L-01
+      title: "ICM-40609-D Datasheet（DS-000330 Revision 1.2）"
+      url: https://invensense.tdk.com/products/motion-tracking/6-axis/icm-40609-d/
+      local: "Sensors/MID-360/official/icm40609/ds-000330_icm-40609-d_v1.2.pdf（sha256 5e6eaca4dcd0443b40eb681dfa16345ce3d81134d7a8fe7030a9a0ea214dacb2）"
+      summary: "ジャイロ（Table 1、p10）：感度の初期誤差 ±0.5 %、ゼロ点の初期誤差 ±1 °/s（基板実装後）、ゼロ点の温度変化 ±0.01 °/s/°C、雑音密度 0.0045 °/s/√Hz、軸間感度 ±1 %。加速度（Table 2、p11）：ゼロ g の初期誤差 ±40 mg（基板実装後）、温度変化 ±0.15 mg/°C、雑音密度 100 µg/√Hz、感度の初期誤差 ±0.5 %、軸間感度 ±1 %。ゼロ点・軸間感度は特性評価の値で出荷試験の保証なし（注 3）"
+      verified: "AI が pdftotext で原文から読んだ。Mid-360 に載っているのが -D 版かは未確認（User Manual は ICM40609 とだけ記載）"
+    - id: R-L-02
+      title: Mid-360 の IMU の出力（Livox の資料）
+      url: https://github.com/Livox-SDK/livox_wiki_en
+      summary: "既定 200 Hz、有効・無効の切り替えあり、軸は点群と同じ向き、位置は点群の座標系で x 11.0・y 23.29・z −44.12 mm（User Manual の IMU Data の節）。UDP ではジャイロ rad/s・加速度 g（通信プロトコル v1.4.12 の 2.3 節）。周期・測定範囲の設定の項目（imu_sensor_cfg）が Mid-360 で使えるか、工場での校正、Livox が想定する用途は未確認"
+      verified: false
+    - id: R-L-03
+      title: 公式ドライバの IMU の扱い
+      url: https://github.com/Livox-SDK/livox_ros_driver2
+      summary: "sensor_msgs/Imu の加速度は g のまま（ROS の決まりの m/s² ではない）、frame_id は livox_frame に固定（lddc.cpp 480〜497 行、収集の担当が確認）。時刻は同期なしで PC の受信の時刻、同期ありで機器の時刻（pub_handler.cpp 105〜118・265〜274 行）"
+      verified: 時刻の扱いは AI がソースの写しで照合
+    - id: R-L-04
+      title: IMU の既知の問題（利用者の報告）
+      url: https://github.com/Livox-SDK/livox_ros_driver2/issues/235
+      summary: "driver2 の issue 235：IMU の間隔が 5 ms に揃わず 1 ms と 4 ms が混ざる。SDK2 の issue 118：IMU と点群の時刻が大きく食い違う。SDK2 の issue 37：加速度が −4 g に張り付く個体。driver2 の issue 157：単位が g。driver2 の issue 217：frame_id を変えられない"
+      verified: false
+    - id: R-L-05
+      title: 補正に使えるかの見積もり（AI の計算。データシートの TYP 値から）
+      summary: "走行中の歪みの補正：1 rad/s・0.1 s（1 枚）で、感度の誤差 0.5 % → 約 0.03°、ゼロ点 1 °/s → 約 0.1°（静止で測れば小さくできる）。補正しないときの歪み約 5.7° に対し 1/50 以下で、使える見込み。取り付けの傾き：ゼロ g の初期誤差 40 mg → 最大約 2.3°、温度 30 °C の変化で約 0.26°。そのままでは 0.5° の目標に足りない"
+    - id: R-L-06
+      title: 重力の向きから取り付けの角度を求める方法（AI の案。人の指摘「取り付け時の角度はあまり精度が良くない」を受けて）
+      summary: "取り付けの前に、机の上で MID-360 を 6 つの向き（各面を下）に置いて静止データを取り、加速度のゼロ g の誤差と感度を軸ごとに求める（6 面法。重力 1 g が基準なので治具は要らない）。取り付けの後は、平らな所で止めて数十秒の平均の重力の向きから roll・pitch を出し、求めたゼロ g の誤差を引く。残る誤差の主な元は温度による変化（0.15 mg/°C、30 °C で約 0.26°）と床の傾き。床の当てはめ（#72 の方法 1）と突き合わせる。床の傾きは、その場で車体を 180° 向きを変えて 2 回測ると打ち消せる。yaw は重力では求まらないので、XT-32 との点群の位置合わせで求める"
+  M_driver_choice:
+    # 2026-11-06 追記。GitHub の数は 2026-11-06 に gh api で取得（収集の担当）
+    - id: R-M-01
+      title: よく使われているドライバ（鉄板）
+      summary: "公式 Livox-SDK/livox_ros_driver2 が star 896、コード検索での参照 約 1860 で最多。Ericsii fork（IMU を m/s² で出す）star 45・約 164、TU Darmstadt fork（jazzy、colcon、diagnostics）star 42・約 10、他は数件。ROS の apt（Jazzy の配布の一覧）には入っていない"
+    - id: R-M-02
+      title: 下流のプロジェクトの前提
+      url: https://github.com/koide3/glim
+      summary: "FAST-LIO は公式の CustomMsg（点ごとの時刻）を前提にし、代替として Ericsii の fork を紹介。GLIM の設定に acc_scale（コメント：Livox は 9.80665）があり、公式の g の出力を前提にしている。Unitree の Go2・G1 の ROS 2 の構成も公式を指す。つくばチャレンジでは Shinsotsu が自前の fork、KBKN・t_nakabayashi は版を未確認"
+    - id: R-M-03
+      title: 選び方の注意
+      summary: "単位を変える fork（m/s²）は、下流（GLIM の acc_scale など）と同時に変えないと二重に変換される。PointCloud2（xfer_format 0）と CustomMsg（1）は同時に出せないとされる（未照合）。推奨は公式を commit 固定、colcon に入れたい場合の 2 番手が TU Darmstadt"
+  not_found_or_unverified:
+    - XT-32 と同じサブネットにもう 1 つの口を足す構成を扱った記事（見つからず）
+    - koide3 の USB PD 給電の記事（見つからず）
+    - index.ros.org の livox_ros_driver2（404。ROS の公式の配布物にあるかは未確認）
+    - Mid-360 の起動時間の公式の値（記載が見つからず。T01-2 で測る）
+    - 手元の機体が Mid-360 か Mid-360S か（T00-1 で型式ラベルを確かめる）

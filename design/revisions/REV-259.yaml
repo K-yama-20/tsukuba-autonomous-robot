@@ -1,0 +1,64 @@
+# reserved by reserve_ids.py: mid360-main-abd 2026-11-07T02:44:13
+# 変更セット REV-259（2026-11-07 第235便: MID-360 の接続試験に向けた並列の実装の指示と、組み直した計画の承認の記録。DEC-474・475）
+# 適用: design/tools/apply_revision.py REV-259
+id: REV-259
+date: '2026-11-07'
+summary: >-
+  第235便：MID-360 の接続試験（P0〜P8）に向けて、人の指示（DEC-474）で A ドライバの導入・B 解析スクリプト・D 正本を並列で実装する。
+  読み直しで A と D の大半が済んでいる（9c449b5、REV-242）と分かったので計画を組み直し、人の指示で地面の OSS による検出（G、#85）を足した。
+  人の回答「この計画で進める」（DEC-475）で、A1（driver を build.sh でなく colcon で作る）・B（T04・T05-4・T07・T08 の解析）・D（REV-260、適用は承認待ち）・
+  E（P4 でドライバだけを起動する道具）・G1（地面分割の OSS の調査）・G2（記録での比較）を進める。G3（製品への組み込み）は G2 の結果の後の承認事項。
+  C（IMU の校正、#80）は approved がないので実装しない。
+basis_refs:
+- DEC-474
+- DEC-475
+- DEC-442
+- DEC-443
+- DEC-455
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-474
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第235便、前のメインチャットの質問）MID-360 の接続試験を早く進めるための並列の計画（A ドライバの導入、B 解析スクリプト、C IMU の校正、D 正本）。
+  answer_verbatim: |
+    計画を立てよ。並列で動かせると早く開発出来る。
+    メインチャットを新規で開始し、実装を行え。opus5.5, 超高で並列実装せよ
+  affected_refs:
+  - DEC-442
+  - DEC-443
+  resulting_refs: []
+  note: >-
+    伝達の経路：人の二つの発言は前のメインチャットで行われ、そのセッションが原文を引用してこのチャットに渡した。この記録の AI はその発言を直接は見ていない。
+    AI の解釈：A・B・D の実装への yes（DEC-106）。C は issue #80 に approved がないので実装しない。この後、このチャットで人が「再度最初からやり直せ」
+    「計画を組み直そう」と指示し、最初の試み（effort の指定なしのサブエージェントの出力）は使わずに退避して元に戻した。組み直した計画の承認は DEC-475。第235便。
+  disposition: answered
+- id: DEC-475
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第235便）組み直した計画で進めるか。A1：setup.sh の livox_ros_driver2 を上流の build.sh でなく colcon（build.sh jazzy と同じ CMake の引数）で作る
+    （別の作業場所 <workspace>_livox は保つ。DEC-443 の理由が「build.sh が作業場所を消す」から「Gouda の作業場所と分けて作る」に変わる）。
+    A2：Dell での bash setup.sh は人（sudo）。B：T04・T05-4・T07 と T08 の地面の当てはめの解析スクリプト。D：正本の不足（内蔵 IMU、livox_frame、
+    診断・状態、ND-20 のモジュール）を REV-260 で補い、適用は承認の後。E：P4 で Gouda を起動せずドライバだけを動かす道具。
+    G：地面を OSS の地面分割で検出する（#85）。G1 調査、G2 記録での比較（誤検知と見落とし）、G3 組み込みは G2 の結果の後に人が判断。
+  answer_verbatim: |
+    地面はRANSAC等を用いたOSSを使って検出しよう。閾値設定だけでは障害物がないのにあると誤検知してしまうかもしれません。計画に組み入れることを検討せよ
+    この計画で進める
+  affected_refs:
+  - DEC-443
+  - DEC-455
+  - DEC-457
+  resulting_refs: []
+  note: >-
+    人の二つの発言（このチャット）。一つ目で G を計画に入れ（#85 に先行事例を登録）、二つ目で組み直した計画（AI の推奨のまま：A1 を採る、B に T08 を含める、
+    E を足す）を承認した。AI の解釈：A1・B・D・E・G1・G2 の実装への yes（DEC-106）。G3（地面分割を製品の障害物の経路に入れる）は含まない。
+    T08 に誤検知と見落としを見る項目を足すかは、試験の条件なので人が決める（台帳には提案として書く）。DEC-443 の採否（別の作業場所）は変えず、理由だけを改める。第235便。
+  disposition: answered
