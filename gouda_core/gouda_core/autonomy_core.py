@@ -12,6 +12,8 @@
   and sends the goal again from the next one. Nothing is skipped while one of PRM-137..140 is unresolved.
 - nav2_failure_reason (E-4, REV-183, DEC-393): the stop reason of a failed Nav2 goal from its error code. The code table comes
   from the nav2_msgs action constants (autonomy_client.error_code_table); only the rule by action and constant name is here.
+- nav2_failure_action / nav2_resend_due (DEC-437, DEC-460, REV-245): a failed Nav2 goal does not pause when
+  nav2_failure_resend_wait_s (PRM-161) has a value; the goal is sent again after that wait unless something came between.
 """
 from __future__ import annotations
 
@@ -153,6 +155,21 @@ def localization_wait_action(waiting: bool, in_autonomy: bool, goal_active: bool
     if not in_autonomy:
         return LOC_WAIT_CLEAR
     return LOC_WAIT_KEEP if goal_active else LOC_WAIT_RESUME
+
+
+NAV2_FAIL_PAUSE, NAV2_FAIL_RESEND = 'pause', 'resend'
+
+
+def nav2_failure_action(resend_wait_s, in_autonomy: bool) -> str:
+    """What a failed Nav2 goal does (DEC-437, DEC-460): re-send after resend_wait_s (PRM-161) in 自律走行; without a value (or
+    outside 自律走行) the old TR-07 automatic pause (DEC-200)."""
+    return NAV2_FAIL_RESEND if resend_wait_s is not None and in_autonomy else NAV2_FAIL_PAUSE
+
+
+def nav2_resend_due(token: int, current_token: int, in_autonomy: bool, localization_waiting: bool, goal_active: bool) -> bool:
+    """A re-send scheduled after a failure (DEC-460) is sent only when nothing came during the wait: a human pause / end, a new
+    start and a localization wait each take a new token; the mode must still be 自律走行 and no other goal may be active."""
+    return token == current_token and in_autonomy and not localization_waiting and not goal_active
 
 
 class EstimatorGrace:

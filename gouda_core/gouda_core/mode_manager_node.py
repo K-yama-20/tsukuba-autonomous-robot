@@ -20,6 +20,9 @@ Nav2 (IFD-36) and sends the NavigateThroughPoses goal (IFD-13). The hold is rele
 (stop_reason node_failure, recorded with TR-07). TR-06 一時停止 (hold, goal cancel), TR-10 再開 in the same process (a new goal
 from the first waypoint not yet passed; after a PC restart the resume is refused: 5-7), TR-11 / TR-12 終了 (cancel, ND-11 /
 ND-12 deactivate, Nav2 RESET, auto log stop), TR-07 (Nav2 failed) and TR-08 (last waypoint reached) from the result.
+A failed Nav2 goal (DEC-437, DEC-460, REV-245) no longer pauses when nav2_failure_resend_wait_s (PRM-161) has a value: the mode
+stays 自律走行 with motion_hold=true, and after that wait the goal is sent again from the first waypoint not yet passed (no limit
+on the count; a failed re-send is tried again after the same wait). Without a value the failure pauses through TR-07 as before.
 TR-03 also configures vehicle_bridge (ND-12; not activated, no COMMAND) after the transition so that the ESP32 STATUS is recorded
 while mapping (DEC-169, DEC-180); it stays configured after TR-04. TR-05 starts ND-08 (GLIM odometry only, before Nav2), then
 the global localization ND-07 (trial A3, REV-128, DEC-203): the map is set, ND-07 is configured and activated, and Nav2 is
@@ -88,6 +91,7 @@ class ModeManagerNode(Node):
         self.declare_parameter('state_publish_period_s', 0.0)   # PRM-16; 0.0 means "unresolved: publish on change only"
         self.declare_parameter('glim_stop_wait_s', Parameter.Type.DOUBLE)   # PRM-37; required for TR-04
         self.declare_parameter('estimator_continue_s', Parameter.Type.DOUBLE)
+        self.declare_parameter('nav2_failure_resend_wait_s', Parameter.Type.DOUBLE)   # PRM-161 (DEC-460); unset -> a Nav2 failure pauses (TR-07)
         self.declare_parameter('estimator_status_timeout_s', Parameter.Type.DOUBLE)   # PRM-93; required for TR-05
         for key in ('skip_stall_s', 'skip_cost_threshold', 'skip_occupied_s', 'skip_progress_m'):   # PRM-137..140 (DEC-367); unresolved -> no skip
             self.declare_parameter(key, Parameter.Type.DOUBLE)
@@ -142,6 +146,8 @@ class ModeManagerNode(Node):
         self.estimator_timeout = optional_double(self, 'estimator_status_timeout_s')
         self.localization_waiting = False   # DEC-423: stopped inside 自律走行 until ND-07 is 正常 again
         self.estimator_grace = ac.EstimatorGrace(optional_double(self, 'estimator_continue_s') or 0)   # PRM-136 (DEC-419, DEC-421)
+        self.nav2_resend_wait = optional_double(self, 'nav2_failure_resend_wait_s')   # PRM-161 (DEC-460); None -> TR-07 as before
+        self._resend_run, self.nav2_resend_count = None, 0   # re-sends after a Nav2 failure in this run (record only, no limit)
         if self.estimator_timeout and self.estimator_timeout > 0:
             self.create_timer(self.estimator_timeout, self._check_estimator_timeout)
         self.skip_settings = ac.SkipSettings(optional_double(self, 'skip_stall_s'), optional_double(self, 'skip_cost_threshold'),
@@ -618,8 +624,62 @@ class ModeManagerNode(Node):
             if self.localization_waiting:   # DEC-423: the goal ended while waiting; the wait resumes it
                 self._publish_decision('nav2_goal_ended', 'TR-07', f'Nav2 goal ended with status {status} during localization_wait', {'status': status}); return
             reason, code_name = ac.nav2_failure_reason(error_code, self._error_codes)   # E-4 (DEC-393)
-            self._auto_pause('TR-07', reason, f'Nav2 goal ended with status {status}: error_code {error_code} ({code_name}) {error_msg}'.strip(),
-                             {'status': status, 'error_code': error_code, 'error_code_name': code_name, 'error_msg': error_msg})
+            text = f'Nav2 goal ended with status {status}: error_code {error_code} ({code_name}) {error_msg}'.strip()
+            details = {'status': status, 'error_code': error_code, 'error_code_name': code_name, 'error_msg': error_msg}
+            if ac.nav2_failure_action(self.nav2_resend_wait, self.state.mode == mode_core.MODE_AUTONOMY) == ac.NAV2_FAIL_RESEND:
+                self._schedule_resend(text, dict(details, failure_reason=reason)); return   # DEC-437 / DEC-460: no pause
+            self._auto_pause('TR-07', reason, text, details)
+
+    def _schedule_resend(self, reason, details):
+        """DEC-437 / DEC-460 (called with the lock held): no TR-07 pause after a Nav2 failure. The mode stays 自律走行 with
+        motion_hold=true (as in localization_wait) and, after nav2_failure_resend_wait_s (PRM-161), the goal is sent again from the
+        first waypoint not yet passed (the localization wait's re-send). No limit on the count. The new token makes a human pause /
+        end, a new start or a localization wait during the wait drop the re-send (_resend_fire)."""
+        self.drive_released = False; self.goal_active = False
+        token = self.auto.new_token()
+        if self._resend_run != self.state.run_id:
+            self._resend_run, self.nav2_resend_count = self.state.run_id, 0
+        self.nav2_resend_count += 1
+        wait = self.nav2_resend_wait
+        text = f'{reason}; no pause (DEC-437): the goal is sent again after {wait} s (PRM-161), re-send {self.nav2_resend_count}'
+        self._publish_decision('nav2_goal_resend_scheduled', 'TR-07', text,
+                               dict(details, resend_count=self.nav2_resend_count, wait_s=wait, next_offset=self.next_offset))
+        self.get_logger().warning(f'nav2_goal_resend_scheduled: {text}')
+        self._publish_state()
+        self._start_resend_timer(wait, token)
+
+    def _start_resend_timer(self, wait, token):
+        """The wait runs in its own thread (never in the executor, never with the lock held)."""
+        t = threading.Timer(wait, self._resend_fire, args=(token,)); t.daemon = True; t.start()
+
+    def _resend_fire(self, token):
+        with self._lock:
+            if self.mission is None or not ac.nav2_resend_due(token, self.auto._token, self.state.mode == mode_core.MODE_AUTONOMY,
+                                                              self.localization_waiting, self.goal_active):
+                self._publish_decision('nav2_goal_resend_dropped', 'TR-07', 'the re-send after the Nav2 failure is not sent: a pause, an end, a new start or a localization wait came during the wait',
+                                       {'mode': self.state.mode, 'localization_waiting': self.localization_waiting}); return
+            offset = min(self.next_offset, len(self.mission.waypoints) - 1); mission = self.mission
+            self._update_fields({'speed_limit_application_state': ac.SL_UNKNOWN})
+            self._publish_decision('nav2_goal_resend', 'TR-07', f'the goal is sent again from waypoint {offset} (re-send {self.nav2_resend_count}, DEC-460)',
+                                   {'offset': offset, 'resend_count': self.nav2_resend_count})
+        self._resend_goal(token, mission, offset)
+
+    def _resend_goal(self, token, mission, offset):
+        """send_goal in the timer's thread. A rejected / failed re-send does not pause either: it is tried again after the same wait."""
+        from gouda_core.autonomy_client import StepFailed, Abandoned
+        rec = self._rec('TR-07')
+        try:
+            self.auto.send_goal(token, mission, offset, rec)
+        except Abandoned:
+            rec('nav2_goal_resend_dropped', 'a pause, an end or a new start came while the goal was being sent again', {}); return
+        except StepFailed as e:
+            with self._lock:
+                if token != self.auto._token or self.state.mode != mode_core.MODE_AUTONOMY:
+                    return
+                self._schedule_resend(f'the re-send failed: {e}', {'step_error': str(e)})
+            return
+        with self._lock:
+            if token == self.auto._token: self.goal_active = True
 
     def _on_speed_state(self, state, details):
         with self._lock:

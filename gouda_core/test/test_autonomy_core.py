@@ -66,6 +66,23 @@ class EstimatorGraceTests(unittest.TestCase):   # DEC-419, DEC-421
 
     def test_no_limit_given_pauses_at_once(self):
         self.assertEqual(ac.EstimatorGrace(0).bad(5), (True, True))
+
+    def test_nav2_failure_action(self):   # DEC-437, DEC-460 (PRM-161)
+        f = ac.nav2_failure_action
+        self.assertEqual(f(2.5, True), ac.NAV2_FAIL_RESEND)
+        self.assertEqual(f(0.0, True), ac.NAV2_FAIL_RESEND, 'a value of 0 is a value: re-send at once')
+        self.assertEqual(f(None, True), ac.NAV2_FAIL_PAUSE, 'PRM-161 without a value: the TR-07 pause as before')
+        self.assertEqual(f(2.5, False), ac.NAV2_FAIL_PAUSE, 'outside 自律走行 nothing is re-sent')
+
+    def test_nav2_resend_due(self):   # DEC-460
+        f = ac.nav2_resend_due
+        self.assertTrue(f(4, 4, True, False, False))
+        self.assertFalse(f(4, 5, True, False, False), 'a pause / end / new start / localization wait took a new token')
+        self.assertFalse(f(4, 4, False, False, False), 'the mode is no longer 自律走行')
+        self.assertFalse(f(4, 4, True, True, False), 'a localization wait owns the next goal')
+        self.assertFalse(f(4, 4, True, False, True), 'another goal is already active')
+
+
 class MissionTests(unittest.TestCase):
     def test_resolved_when_everything_matches(self):
         with tempfile.TemporaryDirectory() as d:

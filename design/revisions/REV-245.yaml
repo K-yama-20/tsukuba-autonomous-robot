@@ -1,0 +1,91 @@
+# 変更セット REV-245（2026-11-07 第219便: Nav2 の失敗で待機に入らず goal を出し直す。DEC-460、PRM-161）
+# 適用: design/tools/apply_revision.py REV-245
+id: REV-245
+date: '2026-11-07'
+summary: >-
+  第219便：人の回答（DEC-460）で、DEC-437（Nav2 が失敗しても待機に入らない）の最小の形を入れる。Nav2 の goal が失敗で終わったら、
+  TR-07 の待機に入らず自律走行モードのまま、PRM-161 の時間だけ待ってから、まだ通過していない最初の waypoint（next_offset）から
+  goal を出し直す。出し直しの経路は localization_wait（DEC-423、第198便）の再送と同じ。回数の上限はない。出し直し自体が失敗しても同じ時間の後に
+  また出し直す。PRM-161 に値がなければ今までどおり TR-07 で待機に入る。回復の構成（DEC-438）は閉じない。
+basis_refs:
+- DEC-437
+- DEC-438
+- DEC-423
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-460
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第219便）DEC-437 の最小の形の実装に着手してよいか。AI の提示：Nav2 の goal が失敗で終わったら、自動の一時停止（TR-07 → 待機）に入らず
+    自律走行モードのまま、まだ通過していない最初の waypoint（next_offset）から goal を出し直す。出し直しは localization_wait（DEC-423、第198便）の
+    再送の経路を使う。回数の上限はない。出し直しの前に待つ時間を新しいパラメータにする（推奨 2 秒、「値はあなたが決めてください」）。
+    変えないもの：最後の waypoint への到達（TR-08）、人の一時停止・終了、取り消された goal、localization_wait の分岐、推定不能の扱い、
+    waypoint を飛ばす処理。AI が一度伝えた懸念：道が物理的に塞がれていると、その場で出し直しを続けて止まり続ける。確認走行区間ではそれが
+    3 分続くと失格になる。waypoint を飛ばす機能と組になる。
+  answer_verbatim: |
+    Nav2 の失敗で待機に入らず goal を出し直す変更を実装してよい。opus5.5のサブエージェントを新規で立てて実装させよ
+  affected_refs:
+  - DEC-437
+  - DEC-438
+  - DEC-200
+  - TR-07
+  - ND-03
+  - MODE-PAUSE
+  resulting_refs:
+  - PRM-161
+  note: >-
+    待つ時間の 2.0 秒は AI の推奨値で、人は値を述べていない（提案の承認で暗に認めただけ）。実測の裏付けはない。回答の「opus5.5」は Opus 5.5 と読み、
+    実装は新しく立てた Opus 5.5 のサブエージェントが行った。出し直しが拒否された・失敗したとき（action server がない、goal が受け付けられない）も、
+    「Nav2 の失敗で待機に入らない」の意図に合わせて、同じ時間の後にまた出し直す（AI の判断）。待つ間は motion_hold=true（今の待機と localization_wait
+    と同じ）。新しい goal の速度制限が適用中になってから解く（DEC-056）。人の一時停止・終了、モードの変化、localization_wait が待つ間に起きたら、
+    出し直さない。確定済みの DEC-200・DEC-437 は書き換えず、この項目で DEC-437 の実装の形を足す。DEC-438（回復の構成）はこの項目では閉じない。
+    残るリスク：道が物理的に塞がれていると、その場で出し直しを続けて止まり続ける（確認走行区間で 3 分続くと失格）。安全かどうかの判断は人（CLAUDE.md 1.12）。第219便。
+  disposition: answered
+entities:
+- id: PRM-161
+  kind: parameter
+  name: Nav2 の失敗の後、goal を出し直す前に待つ時間（mode_manager）
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - TR-07
+  - DEC-437
+  issue_refs: []
+  interpretation: "REV-245（DEC-437・DEC-460）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  - RQ-I076
+  parameter:
+    owner_ref: ND-03
+    value: 2.0
+    value_state: approved
+    unit: s
+    stage: 自律走行の為の最小構成
+    purpose: "自律走行の間に Nav2 の goal が失敗（SUCCEEDED・CANCELED 以外）で終わったとき、待機に入らず、この時間の後にまだ通過していない最初の waypoint から goal を出し直す。出し直しが失敗したときも、この時間の後にまた出し直す。値がなければ今までどおり TR-07 で待機に入る。"
+    measurement: "AI の推奨値。人は値を述べず、提案の承認（DEC-460）で暗に認めただけ。測定値ではなく、実測の裏付けはない"
+    decision_deadline: 決定済み（DEC-460。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: nav2_failure_resend_wait_s
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-460
+modifications:
+- id: TR-07
+  interpretation_append: 'REV-245（DEC-437・DEC-460）：Nav2 の失敗では、PRM-161 に値があれば TR-07 に入らず、自律走行モードのまま PRM-161 の後に next_offset から goal を出し直す（回数の上限なし。出し直しの失敗も同じ）。推定不能と開始の手順の失敗は今までどおり TR-07。'
+- id: ND-03
+  interpretation_append: 'REV-245（DEC-460）：Nav2 の失敗の後の出し直し（PRM-161）。'
