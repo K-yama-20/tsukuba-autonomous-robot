@@ -1,0 +1,32 @@
+# 変更セット REV-237（2026-11-07 第213便: TR-IMU16607 の設定のソースでの確認、DEC-447）
+# 適用: design/tools/apply_revision.py REV-237
+id: REV-237
+date: '2026-11-07'
+summary: '第213便：人の質問（DEC-447、原文）により、TR-IMU16607 の設定（TR-IMU Monitor の画面）を基板ファーム technoroad/TR-IMU2-STM32 1ffaad4 とドライバ 742b7ba のソースで確かめ、design/docs/imu_adis16607_spec.md に節を足した。重力補正のフラグは出力に使われていない（加速度は重力を含む生の値）。16bit／32bit はドライバが感度を読んで換算するので、どちらでも動く。人の画面と #82 の起動ログの設定の食い違いは未解決。コード・設定・基板の設定は変えていない。'
+basis_refs:
+- DEC-418
+- DEC-444
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-447
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: TR-IMU16607（ADIS16607-2）の基板の設定をこのままにしてよいか（人の質問）と、ソースでの確認・記録の指示
+  answer_verbatim: |
+    （人の発言の原文、時系列の番号つき。1 には TR-IMU Monitor v1.1 の設定タブの画面が付いていた：USB・UART オン、16bit、VQF(Double)、重力補正オン、入力ピン 内部プルダウン・立ち上がり、1000 Hz）
+    1.「IMUのこれらの設定ってこのままで良いのかな。adis-16607-2ね。」
+    2.「ソースを確かめて」
+    3.「記録して」
+  affected_refs:
+  - ND-15
+  - DEC-418
+  - DEC-444
+  resulting_refs: []
+  note: 'AI の回答：今の設定のままでよい。重力補正のフラグはファームの出力の計算に使われておらず（flash_ctrl.c:89、configure_cmd.c:87、send_ack.c:196 だけ）、/imu/data_raw の加速度は重力を含む（GLIM の前提と合う）。16bit の 1 目盛りは加速度 1.28 mg（出力ノイズ 3.9 mg RMS と同程度）で、32bit（実質 24 bit）にしてもドライバは感度を読んで換算するので動く。32bit にするかは任意で、変えるなら承認事項。#82 の案「重力補正はオフのまま。オンにすると壊れる恐れ」は、このファームのソースでは当たらない（v1.1 の公開ソース。基板の書き込みのビルド日 20260630 と同じ版かは未確認）。人の画面（VQF・重力補正オン）と #82 の起動ログ（Filter 0、Grav corr 0、Product ADIS0、Sample rate 0）が食い違う。設定の読み出しの誤りの可能性があり、未解決。詳細は design/docs/imu_adis16607_spec.md の「TR-IMU16607 基板の設定と出力」。'
+entities: []
+modifications: []
+decision_updates: []
