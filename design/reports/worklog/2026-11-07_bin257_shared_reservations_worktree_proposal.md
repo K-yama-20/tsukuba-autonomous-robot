@@ -6,7 +6,8 @@
 - 便ごとのコミット（第255便）の後：`c37020e`（同じブランチ。`c88791d` が REV-281・DEC-499、`c37020e` がこの便の道具・試験・提案・作業記録と status.md の項）。
 - この便のコミット（ブランチ design/mppi-sim-2026-11-03、push なし）
   - `c37020e`：第255便のセッションが作った、この便の 4 ファイル＋status.md の項。
-  - 2 つ目（REV-283 の適用、update.sh、.gitattributes、試験、CLAUDE.md の控え、この作業記録）：ID は status.md の第257便の項と、次の作業記録に書く。
+  - `e42c79b`：REV-283 の適用、update.sh、.gitattributes、試験、CLAUDE.md の控え、この作業記録、status.md の項。
+  - 3 つ目：このコミット ID の追記だけ。
 - `CLAUDE.md`（1.1〜1.12）、`design/reports/status.md` の冒頭、`design/tools/reserve_ids.py`、`design/rules/test_reserve_ids.py`、`design/tools/apply_revision.py`（適用の拒否の条件）、`design/tools/run_checks.py`、`update.sh`、作業記録 第220便・第250便。
 - 車載 PC・ワークステーションには触れていない。Gouda は起動・停止していない。
 
