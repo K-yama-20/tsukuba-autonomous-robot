@@ -1,0 +1,163 @@
+# 第199便 XT-32 の見える範囲（rosbag の点群からの集計。原文の出力）
+# 入力: 人の外付けドライブの rosbag 2 本（x86 機、2026-10-14 夕方の地図作成。17:35:58〜17:43:52 と 17:58:48〜18:10:35）の /sensors/xt32/points を読み取りだけで参照した。生データはリポジトリに入れていない。
+# 対応する原図・走行の解析は 2026-10-14_evening_maps_rosbag.txt。走行の場所は人に未確認。
+# 取付（/config、記録時の config_revision 2、人の入力で実測でない）: lidar_mount_z_m 1.015（base_link 基準）、yaw 0.1745 rad、軸 "+x left, -y forward, +z up"。
+# ドライバの設定: 補正値は本体から PTC で取得（correction_file_path null）。距離・視野の絞り込みの設定なし（gouda_sensors/config/hesai_hardware.template.yaml）。
+# 実行（2026-11-06、Mac、design/.venv の Python）:
+#   python -I xt32_fov.py ../2026-10-14_evening_scripts fov.npz 10 <bag 173522> <bag 175847>
+#   python -I xt32_fov_sum.py fov.npz ; python -I xt32_near_persist.py fov.npz
+# bag の SHA-256 は未計算（約 20 GB）。ファイルの大きさ: 173522 7900705726 B、175847 11719959121 B。
+
+## xt32_fov.py
+bag 0 frames 4736 skipped (not 32x2000) []
+bag 1 frames 7026 skipped (not 32x2000) [(1, 1791968582.786723, 63744), (1, 1791968671.734038, 63744), (1, 1791968718.712385, 63744), (1, 1791968826.683205, 63744), (1, 1791968840.678781, 63744)]
+done fov.npz 1172
+
+## xt32_fov_sum.py
+frames sampled 1172 (bag0 474, bag1 698)
+
+== 1. beam elevation per ring (deg; median over frames of the per-frame median of returns 3..60 m; p5/p95 over frames)
+ring  0:  +15.05  [ +15.05  +15.05]
+ring  1:  +14.04  [ +14.04  +14.04]
+ring  2:  +13.03  [ +13.03  +13.03]
+ring  3:  +12.02  [ +12.02  +12.02]
+ring  4:  +11.01  [ +11.01  +11.01]
+ring  5:  +10.01  [ +10.01  +10.01]
+ring  6:   +9.01  [  +9.01   +9.01]
+ring  7:   +8.01  [  +8.01   +8.01]
+ring  8:   +7.01  [  +7.01   +7.01]
+ring  9:   +6.02  [  +6.02   +6.02]
+ring 10:   +5.02  [  +5.02   +5.02]
+ring 11:   +4.02  [  +4.02   +4.02]
+ring 12:   +3.03  [  +3.03   +3.03]
+ring 13:   +2.04  [  +2.04   +2.04]
+ring 14:   +1.05  [  +1.05   +1.05]
+ring 15:   +0.06  [  +0.06   +0.06]
+ring 16:   -0.94  [  -0.94   -0.94]
+ring 17:   -1.94  [  -1.94   -1.94]
+ring 18:   -2.94  [  -2.94   -2.94]
+ring 19:   -3.93  [  -3.93   -3.93]
+ring 20:   -4.93  [  -4.93   -4.93]
+ring 21:   -5.92  [  -5.92   -5.92]
+ring 22:   -6.92  [  -6.92   -6.92]
+ring 23:   -7.92  [  -7.92   -7.92]
+ring 24:   -8.92  [  -8.92   -8.92]
+ring 25:   -9.92  [  -9.92   -9.92]
+ring 26:  -10.93  [ -10.93  -10.93]
+ring 27:  -11.93  [ -11.93  -11.93]
+ring 28:  -12.94  [ -12.94  -12.94]
+ring 29:  -13.95  [ -13.95  -13.95]
+ring 30:  -14.96  [ -14.96  -14.96]
+ring 31:  -15.98  [ -15.98  -15.98]
+lowest -15.98, highest +15.05, span 31.04; spacing min 0.99 max 1.02 median 1.00
+
+== 2. horizontal: column azimuth step and return ratio by vehicle azimuth
+columns 2000, median step 0.180 deg, total span 359.8 deg
+vehicle az bin: return ratio all rings / rings 16..31 (upper half by elevation) / lower 8 rings
+  -180..-170: 0.975  0.960  0.992
+  -170..-160: 0.982  0.976  0.989
+  -160..-150: 0.985  0.981  0.990
+  -150..-140: 0.982  0.983  0.985
+  -140..-130: 0.981  0.981  0.986
+  -130..-120: 0.979  0.980  0.982
+  -120..-110: 0.976  0.980  0.976
+  -110..-100: 0.978  0.983  0.979
+  -100.. -90: 0.977  0.980  0.983
+   -90.. -80: 0.974  0.974  0.981
+   -80.. -70: 0.974  0.977  0.979
+   -70.. -60: 0.974  0.974  0.978
+   -60.. -50: 0.977  0.980  0.977
+   -50.. -40: 0.981  0.983  0.984
+   -40.. -30: 0.980  0.980  0.986
+   -30.. -20: 0.980  0.975  0.992
+   -20.. -10: 0.975  0.961  0.994
+   -10..  +0: 0.974  0.958  0.994
+    +0.. +10: 0.979  0.967  0.995
+   +10.. +20: 0.982  0.975  0.993
+   +20.. +30: 0.979  0.971  0.992
+   +30.. +40: 0.980  0.974  0.990
+   +40.. +50: 0.982  0.980  0.988
+   +50.. +60: 0.980  0.980  0.983
+   +60.. +70: 0.981  0.982  0.984
+   +70.. +80: 0.983  0.982  0.987
+   +80.. +90: 0.984  0.981  0.989
+   +90..+100: 0.986  0.983  0.990
+  +100..+110: 0.985  0.982  0.987
+  +110..+120: 0.985  0.985  0.986
+  +120..+130: 0.983  0.983  0.986
+  +130..+140: 0.982  0.983  0.984
+  +140..+150: 0.981  0.978  0.987
+  +150..+160: 0.979  0.972  0.990
+  +160..+170: 0.978  0.966  0.993
+  +170..+180: 0.974  0.956  0.994
+
+== 3. short-range returns (< 2 m): fraction of frames, by vehicle azimuth (10 deg) and range
+  -180..-170: points/frame <0.5    30.0  0.5-1    32.9  1-1.5    73.1  1.5-2    92.2  min r 0.15  el -0.9
+  -170..-160: points/frame <0.5    52.1  0.5-1    47.5  1-1.5    59.8  1.5-2   115.4  min r 0.15  el -1.9
+  -160..-150: points/frame <0.5    83.7  0.5-1    43.7  1-1.5    27.1  1.5-2   102.0  min r 0.15  el -1.9
+  -150..-140: points/frame <0.5    94.1  0.5-1    33.0  1-1.5    17.5  1.5-2    63.7  min r 0.12  el -1.9
+  -140..-130: points/frame <0.5    91.7  0.5-1    18.9  1-1.5    19.0  1.5-2    30.6  min r 0.11  el -2.9
+  -130..-120: points/frame <0.5    92.5  0.5-1     9.2  1-1.5    16.6  1.5-2    51.0  min r 0.08  el -2.9
+  -120..-110: points/frame <0.5    97.8  0.5-1     5.1  1-1.5    24.6  1.5-2    64.1  min r 0.08  el -2.9
+  -110..-100: points/frame <0.5   100.4  0.5-1     6.3  1-1.5    29.2  1.5-2    65.7  min r 0.07  el -1.9
+  -100.. -90: points/frame <0.5    87.6  0.5-1     8.5  1-1.5    29.1  1.5-2    65.4  min r 0.06  el -1.9
+   -90.. -80: points/frame <0.5    67.6  0.5-1    10.9  1-1.5    26.9  1.5-2    68.4  min r 0.07  el -2.9
+   -80.. -70: points/frame <0.5    43.2  0.5-1     9.6  1-1.5    27.6  1.5-2    68.2  min r 0.09  el -3.9
+   -70.. -60: points/frame <0.5    16.8  0.5-1    12.6  1-1.5    22.6  1.5-2    56.3  min r 0.06  el -3.9
+   -60.. -50: points/frame <0.5    12.3  0.5-1    19.2  1-1.5    16.1  1.5-2    45.6  min r 0.11  el -3.9
+   -50.. -40: points/frame <0.5     7.5  0.5-1    17.7  1-1.5    11.4  1.5-2    27.5  min r 0.14  el -3.9
+   -40.. -30: points/frame <0.5     5.1  0.5-1    16.4  1-1.5     5.6  1.5-2    12.9  min r 0.14  el -3.9
+   -30.. -20: points/frame <0.5     2.8  0.5-1    16.2  1-1.5     0.4  1.5-2     7.0  min r 0.32  el -1.9
+   -20.. -10: points/frame <0.5     2.4  0.5-1     8.9  1-1.5     0.2  1.5-2     2.1  min r 0.38  el +1.0
+   -10..  +0: points/frame <0.5     2.0  0.5-1     6.2  1-1.5     0.4  1.5-2     0.6  min r 0.06  el +3.0
+    +0.. +10: points/frame <0.5     2.6  0.5-1     7.3  1-1.5     1.9  1.5-2     4.4  min r 0.07  el +0.1
+   +10.. +20: points/frame <0.5     3.0  0.5-1    10.0  1-1.5    12.5  1.5-2    17.4  min r 0.08  el -1.9
+   +20.. +30: points/frame <0.5     4.0  0.5-1    22.6  1-1.5    19.0  1.5-2    31.4  min r 0.05  el -4.9
+   +30.. +40: points/frame <0.5     5.9  0.5-1    31.1  1-1.5    37.0  1.5-2    58.1  min r 0.08  el -5.9
+   +40.. +50: points/frame <0.5    16.4  0.5-1    33.4  1-1.5    51.6  1.5-2    52.6  min r 0.05  el -5.9
+   +50.. +60: points/frame <0.5    20.3  0.5-1    41.5  1-1.5    49.4  1.5-2    62.3  min r 0.08  el -5.9
+   +60.. +70: points/frame <0.5    22.1  0.5-1    46.5  1-1.5    40.5  1.5-2    91.3  min r 0.08  el -4.9
+   +70.. +80: points/frame <0.5    22.3  0.5-1    44.6  1-1.5    52.2  1.5-2   106.2  min r 0.15  el -4.9
+   +80.. +90: points/frame <0.5    23.1  0.5-1    43.6  1-1.5    54.1  1.5-2   110.3  min r 0.15  el -3.9
+   +90..+100: points/frame <0.5    24.7  0.5-1    46.6  1-1.5    46.5  1.5-2    91.3  min r 0.16  el -4.9
+  +100..+110: points/frame <0.5    24.2  0.5-1    49.6  1-1.5    45.2  1.5-2    79.2  min r 0.16  el -4.9
+  +110..+120: points/frame <0.5    21.7  0.5-1    49.5  1-1.5    48.3  1.5-2    63.4  min r 0.19  el -4.9
+  +120..+130: points/frame <0.5    17.9  0.5-1    40.9  1-1.5    55.0  1.5-2    56.3  min r 0.21  el -4.9
+  +130..+140: points/frame <0.5    15.6  0.5-1    31.3  1-1.5    64.5  1.5-2    49.3  min r 0.24  el -5.9
+  +140..+150: points/frame <0.5    10.3  0.5-1    28.4  1-1.5    54.8  1.5-2    50.7  min r 0.15  el -5.9
+  +150..+160: points/frame <0.5    12.6  0.5-1    19.2  1-1.5    32.8  1.5-2    47.7  min r 0.14  el -4.9
+  +160..+170: points/frame <0.5    18.5  0.5-1     8.2  1-1.5    37.2  1.5-2    52.7  min r 0.14  el -1.9
+  +170..+180: points/frame <0.5    20.6  0.5-1    14.9  1-1.5    47.1  1.5-2    62.3  min r 0.14  el -1.9
+  smallest return range over all sampled frames 0.052 m; returns < 0.5 m per frame 1175.2
+
+== 4. range: per frame max, p99, p1 of returns; return ratio
+  max: median 130.084  min 36.096  max 153.072
+  p99: median 58.922  min 11.196  max 82.764
+  p1: median 1.664  min 0.084  max 4.372
+  return ratio: median 0.982  min 0.921  max 0.999
+
+== 5. ground: sensor height above the fitted plane and nearest ground return by vehicle azimuth
+  planes 1168/1172; height median 1.182 m (p10 1.133, p90 1.227)
+  -180..-150: nearest ground (p2 per frame) median 4.13 m, p10 3.83, p90 4.40  (frames 1078)
+  -150..-120: nearest ground (p2 per frame) median 4.16 m, p10 3.67, p90 4.54  (frames 903)
+  -120.. -90: nearest ground (p2 per frame) median 4.22 m, p10 3.59, p90 4.62  (frames 811)
+   -90.. -60: nearest ground (p2 per frame) median 4.21 m, p10 3.70, p90 4.52  (frames 877)
+   -60.. -30: nearest ground (p2 per frame) median 4.17 m, p10 3.72, p90 4.39  (frames 979)
+   -30..  +0: nearest ground (p2 per frame) median 4.15 m, p10 3.85, p90 4.36  (frames 1111)
+    +0.. +30: nearest ground (p2 per frame) median 4.09 m, p10 3.83, p90 4.35  (frames 1084)
+   +30.. +60: nearest ground (p2 per frame) median 4.03 m, p10 3.74, p90 4.43  (frames 886)
+   +60.. +90: nearest ground (p2 per frame) median 4.00 m, p10 3.65, p90 4.38  (frames 741)
+   +90..+120: nearest ground (p2 per frame) median 3.99 m, p10 3.63, p90 4.52  (frames 753)
+  +120..+150: nearest ground (p2 per frame) median 3.99 m, p10 3.68, p90 4.36  (frames 876)
+  +150..+180: nearest ground (p2 per frame) median 4.06 m, p10 3.75, p90 4.29  (frames 1075)
+  calc: flat ground, no tilt: h / tan(15.98 deg) = 4.13 m
+  calc: lowest visible height at horizontal distance 1.0 m = +0.90 m above ground; highest = 1.45 m
+  calc: lowest visible height at horizontal distance 1.5 m = +0.75 m above ground; highest = 1.59 m
+  calc: lowest visible height at horizontal distance 2.0 m = +0.61 m above ground; highest = 1.72 m
+  calc: lowest visible height at horizontal distance 2.5 m = +0.47 m above ground; highest = 1.85 m
+  calc: lowest visible height at horizontal distance 3.0 m = +0.32 m above ground; highest = 1.99 m
+  calc: lowest visible height at horizontal distance 4.0 m = +0.04 m above ground; highest = 2.26 m
+
+## xt32_near_persist.py
+range 0-0.5 m: persistent cells (>4 returns/frame of ~5.6) 0; largest cell 0.39 returns/frame at vehicle az -152 ring 26; cells > 1.0: 0
+range 0.5-1.2 m: persistent cells (>4 returns/frame of ~5.6) 0; largest cell 0.48 returns/frame at vehicle az +108 ring 31; cells > 1.0: 0

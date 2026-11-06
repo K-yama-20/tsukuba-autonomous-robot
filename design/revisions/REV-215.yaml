@@ -1,0 +1,45 @@
+# 変更セット REV-215（2026-11-06 第199便: XT-32 の見える範囲を記録した rosbag から求めて台帳に記載する。DEC-426）
+# 適用: design/tools/apply_revision.py REV-215
+id: REV-215
+date: '2026-11-06'
+summary: >-
+  第199便：人の指示で、XT-32 の見える範囲（ビームの角度、水平の視野、固定の死角、距離、地面が見え始める距離）を、人の外付けドライブに残っていた 2026-10-14 の rosbag 2 本の点群から求め、design/docs/lidar_xt32_spec.md に記載した。スクリプトと出力を証拠として登録する。
+basis_refs:
+- DEC-426
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files:
+- id: FILE-XT32-FOV-SCRIPT
+  path: design/research/vehicle_pc/2026-11-06_xt32_visible_range/xt32_fov.py
+  role: evidence
+- id: FILE-XT32-FOV-SUM-SCRIPT
+  path: design/research/vehicle_pc/2026-11-06_xt32_visible_range/xt32_fov_sum.py
+  role: evidence
+- id: FILE-XT32-NEAR-PERSIST-SCRIPT
+  path: design/research/vehicle_pc/2026-11-06_xt32_visible_range/xt32_near_persist.py
+  role: evidence
+- id: FILE-XT32-FOV-RESULTS
+  path: design/research/vehicle_pc/2026-11-06_xt32_visible_range/results.txt
+  role: evidence
+decisions:
+- id: DEC-426
+  kind: approval
+  status: answered
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    （人の指示）XT-32 の見える範囲を記録から抜き出し、台帳に記載すること。
+  answer_verbatim: |
+    xt-32の見える範囲を記録より抜き出し、台帳（imuのデータとかを載せてるやつ）に記載せよ。
+    Crucialのドライブに残ってるrosbagとかから求められると思う。
+  affected_refs:
+  - Q-04
+  - DEC-099
+  - ND-14
+  resulting_refs: []
+  note: >-
+    「台帳（imuのデータとかを載せてるやつ）」は DEC-418 の design/docs/imu_adis16607_spec.md と解釈し、同じ形の design/docs/lidar_xt32_spec.md を並べて作った（IMU の文書の名前を変えるのはファイルの改名で承認事項になるため）。
+    実測（rosbag 1172 通）：ビーム ring 0 +15.05°〜ring 31 −15.98°、間隔 1.00°、水平 360°（0.18°）、車体・取付具による固定の死角なし（2026-10-14 の取付）、地面からの高さ 1.182 m、地面が見え始める距離 4.0〜4.2 m。
+    TRB-001 と costmap の案 K-6 は高さ 1.015 m（base_link からの取付の高さ）で計算しており、見えない範囲を狭く見積もっている（約 3.5 m、1.5 m 先で 0.585 m に対し、約 4.1 m、0.75 m）。TRB-001 は直していない。
+    Q-04・DEC-099 は解決にしない（取付の傾きの実測、その後の取付の変更、データシートの原本は未確認）。第199便。
+  disposition: answered

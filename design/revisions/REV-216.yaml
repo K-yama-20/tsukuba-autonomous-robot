@@ -1,0 +1,29 @@
+# 変更セット REV-216（2026-11-06 第199便: TRB-001 の XT-32 の見えない範囲を実測の値に直す。DEC-427）
+# 適用: design/tools/apply_revision.py REV-216
+id: REV-216
+date: '2026-11-06'
+summary: >-
+  第199便：人の回答で、トラブルシューティング台帳の TRB-001 の XT-32 の見えない範囲の計算を、実測の値（地面からの高さ 1.182 m、最下のビーム −15.98°、docs/lidar_xt32_spec.md）に直したことを記録する。
+basis_refs:
+- DEC-427
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-427
+  kind: approval
+  status: answered
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    TRB-001 の値を実測の値に直すか（K-yama-20/tsukuba-autonomous-robot#73）。登録時は base_link からの取付の高さ 1.015 m を地面からの高さとして計算しており、見えない範囲を狭く見積もっていた。
+  answer_verbatim: |
+    直して
+  affected_refs:
+  - DEC-426
+  - DEC-321
+  resulting_refs: []
+  note: >-
+    design/troubleshooting/ledger.yaml の TRB-001 の mechanism・how_to_confirm・source を直し、旧値を mechanism に残した（2.5 m で 0.30 → 0.47 m、1.5 m で 0.585 → 0.75 m、1.0 m で 0.73 → 0.90 m、地面が見え始める距離 約 4.1 m）。decision_refs に DEC-427、related_refs に PRM-125 を足した。
+    proposals/costmap_inputs_stvl_mid360_2026-10-22.md の K-6（約 3.5 m）は過去の提案なので直していない。第199便。
+  disposition: answered
