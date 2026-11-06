@@ -3,6 +3,8 @@
 # with drive_sim_node.py as the vehicle and the world and nd07_stub.py as ND-07. Not a way to run the robot; no device is opened.
 #   bash drive_sim.sh <scenario> <out_dir> [values.json]    values.json: {"key": value} of the /config 「Nav2」 tab (nav2_config.TUNABLES)
 # Env: SIM_ARGS (extra arguments of drive_sim_node.py, e.g. "--delay 0.3"), ROS_DOMAIN_ID (default 78). Result: <out_dir>/result.json
+# MID-360 plan stage 2: SIM_MID360_HEIGHT (m above the ground; empty: no MID-360) and GOUDA_TEST_LAYERS (S0/S1/S2, drive_sim_layers.py;
+# needs a simulator copy of nav2_config.py patched with drive_sim_layers.py --patch-copy).
 set -o pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; repo="$(cd "$here/../.." && pwd)"; ws="$(cd "$repo/../.." && pwd)"
 SCENARIO=$1; OUT=$2; VALUES=$3
@@ -21,7 +23,14 @@ cleanup() {
 trap cleanup EXIT
 REQ=$(python3 "$here/drive_sim_fixture.py" "$ROOT" "$SCENARIO") || exit 1
 [ -n "$VALUES" ] && python3 -c "import json,sys; json.dump({'config_revision': 1, 'values': json.load(open(sys.argv[1]))}, open(sys.argv[2], 'w'))" "$VALUES" "$ROOT/config/nav2_recovery.json"
+[ -n "$GOUDA_TEST_LAYERS" ] && export GOUDA_TEST_LAYERS GOUDA_TEST_LAYERS_PY="$here/drive_sim_layers.py"
 bash "$here/stack.sh" start "$ROOT" || exit 1
+if [ -n "$SIM_MID360_HEIGHT" ]; then   # the MID-360's band, as the XT-32's xt32_scan (same parameters, other topics)
+  python3 -c "import yaml,sys; p=yaml.safe_load(open(sys.argv[1]))['xt32_scan']['ros__parameters']; yaml.safe_dump({'mid360_scan': {'ros__parameters': p}}, open(sys.argv[2], 'w'))" "$ROOT/run/nav2/nav2_params.yaml" "$ROOT/mid360_scan.yaml"
+  ros2 run pointcloud_to_laserscan pointcloud_to_laserscan_node --ros-args -r __node:=mid360_scan -r cloud_in:=/sensors/mid360/points -r scan:=/sensors/mid360/scan --params-file "$ROOT/mid360_scan.yaml" > "$OUT/mid360_scan.out" 2>&1 &
+  PIDS+=($!)
+  SIM_ARGS="$SIM_ARGS --mid360-height $SIM_MID360_HEIGHT"
+fi
 URL=$(cat "$ROOT/run/monitor.url")
 setsid ros2 run gouda_core esp32_sim -- --path-file "$OUT/pty" --log "$OUT/esp32.log" > "$OUT/esp32.out" 2>&1 &
 ESP=$!   # its own process group: `ros2 run` leaves the simulator running when only the wrapper is killed

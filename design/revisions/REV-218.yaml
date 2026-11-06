@@ -1,0 +1,30 @@
+# 変更セット REV-218（2026-11-06: MID-360 搭載版のシミュレーション案の段階 2 の承認。DEC-429）
+# 適用: design/tools/apply_revision.py REV-218
+id: REV-218
+date: '2026-11-06'
+summary: >-
+  人の回答「段階 2 を進める」で、試験専用に MID-360 の costmap の層の 3 構成（S0 XT-32 だけ、S1 同じ層、S2 別の層）を作り、10 場面で比べる（#78 の段階 2）。
+  製品のコード・設定は変えない。比べるための仕掛けは模擬の写しの nav2_config.py にだけ入れる。
+basis_refs:
+- DEC-429
+- DEC-428
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-429
+  kind: approval
+  status: answered
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    MID-360 搭載版のシミュレーション案（#78）の段階 2（S0〜S2 を 10 場面で回し、層の効果を確かめる）を進めるか。
+  answer_verbatim: |
+    段階 2 を進める
+  affected_refs:
+  - DEC-428
+  - DEC-341
+  resulting_refs: []
+  note: >-
+    同じ回答の前に人の質問「mid360をxt-32によるコストマップに加えてしまって大丈夫なのかな？以前は、別のコストマップにする案も要検討との報告が上がってきていた。」があった。
+    AI の答え：同じ層（S1）は比較用、本命は同じ costmap の別の層（S2、#35）。MPPI は 1 枚の costmap を読むので、別の costmap そのものは使えない。
+  disposition: answered

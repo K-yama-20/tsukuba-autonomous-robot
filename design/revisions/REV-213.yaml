@@ -1,0 +1,28 @@
+# 変更セット REV-213（2026-11-06: MID-360 の下向きの角度の人の回答。DEC-424）
+# 適用: design/tools/apply_revision.py REV-213
+id: REV-213
+date: '2026-11-06'
+summary: >-
+  MID-360 の統合の計画（K-yama-20/tsukuba-autonomous-robot#72）の判断 1 のうち、下向きの角度の人の回答を DEC-424 に原文で記録する。取り付けの位置は未回答。コード・設定は変えない。
+basis_refs:
+- DEC-424
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-424
+  kind: approval
+  status: answered
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    MID-360 の取り付けの位置と下向きの角度は決まっているか（統合の計画 #72 の判断 1）。
+  answer_verbatim: |
+    50度だね
+  affected_refs:
+  - DEC-341
+  resulting_refs: []
+  note: >-
+    AI の解釈：水平から 50° 下向き（本体の上面が前へ倒れる向き）。違えば人が訂正する。取り付けの位置（高さ・前後）は未回答。
+    計算（取り付けの点から、車体の遮りなし）：前方は真下から 57° 下〜上方、横は 22° 下〜上方、後方は上だけを見る（後方の地面は見えない）。
+    前方の地面は取り付けの高さ h の 0.65 倍の距離から見える。値は取り付けの位置が決まってから確かめる。
+  disposition: answered

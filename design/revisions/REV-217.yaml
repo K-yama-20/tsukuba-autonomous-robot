@@ -1,0 +1,31 @@
+# 変更セット REV-217（2026-11-06 第202便: MID-360 搭載版のシミュレーション案の段階 1 の承認。DEC-428）
+# 適用: design/tools/apply_revision.py REV-217
+id: REV-217
+date: '2026-11-06'
+summary: >-
+  第202便：人の回答「段階 1 を進める」で、走行シミュレータ（試験専用）に MID-360 の合成の点群と、仕様書の XT-32 の値を足した（#78 の段階 1）。製品のコード・設定は変えていない。
+basis_refs:
+- DEC-428
+- DEC-407
+- DEC-424
+- DEC-425
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-428
+  kind: approval
+  status: answered
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    MID-360 搭載版のシミュレーション案（design/proposals/mid360_simulation_plan_2026-11-06.md、K-yama-20/tsukuba-autonomous-robot#78）の段階 1
+    （模擬に MID-360 の点群と XT-32 の値を足し、単体試験）を進めるか。
+  answer_verbatim: |
+    段階 1 を進める
+  affected_refs:
+  - DEC-407
+  resulting_refs: []
+  note: >-
+    試験専用の道具の変更で、製品のコード・設定は変えない。MID-360 は前端・中心線・地面から 0.5 m（既定、引数で変更）、50° 下向き。走査は視野の中の無作為の方向で近似（実機の模様ではない）。
+    1 枚 2 万点は模擬の仮定。costmap にはまだ入れない（段階 2 で層の構成 B0〜B4 を比べる）。第202便。
+  disposition: answered

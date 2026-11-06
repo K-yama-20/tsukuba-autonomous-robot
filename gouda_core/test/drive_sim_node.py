@@ -2,7 +2,8 @@
 
 Subscribes cmd_vel (IFD-15), publishes map -> odom -> base_link, localization/odometry (IFD-25) and sensors/xt32/points (IFD-21, in
 base_link) from drive_sim_core, and rewrites <report> about once a second. The real pointcloud_to_laserscan, costmaps and Nav2 read it.
-usage: python3 drive_sim_node.py <scenario> <report.json> [--seed N] [--delay S] [--tau-v S] [--tau-w S] [--noise M]
+usage: python3 drive_sim_node.py <scenario> <report.json> [--seed N] [--delay S] [--tau-v S] [--tau-w S] [--noise M] [--mid360-height M]
+With --mid360-height it also publishes sensors/mid360/points (in base_link) for the MID-360 plan; nothing reads it yet.
 """
 import argparse
 import json
@@ -18,7 +19,7 @@ from rclpy.qos import qos_profile_sensor_data
 from geometry_msgs.msg import TransformStamped, TwistStamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2, PointField
-from tf2_ros import TransformBroadcaster
+from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
 import drive_sim_core as ds
 
@@ -44,6 +45,15 @@ class DriveSim(Node):
         self.tf = TransformBroadcaster(self)
         self.odom_pub = self.create_publisher(Odometry, 'localization/odometry', 10)
         self.cloud_pub = self.create_publisher(PointCloud2, 'sensors/xt32/points', qos_profile_sensor_data)
+        self.mid = ds.MidMount(height_m=a.mid360_height, pitch_down_deg=a.mid360_pitch) if a.mid360_height else None
+        if self.mid:   # MID-360 plan stage 1: published in base_link like the XT-32's cloud; nothing reads it until stage 2
+            self.mid_pub = self.create_publisher(PointCloud2, 'sensors/mid360/points', qos_profile_sensor_data)
+            st = TransformStamped(); st.header.stamp = self.get_clock().now().to_msg(); st.header.frame_id = 'base_link'
+            st.child_frame_id = 'mid360_link'   # the clearing origin of the MID-360 layer (stage 2); its rotation is not used there
+            st.transform.translation.x, st.transform.translation.y, st.transform.translation.z = self.mid.origin()
+            h = math.radians(self.mid.pitch_down_deg) / 2
+            st.transform.rotation.y, st.transform.rotation.w = math.sin(h), math.cos(h)
+            self.static_tf = StaticTransformBroadcaster(self); self.static_tf.sendTransform(st)
         self.create_subscription(TwistStamped, 'cmd_vel', self._on_cmd, 10)
         self.create_timer(1 / PLANT_HZ, self._step)
         self.create_timer(1 / CLOUD_HZ, self._cloud)
@@ -80,10 +90,15 @@ class DriveSim(Node):
     def _cloud(self):
         p, t = self.plant, self._now()
         pts = ds.cloud((p.x, p.y, p.yaw), self.sc.obstacles, t, self.rays, noise_m=self.noise, rng=self.rng)
+        self.cloud_pub.publish(self._msg(pts))
+        if self.mid:
+            self.mid_pub.publish(self._msg(ds.mid360_cloud((p.x, p.y, p.yaw), self.sc.obstacles, t, self.mid, self.rng, noise_m=self.noise)))
+
+    def _msg(self, pts):
         m = PointCloud2(); m.header.stamp = self.get_clock().now().to_msg(); m.header.frame_id = 'base_link'
         m.height, m.width = 1, len(pts); m.fields = FIELDS; m.is_bigendian = False; m.point_step = 12
         m.row_step = 12 * len(pts); m.is_dense = True; m.data = pts.tobytes()
-        self.cloud_pub.publish(m)
+        return m
 
     def _score(self):
         self.scorer.add(self._now(), self.plant, self.cmd_v, self.cmd_w, self.sc.obstacles)
@@ -106,6 +121,8 @@ def main():
     ap.add_argument('--seed', type=int, default=0); ap.add_argument('--delay', type=float, default=ds.Plant.delay_s)
     ap.add_argument('--tau-v', type=float, default=ds.Plant.tau_v_s); ap.add_argument('--tau-w', type=float, default=ds.Plant.tau_w_s)
     ap.add_argument('--noise', type=float, default=0.02)
+    ap.add_argument('--mid360-height', type=float, default=0.0, help='MID-360 above the ground [m]; 0: no MID-360 (stage 1 of the plan)')
+    ap.add_argument('--mid360-pitch', type=float, default=50.0, help='MID-360 pitched down [deg] (DEC-424)')
     a = ap.parse_args()
     rclpy.init()
     n = DriveSim(a)

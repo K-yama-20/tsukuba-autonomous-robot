@@ -1,0 +1,30 @@
+# 変更セット REV-214（2026-11-06: MID-360 の取り付けの高さの候補の人の発言。DEC-425）
+# 適用: design/tools/apply_revision.py REV-214
+id: REV-214
+date: '2026-11-06'
+summary: >-
+  MID-360 の取り付けの高さの候補（800 mm か 500 mm）の人の発言を DEC-425 に原文で記録する。どちらにするかは未決。コード・設定は変えない。
+basis_refs:
+- DEC-425
+- DEC-424
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-425
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    MID-360 の取り付けの高さと前後の位置（K-yama-20/tsukuba-autonomous-robot#72 の判断 1）
+  answer_verbatim: |
+    800mm甕500mmのどちらか
+  affected_refs:
+  - DEC-424
+  - DEC-341
+  resulting_refs: []
+  note: >-
+    AI の解釈：地面からの高さ 800 mm か 500 mm の候補で、未決（「甕」は「か」の変換の誤りと読んだ）。前後の位置は未回答。
+    計算（50° 下向き、足跡の前端・中心線に付けたと仮定、車体の遮りは箱で近似）：前方の地面が見え始めるのは取り付けの点から 500 mm で 0.32 m・800 mm で 0.52 m、
+    横は 1.23 m・1.98 m。高さ 0.1 m の物が真正面で見え始めるのは 0.30 m・0.50 m。光線の約 29 % が車体の箱に当たる（どちらも）。
+  disposition: answered
