@@ -1,0 +1,34 @@
+# 変更セット REV-199（2026-11-03 第186便: DEC-409 の記録の直し。人の指摘を記録の項目 DEC-410 に分ける）
+# 適用: design/tools/apply_revision.py REV-199
+id: REV-199
+date: '2026-11-03'
+summary: >-
+  第186便：REV-198 で回答待ちの実測の項目 DEC-409 に人の指摘を入れて DR-01 の違反になった（AI の誤り）。指摘を記録の項目 DEC-410 に原文で分け、DEC-409 の回答の欄を空に戻す。
+basis_refs:
+- DEC-410
+- DEC-409
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-410
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    （第186便）車速 0 からの動き出しの無駄時間についての人の指摘
+  answer_verbatim: |
+    無駄時間について誤解があるようだ。車速0の状態で進行指令を出すと、リレーが投入されてから車輪が動き始めるので、少し時間がかかる。ここは考慮されているか？
+  affected_refs:
+  - DEC-409
+  - DEC-378
+  - DEC-171
+  resulting_refs:
+  - DEC-409
+  note: >-
+    AI の確認：考慮されていない。実測の項目は DEC-409。Issue K-yama-20/tsukuba-autonomous-robot#57。
+  disposition: answered
+decision_updates:
+- id: DEC-409
+  set:
+    answer_verbatim: ''

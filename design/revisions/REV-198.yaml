@@ -1,0 +1,35 @@
+# 変更セット REV-198（2026-11-03 第186便: 車速 0 からの動き出しの無駄時間の人の指摘と実測の項目。DEC-409）
+# 適用: design/tools/apply_revision.py REV-198
+id: REV-198
+date: '2026-11-03'
+summary: >-
+  第186便：人の指摘（車速 0 で進行指令を出すと、リレーが投入されてから車輪が動き始める）を DEC-409 に原文で記録し、動き出しの無駄時間を実測の項目にする。
+  コード・設定は変えない。
+basis_refs:
+- DEC-409
+- DEC-378
+- DEC-171
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-409
+  kind: measurement
+  status: pending
+  asked_on: '2026-11-03'
+  answered_on:
+  channel: chat
+  question: >-
+    【実測】車速 0 から進行の指令を出して車輪が動き始めるまでの無駄時間（リレーの投入を含む）は何秒か。前進・後退・旋回それぞれで、指令の大きさと、直前に中立だった時間で変わるか。
+    どの条件でリレーが開くか。動いている間の遅れとは別に測る。
+  answer_verbatim: |
+    無駄時間について誤解があるようだ。車速0の状態で進行指令を出すと、リレーが投入されてから車輪が動き始めるので、少し時間がかかる。ここは考慮されているか？
+  affected_refs:
+  - DEC-378
+  - DEC-171
+  - ND-11
+  - PRM-68
+  resulting_refs: []
+  note: >-
+    AI の確認：考慮されていない。第179便の走行シミュレータは速度に関係なく一定の遅れ 0.15 s で、車速 0 からの無駄時間はない。不感帯の補償（DEC-171）は倒し量の補償で時間は扱わない。
+    velocity_smoother は OPEN_LOOP で、無駄時間の間も指令を上げ続ける。MPPI の予測にも入っていない。このリレーは DEC-037 の純正ジョイスティック切替のリレーとは別のものと解釈した（確認待ち）。
+    推奨：停止からの段差の入力を DAC の記録と速度で測る。計測の手順は AI、実行は人。決まらない場合に止まる作業：シミュレータの車体モデルの更新、止まらない案の効果の見積もり、velocity_smoother の feedback の比較。
+  disposition: open_human
