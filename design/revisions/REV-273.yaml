@@ -1,0 +1,22 @@
+# 変更セット REV-273（2026-11-07 第237便: DEC-491 の人の回答の記録）
+# 適用: design/tools/apply_revision.py REV-273
+id: REV-273
+date: '2026-11-07'
+summary: >-
+  第237便：DEC-491（区間の速度の制限が MPPI の vx_max・vx_min・wz を引き上げる件）に人が答えた。区間の制限は人が運用で決める。
+  区間の制限を vx_max で頭打ちにする処理（0.5 m/s 以上の入力を禁止にする処理）は入れない。コード・設定は変えていない。DEC-490 は未回答のまま。
+basis_refs:
+- DEC-491
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions: []
+entities: []
+modifications: []
+decision_updates:
+- id: DEC-491
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      区間の制限は私を信じてください。0.5m/s以上の入力を禁止にする処理を入れる必要はないです。

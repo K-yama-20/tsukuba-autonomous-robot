@@ -1,0 +1,38 @@
+# 変更セット REV-262（2026-11-07 第237便: 速度の目標の緩和の人の発言の記録。DEC-481）
+# 適用: design/tools/apply_revision.py REV-262
+id: REV-262
+date: '2026-11-07'
+summary: >-
+  第237便：第216便の模擬（速度の帰還の層で旋回が蛇行し、遅れて出るコーンに接触した）を受けた人の質問と発言を、原文で記録した。
+  値・コード・設定はまだ変えていない（MPPI の vx_max（PRM-131）などを下げるかは、模擬で確かめてから承認事項にする）。
+basis_refs:
+- DEC-481
+- DEC-450
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-481
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （人の質問と発言）第216便の模擬の結果（旋回の PI の蛇行、層ありで遅れて出るコーンに全部接触）を受けて。
+  answer_verbatim: |
+    どのように蛇行問題や回避失敗の問題を解決すべきか？当初の目標1m/secを緩和して、ゆっくり動くのでも問題ないです。
+  affected_refs:
+  - PRM-131
+  - PRM-132
+  - PRM-68
+  - PRM-73
+  - ND-11
+  - ND-10
+  resulting_refs: []
+  note: >-
+    第237便。「当初の目標1m/sec」は intent.md には数値として書かれていない（AI が intent.md で確かめた。人の目標として記録する）。
+    速度を下げる値と、MPPI の加速度の値の変更は、模擬で確かめてから承認事項にする。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []

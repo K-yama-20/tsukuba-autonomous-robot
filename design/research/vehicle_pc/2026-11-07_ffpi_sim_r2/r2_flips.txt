@@ -1,0 +1,23 @@
+off_P22_vx0.8_A 0.0
+onv_P22_vx0.4_A 0.0 0.0
+onv_P22_vx0.4_B 0.0 0.0
+onv_P22_vx0.5_A 0.0 0.0
+onv_P22_vx0.5_B 0.0 0.0
+onv_P22_vx0.5_C 0.0 0.0
+onv_P22_vx0.6_A 0.0 0.0
+onv_P22_vx0.6_B 0.0 0.0
+onv_P22_vx0.8_A 0.0
+onv_cone_late_vx0.4_A 0.0 0.0
+onv_cone_late_vx0.4_B 0.0 0.0
+onv_cone_late_vx0.5_A 0.0 0.0
+onv_cone_late_vx0.5_B 0.0 0.0
+onv_cone_late_vx0.5_C 0.0 0.0
+onv_cone_late_vx0.6_A 0.0 0.0
+onv_cone_late_vx0.6_B 0.0 0.0
+onv_cone_late_vx0.8_A 0.0
+onv_free_vx0.4_A 0.0 0.0
+onv_free_vx0.4_B 0.0 0.0
+onv_free_vx0.5_A 0.0 0.0
+onv_free_vx0.5_B 0.0 0.0
+onv_free_vx0.6_A 0.0 0.0
+onv_free_vx0.6_B 0.0 0.0
