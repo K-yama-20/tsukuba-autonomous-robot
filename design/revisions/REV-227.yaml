@@ -1,0 +1,19 @@
+# 変更セット REV-227（2026-11-07: 端末の自動起動をやめる人の回答。DEC-436）
+# 適用: design/tools/apply_revision.py REV-227
+id: REV-227
+date: '2026-11-07'
+summary: >-
+  端末の自動起動の案（DEC-436）への人の回答「やめる」と、その前の人の指摘を原文で記録する。人の望みの整理は AI の認識がずれているとの指摘を受けてやり直し中。コード・設定は変えない。
+basis_refs:
+- DEC-436
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decision_updates:
+- id: DEC-436
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      端末を自動起動させると、シャットダウンできなくなるでしょうが
+      端末の自動起動はやめる。私が望んだことを再度整理せよ。認識がズレている
+    resulting_refs: []

@@ -1,0 +1,19 @@
+# 変更セット REV-230（2026-11-07: 端末の cd と source を ~/.bashrc で済ませる案の人の承認。DEC-440 の回答）
+# 適用: design/tools/apply_revision.py REV-230
+id: REV-230
+date: '2026-11-07'
+summary: >-
+  DEC-440（setup.sh が ~/.bashrc に、Jazzy とワークスペースの setup.bash の読み込みと、ホームで始まった端末の tsukuba-autonomous-robot への cd を足す）への人の承認を原文で記録する。
+  実装は setup.sh と README（第205便）。
+basis_refs:
+- DEC-440
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decision_updates:
+- id: DEC-440
+  set:
+    status: answered
+    answered_on: '2026-11-07'
+    disposition: answered
+    answer_verbatim: |
+      実装してよい
+    resulting_refs: []

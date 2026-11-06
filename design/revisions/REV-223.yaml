@@ -1,0 +1,59 @@
+# 変更セット REV-223（2026-11-06: gouda.sh の systemd 化と電源投入での自動起動の人の回答、実装の承認事項。DEC-434・435）
+# 適用: design/tools/apply_revision.py REV-223
+id: REV-223
+date: '2026-11-06'
+summary: >-
+  人の指示「gouda.sh を systemd にしたい」と、自動起動の質問への人の回答を DEC-434 に原文で記録する。
+  案（design/proposals/systemd_autostart_plan_2026-11-06.md、提案）の実装の許可と未回答の項目を DEC-435（承認待ち）に登録する。コード・設定は変えない。
+basis_refs:
+- DEC-434
+- DEC-435
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-434
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-06'
+  answered_on: '2026-11-06'
+  channel: chat
+  question: >-
+    （人の指示「gouda.shをsystemdにしたい。」を受けて）systemd 化で、電源を入れたら自動で起動するようにしますか？
+    選択肢は「手動起動のまま」（AI の推奨。理由：自動起動では人がいなくても vehicle_bridge が ESP32 とつながる）と「電源投入で自動起動」
+  answer_verbatim: |
+    電源投入で自動起動
+  affected_refs:
+  - ND-01
+  - DEC-090
+  - DEC-091
+  - DEC-174
+  resulting_refs: []
+  note: >-
+    人の最初の発言（原文）：「gouda.shをsystemdにしたい。」。
+    AI の解釈：Gouda を systemd の service で動かし、PC の電源投入で自動で起動する。入口は bash gouda.sh start／stop／status のまま（DEC-090 の一つの起動経路を保つ。AI の案）。
+    起動直後のモードは今の実装（mode_core.decide_boot）と同じで、記録なし・前回手動なら手動走行、前回が自律走行・地図作成・一時停止なら一時停止で自律走行を再び許可しない（TR-01・TR-02、DEC-009）。
+    実装の許可と残りの項目は DEC-435。
+  disposition: answered
+- id: DEC-435
+  kind: approval
+  status: pending
+  asked_on: '2026-11-06'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】gouda.sh を systemd の system unit（gouda.service、setup.sh で enable）で動かし、電源投入で自動起動する案（design/proposals/systemd_autostart_plan_2026-11-06.md）を実装してよいか（Q1）。
+    停止は SIGINT・上限なし・SIGKILL なし（DEC-174 と同じ）、異常終了の自動の起こし直しはしない（Restart=no）。
+    あわせて Q2 自動起動で解決したいこと、Q3 スリープの抑止（DEC-104）を一緒に入れるか、Q4 自動起動を止める手段（推奨：README に sudo systemctl disable gouda）、Q5 PC の電源を切るときに保存の終わりを待つか上限を置くか。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-434
+  - DEC-090
+  - DEC-174
+  - DEC-104
+  - ND-01
+  - G-DUP-START
+  resulting_refs: []
+  note: >-
+    推奨案と理由は提案 §2。代替：user unit と linger（sudo は不要だが、スリープの抑止が取りにくい見込み、未確認）、robot_upstart（gouda.sh の検査と DDS profile を通らない起動経路になるので不採用の案）。
+    振る舞いの違い（提案 §3）：電源投入で人の操作なしにセンサーのドライバ・vehicle_bridge・monitor が動き、ESP32 が繋がっていれば vehicle_bridge が接続する。SSH が切れても止まらない。
+    決まらない場合に止まる作業：systemd 化の実装と試験。VM での確かめ（system service からの systemd-inhibit）は実装の許可の後。
+  disposition: open_human

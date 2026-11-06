@@ -1,0 +1,48 @@
+# 変更セット REV-224（2026-11-06: systemd 化をやめ、端末の自動起動にとどめる人の方針転換。DEC-435 の回答、DEC-436）
+# 適用: design/tools/apply_revision.py REV-224
+id: REV-224
+date: '2026-11-06'
+summary: >-
+  人の方針転換（systemd 化はしない。PC の起動時に端末を開き、最初のディレクトリを tsukuba-autonomous-robot にするだけ）を DEC-435 の回答として原文で記録する。
+  端末の自動起動の入れ方と、ROS の環境の読み込み（source）の扱いを DEC-436（承認待ち）に登録する。コード・設定は変えない。
+basis_refs:
+- DEC-435
+- DEC-436
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-436
+  kind: approval
+  status: pending
+  asked_on: '2026-11-06'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】PC の起動時に端末を開き、最初のディレクトリを ~/gouda_ws/src/tsukuba-autonomous-robot にする（DEC-435 の人の方針）。
+    案（推奨）：setup.sh が ~/.config/autostart/ に端末（gnome-terminal --working-directory）を開く .desktop を書き、
+    あわせて ~/.bashrc に /opt/ros/jazzy/setup.bash とワークスペースの install/setup.bash（あるときだけ）を読み込む数行を足す。
+    代替 1：端末の自動起動だけ（source は今までどおり手で、または gouda.sh が中で読む）。代替 2：source を自動で開く端末の中だけで行う（~/.bashrc は変えない）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-435
+  - ND-01
+  resulting_refs: []
+  note: >-
+    確認した事実（x86 の車載 PC、読み取りだけ、2026-11-06）：~/.bashrc に ROS の setup.bash の読み込みはない。~/.config/autostart はない。gnome-terminal はある。
+    /etc/gdm3/custom.conf の自動ログインは無効（コメントのまま）。このため「PC の起動時」は、人が画面でログインした時に端末が開く（自動ログインを有効にするかは人の判断、PC の設定で sudo が要る）。
+    gouda.sh は start の中で /opt/ros/jazzy/setup.bash とワークスペースの install/setup.bash を自分で読むので、bash gouda.sh start/stop/status の前に source は要らない（gouda.sh の start の節で確認）。
+    source が要るのは、端末で ros2 topic echo・ros2 bag・colcon build・gouda_core/test の試験を直接打つとき。source の効果はその端末（シェル）の中だけで、新しい端末ごとに要る。~/.bashrc に書けば端末を開くたびに自動で読まれる。
+    先行事例：ROS 2 Jazzy の公式の手順（Configuring environment）は ~/.bashrc に source /opt/ros/jazzy/setup.bash を足す方法を示している。
+    ~/.bashrc でワークスペースまで読む欠点：ワークスペースを読んだ端末で colcon build すると、colcon が「自分の install が環境にある」旨の警告を出すことがある（動作は変わらない見込み、未確認）。ビルドがない時は install/setup.bash がないので、あるときだけ読む。
+    決まらない場合に止まる作業：setup.sh の変更と x86 の車載 PC への反映。
+  disposition: open_human
+decision_updates:
+- id: DEC-435
+  set:
+    status: answered
+    answered_on: '2026-11-06'
+    disposition: answered
+    answer_verbatim: |
+      方針を転換する。
+      pc起動時にternminalを起動し、デフォルトのディレクトリをtsukuba-autonomous-robotにするにとどめよう。あと、質問なんだけど、sourceで読み込んでおくべきことは毎回読み込まなくていいのかな？
+    resulting_refs:
+    - DEC-436

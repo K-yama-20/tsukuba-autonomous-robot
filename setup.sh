@@ -18,6 +18,8 @@
 #   5. colcon build --symlink-install of gouda_interfaces, gouda_core and the two drivers
 #   6. the LiDAR LAN (the PC address PRM-51 from design/generated/params; it offers to add a NetworkManager profile on a
 #      terminal) and time synchronisation (checked and reported)
+#   7. ~/.bashrc: new terminals load ROS 2 Jazzy and this workspace, and one opened in the home folder starts in this
+#      repository (DEC-440; added once between marker lines)
 # The robot is started only by `bash gouda.sh start`.
 set -eo pipefail   # no -u: /opt/ros/jazzy/setup.bash reads unset variables
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -195,6 +197,27 @@ if [[ -e "$imu_dev" ]]; then echo "$imu_dev (PRM-54) is present"; else echo "$im
 say "time synchronisation"
 if [[ "$(timedatectl show -p NTP --value 2>/dev/null)" == yes ]]; then echo "NTP is on (synchronised: $(timedatectl show -p NTPSynchronized --value 2>/dev/null))"
 else echo "NTP is off. The clock of the VM jumped on 2026-10-13/14. To turn it on: sudo timedatectl set-ntp true"; fi
+
+# ---------------------------------------------------------------- 7. terminal (DEC-439 / DEC-440)
+# Every interactive terminal (desktop or ssh login) starts with ROS 2 Jazzy and this workspace loaded, and one opened in the
+# home folder moves to this repository. Ubuntu's ~/.bashrc returns early for non-interactive shells, so scripts and ssh
+# commands are not affected. The block is added once, between its marker lines; an existing block is left as it is.
+say "terminal (~/.bashrc)"
+bashrc="$HOME/.bashrc"
+mark_begin="# >>> gouda (setup.sh, DEC-440) >>>"
+if [[ -f "$bashrc" ]] && grep -qxF "$mark_begin" "$bashrc"; then
+  echo "already in $bashrc (between the '# >>> gouda' marker lines; delete them to remove it)"
+else
+  cat >>"$bashrc" <<EOF
+
+$mark_begin
+source /opt/ros/jazzy/setup.bash
+if [ -f "$workspace/install/setup.bash" ]; then source "$workspace/install/setup.bash"; fi
+if [ "\$PWD" = "\$HOME" ]; then cd "$repo"; fi
+# <<< gouda <<<
+EOF
+  echo "added to $bashrc: ROS 2 Jazzy and $workspace/install are loaded, and a terminal opened in the home folder starts in $repo (new terminals only)"
+fi
 
 say "done"
 echo "GLIM: $(version_of ros-jazzy-glim-ros)   drivers: pinned   build: $workspace/install"

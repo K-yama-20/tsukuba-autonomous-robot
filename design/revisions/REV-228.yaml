@@ -1,0 +1,55 @@
+# 変更セット REV-228（2026-11-07: 端末を開くたびの cd と source を不要にする、人の望みの確認と実装の承認事項。DEC-439・440）
+# 適用: design/tools/apply_revision.py REV-228
+id: REV-228
+date: '2026-11-07'
+summary: >-
+  AI が整理し直した人の望み（端末を開くたびの cd と source を手でやらずに済ませる）への人の確認を DEC-439 に原文で記録する。
+  setup.sh で ~/.bashrc に数行を足す案の実装の許可を DEC-440（承認待ち）に登録する。コード・設定は変えない。
+basis_refs:
+- DEC-439
+- DEC-440
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-439
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （DEC-436 の回答「私が望んだことを再度整理せよ。認識がズレている」を受けて）AI の整理：端末を開くたびに次の二つを手でやらずに済むようにすること。
+    cd で tsukuba-autonomous-robot に移ること。source で ROS の環境を読み込むこと。
+  answer_verbatim: |
+    まさにこのとおり
+  affected_refs:
+  - DEC-434
+  - DEC-435
+  - DEC-436
+  resulting_refs: []
+  note: >-
+    人の望みの確定。systemd 化（DEC-434・435）、端末の自動起動（DEC-436）はどちらもしない。端末は人が自分で開く。実装の許可は DEC-440。
+  disposition: answered
+- id: DEC-440
+  kind: approval
+  status: pending
+  asked_on: '2026-11-07'
+  answered_on:
+  channel: chat
+  question: >-
+    【承認】setup.sh が ~/.bashrc の末尾に、印の行で囲んだ数行を一度だけ足す（もう一度 setup.sh を実行しても増えない）。
+    中身は、/opt/ros/jazzy/setup.bash を読む、ワークスペースの install/setup.bash があれば読む、端末がホームのフォルダで始まったときだけ tsukuba-autonomous-robot に cd する。
+    パスは setup.sh が自分の置き場所から求める（~/gouda_ws の決め打ちにしない）。
+  answer_verbatim: ''
+  affected_refs:
+  - DEC-439
+  resulting_refs: []
+  note: >-
+    確認した事実（x86 の車載 PC、読み取りだけ、2026-11-07）：~/.bashrc の先頭は対話でないシェルで return する（Ubuntu の既定）。ログインのシェルは bash。
+    このため足す行は対話の端末（画面の端末、ssh でログインした端末）だけで効き、ssh でコマンドだけを送る場合やスクリプトには効かない。
+    ホームで始まったときだけ cd する理由：ファイルの画面から「端末で開く」で別のフォルダを開いた時に、そのフォルダを保つため。
+    gouda.sh・setup.sh・試験のスクリプトは自分で setup.bash を読むので、振る舞いは変わらない見込み（読み直しても害はない、未確認）。
+    欠点：ワークスペースを読んだ端末で colcon build すると、colcon が自分の install が環境にある旨の警告を出すことがある（動作は変わらない見込み、未確認）。
+    代替：ROS の読み込みだけ（cd はしない）、gnome-terminal の設定で最初のフォルダを決める（画面の端末だけに効き、ssh には効かない）。
+    先行事例：ROS 2 Jazzy の公式の手順（Configuring environment）が ~/.bashrc に source を足す方法を示す。
+    決まらない場合に止まる作業：setup.sh の変更と README の追記。
+  disposition: open_human
