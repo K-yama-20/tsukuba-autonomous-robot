@@ -1,0 +1,33 @@
+# 変更セット REV-208（2026-11-03: LiDAR の途切れと短時間の推定失敗を IMU で続行する人の指示。DEC-419）
+# 適用: design/tools/apply_revision.py REV-208
+id: REV-208
+date: '2026-11-03'
+summary: >-
+  人の指示「LiDAR の途切れや短時間の自己位置推定失敗時は IMU で続行」を DEC-419 に原文で記録する。DEC-350 の「新しいフィルタを足さない、途切れは止まって待つ」、DEC-365 (b)(c) と異なるので新しい判断とし、古い項目は書き換えない。実装はまだ。
+basis_refs:
+- DEC-419
+- DEC-350
+- DEC-365
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-419
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    LiDAR の途切れと短時間の自己位置推定の失敗のときの扱い。
+  answer_verbatim: |
+    LiDARの途切れや、短時間の自己位置推定失敗時には気にせずimuで続行するようにしてほしい。
+  affected_refs:
+  - DEC-350
+  - DEC-365
+  - DEC-342
+  - ND-07
+  - ND-08
+  - ND-03
+  resulting_refs: []
+  note: >-
+    DEC-350・DEC-365 の該当の部分を置き換える新しい判断。「短時間」の上限の値と、上限を超えたときの動きは未回答（1.5 により AI が決めない）。計算は design/docs/imu_adis16607_spec.md の値による。
+  disposition: answered

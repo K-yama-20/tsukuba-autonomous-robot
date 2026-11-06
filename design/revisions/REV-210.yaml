@@ -1,0 +1,65 @@
+# 変更セット REV-210（2026-11-04 第196便: 推定不能のとき 30 秒は走り続ける。DEC-421、PRM-136）
+# 適用: design/tools/apply_revision.py REV-210
+id: REV-210
+date: '2026-11-04'
+summary: >-
+  第196便：DEC-419 の「短時間」の上限を人の回答で 30 秒にした（DEC-421、PRM-136）。ND-03 は推定不能の間この時間は待機に入らず走り続ける。LiDAR の途切れの間に IMU で姿勢を出す部分は未実装。
+basis_refs:
+- DEC-419
+- DEC-421
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-421
+  kind: approval
+  status: answered
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    IMU で続行する時間の上限を何秒にするか（DEC-419）。AI の提示：ADIS16607-2 の仕様の計算で 10 秒 約 0.04 m、30 秒 約 0.8 m、60 秒 約 5 m（最良の場合）。推奨は 30 秒。
+  answer_verbatim: |
+    30 秒
+  affected_refs:
+  - DEC-419
+  - ND-03
+  resulting_refs:
+  - PRM-136
+  note: >-
+    上限を超えたときの動きは回答がないので、今の TR-07（待機）のまま。止まって自動で回復を待つかは人の判断待ち。第196便。
+  disposition: answered
+entities:
+- id: PRM-136
+  kind: parameter
+  name: 推定不能でも走り続ける時間（mode_manager）
+  source_refs:
+  - SRC-I014
+  - SRC-I017
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs: []
+  issue_refs: []
+  interpretation: "REV-210（DEC-419・DEC-421）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I084
+  - RQ-I076
+  parameter:
+    owner_ref: ND-03
+    value: 30.0
+    value_state: approved
+    unit: s
+    stage: 自己位置推定（A3）
+    purpose: "自律走行の間、推定不能（IFD-53 が正常でない、または PRM-93 の間届かない）がこの時間続くまでは待機に入らない。正常に戻れば数え直す。"
+    measurement: "人の決定（DEC-421）：「30 秒」。測定値ではない"
+    decision_deadline: 決定済み（DEC-421）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: gouda_mode_manager
+    param_key: estimator_continue_s
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-421

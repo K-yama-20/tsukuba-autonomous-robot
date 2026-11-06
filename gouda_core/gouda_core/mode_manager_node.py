@@ -87,6 +87,7 @@ class ModeManagerNode(Node):
         self.declare_parameter('data_root', '')                 # PRM-25 (maps/, mapping work dir)
         self.declare_parameter('state_publish_period_s', 0.0)   # PRM-16; 0.0 means "unresolved: publish on change only"
         self.declare_parameter('glim_stop_wait_s', Parameter.Type.DOUBLE)   # PRM-37; required for TR-04
+        self.declare_parameter('estimator_continue_s', Parameter.Type.DOUBLE)
         self.declare_parameter('estimator_status_timeout_s', Parameter.Type.DOUBLE)   # PRM-93; required for TR-05
         self.declare_parameter('params_dir', '')                # design/generated/params (Nav2 readiness, launch argument)
         self.declare_parameter('trial', False)                  # TEST SCRIPTS ONLY (trial values)
@@ -137,6 +138,8 @@ class ModeManagerNode(Node):
         self.estimator_rx = None   # receive time of the last IFD-53 (node clock)
         self.create_subscription(EstimatorStatus, 'localization/status', self._on_estimator_status, LATCHED)
         self.estimator_timeout = optional_double(self, 'estimator_status_timeout_s')
+        self.localization_waiting = False   # DEC-423: stopped inside 自律走行 until ND-07 is 正常 again
+        self.estimator_grace = ac.EstimatorGrace(optional_double(self, 'estimator_continue_s') or 0)   # PRM-136 (DEC-419, DEC-421)
         if self.estimator_timeout and self.estimator_timeout > 0:
             self.create_timer(self.estimator_timeout, self._check_estimator_timeout)
         miss = self._nav2_missing()
@@ -235,6 +238,9 @@ class ModeManagerNode(Node):
             return r
 
     def _set_state(self, new_state):
+        if self.localization_waiting and new_state.mode != mode_core.MODE_AUTONOMY:   # a human's pause or end ends the wait (DEC-423)
+            self.localization_waiting = False
+            new_state = mode_core.ModeState(**{**new_state.as_dict(), 'processing_state': 'idle'})
         self.state = new_state
         mode_core.PreviousModeRecord(mode=self.state.mode, human_pause_or_end=self.state.human_pause_or_end_recorded,
                                      run_id=self.state.run_id, state_revision=self.state.state_revision).save(self.record_path)
@@ -462,14 +468,64 @@ class ModeManagerNode(Node):
     def _on_estimator_status(self, m: EstimatorStatus):
         self.estimator_rx = self._now()
         self.auto.on_estimator_status(int(m.state), m.reason, m.detail, m.header.stamp.sec + m.header.stamp.nanosec * 1e-9)
-        if m.state != EstimatorStatus.STATE_NORMAL:
-            self._estimator_pause(f'ND-07 {m.reason}: {m.detail}', {'state': int(m.state), 'reason': m.reason, 'detail': m.detail,
+        if m.state == EstimatorStatus.STATE_NORMAL:
+            self._localization_wait_check()
+            if self.estimator_grace.clear() is not None:
+                self._publish_decision('estimator_recovered', 'TR-07', 'ND-07 is 正常 again within estimator_continue_s (PRM-136): driving went on', {})
+        else:
+            self._estimator_bad(f'ND-07 {m.reason}: {m.detail}', {'state': int(m.state), 'reason': m.reason, 'detail': m.detail,
                                   'ndt_nvtl': m.ndt_nvtl, 'ekf_pose_no_update_count': m.ekf_pose_no_update_count, 'ekf_xy_stddev_m': m.ekf_xy_stddev_m})
 
     def _check_estimator_timeout(self):
         if self.estimator_rx is None or self._now() - self.estimator_rx > self.estimator_timeout:
-            self._estimator_pause(f'no localization/status (IFD-53) for more than estimator_status_timeout_s ({self.estimator_timeout} s, PRM-93)',
+            self._estimator_bad(f'no localization/status (IFD-53) for more than estimator_status_timeout_s ({self.estimator_timeout} s, PRM-93)',
                                   {'last_received': self.estimator_rx})
+
+    def _estimator_bad(self, reason, details):
+        """DEC-419: driving goes on through 推定不能 for estimator_continue_s (PRM-136), then TR-07. ND-07 keeps estimating meanwhile."""
+        with self._lock:
+            if self.state.mode != mode_core.MODE_AUTONOMY or not self.auto.localization_running:
+                self.estimator_grace.clear()
+                return
+            if self.localization_waiting:
+                return
+                self.estimator_grace.clear()
+                return
+        started, expired = self.estimator_grace.bad(self._now())
+        if started and not expired:
+            self._publish_decision('estimator_continue', 'TR-07', f'driving goes on for estimator_continue_s (PRM-136): {reason}', details)
+        if expired:
+            self.estimator_grace.clear()
+            self._localization_wait_start(reason, details)
+
+    def _localization_wait_start(self, reason, details):
+        """DEC-423: past PRM-136 the robot stops inside 自律走行 (motion_hold=true, goal cancelled) and waits for 正常, without a human."""
+        with self._lock:
+            if self.state.mode != mode_core.MODE_AUTONOMY or not self.auto.localization_running:
+                return
+            self.auto.new_token()   # a start step still in progress is abandoned
+            self.localization_waiting = True; self.drive_released = False; self.goal_active = False   # cancel() drops the handle: no result comes
+            self._publish_decision('localization_wait', 'TR-07', f'stopped, waiting for 正常: {reason}', details)
+            self._publish_state()
+            self._set_processing('localization_wait')
+        threading.Thread(target=lambda: self.auto.cancel(self._rec('TR-07'), 'TR-07'), name='localization_wait_cancel', daemon=True).start()
+
+    def _localization_wait_check(self):
+        """ND-07 is 正常: a new goal from the first waypoint not yet passed, once the cancelled goal has ended."""
+        with self._lock:
+            action = ac.localization_wait_action(self.localization_waiting, self.state.mode == mode_core.MODE_AUTONOMY, self.goal_active)
+            if action == ac.LOC_WAIT_CLEAR:
+                self.localization_waiting = False
+            if action != ac.LOC_WAIT_RESUME:
+                return
+            self.localization_waiting = False
+            offset = min(self.next_offset, len(self.mission.waypoints) - 1)
+            token = self.auto.new_token(); mission = self.mission
+            self._update_fields({'speed_limit_application_state': ac.SL_UNKNOWN})
+            self._publish_decision('localization_wait_end', 'TR-07', f'ND-07 is 正常: driving again from waypoint {offset}', {'offset': offset})
+            self._set_processing('idle')
+        threading.Thread(target=lambda: self._run_steps(token, 'TR-07', lambda rec: self.auto.send_goal(token, mission, offset, rec)),
+                         name='localization_wait_resume', daemon=True).start()
 
     def _estimator_pause(self, reason, details):
         """TR-07 (推定不能): only while driving after ND-07 reached 正常 in this start (the start itself waits for 正常)."""
@@ -514,6 +570,8 @@ class ModeManagerNode(Node):
                 return
             if status == GoalStatus.STATUS_CANCELED:
                 self._publish_decision('nav2_goal_ended', '', 'Nav2 goal cancelled', {'status': status}); return
+            if self.localization_waiting:   # DEC-423: the goal ended while waiting; the wait resumes it
+                self._publish_decision('nav2_goal_ended', 'TR-07', f'Nav2 goal ended with status {status} during localization_wait', {'status': status}); return
             reason, code_name = ac.nav2_failure_reason(error_code, self._error_codes)   # E-4 (DEC-393)
             self._auto_pause('TR-07', reason, f'Nav2 goal ended with status {status}: error_code {error_code} ({code_name}) {error_msg}'.strip(),
                              {'status': status, 'error_code': error_code, 'error_code_name': code_name, 'error_msg': error_msg})
@@ -528,7 +586,7 @@ class ModeManagerNode(Node):
 
     def _try_release(self, details):
         """motion_hold=false only when the speed limit is applied (DEC-056) and the drawn areas' mask is confirmed (DEC-224 (a))."""
-        if self.state.mode != mode_core.MODE_AUTONOMY or not self.goal_active or self.drive_released:
+        if self.state.mode != mode_core.MODE_AUTONOMY or not self.goal_active or self.drive_released or self.localization_waiting:
             return
         if self.state.speed_limit_application_state != ac.SL_APPLIED or not self.auto.keepout_confirmed:
             return

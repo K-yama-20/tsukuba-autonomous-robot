@@ -145,15 +145,14 @@ cmd resume; sleep 8; st; hold
 cmd end_autonomy; sleep 6; st; hold
 events | head -40
 stub() { timeout 10 ros2 topic pub --once /test/nd07_stub_$1 std_msgs/msg/$2 "{data: $3}" >/dev/null 2>&1; }
-echo "=== T5 推定不能 while driving -> 一時停止 estimator_unavailable (TR-07); resume refused until 正常 (TR-10 guard)"
+echo "=== T5 推定不能 while driving: goes on for PRM-136 (DEC-419), then stops inside 自律走行 and comes back by itself at 正常 (DEC-423)"
 cmd start_autonomy "$(body 5 pose)"; sleep 12; st
-stub state UInt8 3; sleep 3; st; hold
-cmd resume
-stub state UInt8 2; sleep 2
-cmd resume; sleep 5; st; hold
-echo "=== T6 no localization/status -> 一時停止 estimator_unavailable after PRM-93 (trial); end (TR-12)"
-stub silent Bool true; sleep 4; st; hold
-stub silent Bool false; sleep 1
+stub state UInt8 3; sleep 3; st; hold   # still driving
+sleep 30; st; hold                     # localization_wait: 自律走行, hold true
+stub state UInt8 2; sleep 8; st; hold   # driving again without a human
+echo "=== T6 no localization/status: the same through PRM-93; end (TR-11)"
+stub silent Bool true; sleep 34; st; hold
+stub silent Bool false; sleep 8; st; hold
 cmd end_autonomy; sleep 6; st; hold
 for n in gouda_global_localization gouda_motion_controller vehicle_bridge; do echo "  $n: $(timeout 10 ros2 lifecycle get /$n 2>&1 | head -1)"; done
 events | head -30

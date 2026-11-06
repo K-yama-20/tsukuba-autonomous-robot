@@ -139,6 +139,36 @@ def check_localization_map(map_directory: str) -> Optional[str]:
     return None
 
 
+LOC_WAIT_NONE, LOC_WAIT_CLEAR, LOC_WAIT_KEEP, LOC_WAIT_RESUME = 'none', 'clear', 'keep', 'resume'
+
+
+def localization_wait_action(waiting: bool, in_autonomy: bool, goal_active: bool) -> str:
+    """What 正常 does to localization_wait (DEC-423): a human's pause or end clears it; a goal still ending keeps it until the next status."""
+    if not waiting:
+        return LOC_WAIT_NONE
+    if not in_autonomy:
+        return LOC_WAIT_CLEAR
+    return LOC_WAIT_KEEP if goal_active else LOC_WAIT_RESUME
+
+
+class EstimatorGrace:
+    """How long 推定不能 has lasted while driving (DEC-419): bad() says whether it just started and whether continue_s has passed."""
+    def __init__(self, continue_s: float):
+        self.continue_s = continue_s
+        self.since: Optional[float] = None
+
+    def bad(self, now: float) -> tuple:
+        started = self.since is None
+        if started:
+            self.since = now
+        return started, now - self.since >= self.continue_s
+
+    def clear(self) -> Optional[float]:
+        """Back to normal; returns when the bad period started, or None when there was none."""
+        since, self.since = self.since, None
+        return since
+
+
 def check_initial_pose(frame_id: str, x: float, y: float, qz: float, qw: float) -> Optional[str]:
     """None when the initial pose (IFD-02 / IFD-34) is usable: map frame, finite, a unit planar quaternion."""
     if frame_id != 'map':

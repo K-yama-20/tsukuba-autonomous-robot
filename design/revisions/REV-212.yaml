@@ -1,0 +1,36 @@
+# 変更セット REV-212（2026-11-04 第198便: PRM-136 を超えたら止まって自動で回復を待つ。DEC-423）
+# 適用: design/tools/apply_revision.py REV-212
+id: REV-212
+date: '2026-11-04'
+summary: >-
+  第198便：人の回答で、推定不能が PRM-136 を超えたら待機に入らず、自律走行モードのまま止まり、正常に戻れば自動で走り出す（DEC-423）。
+basis_refs:
+- DEC-419
+- DEC-421
+- DEC-423
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-423
+  kind: approval
+  status: answered
+  asked_on: '2026-11-04'
+  answered_on: '2026-11-04'
+  channel: chat
+  question: >-
+    推定不能が PRM-136（30 秒）を超えたときの動き。推奨：止まって自動で回復を待つ。代替：今の待機（人の再開が要る）。
+  answer_verbatim: |
+    止まって自動で回復待ち
+  affected_refs:
+  - DEC-419
+  - DEC-421
+  - DEC-200
+  - PRM-136
+  - ND-03
+  resulting_refs:
+  - ND-03
+  note: >-
+    motion_hold を true にして goal を取り消し、processing_state localization_wait で待つ。状態が正常に戻れば、通過していない最初の waypoint から goal を出し直す。待つ時間の上限はない。回復の判定は状態の正常だけで、DEC-351 の確かめは未対応。第198便。
+  disposition: answered
+modifications:
+- id: ND-03
+  interpretation_append: 'REV-212（DEC-419・421・423）：推定不能でも PRM-136 の間は走り続け、超えたら自律走行モードのまま止まり、正常に戻れば自動で goal を出し直す。'

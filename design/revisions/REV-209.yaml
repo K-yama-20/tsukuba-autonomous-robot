@@ -1,0 +1,29 @@
+# 変更セット REV-209（2026-11-03: 将来導入する事項の人の要望の記録。DEC-420）
+# 適用: design/tools/apply_revision.py REV-209
+id: REV-209
+date: '2026-11-03'
+summary: >-
+  人の要望（GNSS・公開地図・IMU で数百 m 進む機能、状況に応じたナビゲーションの変更）を将来の事項として DEC-420 に原文で記録する。実装しない。
+basis_refs:
+- DEC-420
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-420
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-03'
+  answered_on: '2026-11-03'
+  channel: chat
+  question: >-
+    将来導入する事項についての人の要望
+  answer_verbatim: |
+    将来導入する事項として、
+    gnssと公開地図とimuを組み合わせて数百メートルは進めるようにすること
+    自己位置推定が失敗したとき/gnssの測位が出来なくなったとき/imuで走り過ぎたとき、等の場合において、柔軟にナビゲーションを変更する機能
+  affected_refs:
+  - DEC-383
+  - DEC-419
+  resulting_refs: []
+  note: >-
+    時期は未定。DEC-383 の融合は本番の後としている。Issue K-yama-20/tsukuba-autonomous-robot#64。
+  disposition: answered

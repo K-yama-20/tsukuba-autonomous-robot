@@ -42,6 +42,30 @@ def make_data(root: Path, keepout: bool = True):
             'map_id': 'origin1', 'map_revision': '1', 'map_hash': MAP_HASH}
 
 
+class EstimatorGraceTests(unittest.TestCase):   # DEC-419, DEC-421
+    def test_goes_on_until_the_limit(self):
+        g = ac.EstimatorGrace(30)
+        self.assertEqual(g.bad(100), (True, False))
+        self.assertEqual(g.bad(129), (False, False))
+        self.assertEqual(g.bad(130), (False, True))
+
+    def test_recovery_restarts_the_time(self):
+        g = ac.EstimatorGrace(30)
+        g.bad(100)
+        self.assertEqual(g.clear(), 100)
+        self.assertIsNone(g.clear())
+        self.assertEqual(g.bad(125), (True, False))
+        self.assertEqual(g.bad(150), (False, False))
+
+    def test_localization_wait_action(self):   # DEC-423
+        f = ac.localization_wait_action
+        self.assertEqual(f(False, True, False), ac.LOC_WAIT_NONE)
+        self.assertEqual(f(True, False, False), ac.LOC_WAIT_CLEAR)
+        self.assertEqual(f(True, True, True), ac.LOC_WAIT_KEEP)
+        self.assertEqual(f(True, True, False), ac.LOC_WAIT_RESUME)
+
+    def test_no_limit_given_pauses_at_once(self):
+        self.assertEqual(ac.EstimatorGrace(0).bad(5), (True, True))
 class MissionTests(unittest.TestCase):
     def test_resolved_when_everything_matches(self):
         with tempfile.TemporaryDirectory() as d:
