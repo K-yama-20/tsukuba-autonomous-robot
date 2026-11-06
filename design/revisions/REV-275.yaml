@@ -1,0 +1,43 @@
+# 変更セット REV-275（2026-11-07 第246便: 停止距離は人が rosbag を取り AI が読む。解析のスクリプトの準備。DEC-495）
+# 適用: design/tools/apply_revision.py REV-275
+id: REV-275
+date: '2026-11-07'
+summary: >-
+  第246便：停止距離の計測についての人の指示を原文で記録した（DEC-495）。AI が第244便の後に聞いた「停止距離の計測の手順と解析スクリプトを作りますか？」に
+  人は「作って」と答え、AI が書き始めた直後に DEC-495 の指示が来た。計測の手順は作らない。
+  「それ以外の部分」を AI は「人が取る rosbag を読むための抜き出しと解析のスクリプト、記録に要るものの説明」と読み、
+  research/vehicle_pc/2026-11-07_stop_distance/ に置いた（基盤。製品のコード・設定・値・launch は変えていない）。
+  DEC-346 (1)・DEC-377 (1)・DEC-378 (1) は pending のまま。
+basis_refs:
+- DEC-495
+- DEC-488
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-495
+  kind: confirmation
+  status: recorded
+  asked_on:
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （人の指示）停止距離の計測の進め方。直前の AI の質問は「停止距離の計測の手順と解析スクリプトを作りますか？」で、人は先に「作って」と答えていた。
+  answer_verbatim: |
+    作って
+    停止距離の計測については、私が様々な速度で実験したものをrosbagに記録するから、それを読んでもらうことにする。よって、今計測手順等を製作する必要はない。代わりに、それ以外の部分を準備せよ。
+  affected_refs:
+  - DEC-488
+  - DEC-346
+  - DEC-377
+  - DEC-378
+  resulting_refs: []
+  note: >-
+    回答は 2 つの発言を順に並べた（1 行目が先、2 行目が後）。後の発言で、計測の手順は作らないことになった。
+    AI の読み（人が覆してよい）：「それ以外の部分」は、人が取る rosbag を読むための抜き出し（extract.py）と解析（stop_distance.py）と、記録に何が入っていれば読めるかの説明。
+    置き場所は research/vehicle_pc/2026-11-07_stop_distance/。止める合図は control/motion_hold（自律走行）か ESP32 の applied_y（手動操作）、
+    位置は localization/odometry か GLIM の軌跡。手動走行モードだけの記録には位置がなく、停止距離は出せない（IMU の積分は第210便で使えなかった）。
+    走らせ方・速度・回数・場所・合否は人が決める。値は記録を読んだ後の実測の候補で、人が確認するまで確定扱いにしない。第246便。
+  disposition: answered
+entities: []
+modifications: []
+decision_updates: []
