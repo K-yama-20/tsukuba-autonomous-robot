@@ -5,8 +5,9 @@
 #   Livox-SDK2, livox_ros_driver2  MID-360 (DEC-442, DEC-443; ND-20 in the proposal design/proposals/mid360_architecture_2026-11-06.md).
 #     Official repositories, master of 2026-09-21: SDK c0796f0 includes the Ubuntu 24.04 build fix (68ae1e1; the tag v1.3.1
 #     does not), driver 2144554 supports Jazzy (1.2.6) and the SDK of the same day. setup.sh builds them in a separate
-#     workspace <workspace>_livox, because the driver's build.sh deletes build/ and install/ of its workspace
-#     (the SDK is installed to /usr/local, where the driver looks for it).
+#     workspace <workspace>_livox, apart from the Gouda workspace and loaded on top of it (the SDK is installed to
+#     /usr/local, where the driver looks for it). The driver is built with colcon and the CMake arguments of its build.sh
+#     jazzy, from a copy of the pinned commit with package_ROS2.xml as package.xml, not with build.sh (DEC-475).
 # The sources are used unmodified (DEC-075). Hesai and ADI verified on the development VM (design/research/upstream_sensors/README.md).
 # third_party/external.repos is the list of the legacy implementation (Mission Control) and is not used by setup.sh.
 repositories:

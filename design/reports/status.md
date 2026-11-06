@@ -2,6 +2,10 @@
 
 最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
 
+**第264便: 第235便の A1（ドライバを colcon で作る）を第252便より先にコミット（REV-288、DEC-515）**（作業記録 `reports/worklog/2026-11-07_bin264_mid360_a1_commit.md`、ブランチ chat/mid360-a1-2026-11-07）。
+- 人の回答「A1 を先にする」。setup.sh・README.md・third_party/drivers.repos の A1 だけの差分を 9acdc7f の上に作った。setup.sh の sha256 は A1 がワークステーションで試した版と一致。第252便は、この上に差分を作り直す。
+- bash -n OK、tests/test_update_sh.py 9 件 OK、設計検査 違反0件・未判定5件。Dell での setup.sh（人、A2）は統合の後。push はしない。
+
 **第255便: 共有の作業ツリーの未コミットの変更を便ごとにコミット（REV-281、DEC-499）**（作業記録 `reports/worklog/2026-11-07_bin255_shared_tree_commits.md`）。
 - 人の指示（DEC-499）で、9c449b5 の上に 2702b0b〜99a5be6 の 36 件（第184〜254便。第220便は dev-tab 系統 69631f8 を第二の親にした merge）。model.yaml・生成物・検査の報告・status.md は最後の 99a5be6 に 1 つ。push はしていない。
 - 残した：第252便（recorder、patch、setup.sh・README.md・drivers.repos は第235便の分と重なる）、第257便（reserve_ids.py の新版など）、第218便（gpu_sim、REV-244）、予約だけの REV-192・278・282、人の drawio の控え。

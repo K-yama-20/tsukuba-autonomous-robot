@@ -1,0 +1,40 @@
+# reserved by reserve_ids.py: mid360-a1 2026-11-07T05:50:13
+# 変更セット REV-288（2026-11-07 第264便: 第235便の A1（livox_ros_driver2 を build.sh でなく colcon で作る、DEC-475）を、第252便より先に自分の worktree でコミットする。DEC-515）
+# 適用: design/tools/apply_revision.py REV-288
+id: REV-288
+date: '2026-11-07'
+summary: >-
+  第264便：第235便の A1（setup.sh・README.md・third_party/drivers.repos。DEC-475）は、第255便の便ごとのコミットで未コミットのまま残った。
+  第252便（DEC-494 の patch、作業中）が同じ行に書き足していたため。人の回答（DEC-515）で、A1 だけのコミットを先に作り、第252便はその上の差分として載せる順にした。
+  A1 だけの setup.sh は、9acdc7f の setup.sh に A1 の差分を当て直して作り、A1 がワークステーションで試した版と sha256 が一致することを確かめた。
+  正本の値・コード・設定は変えない（記録だけ）。
+basis_refs:
+- DEC-515
+- DEC-475
+- DEC-494
+- DEC-499
+- DEC-501
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+decisions:
+- id: DEC-515
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第264便）第235便の A1 の 3 ファイル（setup.sh・README.md・third_party/drivers.repos）は、第252便（DEC-494 の patch）が同じ行に書き足しているため
+    未コミットで残っている。最初の質問は「A1 の 3 ファイルは、第252便のコミットの後に自分の worktree で載せ直しますか？」。その後、第252便を先にコミットすると
+    A1 の行も一緒に入ると分かったので、「A1 を先に自分の worktree でコミットし、第252便をその上に載せる順に変えますか？」と聞き直した。
+  answer_verbatim: |
+    第252便の後に載せ直す
+    A1 を先にする
+  affected_refs:
+  - DEC-475
+  - DEC-494
+  resulting_refs: []
+  note: >-
+    人の二つの発言（このチャット）。一つ目は最初の質問への回答で、二つ目が聞き直した質問への回答。AI の解釈：A1 だけのコミットを、統合ブランチ 9acdc7f から切った
+    chat/mid360-a1-2026-11-07 に作る。第252便のセッション（このチャットから分かれたセッション）も案 1（A1 を先に）を推し、A1 のコミットの上で第252便の差分を
+    作り直すと連絡してきた。統合ブランチへの merge は統合の担当が行う。第264便。
+  disposition: answered

@@ -69258,6 +69258,25 @@ decisions:
       （手順を示して人の許可を得てから行う、という指示による）、Gouda の起動・停止、README の更新の節の書き換え （README には他の便の未コミットの変更が重なっているため、統合の後に行う）。 Q6
       の道具は、REV の当て直しの再現の確認が済んでいないので未着手。
     disposition: answered
+  - id: DEC-515
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第264便）第235便の A1 の 3 ファイル（setup.sh・README.md・third_party/drivers.repos）は、第252便（DEC-494 の 
+      patch）が同じ行に書き足しているため 未コミットで残っている。最初の質問は「A1 の 3 ファイルは、第252便のコミットの後に自分の worktree 
+      で載せ直しますか？」。その後、第252便を先にコミットすると A1 の行も一緒に入ると分かったので、「A1 を先に自分の worktree 
+      でコミットし、第252便をその上に載せる順に変えますか？」と聞き直した。
+    answer_verbatim: "第252便の後に載せ直す\nA1 を先にする\n"
+    affected_refs:
+      - DEC-475
+      - DEC-494
+    resulting_refs: []
+    note: 人の二つの発言（このチャット）。一つ目は最初の質問への回答で、二つ目が聞き直した質問への回答。AI の解釈：A1 だけのコミットを、統合ブランチ 9acdc7f から切った 
+      chat/mid360-a1-2026-11-07 に作る。第252便のセッション（このチャットから分かれたセッション）も案 1（A1 を先に）を推し、A1 のコミットの上で第252便の差分を 
+      作り直すと連絡してきた。統合ブランチへの merge は統合の担当が行う。第264便。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -74873,6 +74892,23 @@ revisions:
     basis_refs:
       - DEC-499
       - DEC-106
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-288
+    date: '2026-11-07'
+    summary: 第264便：第235便の 
+      A1（setup.sh・README.md・third_party/drivers.repos。DEC-475）は、第255便の便ごとのコミットで未コミットのまま残った。 第252便（DEC-494 の 
+      patch、作業中）が同じ行に書き足していたため。人の回答（DEC-515）で、A1 だけのコミットを先に作り、第252便はその上の差分として載せる順にした。 A1 だけの setup.sh 
+      は、9acdc7f の setup.sh に A1 の差分を当て直して作り、A1 がワークステーションで試した版と sha256 が一致することを確かめた。 正本の値・コード・設定は変えない（記録だけ）。
+    basis_refs:
+      - DEC-515
+      - DEC-475
+      - DEC-494
+      - DEC-499
+      - DEC-501
     added_entity_ids: []
     modified_entity_ids: []
     added_source_ids: []
