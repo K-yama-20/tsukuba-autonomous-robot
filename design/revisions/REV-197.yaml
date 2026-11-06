@@ -1,0 +1,26 @@
+# 変更セット REV-197（2026-11-03 第184便: RQ-I074 の後継と PRM-03）
+id: REV-197
+date: '2026-11-03'
+summary: "第184便：第17版の車体の行（RQ-I121）を、残っていた古い要求 RQ-I074 の後継として記録し、PRM-03（全高）を第17版の 1.25 m にする（第153便で AR-017 のときに直すとした値）。"
+basis_refs:
+- DEC-408
+- DEC-324
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+requirement_ref_replacements:
+  RQ-I074: RQ-I121
+modifications:
+- id: RQ-I074
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-197: 後継は RQ-I121（DEC-408）。'
+- id: C-021
+  set_nested:
+    reconciliation.adopted_requirement_refs: ["RQ-I121"]
+- id: PRM-03
+  set:
+    source_refs:
+    - SRC-I107-V17
+  set_nested:
+    parameter.value: 1.25
+  interpretation_append: 'REV-197: intent.md 第17版 107 行「全高 1250 mm」に置き換えた（DEC-324、DEC-408）。'

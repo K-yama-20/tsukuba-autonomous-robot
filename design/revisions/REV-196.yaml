@@ -1,0 +1,124 @@
+# 変更セット REV-196（2026-11-03 第184便: C-032 を要求ごとの対応に分ける）
+id: REV-196
+date: '2026-11-03'
+summary: "第184便：REV-195 の C-032 は後継をまとめて挙げたので、契約の行を書き換えても検査が置換と誤認した。同一性の検査の対象の 5 要求を、要求ごとの対応に分ける。内容は変えない。"
+basis_refs:
+- DEC-408
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+entities:
+- id: C-033
+  kind: reconciliation
+  name: "intent.md 第17版の編集 RQ-I023 → RQ-I110"
+  intent_lines: [39]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: [RQ-I023]
+    adopted_requirement_refs: [RQ-I110]
+    scope: "第17版で編集された行。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+- id: C-034
+  kind: reconciliation
+  name: "intent.md 第17版の編集 RQ-I025 → RQ-I111"
+  intent_lines: [41]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: [RQ-I025]
+    adopted_requirement_refs: [RQ-I111]
+    scope: "第17版で編集された行。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+- id: C-035
+  kind: reconciliation
+  name: "intent.md 第17版の編集 RQ-I026 → RQ-I112"
+  intent_lines: [42]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: [RQ-I026]
+    adopted_requirement_refs: [RQ-I112]
+    scope: "第17版で編集された行。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+- id: C-036
+  kind: reconciliation
+  name: "intent.md 第17版の編集 RQ-I065 → RQ-I119"
+  intent_lines: [101]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: [RQ-I065]
+    adopted_requirement_refs: [RQ-I119]
+    scope: "第17版で編集された行。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+- id: C-037
+  kind: reconciliation
+  name: "intent.md 第17版の編集 RQ-I067 → RQ-I120"
+  intent_lines: [103]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: [RQ-I067]
+    adopted_requirement_refs: [RQ-I120]
+    scope: "第17版で編集された行。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+modifications:
+- id: C-032
+  set_nested:
+    reconciliation.affected_refs: ["RQ-I095", "RQ-I004", "RQ-I006", "RQ-I008", "RQ-I009", "RQ-I091", "RQ-I014", "RQ-I015", "RQ-I017", "RQ-I092", "RQ-I093", "RQ-I044", "RQ-I094", "RQ-I087"]
+    reconciliation.adopted_requirement_refs: ["RQ-I096", "RQ-I100", "RQ-I101", "RQ-I102", "RQ-I103", "RQ-I104", "RQ-I105", "RQ-I106", "RQ-I108", "RQ-I109", "RQ-I113", "RQ-I117", "RQ-I118", "RQ-I121"]

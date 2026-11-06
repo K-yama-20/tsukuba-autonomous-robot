@@ -51,7 +51,8 @@ class DesignRuleTests(unittest.TestCase):
     def test_requirement_coverage_gap(self):
         m = copy.deepcopy(self.m)
         for e in m['entities']:
-            if 'requirement_refs' in e and 'RQ-I026' in e['requirement_refs']: e['requirement_refs'].remove('RQ-I026')
+            if 'requirement_refs' in e and 'RQ-I112' in e['requirement_refs']: e['requirement_refs'].remove('RQ-I112')
+        self.ent(m, 'C-035')['reconciliation']['adopted_requirement_refs'] = []   # REV-196: the record of the human edit also covers the line
         r = self.res(m); self.assertEqual(r['DR-05']['result'], '違反'); self.assertEqual(r['DR-08']['result'], '違反')
     def test_estop_term_in_design(self):
         m = copy.deepcopy(self.m); self.ent(m, 'ND-11')['ros_node']['responsibilities'].append('非常停止ボタン押下検知で中立')
@@ -61,7 +62,7 @@ class DesignRuleTests(unittest.TestCase):
         self.ent(m, 'ND-11')['ros_node']['absorbs_module_refs'].append('M-014')
         self.assertEqual(self.res(m)['DR-07']['result'], '違反')
     def test_contract_replaced(self):
-        m = copy.deepcopy(self.m); self.ent(m, 'C-017')['reconciliation']['affected_refs'].append('RQ-I023')
+        m = copy.deepcopy(self.m); self.ent(m, 'C-017')['reconciliation']['affected_refs'].append('RQ-I110')
         self.assertEqual(self.res(m)['DR-08']['result'], '違反')
     def test_new_human_approval_step(self):
         m = copy.deepcopy(self.m); self.ent(m, 'TR-13')['transition']['trigger_kind'] = 'human'

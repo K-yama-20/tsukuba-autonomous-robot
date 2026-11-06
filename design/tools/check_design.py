@@ -16,6 +16,7 @@ REQUIRED_EVENTS = {'start': '開始', 'pause': '一時停止', 'resume': '再開
 HUMAN_ONLY_EVENTS = {'start', 'pause', 'resume', 'end', 'map_start', 'map_end'}
 # Scope of this stage: user experience, navigation, basic contracts, individual requirements (intent.md lines).
 SCOPE_LINES = list(range(6, 22)) + [24, 25, 26, 27] + list(range(34, 39)) + list(range(90, 101))
+CONTRACT_SUCCESSORS = {34: 'RQ-I110', 37: 'RQ-I112'}  # REV-195 (AR-017, DEC-408): the human edited these contract lines in intent.md v17; same contracts
 CONTRACT_LINES = {34: '手動優先', 37: '人による一時停止操作', 96: '採用中の指令源途絶時のESP32中立化', 35: 'gamepad途絶時のESP32中立', 91: 'PC指令途絶時の中立'}
 
 RULES = [
@@ -125,7 +126,7 @@ def run(model, schema, manifest):
     cur_lines = (Path(__file__).resolve().parents[2] / 'design/intent.md').read_text().splitlines()
     spec_start = next((i for i, l in enumerate(cur_lines, 1) if l.strip() == '個別の要求仕様：'), len(cur_lines) + 1)
     new_in_scope = {rq for line, rq in linemap.items() if line > spec_start and ents[rq].get('revision_ref')}
-    scope_rqs = {v1map[l] for l in SCOPE_LINES if l in v1map} | new_in_scope
+    scope_rqs = {v1map[l] for l in SCOPE_LINES if l in v1map} | new_in_scope | set(CONTRACT_SUCCESSORS.values())
     scope_rqs = {r for r in scope_rqs if ents[r]['adoption'] != 'superseded'}
     rq_line = {v: k for k, v in linemap.items()}
     covered = collections.defaultdict(set)
@@ -169,7 +170,7 @@ def run(model, schema, manifest):
     # DR-08 contracts kept
     v = []; u = []
     for line, label in CONTRACT_LINES.items():
-        rq = v1map.get(line)
+        rq = CONTRACT_SUCCESSORS.get(line) or v1map.get(line)
         e = ents.get(rq)
         if not e or e['adoption'] != 'upper_requirement': v.append(f'{label}（intent.md:{line}）の要求が上位要求として存在しない'); continue
         if not covered.get(rq) or all(ents[x]['kind'] in ('issue', 'reconciliation') for x in covered[rq]): v.append(f'{label}（{rq}）を参照する設計要素がない')

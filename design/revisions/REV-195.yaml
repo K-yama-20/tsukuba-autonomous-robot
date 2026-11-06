@@ -1,0 +1,254 @@
+# 変更セット REV-195（2026-11-03 第184便: intent.md 第17版、AR-017、DEC-408）
+# 適用: design/tools/apply_revision.py REV-195
+id: REV-195
+date: '2026-11-03'
+summary: "第184便：intent.md 第17版（人の編集、SHA-256 e9be63b8…、118 行）を AR-017 として記録（DEC-408）。AI は intent.md を編集していない。コード・設定は変えていない。"
+basis_refs:
+- DEC-408
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+authority_revision:
+  id: AR-017
+  file_id: FILE-INTENT-V17
+  previous_file_id: FILE-INTENT-V16
+  archived_previous_copy: design/baselines/intent_history/intent_v16_23170969d338.md
+  current_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+  allow_non_append: true
+  instruction_expected_added_lines: 0
+  new_requirement_lines:
+    1: RQ-I096
+    2: RQ-I097
+    4: RQ-I098
+    5: RQ-I099
+    11: RQ-I100
+    13: RQ-I101
+    15: RQ-I102
+    16: RQ-I103
+    19: RQ-I104
+    21: RQ-I105
+    23: RQ-I106
+    25: RQ-I107
+    26: RQ-I108
+    37: RQ-I109
+    39: RQ-I110
+    41: RQ-I111
+    42: RQ-I112
+    43: RQ-I113
+    44: RQ-I114
+    53: RQ-I115
+    54: RQ-I116
+    71: RQ-I117
+    100: RQ-I118
+    101: RQ-I119
+    103: RQ-I120
+    107: RQ-I121
+    116: RQ-I122
+    117: RQ-I123
+    118: RQ-I124
+  decision_ref: DEC-408
+  note: "人の編集。第16版との差は人が編集した行のすべて（モード名を待機に、事前地図作成、停止線の一時停止、保護削減の承認、全高 1250 mm、MID-360、日程の判断の禁止ほか）。current_copy は一字も変えない写し。空行の追加も行として記録した。"
+requirement_ref_replacements:
+  RQ-I095: RQ-I096
+  RQ-I004: RQ-I100
+  RQ-I006: RQ-I101
+  RQ-I008: RQ-I102
+  RQ-I009: RQ-I103
+  RQ-I091: RQ-I104
+  RQ-I014: RQ-I105
+  RQ-I015: RQ-I106
+  RQ-I017: RQ-I108
+  RQ-I092: RQ-I109
+  RQ-I023: RQ-I110
+  RQ-I025: RQ-I111
+  RQ-I026: RQ-I112
+  RQ-I093: RQ-I113
+  RQ-I044: RQ-I117
+  RQ-I094: RQ-I118
+  RQ-I065: RQ-I119
+  RQ-I067: RQ-I120
+  RQ-I087: RQ-I121
+files: []
+decisions:
+- id: DEC-408
+  kind: confirmation
+  status: recorded
+  asked_on: '2026-11-02'
+  answered_on: '2026-11-03'
+  channel: chat + intent.md
+  question: "intent.md の編集は終わったか。終わっていれば第17版として記録するか。"
+  answer_verbatim: |
+    終わった、記録して
+  affected_refs:
+  - FILE-INTENT-V16
+  resulting_refs:
+  - AR-017
+  - C-032
+  note: "確認の候補（正本・実装と読み比べが要る）：DEC-389（Nav2も同時に起動してはならない、未回答）、DEC-331（待機の名称の範囲）、新しい行の MID-360 と現行の XT-32 のみの実装（DEC-341）、停止線の自律の一時停止と DEC-380 の未実装、再開ボタンの扱いと DEC-345、保護削減の承認の要求と既存の削減の記録。第184便。"
+  disposition: answered
+entities:
+- id: C-032
+  kind: reconciliation
+  name: "intent.md 第16版から第17版への人の編集"
+  intent_lines: [1, 2, 11, 13, 15, 16, 19, 21, 23, 25, 26, 37, 39, 41, 42, 43, 54, 71, 100, 101, 103, 107, 116, 117, 118]
+  source_from_affected: true
+  related_refs:
+  - DEC-408
+  - AR-017
+  sensitivity:
+  - intent
+  - safety
+  - operation
+  adoption: reference_only
+  design_status: 未設計
+  reconciliation:
+    state: resolved_by_intent
+    affected_refs: ["RQ-I095", "RQ-I004", "RQ-I006", "RQ-I008", "RQ-I009", "RQ-I091", "RQ-I014", "RQ-I015", "RQ-I017", "RQ-I092", "RQ-I023", "RQ-I025", "RQ-I026", "RQ-I093", "RQ-I044", "RQ-I094", "RQ-I065", "RQ-I067", "RQ-I087"]
+    adopted_requirement_refs: ["RQ-I096", "RQ-I100", "RQ-I101", "RQ-I102", "RQ-I103", "RQ-I104", "RQ-I105", "RQ-I106", "RQ-I108", "RQ-I109", "RQ-I110", "RQ-I111", "RQ-I112", "RQ-I113", "RQ-I117", "RQ-I118", "RQ-I119", "RQ-I120", "RQ-I121"]
+    scope: "第17版で編集された行。内容の読み比べは DEC-408 の確認の候補。"
+    retained_scope: "編集していない行は同一。"
+    rationale: "人が intent.md を編集（DEC-408）。設計・実装は変えていない。"
+    issue_refs: []
+modifications:
+- id: RQ-I095
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I096。'
+- id: RQ-I004
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I100。'
+- id: RQ-I006
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I101。'
+- id: RQ-I008
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I102。'
+- id: RQ-I009
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I103。'
+- id: RQ-I091
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I104。'
+- id: RQ-I014
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I105。'
+- id: RQ-I015
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I106。'
+- id: RQ-I017
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I108。'
+- id: RQ-I092
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I109。'
+- id: RQ-I023
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I110。'
+- id: RQ-I025
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I111。'
+- id: RQ-I026
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I112。'
+- id: RQ-I093
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I113。'
+- id: RQ-I044
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I117。'
+- id: RQ-I094
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I118。'
+- id: RQ-I065
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I119。'
+- id: RQ-I067
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I120。'
+- id: RQ-I087
+  set:
+    adoption: superseded
+  interpretation_append: 'REV-195: intent.md 第17版で編集（C-032、DEC-408）。後継は RQ-I121。'
+- id: C-001
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I111
+    - RQ-I118
+    - RQ-I119
+    - RQ-I080
+- id: C-005
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I104
+    - RQ-I018
+    - RQ-I019
+- id: C-006
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I086
+    - RQ-I105
+    - RQ-I111
+    - RQ-I118
+    - RQ-I069
+- id: C-007
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I106
+    - RQ-I108
+    - RQ-I120
+- id: C-008
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I110
+    - RQ-I024
+    - RQ-I063
+    - RQ-I068
+- id: C-009
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I005
+    - RQ-I106
+    - RQ-I016
+    - RQ-I108
+- id: C-011
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I102
+    - RQ-I103
+    - RQ-I078
+- id: C-013
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I117
+- id: C-029
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I121
+- id: C-030
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I096
+    - RQ-I090
+    - RQ-I104
+    - RQ-I109
+    - RQ-I113
+    - RQ-I118
+- id: C-031
+  set_nested:
+    reconciliation.adopted_requirement_refs:
+    - RQ-I096
