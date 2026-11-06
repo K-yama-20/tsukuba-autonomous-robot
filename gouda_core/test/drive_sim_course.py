@@ -509,5 +509,11 @@ def main():
     else:
         print(__doc__)
 
+
+# TEST-ONLY hook (planting start poses): COURSE_EXT names a module next to this file that adds scenes (drive_sim_course_starts);
+# unset = no change to anything above
+if os.environ.get('COURSE_EXT'):
+    __import__(os.environ['COURSE_EXT']).install(sys.modules[__name__])
+
 if __name__ == '__main__':
     main()
