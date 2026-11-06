@@ -300,6 +300,14 @@ class TunableTests(unittest.TestCase):
             self.assertEqual((follow['vx_max'], follow['wz_max']), (0.5, 0.3))
             self.assertEqual(p['local_costmap']['local_costmap']['ros__parameters']['update_frequency'], 5.0)
 
+    def test_mppi_vx_min(self):   # REV-261 (DEC-480): PRM-162 by default, another value from /config, refused at or above vx_max
+        with tempfile.TemporaryDirectory() as d:
+            r, p, bt = self.build(d, 'v', {'mppi_vx_min_mps': 0.1})
+            self.assertEqual(p['controller_server']['ros__parameters']['FollowPath']['vx_min'], 0.1)
+        self.assertEqual(nc.mppi_follow({'plugin': nc.MPPI_PLUGIN, 'vx_max': 0.5, 'prune_distance': 1.7, 'CostCritic': {}}, {}, 1.0, 1.0)['vx_min'], 0.0)
+        with self.assertRaises(ValueError):
+            nc.mppi_follow({'plugin': nc.MPPI_PLUGIN, 'vx_max': 0.5, 'prune_distance': 1.7, 'CostCritic': {}}, {'mppi_vx_min_mps': 0.5}, 1.0, 1.0)
+
     def test_mppi_open_loop(self):   # REV-240 (DEC-449): PRM-141 true by default, false selectable in /config
         with tempfile.TemporaryDirectory() as d:
             r, p, bt = self.build(d, 'o')

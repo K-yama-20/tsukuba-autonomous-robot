@@ -1,0 +1,83 @@
+# 変更セット REV-261（2026-11-07 第236便: MPPI の前進速度の下限 vx_min を /config で変えられる値に。DEC-480、PRM-162）
+# 適用: design/tools/apply_revision.py REV-261
+id: REV-261
+date: '2026-11-07'
+summary: >-
+  第236便：人の回答「入れて」（DEC-480）で、MPPI の vx_min（上流 nav2_mppi_controller の設定）を PRM-162（0.27 m/s）にし、
+  monitor の /config「Nav2」タブ（IFD-54）で変えられるようにする。これまでは 0 固定（REV-190）。発進する倒し量（DEC-445、0.21）×PRM-39 の
+  速度より小さい前進の指令を MPPI に出させない。open_loop（PRM-141）と組で使う。旋回の不感帯は扱わない。停止用のロジックは足していない。
+basis_refs:
+- DEC-480
+- DEC-449
+- DEC-445
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-480
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第236便）MPPI の速度の下限（0.27 m/s、/config で変更可）を製品に入れてよいか。AI の提示：模擬（DEC-445 の車体モデル、等速、
+    障害物なしと遅れて出るコーン、各 2 回）で、下限 0.27 m/s＋open_loop はゴール 4/4・平均 0.44〜0.45 m/s・接触 0、open_loop のみは 4/4・
+    0.37〜0.40 m/s、下限のみ（open_loop なし）は 0/4 で曲がらず直進しコーンに接触。下限を置くと MPPI は止まる指令を出せず、
+    前が塞がれたとき最低速度で進み続ける（懸念として 1 回述べた）。選択肢は「入れて」「実車を先に試す」。
+  answer_verbatim: |
+    入れて
+  affected_refs:
+  - ND-10
+  - IFD-54
+  - PRM-141
+  resulting_refs:
+  - PRM-162
+  note: >-
+    もとの人の提案（原文）：「mappiに出力下限値以下の速度を絶対に出させないようにロジックを変えたらいいのでは？」。停止については
+    人の発言（原文）：「これも停止用のロジックを新たに組めばいいだけの話ではないか？」。停止用のロジック（上流の collision_monitor など、DEC-372）は
+    この変更に含まない（未指示）。0.27 m/s は 0.21×1.25 m/s＝0.2625 m/s を切り上げた AI の提示の値。実車では未検証。
+    /config の値は正の数だけを受けるので、下限を実質なくすには小さい正の値を入れる。安全かどうかの判断は人（CLAUDE.md 1.12）。第236便。
+  disposition: answered
+entities:
+- id: PRM-162
+  kind: parameter
+  name: "MPPI の前進の速度の下限 vx_min"
+  source_refs:
+  - SRC-I015
+  - SRC-I024
+  design_status: 承認済み
+  adoption: approved
+  field_bindings: {}
+  related_refs:
+  - IFD-54
+  - C-018
+  - PRM-141
+  issue_refs: []
+  interpretation: "REV-261（DEC-480）で追加。"
+  sensitivity:
+  - safety
+  - operation
+  requirement_refs:
+  - RQ-I104
+  parameter:
+    owner_ref: ND-10
+    value: 0.27
+    value_state: approved
+    unit: "m/s"
+    stage: 自律走行の為の最小構成
+    purpose: "MPPI（PRM-130 が true のとき）の vx_min。MPPI はこの値より遅い前進の指令を作らない（後退もしない）。発進する倒し量 0.21（DEC-445）×PRM-39 より上に置く。値がなければ 0（REV-190 のまま）。 monitor の /config「Nav2」タブ（IFD-54）に正しい値があれば、次の gouda.sh start からその値。"
+    measurement: "人の回答「入れて」（DEC-480）で AI の提示の値 0.27 m/s を承認。根拠は DEC-445 の実測（前進は倒し量 0.21 で動く）と模擬の比較。実車では未検証"
+    decision_deadline: 決定済み（DEC-480。実車の走行で見直す）
+    software_trial_value: null
+    software_trial_basis: 承認済みの値のため仮値なし
+    declaration: ros_parameter
+    target: "gouda_nav2"
+    param_key: mppi_vx_min_mps
+    value_type: double
+    apply_timing: launch
+  approval_decision_ref: DEC-480
+modifications:
+- id: ND-10
+  interpretation_append: 'REV-261（DEC-480）：MPPI の vx_min を PRM-162 で決める（0.27 m/s。これまでは 0 固定）。'
+- id: IFD-54
+  interpretation_append: 'REV-261（DEC-480）：mppi_vx_min_mps（PRM-162）を足した。'

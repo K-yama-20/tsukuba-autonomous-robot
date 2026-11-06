@@ -476,6 +476,7 @@
       mppi_vx_max_mps: 'MPPI の速度の上限（m/s）',
       mppi_wz_max_radps: 'MPPI の旋回の上限（rad/s）',
       mppi_open_loop: 'MPPI の open_loop（true／false。true は前回の指令から、false は実速度から次の指令を作る）',   // REV-240 (DEC-449)
+      mppi_vx_min_mps: 'MPPI の前進の速度の下限（m/s。これより遅い前進の指令を出さない。MPPI の速度の上限より小さく）',   // REV-261 (DEC-480)
       local_costmap_update_hz: 'local costmap の更新の頻度（Hz）',
       path_smoothing_enabled: '経路を平滑化する（true／false）',
       // REV-193 (DEC-406)
