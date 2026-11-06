@@ -47,6 +47,19 @@ test_next_numbers (test_reserve_ids.ReserveIdsTests.test_next_numbers) ... ok
 test_second_session_gets_the_following_numbers (test_reserve_ids.ReserveIdsTests.test_second_session_gets_the_following_numbers) ... ok
 test_without_revision (test_reserve_ids.ReserveIdsTests.test_without_revision) ... ok
 test_written_change_set_is_not_a_reservation (test_reserve_ids.ReserveIdsTests.test_written_change_set_is_not_a_reservation) ... ok
+test_command_line_refuses_a_folder_that_is_not_a_design_folder (test_reserve_ids.SharedReservationTests.test_command_line_refuses_a_folder_that_is_not_a_design_folder) ... ok
+test_command_line_with_design_of_another_worktree (test_reserve_ids.SharedReservationTests.test_command_line_with_design_of_another_worktree) ... ok
+test_concurrent_reservations_from_two_worktrees_are_distinct (test_reserve_ids.SharedReservationTests.test_concurrent_reservations_from_two_worktrees_are_distinct) ... ok
+test_git_worktrees_use_the_common_git_directory (test_reserve_ids.SharedReservationTests.test_git_worktrees_use_the_common_git_directory)
+With real git: two worktrees of one clone resolve to the same marker directory and see each other's files. ... ok
+test_marker_alone_keeps_the_number (test_reserve_ids.SharedReservationTests.test_marker_alone_keeps_the_number)
+A number reserved in another worktree whose files are not visible (e.g. removed worktree) is not reused. ... ok
+test_markers_of_the_earlier_scheme_are_counted_and_copied (test_reserve_ids.SharedReservationTests.test_markers_of_the_earlier_scheme_are_counted_and_copied) ... ok
+test_model_ids (test_reserve_ids.SharedReservationTests.test_model_ids) ... ok
+test_rev_file_without_marker_is_skipped (test_reserve_ids.SharedReservationTests.test_rev_file_without_marker_is_skipped)
+A REV file that appears in this worktree after the scan (no marker) is not overwritten. ... ok
+test_two_worktrees_share_the_markers (test_reserve_ids.SharedReservationTests.test_two_worktrees_share_the_markers) ... ok
+test_unknown_model_id_is_refused (test_reserve_ids.SharedReservationTests.test_unknown_model_id_is_refused) ... ok
 test_key_order (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_key_order) ... ok
 test_references_exist_in_model (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_references_exist_in_model) ... ok
 test_schema (test_troubleshooting_ledger.TroubleshootingLedgerTests.test_schema) ... ok
@@ -103,6 +116,6 @@ First extra element 0:
 Diff is 1508 characters long. Set self.maxDiff to None to see it.
 
 ----------------------------------------------------------------------
-Ran 88 tests in 111.193s
+Ran 98 tests in 90.147s
 
 FAILED (failures=1)

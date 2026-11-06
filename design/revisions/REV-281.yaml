@@ -1,0 +1,41 @@
+# reserved by reserve_ids.py: worktree-migration-commits 2026-11-07T05:04:09
+# 変更セット REV-281（2026-11-07 第255便: 並列のチャットを git worktree で動かす人の指示の原文と、共有の作業ツリーの便ごとのコミット。DEC-499）
+# 適用: design/tools/apply_revision.py REV-281
+id: REV-281
+date: '2026-11-07'
+summary: >-
+  第255便：人の指示（DEC-499）で、共有の作業ツリーの未コミットの変更を便ごとにコミットした（9c449b5 の上に 2702b0b〜99a5be6 の 36 件。push はしない）。
+  途中の便（第252便・第257便など）の変更と、どの便のものか決められないもの（第218便の gpu_sim と REV-244）は残した。reserve_ids.py の共有化、
+  CLAUDE.md の改定、worktree と車載 PC の手順は「並列チャットを git worktree の運用に移す」のセッション（第257便、DEC-501）が受け持った。
+  製品のコード・設定・値は変えていない（コミットに分けただけ）。
+basis_refs:
+- DEC-499
+- DEC-106
+- DEC-461
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-499
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第255便）並列のチャットが同じ作業ツリー（design/mppi-sim-2026-11-03、HEAD 9c449b5）に多数の未コミットの変更を重ね、番号の予約の印も
+    その作業ツリーにある。この運用をどう変えるか（人からの指示。質問への回答ではない）。
+  answer_verbatim: |
+    今後、並列のチャットは git worktree で作業する。
+    まず今の共有の作業ツリーの変更を、チャットごと・便ごとに区切ってコミットせよ（push はしない）。どのファイルがどの便のものかは作業記録で確かめ、他のチャットの途中の変更は混ぜない。
+    reserve_ids.py の予約の印を、全 worktree で共有する場所に移し、PRM・IFD・ND の番号も予約できるようにせよ。CLAUDE.md の規則も合わせて直す案を出せ。
+    以後、各チャットは自分の worktree とブランチで作業し、区切りごとにコミットする。統合は統合ブランチで merge し、生成物は merge の後に生成し直す。
+    車載 PC にはファイルを手で写さない。統合ブランチのコミットを checkout して反映し、記録にコミット ID を書く。今の車載 PC のローカル変更は消さずに退避する。
+  affected_refs: []
+  resulting_refs: []
+  note: >-
+    伝達の経路：人の指示は MID-360 のメインチャットで行われ、そのセッションが原文を引用してこのチャット（第255便）に渡した。この記録の AI は
+    その発言を直接は見ていない。同じ指示は他の 3 つのセッションにも渡り、重ならないように分けた：便ごとのコミットと、この記録はこのチャット、
+    reserve_ids.py・CLAUDE.md の案・worktree と車載 PC の手順は第257便（その案への人の回答は DEC-501）。AI の解釈：コミットへの yes（push は含まない）と、
+    reserve_ids.py の変更への yes（DEC-106）。コミットの分け方（自律判断）：便ごと、コードが同じ関数の中で入り組む便は同じチャットの便をまとめる、
+    model.yaml・生成物・検査の報告・status.md・旧い予約の印は最後の 1 つ（REV の適用の順が便の順と入れ違うため）。第255便。
+  disposition: answered
