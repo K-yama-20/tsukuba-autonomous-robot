@@ -24,7 +24,7 @@ mdir = root / 'maps' / MAP_ID / 'converted' / '001'; mdir.mkdir(parents=True, ex
 (mdir / 'pointcloud_map' / 'metadata.yaml').write_text('x_resolution: 20.0\ny_resolution: 20.0\n')
 (mdir / 'trajectory_imu.txt').write_text('0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0\n')
 (mdir / 'manifest.json').write_text(json.dumps({'revision': 1, 'content_hash': MAP_HASH, 'created_at': time.time()}))
-ws = wp.WaypointSet(MAP_ID, 1, MAP_HASH, [wp.Waypoint(x, y, skip_allowed=i in sc.skip_marks) for i, (x, y) in enumerate(sc.route[1:])],
+ws = wp.WaypointSet(MAP_ID, 1, MAP_HASH, [wp.Waypoint(x, y, skip_allowed=i in getattr(sc, 'skip_marks', ())) for i, (x, y) in enumerate(sc.route[1:])],
                     [sc.limit_mps] * (len(sc.route) - 2), areas=[])
 db = wp.RouteDatabase(root / 'routes')
 sid, rev, tmp = db.begin(None)
