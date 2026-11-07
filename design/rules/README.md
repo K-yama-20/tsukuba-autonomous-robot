@@ -62,6 +62,8 @@ baseline は `../baselines/migration_v1/`（凍結）。`build_migration.py` は
 | DR-14 | 判断台帳の項目がある | RQ-I073 |
 | DR-16 | ログの自動開始 IF（record/log/start_*）は人の開始操作（地図作成開始・自律走行開始）の遷移からのみ参照され、呼び元は ND-03 のみ。復帰・再開・PC再起動・起動の遷移と monitor から参照されない | RQ-I015、DEC-071 |
 | DR-17 | transient_local の topic は保持件数を宣言し、走査対象の実装では同じ topic の全 publisher が transient_local の QoS を使う（volatile の publisher が混ざると transient_local の購読者は受信できない） | DEC-072 |
+| DR-18 | velocity_smoother の前進の上限 PRM-66 は自律走行の上限 PRM-131（V_auto）と同じ値（導出値） | DEC-505 |
+| DR-19 | 自律走行の上限 PRM-131（V_auto）は車体の能力 PRM-39（V_full）以下。区間の制限 ≤ PRM-131（提案の DR-新2）は実行時の値なので、検査ルールでなく monitor の保存の拒否・開始時の頭打ちと単体試験（test_autonomy_core.StartMaskTests）で担う | DEC-505 |
 | DR-15 | 設定値は正本で一度だけ宣言され生成物と一致 | RQ-I076 |
 
 ## DR-15 の検出項目と試験の対応（DEC-044）

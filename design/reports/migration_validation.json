@@ -15,7 +15,7 @@
         "code": "MIGRATION",
         "path": "unchanged design/docs/extraction_20261008_01a11af4/.DS_Store",
         "detail": {
-          "actual": "62d89055ffb52281e0146fc7c19596cee58a80e32d53a8581660d86d8755c2bf",
+          "actual": null,
           "expected": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf"
         }
       },
@@ -23,7 +23,7 @@
         "code": "MIGRATION",
         "path": "unchanged design/docs/extraction_20261008_01a11af4/raw_xlsx/.DS_Store",
         "detail": {
-          "actual": "fbd69bd928c62c91b1e5cc1d69a413ac0aaf475e89b4b22138571fb54750a9d1",
+          "actual": null,
           "expected": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574"
         }
       },
@@ -7984,7 +7984,7 @@
   "design_maturity": {
     "未設計": 459,
     "案": 473,
-    "承認済み": 116
+    "承認済み": 119
   },
   "revisions": [
     {
@@ -10796,6 +10796,16 @@
       "added_source_ids": 0,
       "added_file_ids": 0,
       "removed_entity_ids": 0
+    },
+    {
+      "id": "REV-285",
+      "date": "2026-11-07",
+      "basis_refs": 6,
+      "added_entity_ids": 3,
+      "modified_entity_ids": 9,
+      "added_source_ids": 0,
+      "added_file_ids": 0,
+      "removed_entity_ids": 0
     }
   ],
   "authority_revisions": [
@@ -11167,9 +11177,9 @@
     }
   ],
   "decisions": {
-    "count": 448,
+    "count": 452,
     "by_status": {
-      "answered": 260,
+      "answered": 264,
       "recorded": 96,
       "pending": 92
     },
@@ -11273,7 +11283,7 @@
     "deployment_decision": "人の判断待ち"
   },
   "summary": {
-    "entity_count": 1048,
+    "entity_count": 1051,
     "source_count": 541,
     "id_map_count": 202,
     "legacy_198_count": 198,

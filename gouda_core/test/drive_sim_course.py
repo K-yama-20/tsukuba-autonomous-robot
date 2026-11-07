@@ -223,8 +223,10 @@ def obstacles(c: Course, layout: str | None, cone_h: float = CONE_H) -> list:
 
 
 LAYOUTS = {'course_A': 'A', 'course_B': 'B', 'course_nocone': None, 'course_A0': 'A0', 'course_A_tall': 'A', 'tail_A': 'A', 'tail_B': 'B', 'tail_A_L08': 'A', 'stop_A': 'A',
-           'tail_B_L08': 'B', 'tail_A_L05': 'A', 'tail_B_L05': 'B', 'course_A_L08': 'A', 'course_B_L08': 'B'}
-LIMIT_BY = {'tail_A_L08': 0.8, 'tail_B_L08': 0.8, 'course_A_L08': 0.8, 'course_B_L08': 0.8, 'tail_A_L05': 0.5, 'tail_B_L05': 0.5}   # comparison only: the waypoint sections' speed limit (speed mask) equal to MPPI's vx_max (PRM-131)
+           'tail_B_L08': 'B', 'tail_A_L05': 'A', 'tail_B_L05': 'B', 'course_A_L08': 'A', 'course_B_L08': 'B',
+           'course_A_L05': 'A', 'course_B_L05': 'B'}
+LIMIT_BY = {'tail_A_L08': 0.8, 'tail_B_L08': 0.8, 'course_A_L08': 0.8, 'course_B_L08': 0.8, 'tail_A_L05': 0.5, 'tail_B_L05': 0.5,
+            'course_A_L05': 0.5, 'course_B_L05': 0.5}   # comparison only: the waypoint sections' speed limit (speed mask) equal to MPPI's vx_max (PRM-131)
 STOP_TAIL_START_M = 300.0   # stop_A: the same course started at 300 m (before the stop line at 329.3 m), through the cones to the goal
 TAIL_START_M = 340.0   # tail_*: the same course and map, started at 340 m (after the stop line, before the cone section at 370 m)
 CONE_H_BY = {'course_A_tall': 1.3}   # diagnosis only: cones taller than the XT-32 (1.18 m) never leave its view
@@ -341,10 +343,13 @@ def fixture(root: Path, name: str) -> dict:
     db = wp.RouteDatabase(root / 'routes')
     sid, rev, tmp = db.begin(None)
     g = sm.MapGeometry(resolution=RES, origin_x=OX, origin_y=OY, width=W, height=H)
-    res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 1.0, 0.05)
+    from gouda_core import sensor_config as scfg   # REV-285: PRM-164 / PRM-165 from the generated monitor file
+    mon = scfg.read_node_params(str(Path(__file__).resolve().parents[2] / 'design' / 'generated' / 'params'), 'gouda_monitor', False)
+    vslow, ramp = mon['speed_mask_outside_speed_mps'], mon['speed_mask_ramp_length_m']
+    res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 1.0, 0.05, vslow, ramp)
     files = sm.write_mask(res, g, tmp, 'speed_filter_mask', 'costmap_filter_info')
     kfiles, krec = km.write(km.rasterize(ws.areas, g), g, tmp, '/keepout_filter_mask', '/keepout_costmap_filter_info'); files.update(kfiles)
-    ok, msg, man = db.publish(sid, rev, tmp, ws, files, [], {'half_width_m': 1.0, 'step_mps': 0.05, 'keepout': krec})
+    ok, msg, man = db.publish(sid, rev, tmp, ws, files, [], {'half_width_m': 1.0, 'step_mps': 0.05, 'outside_mps': vslow, 'ramp_m': ramp, 'keepout': krec})
     assert ok, msg
     (sx, sy), (nx, ny) = sc.route[0], sc.route[1]
     return {'waypoint_set_id': sid, 'waypoint_set_revision': str(rev), 'waypoint_set_hash': man['content_hash'], 'map_id': MAP_ID, 'map_revision': '1',

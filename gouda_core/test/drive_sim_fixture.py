@@ -24,15 +24,18 @@ mdir = root / 'maps' / MAP_ID / 'converted' / '001'; mdir.mkdir(parents=True, ex
 (mdir / 'pointcloud_map' / 'metadata.yaml').write_text('x_resolution: 20.0\ny_resolution: 20.0\n')
 (mdir / 'trajectory_imu.txt').write_text('0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0\n')
 (mdir / 'manifest.json').write_text(json.dumps({'revision': 1, 'content_hash': MAP_HASH, 'created_at': time.time()}))
-ws = wp.WaypointSet(MAP_ID, 1, MAP_HASH, [wp.Waypoint(x, y, skip_allowed=i in sc.skip_marks) for i, (x, y) in enumerate(sc.route[1:])],
+ws = wp.WaypointSet(MAP_ID, 1, MAP_HASH, [wp.Waypoint(x, y, skip_allowed=i in getattr(sc, 'skip_marks', ())) for i, (x, y) in enumerate(sc.route[1:])],
                     [sc.limit_mps] * (len(sc.route) - 2), areas=[])
 db = wp.RouteDatabase(root / 'routes')
 sid, rev, tmp = db.begin(None)
 g = sm.MapGeometry(resolution=RES, origin_x=OX, origin_y=OY, width=W, height=H)
-res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 1.0, 0.05)
+from gouda_core import sensor_config as _scfg  # noqa: E402
+_MON = _scfg.read_node_params(str(Path(__file__).resolve().parents[2] / 'design' / 'generated' / 'params'), 'gouda_monitor', False)   # REV-285: PRM-164 / PRM-165
+V_SLOW, L_RAMP = _MON['speed_mask_outside_speed_mps'], _MON['speed_mask_ramp_length_m']
+res = sm.generate([(w.x, w.y) for w in ws.waypoints], ws.section_limits_mps, g, 1.0, 0.05, V_SLOW, L_RAMP)
 files = sm.write_mask(res, g, tmp, 'speed_filter_mask', 'costmap_filter_info')
 kfiles, krec = km.write(km.rasterize(ws.areas, g), g, tmp, '/keepout_filter_mask', '/keepout_costmap_filter_info'); files.update(kfiles)
-ok, msg, man = db.publish(sid, rev, tmp, ws, files, [], {'half_width_m': 1.0, 'step_mps': 0.05, 'keepout': krec})
+ok, msg, man = db.publish(sid, rev, tmp, ws, files, [], {'half_width_m': 1.0, 'step_mps': 0.05, 'outside_mps': V_SLOW, 'ramp_m': L_RAMP, 'keepout': krec})
 assert ok, msg
 (sx, sy), (nx, ny) = sc.route[0], sc.route[1]
 print(json.dumps({'waypoint_set_id': sid, 'waypoint_set_revision': str(rev), 'waypoint_set_hash': man['content_hash'], 'map_id': MAP_ID, 'map_revision': '1',

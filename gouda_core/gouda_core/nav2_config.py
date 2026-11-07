@@ -63,6 +63,10 @@ REV-242 (DEC-454): the MID-360 as a layer of its own (plan B1, the simulator's S
   (mid360_scan, the xt32_scan's parameters: the same band PRM-70 / PRM-71, DEC-455 open) and in both costmaps an ObstacleLayer
   mid360_layer right after obstacle_layer, marking from the MID-360's scan and clearing only along the MID-360's own rays (its raw
   points from mid360_link). The XT-32's layer is not changed. Otherwise the parameter file is exactly as without it.
+REV-285 (DEC-505, DEC-507): one chain of speeds. PRM-131 is the autonomous driving limit V_auto: MPPI's vx_max AND the
+  velocity_smoother's forward maximum come from it (the value in use, /config included), so PRM-66 is only its derived copy
+  (DR-18). auto_speed_limit gives V_auto to the monitor (no section limit above it is saved) and to the mode manager (the
+  start clamps a larger one, DEC-505). MPPI's vx_min PRM-162 is 0: the dead-band floor is ND-11's (DEC-507).
 """
 from __future__ import annotations
 
@@ -149,7 +153,7 @@ TUNABLES = OrderedDict([
     ('mppi_vx_max_mps', ('PRM-131', 'positive', 'gouda_nav2')),
     ('mppi_wz_max_radps', ('PRM-132', 'positive', 'gouda_nav2')),
     ('mppi_open_loop', ('PRM-141', 'boolean', 'gouda_nav2')),                         # REV-240 (DEC-449): false = MPPI starts from the measured speed
-    ('mppi_vx_min_mps', ('PRM-162', 'positive', 'gouda_nav2')),                       # REV-261 (DEC-480): MPPI never commands a slower forward speed
+    ('mppi_vx_min_mps', ('PRM-162', 'positive', 'gouda_nav2')),                       # REV-261 (DEC-480); REV-285 (DEC-507): 0, the floor is ND-11's
     ('goal_yaw_tolerance_rad', ('PRM-163', 'positive', 'gouda_nav2')),                # REV-265 (DEC-484): pi or more = the heading at the goal is not asked
     ('local_costmap_update_hz', ('PRM-133', 'positive', 'gouda_nav2')),
     ('path_smoothing_enabled', ('PRM-134', 'boolean', 'bt_params')),                  # REV-190 (DEC-401)
@@ -225,8 +229,10 @@ def apply_tunables(params: dict, t: dict, template_follow: dict) -> None:
     cs = params['controller_server']['ros__parameters']
     # REV-265 (DEC-484): the goal checker's heading tolerance (both controllers); without a value the template's stays
     if has('goal_yaw_tolerance_rad'): cs['general_goal_checker']['yaw_goal_tolerance'] = float(t['goal_yaw_tolerance_rad'])
+    vs = params['velocity_smoother']['ros__parameters']
+    if has('mppi_vx_max_mps'):   # REV-285 (DEC-505): the smoother's forward maximum is V_auto (PRM-131 or /config), never a second value
+        vs['max_velocity'] = [float(t['mppi_vx_max_mps'])] + list(vs['max_velocity'][1:])
     if t.get('controller_use_mppi'):
-        vs = params['velocity_smoother']['ros__parameters']
         cs['FollowPath'] = mppi_follow(template_follow, t, vs['max_accel'][0], vs['max_accel'][2])
     else:
         for k, rk in RPP_KEYS.items():
@@ -245,6 +251,24 @@ def apply_tunables(params: dict, t: dict, template_follow: dict) -> None:
     for c in (lc, gc):
         if has('inflation_cost_scaling_factor'): c['inflation_layer']['cost_scaling_factor'] = float(t['inflation_cost_scaling_factor'])
         if has('inflation_radius_m'): c['inflation_layer']['inflation_radius'] = float(t['inflation_radius_m'])
+
+
+AUTO_LIMIT_KEY = 'mppi_vx_max_mps'   # REV-285 (DEC-505): V_auto is PRM-131
+
+
+def auto_speed_limit(params_dir: str, trial: bool, config_dir: Optional[str] = None, in_use_overrides: Optional[str] = None) -> dict:
+    """REV-285 (DEC-505): V_auto {'value', 'source', 'note'}. in_use_overrides: the overrides.json Nav2 was started with (the value in
+    use wins when it is there); else PRM-131 or the /config value of the next start (tunable_from_config). value None: unresolved."""
+    if in_use_overrides and os.path.isfile(in_use_overrides):
+        try:
+            with open(in_use_overrides, encoding='utf-8') as f:
+                r = (json.load(f) or {}).get(AUTO_LIMIT_KEY) or {}
+            if valid_tunable('positive', r.get('value')):
+                return {'value': float(r['value']), 'source': f"in use by Nav2 ({r.get('source', '')})", 'note': ''}
+        except (OSError, ValueError, AttributeError):
+            pass
+    prm = read_tunables(params_dir, trial).get(AUTO_LIMIT_KEY)
+    return tunable_from_config(config_dir, AUTO_LIMIT_KEY, prm)
 
 
 def read_bt_params(params_dir: str, trial: bool) -> dict:

@@ -227,3 +227,23 @@ class AutoRecordAndQosRuleTests(unittest.TestCase):
     def test_transient_local_without_depth_is_flagged(self):
         m = copy.deepcopy(self.m); self.ent(m, 'IFD-28')['designed_interface']['qos']['history_depth'] = None
         self.assertEqual(self.res(m)['DR-17']['result'], '違反')
+
+
+class SpeedChainRuleTests(unittest.TestCase):
+    """DR-18 / DR-19 (DEC-505): PRM-66 equals PRM-131; PRM-131 is not above PRM-39."""
+    @classmethod
+    def setUpClass(cls):
+        cls.m = load_yaml(DESIGN / 'model.yaml'); cls.s = schema(); cls.man = json.loads((DESIGN / 'migration_manifest.json').read_text())
+    def res(self, m): return run(m, self.s, self.man)
+    def ent(self, m, i): return next(e for e in m['entities'] if e['id'] == i)
+    def test_real_model_passes(self):
+        r = self.res(self.m); self.assertEqual(r['DR-18']['result'], '合格'); self.assertEqual(r['DR-19']['result'], '合格')
+    def test_smoother_differs_from_v_auto(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'PRM-66')['parameter']['value'] = 1.25
+        self.assertEqual(self.res(m)['DR-18']['result'], '違反')
+    def test_v_auto_above_v_full(self):
+        m = copy.deepcopy(self.m); self.ent(m, 'PRM-131')['parameter']['value'] = 2.5; self.ent(m, 'PRM-66')['parameter']['value'] = 2.5
+        r = self.res(m); self.assertEqual(r['DR-19']['result'], '違反'); self.assertEqual(r['DR-18']['result'], '合格')
+    def test_unresolved_value_is_undetermined(self):
+        m = copy.deepcopy(self.m); p = self.ent(m, 'PRM-131')['parameter']; p['value'] = None; p['value_state'] = 'unresolved'
+        r = self.res(m); self.assertEqual(r['DR-18']['result'], '未判定'); self.assertEqual(r['DR-19']['result'], '未判定')

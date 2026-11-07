@@ -22,6 +22,11 @@ on). It reads localization/odometry (IFD-25: twist.linear.x, twist.angular.z in 
 source from /esp32/status (IFD-38; "manual" = manual priority: neutral and the integrals reset while the layer is on). Every
 output is published on log/motion_feedback (gouda_interfaces/MotionFeedback, reliable, volatile, depth 10) for the rosbag, and a
 change of the layer's mode (ff_pi / ff_only / neutral / no_feedforward) is a DecisionEvent (speed_feedback_mode).
+
+REV-285 (DEC-507): the dead-band floor (motion_core) with the hysteresis floor_hysteresis_mps (PRM-166) from the generated file:
+with the layer off the axes are driven by the floor and the table (mode 'floor' in log/motion_feedback and speed_feedback_mode);
+MPPI's vx_min is 0 since then. Each change of an axis' floor branch (zero / below_half / move_stick / table / compensation) is a
+DecisionEvent (motion_floor).
 """
 from __future__ import annotations
 
@@ -52,6 +57,7 @@ COMPENSATION_FIELDS = ('forward_min', 'forward_threshold', 'reverse_min', 'rever
 FEEDFORWARD_SETTINGS = ['ff_forward_stop_stick', 'ff_forward_move_stick', 'ff_forward_min_speed_mps',
                         'ff_reverse_stop_stick', 'ff_reverse_move_stick', 'ff_reverse_min_speed_mps',
                         'ff_turn_stop_stick', 'ff_turn_move_stick', 'ff_turn_min_speed_radps', 'ff_turn_mid_stick', 'ff_turn_mid_speed_radps']
+FLOOR_SETTING = 'floor_hysteresis_mps'   # REV-285 (DEC-507): PRM-166
 STATUS_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)   # IFD-38
 FEEDBACK_QOS = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE, history=HistoryPolicy.KEEP_LAST, depth=10)
 
@@ -106,7 +112,7 @@ def optional_double(node, name):
 class MotionControllerNode(LifecycleNode):
     def __init__(self):
         super().__init__('gouda_motion_controller')
-        for key in SETTINGS + FEEDFORWARD_SETTINGS:
+        for key in SETTINGS + FEEDFORWARD_SETTINGS + [FLOOR_SETTING]:
             self.declare_parameter(key, Parameter.Type.DOUBLE)
         self._lock = threading.Lock()
         self.core = None
@@ -119,6 +125,7 @@ class MotionControllerNode(LifecycleNode):
         self.feedback = NO_FEEDBACK           # REV-241: the last usable speed-feedback setting (IFD-52)
         self.feedback_revision = 0
         self.last_fb_mode = None
+        self.last_floor = None
         self.odom_sub = self.status_sub = None
         self.fb_pub = None
         self.create_subscription(MotionCompensation, 'config/motion_compensation', self._on_compensation, LATCHED)
@@ -135,14 +142,16 @@ class MotionControllerNode(LifecycleNode):
         ffv = dict(values, **{k: optional_double(self, k) for k in FEEDFORWARD_SETTINGS})
         ff = feedforward_from_values(ffv)
         try:
-            self.core = MotionCore(MotionSettings(values['cmd_vel_timeout_s'], values['max_linear_speed_mps'], values['max_angular_speed_radps'], values['motion_hold_timeout_s'], values['max_reverse_speed_mps']), ff)
+            hyst = optional_double(self, FLOOR_SETTING)
+            self.core = MotionCore(MotionSettings(values['cmd_vel_timeout_s'], values['max_linear_speed_mps'], values['max_angular_speed_radps'], values['motion_hold_timeout_s'], values['max_reverse_speed_mps']), ff, hyst)
         except ValueError as e:
             self._decision('configure_refused', str(e), values); return TransitionCallbackReturn.FAILURE
         with self._lock:
             self.core.set_compensation(self.compensation)
             self.core.set_feedback(self.feedback)
         values = dict(values, compensation=self._compensation_details(self.compensation), feedforward={k: ffv[k] for k in FEEDFORWARD_SETTINGS},
-                      feedforward_problems=self.core.feedforward_problems, speed_feedback=self._feedback_details(self.feedback))
+                      feedforward_problems=self.core.feedforward_problems, speed_feedback=self._feedback_details(self.feedback),
+                      floor_hysteresis_mps=hyst, floor_used=self.core.floor_ready())
         self.period = values['command_publish_period_s']
         self.joy_pub = self.create_lifecycle_publisher(Joy, 'vehicle/joystick_command', COMMAND_QOS)
         self.hold_sub = self.create_subscription(MotionHold, 'control/motion_hold', self._on_hold, LATCHED)
@@ -247,6 +256,13 @@ class MotionControllerNode(LifecycleNode):
                 self.last_fb_mode = fbm
                 self._decision('speed_feedback_mode', f'speed feedback {out.feedback_mode}' + (f': {out.feedback_reason}' if out.feedback_reason else ''),
                                {'mode': out.feedback_mode, 'reason': out.feedback_reason, 'odometry_age_s': out.odometry_age_s, 'config_revision': self.feedback_revision})
+            fl = (out.floor_forward, out.floor_turn)
+            if fl != self.last_floor:   # REV-285 (DEC-507): the floor's branch of each axis
+                self.last_floor = fl
+                cmd = self.core.cmd or (math.nan, math.nan)
+                self._decision('motion_floor', f'floor forward {out.floor_forward or "-"}, turn {out.floor_turn or "-"}',
+                               {'forward_branch': out.floor_forward, 'turn_branch': out.floor_turn, 'target_linear_x': cmd[0], 'target_angular_z': cmd[1],
+                                'forward': out.forward, 'turn': out.turn})
             reason = (out.reason, out.hold_reason, out.neutral)
             if reason != self.last_reason:
                 self.last_reason = reason

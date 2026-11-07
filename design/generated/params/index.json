@@ -1,5 +1,5 @@
 {
-  "model_entities_sha256": "8d990b80de8ee92e823161c795f22d9affb2df13844cf56684715614879e74d5",
+  "model_entities_sha256": "c8ec6a050d758817b7ec8a2c373e04a9f628288a67953bb0c9f33844e28c197c",
   "parameters": [
     {
       "id": "PRM-54",
@@ -818,6 +818,30 @@
       "unit": "s"
     },
     {
+      "id": "PRM-164",
+      "file": "gouda_monitor.yaml",
+      "key": "speed_mask_outside_speed_mps",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.3,
+      "unit": "m/s"
+    },
+    {
+      "id": "PRM-165",
+      "file": "gouda_monitor.yaml",
+      "key": "speed_mask_ramp_length_m",
+      "target": "gouda_monitor",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 2.0,
+      "unit": "m"
+    },
+    {
       "id": "PRM-19",
       "file": "gouda_monitor.yaml",
       "key": "speed_mask_half_width_m",
@@ -1104,6 +1128,18 @@
       "value_state": "approved",
       "value": 0.19,
       "unit": "rad/s"
+    },
+    {
+      "id": "PRM-166",
+      "file": "gouda_motion_controller.yaml",
+      "key": "floor_hysteresis_mps",
+      "target": "gouda_motion_controller",
+      "declaration": "ros_parameter",
+      "apply_timing": "launch",
+      "value_type": "double",
+      "value_state": "approved",
+      "value": 0.02,
+      "unit": "m/s"
     },
     {
       "id": "PRM-39",
@@ -1450,7 +1486,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 0.27,
+      "value": 0.0,
       "unit": "m/s"
     },
     {
@@ -1474,7 +1510,7 @@
       "apply_timing": "launch",
       "value_type": "double",
       "value_state": "approved",
-      "value": 1.25,
+      "value": 0.5,
       "unit": "m/s"
     },
     {

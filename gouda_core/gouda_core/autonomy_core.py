@@ -17,6 +17,10 @@
 - stop points (一時停止線, DEC-482, REV-263): a waypoint of kind stop ends the goal (section_end), so no goal, re-send or skip
   drives past it. Reaching it (stop_point_reached: Nav2's success, or the robot within PRM-11 of it) holds the robot inside
   自律走行 (rule_stop_hold) until the human's resume, which sends the goal from the waypoint after it.
+- start_mask (REV-285, DEC-505 / DEC-506, the migration step): at TR-05 a section limit above V_auto (PRM-131, the value Nav2
+  runs with) is clamped to V_auto, and a mask saved before REV-285 (no gradient: 0 = unlimited outside the bands) is made again
+  with the gradient (PRM-164 / PRM-165). The new mask goes to the run directory (the saved, hash-pinned set is not changed) and
+  the record names the sections. A mask saved after REV-285 with every limit within V_auto is used as saved.
 """
 from __future__ import annotations
 
@@ -60,6 +64,7 @@ class Mission:
     keepout_size: tuple = (0, 0)                        # (width, height) of that mask
     skip_allowed: list = field(default_factory=list)    # per waypoint: the human's mark (DEC-367)
     stop_points: list = field(default_factory=list)     # per waypoint: kind stop (一時停止線, DEC-482); DEC-380 (1)
+    generator: dict = field(default_factory=dict)      # the saved mask's generator record (manifest; REV-285 start_mask)
 
 
 FOLLOW_PATH_BLOCKED = ('PATIENCE_EXCEEDED', 'FAILED_TO_MAKE_PROGRESS', 'NO_VALID_CONTROL')
@@ -136,7 +141,41 @@ def resolve_mission(data_root: Path, request: dict) -> tuple:
     return Mission(sid, srev, man['content_hash'], mid, mrev, ws.map_content_hash, str(map_yaml), str(mask_yaml), base, mult,
                    [(w.x, w.y, w.yaw) for w in ws.waypoints], list(ws.section_limits_mps), str(mdir),
                    str(kyaml), str(keep['data_sha256']), (int(keep.get('width', 0)), int(keep.get('height', 0))),
-                   [bool(w.skip_allowed) for w in ws.waypoints], [w.kind == 'stop' for w in ws.waypoints]), 'mission resolved'
+                   [bool(w.skip_allowed) for w in ws.waypoints], [w.kind == 'stop' for w in ws.waypoints], dict(man.get('generator') or {})), 'mission resolved'
+
+
+def start_mask(mission: Mission, v_auto_mps: Optional[float], out_dir: Path, fallback: dict) -> tuple:
+    """REV-285 (DEC-505, DEC-506): (mission to use, record dict or None when the saved mask is used as it is, refusal or None).
+    fallback: {'half_width_m', 'step_mps', 'outside_mps', 'ramp_m'} from the generated parameter files, used for a value the saved
+    generator record does not have. Nothing is guessed: a missing value refuses the start."""
+    import dataclasses
+    from gouda_core import speed_mask as sm
+    if v_auto_mps is None:
+        return mission, None, 'V_auto (PRM-131) has no value: the section limits cannot be checked (DEC-505)'
+    limits, changed = sm.clamp_limits(mission.section_limits_mps, v_auto_mps)
+    g = mission.generator or {}
+    old_mask = g.get('outside_mps') is None
+    if not changed and not old_mask:
+        return mission, None, None
+    vals = {k: (g.get(k) if g.get(k) is not None else fallback.get(k)) for k in ('half_width_m', 'step_mps', 'outside_mps', 'ramp_m')}
+    miss = [k for k, v in vals.items() if v is None]
+    if miss:
+        return mission, None, f'the speed mask must be made again at the start (REV-285) but {miss} have no value'
+    try:
+        geom = sm.MapGeometry.from_map_yaml(Path(mission.map_yaml))
+        res = sm.generate([(x, y) for x, y, _ in mission.waypoints], limits, geom, float(vals['half_width_m']), float(vals['step_mps']),
+                          float(vals['outside_mps']), float(vals['ramp_m']))
+        out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+        from gouda_core import nav2_config
+        sm.write_mask(res, geom, out_dir, nav2_config.FILTER_MASK_TOPIC, nav2_config.FILTER_INFO_TOPIC)
+    except (OSError, ValueError, KeyError) as e:
+        return mission, None, f'the speed mask could not be made again at the start ({type(e).__name__}: {e})'
+    rec = {'v_auto_mps': float(v_auto_mps), 'clamped_sections': [{'section': i, 'saved_mps': a, 'used_mps': b} for i, a, b in changed],
+           'gradient_added': old_mask, 'mask_yaml': str(out_dir / 'speed_mask.yaml'), 'saved_mask_yaml': mission.mask_yaml, **vals,
+           'painted_cells': res.painted_cells, 'ramp_cells': res.ramp_cells, 'warnings': res.warnings}
+    new = dataclasses.replace(mission, mask_yaml=str(out_dir / 'speed_mask.yaml'), section_limits_mps=limits,
+                              filter_multiplier=float(vals['step_mps']), filter_base=0.0)
+    return new, rec, None
 
 
 def check_localization_map(map_directory: str) -> Optional[str]:
@@ -261,8 +300,11 @@ class MaskGrid:
 
 
 def speed_limit_state(mask: Optional[MaskGrid], info_received: bool, robot_xy: Optional[tuple], limit_since_start: Optional[float]) -> str:
-    """DEC-047 state. 'applied' needs the robot in a band cell (> 0) AND a speed_limit received since the Nav2 start with a
-    positive value; a band cell without such a speed_limit is 'unknown' (the hold stays: DEC-056)."""
+    """DEC-047 state. 'applied' needs the robot in a mask cell with a value (> 0) AND a speed_limit received since the Nav2 start
+    with a positive value; such a cell without that speed_limit is 'unknown' (the hold stays: DEC-056).
+    REV-285 (DEC-506): a mask made since REV-285 has no 0 cell (outside the bands it is V_slow), so 'applied' reads "inside the
+    mask with a positive speed_limit received" and outside_band cannot occur for it; the state is kept for a mask saved before
+    REV-285 (a cell 0 = unlimited)."""
     if mask is None or not info_received:
         return SL_NOT_LOADED
     if robot_xy is None:

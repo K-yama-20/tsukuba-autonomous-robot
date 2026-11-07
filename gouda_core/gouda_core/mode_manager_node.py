@@ -230,6 +230,17 @@ class ModeManagerNode(Node):
         bad = ac.check_localization_map(mission.map_directory)
         if bad:
             return bad, None
+        # REV-285 (DEC-505, DEC-506): section limits above V_auto (the value Nav2 runs with) are clamped, and a mask saved before
+        # REV-285 is made again with the gradient; both into the run directory, recorded at TR-05 (the saved set is not changed)
+        from gouda_core import sensor_config as sc
+        vauto = nav2_config.auto_speed_limit(self.params_dir, self.trial, str(self.data_root / 'config'), str(self.data_root / 'run' / 'nav2' / 'overrides.json'))
+        mon = sc.read_node_params(self.params_dir, 'gouda_monitor', self.trial) if self.params_dir else {}
+        fallback = {'half_width_m': mon.get('speed_mask_half_width_m'), 'step_mps': mon.get('speed_mask_step_mps'),
+                    'outside_mps': mon.get('speed_mask_outside_speed_mps'), 'ramp_m': mon.get('speed_mask_ramp_length_m')}
+        mission, rec, bad = ac.start_mask(mission, vauto['value'], self.data_root / 'run' / 'start_mask' / f'{mission.set_id}_{mission.set_revision:03d}', fallback)
+        if bad:
+            return bad, None
+        self._start_mask_record = (dict(rec, v_auto_source=vauto['source']) if rec else None)
         return None, mission
 
     def _request(self, event, details):
@@ -388,7 +399,12 @@ class ModeManagerNode(Node):
                                    'initial_pose_required': False, 'speed_limit_application_state': ac.SL_NOT_LOADED}
         token = self.auto.new_token()
         skip_missing = self.skip_settings.missing() if any(mission.skip_allowed) else []
+        mask_rec, self._start_mask_record = getattr(self, '_start_mask_record', None), None
         def steps(rec):
+            if mask_rec:   # REV-285 (DEC-505 移行の措置, DEC-506)
+                secs = '、'.join(f"区間 {c['section']}：{c['saved_mps']} → {c['used_mps']}" for c in mask_rec['clamped_sections'])
+                rec('speed_mask_made_at_start', (f"区間の制限を V_auto {mask_rec['v_auto_mps']} m/s で頭打ち（{secs}）" if secs else 'section limits within V_auto')
+                    + ('; the mask saved before REV-285 was made again with the gradient' if mask_rec['gradient_added'] else ''), mask_rec)
             if skip_missing:
                 rec('waypoint_skip_disabled', f'waypoints are marked skip_allowed but nothing is skipped: unresolved {skip_missing} (DEC-367)', {'missing': skip_missing})
             self.auto.activate_vehicle_output(token, rec)   # first: neutral to the ESP32 while the rest starts (DEC-391)

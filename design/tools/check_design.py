@@ -37,7 +37,10 @@ RULES = [
     ('DR-15', '設定値は正本で一度だけ宣言され、生成物と一致し、コードにハードコードされていない', 'RQ-I076（intent.md:103 実測値はプログラムにハードコードせず、宣言的に書く）、RQ-I058（intent.md:83 設定はROS parameterで行う）'),
     ('DR-16', 'ログの自動開始 IF は人の開始操作の受理時だけ呼ばれる（復帰・再開・PC再起動・起動・画面再接続の遷移と monitor から参照されない）', 'RQ-I015（intent.md:19 Record の自動開始の契機は人が押した地図作成開始ボタンと自律走行開始ボタンのみ。復帰や再開ボタンでは開始しない）、DEC-071'),
     ('DR-17', 'transient_local の topic は保持件数を宣言し、実装では同じ topic の全 publisher が transient_local の QoS を使う', 'DEC-072（volatile の publisher が一つでもあると transient_local の購読者はそこから受信できない）、RQ-I058'),
+    ('DR-18', 'velocity_smoother の前進の上限 PRM-66 は自律走行の上限 PRM-131（V_auto）と同じ値（導出値）', 'DEC-505（速度の値を 1 本の鎖にする。第258便の提案の DR-新1）'),
+    ('DR-19', '自律走行の上限 PRM-131（V_auto）は車体の能力 PRM-39（V_full）以下', 'DEC-505（第258便の提案の DR-新3。DR-新2「区間の制限 ≤ PRM-131」は実行時の値なので monitor・開始時の検査と単体試験で担う）'),
 ]
+SPEED_CHAIN = {'v_full': 'PRM-39', 'v_auto': 'PRM-131', 'smoother': 'PRM-66'}   # DEC-505
 AUTO_RECORD_IF_PREFIX = 'record/log/start_'          # IFD-44 / IFD-45 (not the human Record IFD-08 'record/log/start')
 AUTO_RECORD_FORBIDDEN_EVENTS = ('fault_recovery', 'resume', 'pc_restart', 'boot', 'recovery_failed', 'nav_failure', 'goal_reached')
 
@@ -313,6 +316,21 @@ def run(model, schema, manifest):
                 if defn is None: u.append(f'{tl_topics[topic]}: {src.relative_to(root.parent)} の publisher QoS {qos_name} を解決できない')
                 elif 'TRANSIENT_LOCAL' not in defn.group(1): v.append(f'{tl_topics[topic]}: {src.relative_to(root.parent)} の publisher QoS {qos_name} が transient_local ではない')
     result('DR-17', v, u)
+    # DR-18 / DR-19 (DEC-505): one chain of speeds V_full (PRM-39) >= V_auto (PRM-131) = the smoother's forward limit (PRM-66)
+    def speed(key):
+        e = ents.get(SPEED_CHAIN[key])
+        if e is None or e.get('kind') != 'parameter': return None, f'{SPEED_CHAIN[key]} がない'
+        p = e['parameter']; val = p.get('value')
+        if p.get('value_state') != 'approved' or isinstance(val, bool) or not isinstance(val, (int, float)):
+            return None, f"{SPEED_CHAIN[key]} の値が承認済みの数でない（{p.get('value_state')}、{val!r}）"
+        return float(val), None
+    (va, ea), (vs, es), (vf, ef) = speed('v_auto'), speed('smoother'), speed('v_full')
+    v = []; u = [x for x in (ea, es) if x]
+    if not u and va != vs: v.append(f'PRM-66（{vs}）が PRM-131（{va}）と違う：PRM-66 は PRM-131 から導く値（DEC-505）')
+    result('DR-18', v, u)
+    v = []; u = [x for x in (ea, ef) if x]
+    if not u and va > vf: v.append(f'PRM-131（{va}）が PRM-39（{vf}）を超える：自律走行の上限は車体の能力以下（DEC-505）')
+    result('DR-19', v, u)
     return results
 
 
