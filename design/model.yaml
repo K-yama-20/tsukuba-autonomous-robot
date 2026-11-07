@@ -69588,6 +69588,34 @@ decisions:
       同じ日に、共有の作業ツリーへの書き込みとコミットを止めると連絡してきた）。merge の依頼は、人の回答の原文を添えてこのセッションに送る。 このセッションは、依頼の人の回答を直接は見られないので、merge
       の前にこの会話で人に確かめる（第278便と同じ）。push と車載 PC への反映は これまでどおり人の指示で行う。CLAUDE.md への担当の書き込みは、この回答には含めない（人の指示があれば案を出す）。
     disposition: answered
+  - id: DEC-542
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第281便）車載 PC に統合ブランチ 71211b9 を反映（update.sh）してよいか。前提として統合ブランチの push が要ること、 反映後に /config に MPPI 
+      の下限の保存値がないことの確認が要ることを添えた。
+    answer_verbatim: "反映して\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 第281便。AI の解釈：統合ブランチ 71211b9 の origin への push と、車載 PC での update.sh（setup.sh の build を含む）への yes。 Gouda
+      の起動は含まない。push の前にコミットのメールを人に示した（第281便の作業記録）。
+    disposition: answered
+  - id: DEC-543
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第281便）車載 PC で Gouda が動いていた（起動直後、前回の状態記録は manual）ため update.sh が拒む。 車載 PC の Gouda を gouda.sh stop
+      で止めて反映を進めてよいか。
+    answer_verbatim: "止めて進めて\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 第281便。停止の前に /mode/state を読み、mode 1（MANUAL）・processing_state idle・run_id 空であることを確かめてから gouda.sh stop 
+      を実行した。停止の後 Gouda は起動していない（起動は人の指示を待つ）。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -75321,6 +75349,24 @@ revisions:
       - DEC-541
       - DEC-499
       - DEC-501
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-308
+    date: '2026-11-07'
+    summary: 第281便：統合ブランチ design/mppi-sim-2026-11-03 の 71211b9（A・B・C の merge a2d9d02 を含む）を origin に push し、 
+      人の回答（DEC-542「反映して」、DEC-543「止めて進めて」）で車載 PC（x86）に update.sh で反映した（b021673 → 71211b9、detached）。 反映の前に Gouda
+      を gouda.sh stop で止めた（/mode/state は MANUAL・idle）。正本の値・コード・設定は変えていない（記録だけ）。
+    basis_refs:
+      - DEC-540
+      - DEC-542
+      - DEC-543
+      - DEC-505
+      - DEC-506
+      - DEC-507
+      - DEC-508
     added_entity_ids: []
     modified_entity_ids: []
     added_source_ids: []
