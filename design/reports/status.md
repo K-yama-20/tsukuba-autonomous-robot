@@ -2,6 +2,10 @@
 
 最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
 
+**第281便: 統合ブランチ 71211b9 の push と車載 PC への反映（REV-308、DEC-542・DEC-543）**（作業記録 `reports/worklog/2026-11-07_bin281_deploy_71211b9.md`）。
+- 人の回答「反映して」「止めて進めて」。71211b9 を origin に push。車載 PC（x86）は /mode/state MANUAL・idle を確かめて gouda.sh stop、作業ツリーを tar に退避（変更 0）、`update.sh design/mppi-sim-2026-11-03 71211b9` で b021673 → 71211b9（detached）。setup.sh の build 4 package 完了、単体試験 519 件 OK（skip 35）。/config に MPPI の下限の保存値なし。
+- Gouda は起動していない（人の指示待ち）。A・B・C・goal の出し直し・open_loop は次の start から効く。実車は未確認。
+
 **第278便: 確認走行の計画のブランチを統合ブランチに merge（REV-306、DEC-540）**（作業記録 `reports/worklog/2026-11-07_bin278_integrate_confirmation_plan.md`）。
 - 人の回答「入れて」。chat/confirmation-plan-2026-11-07（第258・260便、REV-285）を a2d9d02 で merge。衝突は model.yaml・生成物・検査の報告だけで、統合ブランチの版に REV-285 を当て直して作り直した（項目と DEC はブランチと同じ）。
 - 単体試験 519 件 OK（skip 35）、設計検査 違反0件・未判定5件（DR-15 の未判定 143、FAIL は前からの drawio・.DS_Store だけ）。push・車載 PC への反映は未実行。
