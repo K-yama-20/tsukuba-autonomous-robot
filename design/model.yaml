@@ -69616,6 +69616,21 @@ decisions:
     note: 第281便。停止の前に /mode/state を読み、mode 1（MANUAL）・processing_state idle・run_id 空であることを確かめてから gouda.sh stop 
       を実行した。停止の後 Gouda は起動していない（起動は人の指示を待つ）。
     disposition: answered
+  - id: DEC-547
+    kind: approval
+    status: answered
+    asked_on: '2026-11-07'
+    answered_on: '2026-11-07'
+    channel: chat
+    question: （第283便）確認走行の計画のチャットの第281便の記録（chat/confirmation-plan-2026-11-07 の 2ca1e43、記録だけ、REV-308）を統合ブランチに 
+      入れてよいか。一時的な worktree での試し（7b12cac）：衝突は model.yaml・生成物・検査の報告だけ、REV-308 の当て直しで違反・未判定の増加 0、 設計検査 
+      違反0件・未判定5件。
+    answer_verbatim: "入れて\n"
+    affected_refs: []
+    resulting_refs: []
+    note: 第283便。統合の担当のセッション（DEC-541）で受けた回答。第281便の内容（push、車載 PC の停止・退避・反映）は、そのチャットの人の回答 DEC-542・543 
+      によるもので、この記録の AI は直接は見ていない。AI の解釈：merge と、その後の当て直し・再生成・検査・記録のコミットへの yes。 push は含まない。
+    disposition: answered
 revisions:
   - id: REV-002
     date: '2026-10-08'
@@ -75367,6 +75382,21 @@ revisions:
       - DEC-506
       - DEC-507
       - DEC-508
+    added_entity_ids: []
+    modified_entity_ids: []
+    added_source_ids: []
+    added_file_ids: []
+    removed_entity_ids: []
+  - id: REV-310
+    date: '2026-11-07'
+    summary: 第283便：確認走行の計画のチャットの第281便の記録（2ca1e43。71211b9 の push と車載 PC への反映の記録、REV-308、DEC-542・543）を、 
+      人の回答（DEC-547）で統合ブランチ design/mppi-sim-2026-11-03 に merge した（7b12cac、親は 51c279b と 2ca1e43）。衝突は model.yaml・
+      生成物・検査の報告だけで、統合ブランチの版に REV-308 を当て直し、生成物を作り直した。正本の値・コード・設定は変えていない。
+    basis_refs:
+      - DEC-547
+      - DEC-541
+      - DEC-542
+      - DEC-543
     added_entity_ids: []
     modified_entity_ids: []
     added_source_ids: []

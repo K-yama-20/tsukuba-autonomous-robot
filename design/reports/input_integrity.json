@@ -23,7 +23,7 @@
     {
       "path": "design/docs/extraction_20261008_01a11af4/.DS_Store",
       "baseline_sha256": "b22e653f28dbddc41dfbfd85f4ca248c84acfd9bbbd97501057f0263311370bf",
-      "current_sha256": null,
+      "current_sha256": "62d89055ffb52281e0146fc7c19596cee58a80e32d53a8581660d86d8755c2bf",
       "status": "不一致"
     },
     {
@@ -113,7 +113,7 @@
     {
       "path": "design/docs/extraction_20261008_01a11af4/raw_xlsx/.DS_Store",
       "baseline_sha256": "e94f88003ff0e837caa6996ff85f13bbecf3ccaf97b7db7d13fb36c3210f9574",
-      "current_sha256": null,
+      "current_sha256": "fbd69bd928c62c91b1e5cc1d69a413ac0aaf475e89b4b22138571fb54750a9d1",
       "status": "不一致"
     },
     {
