@@ -90,7 +90,13 @@
 
 - 試験の修正 1 件（原因の分類：試験。手順・試験基盤）：自分で書いた試験の、遠隔ブランチの一覧の比べ方が誤っていた。合否の基準（何も取得されていないこと）は変えていない。
 
-## 残るリスク
+## 人の指示「push して進めて」（2026-11-07）の後
+
+- push：`git push origin design/mppi-sim-2026-11-03`。origin の先頭は `b021673`（この便のコミットと、その後に他のセッションが統合した第252・264・270便を含む）。コミットの identity は ryoya-1@g.ecc.u-tokyo.ac.jp。push の前に、origin との差分に PC のホスト名・ユーザー名・tailnet のアドレスがないことを grep で確かめた（残っているアドレスは localhost、文書用の 192.0.2.x、すでに公開済みのセンサの LAN のアドレスだけ）。
+- 車載 PC（x86）：Tailscale で offline（最後の接続は約 2 時間前）。ssh はタイムアウト。退避・checkout は未実行。
+- VM（Parallels の Ubuntu）：読むだけ。ブランチ main の `c2b8d65`（PR #17 の merge。2026-10-22 ごろの版）。管理下の変更 38 件、未追跡 8 件、stash 1 件（「bin116 test copy」）。Gouda の pid ファイルはあるがプロセスは 0。/mode/state は未確認（ROS を読み込まずに見た）。
+- VM を同じ手順で統合ブランチに合わせるかは、人に確認中（VM は実車に載っていない試験環境）。
+
 
 - `update.sh` の新しい道は Mac の一時のリポジトリでしか試していない。車載 PC の git の版、single-branch の clone、ネットワーク越しの取得では未確認。
 - detached で checkout した後に引数なしの `bash update.sh` を実行すると、main に切り替わる（前からの動き）。
