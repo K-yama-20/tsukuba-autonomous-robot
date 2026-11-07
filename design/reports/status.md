@@ -2,6 +2,10 @@
 
 最終更新：2026-11-02（第178便。REV-190、第177便。REV-189、第176便。REV-186〜188、第169〜171・174・175便。REV-185・第167〜168便は 2026-11-01。REV-184・第166便は 2026-10-26。REV-176〜183・第152〜165便は 2026-10-24）。
 
+**第278便: 確認走行の計画のブランチを統合ブランチに merge（REV-306、DEC-540）**（作業記録 `reports/worklog/2026-11-07_bin278_integrate_confirmation_plan.md`）。
+- 人の回答「入れて」。chat/confirmation-plan-2026-11-07（第258・260便、REV-285）を a2d9d02 で merge。衝突は model.yaml・生成物・検査の報告だけで、統合ブランチの版に REV-285 を当て直して作り直した（項目と DEC はブランチと同じ）。
+- 単体試験 519 件 OK（skip 35）、設計検査 違反0件・未判定5件（DR-15 の未判定 143、FAIL は前からの drawio・.DS_Store だけ）。push・車載 PC への反映は未実行。
+
 **第270便: MID-360 の 2 本のブランチを統合ブランチに merge（REV-295、DEC-528）**（作業記録 `reports/worklog/2026-11-07_bin270_integrate_mid360_a1_status.md`）。
 - 人の回答「merge して」。chat/mid360-a1-2026-11-07（第235便の A1・第264便）と chat/mid360-status-2026-11-07（第252便）を fast-forward で入れた（9acdc7f → 4e6bbb6）。共有の作業ツリーの同じ中身の写しは退避してから片付けた。
 - REV-288・REV-278 の当て直しで model.yaml が一致。生成物は変わらず。単体試験 498 件 OK（skip 35）、設計検査 違反0件・未判定5件（FAIL は前からの drawio・.DS_Store だけ）。push・Dell の setup.sh・車載 PC への反映は未実行。

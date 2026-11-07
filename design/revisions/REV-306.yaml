@@ -1,0 +1,39 @@
+# reserved by reserve_ids.py: integrate-confirmation-plan 2026-11-07T10:43:10
+# 変更セット REV-306（2026-11-07 第278便: 確認走行の計画のブランチを統合ブランチに merge する人の回答。DEC-540）
+# 適用: design/tools/apply_revision.py REV-306
+id: REV-306
+date: '2026-11-07'
+summary: >-
+  第278便：chat/confirmation-plan-2026-11-07（f151915。第258便の提案、第260便の速度の鎖・速度マスクの傾斜・不感帯の下限、REV-285）を、
+  人の回答（DEC-540）で統合ブランチ design/mppi-sim-2026-11-03 に merge した（a2d9d02、親は 99af372 と f151915）。衝突は model.yaml・生成物・
+  検査の報告だけで、CLAUDE.md 1.14 のとおり統合ブランチの版に REV-285 を当て直し、生成物を作り直した。正本の値・コード・設定は、取り込んだ
+  ブランチのものから変えていない（取り込みと記録だけ）。
+basis_refs:
+- DEC-540
+- DEC-505
+- DEC-506
+- DEC-507
+- DEC-508
+intent_version_copy: design/baselines/intent_history/intent_v17_e9be63b89024.md
+files: []
+decisions:
+- id: DEC-540
+  kind: approval
+  status: answered
+  asked_on: '2026-11-07'
+  answered_on: '2026-11-07'
+  channel: chat
+  question: >-
+    （第278便）確認走行の計画のブランチ chat/confirmation-plan-2026-11-07（第258・260便、REV-285）を統合ブランチ design/mppi-sim-2026-11-03 に
+    入れてよいか。一時的な worktree での試し（b52630f）：衝突は model.yaml・生成物・検査の報告だけ、REV-285 の当て直しで違反の増加 0、
+    単体試験 519 件 OK、設計検査 違反0件・未判定5件。
+  answer_verbatim: |
+    入れて
+  affected_refs: []
+  resulting_refs: []
+  note: >-
+    第278便。この回答は統合の担当のチャット（第255・270便と同じセッション）で受けた。その前に、確認走行の計画のチャットが、そのチャットの質問
+    「このブランチを統合ブランチに merge する作業に進めてよいですか？」への人の回答「merge して」を、セッションの間の連絡で伝えてきた。その回答は
+    この記録の AI が直接は見ていないので、この会話でもう一度確かめた。AI の解釈：merge と、その後の当て直し・再生成・検査・試験・記録のコミット
+    への yes。push と車載 PC への反映は含まない。
+  disposition: answered
