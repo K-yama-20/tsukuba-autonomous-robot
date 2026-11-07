@@ -97,6 +97,15 @@
 - VM（Parallels の Ubuntu）：読むだけ。ブランチ main の `c2b8d65`（PR #17 の merge。2026-10-22 ごろの版）。管理下の変更 38 件、未追跡 8 件、stash 1 件（「bin116 test copy」）。Gouda の pid ファイルはあるがプロセスは 0。/mode/state は未確認（ROS を読み込まずに見た）。
 - VM を同じ手順で統合ブランチに合わせるかは、人に確認中（VM は実車に載っていない試験環境）。
 
+## 人の指示「x86がつながった」「確かめた、もう一度」の後（2026-11-07 07:2x）
+
+- 1 回目の接続は鍵の認証で拒否された（Permission denied (publickey)。鍵はこれまでと同じ）。人が x86 側を確かめた後の 2 回目は通った。原因は未確認（人の側の作業の内容は聞いていない）。
+- 読んだ結果：x86 の `~/gouda_ws/src/tsukuba-autonomous-robot` は、**すでに** 統合ブランチの `b021673` を detached で checkout した状態だった（管理下の変更 0、未追跡 0）。reflog：06:48:43 に stash（`git stash push` の内部の reset）、06:48:46 に main へ切替と origin/main の ff（`1a26c93`）、06:49:37 に `b021673` を checkout、06:49〜06:50 にビルド（`~/gouda_ws/log/build_2026-11-07_06-49-39`）。07:02:31 に `gouda.sh start`（`.bash_history` の末尾、人の操作と思われる）。Gouda は動いている（プロセス 28、`/mode/state` は mode 1）。Gouda には触れていない。
+- 退避は `~/vehicle_pc_local_20261107/` にあった：HEAD.txt（`9caaa65`、dev-tab-vehicle-test）、git_status.txt（106 行）、git_diff_HEAD.patch、作業ツリーの tgz、SHA256SUMS、update.log（UPDATE_EXIT=0）、setup2.log（SETUP_EXIT=0）、stash.txt（stash の commit `4814a4a`）。誰が行ったかは、第255便のセッションに確認中（返事はまだ）。
+- 気づいた点と、こちらで行った 1 件：`git stash list` が空で、stash の commit `4814a4a` は dangling だった（refs から外れていた。gc で消えうる）。tgz と diff には同じ内容が残っている。消えないよう `git branch backup/vehicle-pc-local-20261107 4814a4a` で留めた（作業ツリーは変えない。Gouda に影響しない）。これ以外は車載 PC を変えていない。
+- 退避した変更と `b021673` の差分（判断の材料。読むだけ）：`git diff --stat 4814a4a b021673 -- <退避時の変更ファイル>` で 87 ファイル。退避した変更は dev-tab-vehicle-test 系統（旧番号の第187〜207便、REV-201〜210）と、第215・217・236・241便の手写しで、第220便で番号を付け直して統合済み。差分は主に番号の付け直しと、その後の便の追加（例：mid360_config.py に 222 行、gouda_nav2.launch.py に 31 行）。退避した側だけにある行があるかは、ファイルごとには見ていない（未判定。一覧は tgz と diff で再現できる）。
+- 手順との違い：`update.sh <ブランチ> <コミット>` でなく、手で `git switch` と `setup.sh` が使われていた（update.log の UPDATE_EXIT=0 は引数なしの `update.sh` で main に ff した記録）。結果は手順の案と同じ状態。
+
 
 - `update.sh` の新しい道は Mac の一時のリポジトリでしか試していない。車載 PC の git の版、single-branch の clone、ネットワーク越しの取得では未確認。
 - detached で checkout した後に引数なしの `bash update.sh` を実行すると、main に切り替わる（前からの動き）。
